@@ -40,17 +40,23 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 - CTC throws: **CATS**
 - First plant: **Brick** → [`panels/HART_Brick.xml`](panels/HART_Brick.xml)
 
-## Run (local)
+## Install + run (macOS)
+
+CATS **must** be copied into your JMRI folder (`cats.jar` next to `jmri.jar`). Running it from this repo alone fails with `Could not find or load main class cats.apps.Crandic`.
 
 ```bash
-# 1) JMRI already running with hart_prod.xml
-# 2) CATS runtime:
-./cats/scripts/launch_cats.sh
-# then File → Open cats/panels/HART_Brick.xml
+# once:
+./tools/cats/fetch_cats_3.2.sh          # if needed
+./tools/cats/install_into_jmri.sh       # → /Applications/JMRI
 
-# Designer (topology polish):
-./cats/scripts/launch_designer.sh
+# each session (no sudo; quit PanelPro on the same profile first):
+./cats/scripts/launch_cats.sh
+# then File → Open → cats/panels/HART_Brick.xml
+
+./cats/scripts/launch_designer.sh       # Digicon editor
 ```
+
+`readelf` warnings on macOS from `cats.csh` are harmless ARM probes; prefer `StartJMRI -m cats.apps.Crandic` (what `launch_cats.sh` uses).
 
 Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_BUILD.md`](docs/HART_DESIGNER_BUILD.md).
 
