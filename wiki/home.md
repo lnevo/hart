@@ -9,5 +9,6 @@ Chat is a scratchpad. Decisions that count live here.
 | Agent / git conventions | [`AGENTS_GIT.md`](AGENTS_GIT.md) |
 | JMRI AI context | [`../docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md) |
 
-**Active project:** [`projects/hart-panel.md`](projects/hart-panel.md)  
-**Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`
+**Active projects:** [`projects/hart-panel.md`](projects/hart-panel.md) · [`projects/cats-integration.md`](projects/cats-integration.md)  
+**Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`  
+**CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style)

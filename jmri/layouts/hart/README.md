@@ -32,10 +32,24 @@ Open in JMRI: **`output/hart_prod.xml`** (same bytes as `hart_blocked.xml` after
 | `data/control_points.csv` | CP → switches |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
 
+## Maintenance scripts
+
+```bash
+python3 jmri/scripts/cleanup_hart_duplicate_blocks.py   # drop empty duplicate <block> rows
+python3 jmri/scripts/polish_hart_cp_labels.py           # CP/area label hierarchy
+python3 jmri/scripts/export_hart_devices_for_cats.py    # CATS Designer bindings
+python3 jmri/scripts/check_hart_phase02.py
+```
+
+## CATS CTC
+
+See [`cats/README.md`](../../../cats/README.md) and ADR-004. Layout Editor panel name is **HART**.
+
 ## Phase scope
 
-| In (0–2) | Out |
-|----------|-----|
-| Register layout, naming, purge unused internals | Signals / SML |
-| OS / CP documentation | NX Entry/Exit |
+| In (0–2 + continue) | Later |
+|---------------------|--------|
+| Register layout, naming, purge unused internals | Full SML in JMRI |
+| OS / CP documentation + label hierarchy | NX Entry/Exit |
 | Git + wiki SoR | NextTrain push / Pi cutover |
+| CATS scaffold + Brick Designer guide | Live CATS interlocking |

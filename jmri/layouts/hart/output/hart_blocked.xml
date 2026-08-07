@@ -559,178 +559,6 @@
   </signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
-    <block systemName="IB1">
-      <systemName>IB1</systemName>
-      <userName>OS 116 (West Yard)</userName>
-    </block>
-    <block systemName="IB3">
-      <systemName>IB3</systemName>
-      <userName>Yard T1</userName>
-    </block>
-    <block systemName="IB6">
-      <systemName>IB6</systemName>
-      <userName>OS 117b (West Yard)</userName>
-    </block>
-    <block systemName="IB8">
-      <systemName>IB8</systemName>
-      <userName>OS 117 (West Yard)</userName>
-    </block>
-    <block systemName="IB15">
-      <systemName>IB15</systemName>
-      <userName>Yard T6</userName>
-    </block>
-    <block systemName="IB18">
-      <systemName>IB18</systemName>
-      <userName>OS 119 (West Yard)</userName>
-    </block>
-    <block systemName="IB19">
-      <systemName>IB19</systemName>
-      <userName>OS 118 (West Yard)</userName>
-    </block>
-    <block systemName="IB20">
-      <systemName>IB20</systemName>
-      <userName>Yard T9</userName>
-    </block>
-    <block systemName="IB21">
-      <systemName>IB21</systemName>
-      <userName>Yard T10</userName>
-    </block>
-    <block systemName="IB22">
-      <systemName>IB22</systemName>
-      <userName>Yard T11</userName>
-    </block>
-    <block systemName="IB:AUTO:0001">
-      <systemName>IB:AUTO:0001</systemName>
-      <userName>Main East</userName>
-    </block>
-    <block systemName="IB:AUTO:0003">
-      <systemName>IB:AUTO:0003</systemName>
-      <userName>Main West</userName>
-    </block>
-    <block systemName="IB:AUTO:0005">
-      <systemName>IB:AUTO:0005</systemName>
-      <userName>Block 100-102</userName>
-    </block>
-    <block systemName="IB:AUTO:0007">
-      <systemName>IB:AUTO:0007</systemName>
-      <userName>Yard Track 5</userName>
-    </block>
-    <block systemName="IB:AUTO:0008">
-      <systemName>IB:AUTO:0008</systemName>
-      <userName>Yard Track 4</userName>
-    </block>
-    <block systemName="IB:AUTO:0010">
-      <systemName>IB:AUTO:0010</systemName>
-      <userName>McKees Rocks</userName>
-    </block>
-    <block systemName="IB:AUTO:0012">
-      <systemName>IB:AUTO:0012</systemName>
-      <userName>Yard Track 1</userName>
-    </block>
-    <block systemName="IB:AUTO:0016">
-      <systemName>IB:AUTO:0016</systemName>
-      <userName>Yard Track 2</userName>
-    </block>
-    <block systemName="IB:AUTO:0017">
-      <systemName>IB:AUTO:0017</systemName>
-      <userName>East Lead</userName>
-    </block>
-    <block systemName="IB:AUTO:0020">
-      <systemName>IB:AUTO:0020</systemName>
-      <userName>West Yard 1</userName>
-    </block>
-    <block systemName="IB:AUTO:0022">
-      <systemName>IB:AUTO:0022</systemName>
-      <userName>West Yard 2</userName>
-    </block>
-    <block systemName="IB:AUTO:0026">
-      <systemName>IB:AUTO:0026</systemName>
-      <userName>Yard Track 3</userName>
-    </block>
-    <block systemName="IB:AUTO:0030">
-      <systemName>IB:AUTO:0030</systemName>
-      <userName>OS 112 (East End)</userName>
-    </block>
-    <block systemName="IB:AUTO:0031">
-      <systemName>IB:AUTO:0031</systemName>
-      <userName>OS 102 (Plane)</userName>
-    </block>
-    <block systemName="IB:AUTO:0032">
-      <systemName>IB:AUTO:0032</systemName>
-      <userName>OS 114 (Princess)</userName>
-    </block>
-    <block systemName="IB:AUTO:0033">
-      <systemName>IB:AUTO:0033</systemName>
-      <userName>OS 100 (Brick)</userName>
-    </block>
-    <block systemName="IB:AUTO:0034">
-      <systemName>IB:AUTO:0034</systemName>
-      <userName>OS 111a (East End)</userName>
-    </block>
-    <block systemName="IB:AUTO:0035">
-      <systemName>IB:AUTO:0035</systemName>
-      <userName>OS 101 (Brick)</userName>
-    </block>
-    <block systemName="IB:AUTO:0036">
-      <systemName>IB:AUTO:0036</systemName>
-      <userName>OS 107 (East End)</userName>
-    </block>
-    <block systemName="IB:AUTO:0037">
-      <systemName>IB:AUTO:0037</systemName>
-      <userName>OS 108 (East End)</userName>
-    </block>
-    <block systemName="IB:AUTO:0038">
-      <systemName>IB:AUTO:0038</systemName>
-      <userName>OS 106 (South Yard)</userName>
-    </block>
-    <block systemName="IB:AUTO:0039">
-      <systemName>IB:AUTO:0039</systemName>
-      <userName>OS 111b (East End)</userName>
-    </block>
-    <block systemName="IB:AUTO:0040">
-      <systemName>IB:AUTO:0040</systemName>
-      <userName>OS 115 (Princess)</userName>
-    </block>
-    <block systemName="IB:AUTO:0041">
-      <systemName>IB:AUTO:0041</systemName>
-      <userName>OS 103 (South Yard)</userName>
-    </block>
-    <block systemName="IB:AUTO:0042">
-      <systemName>IB:AUTO:0042</systemName>
-      <userName>OS 110 (East End)</userName>
-    </block>
-    <block systemName="IB:AUTO:0043">
-      <systemName>IB:AUTO:0043</systemName>
-      <userName>OS 109 (East End)</userName>
-    </block>
-    <block systemName="IB:AUTO:0044">
-      <systemName>IB:AUTO:0044</systemName>
-      <userName>OS 104 (South Yard)</userName>
-    </block>
-    <block systemName="IB:AUTO:0045">
-      <systemName>IB:AUTO:0045</systemName>
-      <userName>OS 105 (South Yard)</userName>
-    </block>
-    <block systemName="IB:AUTO:0046">
-      <systemName>IB:AUTO:0046</systemName>
-      <userName>OS 113a (Princess)</userName>
-    </block>
-    <block systemName="IB:AUTO:0047">
-      <systemName>IB:AUTO:0047</systemName>
-      <userName>OS 113b (Princess)</userName>
-    </block>
-    <block systemName="IB:AUTO:0048">
-      <systemName>IB:AUTO:0048</systemName>
-      <userName>McKeesport</userName>
-    </block>
-    <block systemName="IB:AUTO:0050">
-      <systemName>IB:AUTO:0050</systemName>
-      <userName>West Main Ext</userName>
-    </block>
-    <block systemName="IB:AUTO:0051">
-      <systemName>IB:AUTO:0051</systemName>
-      <userName>East Main Ext</userName>
-    </block>
     <block systemName="IB1" length="0.0" curve="0">
       <systemName>IB1</systemName>
       <userName>OS 116 (West Yard)</userName>
@@ -1771,7 +1599,7 @@
       </MaleSocket>
     </DisplayActionWindowManagement>
   </LogixNGDigitalActions>
-  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="My Layout" x="6" y="41" windowheight="651" windowwidth="1914" panelheight="650" panelwidth="1959" sliders="no" scrollable="none" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30.0" turnoutcx="30.0" turnoutwid="15.0" xoverlong="45.0" xoverhwid="15.0" xovershort="15.0" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="10" gridSize2nd="10" openDispatcher="no" useDirectTurnoutControl="no">
+  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="HART" x="6" y="41" windowheight="651" windowwidth="1914" panelheight="650" panelwidth="1959" sliders="no" scrollable="none" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30.0" turnoutcx="30.0" turnoutwid="15.0" xoverlong="45.0" xoverhwid="15.0" xovershort="15.0" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="10" gridSize2nd="10" openDispatcher="no" useDirectTurnoutControl="no">
     <layoutTrackDrawingOptions name="My Layout" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTrackDrawingOptionsXml">
       <mainBallastColor>#000000</mainBallastColor>
       <mainBallastWidth>0</mainBallastWidth>
@@ -1798,10 +1626,10 @@
       <sideTieLength>0</sideTieLength>
       <sideTieWidth>0</sideTieWidth>
     </layoutTrackDrawingOptions>
-    <positionablelabel x="877" y="48" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Neville Island" size="24" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="113" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="West Yard" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="765" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="South Yard" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1043" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Industries" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="877" y="48" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Neville Island" size="28" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="113" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="West Yard" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="765" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="South Yard" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1043" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Industries" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1648" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="McKees Rocks, PA →" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="55" y="419" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="← Neville Island West" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1648" y="419" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="McKeesport, PA →" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -1822,11 +1650,11 @@
     <positionablelabel x="1555" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="114" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1577" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="115" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <signalmasticon signalmast="Signal Mast 1" x="325" y="396" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <positionablelabel x="353" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Brick" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="353" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Brick" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="502" y="380" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Barn" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="292" y="315" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Plane" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1308" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East End" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1561" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Princess" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="292" y="315" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Plane" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1308" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East End" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1561" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Princess" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="943" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Main West" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="943" y="528" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Main East" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="103" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />

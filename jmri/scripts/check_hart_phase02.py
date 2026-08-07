@@ -45,6 +45,23 @@ def main() -> int:
     if not clock:
         errors.append("ISCLOCKRUNNING missing")
 
+    # Panel title
+    le_names = [le.get("name") for le in root.iter("LayoutEditor")]
+    if "HART" not in le_names:
+        errors.append(f"LayoutEditor name not HART: {le_names}")
+
+    # No duplicate block userNames
+    from collections import Counter
+
+    counts = Counter(
+        (b.findtext("userName") or "").strip()
+        for b in root.iter("block")
+        if (b.findtext("userName") or "").strip()
+    )
+    dups = [f"{n}×{c}" for n, c in counts.items() if c > 1]
+    if dups:
+        errors.append("duplicate block userNames: " + ", ".join(dups[:8]))
+
     # Expected OS public names present on layout turnouts
     with CSV.open(newline="", encoding="utf-8") as f:
         expected_os = {

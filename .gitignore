@@ -47,3 +47,7 @@ jmri/layouts/**/*_status.txt
 
 # Optional local JMRI prefs dumps
 **/pi_prefs/
+
+# CATS binaries (fetch with tools/cats/fetch_cats_3.2.sh)
+tools/cats/release3.2/
+tools/cats/*.zip
