@@ -1,19 +1,18 @@
-# Waiting on you (agent continues otherwise)
+# Waiting on you
 
-iMessage from this environment timed out (macOS Messages permission likely). Replies here, in chat, or iMessage all work.
+**Cleared 2026-08-07** — decisions locked in ADR-004:
 
-## Please answer
+| Question | Answer |
+|----------|--------|
+| JMRI version | Current host build (**5.15.4plus** in hart panel; CATS 3.2 OK) |
+| Who throws switches in CTC | **CATS** |
+| First plant | **Brick** |
 
-1. **JMRI version** on the layout host (CATS 3.2 needs **≤ 5.16**; we target 5.15.5).
-2. **Who throws switches** in a CTC session: **CATS** (recommended), NextTrain, or Layout Editor?
-3. OK to treat **Brick** as the first live CATS plant?
+## Your next hands-on step
 
-## Already pushed
+1. JMRI up → load `jmri/layouts/hart/output/hart_prod.xml`
+2. `./cats/scripts/launch_cats.sh` (or Designer to polish topology)
+3. File → Open `cats/panels/HART_Brick.xml`
+4. Test OS 100 / Switch 100 per `cats/docs/BRICK_BINDINGS.md`
 
-Branch: [`agent/composer/cats-and-panel-continue`](https://github.com/lnevo/hart/tree/agent/composer/cats-and-panel-continue)
-
-- HART panel: OS names, no duplicate blocks, CP label hierarchy, `SIG …` mast slots  
-- CATS scaffold: bindings CSVs, Designer guide, Brick cheat-sheet, CATS 3.2 fetch script  
-- ADR-004 proposed  
-
-Load panel: `jmri/layouts/hart/output/hart_prod.xml`
+If Designer rejects MQTT manager class names, re-bind devices in the Designer tables UI using the CSVs — keep the same user names.

@@ -34,16 +34,29 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 | [`data/plants_from_hart.csv`](data/plants_from_hart.csv) | CP → switch list |
 | [`data/signal_mast_plan.csv`](data/signal_mast_plan.csv) | Planned mast slots |
 
+## Decisions (Accepted)
+
+- JMRI: **current** host (panel reports **5.15.4plus** — OK for CATS 3.2)
+- CTC throws: **CATS**
+- First plant: **Brick** → [`panels/HART_Brick.xml`](panels/HART_Brick.xml)
+
 ## Run (local)
 
-1. Start JMRI with the HART profile; load `jmri/layouts/hart/output/hart_prod.xml` (hardware/monitor).
-2. From `tools/cats/release3.2/`, run `./designer.csh` or `./cats.csh` (see package `ReadMe.pdf`).
-3. Open sample `examples/ArmstrongMagnet.xml` first (magnet board), then follow [`docs/HART_DESIGNER_BUILD.md`](docs/HART_DESIGNER_BUILD.md).
-4. Save Designer work under `cats/panels/HART.xml` (create via Designer — do not invent a full TRACKPLAN by hand).
+```bash
+# 1) JMRI already running with hart_prod.xml
+# 2) CATS runtime:
+./cats/scripts/launch_cats.sh
+# then File → Open cats/panels/HART_Brick.xml
+
+# Designer (topology polish):
+./cats/scripts/launch_designer.sh
+```
+
+Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_BUILD.md`](docs/HART_DESIGNER_BUILD.md).
 
 ## Authority rule
 
-Only **one** UI may command turnouts/routes in a session: **CATS** (CTC) *or* NextTrain *or* Layout Editor click-to-throw. Others stay view-only.
+**CATS** commands turnouts/routes in CTC sessions. NextTrain and Layout Editor stay view / local (no dual-command).
 
 Do **not** save CATS-created SignalHead/Mast objects into JMRI tables (load-crash risk).
 

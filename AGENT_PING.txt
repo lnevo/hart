@@ -1,1 +1,0 @@
-See wiki/WAITING_ON_HUMAN.md — HART+CATS work on branch agent/composer/cats-and-panel-continue

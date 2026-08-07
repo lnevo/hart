@@ -1,24 +1,27 @@
 # Project — CATS CTC integration
 
 - **Owner:** lnevo
-- **Status:** Active scaffold
+- **Status:** Active — Brick first (ADR-004 **Accepted**)
 - **ADR:** [`../decisions/ADR-004-cats-ctc.md`](../decisions/ADR-004-cats-ctc.md)
 - **Code/docs:** [`cats/`](../../cats/)
 
-## Outcomes
+## Locked
 
-1. CATS 3.2 installable via `tools/cats/fetch_cats_3.2.sh`
-2. Device/plant bindings exported from hart
-3. Designer build guide for Brick-first CTC
-4. Human confirmation: JMRI version + command authority
+- JMRI: current (**5.15.4plus** / ≤5.16 for CATS 3.2)
+- CTC command authority: **CATS**
+- First plant: **Brick**
 
-## Waiting on human
+## Artifacts
 
-- JMRI version on layout host  
-- Confirm CATS throws switches during CTC sessions  
+| Path | Role |
+|------|------|
+| `cats/panels/HART_Brick.xml` | Starter Digicon panel (MQTT-bound Brick strip) |
+| `cats/docs/BRICK_BINDINGS.md` | Cheat-sheet |
+| `cats/scripts/launch_*.sh` | Designer / CATS launchers |
 
-## Next tickets (after confirmation)
+## Next
 
-- Designer `cats/panels/HART.xml` Brick plant  
-- Live occupancy/turnout test  
-- Expand east along CP list  
+- [ ] Live test: occupy `Block 4-2` → CATS colors OS 100
+- [ ] Live test: throw Switch 100 from CATS → MQTT motor
+- [ ] Polish topology in Designer if grid geometry needs fix
+- [ ] Expand to Plane → East End → Princess
