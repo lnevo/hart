@@ -1,9 +1,9 @@
 cp,direction,protects_switch,panel_x,panel_y,proposed_mast_name,phase
-Brick,west,100,353,272,Brick West Main,cats-phase-1-designer
-Brick,east,100,400,272,Brick East Main,cats-phase-1-designer
-Plane,west,102,292,315,Plane West Main,cats-phase-1-designer
-Plane,east,102,340,315,Plane East Main,cats-phase-1-designer
-East End,west,110,1260,272,East End West Main,cats-phase-1-designer
-East End,east,110,1360,272,East End East Main,cats-phase-1-designer
-Princess,west,113,1510,272,Princess West Main,cats-phase-1-designer
-Princess,east,115,1620,272,Princess East Main,cats-phase-1-designer
+Brick,west,100,348.5,252.0,Brick West Main,cats-phase-1-designer
+Brick,east,101,295.5,252.0,Brick East Main,cats-phase-1-designer
+Plane,west,102,312.5,363.0,Plane West Main,cats-phase-1-designer
+Plane,east,102,382.5,363.0,Plane East Main,cats-phase-1-designer
+East End,west,107,1068.5,459.5,East End West Main,cats-phase-1-designer
+East End,east,112,1401.5,315.0,East End East Main,cats-phase-1-designer
+Princess,west,113,1495.2,283.5,Princess West Main,cats-phase-1-designer
+Princess,east,115,1632.5,252.0,Princess East Main,cats-phase-1-designer
