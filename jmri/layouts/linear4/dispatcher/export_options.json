@@ -1,0 +1,7 @@
+{
+  "segment_scale": 2.5,
+  "control_point_scale": 2.5,
+  "offset_x": 48,
+  "offset_y": 36,
+  "connection_snap_tolerance": 6
+}

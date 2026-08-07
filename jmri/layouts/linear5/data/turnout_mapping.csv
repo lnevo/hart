@@ -1,0 +1,24 @@
+linear4_layout_ident,linear4_x,linear4_y,live_layout_ident,control_kind,panel_turnout_system,panel_turnout_user,live_internal_system,live_mqtt_system,live_mqtt_user,feedback_sensor1_user,feedback_sensor1_system,feedback_sensor2_user,feedback_sensor2_system,switch_id,dcc_address,match_dx_px,notes
+TOL38,187.00,168.00,,mqtt,M2T409,Switch 101,,M2T409,Switch 101,Switch 4-2 FB R,M2S473,Switch 4-2 FB N,M2S472,4-9,101,0.0,MQTT only (no layout turnout row found)
+TOL42,245.00,242.00,,mqtt,M2T410,Switch 102,,M2T410,Switch 102,Switch 4-3 FB R,M2S475,Switch 4-3 FB N,M2S474,4-10,102,0.0,MQTT only (no layout turnout row found)
+TOL3,249.00,168.00,,mqtt,M2T408,Switch 100,,M2T408,Switch 100,Switch 4-1 FB R,M2S471,Switch 4-1 FB N,M2S470,4-8,100,0.0,MQTT only (no layout turnout row found)
+TOR14,443.00,210.00,,mqtt,M2T308,Switch 103,,M2T308,Switch 103,Switch 3-1 FB R,M2S368,Switch 3-1 FB N,M2S367,3-8,103,0.0,MQTT only (no layout turnout row found)
+TOL15,489.00,244.00,,mqtt,M2T309,Switch 104,,M2T309,Switch 104,Switch 3-2 FB R,M2S370,Switch 3-2 FB N,M2S369,3-9,104,0.0,MQTT only (no layout turnout row found)
+TOL17,536.00,274.67,,mqtt,M2T310,Switch 105,,M2T310,Switch 105,Switch 3-3 FB R,M2S372,Switch 3-3 FB N,M2S371,3-10,105,0.0,MQTT only (no layout turnout row found)
+TOL19,584.33,307.00,,mqtt,M2T311,Switch 106,,M2T311,Switch 106,Switch 3-4 FB R,M2S374,Switch 3-4 FB N,M2S373,3-11,106,0.0,MQTT only (no layout turnout row found)
+TOR11,742.33,306.33,,mqtt,M2T1208,Switch 107,,M2T1208,Switch 107,Switch 12-1 FB R,M2S1268,Switch 12-1 FB N,M2S1267,12-8,107,0.0,MQTT only (no layout turnout row found)
+TOR31,783.00,168.00,,mqtt,M2T1212,Switch 111,,M2T1212,Switch 111,Switch 12-5 FB R,M2S1276,Switch 12-5 FB N,M2S1275,12-12,111,0.0,MQTT only (no layout turnout row found)
+TOR9,789.00,276.00,,mqtt,M2T1209,Switch 108,,M2T1209,Switch 108,Switch 12-2 FB R,M2S1270,Switch 12-2 FB N,M2S1269,12-9,108,0.0,MQTT only (no layout turnout row found)
+TOR7,837.00,244.00,,mqtt,M2T1210,Switch 109,,M2T1210,Switch 109,Switch 12-3 FB R,M2S1272,Switch 12-3 FB N,M2S1271,12-10,109,0.0,MQTT only (no layout turnout row found)
+TOR32,840.00,210.00,TOR32,internal_mqtt_fb,IT36,TOR32,IT36,M2T1212,Switch 111,Switch 12-5 FB R,M2S1276,Switch 12-5 FB N,M2S1275,12-12,111,9.4,Crossover leg; motor Switch 111 (M2T1212)
+TOL6,884.00,210.00,,mqtt,M2T1211,Switch 110,,M2T1211,Switch 110,Switch 12-4 FB R,M2S1274,Switch 12-4 FB N,M2S1273,12-11,110,0.0,MQTT only (no layout turnout row found)
+TOL23,931.00,210.00,,mqtt,M2T1213,Switch 112,,M2T1213,Switch 112,Switch 12-6 FB R,M2S1278,Switch 12-6 FB N,M2S1277,12-13,112,0.0,MQTT only (no layout turnout row found)
+TOL2,1011.00,210.00,,mqtt,M2T108,Switch 113,,M2T108,Switch 113,Switch 1-1 FB R,M2S168,Switch 1-1 FB N,M2S167,1-8,113,0.0,MQTT only (no layout turnout row found)
+TOL1,1056.00,168.00,TOL1,internal_mqtt_fb,IT1,TOL1,IT1,M2T108,Switch 113,Switch 1-1 FB R,M2S168,Switch 1-1 FB N,M2S167,1-8,113,13.4,Crossover leg; motor Switch 113 (M2T108)
+TOR36,1072.00,210.00,,mqtt,M2T109,Switch 114,,M2T109,Switch 114,Switch 1-2 FB R,M2S170,Switch 1-2 FB N,M2S169,1-9,114,0.0,MQTT only (no layout turnout row found)
+TOL29,1085.00,168.00,,mqtt,M2T110,Switch 115,,M2T110,Switch 115,Switch 1-3 FB R,M2S172,Switch 1-3 FB N,M2S171,1-10,115,0.0,MQTT only (no layout turnout row found)
+TO1,565.00,315.00,TO1,mqtt,M2T411,Switch 116,,M2T411,Switch 116,Switch 4-4 FB R,M2S477,Switch 4-4 FB N,M2S476,4-11,116,0.0,Yard turnout TO1
+TO6,445.00,362.00,TO6,mqtt,M2T1308,Switch 117,,M2T1308,Switch 117,Switch 13-1 FB R,M2S1368,Switch 13-1 FB N,M2S1367,13-8,117,0.0,Yard turnout TO6
+TO8,502.00,315.00,TO8,internal_mqtt_fb,IT37,TO8,IT37,M2T1308,Switch 117,Switch 13-1 FB R,M2S1368,Switch 13-1 FB N,M2S1367,13-8,117,0.0,"Crossover leg; motor Switch 117 (M2T1308), paired with TO6"
+TO11,526.00,278.00,TO11,mqtt,M2T1309,Switch 118,,M2T1309,Switch 118,Switch 13-2 FB R,M2S1370,Switch 13-2 FB N,M2S1369,13-9,118,0.0,Yard turnout TO11
+TO10,484.00,278.00,TO10,mqtt,M2T1310,Switch 119,,M2T1310,Switch 119,Switch 13-3 FB R,M2S1372,Switch 13-3 FB N,M2S1371,13-10,119,0.0,Yard turnout TO10

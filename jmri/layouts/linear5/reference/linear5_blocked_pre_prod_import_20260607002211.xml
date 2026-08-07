@@ -1,0 +1,2726 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/layout-5-5-5.xsd">
+  <jmriversion>
+    <major>5</major>
+    <minor>15</minor>
+    <test>5</test>
+    <modifier />
+  </jmriversion>
+  <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
+    <defaultInitialState>unknown</defaultInitialState>
+    <sensor inverted="false">
+      <systemName>ISIS1</systemName>
+      <userName>Block Sensor 1</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS2</systemName>
+      <userName>Block Sensor 2</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS3</systemName>
+      <userName>Block Sensor 3</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS4</systemName>
+      <userName>Block Sensor 4</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS5</systemName>
+      <userName>Block Sensor 5</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS6</systemName>
+      <userName>Block Sensor 6</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS7</systemName>
+      <userName>Block Sensor 7</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS8</systemName>
+      <userName>Block Sensor 8</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS9</systemName>
+      <userName>Block Sensor 9</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS10</systemName>
+      <userName>Block Sensor 10</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS11</systemName>
+      <userName>Block Sensor 11</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS12</systemName>
+      <userName>Block Sensor 12</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS13</systemName>
+      <userName>Block Sensor 13</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS14</systemName>
+      <userName>Block Sensor 14</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS15</systemName>
+      <userName>Block Sensor 15</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS16</systemName>
+      <userName>Block Sensor 16</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS17</systemName>
+      <userName>Block Sensor 17</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS18</systemName>
+      <userName>Block Sensor 18</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS19</systemName>
+      <userName>Block Sensor 19</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS20</systemName>
+      <userName>Block Sensor 20</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS21</systemName>
+      <userName>Block Sensor 21</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS22</systemName>
+      <userName>Block Sensor 22</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS23</systemName>
+      <userName>Block Sensor 23</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS24</systemName>
+      <userName>Block Sensor 24</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS25</systemName>
+      <userName>Block Sensor 25</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS26</systemName>
+      <userName>Block Sensor 26</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS27</systemName>
+      <userName>Block Sensor 27</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS28</systemName>
+      <userName>Block Sensor 28</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS29</systemName>
+      <userName>Block Sensor 29</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS30</systemName>
+      <userName>BS TOL23</userName>
+      <comment>TOL23</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS31</systemName>
+      <userName>BS TOL42</userName>
+      <comment>TOL42</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS32</systemName>
+      <userName>BS TOR36</userName>
+      <comment>TOR36</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS33</systemName>
+      <userName>BS TOL3</userName>
+      <comment>TOL3</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS34</systemName>
+      <userName>BS TOR31</userName>
+      <comment>TOR31</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS35</systemName>
+      <userName>BS TOL38</userName>
+      <comment>TOL38</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS36</systemName>
+      <userName>BS TOR11</userName>
+      <comment>TOR11</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS37</systemName>
+      <userName>BS TOR9</userName>
+      <comment>TOR9</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS38</systemName>
+      <userName>BS TOL19</userName>
+      <comment>TOL19</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS39</systemName>
+      <userName>BS TOR32</userName>
+      <comment>TOR32</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS40</systemName>
+      <userName>BS TOL29</userName>
+      <comment>TOL29</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS41</systemName>
+      <userName>BS TOR14</userName>
+      <comment>TOR14</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS42</systemName>
+      <userName>BS TOL6</userName>
+      <comment>TOL6</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS43</systemName>
+      <userName>BS TOR7</userName>
+      <comment>TOR7</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS44</systemName>
+      <userName>BS TOL15</userName>
+      <comment>TOL15</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS45</systemName>
+      <userName>BS TOL17</userName>
+      <comment>TOL17</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS46</systemName>
+      <userName>BS TOL2</userName>
+      <comment>TOL2</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS47</systemName>
+      <userName>BS TOL1</userName>
+      <comment>TOL1</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS48</systemName>
+      <userName>TOL1 FB_N</userName>
+      <comment>TOL1 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS49</systemName>
+      <userName>TOL1 FB_R</userName>
+      <comment>TOL1 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS50</systemName>
+      <userName>TOL15 FB_N</userName>
+      <comment>TOL15 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS51</systemName>
+      <userName>TOL15 FB_R</userName>
+      <comment>TOL15 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS52</systemName>
+      <userName>TOL17 FB_N</userName>
+      <comment>TOL17 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS53</systemName>
+      <userName>TOL17 FB_R</userName>
+      <comment>TOL17 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS54</systemName>
+      <userName>TOL19 FB_N</userName>
+      <comment>TOL19 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS55</systemName>
+      <userName>TOL19 FB_R</userName>
+      <comment>TOL19 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS56</systemName>
+      <userName>TOL2 FB_N</userName>
+      <comment>TOL2 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS57</systemName>
+      <userName>TOL2 FB_R</userName>
+      <comment>TOL2 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS58</systemName>
+      <userName>TOL23 FB_N</userName>
+      <comment>TOL23 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS59</systemName>
+      <userName>TOL23 FB_R</userName>
+      <comment>TOL23 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS60</systemName>
+      <userName>TOL29 FB_N</userName>
+      <comment>TOL29 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS61</systemName>
+      <userName>TOL29 FB_R</userName>
+      <comment>TOL29 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS62</systemName>
+      <userName>TOL3 FB_N</userName>
+      <comment>TOL3 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS63</systemName>
+      <userName>TOL3 FB_R</userName>
+      <comment>TOL3 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS64</systemName>
+      <userName>TOL38 FB_N</userName>
+      <comment>TOL38 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS65</systemName>
+      <userName>TOL38 FB_R</userName>
+      <comment>TOL38 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS66</systemName>
+      <userName>TOL42 FB_N</userName>
+      <comment>TOL42 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS67</systemName>
+      <userName>TOL42 FB_R</userName>
+      <comment>TOL42 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS68</systemName>
+      <userName>TOL6 FB_N</userName>
+      <comment>TOL6 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS69</systemName>
+      <userName>TOL6 FB_R</userName>
+      <comment>TOL6 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS70</systemName>
+      <userName>TOR11 FB_N</userName>
+      <comment>TOR11 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS71</systemName>
+      <userName>TOR11 FB_R</userName>
+      <comment>TOR11 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS72</systemName>
+      <userName>TOR14 FB_N</userName>
+      <comment>TOR14 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS73</systemName>
+      <userName>TOR14 FB_R</userName>
+      <comment>TOR14 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS74</systemName>
+      <userName>TOR31 FB_N</userName>
+      <comment>TOR31 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS75</systemName>
+      <userName>TOR31 FB_R</userName>
+      <comment>TOR31 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS76</systemName>
+      <userName>TOR32 FB_N</userName>
+      <comment>TOR32 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS77</systemName>
+      <userName>TOR32 FB_R</userName>
+      <comment>TOR32 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS78</systemName>
+      <userName>TOR36 FB_N</userName>
+      <comment>TOR36 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS79</systemName>
+      <userName>TOR36 FB_R</userName>
+      <comment>TOR36 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS80</systemName>
+      <userName>TOR7 FB_N</userName>
+      <comment>TOR7 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS81</systemName>
+      <userName>TOR7 FB_R</userName>
+      <comment>TOR7 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS82</systemName>
+      <userName>TOR9 FB_N</userName>
+      <comment>TOR9 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS83</systemName>
+      <userName>TOR9 FB_R</userName>
+      <comment>TOR9 Thrown</comment>
+    </sensor>
+  </sensors>
+  <turnouts class="jmri.jmrix.internal.configurexml.InternalTurnoutManagerXml">
+    <operations automate="false">
+      <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
+      <operation name="Raw" class="jmri.configurexml.turnoutoperations.RawTurnoutOperationXml" interval="300" maxtries="1" />
+      <operation name="Sensor" class="jmri.configurexml.turnoutoperations.SensorTurnoutOperationXml" interval="300" maxtries="3" />
+    </operations>
+    <defaultclosedspeed>Normal</defaultclosedspeed>
+    <defaultthrownspeed>Restricted</defaultthrownspeed>
+    <turnout feedback="TWOSENSOR" sensor1="TOL3 FB_R" sensor2="TOL3 FB_N" inverted="false" automate="Off">
+      <systemName>IT1</systemName>
+      <userName>TOL3</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR11 FB_R" sensor2="TOR11 FB_N" inverted="false" automate="Off">
+      <systemName>IT2</systemName>
+      <userName>TOR11</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL15 FB_R" sensor2="TOL15 FB_N" inverted="false" automate="Off">
+      <systemName>IT3</systemName>
+      <userName>TOL15</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL23 FB_R" sensor2="TOL23 FB_N" inverted="false" automate="Off">
+      <systemName>IT4</systemName>
+      <userName>TOL23</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL38 FB_R" sensor2="TOL38 FB_N" inverted="false" automate="Off">
+      <systemName>IT5</systemName>
+      <userName>TOL38</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL42 FB_R" sensor2="TOL42 FB_N" inverted="false" automate="Off">
+      <systemName>IT6</systemName>
+      <userName>TOL42</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR7 FB_R" sensor2="TOR7 FB_N" inverted="false" automate="Off">
+      <systemName>IT7</systemName>
+      <userName>TOR7</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL19 FB_R" sensor2="TOL19 FB_N" inverted="false" automate="Off">
+      <systemName>IT8</systemName>
+      <userName>TOL19</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL1 FB_R" sensor2="TOL1 FB_N" inverted="false" automate="Off">
+      <systemName>IT9</systemName>
+      <userName>TOL1</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR9 FB_R" sensor2="TOR9 FB_N" inverted="false" automate="Off">
+      <systemName>IT10</systemName>
+      <userName>TOR9</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR31 FB_R" sensor2="TOR31 FB_N" inverted="false" automate="Off">
+      <systemName>IT11</systemName>
+      <userName>TOR31</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL6 FB_R" sensor2="TOL6 FB_N" inverted="false" automate="Off">
+      <systemName>IT12</systemName>
+      <userName>TOL6</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL29 FB_R" sensor2="TOL29 FB_N" inverted="false" automate="Off">
+      <systemName>IT13</systemName>
+      <userName>TOL29</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL17 FB_R" sensor2="TOL17 FB_N" inverted="false" automate="Off">
+      <systemName>IT14</systemName>
+      <userName>TOL17</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR36 FB_R" sensor2="TOR36 FB_N" inverted="false" automate="Off">
+      <systemName>IT15</systemName>
+      <userName>TOR36</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR32 FB_R" sensor2="TOR32 FB_N" inverted="false" automate="Off">
+      <systemName>IT16</systemName>
+      <userName>TOR32</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL2 FB_R" sensor2="TOL2 FB_N" inverted="false" automate="Off">
+      <systemName>IT17</systemName>
+      <userName>TOL2</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR14 FB_R" sensor2="TOR14 FB_N" inverted="false" automate="Off">
+      <systemName>IT18</systemName>
+      <userName>TOR14</userName>
+    </turnout>
+  </turnouts>
+  <blocks class="jmri.configurexml.BlockManagerXml">
+    <defaultspeed>Normal</defaultspeed>
+    <block systemName="IB:AUTO:0001">
+      <systemName>IB:AUTO:0001</systemName>
+      <userName>Block_1</userName>
+    </block>
+    <block systemName="IB:AUTO:0002">
+      <systemName>IB:AUTO:0002</systemName>
+      <userName>Block_2</userName>
+    </block>
+    <block systemName="IB:AUTO:0003">
+      <systemName>IB:AUTO:0003</systemName>
+      <userName>Block_3</userName>
+    </block>
+    <block systemName="IB:AUTO:0004">
+      <systemName>IB:AUTO:0004</systemName>
+      <userName>Block_4</userName>
+    </block>
+    <block systemName="IB:AUTO:0005">
+      <systemName>IB:AUTO:0005</systemName>
+      <userName>Block_5</userName>
+    </block>
+    <block systemName="IB:AUTO:0006">
+      <systemName>IB:AUTO:0006</systemName>
+      <userName>Block_6</userName>
+    </block>
+    <block systemName="IB:AUTO:0007">
+      <systemName>IB:AUTO:0007</systemName>
+      <userName>Block_7</userName>
+    </block>
+    <block systemName="IB:AUTO:0008">
+      <systemName>IB:AUTO:0008</systemName>
+      <userName>Block_8</userName>
+    </block>
+    <block systemName="IB:AUTO:0009">
+      <systemName>IB:AUTO:0009</systemName>
+      <userName>Block_9</userName>
+    </block>
+    <block systemName="IB:AUTO:0010">
+      <systemName>IB:AUTO:0010</systemName>
+      <userName>Block_10</userName>
+    </block>
+    <block systemName="IB:AUTO:0011">
+      <systemName>IB:AUTO:0011</systemName>
+      <userName>Block_11</userName>
+    </block>
+    <block systemName="IB:AUTO:0012">
+      <systemName>IB:AUTO:0012</systemName>
+      <userName>Block_12</userName>
+    </block>
+    <block systemName="IB:AUTO:0013">
+      <systemName>IB:AUTO:0013</systemName>
+      <userName>Block_13</userName>
+    </block>
+    <block systemName="IB:AUTO:0014">
+      <systemName>IB:AUTO:0014</systemName>
+      <userName>Block_14</userName>
+    </block>
+    <block systemName="IB:AUTO:0015">
+      <systemName>IB:AUTO:0015</systemName>
+      <userName>Block_15</userName>
+    </block>
+    <block systemName="IB:AUTO:0016">
+      <systemName>IB:AUTO:0016</systemName>
+      <userName>Block_16</userName>
+    </block>
+    <block systemName="IB:AUTO:0017">
+      <systemName>IB:AUTO:0017</systemName>
+      <userName>Block_17</userName>
+    </block>
+    <block systemName="IB:AUTO:0018">
+      <systemName>IB:AUTO:0018</systemName>
+      <userName>Block_18</userName>
+    </block>
+    <block systemName="IB:AUTO:0019">
+      <systemName>IB:AUTO:0019</systemName>
+      <userName>Block_19</userName>
+    </block>
+    <block systemName="IB:AUTO:0020">
+      <systemName>IB:AUTO:0020</systemName>
+      <userName>Block_20</userName>
+    </block>
+    <block systemName="IB:AUTO:0021">
+      <systemName>IB:AUTO:0021</systemName>
+      <userName>Block_21</userName>
+    </block>
+    <block systemName="IB:AUTO:0022">
+      <systemName>IB:AUTO:0022</systemName>
+      <userName>Block_22</userName>
+    </block>
+    <block systemName="IB:AUTO:0023">
+      <systemName>IB:AUTO:0023</systemName>
+      <userName>Block_23</userName>
+    </block>
+    <block systemName="IB:AUTO:0024">
+      <systemName>IB:AUTO:0024</systemName>
+      <userName>Block_24</userName>
+    </block>
+    <block systemName="IB:AUTO:0025">
+      <systemName>IB:AUTO:0025</systemName>
+      <userName>Block_25</userName>
+    </block>
+    <block systemName="IB:AUTO:0026">
+      <systemName>IB:AUTO:0026</systemName>
+      <userName>Block_26</userName>
+    </block>
+    <block systemName="IB:AUTO:0027">
+      <systemName>IB:AUTO:0027</systemName>
+      <userName>Block_27</userName>
+    </block>
+    <block systemName="IB:AUTO:0028">
+      <systemName>IB:AUTO:0028</systemName>
+      <userName>Block_28</userName>
+    </block>
+    <block systemName="IB:AUTO:0029">
+      <systemName>IB:AUTO:0029</systemName>
+      <userName>Block_29</userName>
+    </block>
+    <block systemName="IB:AUTO:0030">
+      <systemName>IB:AUTO:0030</systemName>
+      <userName>Block_30</userName>
+    </block>
+    <block systemName="IB:AUTO:0031">
+      <systemName>IB:AUTO:0031</systemName>
+      <userName>Block_31</userName>
+    </block>
+    <block systemName="IB:AUTO:0032">
+      <systemName>IB:AUTO:0032</systemName>
+      <userName>Block_32</userName>
+    </block>
+    <block systemName="IB:AUTO:0033">
+      <systemName>IB:AUTO:0033</systemName>
+      <userName>Block_33</userName>
+    </block>
+    <block systemName="IB:AUTO:0034">
+      <systemName>IB:AUTO:0034</systemName>
+      <userName>Block_34</userName>
+    </block>
+    <block systemName="IB:AUTO:0035">
+      <systemName>IB:AUTO:0035</systemName>
+      <userName>Block_35</userName>
+    </block>
+    <block systemName="IB:AUTO:0036">
+      <systemName>IB:AUTO:0036</systemName>
+      <userName>Block_36</userName>
+    </block>
+    <block systemName="IB:AUTO:0037">
+      <systemName>IB:AUTO:0037</systemName>
+      <userName>Block_37</userName>
+    </block>
+    <block systemName="IB:AUTO:0038">
+      <systemName>IB:AUTO:0038</systemName>
+      <userName>Block_38</userName>
+    </block>
+    <block systemName="IB:AUTO:0039">
+      <systemName>IB:AUTO:0039</systemName>
+      <userName>Block_39</userName>
+    </block>
+    <block systemName="IB:AUTO:0040">
+      <systemName>IB:AUTO:0040</systemName>
+      <userName>Block_40</userName>
+    </block>
+    <block systemName="IB:AUTO:0041">
+      <systemName>IB:AUTO:0041</systemName>
+      <userName>Block_41</userName>
+    </block>
+    <block systemName="IB:AUTO:0042">
+      <systemName>IB:AUTO:0042</systemName>
+      <userName>Block_42</userName>
+    </block>
+    <block systemName="IB:AUTO:0043">
+      <systemName>IB:AUTO:0043</systemName>
+      <userName>Block_43</userName>
+    </block>
+    <block systemName="IB:AUTO:0044">
+      <systemName>IB:AUTO:0044</systemName>
+      <userName>Block_44</userName>
+    </block>
+    <block systemName="IB:AUTO:0045">
+      <systemName>IB:AUTO:0045</systemName>
+      <userName>Block_45</userName>
+    </block>
+    <block systemName="IB:AUTO:0046">
+      <systemName>IB:AUTO:0046</systemName>
+      <userName>Block_46</userName>
+    </block>
+    <block systemName="IB:AUTO:0047">
+      <systemName>IB:AUTO:0047</systemName>
+      <userName>Block_47</userName>
+    </block>
+    <block systemName="IB:AUTO:0001" length="0.0" curve="0">
+      <systemName>IB:AUTO:0001</systemName>
+      <userName>Block_1</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 1</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0030">
+        <beansetting setting="4">
+          <turnout systemName="TOL23" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0031">
+        <beansetting setting="2">
+          <turnout systemName="TOL42" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0002" length="0.0" curve="0">
+      <systemName>IB:AUTO:0002</systemName>
+      <userName>Block_2</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 2</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0032">
+        <beansetting setting="2">
+          <turnout systemName="TOR36" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0003" length="0.0" curve="0">
+      <systemName>IB:AUTO:0003</systemName>
+      <userName>Block_3</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 3</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0033" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0034" />
+    </block>
+    <block systemName="IB:AUTO:0004" length="0.0" curve="0">
+      <systemName>IB:AUTO:0004</systemName>
+      <userName>Block_4</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 4</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0033">
+        <beansetting setting="2">
+          <turnout systemName="TOL3" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0035" />
+    </block>
+    <block systemName="IB:AUTO:0005" length="0.0" curve="0">
+      <systemName>IB:AUTO:0005</systemName>
+      <userName>Block_5</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 5</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0031" />
+      <path todir="80" fromdir="160" block="IB:AUTO:0033">
+        <beansetting setting="4">
+          <turnout systemName="TOL3" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0006" length="0.0" curve="0">
+      <systemName>IB:AUTO:0006</systemName>
+      <userName>Block_6</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 6</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0036" />
+      <path todir="96" fromdir="144" block="IB:AUTO:0037">
+        <beansetting setting="2">
+          <turnout systemName="TOR9" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0007" length="0.0" curve="0">
+      <systemName>IB:AUTO:0007</systemName>
+      <userName>Block_7</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 7</occupancysensor>
+      <path todir="96" fromdir="144" block="IB:AUTO:0036">
+        <beansetting setting="2">
+          <turnout systemName="TOR11" />
+        </beansetting>
+      </path>
+      <path todir="144" fromdir="96" block="IB:AUTO:0038">
+        <beansetting setting="2">
+          <turnout systemName="TOL19" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0008" length="0.0" curve="0">
+      <systemName>IB:AUTO:0008</systemName>
+      <userName>Block_8</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 8</occupancysensor>
+      <path todir="80" fromdir="160" block="IB:AUTO:0036">
+        <beansetting setting="4">
+          <turnout systemName="TOR11" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0038">
+        <beansetting setting="4">
+          <turnout systemName="TOL19" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0009" length="0.0" curve="0">
+      <systemName>IB:AUTO:0009</systemName>
+      <userName>Block_9</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 9</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0034">
+        <beansetting setting="4">
+          <turnout systemName="TOR31" />
+        </beansetting>
+      </path>
+      <path todir="80" fromdir="160" block="IB:AUTO:0039">
+        <beansetting setting="4">
+          <turnout systemName="TOR32" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0010" length="0.0" curve="0">
+      <systemName>IB:AUTO:0010</systemName>
+      <userName>Block_10</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 10</occupancysensor>
+      <path todir="160" fromdir="80" block="IB:AUTO:0032">
+        <beansetting setting="4">
+          <turnout systemName="TOR36" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0040">
+        <beansetting setting="4">
+          <turnout systemName="TOL29" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0011" length="0.0" curve="0">
+      <systemName>IB:AUTO:0011</systemName>
+      <userName>Block_11</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 11</occupancysensor>
+      <path todir="160" fromdir="80" block="IB:AUTO:0031">
+        <beansetting setting="4">
+          <turnout systemName="TOL42" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0041" />
+    </block>
+    <block systemName="IB:AUTO:0012" length="0.0" curve="0">
+      <systemName>IB:AUTO:0012</systemName>
+      <userName>Block_12</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 12</occupancysensor>
+      <path todir="96" fromdir="144" block="IB:AUTO:0039">
+        <beansetting setting="2">
+          <turnout systemName="TOR32" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0041">
+        <beansetting setting="2">
+          <turnout systemName="TOR14" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0013" length="0.0" curve="0">
+      <systemName>IB:AUTO:0013</systemName>
+      <userName>Block_13</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 13</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0042">
+        <beansetting setting="4">
+          <turnout systemName="TOL6" />
+        </beansetting>
+      </path>
+      <path todir="144" fromdir="96" block="IB:AUTO:0043" />
+    </block>
+    <block systemName="IB:AUTO:0014" length="0.0" curve="0">
+      <systemName>IB:AUTO:0014</systemName>
+      <userName>Block_14</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 14</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0041">
+        <beansetting setting="4">
+          <turnout systemName="TOR14" />
+        </beansetting>
+      </path>
+      <path todir="96" fromdir="144" block="IB:AUTO:0044" />
+    </block>
+    <block systemName="IB:AUTO:0015" length="0.0" curve="0">
+      <systemName>IB:AUTO:0015</systemName>
+      <userName>Block_15</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 15</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0044">
+        <beansetting setting="2">
+          <turnout systemName="TOL15" />
+        </beansetting>
+      </path>
+      <path todir="96" fromdir="144" block="IB:AUTO:0045" />
+    </block>
+    <block systemName="IB:AUTO:0016" length="0.0" curve="0">
+      <systemName>IB:AUTO:0016</systemName>
+      <userName>Block_16</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 16</occupancysensor>
+      <path todir="80" fromdir="160" block="IB:AUTO:0043">
+        <beansetting setting="4">
+          <turnout systemName="TOR7" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0044">
+        <beansetting setting="4">
+          <turnout systemName="TOL15" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0017" length="0.0" curve="0">
+      <systemName>IB:AUTO:0017</systemName>
+      <userName>Block_17</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 17</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0030" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0046" />
+    </block>
+    <block systemName="IB:AUTO:0018" length="0.0" curve="0">
+      <systemName>IB:AUTO:0018</systemName>
+      <userName>Block_18</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 18</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0034">
+        <beansetting setting="2">
+          <turnout systemName="TOR31" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0047">
+        <beansetting setting="2">
+          <turnout systemName="TOL1" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0019" length="0.0" curve="0">
+      <systemName>IB:AUTO:0019</systemName>
+      <userName>Block_19</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 19</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0030">
+        <beansetting setting="2">
+          <turnout systemName="TOL23" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0042" />
+    </block>
+    <block systemName="IB:AUTO:0020" length="0.0" curve="0">
+      <systemName>IB:AUTO:0020</systemName>
+      <userName>Block_20</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 20</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0035">
+        <beansetting setting="2">
+          <turnout systemName="TOL38" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0021" length="0.0" curve="0">
+      <systemName>IB:AUTO:0021</systemName>
+      <userName>Block_21</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 21</occupancysensor>
+      <path todir="96" fromdir="144" block="IB:AUTO:0038" />
+      <path todir="144" fromdir="96" block="IB:AUTO:0045">
+        <beansetting setting="2">
+          <turnout systemName="TOL17" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0022" length="0.0" curve="0">
+      <systemName>IB:AUTO:0022</systemName>
+      <userName>Block_22</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 22</occupancysensor>
+      <path todir="80" fromdir="160" block="IB:AUTO:0035">
+        <beansetting setting="4">
+          <turnout systemName="TOL38" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0023" length="0.0" curve="0">
+      <systemName>IB:AUTO:0023</systemName>
+      <userName>Block_23</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 23</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0037" />
+      <path todir="96" fromdir="144" block="IB:AUTO:0043">
+        <beansetting setting="2">
+          <turnout systemName="TOR7" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0024" length="0.0" curve="0">
+      <systemName>IB:AUTO:0024</systemName>
+      <userName>Block_24</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 24</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0040" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0047" />
+    </block>
+    <block systemName="IB:AUTO:0025" length="0.0" curve="0">
+      <systemName>IB:AUTO:0025</systemName>
+      <userName>Block_25</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 25</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0046">
+        <beansetting setting="4">
+          <turnout systemName="TOL2" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0047">
+        <beansetting setting="4">
+          <turnout systemName="TOL1" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0026" length="0.0" curve="0">
+      <systemName>IB:AUTO:0026</systemName>
+      <userName>Block_26</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 26</occupancysensor>
+      <path todir="80" fromdir="160" block="IB:AUTO:0037">
+        <beansetting setting="4">
+          <turnout systemName="TOR9" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0045">
+        <beansetting setting="4">
+          <turnout systemName="TOL17" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0027" length="0.0" curve="0">
+      <systemName>IB:AUTO:0027</systemName>
+      <userName>Block_27</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 27</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0040">
+        <beansetting setting="2">
+          <turnout systemName="TOL29" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0028" length="0.0" curve="0">
+      <systemName>IB:AUTO:0028</systemName>
+      <userName>Block_28</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 28</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0039" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0042">
+        <beansetting setting="2">
+          <turnout systemName="TOL6" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0029" length="0.0" curve="0">
+      <systemName>IB:AUTO:0029</systemName>
+      <userName>Block_29</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 29</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0032" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0046">
+        <beansetting setting="2">
+          <turnout systemName="TOL2" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0030" length="0.0" curve="0">
+      <systemName>IB:AUTO:0030</systemName>
+      <userName>Block_30</userName>
+      <comment>TOL23</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL23</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0001">
+        <beansetting setting="4">
+          <turnout systemName="TOL23" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0017" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0019">
+        <beansetting setting="2">
+          <turnout systemName="TOL23" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0031" length="0.0" curve="0">
+      <systemName>IB:AUTO:0031</systemName>
+      <userName>Block_31</userName>
+      <comment>TOL42</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL42</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0001">
+        <beansetting setting="2">
+          <turnout systemName="TOL42" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0005" />
+      <path todir="80" fromdir="160" block="IB:AUTO:0011">
+        <beansetting setting="4">
+          <turnout systemName="TOL42" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0032" length="0.0" curve="0">
+      <systemName>IB:AUTO:0032</systemName>
+      <userName>Block_32</userName>
+      <comment>TOR36</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR36</occupancysensor>
+      <path todir="96" fromdir="144" block="IB:AUTO:0002">
+        <beansetting setting="2">
+          <turnout systemName="TOR36" />
+        </beansetting>
+      </path>
+      <path todir="80" fromdir="160" block="IB:AUTO:0010">
+        <beansetting setting="4">
+          <turnout systemName="TOR36" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0029" />
+    </block>
+    <block systemName="IB:AUTO:0033" length="0.0" curve="0">
+      <systemName>IB:AUTO:0033</systemName>
+      <userName>Block_33</userName>
+      <comment>TOL3</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL3</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0003" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0004">
+        <beansetting setting="2">
+          <turnout systemName="TOL3" />
+        </beansetting>
+      </path>
+      <path todir="160" fromdir="80" block="IB:AUTO:0005">
+        <beansetting setting="4">
+          <turnout systemName="TOL3" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0034" length="0.0" curve="0">
+      <systemName>IB:AUTO:0034</systemName>
+      <userName>Block_34</userName>
+      <comment>TOR31</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR31</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0003" />
+      <path todir="96" fromdir="144" block="IB:AUTO:0009">
+        <beansetting setting="4">
+          <turnout systemName="TOR31" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0018">
+        <beansetting setting="2">
+          <turnout systemName="TOR31" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0035" length="0.0" curve="0">
+      <systemName>IB:AUTO:0035</systemName>
+      <userName>Block_35</userName>
+      <comment>TOL38</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL38</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0004" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0020">
+        <beansetting setting="2">
+          <turnout systemName="TOL38" />
+        </beansetting>
+      </path>
+      <path todir="160" fromdir="80" block="IB:AUTO:0022">
+        <beansetting setting="4">
+          <turnout systemName="TOL38" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0036" length="0.0" curve="0">
+      <systemName>IB:AUTO:0036</systemName>
+      <userName>Block_36</userName>
+      <comment>TOR11</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR11</occupancysensor>
+      <path todir="96" fromdir="144" block="IB:AUTO:0006" />
+      <path todir="144" fromdir="96" block="IB:AUTO:0007">
+        <beansetting setting="2">
+          <turnout systemName="TOR11" />
+        </beansetting>
+      </path>
+      <path todir="160" fromdir="80" block="IB:AUTO:0008">
+        <beansetting setting="4">
+          <turnout systemName="TOR11" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0037" length="0.0" curve="0">
+      <systemName>IB:AUTO:0037</systemName>
+      <userName>Block_37</userName>
+      <comment>TOR9</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR9</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0006">
+        <beansetting setting="2">
+          <turnout systemName="TOR9" />
+        </beansetting>
+      </path>
+      <path todir="96" fromdir="144" block="IB:AUTO:0023" />
+      <path todir="160" fromdir="80" block="IB:AUTO:0026">
+        <beansetting setting="4">
+          <turnout systemName="TOR9" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0038" length="0.0" curve="0">
+      <systemName>IB:AUTO:0038</systemName>
+      <userName>Block_38</userName>
+      <comment>TOL19</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL19</occupancysensor>
+      <path todir="96" fromdir="144" block="IB:AUTO:0007">
+        <beansetting setting="2">
+          <turnout systemName="TOL19" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0008">
+        <beansetting setting="4">
+          <turnout systemName="TOL19" />
+        </beansetting>
+      </path>
+      <path todir="144" fromdir="96" block="IB:AUTO:0021" />
+    </block>
+    <block systemName="IB:AUTO:0039" length="0.0" curve="0">
+      <systemName>IB:AUTO:0039</systemName>
+      <userName>Block_39</userName>
+      <comment>TOR32</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR32</occupancysensor>
+      <path todir="160" fromdir="80" block="IB:AUTO:0009">
+        <beansetting setting="4">
+          <turnout systemName="TOR32" />
+        </beansetting>
+      </path>
+      <path todir="144" fromdir="96" block="IB:AUTO:0012">
+        <beansetting setting="2">
+          <turnout systemName="TOR32" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0028" />
+    </block>
+    <block systemName="IB:AUTO:0040" length="0.0" curve="0">
+      <systemName>IB:AUTO:0040</systemName>
+      <userName>Block_40</userName>
+      <comment>TOL29</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL29</occupancysensor>
+      <path todir="64" fromdir="128" block="IB:AUTO:0010">
+        <beansetting setting="4">
+          <turnout systemName="TOL29" />
+        </beansetting>
+      </path>
+      <path todir="128" fromdir="64" block="IB:AUTO:0024" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0027">
+        <beansetting setting="2">
+          <turnout systemName="TOL29" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0041" length="0.0" curve="0">
+      <systemName>IB:AUTO:0041</systemName>
+      <userName>Block_41</userName>
+      <comment>TOR14</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR14</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0011" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0012">
+        <beansetting setting="2">
+          <turnout systemName="TOR14" />
+        </beansetting>
+      </path>
+      <path todir="96" fromdir="144" block="IB:AUTO:0014">
+        <beansetting setting="4">
+          <turnout systemName="TOR14" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0042" length="0.0" curve="0">
+      <systemName>IB:AUTO:0042</systemName>
+      <userName>Block_42</userName>
+      <comment>TOL6</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL6</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0013">
+        <beansetting setting="4">
+          <turnout systemName="TOL6" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0019" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0028">
+        <beansetting setting="2">
+          <turnout systemName="TOL6" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0043" length="0.0" curve="0">
+      <systemName>IB:AUTO:0043</systemName>
+      <userName>Block_43</userName>
+      <comment>TOR7</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR7</occupancysensor>
+      <path todir="96" fromdir="144" block="IB:AUTO:0013" />
+      <path todir="160" fromdir="80" block="IB:AUTO:0016">
+        <beansetting setting="4">
+          <turnout systemName="TOR7" />
+        </beansetting>
+      </path>
+      <path todir="144" fromdir="96" block="IB:AUTO:0023">
+        <beansetting setting="2">
+          <turnout systemName="TOR7" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0044" length="0.0" curve="0">
+      <systemName>IB:AUTO:0044</systemName>
+      <userName>Block_44</userName>
+      <comment>TOL15</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL15</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0014" />
+      <path todir="96" fromdir="144" block="IB:AUTO:0015">
+        <beansetting setting="2">
+          <turnout systemName="TOL15" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0016">
+        <beansetting setting="4">
+          <turnout systemName="TOL15" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0045" length="0.0" curve="0">
+      <systemName>IB:AUTO:0045</systemName>
+      <userName>Block_45</userName>
+      <comment>TOL17</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL17</occupancysensor>
+      <path todir="144" fromdir="96" block="IB:AUTO:0015" />
+      <path todir="96" fromdir="144" block="IB:AUTO:0021">
+        <beansetting setting="2">
+          <turnout systemName="TOL17" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0026">
+        <beansetting setting="4">
+          <turnout systemName="TOL17" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0046" length="0.0" curve="0">
+      <systemName>IB:AUTO:0046</systemName>
+      <userName>Block_46</userName>
+      <comment>TOL2</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL2</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0017" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0025">
+        <beansetting setting="4">
+          <turnout systemName="TOL2" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0029">
+        <beansetting setting="2">
+          <turnout systemName="TOL2" />
+        </beansetting>
+      </path>
+    </block>
+    <block systemName="IB:AUTO:0047" length="0.0" curve="0">
+      <systemName>IB:AUTO:0047</systemName>
+      <userName>Block_47</userName>
+      <comment>TOL1</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL1</occupancysensor>
+      <path todir="128" fromdir="64" block="IB:AUTO:0018">
+        <beansetting setting="2">
+          <turnout systemName="TOL1" />
+        </beansetting>
+      </path>
+      <path todir="64" fromdir="128" block="IB:AUTO:0024" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0025">
+        <beansetting setting="4">
+          <turnout systemName="TOL1" />
+        </beansetting>
+      </path>
+    </block>
+  </blocks>
+  <layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml">
+    <layoutblock systemName="ILB1" occupancysensor="Block Sensor 1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB1</systemName>
+      <userName>Block_1</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB2" occupancysensor="Block Sensor 2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB2</systemName>
+      <userName>Block_2</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB3" occupancysensor="Block Sensor 3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB3</systemName>
+      <userName>Block_3</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB4" occupancysensor="Block Sensor 4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB4</systemName>
+      <userName>Block_4</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB5" occupancysensor="Block Sensor 5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB5</systemName>
+      <userName>Block_5</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB6" occupancysensor="Block Sensor 6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB6</systemName>
+      <userName>Block_6</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB7" occupancysensor="Block Sensor 7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB7</systemName>
+      <userName>Block_7</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB8" occupancysensor="Block Sensor 8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB8</systemName>
+      <userName>Block_8</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB9" occupancysensor="Block Sensor 9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB9</systemName>
+      <userName>Block_9</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB10" occupancysensor="Block Sensor 10" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB10</systemName>
+      <userName>Block_10</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB11" occupancysensor="Block Sensor 11" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB11</systemName>
+      <userName>Block_11</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB12" occupancysensor="Block Sensor 12" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB12</systemName>
+      <userName>Block_12</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB13" occupancysensor="Block Sensor 13" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB13</systemName>
+      <userName>Block_13</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB14" occupancysensor="Block Sensor 14" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB14</systemName>
+      <userName>Block_14</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB15" occupancysensor="Block Sensor 15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB15</systemName>
+      <userName>Block_15</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB16" occupancysensor="Block Sensor 16" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB16</systemName>
+      <userName>Block_16</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB17" occupancysensor="Block Sensor 17" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB17</systemName>
+      <userName>Block_17</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB18" occupancysensor="Block Sensor 18" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB18</systemName>
+      <userName>Block_18</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB19" occupancysensor="Block Sensor 19" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB19</systemName>
+      <userName>Block_19</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB20" occupancysensor="Block Sensor 20" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB20</systemName>
+      <userName>Block_20</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB21" occupancysensor="Block Sensor 21" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB21</systemName>
+      <userName>Block_21</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB22" occupancysensor="Block Sensor 22" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB22</systemName>
+      <userName>Block_22</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB23" occupancysensor="Block Sensor 23" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB23</systemName>
+      <userName>Block_23</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB24" occupancysensor="Block Sensor 24" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB24</systemName>
+      <userName>Block_24</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB25" occupancysensor="Block Sensor 25" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB25</systemName>
+      <userName>Block_25</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB26" occupancysensor="Block Sensor 26" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB26</systemName>
+      <userName>Block_26</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB27" occupancysensor="Block Sensor 27" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB27</systemName>
+      <userName>Block_27</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB28" occupancysensor="Block Sensor 28" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB28</systemName>
+      <userName>Block_28</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB29" occupancysensor="Block Sensor 29" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB29</systemName>
+      <userName>Block_29</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB30" occupancysensor="BS TOL23" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB30</systemName>
+      <userName>Block_30</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB31" occupancysensor="BS TOL42" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB31</systemName>
+      <userName>Block_31</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB32" occupancysensor="BS TOR36" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB32</systemName>
+      <userName>Block_32</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB33" occupancysensor="BS TOL3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB33</systemName>
+      <userName>Block_33</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB34" occupancysensor="BS TOR31" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB34</systemName>
+      <userName>Block_34</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB35" occupancysensor="BS TOL38" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB35</systemName>
+      <userName>Block_35</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB36" occupancysensor="BS TOR11" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB36</systemName>
+      <userName>Block_36</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB37" occupancysensor="BS TOR9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB37</systemName>
+      <userName>Block_37</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB38" occupancysensor="BS TOL19" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB38</systemName>
+      <userName>Block_38</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB39" occupancysensor="BS TOR32" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB39</systemName>
+      <userName>Block_39</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB40" occupancysensor="BS TOL29" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB40</systemName>
+      <userName>Block_40</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB41" occupancysensor="BS TOR14" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB41</systemName>
+      <userName>Block_41</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB42" occupancysensor="BS TOL6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB42</systemName>
+      <userName>Block_42</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB43" occupancysensor="BS TOR7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB43</systemName>
+      <userName>Block_43</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB44" occupancysensor="BS TOL15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB44</systemName>
+      <userName>Block_44</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB45" occupancysensor="BS TOL17" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB45</systemName>
+      <userName>Block_45</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB46" occupancysensor="BS TOL2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB46</systemName>
+      <userName>Block_46</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB47" occupancysensor="BS TOL1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB47</systemName>
+      <userName>Block_47</userName>
+    </layoutblock>
+  </layoutblocks>
+  <signalmastlogics class="jmri.managers.configurexml.DefaultSignalMastLogicManagerXml">
+    <logicDelay>500</logicDelay>
+  </signalmastlogics>
+  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="My Layout" x="394" y="168" windowheight="400" windowwidth="2835" panelheight="400" panelwidth="1267" sliders="yes" scrollable="both" editable="yes" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30" turnoutcx="30" turnoutwid="15" xoverlong="45" xoverhwid="15" xovershort="15" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="5" gridSize2nd="5" openDispatcher="no" useDirectTurnoutControl="no" height="600">
+    <layoutTrackDrawingOptions name="My Layout" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTrackDrawingOptionsXml">
+      <mainBallastColor>#000000</mainBallastColor>
+      <mainBallastWidth>0</mainBallastWidth>
+      <mainBlockLineDashPercentageX10>0</mainBlockLineDashPercentageX10>
+      <mainBlockLineWidth>4</mainBlockLineWidth>
+      <mainRailColor>#000000</mainRailColor>
+      <mainRailCount>1</mainRailCount>
+      <mainRailGap>0</mainRailGap>
+      <mainRailWidth>2</mainRailWidth>
+      <mainTieColor>#000000</mainTieColor>
+      <mainTieGap>0</mainTieGap>
+      <mainTieLength>0</mainTieLength>
+      <mainTieWidth>0</mainTieWidth>
+      <sideBallastColor>#000000</sideBallastColor>
+      <sideBallastWidth>0</sideBallastWidth>
+      <sideBlockLineDashPercentageX10>0</sideBlockLineDashPercentageX10>
+      <sideBlockLineWidth>2</sideBlockLineWidth>
+      <sideRailColor>#000000</sideRailColor>
+      <sideRailCount>1</sideRailCount>
+      <sideRailGap>0</sideRailGap>
+      <sideRailWidth>1</sideRailWidth>
+      <sideTieColor>#000000</sideTieColor>
+      <sideTieGap>0</sideTieGap>
+      <sideTieLength>0</sideTieLength>
+      <sideTieWidth>0</sideTieWidth>
+    </layoutTrackDrawingOptions>
+    <layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="249" ycen="168" xa="265" ya="168" xb="233" yb="168" xc="233" yc="173" xd="265" yd="168" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="Block_33" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3" />
+    <layoutturnout ident="TOR11" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="741" ycen="307" xa="749" ya="302" xb="734" yb="312" xc="732" yc="307" xd="749" yd="302" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1208" blockname="Block_36" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" />
+    <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="489" ycen="244" xa="481" ya="239" xb="497" yb="249" xc="497" yc="244" xd="481" yd="239" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="Block_44" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15" />
+    <layoutturnout ident="TOL23" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="931" ycen="210" xa="941" ya="210" xb="921" yb="210" xc="923" yc="215" xd="941" yd="210" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1213" blockname="Block_30" connectaname="T-I-TOL23" connectbname="T-ER-TOL23" connectcname="T-EL-TOL23" />
+    <layoutturnout ident="TOL38" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="187" ycen="168" xa="193" ya="168" xb="180" yb="168" xc="180" yc="176" xd="193" yd="168" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T409" blockname="Block_35" connectaname="T-I-TOL38" connectbname="T-ER-TOL38" connectcname="T-EL-TOL38" />
+    <layoutturnout ident="TOL42" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="245" ycen="242" xa="237" ya="242" xb="253" yb="242" xc="253" yc="235" xd="237" yd="242" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T410" blockname="Block_31" connectaname="T-I-TOL42" connectbname="F51-S-0" connectcname="T-EL-TOL42" />
+    <layoutturnout ident="TOR7" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="837" ycen="244" xa="844" ya="239" xb="829" yb="249" xc="827" yc="244" xd="844" yd="239" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1210" blockname="Block_43" connectaname="T-I-TOR7" connectbname="T-EL-TOR7" connectcname="T-ER-TOR7" />
+    <layoutturnout ident="TOL19" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="585" ycen="307" xa="577" ya="302" xb="592" yb="312" xc="595" yc="307" xd="577" yd="302" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T311" blockname="Block_38" connectaname="T-I-TOL19" connectbname="T-ER-TOL19" connectcname="T-EL-TOL19" />
+    <layoutturnout ident="TOL1" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="1056" ycen="168" xa="1063" ya="168" xb="1049" yb="168" xc="1048" yc="176" xd="1063" yd="168" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="IT1" blockname="Block_47" connectaname="T-I-TOL1" connectbname="T-ER-TOL1" connectcname="T-EL-TOL1" />
+    <layoutturnout ident="TOR9" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="789" ycen="276" xa="797" ya="270" xb="781" yb="281" xc="779" yc="276" xd="797" yd="270" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1209" blockname="Block_37" connectaname="T-I-TOR9" connectbname="T-EL-TOR9" connectcname="T-ER-TOR9" />
+    <layoutturnout ident="TOR31" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="783" ycen="168" xa="775" ya="168" xb="792" yb="168" xc="792" yc="174" xd="775" yd="168" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1212" blockname="Block_34" connectaname="T-I-TOR31" connectbname="T-EL-TOR31" connectcname="T-ER-TOR31" />
+    <layoutturnout ident="TOL6" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="884" ycen="210" xa="892" ya="210" xb="876" yb="210" xc="875" yc="217" xd="892" yd="210" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1211" blockname="Block_42" connectaname="T-I-TOL6" connectbname="T-ER-TOL6" connectcname="T-EL-TOL6" />
+    <layoutturnout ident="TOL29" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="1085" ycen="168" xa="1077" ya="168" xb="1094" yb="168" xc="1093" yc="161" xd="1077" yd="168" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T110" blockname="Block_40" connectaname="T-I-TOL29" connectbname="T-ER-TOL29" connectcname="T-EL-TOL29" />
+    <layoutturnout ident="TOL17" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="537" ycen="275" xa="528" ya="269" xb="545" yb="281" xc="547" yc="276" xd="528" yd="269" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T310" blockname="Block_45" connectaname="T-I-TOL17" connectbname="T-ER-TOL17" connectcname="T-EL-TOL17" />
+    <layoutturnout ident="TOR36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="1072" ycen="210" xa="1061" ya="210" xb="1083" yb="210" xc="1081" yc="217" xd="1061" yd="210" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T109" blockname="Block_32" connectaname="T-I-TOR36" connectbname="T-EL-TOR36" connectcname="T-ER-TOR36" />
+    <layoutturnout ident="TOR32" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="840" ycen="210" xa="847" ya="210" xb="833" yb="210" xc="831" yc="204" xd="847" yd="210" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="IT36" blockname="Block_39" connectaname="T-I-TOR32" connectbname="T-EL-TOR32" connectcname="T-ER-TOR32" />
+    <layoutturnout ident="TOL2" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="1011" ycen="210" xa="1003" ya="210" xb="1019" yb="210" xc="1020" yc="203" xd="1003" yd="210" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T108" blockname="Block_46" connectaname="T-I-TOL2" connectbname="T-ER-TOL2" connectcname="T-EL-TOL2" />
+    <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="no" continuing="2" xcen="443" ycen="210" xa="432" ya="210" xb="453" yb="210" xc="450" yc="216" xd="432" yd="210" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="Block_41" connectaname="T-I-TOR14" connectbname="F46-S-0" connectcname="F16-S-0" />
+    <tracksegment ident="F25-S-0" blockname="Block_1" connect1name="A13" type1="POS_POINT" connect2name="A69" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F5-S-0" blockname="Block_2" connect1name="A57" type1="POS_POINT" connect2name="A55" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL3" blockname="Block_3" connect1name="TOL3" type1="TURNOUT_A" connect2name="A59" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL3" blockname="Block_4" connect1name="TOL3" type1="TURNOUT_B" connect2name="A29" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL3" blockname="Block_5" connect1name="TOL3" type1="TURNOUT_C" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
+      <controlpoints>
+        <controlpoint index="0" x="205" y="186" />
+        <controlpoint index="1" x="191" y="190" />
+      </controlpoints>
+    </tracksegment>
+    <tracksegment ident="T-I-TOR11" blockname="Block_6" connect1name="TOR11" type1="TURNOUT_A" connect2name="A28" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR11" blockname="Block_7" connect1name="TOR11" type1="TURNOUT_B" connect2name="A12" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR11" blockname="Block_8" connect1name="TOR11" type1="TURNOUT_C" connect2name="A39" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F33-S-0" blockname="Block_9" connect1name="A38" type1="POS_POINT" connect2name="A11" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F55-S-0" blockname="Block_10" connect1name="A67" type1="POS_POINT" connect2name="A48" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F43-S-0" blockname="Block_11" connect1name="A17" type1="POS_POINT" connect2name="A45" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F46-S-0" blockname="Block_12" connect1name="A37" type1="POS_POINT" connect2name="TOR14" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F12-S-0" blockname="Block_6" connect1name="A5" type1="POS_POINT" connect2name="A28" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F49-S-0" blockname="Block_8" connect1name="A39" type1="POS_POINT" connect2name="A41" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F8-S-0" blockname="Block_13" connect1name="A16" type1="POS_POINT" connect2name="A19" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F51-S-0" blockname="Block_1" connect1name="A49" type1="POS_POINT" connect2name="TOL42" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL15" blockname="Block_14" connect1name="TOL15" type1="TURNOUT_A" connect2name="A6" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL15" blockname="Block_15" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL15" blockname="Block_16" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F56-S-0" blockname="Block_10" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F22-S-0" blockname="Block_17" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F41-S-0" blockname="Block_18" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL23" blockname="Block_17" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL23" blockname="Block_19" connect1name="TOL23" type1="TURNOUT_B" connect2name="A35" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL23" blockname="Block_1" connect1name="TOL23" type1="TURNOUT_C" connect2name="A47" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F53-S-0" blockname="Block_20" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F20-S-0" blockname="Block_21" connect1name="A10" type1="POS_POINT" connect2name="A4" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F21-S-0" blockname="Block_7" connect1name="A15" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F61-S-0" blockname="Block_3" connect1name="A59" type1="POS_POINT" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL38" blockname="Block_4" connect1name="TOL38" type1="TURNOUT_A" connect2name="A33" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL38" blockname="Block_20" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL38" blockname="Block_22" connect1name="TOL38" type1="TURNOUT_C" connect2name="A21" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL42" blockname="Block_5" connect1name="TOL42" type1="TURNOUT_A" connect2name="A65" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL42" blockname="Block_11" connect1name="TOL42" type1="TURNOUT_C" connect2name="A17" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR7" blockname="Block_13" connect1name="TOR7" type1="TURNOUT_A" connect2name="A19" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR7" blockname="Block_23" connect1name="TOR7" type1="TURNOUT_B" connect2name="A22" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR7" blockname="Block_16" connect1name="TOR7" type1="TURNOUT_C" connect2name="A61" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL19" blockname="Block_21" connect1name="TOL19" type1="TURNOUT_A" connect2name="A4" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL19" blockname="Block_7" connect1name="TOL19" type1="TURNOUT_B" connect2name="A15" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL19" blockname="Block_8" connect1name="TOL19" type1="TURNOUT_C" connect2name="A41" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F26-S-0" blockname="Block_1" connect1name="A3" type1="POS_POINT" connect2name="A23" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F28-S-0" blockname="Block_19" connect1name="A35" type1="POS_POINT" connect2name="A27" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL1" blockname="Block_24" connect1name="TOL1" type1="TURNOUT_A" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL1" blockname="Block_18" connect1name="TOL1" type1="TURNOUT_B" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL1" blockname="Block_25" connect1name="TOL1" type1="TURNOUT_C" connect2name="A30" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR9" blockname="Block_23" connect1name="TOR9" type1="TURNOUT_A" connect2name="A43" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR9" blockname="Block_6" connect1name="TOR9" type1="TURNOUT_B" connect2name="A5" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR9" blockname="Block_26" connect1name="TOR9" type1="TURNOUT_C" connect2name="A36" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F18-S-0" blockname="Block_15" connect1name="A42" type1="POS_POINT" connect2name="A31" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F48-S-0" blockname="Block_26" connect1name="A36" type1="POS_POINT" connect2name="A46" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F59-S-0" blockname="Block_10" connect1name="A58" type1="POS_POINT" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
+      <controlpoints>
+        <controlpoint index="0" x="1137" y="112" />
+        <controlpoint index="1" x="1113" y="139" />
+      </controlpoints>
+    </tracksegment>
+    <tracksegment ident="F52-S-0" blockname="Block_11" connect1name="A9" type1="POS_POINT" connect2name="A45" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F47-S-0" blockname="Block_16" connect1name="A61" type1="POS_POINT" connect2name="A53" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F50-S-0" blockname="Block_7" connect1name="A32" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F58-S-0" blockname="Block_27" connect1name="EB71" type1="POS_POINT" connect2name="A66" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F16-S-0" blockname="Block_14" connect1name="TOR14" type1="TURNOUT_C" connect2name="A6" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F60-S-0" blockname="Block_10" connect1name="A67" type1="POS_POINT" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
+      <controlpoints>
+        <controlpoint index="0" x="1147" y="257" />
+        <controlpoint index="1" x="1107" y="237" />
+      </controlpoints>
+    </tracksegment>
+    <tracksegment ident="T-I-TOR31" blockname="Block_3" connect1name="TOR31" type1="TURNOUT_A" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR31" blockname="Block_18" connect1name="TOR31" type1="TURNOUT_B" connect2name="A7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR31" blockname="Block_9" connect1name="TOR31" type1="TURNOUT_C" connect2name="A38" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F57-S-0" blockname="Block_2" connect1name="EB72" type1="POS_POINT" connect2name="A57" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F62-S-0" blockname="Block_5" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F40-S-0" blockname="Block_4" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F13-S-0" blockname="Block_7" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F54-S-0" blockname="Block_22" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F30-S-0" blockname="Block_1" connect1name="A49" type1="POS_POINT" connect2name="A3" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL6" blockname="Block_19" connect1name="TOL6" type1="TURNOUT_A" connect2name="A27" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL6" blockname="Block_28" connect1name="TOL6" type1="TURNOUT_B" connect2name="A24" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL6" blockname="Block_13" connect1name="TOL6" type1="TURNOUT_C" connect2name="A16" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F35-S-0" blockname="Block_25" connect1name="A30" type1="POS_POINT" connect2name="A8" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F27-S-0" blockname="Block_1" connect1name="A23" type1="POS_POINT" connect2name="A68" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL29" blockname="Block_24" connect1name="TOL29" type1="TURNOUT_A" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL29" blockname="Block_27" connect1name="TOL29" type1="TURNOUT_B" connect2name="A66" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL29" blockname="Block_10" connect1name="TOL29" type1="TURNOUT_C" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL17" blockname="Block_15" connect1name="TOL17" type1="TURNOUT_A" connect2name="A31" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL17" blockname="Block_21" connect1name="TOL17" type1="TURNOUT_B" connect2name="A10" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL17" blockname="Block_26" connect1name="TOL17" type1="TURNOUT_C" connect2name="A46" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR36" blockname="Block_29" connect1name="TOR36" type1="TURNOUT_A" connect2name="A50" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR36" blockname="Block_2" connect1name="TOR36" type1="TURNOUT_B" connect2name="A55" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR36" blockname="Block_10" connect1name="TOR36" type1="TURNOUT_C" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F24-S-0" blockname="Block_1" connect1name="A47" type1="POS_POINT" connect2name="A13" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR32" blockname="Block_28" connect1name="TOR32" type1="TURNOUT_A" connect2name="A44" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR32" blockname="Block_12" connect1name="TOR32" type1="TURNOUT_B" connect2name="A37" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR32" blockname="Block_9" connect1name="TOR32" type1="TURNOUT_C" connect2name="A11" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL2" blockname="Block_17" connect1name="TOL2" type1="TURNOUT_A" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL2" blockname="Block_29" connect1name="TOL2" type1="TURNOUT_B" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL2" blockname="Block_25" connect1name="TOL2" type1="TURNOUT_C" connect2name="A8" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F10-S-0" blockname="Block_23" connect1name="A22" type1="POS_POINT" connect2name="A43" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F37-S-0" blockname="Block_29" connect1name="A50" type1="POS_POINT" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F34-S-0" blockname="Block_28" connect1name="A24" type1="POS_POINT" connect2name="A44" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR14" blockname="Block_11" connect1name="TOR14" type1="TURNOUT_A" connect2name="A9" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F68-S-0" blockname="Block_1" connect1name="A69" type1="POS_POINT" connect2name="A68" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <positionablepoint ident="A62" type="ANCHOR" x="1088" y="223" connect1name="F60-S-0" connect2name="T-ER-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB72" type="END_BUMPER" x="1167" y="210" connect1name="F57-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A60" type="ANCHOR" x="189" y="215" connect1name="F62-S-0" connect2name="T-EL-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A57" type="ANCHOR" x="1109" y="210" connect1name="F57-S-0" connect2name="F5-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A66" type="ANCHOR" x="1109" y="168" connect1name="F58-S-0" connect2name="T-ER-TOL29" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A69" type="ANCHOR" x="700" y="367" connect1name="F68-S-0" connect2name="F25-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB70" type="END_BUMPER" x="53" y="168" connect1name="F53-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A63" type="ANCHOR" x="1041" y="168" connect1name="T-ER-TOL1" connect2name="F41-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A58" type="ANCHOR" x="1173" y="113" connect1name="F59-S-0" connect2name="F56-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A61" type="ANCHOR" x="821" y="244" connect1name="F47-S-0" connect2name="T-ER-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB71" type="END_BUMPER" x="1167" y="168" connect1name="F58-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A56" type="ANCHOR" x="991" y="210" connect1name="T-I-TOL2" connect2name="F22-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB73" type="END_BUMPER" x="53" y="210" connect1name="F54-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A67" type="ANCHOR" x="1171" y="254" connect1name="F60-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A68" type="ANCHOR" x="628" y="367" connect1name="F27-S-0" connect2name="F68-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A59" type="ANCHOR" x="289" y="168" connect1name="F61-S-0" connect2name="T-I-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A65" type="ANCHOR" x="232" y="242" connect1name="F62-S-0" connect2name="T-I-TOL42" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A34" type="ANCHOR" x="767" y="168" connect1name="F61-S-0" connect2name="T-I-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A20" type="ANCHOR" x="945" y="210" connect1name="F22-S-0" connect2name="T-I-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A28" type="ANCHOR" x="757" y="297" connect1name="F12-S-0" connect2name="T-I-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A14" type="ANCHOR" x="627" y="335" connect1name="F50-S-0" connect2name="F21-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A32" type="ANCHOR" x="697" y="335" connect1name="F13-S-0" connect2name="F50-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A35" type="ANCHOR" x="917" y="210" connect1name="F28-S-0" connect2name="T-ER-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A16" type="ANCHOR" x="868" y="222" connect1name="F8-S-0" connect2name="T-EL-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A15" type="ANCHOR" x="600" y="317" connect1name="F21-S-0" connect2name="T-ER-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A17" type="ANCHOR" x="258" y="229" connect1name="T-EL-TOL42" connect2name="F43-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A22" type="ANCHOR" x="821" y="254" connect1name="F10-S-0" connect2name="T-EL-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A23" type="ANCHOR" x="597" y="348" connect1name="F26-S-0" connect2name="F27-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A19" type="ANCHOR" x="851" y="235" connect1name="F8-S-0" connect2name="T-I-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A26" type="ANCHOR" x="1033" y="210" connect1name="F37-S-0" connect2name="T-ER-TOL2" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A24" type="ANCHOR" x="869" y="210" connect1name="F34-S-0" connect2name="T-ER-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A29" type="ANCHOR" x="227" y="168" connect1name="T-ER-TOL3" connect2name="F40-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A30" type="ANCHOR" x="1041" y="182" connect1name="F35-S-0" connect2name="T-EL-TOL1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A21" type="ANCHOR" x="149" y="210" connect1name="F54-S-0" connect2name="T-EL-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A31" type="ANCHOR" x="521" y="265" connect1name="F18-S-0" connect2name="T-I-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A27" type="ANCHOR" x="896" y="210" connect1name="F28-S-0" connect2name="T-I-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A33" type="ANCHOR" x="201" y="168" connect1name="F40-S-0" connect2name="T-I-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A42" type="ANCHOR" x="505" y="255" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A43" type="ANCHOR" x="805" y="265" connect1name="F10-S-0" connect2name="T-I-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A38" type="ANCHOR" x="807" y="186" connect1name="F33-S-0" connect2name="T-ER-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A48" type="ANCHOR" x="1241" y="184" connect1name="F56-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A45" type="ANCHOR" x="277" y="210" connect1name="F43-S-0" connect2name="F52-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A44" type="ANCHOR" x="857" y="210" connect1name="T-I-TOR32" connect2name="F34-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A47" type="ANCHOR" x="905" y="227" connect1name="F24-S-0" connect2name="T-EL-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A46" type="ANCHOR" x="562" y="276" connect1name="F48-S-0" connect2name="T-EL-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A49" type="ANCHOR" x="435" y="242" connect1name="F51-S-0" connect2name="F30-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A50" type="ANCHOR" x="1057" y="210" connect1name="T-I-TOR36" connect2name="F37-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A51" type="ANCHOR" x="1071" y="168" connect1name="T-I-TOL29" connect2name="T-I-TOL1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A37" type="ANCHOR" x="821" y="210" connect1name="F46-S-0" connect2name="T-EL-TOR32" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A41" type="ANCHOR" x="607" y="307" connect1name="F49-S-0" connect2name="T-EL-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A54" type="ANCHOR" x="173" y="168" connect1name="F53-S-0" connect2name="T-ER-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A36" type="ANCHOR" x="773" y="276" connect1name="F48-S-0" connect2name="T-ER-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A53" type="ANCHOR" x="512" y="244" connect1name="F47-S-0" connect2name="T-EL-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A39" type="ANCHOR" x="725" y="307" connect1name="F49-S-0" connect2name="T-ER-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A55" type="ANCHOR" x="1097" y="210" connect1name="F5-S-0" connect2name="T-EL-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A3" type="ANCHOR" x="443" y="247" connect1name="F26-S-0" connect2name="F30-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A9" type="ANCHOR" x="428" y="210" connect1name="F52-S-0" connect2name="T-I-TOR14" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A1" type="ANCHOR" x="1099" y="155" connect1name="F59-S-0" connect2name="T-EL-TOL29" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A6" type="ANCHOR" x="476" y="235" connect1name="F16-S-0" connect2name="T-I-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A5" type="ANCHOR" x="775" y="285" connect1name="F12-S-0" connect2name="T-EL-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A8" type="ANCHOR" x="1031" y="192" connect1name="T-EL-TOL2" connect2name="F35-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A11" type="ANCHOR" x="824" y="199" connect1name="T-ER-TOR32" connect2name="F33-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A13" type="ANCHOR" x="729" y="346" connect1name="F24-S-0" connect2name="F25-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A4" type="ANCHOR" x="571" y="297" connect1name="F20-S-0" connect2name="T-I-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A7" type="ANCHOR" x="812" y="168" connect1name="F41-S-0" connect2name="T-EL-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A10" type="ANCHOR" x="553" y="286" connect1name="F20-S-0" connect2name="T-ER-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A12" type="ANCHOR" x="727" y="316" connect1name="F13-S-0" connect2name="T-EL-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+  </LayoutEditor>
+  <filehistory>
+    <operation>
+      <type>app</type>
+      <date>Sat Jun 06 17:18:31 EDT 2026</date>
+      <filename>PanelPro (v5.15.5)</filename>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:20:12 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/reference/linear5_manual_save.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:21:04 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/reference/linear5_manual_save.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:22:56 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:25:58 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:27:18 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:31:12 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:33:31 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:35:18 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:37:56 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:41:42 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:42:48 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:44:27 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:45:13 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:46:52 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:48:19 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:50:02 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 17:51:28 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 16:31:08 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:31:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 16:36:36 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 16:46:23 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Load OK</type>
+      <date>Sat Jun 06 18:13:55 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+      <filehistory>
+        <operation>
+          <type>app</type>
+          <date>Sat Jun 06 17:18:31 EDT 2026</date>
+          <filename>PanelPro (v5.15.5)</filename>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:20:12 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/reference/linear5_manual_save.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:21:04 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/reference/linear5_manual_save.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:22:56 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:25:58 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:27:18 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:31:12 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:33:31 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:35:18 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:37:56 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:41:42 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:42:48 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:44:27 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:45:13 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:46:52 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:48:19 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:50:02 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Load OK</type>
+          <date>Sat Jun 06 17:51:28 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+          <filehistory>
+            <operation>
+              <type>app</type>
+              <date>Sat Jun 06 16:31:08 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:31:28 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Load OK</type>
+              <date>Sat Jun 06 16:36:36 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+            <operation>
+              <type>Store</type>
+              <date>Sat Jun 06 16:46:23 EDT 2026</date>
+              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/output/linear5_blocked.xml</filename>
+            </operation>
+          </filehistory>
+        </operation>
+        <operation>
+          <type>Store</type>
+          <date>Sat Jun 06 18:11:45 EDT 2026</date>
+          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+        </operation>
+      </filehistory>
+    </operation>
+    <operation>
+      <type>Store</type>
+      <date>Sat Jun 06 18:15:29 EDT 2026</date>
+      <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_blocked.xml</filename>
+    </operation>
+  </filehistory>
+</layout-config>

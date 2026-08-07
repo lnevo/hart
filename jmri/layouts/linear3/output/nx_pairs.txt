@@ -1,0 +1,2 @@
+# Entry/Exit (NX) pairs: EntrySensor	ExitSensor
+# Add these manually in Layout Editor → Tools → Entry Exit → Add Pair

@@ -1,0 +1,9 @@
+{
+  "display_scale": 1.5,
+  "panel_x_shift_display": 25,
+  "mckess_rocks_extra_x_display": 65,
+  "compass_extra_x_display": 90,
+  "sliders": "no",
+  "scrollable": "none",
+  "note": "Bake JMRI Layout Editor 1.5x zoom into prod panel geometry so No Zoom on load matches the tuned view. panel_x_shift_display: global left shift in prod pixels; mckess_rocks_extra and compass_extra are additional left shift on top. sliders/scrollable copied from reference/tables.xml on build."
+}

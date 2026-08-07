@@ -1,0 +1,1211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/panelfile-5-5-5.xsl" type="text/xsl"?>
+<layout-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/layout-5-5-5.xsd">
+  <jmriversion>
+    <major>5</major>
+    <minor>14</minor>
+    <test>0</test>
+    <modifier />
+  </jmriversion>
+  <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
+    <defaultInitialState>unknown</defaultInitialState>
+    <sensor inverted="false">
+      <systemName>ISIS1</systemName>
+      <userName>Block Sensor 1</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS2</systemName>
+      <userName>Block Sensor 2</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS3</systemName>
+      <userName>Block Sensor 3</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS4</systemName>
+      <userName>Block Sensor 4</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS5</systemName>
+      <userName>Block Sensor 5</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS6</systemName>
+      <userName>Block Sensor 6</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS7</systemName>
+      <userName>Block Sensor 7</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS8</systemName>
+      <userName>Block Sensor 8</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS9</systemName>
+      <userName>Block Sensor 9</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS10</systemName>
+      <userName>Block Sensor 10</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS11</systemName>
+      <userName>Block Sensor 11</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS12</systemName>
+      <userName>Block Sensor 12</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS13</systemName>
+      <userName>Block Sensor 13</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS14</systemName>
+      <userName>Block Sensor 14</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS15</systemName>
+      <userName>Block Sensor 15</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS16</systemName>
+      <userName>Block Sensor 16</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS17</systemName>
+      <userName>Block Sensor 17</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS18</systemName>
+      <userName>Block Sensor 18</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS19</systemName>
+      <userName>Block Sensor 19</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS20</systemName>
+      <userName>Block Sensor 20</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS21</systemName>
+      <userName>Block Sensor 21</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS22</systemName>
+      <userName>Block Sensor 22</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS23</systemName>
+      <userName>Block Sensor 23</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS24</systemName>
+      <userName>Block Sensor 24</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS25</systemName>
+      <userName>Block Sensor 25</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS26</systemName>
+      <userName>Block Sensor 26</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS27</systemName>
+      <userName>Block Sensor 27</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS28</systemName>
+      <userName>Block Sensor 28</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS29</systemName>
+      <userName>Block Sensor 29</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS30</systemName>
+      <userName>BS TOL23</userName>
+      <comment>TOL23</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS31</systemName>
+      <userName>BS TOL42</userName>
+      <comment>TOL42</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS32</systemName>
+      <userName>BS TOR36</userName>
+      <comment>TOR36</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS33</systemName>
+      <userName>BS TOL3</userName>
+      <comment>TOL3</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS34</systemName>
+      <userName>BS TOR31</userName>
+      <comment>TOR31</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS35</systemName>
+      <userName>BS TOL38</userName>
+      <comment>TOL38</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS36</systemName>
+      <userName>BS TOR11</userName>
+      <comment>TOR11</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS37</systemName>
+      <userName>BS TOR9</userName>
+      <comment>TOR9</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS38</systemName>
+      <userName>BS TOL19</userName>
+      <comment>TOL19</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS39</systemName>
+      <userName>BS TOR32</userName>
+      <comment>TOR32</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS40</systemName>
+      <userName>BS TOL29</userName>
+      <comment>TOL29</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS41</systemName>
+      <userName>BS TOR14</userName>
+      <comment>TOR14</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS42</systemName>
+      <userName>BS TOL6</userName>
+      <comment>TOL6</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS43</systemName>
+      <userName>BS TOR7</userName>
+      <comment>TOR7</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS44</systemName>
+      <userName>BS TOL15</userName>
+      <comment>TOL15</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS45</systemName>
+      <userName>BS TOL17</userName>
+      <comment>TOL17</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS46</systemName>
+      <userName>BS TOL2</userName>
+      <comment>TOL2</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS47</systemName>
+      <userName>BS TOL1</userName>
+      <comment>TOL1</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS48</systemName>
+      <userName>TOL1 FB_N</userName>
+      <comment>TOL1 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS49</systemName>
+      <userName>TOL1 FB_R</userName>
+      <comment>TOL1 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS50</systemName>
+      <userName>TOL15 FB_N</userName>
+      <comment>TOL15 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS51</systemName>
+      <userName>TOL15 FB_R</userName>
+      <comment>TOL15 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS52</systemName>
+      <userName>TOL17 FB_N</userName>
+      <comment>TOL17 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS53</systemName>
+      <userName>TOL17 FB_R</userName>
+      <comment>TOL17 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS54</systemName>
+      <userName>TOL19 FB_N</userName>
+      <comment>TOL19 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS55</systemName>
+      <userName>TOL19 FB_R</userName>
+      <comment>TOL19 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS56</systemName>
+      <userName>TOL2 FB_N</userName>
+      <comment>TOL2 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS57</systemName>
+      <userName>TOL2 FB_R</userName>
+      <comment>TOL2 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS58</systemName>
+      <userName>TOL23 FB_N</userName>
+      <comment>TOL23 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS59</systemName>
+      <userName>TOL23 FB_R</userName>
+      <comment>TOL23 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS60</systemName>
+      <userName>TOL29 FB_N</userName>
+      <comment>TOL29 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS61</systemName>
+      <userName>TOL29 FB_R</userName>
+      <comment>TOL29 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS62</systemName>
+      <userName>TOL3 FB_N</userName>
+      <comment>TOL3 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS63</systemName>
+      <userName>TOL3 FB_R</userName>
+      <comment>TOL3 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS64</systemName>
+      <userName>TOL38 FB_N</userName>
+      <comment>TOL38 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS65</systemName>
+      <userName>TOL38 FB_R</userName>
+      <comment>TOL38 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS66</systemName>
+      <userName>TOL42 FB_N</userName>
+      <comment>TOL42 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS67</systemName>
+      <userName>TOL42 FB_R</userName>
+      <comment>TOL42 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS68</systemName>
+      <userName>TOL6 FB_N</userName>
+      <comment>TOL6 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS69</systemName>
+      <userName>TOL6 FB_R</userName>
+      <comment>TOL6 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS70</systemName>
+      <userName>TOR11 FB_N</userName>
+      <comment>TOR11 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS71</systemName>
+      <userName>TOR11 FB_R</userName>
+      <comment>TOR11 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS72</systemName>
+      <userName>TOR14 FB_N</userName>
+      <comment>TOR14 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS73</systemName>
+      <userName>TOR14 FB_R</userName>
+      <comment>TOR14 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS74</systemName>
+      <userName>TOR31 FB_N</userName>
+      <comment>TOR31 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS75</systemName>
+      <userName>TOR31 FB_R</userName>
+      <comment>TOR31 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS76</systemName>
+      <userName>TOR32 FB_N</userName>
+      <comment>TOR32 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS77</systemName>
+      <userName>TOR32 FB_R</userName>
+      <comment>TOR32 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS78</systemName>
+      <userName>TOR36 FB_N</userName>
+      <comment>TOR36 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS79</systemName>
+      <userName>TOR36 FB_R</userName>
+      <comment>TOR36 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS80</systemName>
+      <userName>TOR7 FB_N</userName>
+      <comment>TOR7 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS81</systemName>
+      <userName>TOR7 FB_R</userName>
+      <comment>TOR7 Thrown</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS82</systemName>
+      <userName>TOR9 FB_N</userName>
+      <comment>TOR9 Closed</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISIS83</systemName>
+      <userName>TOR9 FB_R</userName>
+      <comment>TOR9 Thrown</comment>
+    </sensor>
+  </sensors>
+  <turnouts class="jmri.managers.configurexml.InternalTurnoutManagerXml">
+    <turnout feedback="TWOSENSOR" sensor1="TOL1 FB_R" sensor2="TOL1 FB_N">
+      <systemName>IT9</systemName>
+      <userName>TOL1</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL15 FB_R" sensor2="TOL15 FB_N">
+      <systemName>IT3</systemName>
+      <userName>TOL15</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL17 FB_R" sensor2="TOL17 FB_N">
+      <systemName>IT14</systemName>
+      <userName>TOL17</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL19 FB_R" sensor2="TOL19 FB_N">
+      <systemName>IT8</systemName>
+      <userName>TOL19</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL2 FB_R" sensor2="TOL2 FB_N">
+      <systemName>IT17</systemName>
+      <userName>TOL2</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL23 FB_R" sensor2="TOL23 FB_N">
+      <systemName>IT4</systemName>
+      <userName>TOL23</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL29 FB_R" sensor2="TOL29 FB_N">
+      <systemName>IT13</systemName>
+      <userName>TOL29</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL3 FB_R" sensor2="TOL3 FB_N">
+      <systemName>IT1</systemName>
+      <userName>TOL3</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL38 FB_R" sensor2="TOL38 FB_N">
+      <systemName>IT5</systemName>
+      <userName>TOL38</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL42 FB_R" sensor2="TOL42 FB_N">
+      <systemName>IT6</systemName>
+      <userName>TOL42</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOL6 FB_R" sensor2="TOL6 FB_N">
+      <systemName>IT12</systemName>
+      <userName>TOL6</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR11 FB_R" sensor2="TOR11 FB_N">
+      <systemName>IT2</systemName>
+      <userName>TOR11</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR14 FB_R" sensor2="TOR14 FB_N">
+      <systemName>IT18</systemName>
+      <userName>TOR14</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR31 FB_R" sensor2="TOR31 FB_N">
+      <systemName>IT11</systemName>
+      <userName>TOR31</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR32 FB_R" sensor2="TOR32 FB_N">
+      <systemName>IT16</systemName>
+      <userName>TOR32</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR36 FB_R" sensor2="TOR36 FB_N">
+      <systemName>IT15</systemName>
+      <userName>TOR36</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR7 FB_R" sensor2="TOR7 FB_N">
+      <systemName>IT7</systemName>
+      <userName>TOR7</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="TOR9 FB_R" sensor2="TOR9 FB_N">
+      <systemName>IT10</systemName>
+      <userName>TOR9</userName>
+    </turnout>
+  </turnouts>
+  <blocks class="jmri.configurexml.BlockManagerXml">
+    <defaultspeed>Normal</defaultspeed>
+    <block systemName="IB:AUTO:0001" length="0.0" curve="0">
+      <systemName>IB:AUTO:0001</systemName>
+      <userName>Block_1</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 1</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0002" length="0.0" curve="0">
+      <systemName>IB:AUTO:0002</systemName>
+      <userName>Block_2</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 2</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0003" length="0.0" curve="0">
+      <systemName>IB:AUTO:0003</systemName>
+      <userName>Block_3</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 3</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0004" length="0.0" curve="0">
+      <systemName>IB:AUTO:0004</systemName>
+      <userName>Block_4</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 4</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0005" length="0.0" curve="0">
+      <systemName>IB:AUTO:0005</systemName>
+      <userName>Block_5</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 5</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0006" length="0.0" curve="0">
+      <systemName>IB:AUTO:0006</systemName>
+      <userName>Block_6</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 6</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0007" length="0.0" curve="0">
+      <systemName>IB:AUTO:0007</systemName>
+      <userName>Block_7</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 7</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0008" length="0.0" curve="0">
+      <systemName>IB:AUTO:0008</systemName>
+      <userName>Block_8</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 8</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0009" length="0.0" curve="0">
+      <systemName>IB:AUTO:0009</systemName>
+      <userName>Block_9</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 9</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0010" length="0.0" curve="0">
+      <systemName>IB:AUTO:0010</systemName>
+      <userName>Block_10</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 10</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0011" length="0.0" curve="0">
+      <systemName>IB:AUTO:0011</systemName>
+      <userName>Block_11</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 11</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0012" length="0.0" curve="0">
+      <systemName>IB:AUTO:0012</systemName>
+      <userName>Block_12</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 12</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0013" length="0.0" curve="0">
+      <systemName>IB:AUTO:0013</systemName>
+      <userName>Block_13</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 13</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0014" length="0.0" curve="0">
+      <systemName>IB:AUTO:0014</systemName>
+      <userName>Block_14</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 14</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0015" length="0.0" curve="0">
+      <systemName>IB:AUTO:0015</systemName>
+      <userName>Block_15</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 15</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0016" length="0.0" curve="0">
+      <systemName>IB:AUTO:0016</systemName>
+      <userName>Block_16</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 16</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0017" length="0.0" curve="0">
+      <systemName>IB:AUTO:0017</systemName>
+      <userName>Block_17</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 17</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0018" length="0.0" curve="0">
+      <systemName>IB:AUTO:0018</systemName>
+      <userName>Block_18</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 18</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0019" length="0.0" curve="0">
+      <systemName>IB:AUTO:0019</systemName>
+      <userName>Block_19</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 19</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0020" length="0.0" curve="0">
+      <systemName>IB:AUTO:0020</systemName>
+      <userName>Block_20</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 20</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0021" length="0.0" curve="0">
+      <systemName>IB:AUTO:0021</systemName>
+      <userName>Block_21</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 21</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0022" length="0.0" curve="0">
+      <systemName>IB:AUTO:0022</systemName>
+      <userName>Block_22</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 22</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0023" length="0.0" curve="0">
+      <systemName>IB:AUTO:0023</systemName>
+      <userName>Block_23</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 23</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0024" length="0.0" curve="0">
+      <systemName>IB:AUTO:0024</systemName>
+      <userName>Block_24</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 24</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0025" length="0.0" curve="0">
+      <systemName>IB:AUTO:0025</systemName>
+      <userName>Block_25</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 25</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0026" length="0.0" curve="0">
+      <systemName>IB:AUTO:0026</systemName>
+      <userName>Block_26</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 26</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0027" length="0.0" curve="0">
+      <systemName>IB:AUTO:0027</systemName>
+      <userName>Block_27</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 27</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0028" length="0.0" curve="0">
+      <systemName>IB:AUTO:0028</systemName>
+      <userName>Block_28</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 28</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0029" length="0.0" curve="0">
+      <systemName>IB:AUTO:0029</systemName>
+      <userName>Block_29</userName>
+      <permissive>no</permissive>
+      <occupancysensor>Block Sensor 29</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0030" length="0.0" curve="0">
+      <systemName>IB:AUTO:0030</systemName>
+      <userName>Block_30</userName>
+      <comment>TOL23</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL23</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0031" length="0.0" curve="0">
+      <systemName>IB:AUTO:0031</systemName>
+      <userName>Block_31</userName>
+      <comment>TOL42</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL42</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0032" length="0.0" curve="0">
+      <systemName>IB:AUTO:0032</systemName>
+      <userName>Block_32</userName>
+      <comment>TOR36</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR36</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0033" length="0.0" curve="0">
+      <systemName>IB:AUTO:0033</systemName>
+      <userName>Block_33</userName>
+      <comment>TOL3</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL3</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0034" length="0.0" curve="0">
+      <systemName>IB:AUTO:0034</systemName>
+      <userName>Block_34</userName>
+      <comment>TOR31</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR31</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0035" length="0.0" curve="0">
+      <systemName>IB:AUTO:0035</systemName>
+      <userName>Block_35</userName>
+      <comment>TOL38</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL38</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0036" length="0.0" curve="0">
+      <systemName>IB:AUTO:0036</systemName>
+      <userName>Block_36</userName>
+      <comment>TOR11</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR11</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0037" length="0.0" curve="0">
+      <systemName>IB:AUTO:0037</systemName>
+      <userName>Block_37</userName>
+      <comment>TOR9</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR9</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0038" length="0.0" curve="0">
+      <systemName>IB:AUTO:0038</systemName>
+      <userName>Block_38</userName>
+      <comment>TOL19</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL19</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0039" length="0.0" curve="0">
+      <systemName>IB:AUTO:0039</systemName>
+      <userName>Block_39</userName>
+      <comment>TOR32</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR32</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0040" length="0.0" curve="0">
+      <systemName>IB:AUTO:0040</systemName>
+      <userName>Block_40</userName>
+      <comment>TOL29</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL29</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0041" length="0.0" curve="0">
+      <systemName>IB:AUTO:0041</systemName>
+      <userName>Block_41</userName>
+      <comment>TOR14</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR14</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0042" length="0.0" curve="0">
+      <systemName>IB:AUTO:0042</systemName>
+      <userName>Block_42</userName>
+      <comment>TOL6</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL6</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0043" length="0.0" curve="0">
+      <systemName>IB:AUTO:0043</systemName>
+      <userName>Block_43</userName>
+      <comment>TOR7</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOR7</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0044" length="0.0" curve="0">
+      <systemName>IB:AUTO:0044</systemName>
+      <userName>Block_44</userName>
+      <comment>TOL15</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL15</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0045" length="0.0" curve="0">
+      <systemName>IB:AUTO:0045</systemName>
+      <userName>Block_45</userName>
+      <comment>TOL17</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL17</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0046" length="0.0" curve="0">
+      <systemName>IB:AUTO:0046</systemName>
+      <userName>Block_46</userName>
+      <comment>TOL2</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL2</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0047" length="0.0" curve="0">
+      <systemName>IB:AUTO:0047</systemName>
+      <userName>Block_47</userName>
+      <comment>TOL1</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS TOL1</occupancysensor>
+    </block>
+  </blocks>
+  <layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml" blockrouting="no">
+    <layoutblock systemName="ILB1" occupancysensor="Block Sensor 1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB1</systemName>
+      <userName>Block_1</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB2" occupancysensor="Block Sensor 2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB2</systemName>
+      <userName>Block_2</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB3" occupancysensor="Block Sensor 3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB3</systemName>
+      <userName>Block_3</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB4" occupancysensor="Block Sensor 4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB4</systemName>
+      <userName>Block_4</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB5" occupancysensor="Block Sensor 5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB5</systemName>
+      <userName>Block_5</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB6" occupancysensor="Block Sensor 6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB6</systemName>
+      <userName>Block_6</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB7" occupancysensor="Block Sensor 7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB7</systemName>
+      <userName>Block_7</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB8" occupancysensor="Block Sensor 8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB8</systemName>
+      <userName>Block_8</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB9" occupancysensor="Block Sensor 9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB9</systemName>
+      <userName>Block_9</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB10" occupancysensor="Block Sensor 10" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB10</systemName>
+      <userName>Block_10</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB11" occupancysensor="Block Sensor 11" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB11</systemName>
+      <userName>Block_11</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB12" occupancysensor="Block Sensor 12" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB12</systemName>
+      <userName>Block_12</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB13" occupancysensor="Block Sensor 13" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB13</systemName>
+      <userName>Block_13</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB14" occupancysensor="Block Sensor 14" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB14</systemName>
+      <userName>Block_14</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB15" occupancysensor="Block Sensor 15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB15</systemName>
+      <userName>Block_15</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB16" occupancysensor="Block Sensor 16" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB16</systemName>
+      <userName>Block_16</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB17" occupancysensor="Block Sensor 17" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB17</systemName>
+      <userName>Block_17</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB18" occupancysensor="Block Sensor 18" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB18</systemName>
+      <userName>Block_18</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB19" occupancysensor="Block Sensor 19" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB19</systemName>
+      <userName>Block_19</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB20" occupancysensor="Block Sensor 20" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB20</systemName>
+      <userName>Block_20</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB21" occupancysensor="Block Sensor 21" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB21</systemName>
+      <userName>Block_21</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB22" occupancysensor="Block Sensor 22" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB22</systemName>
+      <userName>Block_22</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB23" occupancysensor="Block Sensor 23" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB23</systemName>
+      <userName>Block_23</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB24" occupancysensor="Block Sensor 24" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB24</systemName>
+      <userName>Block_24</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB25" occupancysensor="Block Sensor 25" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB25</systemName>
+      <userName>Block_25</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB26" occupancysensor="Block Sensor 26" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB26</systemName>
+      <userName>Block_26</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB27" occupancysensor="Block Sensor 27" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB27</systemName>
+      <userName>Block_27</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB28" occupancysensor="Block Sensor 28" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB28</systemName>
+      <userName>Block_28</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB29" occupancysensor="Block Sensor 29" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB29</systemName>
+      <userName>Block_29</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB30" occupancysensor="BS TOL23" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB30</systemName>
+      <userName>Block_30</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB31" occupancysensor="BS TOL42" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB31</systemName>
+      <userName>Block_31</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB32" occupancysensor="BS TOR36" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB32</systemName>
+      <userName>Block_32</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB33" occupancysensor="BS TOL3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB33</systemName>
+      <userName>Block_33</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB34" occupancysensor="BS TOR31" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB34</systemName>
+      <userName>Block_34</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB35" occupancysensor="BS TOL38" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB35</systemName>
+      <userName>Block_35</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB36" occupancysensor="BS TOR11" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB36</systemName>
+      <userName>Block_36</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB37" occupancysensor="BS TOR9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB37</systemName>
+      <userName>Block_37</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB38" occupancysensor="BS TOL19" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB38</systemName>
+      <userName>Block_38</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB39" occupancysensor="BS TOR32" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB39</systemName>
+      <userName>Block_39</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB40" occupancysensor="BS TOL29" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB40</systemName>
+      <userName>Block_40</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB41" occupancysensor="BS TOR14" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB41</systemName>
+      <userName>Block_41</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB42" occupancysensor="BS TOL6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB42</systemName>
+      <userName>Block_42</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB43" occupancysensor="BS TOR7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB43</systemName>
+      <userName>Block_43</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB44" occupancysensor="BS TOL15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB44</systemName>
+      <userName>Block_44</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB45" occupancysensor="BS TOL17" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB45</systemName>
+      <userName>Block_45</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB46" occupancysensor="BS TOL2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB46</systemName>
+      <userName>Block_46</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB47" occupancysensor="BS TOL1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB47</systemName>
+      <userName>Block_47</userName>
+    </layoutblock>
+  </layoutblocks>
+  <signalmastlogics class="jmri.managers.configurexml.DefaultSignalMastLogicManagerXml">
+    <logicDelay>500</logicDelay>
+  </signalmastlogics>
+  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="My Layout" x="0" y="0" height="355" width="1280" windowheight="355" windowwidth="1280" panelheight="355" panelwidth="1280" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="yes" xscale="1.0" yscale="1.0" mainlinetrackwidth="4" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" drawgrid="no" snaponadd="yes" snaponmove="yes" antialiasing="yes" turnoutcircles="yes" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="2" turnoutdrawunselectedleg="yes" turnoutbx="20.0" turnoutcx="20.0" turnoutwid="10.0" xoverlong="30.0" xoverhwid="10.0" xovershort="10.0" redBackground="192" greenBackground="192" blueBackground="192" gridSize="10" gridSize2nd="10" sliders="yes" scrollable="both" tooltipsnotedit="yes" tooltipsinedit="yes" autoblkgenerate="yes" openDispatcher="no" useDirectTurnoutControl="no">
+    <layoutTrackDrawingOptions name="My Layout" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTrackDrawingOptionsXml">
+      <mainBallastColor>#000000</mainBallastColor>
+      <mainBallastWidth>0</mainBallastWidth>
+      <mainBlockLineDashPercentageX10>0</mainBlockLineDashPercentageX10>
+      <mainBlockLineWidth>4</mainBlockLineWidth>
+      <mainRailColor>#000000</mainRailColor>
+      <mainRailCount>1</mainRailCount>
+      <mainRailGap>0</mainRailGap>
+      <mainRailWidth>2</mainRailWidth>
+      <mainTieColor>#000000</mainTieColor>
+      <mainTieGap>0</mainTieGap>
+      <mainTieLength>0</mainTieLength>
+      <mainTieWidth>0</mainTieWidth>
+      <sideBallastColor>#000000</sideBallastColor>
+      <sideBallastWidth>0</sideBallastWidth>
+      <sideBlockLineDashPercentageX10>0</sideBlockLineDashPercentageX10>
+      <sideBlockLineWidth>2</sideBlockLineWidth>
+      <sideRailColor>#000000</sideRailColor>
+      <sideRailCount>1</sideRailCount>
+      <sideRailGap>0</sideRailGap>
+      <sideRailWidth>1</sideRailWidth>
+      <sideTieColor>#000000</sideTieColor>
+      <sideTieGap>0</sideTieGap>
+      <sideTieLength>0</sideTieLength>
+      <sideTieWidth>0</sideTieWidth>
+    </layoutTrackDrawingOptions>
+    <tracksegment ident="F25-S-0" connect1name="A13" type1="POS_POINT" connect2name="A69" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1">
+      <controlpoints>
+        <controlpoint index="0" x="728.89" y="293.7" />
+        <controlpoint index="1" x="715.29" y="304.94" />
+      </controlpoints>
+    </tracksegment>
+    <tracksegment ident="F5-S-0" connect1name="A57" type1="POS_POINT" connect2name="A55" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_2" />
+    <layoutturnout ident="TOL3" turnoutname="TOL3" type="LH_TURNOUT" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3" xcen="261.79" ycen="111.42" xb="254.44" yb="111.42" xc="254.46" yc="117.82" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_33" />
+    <tracksegment ident="T-I-TOL3" connect1name="TOL3" type1="TURNOUT_A" connect2name="A59" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_3" />
+    <tracksegment ident="T-ER-TOL3" connect1name="TOL3" type1="TURNOUT_B" connect2name="A29" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_4" />
+    <tracksegment ident="T-EL-TOL3" connect1name="TOL3" type1="TURNOUT_C" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" bezier="yes" hideConLines="no" blockname="Block_5">
+      <controlpoints>
+        <controlpoint index="0" x="220.13" y="126.61" />
+        <controlpoint index="1" x="197.48" y="136.71" />
+      </controlpoints>
+    </tracksegment>
+    <layoutturnout ident="TOR11" turnoutname="TOR11" type="RH_TURNOUT" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" xcen="754.99" ycen="242.86" xb="747.74" yb="247.82" xc="747.47" yc="241.46" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_36" />
+    <tracksegment ident="T-I-TOR11" connect1name="TOR11" type1="TURNOUT_A" connect2name="A28" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_6" />
+    <tracksegment ident="T-EL-TOR11" connect1name="TOR11" type1="TURNOUT_B" connect2name="A12" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_7" />
+    <tracksegment ident="T-ER-TOR11" connect1name="TOR11" type1="TURNOUT_C" connect2name="A39" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_8" />
+    <tracksegment ident="F33-S-0" connect1name="A38" type1="POS_POINT" connect2name="A11" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_9" />
+    <tracksegment ident="F55-S-0" connect1name="A67" type1="POS_POINT" connect2name="A48" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_10" />
+    <tracksegment ident="F43-S-0" connect1name="A17" type1="POS_POINT" connect2name="A45" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_11">
+      </tracksegment>
+    <tracksegment ident="F46-S-0" connect1name="A37" type1="POS_POINT" connect2name="TOR14" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_12" />
+    <tracksegment ident="F12-S-0" connect1name="A5" type1="POS_POINT" connect2name="A28" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_6" />
+    <tracksegment ident="F49-S-0" connect1name="A39" type1="POS_POINT" connect2name="A41" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_8" />
+    <tracksegment ident="F8-S-0" connect1name="A16" type1="POS_POINT" connect2name="A19" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_13" />
+    <tracksegment ident="F51-S-0" connect1name="A49" type1="POS_POINT" connect2name="TOL42" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1" />
+    <layoutturnout ident="TOL15" turnoutname="TOL15" type="LH_TURNOUT" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15" xcen="503.31" ycen="182.82" xb="510.57" yb="187.58" xc="510.82" yc="183.22" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_44" />
+    <tracksegment ident="T-I-TOL15" connect1name="TOL15" type1="TURNOUT_A" connect2name="A6" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_14" />
+    <tracksegment ident="T-ER-TOL15" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_15" />
+    <tracksegment ident="T-EL-TOL15" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_16" />
+    <tracksegment ident="F56-S-0" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_10" />
+    <tracksegment ident="F22-S-0" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_17" />
+    <tracksegment ident="F41-S-0" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_18" />
+    <layoutturnout ident="TOL23" turnoutname="TOL23" type="LH_TURNOUT" connectaname="T-I-TOL23" connectbname="T-ER-TOL23" connectcname="T-EL-TOL23" xcen="943.64" ycen="142.26" xb="936.28" yb="142.34" xc="936.29" yc="148.78" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_30" />
+    <tracksegment ident="T-I-TOL23" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_17" />
+    <tracksegment ident="T-ER-TOL23" connect1name="TOL23" type1="TURNOUT_B" connect2name="A35" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_19" />
+    <tracksegment ident="T-EL-TOL23" connect1name="TOL23" type1="TURNOUT_C" connect2name="A47" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1" />
+    <tracksegment ident="F53-S-0" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_20" />
+    <tracksegment ident="F20-S-0" connect1name="A10" type1="POS_POINT" connect2name="A4" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_21" />
+    <tracksegment ident="F21-S-0" connect1name="A15" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_7">
+      <controlpoints>
+        <controlpoint index="0" x="625.9" y="263.1" />
+        <controlpoint index="1" x="638.86" y="273.5" />
+      </controlpoints>
+    </tracksegment>
+    <tracksegment ident="F61-S-0" connect1name="A59" type1="POS_POINT" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_3" />
+    <layoutturnout ident="TOL38" turnoutname="TOL38" type="LH_TURNOUT" connectaname="T-I-TOL38" connectbname="T-ER-TOL38" connectcname="T-EL-TOL38" xcen="200.36" ycen="111.42" xb="193.01" yb="111.42" xc="193.03" yc="117.86" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_35" />
+    <tracksegment ident="T-I-TOL38" connect1name="TOL38" type1="TURNOUT_A" connect2name="A33" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_4" />
+    <tracksegment ident="T-ER-TOL38" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_20" />
+    <tracksegment ident="T-EL-TOL38" connect1name="TOL38" type1="TURNOUT_C" connect2name="A21" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_22" />
+    <layoutturnout ident="TOL42" turnoutname="TOL42" type="LH_TURNOUT" connectaname="T-I-TOL42" connectbname="F51-S-0" connectcname="T-EL-TOL42" xcen="259.35" ycen="180.7" xb="266.7" yb="180.7" xc="266.68" yc="173.9" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_31" />
+    <tracksegment ident="T-I-TOL42" connect1name="TOL42" type1="TURNOUT_A" connect2name="A65" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_5" />
+    <tracksegment ident="T-EL-TOL42" connect1name="TOL42" type1="TURNOUT_C" connect2name="A17" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_11" />
+    <layoutturnout ident="TOR7" turnoutname="TOR7" type="RH_TURNOUT" connectaname="T-I-TOR7" connectbname="T-EL-TOR7" connectcname="T-ER-TOR7" xcen="849.85" ycen="177.98" xb="842.6" yb="182.94" xc="842.33" yc="176.62" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_43" />
+    <tracksegment ident="T-I-TOR7" connect1name="TOR7" type1="TURNOUT_A" connect2name="A19" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_13" />
+    <tracksegment ident="T-EL-TOR7" connect1name="TOR7" type1="TURNOUT_B" connect2name="A22" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_23" />
+    <tracksegment ident="T-ER-TOR7" connect1name="TOR7" type1="TURNOUT_C" connect2name="A61" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_16" />
+    <layoutturnout ident="TOL19" turnoutname="TOL19" type="LH_TURNOUT" connectaname="T-I-TOL19" connectbname="T-ER-TOL19" connectcname="T-EL-TOL19" xcen="598.28" ycen="245.02" xb="605.53" yb="249.78" xc="605.79" yc="243.42" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_38" />
+    <tracksegment ident="T-I-TOL19" connect1name="TOL19" type1="TURNOUT_A" connect2name="A4" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_21" />
+    <tracksegment ident="T-ER-TOL19" connect1name="TOL19" type1="TURNOUT_B" connect2name="A15" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_7" />
+    <tracksegment ident="T-EL-TOL19" connect1name="TOL19" type1="TURNOUT_C" connect2name="A41" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_8" />
+    <tracksegment ident="F26-S-0" connect1name="A3" type1="POS_POINT" connect2name="A23" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1" />
+    <tracksegment ident="F28-S-0" connect1name="A35" type1="POS_POINT" connect2name="A27" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_19" />
+    <layoutturnout ident="TOL1" turnoutname="TOL1" type="LH_TURNOUT" connectaname="T-I-TOL1" connectbname="T-ER-TOL1" connectcname="T-EL-TOL1" xcen="1069.44" ycen="108.1" xb="1062.08" yb="108.22" xc="1062.09" yc="114.62" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_47" />
+    <tracksegment ident="T-I-TOL1" connect1name="TOL1" type1="TURNOUT_A" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_24" />
+    <tracksegment ident="T-ER-TOL1" connect1name="TOL1" type1="TURNOUT_B" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_18" />
+    <tracksegment ident="T-EL-TOL1" connect1name="TOL1" type1="TURNOUT_C" connect2name="A30" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_25" />
+    <layoutturnout ident="TOR9" turnoutname="TOR9" type="RH_TURNOUT" connectaname="T-I-TOR9" connectbname="T-EL-TOR9" connectcname="T-ER-TOR9" xcen="802.42" ycen="210.42" xb="795.17" yb="215.38" xc="794.9" yc="209.02" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_37" />
+    <tracksegment ident="T-I-TOR9" connect1name="TOR9" type1="TURNOUT_A" connect2name="A43" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_23" />
+    <tracksegment ident="T-EL-TOR9" connect1name="TOR9" type1="TURNOUT_B" connect2name="A5" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_6" />
+    <tracksegment ident="T-ER-TOR9" connect1name="TOR9" type1="TURNOUT_C" connect2name="A36" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_26" />
+    <tracksegment ident="F18-S-0" connect1name="A42" type1="POS_POINT" connect2name="A31" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_15" />
+    <tracksegment ident="F48-S-0" connect1name="A36" type1="POS_POINT" connect2name="A46" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_26" />
+    <tracksegment ident="F59-S-0" connect1name="A58" type1="POS_POINT" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_10">
+      <controlpoints>
+        <controlpoint index="0" x="1160.42" y="49.94" />
+        <controlpoint index="1" x="1137.29" y="78.38" />
+      </controlpoints>
+    </tracksegment>
+    <tracksegment ident="F52-S-0" connect1name="A9" type1="POS_POINT" connect2name="A45" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_11" />
+    <tracksegment ident="F47-S-0" connect1name="A61" type1="POS_POINT" connect2name="A53" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_16" />
+    <tracksegment ident="F50-S-0" connect1name="A32" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_7" />
+    <tracksegment ident="F58-S-0" connect1name="EB71" type1="POS_POINT" connect2name="A66" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_27" />
+    <tracksegment ident="F16-S-0" connect1name="TOR14" type1="TURNOUT_C" connect2name="A6" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_14" />
+    <tracksegment ident="F60-S-0" connect1name="A67" type1="POS_POINT" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_10">
+      <controlpoints>
+        <controlpoint index="0" x="1155.76" y="190.5" />
+        <controlpoint index="1" x="1128.06" y="170.14" />
+      </controlpoints>
+    </tracksegment>
+    <layoutturnout ident="TOR31" turnoutname="TOR31" type="RH_TURNOUT" connectaname="T-I-TOR31" connectbname="T-EL-TOR31" connectcname="T-ER-TOR31" xcen="810.31" ycen="111.42" xb="817.67" yb="111.3" xc="817.67" yc="117.74" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_34" />
+    <tracksegment ident="T-I-TOR31" connect1name="TOR31" type1="TURNOUT_A" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_3" />
+    <tracksegment ident="T-EL-TOR31" connect1name="TOR31" type1="TURNOUT_B" connect2name="A7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_18" />
+    <tracksegment ident="T-ER-TOR31" connect1name="TOR31" type1="TURNOUT_C" connect2name="A38" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_9" />
+    <tracksegment ident="F57-S-0" connect1name="EB72" type1="POS_POINT" connect2name="A57" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_2" />
+    <tracksegment ident="F62-S-0" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" arc="yes" circle="no" flip="no" blockname="Block_5">
+      </tracksegment>
+    <tracksegment ident="F40-S-0" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_4" />
+    <tracksegment ident="F13-S-0" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_7">
+      <controlpoints>
+        <controlpoint index="0" x="727.4" y="261.7" />
+        <controlpoint index="1" x="714.46" y="272.42" />
+      </controlpoints>
+    </tracksegment>
+    <tracksegment ident="F54-S-0" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_22" />
+    <tracksegment ident="F30-S-0" connect1name="A49" type1="POS_POINT" connect2name="A3" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="yes" angle="9.5" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1" />
+    <layoutturnout ident="TOL6" turnoutname="TOL6" type="LH_TURNOUT" connectaname="T-I-TOL6" connectbname="T-ER-TOL6" connectcname="T-EL-TOL6" xcen="897.49" ycen="142.34" xb="890.14" yb="142.46" xc="890.14" yc="148.9" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_42" />
+    <tracksegment ident="T-I-TOL6" connect1name="TOL6" type1="TURNOUT_A" connect2name="A27" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_19" />
+    <tracksegment ident="T-ER-TOL6" connect1name="TOL6" type1="TURNOUT_B" connect2name="A24" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_28" />
+    <tracksegment ident="T-EL-TOL6" connect1name="TOL6" type1="TURNOUT_C" connect2name="A16" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_13" />
+    <tracksegment ident="F35-S-0" connect1name="A30" type1="POS_POINT" connect2name="A8" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_25" />
+    <tracksegment ident="F27-S-0" connect1name="A23" type1="POS_POINT" connect2name="A68" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1">
+      <controlpoints>
+        <controlpoint index="0" x="624.96" y="295.02" />
+        <controlpoint index="1" x="638.39" y="306.02" />
+      </controlpoints>
+    </tracksegment>
+    <layoutturnout ident="TOL29" turnoutname="TOL29" type="LH_TURNOUT" connectaname="T-I-TOL29" connectbname="T-ER-TOL29" connectcname="T-EL-TOL29" xcen="1098.85" ycen="107.7" xb="1106.21" yb="107.58" xc="1106.2" yc="101.14" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_40" />
+    <tracksegment ident="T-I-TOL29" connect1name="TOL29" type1="TURNOUT_A" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_24" />
+    <tracksegment ident="T-ER-TOL29" connect1name="TOL29" type1="TURNOUT_B" connect2name="A66" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_27" />
+    <tracksegment ident="T-EL-TOL29" connect1name="TOL29" type1="TURNOUT_C" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_10" />
+    <layoutturnout ident="TOL17" turnoutname="TOL17" type="LH_TURNOUT" connectaname="T-I-TOL17" connectbname="T-ER-TOL17" connectcname="T-EL-TOL17" xcen="550.79" ycen="213.9" xb="558.05" yb="218.66" xc="558.31" yc="212.34" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_45" />
+    <tracksegment ident="T-I-TOL17" connect1name="TOL17" type1="TURNOUT_A" connect2name="A31" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_15" />
+    <tracksegment ident="T-ER-TOL17" connect1name="TOL17" type1="TURNOUT_B" connect2name="A10" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_21" />
+    <tracksegment ident="T-EL-TOL17" connect1name="TOL17" type1="TURNOUT_C" connect2name="A46" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_26" />
+    <layoutturnout ident="TOR36" turnoutname="TOR36" type="RH_TURNOUT" connectaname="T-I-TOR36" connectbname="T-EL-TOR36" connectcname="T-ER-TOR36" xcen="1085.42" ycen="139.22" xb="1092.77" yb="139.1" xc="1092.78" yc="145.54" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_32" />
+    <tracksegment ident="T-I-TOR36" connect1name="TOR36" type1="TURNOUT_A" connect2name="A50" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_29" />
+    <tracksegment ident="T-EL-TOR36" connect1name="TOR36" type1="TURNOUT_B" connect2name="A55" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_2" />
+    <tracksegment ident="T-ER-TOR36" connect1name="TOR36" type1="TURNOUT_C" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_10" />
+    <tracksegment ident="F24-S-0" connect1name="A47" type1="POS_POINT" connect2name="A13" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1" />
+    <layoutturnout ident="TOR32" turnoutname="TOR32" type="RH_TURNOUT" connectaname="T-I-TOR32" connectbname="T-EL-TOR32" connectcname="T-ER-TOR32" xcen="849.37" ycen="143.02" xb="842.02" yb="143.14" xc="842.01" yc="136.7" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_39" />
+    <tracksegment ident="T-I-TOR32" connect1name="TOR32" type1="TURNOUT_A" connect2name="A44" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_28" />
+    <tracksegment ident="T-EL-TOR32" connect1name="TOR32" type1="TURNOUT_B" connect2name="A37" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_12" />
+    <tracksegment ident="T-ER-TOR32" connect1name="TOR32" type1="TURNOUT_C" connect2name="A11" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_9" />
+    <layoutturnout ident="TOL2" turnoutname="TOL2" type="LH_TURNOUT" connectaname="T-I-TOL2" connectbname="T-ER-TOL2" connectcname="T-EL-TOL2" xcen="1031.85" ycen="139.94" xb="1039.21" yb="139.86" xc="1039.2" yc="133.42" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_46" />
+    <tracksegment ident="T-I-TOL2" connect1name="TOL2" type1="TURNOUT_A" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_17" />
+    <tracksegment ident="T-ER-TOL2" connect1name="TOL2" type1="TURNOUT_B" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_29" />
+    <tracksegment ident="T-EL-TOL2" connect1name="TOL2" type1="TURNOUT_C" connect2name="A8" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_25" />
+    <tracksegment ident="F10-S-0" connect1name="A22" type1="POS_POINT" connect2name="A43" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_23" />
+    <tracksegment ident="F37-S-0" connect1name="A50" type1="POS_POINT" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_29" />
+    <tracksegment ident="F34-S-0" connect1name="A24" type1="POS_POINT" connect2name="A44" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_28" />
+    <layoutturnout ident="TOR14" turnoutname="TOR14" type="RH_TURNOUT" connectaname="T-I-TOR14" connectbname="F46-S-0" connectcname="F16-S-0" xcen="455.61" ycen="148.5" xb="462.96" yb="148.38" xc="462.97" yc="154.82" continuing="2" disabled="no" disableWhenOccupied="no" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTurnoutXml" blockname="Block_41" />
+    <tracksegment ident="T-I-TOR14" connect1name="TOR14" type1="TURNOUT_A" connect2name="A9" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_11" />
+    <tracksegment ident="F68-S-0" connect1name="A69" type1="POS_POINT" connect2name="A68" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" blockname="Block_1" />
+    <positionablepoint ident="A62" type="ANCHOR" x="1100.14" y="151.86" connect1name="F60-S-0" connect2name="T-ER-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB72" type="END_BUMPER" x="1179.54" y="137.9" connect1name="F57-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A60" type="ANCHOR" x="200.15" y="154.5" connect1name="F62-S-0" connect2name="T-EL-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A57" type="ANCHOR" x="1113.55" y="138.82" connect1name="F57-S-0" connect2name="F5-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A66" type="ANCHOR" x="1113.56" y="107.5" connect1name="F58-S-0" connect2name="T-ER-TOL29" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A69" type="ANCHOR" x="701.21" y="305.14" connect1name="F68-S-0" connect2name="F25-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB70" type="END_BUMPER" x="66.62" y="111.42" connect1name="F53-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A63" type="ANCHOR" x="1054.73" y="108.3" connect1name="T-ER-TOL1" connect2name="F41-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A58" type="ANCHOR" x="1184.5" y="51.18" connect1name="F59-S-0" connect2name="F56-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A61" type="ANCHOR" x="834.81" y="175.22" connect1name="F47-S-0" connect2name="T-ER-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB71" type="END_BUMPER" x="1179.54" y="106.58" connect1name="F58-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A56" type="ANCHOR" x="1017.14" y="140.14" connect1name="T-I-TOL2" connect2name="F22-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB73" type="END_BUMPER" x="66.63" y="148.5" connect1name="F54-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A67" type="ANCHOR" x="1184.05" y="191.98" connect1name="F60-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A68" type="ANCHOR" x="652.17" y="305.82" connect1name="F27-S-0" connect2name="F68-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A59" type="ANCHOR" x="276.5" y="111.42" connect1name="F61-S-0" connect2name="T-I-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A65" type="ANCHOR" x="244.64" y="180.7" connect1name="F62-S-0" connect2name="T-I-TOL42" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A34" type="ANCHOR" x="795.6" y="111.42" connect1name="F61-S-0" connect2name="T-I-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A20" type="ANCHOR" x="958.34" y="142.06" connect1name="F22-S-0" connect2name="T-I-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A28" type="ANCHOR" x="769.49" y="232.94" connect1name="F12-S-0" connect2name="T-I-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A14" type="ANCHOR" x="652.14" y="273.3" connect1name="F50-S-0" connect2name="F21-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A32" type="ANCHOR" x="701.18" y="272.62" connect1name="F13-S-0" connect2name="F50-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A35" type="ANCHOR" x="928.93" y="142.46" connect1name="F28-S-0" connect2name="T-ER-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A16" type="ANCHOR" x="882.79" y="155.46" connect1name="F8-S-0" connect2name="T-EL-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A15" type="ANCHOR" x="612.79" y="254.54" connect1name="F21-S-0" connect2name="T-ER-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A17" type="ANCHOR" x="274.01" y="173.9" connect1name="T-EL-TOL42" connect2name="F43-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A22" type="ANCHOR" x="835.35" y="187.9" connect1name="F10-S-0" connect2name="T-EL-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A23" type="ANCHOR" x="611.37" y="286.1" connect1name="F26-S-0" connect2name="F27-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A19" type="ANCHOR" x="864.35" y="168.1" connect1name="F8-S-0" connect2name="T-I-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A26" type="ANCHOR" x="1046.56" y="139.74" connect1name="F37-S-0" connect2name="T-ER-TOL2" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A24" type="ANCHOR" x="882.78" y="142.58" connect1name="F34-S-0" connect2name="T-ER-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A29" type="ANCHOR" x="247.08" y="111.42" connect1name="T-ER-TOL3" connect2name="F40-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A30" type="ANCHOR" x="1054.74" y="121.18" connect1name="F35-S-0" connect2name="T-EL-TOL1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A21" type="ANCHOR" x="162.39" y="148.5" connect1name="F54-S-0" connect2name="T-EL-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A31" type="ANCHOR" x="536.28" y="204.42" connect1name="F18-S-0" connect2name="T-I-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A27" type="ANCHOR" x="912.2" y="142.14" connect1name="F28-S-0" connect2name="T-I-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A33" type="ANCHOR" x="215.07" y="111.42" connect1name="F40-S-0" connect2name="T-I-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A42" type="ANCHOR" x="517.82" y="192.3" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A43" type="ANCHOR" x="816.92" y="200.5" connect1name="F10-S-0" connect2name="T-I-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A38" type="ANCHOR" x="825.03" y="124.06" connect1name="F33-S-0" connect2name="T-ER-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A48" type="ANCHOR" x="1254.65" y="122.5" connect1name="F56-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A45" type="ANCHOR" x="312.84" y="148.5" connect1name="F43-S-0" connect2name="F52-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A44" type="ANCHOR" x="864.08" y="142.82" connect1name="T-I-TOR32" connect2name="F34-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A47" type="ANCHOR" x="928.94" y="155.3" connect1name="F24-S-0" connect2name="T-EL-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A46" type="ANCHOR" x="565.83" y="210.74" connect1name="F48-S-0" connect2name="T-EL-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A49" type="ANCHOR" x="440.93" y="180.7" connect1name="F51-S-0" connect2name="F30-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A50" type="ANCHOR" x="1070.71" y="139.42" connect1name="T-I-TOR36" connect2name="F37-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A51" type="ANCHOR" x="1084.14" y="107.9" connect1name="T-I-TOL29" connect2name="T-I-TOL1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A37" type="ANCHOR" x="834.66" y="143.22" connect1name="F46-S-0" connect2name="T-EL-TOR32" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A41" type="ANCHOR" x="613.31" y="241.86" connect1name="F49-S-0" connect2name="T-EL-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A54" type="ANCHOR" x="185.65" y="111.42" connect1name="F53-S-0" connect2name="T-ER-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A36" type="ANCHOR" x="787.38" y="207.66" connect1name="F48-S-0" connect2name="T-ER-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A53" type="ANCHOR" x="519.34" y="183.62" connect1name="F47-S-0" connect2name="T-EL-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A39" type="ANCHOR" x="739.95" y="240.06" connect1name="F49-S-0" connect2name="T-ER-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A55" type="ANCHOR" x="1100.13" y="139.02" connect1name="F5-S-0" connect2name="T-EL-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A3" type="ANCHOR" x="455.98" y="185.5" connect1name="F26-S-0" connect2name="F30-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A9" type="ANCHOR" x="440.9" y="148.7" connect1name="F52-S-0" connect2name="T-I-TOR14" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A1" type="ANCHOR" x="1113.55" y="94.62" connect1name="F59-S-0" connect2name="T-EL-TOL29" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A6" type="ANCHOR" x="488.79" y="173.3" connect1name="F16-S-0" connect2name="T-I-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A5" type="ANCHOR" x="787.92" y="220.34" connect1name="F12-S-0" connect2name="T-EL-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A8" type="ANCHOR" x="1046.55" y="126.9" connect1name="T-EL-TOL2" connect2name="F35-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A11" type="ANCHOR" x="834.65" y="130.38" connect1name="T-ER-TOR32" connect2name="F33-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A13" type="ANCHOR" x="741.84" y="284.82" connect1name="F24-S-0" connect2name="F25-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A4" type="ANCHOR" x="583.76" y="235.5" connect1name="F20-S-0" connect2name="T-I-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A7" type="ANCHOR" x="825.02" y="111.22" connect1name="F41-S-0" connect2name="T-EL-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A10" type="ANCHOR" x="565.31" y="223.42" connect1name="F20-S-0" connect2name="T-ER-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A12" type="ANCHOR" x="740.49" y="252.74" connect1name="F13-S-0" connect2name="T-EL-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+  </LayoutEditor>
+</layout-config>

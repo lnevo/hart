@@ -1,0 +1,5 @@
+# Segments to remove from linear3 (one ident per line).
+# Leave empty unless you intentionally want to drop geometry from the AnyRail export.
+#
+# F30-S-0 was removed by mistake: it connects F51-S-0 and F26-S-0 via anchors A51 and A3.
+# It is in the original anyrail/linear3.xml with hidden="no" (not a mac hidden track).

@@ -1,0 +1,35 @@
+{
+  "note": "Placeholder DCC 116\u2013119 for west-yard turnouts. TO6 and TO8 share Switch 117.",
+  "assignments": [
+    {
+      "layout_ident": "TO1",
+      "placeholder_dcc": 116,
+      "panel_turnout_user": "Switch 116",
+      "block_on_turnout": "Block_48"
+    },
+    {
+      "layout_ident": "TO6",
+      "placeholder_dcc": 117,
+      "panel_turnout_user": "Switch 117",
+      "block_on_turnout": "Block_53"
+    },
+    {
+      "layout_ident": "TO8",
+      "placeholder_dcc": 117,
+      "panel_turnout_user": "Switch 117",
+      "block_on_turnout": "Block_55"
+    },
+    {
+      "layout_ident": "TO11",
+      "placeholder_dcc": 118,
+      "panel_turnout_user": "Switch 118",
+      "block_on_turnout": "Block_66"
+    },
+    {
+      "layout_ident": "TO10",
+      "placeholder_dcc": 119,
+      "panel_turnout_user": "Switch 119",
+      "block_on_turnout": "Block_65"
+    }
+  ]
+}

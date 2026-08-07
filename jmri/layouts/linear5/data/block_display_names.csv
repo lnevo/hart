@@ -1,0 +1,44 @@
+block_name,occupancy_sensor,sensor_system,sensor_comment,physical,comment,layout_turnouts,track_segments
+Block 100-102,Block 4-6,M2S405,Block 100-102,yes,,,"T-EL-TOL3,T-I-TOL42,F62-S-0"
+East Lead,Block 1-7,M2S106,East Lead,yes,,,"F22-S-0,T-I-TOL23,T-I-TOL2"
+East Main Ext,Block 4-7,M2S406,East Main Ext,yes,From linear6 panel (IB:AUTO:0051),,
+Main East,Block 2-3,M2S202,Main East,yes,,,"F25-S-0,T-EL-TOL23,F26-S-0,F27-S-0,F24-S-0,F68-S-0,T5"
+McKees Rocks,Block 1-1,M2S100,McKees Rocks,yes,,,"F56-S-0,F59-S-0,T-EL-TOL29"
+McKeesport,Block 1-2,M2S101,McKeesport,yes,Split from PIR Interchange; east tip,,"F55-S-0,F60-S-0,T-ER-TOR36"
+Switch 100,Block 4-2,M2S401,Switch 100,yes,TOL3,TOL3,"T-ER-TOL3,T-I-TOL38,F40-S-0"
+Switch 101,Block 4-1,M2S400,Switch 101,yes,TOL38,TOL38,
+Switch 102,Block 4-5,M2S404,Switch 102,yes,TOL42,TOL42,
+Switch 103,Block 3-2,M2S301,Switch 103,yes,TOR14,TOR14,"T-I-TOL15,F16-S-0,T-I-TOR14"
+Switch 104,Block 3-3,M2S302,Switch 104,yes,TOL15,TOL15,"T-ER-TOL15,F18-S-0,T-I-TOL17"
+Switch 105,Block 3-5,M2S304,Switch 105,yes,TOL17,TOL17,"F20-S-0,T-I-TOL19,T-ER-TOL17"
+Switch 106,Block 3-7,M2S306,Switch 106,yes,TOL19,TOL19,
+Switch 107,Block 12-1,M2S1200,Switch 107,yes,TOR11,TOR11,"T-I-TOR11,F12-S-0,T-EL-TOR9"
+Switch 108,Block 12-3,M2S1202,Switch 108,yes,TOR9,TOR9,"T-EL-TOR7,T-I-TOR9,F10-S-0"
+Switch 109,Block 12-5,M2S1204,Switch 109,yes,TOR7,TOR7,"F8-S-0,T-I-TOR7,T-EL-TOL6"
+Switch 110,Block 12-7,M2S1206,Switch 110,yes,TOL6,TOL6,"T-ER-TOL23,F28-S-0,T-I-TOL6,T-ER-TOL6,T-I-TOR32,F34-S-0"
+Switch 111a,Block 12-4,M2S1203,Switch 111a,yes,TOR31,TOR31,"F33-S-0,T-ER-TOR31,T-ER-TOR32"
+Switch 111b,Block 12-6,M2S1205,Switch 111b,yes,TOR32,TOR32,
+Switch 112,Block 12-8,M2S1207,Switch 112,yes,TOL23,TOL23,
+Switch 113a,Block 1-6,M2S105,Switch 113a,yes,TOL2,TOL2,"T-EL-TOL1,F35-S-0,T-I-TOR36,T-ER-TOL2,T-EL-TOL2,F37-S-0"
+Switch 113b,Block 1-5,M2S104,Switch 113b,yes,TOL1,TOL1,"T-I-TOL1,T-I-TOL29"
+Switch 114,Block 1-3,M2S102,Switch 114,yes,TOR36,TOR36,"F5-S-0,F57-S-0,T-EL-TOR36"
+Switch 115,Block 1-4,M2S103,Switch 115,yes,TOL29,TOL29,"F58-S-0,T-ER-TOL29"
+Switch 116,Block 3-1,M2S300,Switch 116,yes,TO1,TO1,T7
+Switch 117 (TO6),Block 13-4,M2S1303,Switch 117 (TO6),yes,TO6,TO6,T8
+Switch 117 (TO8),Block 13-3,M2S1302,Switch 117 (TO8),yes,TO8,TO8,T4
+Switch 118,Block 13-2,M2S1301,Switch 118,yes,TO11,TO11,T13
+Switch 119,Block 13-8,M2S1307,Switch 119,yes,TO10,TO10,T12
+Main West,Block 2-1,M2S200,Main West,yes,,,"T-I-TOL3,F61-S-0,T-I-TOR31"
+West Main Ext,Block 1-8,M2S107,West Main Ext,yes,Main West trackage; separate occupancy,,"F41-S-0,T-ER-TOL1,T-EL-TOR31"
+West Yard Track 1,Block 4-4,M2S403,West Yard Track 1,yes,,,"F53-S-0,T-ER-TOL38"
+West Yard Track 2,Block 4-3,M2S402,West Yard Track 2,yes,,,"T-EL-TOL38,F54-S-0"
+Yard T1,Block 4-8,M2S407,Yard T1,yes,Includes T1+T3 (shared occupancy),,"T3,T1"
+Yard T10,Block 13-6,M2S1305,Yard T10,yes,T10,,T10
+Yard T11,Block 13-5,M2S1304,Yard T11,yes,T11,,T11
+Yard T6,Block 13-1,M2S1300,Yard T6,yes,T6,,T6
+Yard T9,Block 13-7,M2S1306,Yard T9,yes,T9,,T9
+Yard Track 1,Block 2-8,M2S207,Yard Track 1,yes,,,"F46-S-0,T-EL-TOR32"
+Yard Track 2,Block 2-7,M2S206,Yard Track 2,yes,,,"T-EL-TOL15,T-ER-TOR7,F47-S-0"
+Yard Track 3,Block 2-6,M2S205,Yard Track 3,yes,,,"T-ER-TOR9,F48-S-0,T-EL-TOL17"
+Yard Track 4,Block 2-5,M2S204,Yard Track 4,yes,,,"T-ER-TOR11,F49-S-0,T-EL-TOL19"
+Yard Track 5,Block 2-4,M2S203,Yard Track 5,yes,,,"T-EL-TOR11,F21-S-0,T-ER-TOL19,F50-S-0,F13-S-0"

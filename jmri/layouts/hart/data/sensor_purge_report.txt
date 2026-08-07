@@ -1,0 +1,76 @@
+Unused internal sensors removed from hart panel
+source: /Users/lnevo/Panel/jmri/layouts/linear6/linear6.xml
+block renames applied: 144
+sensors removed: 71
+
+ISIS1	Block Sensor 1
+ISIS2	Block Sensor 2
+ISIS3	Block Sensor 3
+ISIS4	Block Sensor 4
+ISIS5	Block Sensor 5
+ISIS6	Block Sensor 6
+ISIS7	Block Sensor 7
+ISIS8	Block Sensor 8
+ISIS9	Block Sensor 9
+ISIS10	Block Sensor 10
+ISIS11	Block Sensor 11
+ISIS12	Block Sensor 12
+ISIS13	Block Sensor 13
+ISIS14	Block Sensor 14
+ISIS15	Block Sensor 15
+ISIS16	Block Sensor 16
+ISIS17	Block Sensor 17
+ISIS18	Block Sensor 18
+ISIS19	Block Sensor 19
+ISIS20	Block Sensor 20
+ISIS21	Block Sensor 21
+ISIS22	Block Sensor 22
+ISIS23	Block Sensor 23
+ISIS24	Block Sensor 24
+ISIS25	Block Sensor 25
+ISIS26	Block Sensor 26
+ISIS27	Block Sensor 27
+ISIS28	Block Sensor 28
+ISIS29	Block Sensor 29
+ISIS30	BS TOL23
+ISIS31	BS TOL42
+ISIS32	BS TOR36
+ISIS33	BS TOL3
+ISIS34	BS TOR31
+ISIS35	BS TOL38
+ISIS36	BS TOR11
+ISIS37	BS TOR9
+ISIS38	BS TOL19
+ISIS39	BS TOR32
+ISIS40	BS TOL29
+ISIS41	BS TOR14
+ISIS42	BS TOL6
+ISIS43	BS TOR7
+ISIS44	BS TOL15
+ISIS45	BS TOL17
+ISIS46	BS TOL2
+ISIS47	BS TOL1
+ISIS48	Block Sensor 48
+ISIS50	Block Sensor 50
+ISIS53	Block Sensor 53
+ISIS55	Block Sensor 55
+ISIS59	Block Sensor 59
+ISIS60	Block Sensor 60
+ISIS61	Block Sensor 61
+ISIS62	Block Sensor 62
+ISIS63	Block Sensor 63
+ISIS64	Block Sensor 64
+ISIS65	Block Sensor 65
+ISIS66	Block Sensor 66
+ISIS67	Block Sensor 67
+ISIS68	Block Sensor 68
+ISIS69	Block Sensor 69
+ISIS70	Block Sensor 70
+ISIS71	Block Sensor 71
+ISIS196	TO_CO34946 FB_N
+ISIS197	TO_CO34946 FB_R
+ISIS198	BS TO1
+ISIS199	BS TO6
+ISIS200	BS TO8
+ISIS201	BS TO10
+ISIS202	BS TO11

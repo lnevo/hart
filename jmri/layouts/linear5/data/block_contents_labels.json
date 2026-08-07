@@ -1,0 +1,310 @@
+{
+  "note": "BlockContentsIcon positions \u2014 track-following dispatcher layout.",
+  "size": "10",
+  "labels": [
+    {
+      "block": "McKees Rocks",
+      "x": 1755,
+      "y": 195,
+      "kind": "track"
+    },
+    {
+      "block": "West Yard Track 1",
+      "x": 170,
+      "y": 260,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 101",
+      "x": 255,
+      "y": 232,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 100",
+      "x": 345,
+      "y": 232,
+      "kind": "switch"
+    },
+    {
+      "block": "Main West",
+      "x": 948,
+      "y": 260,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 111a",
+      "x": 1190,
+      "y": 232,
+      "kind": "switch"
+    },
+    {
+      "block": "West Main Ext",
+      "x": 1360,
+      "y": 232,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 113b",
+      "x": 1545,
+      "y": 232,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 115",
+      "x": 1655,
+      "y": 260,
+      "kind": "switch"
+    },
+    {
+      "block": "Yard T9",
+      "x": 500,
+      "y": 255,
+      "kind": "track"
+    },
+    {
+      "block": "Yard T10",
+      "x": 425,
+      "y": 266,
+      "kind": "track"
+    },
+    {
+      "block": "Yard T1",
+      "x": 420,
+      "y": 323,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 117",
+      "x": 505,
+      "y": 298,
+      "kind": "switch"
+    },
+    {
+      "block": "Yard T6",
+      "x": 555,
+      "y": 298,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 116",
+      "x": 600,
+      "y": 323,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 103",
+      "x": 670,
+      "y": 323,
+      "kind": "switch"
+    },
+    {
+      "block": "Yard Track 1",
+      "x": 948,
+      "y": 323,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 110",
+      "x": 1285,
+      "y": 323,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 112",
+      "x": 1415,
+      "y": 323,
+      "kind": "switch"
+    },
+    {
+      "block": "Yard T11",
+      "x": 425,
+      "y": 304,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 119",
+      "x": 464,
+      "y": 232,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 118",
+      "x": 540,
+      "y": 232,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 111b",
+      "x": 1235,
+      "y": 323,
+      "kind": "switch"
+    },
+    {
+      "block": "East Lead",
+      "x": 1460,
+      "y": 323,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 113a",
+      "x": 1530,
+      "y": 323,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 114",
+      "x": 1655,
+      "y": 323,
+      "kind": "switch"
+    },
+    {
+      "block": "Block 100-102",
+      "x": 320,
+      "y": 298,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 104",
+      "x": 735,
+      "y": 348,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 109",
+      "x": 1215,
+      "y": 372,
+      "kind": "switch"
+    },
+    {
+      "block": "Yard Track 2",
+      "x": 948,
+      "y": 374,
+      "kind": "track"
+    },
+    {
+      "block": "McKeesport",
+      "x": 1755,
+      "y": 360,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 102",
+      "x": 315,
+      "y": 371,
+      "kind": "switch"
+    },
+    {
+      "block": "East Main Ext",
+      "x": 405,
+      "y": 371,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 117b",
+      "x": 465,
+      "y": 371,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 105",
+      "x": 805,
+      "y": 398,
+      "kind": "switch"
+    },
+    {
+      "block": "Switch 108",
+      "x": 1145,
+      "y": 421,
+      "kind": "switch"
+    },
+    {
+      "block": "Yard Track 3",
+      "x": 948,
+      "y": 421,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 106",
+      "x": 875,
+      "y": 448,
+      "kind": "switch"
+    },
+    {
+      "block": "Yard Track 4",
+      "x": 948,
+      "y": 468,
+      "kind": "track"
+    },
+    {
+      "block": "Yard Track 5",
+      "x": 948,
+      "y": 510,
+      "kind": "track"
+    },
+    {
+      "block": "Switch 107",
+      "x": 1075,
+      "y": 470,
+      "kind": "switch"
+    },
+    {
+      "block": "Main East",
+      "x": 948,
+      "y": 558,
+      "kind": "track"
+    }
+  ],
+  "Main West": {
+    "x": 948,
+    "y": 260
+  },
+  "Yard Track 1": {
+    "x": 948,
+    "y": 323
+  },
+  "Yard Track 2": {
+    "x": 948,
+    "y": 374
+  },
+  "Yard Track 3": {
+    "x": 948,
+    "y": 421
+  },
+  "Yard Track 4": {
+    "x": 948,
+    "y": 468
+  },
+  "Yard Track 5": {
+    "x": 948,
+    "y": 510
+  },
+  "Main East": {
+    "x": 948,
+    "y": 558
+  },
+  "Yard T9": {
+    "x": 500,
+    "y": 255
+  },
+  "Yard T10": {
+    "x": 425,
+    "y": 266
+  },
+  "Yard T11": {
+    "x": 425,
+    "y": 294
+  },
+  "Switch 119": {
+    "x": 464,
+    "y": 232
+  },
+  "Switch 118": {
+    "x": 540,
+    "y": 232
+  },
+  "Switch 116": {
+    "x": 600,
+    "y": 323
+  }
+}

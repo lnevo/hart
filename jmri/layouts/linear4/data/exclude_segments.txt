@@ -1,0 +1,4 @@
+# Segments to remove from linear4 (one ident per line).
+# Leave empty unless you intentionally drop geometry from the AnyRail export.
+#
+# F30-S-0 links F51-S-0 and F26-S-0 via anchors A49 and A3 — do not exclude.

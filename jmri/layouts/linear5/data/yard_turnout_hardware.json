@@ -1,0 +1,58 @@
+{
+  "note": "West-yard MQTT hardware for linear5 (TO* turnouts). TO8 is internal leg on TO6 motor (TOR31/TOR32 pattern).",
+  "turnouts": [
+    {
+      "layout_ident": "TO1",
+      "kind": "mqtt",
+      "panel_system": "M2T411",
+      "panel_user": "Switch 116",
+      "switch_id": "4-11",
+      "dcc_address": 116,
+      "feedback_sensor_n": { "system": "M2S476", "user": "Switch 4-4 FB N" },
+      "feedback_sensor_r": { "system": "M2S477", "user": "Switch 4-4 FB R" }
+    },
+    {
+      "layout_ident": "TO6",
+      "kind": "mqtt",
+      "panel_system": "M2T1308",
+      "panel_user": "Switch 117",
+      "switch_id": "13-8",
+      "dcc_address": 117,
+      "feedback_sensor_n": { "system": "M2S1367", "user": "Switch 13-1 FB N" },
+      "feedback_sensor_r": { "system": "M2S1368", "user": "Switch 13-1 FB R" }
+    },
+    {
+      "layout_ident": "TO8",
+      "kind": "internal_mqtt_fb",
+      "panel_system": "IT37",
+      "panel_user": "TO8",
+      "motor_system": "M2T1308",
+      "motor_user": "Switch 117",
+      "switch_id": "13-8",
+      "dcc_address": 117,
+      "feedback_sensor_n": { "system": "M2S1367", "user": "Switch 13-1 FB N" },
+      "feedback_sensor_r": { "system": "M2S1368", "user": "Switch 13-1 FB R" },
+      "notes": "Crossover leg; motor Switch 117 (M2T1308), paired with TO6"
+    },
+    {
+      "layout_ident": "TO11",
+      "kind": "mqtt",
+      "panel_system": "M2T1309",
+      "panel_user": "Switch 118",
+      "switch_id": "13-9",
+      "dcc_address": 118,
+      "feedback_sensor_n": { "system": "M2S1369", "user": "Switch 13-2 FB N" },
+      "feedback_sensor_r": { "system": "M2S1370", "user": "Switch 13-2 FB R" }
+    },
+    {
+      "layout_ident": "TO10",
+      "kind": "mqtt",
+      "panel_system": "M2T1310",
+      "panel_user": "Switch 119",
+      "switch_id": "13-10",
+      "dcc_address": 119,
+      "feedback_sensor_n": { "system": "M2S1371", "user": "Switch 13-3 FB N" },
+      "feedback_sensor_r": { "system": "M2S1372", "user": "Switch 13-3 FB R" }
+    }
+  ]
+}

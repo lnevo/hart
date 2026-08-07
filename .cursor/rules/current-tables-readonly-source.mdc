@@ -1,0 +1,12 @@
+---
+description: In tables/, treat tables.xml as read-only source; edit only new_tables.xml
+globs: tables/**
+alwaysApply: false
+---
+
+# `tables/` — source vs output
+
+- **`tables/tables.xml`** is the **source snapshot**. Do **not** edit, overwrite, or reformat it with tools. Do **not** run write/search-replace against it unless the user explicitly asks to change the source file.
+- **`tables/new_tables.xml`** is the **target / working output**. Apply all transformations here (or other filenames the user names as output).
+- Scripts such as **`strip_nx_tables.py`** must keep **reading** `tables.xml` and **writing** `new_tables.xml` only; never open `tables.xml` for write.
+- When committing, only stage **`new_tables.xml`** (and scripts/docs) unless the user explicitly says they want **`tables.xml`** updated in Git.

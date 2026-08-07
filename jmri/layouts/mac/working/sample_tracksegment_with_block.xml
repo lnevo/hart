@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SAMPLE: How block assignment might appear on a track segment in JMRI panel XML.
+  Your current tables.xml does NOT have any block attribute on track segments.
+  JMRI may store the block as an attribute when you set "Block: Name" in Edit Track Segment.
+
+  Try adding blockname="Block 4-1" to one <tracksegment> in tables.xml, save a copy,
+  then open in PanelPro to confirm. If your JMRI version uses a different attribute
+  (e.g. block="Block 4-1" or block="IB:AUTO:0001"), edit accordingly.
+
+  Below: same structure as a track segment from your file, with blockname added.
+-->
+<!-- WITHOUT block (current style in your file): -->
+<tracksegment ident="T-I-TOL35287" connect1name="TOL35287" type1="TURNOUT_A" connect2name="A149" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+
+<!-- WITH block (guessed attribute - please confirm in your JMRI): -->
+<tracksegment ident="T-I-TOL35287" connect1name="TOL35287" type1="TURNOUT_A" connect2name="A149" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" blockname="Block 4-1" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />

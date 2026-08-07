@@ -1,0 +1,159 @@
+{
+  "note": "1:1 panel coordinates. Center ladder X/Y aligned at build from segment idents (Track 1=F46-S-0, \u2026, Main East=F68-S-0) using main_west spacing.",
+  "labels": [
+    {
+      "id": "brick",
+      "text": "Brick",
+      "x": 252,
+      "y": 181.33,
+      "size": "9",
+      "style": "station"
+    },
+    {
+      "id": "plane",
+      "text": "Plane",
+      "x": 282.67,
+      "y": 218,
+      "size": "9",
+      "style": "station"
+    },
+    {
+      "id": "east_end",
+      "text": "East End",
+      "x": 888.67,
+      "y": 181.33,
+      "size": "9",
+      "style": "station"
+    },
+    {
+      "id": "princess",
+      "text": "Princess",
+      "x": 1057.33,
+      "y": 181.33,
+      "size": "9",
+      "style": "station"
+    },
+    {
+      "id": "main_west",
+      "text": "Main West",
+      "x": 645.33,
+      "y": 153.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "main_east",
+      "text": "Main East",
+      "x": 645.33,
+      "y": 352,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track1_west",
+      "text": "Track 1",
+      "x": 85.33,
+      "y": 153.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track1_east",
+      "text": "Track 1",
+      "x": 1117.33,
+      "y": 153.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track1_mid",
+      "text": "Track 1",
+      "x": 645.33,
+      "y": 195.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track2_west",
+      "text": "Track 2",
+      "x": 86.67,
+      "y": 195.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "west_lead",
+      "text": "West Lead",
+      "x": 333.33,
+      "y": 195.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "east_lead",
+      "text": "East Lead",
+      "x": 953.33,
+      "y": 195.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track2_east",
+      "text": "Track 2",
+      "x": 1118.67,
+      "y": 195.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track2_mid",
+      "text": "Track 2",
+      "x": 645.33,
+      "y": 229.33,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track3",
+      "text": "Track 3",
+      "x": 645.33,
+      "y": 260.67,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track4",
+      "text": "Track 4",
+      "x": 645.33,
+      "y": 292,
+      "size": "9",
+      "style": "track"
+    },
+    {
+      "id": "track5",
+      "text": "Track 5",
+      "x": 645.33,
+      "y": 320,
+      "size": "9",
+      "style": "track"
+    }
+  ],
+  "styles": {
+    "station": {
+      "red": "255",
+      "green": "255",
+      "blue": "255",
+      "hasBackground": "yes",
+      "redBack": "0",
+      "greenBack": "0",
+      "blueBack": "0",
+      "margin": "5"
+    },
+    "track": {
+      "red": "0",
+      "green": "0",
+      "blue": "0",
+      "hasBackground": "no"
+    }
+  }
+}

@@ -1,0 +1,1 @@
+# Block merges for linear3 (one pair per line: KEEP MERGE_AWAY)

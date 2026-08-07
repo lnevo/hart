@@ -1,0 +1,65 @@
+sensor_role,linear4_user_name,linear4_system_name,live_physical_system,live_physical_user,associated_linear4_turnout,associated_block,notes
+turnout_feedback_thrown,TOL38 FB_R,,M2S473,Switch 4-2 FB R,TOL38,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL38 FB_N,,M2S472,Switch 4-2 FB N,TOL38,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL42 FB_R,,M2S475,Switch 4-3 FB R,TOL42,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL42 FB_N,,M2S474,Switch 4-3 FB N,TOL42,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL3 FB_R,,M2S471,Switch 4-1 FB R,TOL3,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL3 FB_N,,M2S470,Switch 4-1 FB N,TOL3,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOR14 FB_R,,M2S368,Switch 3-1 FB R,TOR14,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOR14 FB_N,,M2S367,Switch 3-1 FB N,TOR14,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL15 FB_R,,M2S370,Switch 3-2 FB R,TOL15,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL15 FB_N,,M2S369,Switch 3-2 FB N,TOL15,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL17 FB_R,,M2S372,Switch 3-3 FB R,TOL17,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL17 FB_N,,M2S371,Switch 3-3 FB N,TOL17,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL19 FB_R,,M2S374,Switch 3-4 FB R,TOL19,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL19 FB_N,,M2S373,Switch 3-4 FB N,TOL19,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOR11 FB_R,,M2S1268,Switch 12-1 FB R,TOR11,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOR11 FB_N,,M2S1267,Switch 12-1 FB N,TOR11,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOR31 FB_R,,M2S1276,Switch 12-5 FB R,TOR31,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOR31 FB_N,,M2S1275,Switch 12-5 FB N,TOR31,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOR9 FB_R,,M2S1270,Switch 12-2 FB R,TOR9,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOR9 FB_N,,M2S1269,Switch 12-2 FB N,TOR9,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOR7 FB_R,,M2S1272,Switch 12-3 FB R,TOR7,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOR7 FB_N,,M2S1271,Switch 12-3 FB N,TOR7,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOR32 FB_R,,M2S1276,Switch 12-5 FB R,TOR32,,Carry over from live (TOR32); dx=9px
+turnout_feedback_closed,TOR32 FB_N,,M2S1275,Switch 12-5 FB N,TOR32,,Carry over from live (TOR32); dx=9px
+turnout_feedback_thrown,TOL6 FB_R,,M2S1274,Switch 12-4 FB R,TOL6,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL6 FB_N,,M2S1273,Switch 12-4 FB N,TOL6,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL23 FB_R,,M2S1278,Switch 12-6 FB R,TOL23,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL23 FB_N,,M2S1277,Switch 12-6 FB N,TOL23,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL2 FB_R,,M2S168,Switch 1-1 FB R,TOL2,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL2 FB_N,,M2S167,Switch 1-1 FB N,TOL2,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL1 FB_R,,M2S168,Switch 1-1 FB R,TOL1,,Carry over from live (TOL1); dx=13px
+turnout_feedback_closed,TOL1 FB_N,,M2S167,Switch 1-1 FB N,TOL1,,Carry over from live (TOL1); dx=13px
+turnout_feedback_thrown,TOR36 FB_R,,M2S170,Switch 1-2 FB R,TOR36,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOR36 FB_N,,M2S169,Switch 1-2 FB N,TOR36,,Carry over from live (); dx=0px
+turnout_feedback_thrown,TOL29 FB_R,,M2S172,Switch 1-3 FB R,TOL29,,Carry over from live (); dx=0px
+turnout_feedback_closed,TOL29 FB_N,,M2S171,Switch 1-3 FB N,TOL29,,Carry over from live (); dx=0px
+block_occupancy,BS TOL23,ISIS30,,,TOL23,Block_30,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL42,ISIS31,,,TOL42,Block_31,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOR36,ISIS32,,,TOR36,Block_32,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL3,ISIS33,,,TOL3,Block_33,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOR31,ISIS34,,,TOR31,Block_34,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL38,ISIS35,,,TOL38,Block_35,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOR11,ISIS36,,,TOR11,Block_36,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOR9,ISIS37,,,TOR9,Block_37,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL19,ISIS38,,,TOL19,Block_38,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOR32,ISIS39,,,TOR32,Block_39,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL29,ISIS40,,,TOL29,Block_40,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOR14,ISIS41,,,TOR14,Block_41,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL6,ISIS42,,,TOL6,Block_42,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOR7,ISIS43,,,TOR7,Block_43,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL15,ISIS44,,,TOL15,Block_44,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL17,ISIS45,,,TOL17,Block_45,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL2,ISIS46,,,TOL2,Block_46,Pipeline internal sensor; map live M2S* when hardware known
+block_occupancy,BS TOL1,ISIS47,,,TOL1,Block_47,Pipeline internal sensor; map live M2S* when hardware known
+turnout_feedback_thrown,TO1 FB_R,,M2S477,Switch 4-4 FB R,TO1,,Yard turnout TO1
+turnout_feedback_closed,TO1 FB_N,,M2S476,Switch 4-4 FB N,TO1,,Yard turnout TO1
+turnout_feedback_thrown,TO6 FB_R,,M2S1368,Switch 13-1 FB R,TO6,,Yard turnout TO6
+turnout_feedback_closed,TO6 FB_N,,M2S1367,Switch 13-1 FB N,TO6,,Yard turnout TO6
+turnout_feedback_thrown,TO8 FB_R,,M2S1368,Switch 13-1 FB R,TO8,,Yard turnout TO8
+turnout_feedback_closed,TO8 FB_N,,M2S1367,Switch 13-1 FB N,TO8,,Yard turnout TO8
+turnout_feedback_thrown,TO11 FB_R,,M2S1370,Switch 13-2 FB R,TO11,,Yard turnout TO11
+turnout_feedback_closed,TO11 FB_N,,M2S1369,Switch 13-2 FB N,TO11,,Yard turnout TO11
+turnout_feedback_thrown,TO10 FB_R,,M2S1372,Switch 13-3 FB R,TO10,,Yard turnout TO10
+turnout_feedback_closed,TO10 FB_N,,M2S1371,Switch 13-3 FB N,TO10,,Yard turnout TO10

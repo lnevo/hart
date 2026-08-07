@@ -1,0 +1,11 @@
+{
+  "labels": [
+    {"text": "Neville Island", "y": 35, "size": "16", "style": "1"},
+    {"text": "West Yard", "x": 105, "y": 100},
+    {"text": "South Yard", "y": 100},
+    {"text": "Industry Sidings", "y": 100},
+    {"text": "PIR Interchange", "y": 100, "justification": "left"},
+    {"text": "← Neville Island West", "justification": "left"},
+    {"text": "Arden, PA →", "justification": "left"}
+  ]
+}

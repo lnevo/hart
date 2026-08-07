@@ -1,0 +1,19 @@
+# Block merges: one pair per line "KEEP MERGE_AWAY" (merge second block into first).
+# Numbers are ORIGINAL block numbers from layout_blocks.xlsx (1-182).
+#
+# Current merges (merge_away -> keep):
+#   29->24   Block_29 into Block_24
+#   116->129 Block_116 into Block_129
+#   27->44   Block_27 into Block_44
+#   86->14   Block_86 into Block_14 (connects F35261-S-0 + T-I-TOL35290 in Block_14)
+#   117->30  Block_117 into Block_30
+#   101->97  Block_101 into Block_97
+#   114->97  Block_114 into Block_97
+# (96 unmerged: 113 and 100 no longer merged into 96)
+24 29
+129 116
+44 27
+14 86
+30 117
+97 101
+97 114

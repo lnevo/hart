@@ -1,0 +1,18 @@
+---
+description: Panel repo — JMRI + NextTrain dispatcher pipelines; read AI_CONTEXT before layout/dispatcher changes
+alwaysApply: true
+---
+
+# Panel workspace
+
+Read **[`wiki/home.md`](wiki/home.md)** and **[`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md)** for full context (pipelines, `JMRI_LAYOUT`, **hart**, linear4, Google Sheets push, scripts, do-not-regress list).
+
+**Quick rules:**
+
+- **Active next-gen layout:** `hart` (`JMRI_LAYOUT=hart`). Baseline connectivity/positions from linear6; panel-only changes to JMRI config (see wiki ADRs).
+- **JMRI linear4 / hart:** Geometry **1:1** (`--scale 1`). Do not run `fit_panel_height` rebase, `fit_panel_canvas`, or `polish_layout_geometry` unless the user explicitly asks.
+- **Dispatcher sizing** is only via `jmri/layouts/<name>/dispatcher/export_options.json` (`segment_scale`, `control_point_scale`, offsets) — then re-export xlsx and `npm run push-layout`.
+- **Google Sheets:** credentials in `.env.local` (root or `NextTrainDispatcherApp/`). Push uses `sheet.clear()` + `addRows`, not per-row delete.
+- **`tables/tables.xml`** is read-only; edit `tables/new_tables.xml` only.
+- Do not remove **F30-S-0** on layouts that include it (connectivity).
+- **New JMRI-drawn track:** set **Mainline → Yes** on segments and turnouts (`mainline="yes"` in XML); editor defaults to sidetrack and blocks can look wrong.

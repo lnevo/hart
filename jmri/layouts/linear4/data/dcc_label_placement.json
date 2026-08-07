@@ -1,0 +1,15 @@
+{
+  "fixed_y": {
+    "100": 138,
+    "101": 138,
+    "111": 138,
+    "113": 138
+  },
+  "between_mast": [102],
+  "above": [115],
+  "below": [103, 104, 105, 106],
+  "below_east": [107, 108, 109, 110, 112, 114],
+  "above_offset": -26,
+  "below_offset": 20,
+  "below_east_offset": 13
+}
