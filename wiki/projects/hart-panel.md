@@ -1,7 +1,7 @@
 # Project plan — HART next-gen panel
 
 - **Owner:** lnevo
-- **Status:** Active (phases 0–2)
+- **Status:** Active — phases 0–2 scaffolded on `main` ([lnevo/hart](https://github.com/lnevo/hart))
 - **Date:** 2026-08-07
 - **Layout name:** `hart`
 - **Baseline:** `jmri/layouts/linear6/linear6.xml` (connectivity + positionability)
