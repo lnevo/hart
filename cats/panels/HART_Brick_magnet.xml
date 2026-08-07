@@ -125,8 +125,6 @@
   <OPERATIONS CONNECT="false" />
     <JMRINAME JMRIPREFIX="IS" XMLTYPE="Sensor">jmri.managers.InternalSensorManager</JMRINAME>
   <JMRINAME JMRIPREFIX="IT" XMLTYPE="Turnout">jmri.managers.InternalTurnoutManager</JMRINAME>
-  <JMRINAME JMRIPREFIX="M2S" XMLTYPE="Sensor">jmri.jmrix.mqtt.MqttSensorManager</JMRINAME>
-  <JMRINAME JMRIPREFIX="M2T" XMLTYPE="Turnout">jmri.jmrix.mqtt.MqttTurnoutManager</JMRINAME>
   <TRACKPLAN COLUMNS="16" ROWS="5">
     <SECTION X="4" Y="1">
       <SEC_NAME LOC_NAME="CENT" NAME="Brick" FONT_NAME="FONT_LABEL" />
@@ -135,34 +133,16 @@
       <SEC_NAME LOC_NAME="CENT" NAME="to Plane →" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="1" Y="2">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="West Main Ext" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="Block 1-8">throw</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="107" JMRIPREFIX="M2S">close</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK NAME="West Main Ext" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="2" Y="2">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Main West" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="200" JMRIPREFIX="M2S" USER_NAME="Block 2-1">throw</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="200" JMRIPREFIX="M2S">close</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK NAME="Main West" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT" />
     </SECTION>
@@ -172,49 +152,18 @@
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="OS 100 (Brick)" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="401" JMRIPREFIX="M2S" USER_NAME="Block 4-2">throw</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="401" JMRIPREFIX="M2S">close</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK NAME="OS 100 (Brick)" DISCIPLINE="CTC" VISIBLE="true" />
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
     <SECTION X="4" Y="2">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Block 100-102" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="405" JMRIPREFIX="M2S" USER_NAME="Block 4-6">throw</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="405" JMRIPREFIX="M2S">close</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK NAME="Block 100-102" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT" />
       <STATION COLORTAG="DEPOT">LOWCENT</STATION>
@@ -225,95 +174,43 @@
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="OS 101 (Brick)" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="400" JMRIPREFIX="M2S" USER_NAME="Block 4-1">throw</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="400" JMRIPREFIX="M2S">close</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK NAME="OS 101 (Brick)" DISCIPLINE="CTC" VISIBLE="true" />
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
     <SECTION X="6" Y="2">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" /><SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="7" Y="2">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" /><SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="8" Y="2">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" /><SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="3" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="West Yard 1" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">throw</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="403" JMRIPREFIX="M2S">close</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK NAME="West Yard 1" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="4" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
+      <TRACKGROUP><TRACK>HORIZONTAL</TRACK></TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="West Yard 2" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">throw</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="402" JMRIPREFIX="M2S">close</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK NAME="West Yard 2" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="5" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="BOTTOM" />
+      <TRACKGROUP><TRACK>LOWERSLASH</TRACK></TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" /><SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
   </TRACKPLAN>
 </DOCUMENT>

@@ -12,5 +12,7 @@ rm -rf "$DEST"
 mkdir -p "$DEST"
 unzip -qo "$TMP" -d "$DEST"
 rm -f "$TMP"
+chmod +x "$DEST/cats.csh" "$DEST/designer.csh" 2>/dev/null || true
 echo "Installed → $DEST"
+echo "Next: ./tools/cats/install_into_jmri.sh"
 echo "See cats/README.md for HART integration steps."

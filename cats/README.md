@@ -38,7 +38,10 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 
 - JMRI: **current** host (panel reports **5.15.4plus** — OK for CATS 3.2)
 - CTC throws: **CATS**
-- First plant: **Brick** → [`panels/HART_Brick.xml`](panels/HART_Brick.xml)
+- First plant: **Brick**
+  - [`panels/HART_Brick_magnet.xml`](panels/HART_Brick_magnet.xml) — geometry only (open this first)
+  - [`panels/HART_Brick.xml`](panels/HART_Brick.xml) — MQTT occupancy + Switch 100/101
+- Validate: `python3 cats/scripts/validate_cats_panel.py`
 
 ## Install + run (macOS)
 
