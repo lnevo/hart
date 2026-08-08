@@ -1,0 +1,70 @@
+{
+  "intent": "Class 1 Digicon CTC for HART — full Armstrong chassis primary; Designer west-end optional",
+  "load_rule": "clone ArmstrongMagnet / Chubb cells only — never invent SecEdge topology",
+  "primary": "chassis",
+  "reference_panel": "JMRI My Layout — Neville Island (WayVNC) for OS/name + connectivity truth",
+  "designer_docs": ["cats/docs/GATE1_BRICK_PLANE.md", "cats/docs/GATE2_PLUS.md"],
+  "comparison_doc": "cats/docs/HART_DIGICON_MAP.md",
+  "topology_truth": {
+    "no_wye": true,
+    "loops": "Princess east return = McKees Rocks ↔ McKeesport",
+    "crossovers": ["117", "111", "113"],
+    "spines": {
+      "main_west": "top spine West Yard → Brick → Block 100-102 → Plane → …",
+      "main_east": "bottom/east spine through South Yard → East End → loop"
+    },
+    "south_yard": "Tracks 1–5 between Main West and Main East; west ladder 103–106; east ladder 107–110",
+    "plants": ["Brick", "Plane", "Barn", "East End", "Princess"],
+    "east_lead": "between OS 112 and Princess 114/115",
+    "straight_blocks": {
+      "Block 100-102": "Gate1 Intermediate1 — HORIZONTAL between Brick and Plane; Designer for true LH100 continuing"
+    }
+  },
+  "chassis_block_map": {
+    "LeftLoop": "OS 101 (Brick)",
+    "YardInterchange": "West Yard 1",
+    "YardLeft": "Main West",
+    "Yardsiding": "OS 100 (Brick)",
+    "YardRight": "OS 117 (West Yard)",
+    "YardMain": "OS 116 (West Yard)",
+    "Yard": "Yard Track 1",
+    "Yard2": "West Yard 2",
+    "Spur": "OS 102 (Plane)",
+    "SidingLeft": "OS 103 (South Yard)",
+    "SidingSiding": "OS 104 (South Yard)",
+    "SidingMain": "OS 105 (South Yard)",
+    "SidingRight": "OS 106 (South Yard)",
+    "Intermediate1": "Block 100-102",
+    "Intermediate2": "East Main Ext",
+    "Intermediate3": "Main East",
+    "Intermediate4": "OS 112 (East End)",
+    "WyeLeft": "OS 111a (East End)",
+    "WyeSiding": "OS 113b (Princess)",
+    "WyeMain": "East Lead",
+    "WyeMiddle": "OS 114 (Princess)",
+    "WyeRight": "OS 115 (Princess)",
+    "Wye": "McKees Rocks",
+    "WyeLoop": "McKeesport"
+  },
+  "chassis_label_map": {
+    "Yard (5000')": "Brick / West Yard",
+    "Spur": "Plane",
+    "Siding (1000')": "South Yard",
+    "Wye (2000')": "Princess"
+  },
+  "chassis_extra_labels": [
+    {"x": 3, "y": 1, "text": "HART RR"},
+    {"x": 5, "y": 1, "text": "Brick 100"},
+    {"x": 13, "y": 2, "text": "100-102 straight"},
+    {"x": 16, "y": 2, "text": "Plane 102"},
+    {"x": 18, "y": 2, "text": "East Main Ext"},
+    {"x": 23, "y": 1, "text": "South Yard"},
+    {"x": 28, "y": 1, "text": "Main East"},
+    {"x": 30, "y": 2, "text": "OS 112"},
+    {"x": 35, "y": 1, "text": "East Lead"},
+    {"x": 38, "y": 2, "text": "Princess loops"},
+    {"x": 38, "y": 6, "text": "McKees Rocks"},
+    {"x": 40, "y": 7, "text": "McKeesport"}
+  ],
+  "skip_switches": ["111b", "113a", "117b"]
+}

@@ -38,9 +38,15 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 
 - JMRI: **current** host (panel reports **5.15.4plus** — OK for CATS 3.2)
 - CTC throws: **CATS**
-- First plant: **Brick** — must be drawn in **Designer** ([why](docs/DESIGNER_REQUIRED.md))
-  - Smoke test: [`panels/HART_smoke_Armstrong.xml`](panels/HART_smoke_Armstrong.xml) (Armstrong topology; should paint track)
-  - Bindings cheat-sheet: [`docs/BRICK_BINDINGS.md`](docs/BRICK_BINDINGS.md)
+- Digicon board: **Designer-first** (ADR-004); **start here:** [`docs/DESIGNER_GATE1_HOWTO.md`](docs/DESIGNER_GATE1_HOWTO.md) · checklist [`docs/GATE1_BRICK_PLANE.md`](docs/GATE1_BRICK_PLANE.md)
+  ```bash
+  ./cats/scripts/launch_designer.sh
+  python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panels/HART.xml
+  # Interim fragment (until Designer save):
+  python3 cats/scripts/jmri_to_cats_digicon.py --only gate1
+  ```
+  - Plant map: [`docs/HART_DIGICON_MAP.md`](docs/HART_DIGICON_MAP.md)
+  - Bindings: [`docs/BRICK_BINDINGS.md`](docs/BRICK_BINDINGS.md) · Gates 2–5: [`docs/GATE2_PLUS.md`](docs/GATE2_PLUS.md)
 - Validate: `python3 cats/scripts/validate_cats_panel.py`
 
 ## Install + run (macOS)
@@ -54,12 +60,20 @@ CATS **must** be copied into your JMRI folder (`cats.jar` next to `jmri.jar`). R
 
 # each session (no sudo; quit PanelPro on the same profile first):
 ./cats/scripts/launch_cats.sh
-# then File → Open → cats/panels/HART_Brick.xml
+# Digicon XML is auto-opened (default: cats/panels/HART_magnet.xml)
 
-./cats/scripts/launch_designer.sh       # Digicon editor
+./cats/scripts/launch_designer.sh       # optional polish only
 ```
 
-`readelf` warnings on macOS from `cats.csh` are harmless ARM probes; prefer `StartJMRI -m cats.apps.Crandic` (what `launch_cats.sh` uses).
+### macOS Local Network (MQTT / agent launches)
+
+Agent-launched JMRI inherits **Cursor**’s Local Network permission. PanelPro often never shows up in that list — ignore that.
+
+**Fix:** System Settings → Privacy & Security → Local Network → **Cursor** on, then **restart Cursor** and relaunch CATS. After that, `./cats/scripts/launch_cats.sh` (direct) gets MQTT.
+
+Fallback if Cursor still blocked: `CATS_LAUNCH_VIA=app` (PanelPro.app) or `=terminal`.
+
+`readelf` warnings on macOS from `cats.csh` are harmless ARM probes.
 
 Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_BUILD.md`](docs/HART_DESIGNER_BUILD.md).
 

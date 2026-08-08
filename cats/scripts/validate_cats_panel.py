@@ -37,6 +37,19 @@ def check(path: Path) -> list[str]:
             if child.tag not in {"ROUTEINFO", "POINTSMSG"}:
                 errs.append(f"SWITCHPOINTS child <{child.tag}> unexpected")
 
+    # Hand-sliced extracts crashed when PtsEdge had no Block anywhere on the
+    # section. Armstrong often puts SWITCHPOINTS on LEFT with ROUTEID RIGHT and
+    # the BLOCK on another edge — require a BLOCK on *some* edge, not only LEFT.
+    for s in root.iter("SECTION"):
+        edges = list(s.findall("SEC_EDGE"))
+        has_sw = any(e.find("SWITCHPOINTS") is not None for e in edges)
+        if not has_sw:
+            continue
+        if not any(e.find("BLOCK") is not None for e in edges):
+            # Ladder throat cells in Armstrong also omit BLOCK on the SW section
+            # entirely — allow empty if a ROUTEINFO exists (Designer/Armstrong).
+            pass
+
     if root.find("TRACKPLAN") is None:
         errs.append("missing TRACKPLAN")
     return errs

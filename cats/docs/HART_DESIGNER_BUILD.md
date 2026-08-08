@@ -2,9 +2,11 @@
 
 ## Goal (phase 1)
 
-Magnet-board / dark CTC schematic of Neville Island west→east with **Brick** live-bound first, then Plane → South Yard → East End → Princess.
+Magnet-board / dark CTC schematic of Neville Island west→east. **Gate 1 first:** Brick + Block 100-102 + Plane ([`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md)), then Gates 2–5 ([`GATE2_PLUS.md`](GATE2_PLUS.md)).
 
 Layout Editor `hart_prod.xml` stays the MQTT hardware panel. Designer XML is a **second** definition that references the same JMRI user names.
+
+After save: `python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panels/HART.xml`
 
 ## Prerequisites
 

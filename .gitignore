@@ -51,3 +51,25 @@ jmri/layouts/**/*_status.txt
 # CATS binaries (fetch with tools/cats/fetch_cats_3.2.sh)
 tools/cats/release3.2/
 tools/cats/*.zip
+
+# Decompiled / exploded CATS runtime (never commit)
+tools/cats/src-repo/
+META-INF/
+cats/apps/
+cats/automatedTests/
+cats/common/
+cats/crew/
+cats/gui/
+cats/jmri/
+cats/jobs/
+cats/layout/
+cats/network/
+cats/rr_events/
+cats/trackCircuit/
+cats/trains/
+cats/**/*.class
+cats/package-info.class
+cats/HART.xml
+cats/panels/_qa_*.png
+cats/panels/*.png
+cats/.venv/

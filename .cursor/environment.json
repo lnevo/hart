@@ -1,0 +1,6 @@
+{
+  "name": "hart",
+  "install": "python3 -m pip install --user -q paho-mqtt lxml 2>/dev/null || true; python3 -c 'import xml.etree.ElementTree; print(\"python-ok\")'",
+  "start": "",
+  "terminals": []
+}

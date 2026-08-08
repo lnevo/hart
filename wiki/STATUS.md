@@ -1,17 +1,26 @@
-# Live status — HART / CATS
+# Live status — HART Digicon
 
-Updated: 2026-08-08 (agent)
+Updated: 2026-08-08 — remote/cloud ready + Gate 1 primary
+
+## Repo / remote
+
+- GitHub: https://github.com/lnevo/hart  
+- Local workspace folder: `Panel` (same git root)  
+- Agent branch pattern: `agent/<id>/<topic>` — see [`AGENTS_GIT.md`](AGENTS_GIT.md)  
+- Cloud Agents: link `lnevo/hart` at [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents)
 
 ## Now
 
-- Partial yard extract **crashed** (`MyBlock` null) — incomplete topology.
-- **Fix:** `HART_Brick_magnet.xml` = **full** Armstrong board + HART Brick/west names (same structure as smoke that worked).
-- Open `HART_Brick_magnet.xml` — should paint like smoke, with Brick labels.
+- Primary launch: `cats/panels/HART.xml` — **Gate 1** (Designer geometry + CTC rules)  
+- Rebuild Gate 1: `python3 cats/scripts/wire_designer_ctc_rules.py --mqtt`  
+- LE Digicon generator (WIP / may blank): `python3 cats/scripts/build_hart_digicon_from_le.py`  
+- Authoritative Designer draw: `cats/panels/HART_designer_raw.xml`  
+- How-to: [`cats/docs/DESIGNER_GATE1_HOWTO.md`](../cats/docs/DESIGNER_GATE1_HOWTO.md)
 
-## Human replies
+## Manual launch (local Mac only)
 
-- Smoke Armstrong panel works.
-- Extracted Brick magnet crashed (NPE).
-- Full Armstrong + HART names (`HART_Brick_magnet.xml`) works (2026-08-08).
-- **`HART_Brick.xml` (with MQTT occupancy) also loads clean** (2026-08-08) — only Operations WARN.
+```bash
+CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART.xml
+```
 
+Do **not** use `CATS_LAUNCH_VIA=app`. Keep-alive LaunchAgent stays disabled.
