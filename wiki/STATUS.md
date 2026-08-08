@@ -12,4 +12,5 @@ Updated: 2026-08-08 (agent)
 
 - Smoke Armstrong panel works.
 - Extracted Brick magnet crashed (NPE).
+- Full Armstrong + HART names (`HART_Brick_magnet.xml`) works (2026-08-08).
 
