@@ -2,9 +2,10 @@
 """Render a single east->west Class I style CTC dispatcher panel for HART.
 
 Collapses the layout into one linear schematic: a straight main line (west =
-Brick, left) with control points drawn as numbered OS plates, passing/second
-main above, and the West Yard/engine terminal, South Yard, and East End
-ladders stacked below as parallel tracks. Signals sit at each control point.
+Brick, left) with control points drawn as numbered OS plates. Yards are drawn
+as proper ladders: the entry turnout's diverging lead lands exactly on the
+first ladder rung, and each subsequent rung peels one track off the lead, so
+103->104->105->106 connect in sequence (not into the gap between rungs).
 
 This is a schematic (CTC-machine) representation, not geographic geometry.
 
@@ -20,8 +21,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 # ------- styling -------
-UNIT = 30          # px per schematic column
-LANE = 70          # px per lane row
+UNIT = 30
+LANE = 70
 HEADER = 140
 PAD = 60
 BG = (12, 14, 18)
@@ -40,64 +41,54 @@ SIG_G = (60, 220, 110)
 SIG_R = (240, 80, 80)
 ARROW = (150, 158, 170)
 
-# lane row indices (top -> bottom)
+# lane rows (top -> bottom)
 UP2, UP, MAIN, YU, YL = 0, 1, 3, 5, 6
 
-# ------- curated linear model (west -> east) -------
-# horizontal track runs: (lane, col_start, col_end, color, width, label, label_col)
+# horizontal track runs: (lane, c0, c1, color, width, label, label_col)
 RUNS = [
-    (UP, 3, 12, SEC_C, 3, "Main West", 6),
-    (MAIN, 1, 74, MAIN_C, 5, None, 0),
-    (UP, 44, 71, SEC_C, 3, "West Main Ext", 49),
-    (UP2, 66, 73, SEC_C, 3, "McKees Rocks", 70),
-    # West Yard + engine terminal
-    (YU, 14, 27, YARD_C, 3, "West Yard lead", 16),
-    (YL, 14, 20, YARD_C, 3, "Eng T11", 15),
-    (YL, 20, 27, YARD_C, 3, "Eng T9 / T10", 23),
-    # South Yard tracks
-    (YU, 28, 42, YARD_C, 3, "South Yard lead", 30),
-    (YL, 29, 45, YARD_C, 3, "Yard Tracks 1-5", 37),
-    # East End ladder tracks
-    (YU, 43, 55, YARD_C, 3, "East End sidings", 48),
-    # Princess loop return
-    (YL, 63, 73, YARD_C, 3, "McKeesport", 69),
+    (UP, 3, 13, SEC_C, 3, "Main West", 6),
+    (MAIN, 1, 80, MAIN_C, 5, None, 0),
+    (UP, 54, 79, SEC_C, 3, "West Main Ext", 60),
+    (UP2, 74, 82, SEC_C, 3, "McKees Rocks", 77),
+    (YL, 70, 82, YARD_C, 3, "McKeesport", 75),
 ]
 
-# control points: (col, lane, os, area, diverge_dir, signals)
-CPS = [
-    (4, MAIN, "101", "Brick", "up"),
-    (7, MAIN, "100", "Brick", "down"),
-    (12, MAIN, "102", "Plane", "down"),
-    (18, YU, "119", "West Yard", "down"),
-    (20, MAIN, "117", "West Yard", "down"),
-    (22, YU, "118", "West Yard", "down"),
-    (24, YU, "116", "West Yard", "down"),
-    (30, MAIN, "103", "South Yard", "down"),
-    (33, YU, "104", "South Yard", "down"),
-    (36, YU, "105", "South Yard", "down"),
-    (39, YU, "106", "South Yard", "down"),
-    (44, YU, "107", "East End", "down"),
-    (47, YU, "108", "East End", "down"),
-    (46, MAIN, "111", "East End", "up"),
-    (50, YU, "109", "East End", "down"),
-    (53, YU, "110", "East End", "down"),
-    (56, MAIN, "112", "East End", "up"),
-    (62, MAIN, "113", "Princess", "up"),
-    (65, MAIN, "114", "Princess", "down"),
-    (67, UP, "115", "Princess", "up"),
+# standalone control points on main/up: (col, lane, os, area, dir, stub_label)
+STANDALONE = [
+    (4, MAIN, "101", "Brick", "up", "Main West"),
+    (7, MAIN, "100", "Brick", "down", "West Yard interchange"),
+    (11, MAIN, "102", "Plane", "down", "Plane spur"),
+    (56, MAIN, "111", "East End", "up", None),      # crossover to passing main
+    (66, MAIN, "112", "East End", "up", None),
+    (70, MAIN, "113", "Princess", "up", None),       # crossover to passing main
+    (72, MAIN, "114", "Princess", "down", "East Lead"),
+    (74, UP, "115", "Princess", "up", "McKees Rocks"),
 ]
 
-# station header bands: (label, col_center)
+# East End ladder rungs sit on the yard lead (kept as the reviewer liked it):
+# (col, os, area, track_label)
+EAST_END = [
+    (50, "107", "East End", "EE 1"),
+    (54, "108", "East End", "EE 2"),
+    (58, "109", "East End", "EE 3"),
+    (62, "110", "East End", "EE 4"),
+]
+
+# ladders: entry turnout on MAIN, rungs on the lead lane, tracks below.
+# (entry_col, entry_os, area, [(os, track_label), ...], rung_spacing)
+LADDERS = [
+    (15, "117", "West Yard",
+     [("119", "Eng T11"), ("118", "Eng T10"), ("116", "Eng T9")], 4),
+    (34, "103", "South Yard",
+     [("104", "Yard Trk 1"), ("105", "Yard Trk 2"), ("106", "Yard Trk 3")], 4),
+]
+
 STATIONS = [
-    ("BRICK", 6), ("PLANE", 12), ("WEST YARD / ENGINE TERMINAL", 21),
-    ("SOUTH YARD", 35), ("EAST END", 49), ("PRINCESS", 65),
+    ("BRICK", 6), ("PLANE", 11), ("WEST YARD / ENGINE TERMINAL", 22),
+    ("SOUTH YARD", 42), ("EAST END", 58), ("PRINCESS", 73),
 ]
 
-# main-line block name labels: (col, text)
-MAIN_BLK = [
-    (9, "100-102"), (16, "East Main Ext"), (27, "Main East"),
-    (42, "East Lead"), (59, "OS 113"),
-]
+MAIN_BLK = [(9, "100-102"), (26, "Main East"), (46, "East Lead")]
 
 
 def _font(size, bold=False):
@@ -112,19 +103,21 @@ def _font(size, bold=False):
 
 
 def render(out: Path) -> None:
-    max_col = 76
+    max_col = 86
     max_lane = 7
     W = PAD * 2 + max_col * UNIT
     H = HEADER + PAD + max_lane * LANE
-
     img = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(img)
 
     def px(col):
-        return PAD + col * UNIT
+        return int(PAD + col * UNIT)
 
     def py(lane):
-        return HEADER + int(lane * LANE)
+        return int(HEADER + lane * LANE)
+
+    # lanes-per-column for a 45deg diagonal
+    lane_cols = LANE / UNIT
 
     f_title = _font(30, bold=True)
     f_st = _font(15, bold=True)
@@ -132,11 +125,36 @@ def render(out: Path) -> None:
     f_area = _font(11)
     f_blk = _font(12)
 
-    # header band
+    placed = []
+
+    def diag(col, lane, tgt_lane):
+        x, y, ty = px(col), py(lane), py(tgt_lane)
+        dx = abs(ty - y)  # 45deg
+        sign = 1
+        d.line([(x, y), (x + sign * dx, ty)], fill=DIAG_C, width=4)
+        return col + sign * (tgt_lane - lane) * lane_cols  # landing col (signed)
+
+    def signals(x, y):
+        d.ellipse([x - 16, y - 3, x - 10, y + 3], fill=SIG_G)
+        d.ellipse([x + 10, y - 3, x + 16, y + 3], fill=SIG_R)
+
+    def os_plate(col, lane, os, area):
+        x, y = px(col), py(lane)
+        bx0, by0 = x - 17, y - 52
+        while any(abs(bx0 - qx) < 40 and abs(by0 - qy) < 36 for qx, qy in placed):
+            by0 -= 38
+        placed.append((bx0, by0))
+        d.line([(bx0 + 17, by0 + 20), (x, y - 5)], fill=OSBORD, width=1)
+        d.rectangle([bx0, by0, bx0 + 34, by0 + 20], fill=OSBOX, outline=OSBORD, width=1)
+        d.text((bx0 + 17, by0 + 10), os, font=f_os, fill=OSTXT, anchor="mm")
+        d.text((bx0 + 17, by0 + 30), area, font=f_area, fill=AREATXT, anchor="mm")
+        d.ellipse([x - 4, y - 4, x + 4, y + 4], fill=STATION)
+        signals(x, y)
+
+    # header
     d.rectangle([0, 0, W, HEADER - 34], fill=BAND)
     d.text((PAD, 18), "HART  \u2014  CTC Dispatcher Panel", font=f_title, fill=OSTXT)
-    d.text((W - 330, 24), "WEST \u2190  main track  \u2192 EAST",
-           font=f_st, fill=ARROW)
+    d.text((W - 330, 24), "WEST \u2190  main track  \u2192 EAST", font=f_st, fill=ARROW)
     d.line([(0, HEADER - 34), (W, HEADER - 34)], fill=OSBORD, width=1)
     for label, c in STATIONS:
         d.text((px(c), HEADER - 56), label, font=f_st, fill=STATION, anchor="mm")
@@ -147,50 +165,53 @@ def render(out: Path) -> None:
         d.line([(px(c0), py(lane)), (px(c1), py(lane))], fill=color, width=w)
         if label:
             d.text((px(lc), py(lane) - 12), label, font=f_blk, fill=BLKTXT)
-
-    # main-line block labels (below the main line so they clear the OS plates)
     for c, text in MAIN_BLK:
         d.text((px(c), py(MAIN) + 12), text, font=f_blk, fill=BLKTXT, anchor="mm")
 
-    # crossovers / diverging legs (drawn as ~45deg turnout leads that reach the
-    # target lane, so a branch reads as a real route rather than a stub)
-    def diagonal(col, lane, direction):
-        x = px(col)
-        y = py(lane)
+    # end arrows
+    d.polygon([(px(1) - 14, py(MAIN)), (px(1), py(MAIN) - 7), (px(1), py(MAIN) + 7)],
+              fill=ARROW)
+    d.polygon([(px(80) + 14, py(MAIN)), (px(80), py(MAIN) - 7), (px(80), py(MAIN) + 7)],
+              fill=ARROW)
+
+    # ladders (entry on main -> lead lands on first rung -> rungs peel tracks)
+    for entry_col, entry_os, area, rungs, spacing in LADDERS:
+        land = diag(entry_col, MAIN, YU)          # entry lead lands on YU
+        os_plate(entry_col, MAIN, entry_os, area)
+        rung_cols = [land + i * spacing for i in range(len(rungs))]
+        # lead along YU through all rungs
+        d.line([(px(land), py(YU)), (px(rung_cols[-1] + 1.5), py(YU))],
+               fill=YARD_C, width=3)
+        for (os, tl), rc in zip(rungs, rung_cols):
+            tland = diag(rc, YU, YL)              # rung peels a track down to YL
+            d.line([(px(tland), py(YL)), (px(tland + 3), py(YL))],
+                   fill=YARD_C, width=3)
+            d.text((px(tland + 0.2), py(YL) + 10), tl, font=f_blk, fill=BLKTXT)
+            os_plate(rc, YU, os, area)
+
+    # East End lead + rungs (yard lead below the main)
+    ee_cols = [c for c, *_ in EAST_END]
+    d.line([(px(ee_cols[0] - 1), py(YU)), (px(ee_cols[-1] + 1), py(YU))],
+           fill=YARD_C, width=3)
+    for col, os, area, tl in EAST_END:
+        tland = diag(col, YU, YL)
+        d.line([(px(tland), py(YL)), (px(tland + 3), py(YL))], fill=YARD_C, width=3)
+        d.text((px(tland + 0.2), py(YL) + 10), tl, font=f_blk, fill=BLKTXT)
+        os_plate(col, YU, os, area)
+
+    # standalone control points
+    for col, lane, os, area, direction, stub in STANDALONE:
         if direction == "up":
             tgt = UP if lane == MAIN else UP2
         else:
             tgt = YU if lane == MAIN else YL
-        ty = py(tgt)
-        dx = abs(ty - y)  # 45 degrees
-        d.line([(x, y), (x + dx, ty)], fill=DIAG_C, width=4)
-
-    # west end / east end arrows
-    d.polygon([(px(1) - 14, py(MAIN)), (px(1), py(MAIN) - 7),
-               (px(1), py(MAIN) + 7)], fill=ARROW)
-    d.polygon([(px(74) + 14, py(MAIN)), (px(74), py(MAIN) - 7),
-               (px(74), py(MAIN) + 7)], fill=ARROW)
-
-    # control points
-    placed = []
-    for col, lane, os, area, direction in CPS:
-        x, y = px(col), py(lane)
-        diagonal(col, lane, direction)
-        # signal bullets both directions
-        d.ellipse([x - 16, y - 3, x - 10, y + 3], fill=SIG_G)
-        d.ellipse([x + 10, y - 3, x + 16, y + 3], fill=SIG_R)
-        # OS plate (always above the track; stack higher to avoid collisions)
-        bx0, by0 = x - 17, y - 52
-        while any(abs(bx0 - qx) < 40 and abs(by0 - qy) < 36 for qx, qy in placed):
-            by0 -= 38
-        placed.append((bx0, by0))
-        # leader from plate down to the point
-        d.line([(bx0 + 17, by0 + 20), (x, y - 5)], fill=OSBORD, width=1)
-        d.rectangle([bx0, by0, bx0 + 34, by0 + 20], fill=OSBOX, outline=OSBORD, width=1)
-        d.text((bx0 + 17, by0 + 10), os, font=f_os, fill=OSTXT, anchor="mm")
-        d.text((bx0 + 17, by0 + 27), area, font=f_area, fill=AREATXT, anchor="mm")
-        # point marker
-        d.ellipse([x - 4, y - 4, x + 4, y + 4], fill=STATION)
+        land = diag(col, lane, tgt)
+        if stub and tgt in (YU, YL, UP2) and not (lane == MAIN and direction == "up"):
+            d.line([(px(land), py(tgt)), (px(land + 3), py(tgt))], fill=YARD_C, width=3)
+            d.text((px(land + 0.2), py(tgt) + 10), stub, font=f_blk, fill=BLKTXT)
+        elif stub:
+            d.text((px(land), py(tgt) - 12), stub, font=f_blk, fill=BLKTXT)
+        os_plate(col, lane, os, area)
 
     # legend
     ly = H - 20
@@ -208,7 +229,8 @@ def render(out: Path) -> None:
 
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out)
-    print(f"wrote {out}  ({W}x{H})  control_points={len(CPS)}")
+    n = len(STANDALONE) + len(EAST_END) + sum(1 + len(r[3]) for r in LADDERS)
+    print(f"wrote {out}  ({W}x{H})  control_points={n}")
 
 
 if __name__ == "__main__":
