@@ -1,0 +1,6 @@
+# Python dependencies for the Panel JMRI / dispatcher tooling.
+# Everything else the scripts use is in the Python 3 standard library.
+#   openpyxl - read/write the layout_blocks and NextTrainDispatcherApp .xlsx workbooks
+#   Pillow   - render optional panel background PNGs (generate_linear*_panel_background.py)
+openpyxl==3.1.5
+Pillow==12.3.0
