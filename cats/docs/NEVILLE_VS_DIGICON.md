@@ -15,8 +15,9 @@ South Yard · East End · East Lead · Princess (McKees Rocks / McKeesport)
 | Approach | Status |
 |----------|--------|
 | Chubb/Armstrong **rename** | Rejected as primary — wrong route roles (e.g. 100–102 on plant approach) |
-| **Gate 1 abutted fragments** | Interim primary — long HORIZONTAL 100–102 between Brick and Plane |
-| **Designer plant-by-plant** | Authoritative path (ADR-004) — [`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md) |
+| **Gate 1 abutted fragments** | Interim only (`jmri_to_cats_digicon.py --only gate1`) |
+| **Designer plant-by-plant** | **Primary** Gate 1 — `cats/panels/HART.xml` ([`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md)) |
+| **LE tip schematic** | WIP Gate 1–5 — `cats/panels/HART_le.xml` (100–102 on HORIZONTAL; needs Mac accept) |
 
 ## Operator guidance
 

@@ -1,7 +1,9 @@
 {
-  "intent": "Class 1 Digicon CTC for HART — full Armstrong chassis primary; Designer west-end optional",
+  "intent": "Class 1 Digicon CTC for HART — Designer Gate 1 primary; LE schematic for Gate 2–5 WIP",
   "load_rule": "clone ArmstrongMagnet / Chubb cells only — never invent SecEdge topology",
-  "primary": "chassis",
+  "primary": "designer_gate1",
+  "primary_panel": "cats/panels/HART.xml",
+  "le_wip_panel": "cats/panels/HART_le.xml",
   "reference_panel": "JMRI My Layout — Neville Island (WayVNC) for OS/name + connectivity truth",
   "designer_docs": ["cats/docs/GATE1_BRICK_PLANE.md", "cats/docs/GATE2_PLUS.md"],
   "comparison_doc": "cats/docs/HART_DIGICON_MAP.md",

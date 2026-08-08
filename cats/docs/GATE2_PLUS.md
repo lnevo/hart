@@ -1,12 +1,18 @@
 # Gates 2–5 — expand after Gate 1 accept
 
-Do not start these until [`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md) acceptance is checked.
+Do not promote these over Designer primary until [`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md) acceptance is checked on Mac.
 
-Each gate: draw in **CATS Designer** (or extend Gate 1 XML), bind JMRI names, then:
+**Cloud / script path:** LE schematic already includes Gate 2–5 names — rebuild with
+`python3 cats/scripts/build_hart_digicon_from_le.py --mqtt` → `cats/panels/HART_le.xml`.
+Still needs live CATS paint/path accept before replacing `HART.xml`.
+
+**Designer path:** draw each gate in **CATS Designer**, merge into
+`HART_designer_raw.xml`, extend anchors in `wire_designer_ctc_rules.py`, then:
 
 ```bash
-python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panels/HART.xml
-CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh
+python3 cats/scripts/wire_designer_ctc_rules.py --mqtt
+# or: python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panels/HART.xml
+CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 ```
 
 ## Gate 2 — West Yard + East Main Ext spine

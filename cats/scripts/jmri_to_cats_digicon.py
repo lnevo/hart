@@ -30,16 +30,21 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HART_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
-TEMPLATE = ROOT / "tools/cats/release3.2/examples/ArmstrongMagnet.xml"
-CHUBB = ROOT / "tools/cats/release3.2/examples/Chubb Route.xml"
 PLAN_PATH = ROOT / "cats/data/digicon_plant_plan.json"
 OUT_DIR = ROOT / "cats/panels"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cats_paths import armstrong_magnet, chubb_route  # noqa: E402
+
+TEMPLATE = armstrong_magnet()
+CHUBB = chubb_route()
 
 
 def load_plan() -> dict:

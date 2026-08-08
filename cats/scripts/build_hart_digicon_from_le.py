@@ -8,8 +8,20 @@ Source of truth: jmri/layouts/hart/output/hart_prod.xml
 Digicon is schematic (CATS cannot import LE pixels), but plant order, crossover
 parallels, yard ladders, and block names come from LE tip connectivity.
 
+Writes Gate 2–5 WIP panels (does NOT overwrite Designer Gate 1 primary):
+
     python3 cats/scripts/build_hart_digicon_from_le.py --mqtt
-    CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART.xml
+    # -> cats/panels/HART_le_magnet.xml
+    # -> cats/panels/HART_le.xml  (with --mqtt)
+
+Primary Designer Gate 1 remains:
+
+    python3 cats/scripts/wire_designer_ctc_rules.py --mqtt
+    # -> cats/panels/HART.xml
+
+Mac launch (WIP LE board):
+
+    CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_le.xml
 """
 
 from __future__ import annotations
@@ -23,9 +35,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HART = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
-ARM = ROOT / "tools/cats/release3.2/examples/ArmstrongMagnet.xml"
 OUT_DIR = ROOT / "cats/panels"
 OCC_CSV = ROOT / "cats/data/occupancy_bindings.csv"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cats_paths import armstrong_magnet  # noqa: E402
+
+ARM = armstrong_magnet()
 
 WIDTH, HEIGHT = "1400", "520"
 COMPRESSION_OFF_TAG = "COMPRESSIONTAG"
@@ -590,7 +606,7 @@ def main() -> int:
         return 1
 
     ET.indent(root, space="  ")
-    magnet = OUT_DIR / "HART_magnet.xml"
+    magnet = OUT_DIR / "HART_le_magnet.xml"
     ET.ElementTree(root).write(magnet, encoding="UTF-8", xml_declaration=True)
     print(f"wrote {magnet.relative_to(ROOT)}")
     names = sorted({b.get("NAME") for b in root.iter("BLOCK") if b.get("NAME")})
@@ -599,6 +615,7 @@ def main() -> int:
     print(f"named ({len(names)}): {', '.join(names)}")
     print(f"LE plants: {', '.join(plants)}")
     print(f"regions: {len(regions_of(tp))}")
+    print("note: Designer Gate 1 primary remains cats/panels/HART.xml")
 
     want = {r["block_user_name"].strip() for r in csv.DictReader(OCC_CSV.open())}
     missing = sorted(want - set(names))
@@ -606,7 +623,6 @@ def main() -> int:
         print(f"NOT YET ON BOARD ({len(missing)}): {', '.join(missing)}")
 
     if args.mqtt:
-        sys.path.insert(0, str(ROOT / "cats/scripts"))
         import jmri_to_cats_digicon as gen
 
         mqtt_root = copy.deepcopy(root)
@@ -616,9 +632,8 @@ def main() -> int:
             ops.set("CONNECT", "true")
         gen.ensure_hart_trains(mqtt_root)
         ET.indent(mqtt_root, space="  ")
-        out = OUT_DIR / "HART.xml"
+        out = OUT_DIR / "HART_le.xml"
         ET.ElementTree(mqtt_root).write(out, encoding="UTF-8", xml_declaration=True)
-        ET.ElementTree(mqtt_root).write(ROOT / "cats/HART.xml", encoding="UTF-8", xml_declaration=True)
         n_occ = sum(
             1
             for b in mqtt_root.iter("BLOCK")
@@ -629,5 +644,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    # fix syntax error from drafting
     raise SystemExit(main())

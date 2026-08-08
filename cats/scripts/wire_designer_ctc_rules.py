@@ -72,10 +72,14 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ARM = ROOT / "tools/cats/release3.2/examples/ArmstrongMagnet.xml"
 OUT_DIR = ROOT / "cats/panels"
 RAW = OUT_DIR / "HART_designer_raw.xml"
 BINDINGS = ROOT / "cats/data/occupancy_bindings.csv"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cats_paths import armstrong_magnet  # noqa: E402
+
+ARM = armstrong_magnet()
 
 WIDTH, HEIGHT = "560", "380"
 

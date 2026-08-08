@@ -57,27 +57,23 @@ Block 100-102 must join plant 100 to plant 102, which is the
 
 ## Painted vs missing
 
-**Painted:** Designer Gate 1 plus scripted Digicon expansion (22×7 grid, 59
-track cells, 31 named blocks). Rebuild refuses to write on any R2–R5 failure.
+**Designer primary (`HART.xml`):** Gate 1 only — 12×7 grid, 27 track cells, 14
+named blocks. `EXTRA_CELLS` adds rim cells `(1,5)` Main West and `(11,2)` Main
+East only. Rebuild refuses to write on any R2–R5 failure.
 
-**Now on the board** (EXTRA_CELLS in `wire_designer_ctc_rules.py`):
+**LE WIP (`HART_le.xml`):** full occupancy name set (Gates 2–5 schematic) from
+`build_hart_digicon_from_le.py` — see [`HART_DIGICON_MAP.md`](HART_DIGICON_MAP.md).
+Do **not** invent South Yard / East End / Princess cells in
+`wire_designer_ctc_rules.py`; draw those in Designer or use the LE board.
 
-| Area | Named blocks |
-|------|----------------|
-| South Yard | OS 103–106, Yard Track 1/3/4/5 |
-| East End | OS 107, 109, 111a, 112, East Lead |
-| Princess / loops | OS 113b, OS 115, McKees Rocks, McKeesport |
-
-**Still coarse / merged** (throat geometry — fix by drawing extra approach cells):
+**Still coarse / merged on Designer Gate 1:**
 
 | Block | Why |
 |-------|-----|
 | West Yard 1 as its own main-line block | only one cell between SW100 and SW101 |
-| OS 117b | throat adjacent to OS 117 |
-| OS 108 / OS 110 | owned by 111a / 109 through plant throats |
-| OS 114 | merged into OS 113b |
-| Yard Track 2 | OS 106 owns (18,3) through its throat |
-| OS 118, OS 119 | not drawn yet |
+| OS 117b | throat adjacent to OS 117 (merged into OS 117 name) |
+| OS 118, OS 119 | not in Designer draw yet (present on LE WIP) |
+| South Yard / East End / Princess | Gates 3–5 — Designer draw or LE WIP |
 
 Turnout `points_command` IO is deliberately not wired yet — the panel is a
 magnet board plus occupancy. See `cats/data/turnout_bindings.csv`.
