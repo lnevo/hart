@@ -9,7 +9,8 @@ credentials*.json
 # OS / editor
 .DS_Store
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.swp
 
 # Python
