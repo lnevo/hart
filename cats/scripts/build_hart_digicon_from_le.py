@@ -378,13 +378,14 @@ def build_board() -> None:
         (4, 4, "West Yard ladder"),
     ]
 
-    # CATS grids are 1-based (Armstrong min Y=1). Y=0 → blank / errors.
-    # SHIFT_Y_TO_1
-    _g = {(x, y + 1): v for (x, y), v in GRID.items()}
-    _p = {(x, y + 1): v for (x, y), v in PLANTS.items()}
-    _a = {((x, y + 1), e): n for ((x, y), e), n in ANCHORS.items()}
-    _n = {((x, y + 1), e) for (x, y), e in ANON}
-    _l = [(x, y + 1, t) for x, y, t in LABELS]
+    # CATS grids are 1-based (Armstrong min X=1, Y=1). Column/row 0 → col<=0 NPE
+    # on load. Shift BOTH axes by +1 so the whole plant starts at (1,1).
+    # SHIFT_XY_TO_1
+    _g = {(x + 1, y + 1): v for (x, y), v in GRID.items()}
+    _p = {(x + 1, y + 1): v for (x, y), v in PLANTS.items()}
+    _a = {((x + 1, y + 1), e): n for ((x, y), e), n in ANCHORS.items()}
+    _n = {((x + 1, y + 1), e) for (x, y), e in ANON}
+    _l = [(x + 1, y + 1, t) for x, y, t in LABELS]
     GRID.clear(); GRID.update(_g)
     PLANTS.clear(); PLANTS.update(_p)
     ANCHORS.clear(); ANCHORS.update(_a)
