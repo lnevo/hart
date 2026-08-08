@@ -1,23 +1,23 @@
 # Live status — HART / CATS
 
-Updated: 2026-08-07 (agent)
+Updated: 2026-08-08 (agent)
 
 ## Now
 
-- **Root cause of blank CATS panel:** `HART_Brick.xml` used invalid `<ROUTEFEEDBACK>` inside SWITCHPOINTS. CATS threw `EmptyStackException` on File→Open.
-- **Fix:** Regenerated `cats/panels/HART_Brick.xml` with Designer-valid `SELECTEDREPORT` + `ROUTECOMMAND` (per Armstrong Full).
-- **Fallback:** `cats/panels/HART_Brick_magnet.xml` — same Brick geometry, no MQTT wiring (should always paint track).
+Hand-built Brick `TRACKPLAN` is **not viable** — CATS reported SecEdge mismatches, multiple Block definitions, VitalLogic NPE, ClassCastException.
 
-## Try when back
+**Reset:** panels are based on **ArmstrongMagnet** (known-good). Real HART plant must be drawn in **Designer** (`cats/docs/DESIGNER_REQUIRED.md`).
+
+## Try now
 
 ```bash
 cd /Users/lnevo/Panel
 ./cats/scripts/launch_cats.sh
-# File → Open → cats/panels/HART_Brick_magnet.xml   # expect visible Brick grid
-# then retry → cats/panels/HART_Brick.xml            # MQTT-bound
+# default open hint: cats/panels/HART_smoke_Armstrong.xml
+# File → Open that file — expect full Armstrong Digicon track (not blank)
 ```
 
-Do **not** use `sudo`. Launcher must print `JAVA_HOME=.../jdk-17...`.
+Then: `./cats/scripts/launch_designer.sh` → redraw Brick → save `cats/panels/HART.xml`.
 
 ## Human replies
 
