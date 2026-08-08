@@ -125,1202 +125,263 @@
   <OPERATIONS CONNECT="false" />
   <JMRINAME JMRIPREFIX="IS" XMLTYPE="Sensor">jmri.managers.InternalSensorManager</JMRINAME>
   <JMRINAME JMRIPREFIX="IT" XMLTYPE="Turnout">jmri.managers.InternalTurnoutManager</JMRINAME>
-  <TRACKPLAN COLUMNS="43" ROWS="7">
+  <JMRINAME JMRIPREFIX="M2S" XMLTYPE="Sensor">jmri.jmrix.mqtt.MqttSensorManager</JMRINAME><JMRINAME JMRIPREFIX="M2T" XMLTYPE="Turnout">jmri.jmrix.mqtt.MqttTurnoutManager</JMRINAME><TRACKPLAN COLUMNS="14" ROWS="6">
+    <SECTION X="10" Y="1"><SEC_NAME LOC_NAME="CENT" NAME="Brick" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="12" Y="1"><SEC_NAME LOC_NAME="CENT" NAME="→ Plane" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="1" Y="1">
+      <TRACKGROUP>
+        <TRACK>LOWERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+    </SECTION>
+    <SECTION X="2" Y="1">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="Main West" DISCIPLINE="CTC" VISIBLE="true"><OCCUPIEDSPEC><IOSPEC DECADDR="200" JMRIPREFIX="M2S" USER_NAME="Block 2-1">throw</IOSPEC></OCCUPIEDSPEC><UNOCCUPIEDSPEC><IOSPEC DECADDR="200" JMRIPREFIX="M2S">close</IOSPEC></UNOCCUPIEDSPEC></BLOCK>
+        </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="3" Y="1">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS SPUR="true">
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true"><SELECTEDREPORT><IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC></SELECTEDREPORT><ROUTECOMMAND><IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC></ROUTECOMMAND></ROUTEINFO><ROUTEINFO ROUTEID="TOP"><SELECTEDREPORT><IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC></SELECTEDREPORT><ROUTECOMMAND><IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC></ROUTECOMMAND></ROUTEINFO></SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 100 (Brick)" STATION="Brick" DISCIPLINE="CTC" VISIBLE="true"><OCCUPIEDSPEC><IOSPEC DECADDR="401" JMRIPREFIX="M2S" USER_NAME="Block 4-2">throw</IOSPEC></OCCUPIEDSPEC><UNOCCUPIEDSPEC><IOSPEC DECADDR="401" JMRIPREFIX="M2S">close</IOSPEC></UNOCCUPIEDSPEC></BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="TOP">
+        <BLOCK />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="4" Y="1">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+      <STATION COLORTAG="DEPOT">LOWCENT</STATION>
+    </SECTION>
+    <SECTION X="5" Y="1">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true"><SELECTEDREPORT><IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC></SELECTEDREPORT><ROUTECOMMAND><IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC></ROUTECOMMAND></ROUTEINFO><ROUTEINFO ROUTEID="TOP"><SELECTEDREPORT><IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC></SELECTEDREPORT><ROUTECOMMAND><IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC></ROUTECOMMAND></ROUTEINFO></SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="6" Y="1">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="7" Y="1">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Block 100-102" DISCIPLINE="CTC" VISIBLE="true"><OCCUPIEDSPEC><IOSPEC DECADDR="405" JMRIPREFIX="M2S" USER_NAME="Block 4-6">throw</IOSPEC></OCCUPIEDSPEC><UNOCCUPIEDSPEC><IOSPEC DECADDR="405" JMRIPREFIX="M2S">close</IOSPEC></UNOCCUPIEDSPEC></BLOCK>
+        </SEC_EDGE>
+    </SECTION>
     <SECTION X="8" Y="1">
-      <SEC_NAME LOC_NAME="CENT" NAME="West Yard / Brick" FONT_NAME="FONT_LABEL" />
+      <TRACKGROUP>
+        <TRACK>LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT" />
     </SECTION>
-    <SECTION X="15" Y="1">
-      <SEC_NAME LOC_NAME="CENT" NAME="Brick" FONT_NAME="FONT_LABEL" />
+    <SECTION X="1" Y="2">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>UPPERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="23" Y="1">
-      <SEC_NAME LOC_NAME="CENT" NAME="South Yard" FONT_NAME="FONT_LABEL" />
+    <SECTION X="2" Y="2">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
     </SECTION>
-    <SECTION X="36" Y="1">
-      <SEC_NAME LOC_NAME="CENT" NAME="East → Princess" FONT_NAME="FONT_LABEL" />
+    <SECTION X="3" Y="2">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="4" Y="2">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="5" Y="2">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="LeftLoop" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <SHARED X="1" Y="4">LEFT</SHARED>
-      </SEC_EDGE>
+        <BLOCK />
+        </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="6" Y="2">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="OS 101 (Brick)" STATION="Brick" DISCIPLINE="CTC" VISIBLE="true"><OCCUPIEDSPEC><IOSPEC DECADDR="400" JMRIPREFIX="M2S" USER_NAME="Block 4-1">throw</IOSPEC></OCCUPIEDSPEC><UNOCCUPIEDSPEC><IOSPEC DECADDR="400" JMRIPREFIX="M2S">close</IOSPEC></UNOCCUPIEDSPEC></BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="YardInterchange" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          YardInterchange
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
+        <BLOCK />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="7" Y="2">
       <TRACKGROUP>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="23" Y="2">
-      <TRACKGROUP>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="SidingSiding" STATION="Siding" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="3" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="BOTTOM" />
-    </SECTION>
-    <SECTION X="4" Y="3">
-      <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="YardLeft" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          YardLeftC
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK />
+        </SEC_EDGE>
     </SECTION>
-    <SECTION X="5" Y="3">
+    <SECTION X="8" Y="2">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS SPUR="true">
+        <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
         </SWITCHPOINTS>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yardsiding" STATION="YardSiding" DISCIPLINE="CTC" VISIBLE="true" />
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="9" Y="2">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK SPEED="Slow">LOWERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
+        </SWITCHPOINTS>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="TOP">
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="4" Y="3">
+      <TRACKGROUP>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="5" Y="3">
+      <TRACKGROUP>
+        <TRACK SPEED="Slow">HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
-      </SEC_EDGE>
+        </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="6" Y="3">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="West Yard 1" STATION="Yard" DISCIPLINE="CTC" VISIBLE="true"><OCCUPIEDSPEC><IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">throw</IOSPEC></OCCUPIEDSPEC><UNOCCUPIEDSPEC><IOSPEC DECADDR="403" JMRIPREFIX="M2S">close</IOSPEC></UNOCCUPIEDSPEC></BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT">
         <BLOCK />
       </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-      <STATION COLORTAG="DEPOT">LOWCENT</STATION>
     </SECTION>
     <SECTION X="7" Y="3">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK />
+        </SEC_EDGE>
+    </SECTION>
+    <SECTION X="8" Y="3">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
         </SWITCHPOINTS>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="8" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
+      <SEC_EDGE EDGE="BOTTOM" />
       <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="9" Y="3">
       <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="YardRight" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          YardOSRightC
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="10" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="15" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Spur" STATION="Spur" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="16" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="21" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="BOTTOM" />
-    </SECTION>
-    <SECTION X="22" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="SidingLeft" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          SidingLeftC
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>
-            single
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SidingLeftC">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="110" JMRIPREFIX="IT" USER_NAME="SidingLeftC1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="111" JMRIPREFIX="IT" USER_NAME="SidingLeftC2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="110" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="23" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS SPUR="true">
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="3" JMRIPREFIX="IT" USER_NAME="SidingSidingFeedback">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="3" JMRIPREFIX="IT">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
-          <ROUTEINFO ROUTEID="TOP">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="3" JMRIPREFIX="IT">close</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="3" JMRIPREFIX="IT">close</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="24" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="25" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="SidingRight" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          SidingRightC
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>
-            single
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SidingRightC">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="112" JMRIPREFIX="IT" USER_NAME="SidingRightC1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="113" JMRIPREFIX="IT" USER_NAME="SidingRightC2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="112" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="26" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="33" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="BOTTOM" />
-    </SECTION>
-    <SECTION X="34" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="WyeLeft" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          WyeLeftC
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="35" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="WyeSiding" STATION="Wye" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="36" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
-      <STATION COLORTAG="DEPOT">UPCENT</STATION>
-    </SECTION>
-    <SECTION X="37" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="38" Y="3">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="WyeRight" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          WyeRightC
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="39" Y="3">
-      <TRACKGROUP>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="1" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <SHARED X="5" Y="2">LEFT</SHARED>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="2" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          YardOSLeftA
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP3" />
-          <PHYSIGNAL>triple</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="3" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="4" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="5" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="6" Y="4">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
-        <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
-        </SWITCHPOINTS>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="West Yard 2" STATION="Yard" DISCIPLINE="CTC" VISIBLE="true"><OCCUPIEDSPEC><IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">throw</IOSPEC></OCCUPIEDSPEC><UNOCCUPIEDSPEC><IOSPEC DECADDR="402" JMRIPREFIX="M2S">close</IOSPEC></UNOCCUPIEDSPEC></BLOCK>
       </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
     </SECTION>
     <SECTION X="7" Y="4">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
         <BLOCK />
-        <SECSIGNAL>
-          YardOSLeftB
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
+        </SEC_EDGE>
     </SECTION>
     <SECTION X="8" Y="4">
       <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="YardMain" STATION="YardMain" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="9" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          YardOSRightB
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="10" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="11" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK SPEED="Slow">LOWERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="12" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          YardOSRA
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP3" />
-          <PHYSIGNAL>
-            triple
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="YardRightA1">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="120" JMRIPREFIX="IT" USER_NAME="YardRightA1-1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="121" JMRIPREFIX="IT" USER_NAME="YardRightA1-2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="120" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-              <HEADSTATES SIGNALHEAD="YardRightA2">
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="122" JMRIPREFIX="IT" USER_NAME="YardRightA2-1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="123" JMRIPREFIX="IT" USER_NAME="YardRightA2-2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="122" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-              <HEADSTATES SIGNALHEAD="YardRightA3">
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="124" JMRIPREFIX="IT" USER_NAME="YardRightA3-1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="125" JMRIPREFIX="IT" USER_NAME="YardRightA3-2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="124" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="13" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Intermediate1" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="14" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="15" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          SpurL
-          <PHYSIGNAL>
-            single
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SpurLeft">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="100" JMRIPREFIX="IT" USER_NAME="SpurLeft1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="101" JMRIPREFIX="IT" USER_NAME="SpurLeft2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="100" JMRIPREFIX="IT">close</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="16" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS SPUR="true">
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1" JMRIPREFIX="IT" USER_NAME="Spur">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1" JMRIPREFIX="IT">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
-          <ROUTEINFO ROUTEID="TOP">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1" JMRIPREFIX="IT">close</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1" JMRIPREFIX="IT">close</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="TOP" />
-      <STATION COLORTAG="DEPOT">LOWCENT</STATION>
-    </SECTION>
-    <SECTION X="17" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          SpurR
-          <PHYSIGNAL>
-            single
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SpurRight">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="102" JMRIPREFIX="IT" USER_NAME="SpurRight1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="103" JMRIPREFIX="IT" USER_NAME="SpurRight2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="103" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="18" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Intermediate2" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="19" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="20" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          SidingLA
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>
-            double
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SidingLeftA1">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="104" JMRIPREFIX="IT" USER_NAME="SidingLeftA1-1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="105" JMRIPREFIX="IT" USER_NAME="SidingLeftA1-2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="104" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-              <HEADSTATES SIGNALHEAD="SidingLeftA2">
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="106" JMRIPREFIX="IT" USER_NAME="SidingLeftA2-1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="107" JMRIPREFIX="IT" USER_NAME="SidingLeftA2-2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="106" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="21" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="22" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          SidingLeftB
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>
-            single
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SidingLeftB">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="108" JMRIPREFIX="IT" USER_NAME="SidingLeftB1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="109" JMRIPREFIX="IT" USER_NAME="SidingLeftB2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="108" JMRIPREFIX="IT">close</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="23" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="SidingMain" STATION="Siding" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-      <STATION COLORTAG="DEPOT">LOWRIGHT</STATION>
-    </SECTION>
-    <SECTION X="24" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="25" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          SidingRightB
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>
-            single
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SidingRightB">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="114" JMRIPREFIX="IT" USER_NAME="SidingRightB1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="115" JMRIPREFIX="IT" USER_NAME="SidingRightB2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="114" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="26" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="27" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          SidingRightA
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>
-            double
-            <ASPECTTBL>
-              <HEADSTATES SIGNALHEAD="SidingRightA1">
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="116" JMRIPREFIX="IT" USER_NAME="SidingRightA1-1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="117" JMRIPREFIX="IT" USER_NAME="SidingRightA1-2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="116" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-              <HEADSTATES SIGNALHEAD="SidingRightA2">
-                <ASPECTCOMMAND PLABEL="red">
-                  <IOSPEC DECADDR="118" JMRIPREFIX="IT" USER_NAME="SidingRightA2-1">close</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="yellow">
-                  <IOSPEC DECADDR="119" JMRIPREFIX="IT" USER_NAME="SidingRightA2-2">throw</IOSPEC>
-                </ASPECTCOMMAND>
-                <ASPECTCOMMAND PLABEL="green">
-                  <IOSPEC DECADDR="118" JMRIPREFIX="IT">throw</IOSPEC>
-                </ASPECTCOMMAND>
-              </HEADSTATES>
-            </ASPECTTBL>
-          </PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="28" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Intermediate3" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="29" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="30" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Intermediate4" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="31" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="32" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          WyeLeftA
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>double</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="33" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="34" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          WyeLeftB
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="35" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="WyeMain" STATION="Wye" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="36" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="37" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="WyeMiddle" STATION="Wye" DISCIPLINE="CTC" VISIBLE="true" />
-        <SECSIGNAL>
-          WyeLeftB
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>double</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="38" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="39" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="40" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK SPEED="Slow">LOWERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="41" Y="4">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          WyeRightA
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP3" />
-          <PHYSIGNAL>triple</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="42" Y="4">
-      <TRACKGROUP>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="WyeLoop" DISCIPLINE="CTC" VISIBLE="false" />
-        <SECSIGNAL>
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="6" Y="5">
-      <TRACKGROUP>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="7" Y="5">
-      <TRACKGROUP>
-        <TRACK SPEED="Slow">HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          Yard1L
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="8" Y="5">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Yard" STATION="Yard" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="9" Y="5">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          Yard1
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="10" Y="5">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>LOWERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="11" Y="5">
-      <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="38" Y="5">
-      <TRACKGROUP>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="Wye" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="39" Y="5">
-      <TRACKGROUP>
-        <TRACK>LOWERSLASH</TRACK>
-        <TRACK>LOWERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="BOTTOM">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
-        </SWITCHPOINTS>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="40" Y="5">
-      <TRACKGROUP>
-        <TRACK>UPPERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="TOP">
-        <BLOCK />
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="42" Y="5">
-      <TRACKGROUP>
-        <TRACK>VERTICAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="8" Y="6">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Yard2" STATION="Yard" DISCIPLINE="CTC" VISIBLE="true" />
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="9" Y="6">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
-        <SECSIGNAL>
-          Yard2
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="10" Y="6">
-      <TRACKGROUP>
-        <TRACK>UPPERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="39" Y="6">
-      <TRACKGROUP>
-        <TRACK>VERTICAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
-        <SECSIGNAL>
-          WyeTail
-          <PANELSIGNAL SIGLOCATION="RIGHTLOW" SIGORIENT="TOP" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>double</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="42" Y="6">
-      <TRACKGROUP>
-        <TRACK>VERTICAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="39" Y="7">
-      <TRACKGROUP>
-        <TRACK>UPPERBACKSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="TOP">
-        <BLOCK />
-        <SECSIGNAL>
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="40" Y="7">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="41" Y="7">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="LEFT" />
-    </SECTION>
-    <SECTION X="42" Y="7">
-      <TRACKGROUP>
-        <TRACK>UPPERSLASH</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-  </TRACKPLAN>
+    </TRACKPLAN>
 </DOCUMENT>

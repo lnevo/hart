@@ -4,15 +4,16 @@ Updated: 2026-08-08 (agent)
 
 ## Now
 
-- **Confirmed:** `HART_smoke_Armstrong.xml` loads and paints in CATS (2026-08-08).
-- Next: draw real HART/Brick plant in **Designer** → save `cats/panels/HART.xml`, bind per `cats/docs/BRICK_BINDINGS.md`.
+- Smoke Armstrong confirmed working.
+- **Brick plant drawn** from Armstrong yard interlocking (rebased + renamed):
+  - `cats/panels/HART_Brick_magnet.xml` (open first)
+  - `cats/panels/HART_Brick.xml` (MQTT Switch 100/101 + occupancy)
 
-## Next commands
+## Try
 
 ```bash
-./cats/scripts/launch_designer.sh
-# File → Open HART_smoke_Armstrong.xml (or New)
-# redraw west→east; File → Save As cats/panels/HART.xml
+./cats/scripts/launch_cats.sh
+# File → Open HART_Brick_magnet.xml
 ```
 
 ## Human replies

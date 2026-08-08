@@ -8,8 +8,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
-# Default: known-good Armstrong topology (smoke). Pass HART_Brick.xml after Designer work.
-PANEL="${1:-$ROOT/cats/panels/HART_smoke_Armstrong.xml}"
+# Default: Brick plant (magnet). Wired: HART_Brick.xml · Smoke: HART_smoke_Armstrong.xml
+PANEL="${1:-$ROOT/cats/panels/HART_Brick_magnet.xml}"
 
 if [[ ! -f "$JMRI_HOME/cats.jar" || ! -f "$JMRI_HOME/cats.csh" ]]; then
   echo "CATS not installed in $JMRI_HOME" >&2
