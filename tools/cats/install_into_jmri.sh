@@ -31,6 +31,14 @@ done
 # manuals / examples stay optional under examples
 cp -f "$SRC"/examples/*.xml "$JMRI_HOME/examples/" 2>/dev/null || true
 
+# Known-good load safety overlay (prebuilt). Stock CATS kills RREventManager on
+# early turnout SELECTEDREPORT → occupancy freezes. Do not rebuild here.
+PATCH_JAR="$ROOT/tools/cats/patches/cats-pts-nullguard.jar"
+if [[ -f "$PATCH_JAR" ]]; then
+  cp -f "$PATCH_JAR" "$JMRI_HOME/cats.jar"
+  echo "  + load safety overlay (cats-pts-nullguard.jar)"
+fi
+
 chmod +x "$JMRI_HOME/cats.csh" "$JMRI_HOME/designer.csh"
 echo "Done. Launch with: $ROOT/cats/scripts/launch_cats.sh"
 echo "Do NOT use sudo. Do NOT start a second PanelPro on the same profile first — CATS starts JMRI itself."

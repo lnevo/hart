@@ -1,0 +1,475 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<layout-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/layout-5-5-5.xsd">
+  <jmriversion>
+    <major>5</major>
+    <minor>15</minor>
+    <test>4</test>
+    <modifier>plus</modifier>
+  </jmriversion>
+  <sensors class="jmri.jmrix.mqtt.configurexml.MqttSensorManagerXml">
+    <sensor inverted="false">
+      <systemName>M2S100</systemName>
+      <userName>Block 1-1</userName>
+      <comment>McKees Rocks</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S101</systemName>
+      <userName>Block 1-2</userName>
+      <comment>McKeesport</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S102</systemName>
+      <userName>Block 1-3</userName>
+      <comment>Switch 114</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S103</systemName>
+      <userName>Block 1-4</userName>
+      <comment>Switch 115</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S104</systemName>
+      <userName>Block 1-5</userName>
+      <comment>Switch 113b</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S105</systemName>
+      <userName>Block 1-6</userName>
+      <comment>Switch 113a</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S106</systemName>
+      <userName>Block 1-7</userName>
+      <comment>East Lead</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S107</systemName>
+      <userName>Block 1-8</userName>
+      <comment>West Main Ext</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S167</systemName>
+      <userName>Switch 1-1 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S168</systemName>
+      <userName>Switch 1-1 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S169</systemName>
+      <userName>Switch 1-2 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S170</systemName>
+      <userName>Switch 1-2 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S171</systemName>
+      <userName>Switch 1-3 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S172</systemName>
+      <userName>Switch 1-3 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S200</systemName>
+      <userName>Block 2-1</userName>
+      <comment>Main West</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S202</systemName>
+      <userName>Block 2-3</userName>
+      <comment>Main East</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S203</systemName>
+      <userName>Block 2-4</userName>
+      <comment>Yard Track 5</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S204</systemName>
+      <userName>Block 2-5</userName>
+      <comment>Yard Track 4</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S205</systemName>
+      <userName>Block 2-6</userName>
+      <comment>Yard Track 3</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S206</systemName>
+      <userName>Block 2-7</userName>
+      <comment>Yard Track 2</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S207</systemName>
+      <userName>Block 2-8</userName>
+      <comment>Yard Track 1</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S300</systemName>
+      <userName>Block 3-1</userName>
+      <comment>Switch 116</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S301</systemName>
+      <userName>Block 3-2</userName>
+      <comment>Switch 103</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S302</systemName>
+      <userName>Block 3-3</userName>
+      <comment>Switch 104</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S304</systemName>
+      <userName>Block 3-5</userName>
+      <comment>Switch 105</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S306</systemName>
+      <userName>Block 3-7</userName>
+      <comment>Switch 106</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S367</systemName>
+      <userName>Switch 3-1 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S368</systemName>
+      <userName>Switch 3-1 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S369</systemName>
+      <userName>Switch 3-2 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S370</systemName>
+      <userName>Switch 3-2 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S371</systemName>
+      <userName>Switch 3-3 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S372</systemName>
+      <userName>Switch 3-3 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S373</systemName>
+      <userName>Switch 3-4 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S374</systemName>
+      <userName>Switch 3-4 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S400</systemName>
+      <userName>Block 4-1</userName>
+      <comment>Switch 101</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S401</systemName>
+      <userName>Block 4-2</userName>
+      <comment>Switch 100</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S402</systemName>
+      <userName>Block 4-3</userName>
+      <comment>West Yard Track 2</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S403</systemName>
+      <userName>Block 4-4</userName>
+      <comment>West Yard Track 1</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S404</systemName>
+      <userName>Block 4-5</userName>
+      <comment>Switch 102</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S405</systemName>
+      <userName>Block 4-6</userName>
+      <comment>Block 100-102</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S406</systemName>
+      <userName>Block 4-7</userName>
+      <comment>East Main Ext</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S407</systemName>
+      <userName>Block 4-8</userName>
+      <comment>Yard T1</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S470</systemName>
+      <userName>Switch 4-1 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S471</systemName>
+      <userName>Switch 4-1 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S472</systemName>
+      <userName>Switch 4-2 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S473</systemName>
+      <userName>Switch 4-2 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S474</systemName>
+      <userName>Switch 4-3 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S475</systemName>
+      <userName>Switch 4-3 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S476</systemName>
+      <userName>Switch 4-4 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S477</systemName>
+      <userName>Switch 4-4 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1200</systemName>
+      <userName>Block 12-1</userName>
+      <comment>Switch 107</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1202</systemName>
+      <userName>Block 12-3</userName>
+      <comment>Switch 108</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1203</systemName>
+      <userName>Block 12-4</userName>
+      <comment>Switch 111a</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1204</systemName>
+      <userName>Block 12-5</userName>
+      <comment>Switch 109</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1205</systemName>
+      <userName>Block 12-6</userName>
+      <comment>Switch 111b</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1206</systemName>
+      <userName>Block 12-7</userName>
+      <comment>Switch 110</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1207</systemName>
+      <userName>Block 12-8</userName>
+      <comment>Switch 112</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1267</systemName>
+      <userName>Switch 12-1 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1268</systemName>
+      <userName>Switch 12-1 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1269</systemName>
+      <userName>Switch 12-2 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1270</systemName>
+      <userName>Switch 12-2 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1271</systemName>
+      <userName>Switch 12-3 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1272</systemName>
+      <userName>Switch 12-3 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1273</systemName>
+      <userName>Switch 12-4 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1274</systemName>
+      <userName>Switch 12-4 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1275</systemName>
+      <userName>Switch 12-5 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1276</systemName>
+      <userName>Switch 12-5 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1277</systemName>
+      <userName>Switch 12-6 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1278</systemName>
+      <userName>Switch 12-6 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1300</systemName>
+      <userName>Block 13-1</userName>
+      <comment>Yard T6</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1301</systemName>
+      <userName>Block 13-2</userName>
+      <comment>Switch 118</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1302</systemName>
+      <userName>Block 13-3</userName>
+      <comment>Switch 117 (top)</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1303</systemName>
+      <userName>Block 13-4</userName>
+      <comment>Switch 117b (bottom)</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1304</systemName>
+      <userName>Block 13-5</userName>
+      <comment>Yard T11</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1305</systemName>
+      <userName>Block 13-6</userName>
+      <comment>Yard T10</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1306</systemName>
+      <userName>Block 13-7</userName>
+      <comment>Yard T9</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1307</systemName>
+      <userName>Block 13-8</userName>
+      <comment>Switch 119</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1367</systemName>
+      <userName>Switch 13-1 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1368</systemName>
+      <userName>Switch 13-1 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1369</systemName>
+      <userName>Switch 13-2 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1370</systemName>
+      <userName>Switch 13-2 FB R</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1371</systemName>
+      <userName>Switch 13-3 FB N</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>M2S1372</systemName>
+      <userName>Switch 13-3 FB R</userName>
+    </sensor>
+  </sensors>
+  <turnouts class="jmri.jmrix.mqtt.configurexml.MqttTurnoutManagerXml">
+    <operations automate="false">
+      <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
+      <operation name="Raw" class="jmri.configurexml.turnoutoperations.RawTurnoutOperationXml" interval="300" maxtries="1" />
+      <operation name="Sensor" class="jmri.configurexml.turnoutoperations.SensorTurnoutOperationXml" interval="300" maxtries="3" />
+    </operations>
+    <defaultclosedspeed>Normal</defaultclosedspeed>
+    <defaultthrownspeed>Restricted</defaultthrownspeed>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 1-1 FB R" sensor2="Switch 1-1 FB N" inverted="false" automate="Off">
+      <systemName>M2T108</systemName>
+      <userName>Switch 113</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 1-2 FB R" sensor2="Switch 1-2 FB N" inverted="false" automate="Off">
+      <systemName>M2T109</systemName>
+      <userName>Switch 114</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 1-3 FB R" sensor2="Switch 1-3 FB N" inverted="false" automate="Off">
+      <systemName>M2T110</systemName>
+      <userName>Switch 115</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 3-1 FB R" sensor2="Switch 3-1 FB N" inverted="false" automate="Off">
+      <systemName>M2T308</systemName>
+      <userName>Switch 103</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 3-2 FB R" sensor2="Switch 3-2 FB N" inverted="false" automate="Off">
+      <systemName>M2T309</systemName>
+      <userName>Switch 104</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 3-3 FB R" sensor2="Switch 3-3 FB N" inverted="false" automate="Off">
+      <systemName>M2T310</systemName>
+      <userName>Switch 105</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 3-4 FB R" sensor2="Switch 3-4 FB N" inverted="false" automate="Off">
+      <systemName>M2T311</systemName>
+      <userName>Switch 106</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N" inverted="false" automate="Off">
+      <systemName>M2T408</systemName>
+      <userName>Switch 100</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 4-2 FB R" sensor2="Switch 4-2 FB N" inverted="false" automate="Off">
+      <systemName>M2T409</systemName>
+      <userName>Switch 101</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 4-3 FB R" sensor2="Switch 4-3 FB N" inverted="false" automate="Off">
+      <systemName>M2T410</systemName>
+      <userName>Switch 102</userName>
+    </turnout>
+    <turnout feedback="DIRECT" inverted="false" automate="Off">
+      <systemName>M2T411</systemName>
+      <userName>Switch 116</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 12-1 FB R" sensor2="Switch 12-1 FB N" inverted="false" automate="Off">
+      <systemName>M2T1208</systemName>
+      <userName>Switch 107</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 12-2 FB R" sensor2="Switch 12-2 FB N" inverted="false" automate="Off">
+      <systemName>M2T1209</systemName>
+      <userName>Switch 108</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 12-3 FB R" sensor2="Switch 12-3 FB N" inverted="false" automate="Off">
+      <systemName>M2T1210</systemName>
+      <userName>Switch 109</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 12-4 FB R" sensor2="Switch 12-4 FB N" inverted="false" automate="Off">
+      <systemName>M2T1211</systemName>
+      <userName>Switch 110</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 12-5 FB R" sensor2="Switch 12-5 FB N" inverted="false" automate="Off">
+      <systemName>M2T1212</systemName>
+      <userName>Switch 111</userName>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="Switch 12-6 FB R" sensor2="Switch 12-6 FB N" inverted="false" automate="Off">
+      <systemName>M2T1213</systemName>
+      <userName>Switch 112</userName>
+    </turnout>
+    <turnout feedback="DIRECT" inverted="false" automate="Off">
+      <systemName>M2T1308</systemName>
+      <userName>Switch 117</userName>
+    </turnout>
+    <turnout feedback="DIRECT" inverted="false" automate="Off">
+      <systemName>M2T1309</systemName>
+      <userName>Switch 118</userName>
+    </turnout>
+    <turnout feedback="DIRECT" inverted="false" automate="Off">
+      <systemName>M2T1310</systemName>
+      <userName>Switch 119</userName>
+    </turnout>
+  </turnouts>
+</layout-config>

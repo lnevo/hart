@@ -20,15 +20,17 @@
 #   CATS_LAUNCH_LOG=/tmp/cats.log ./cats/scripts/launch_cats.sh
 #   CATS_LAUNCH_LOG= ./cats/scripts/launch_cats.sh   # disable
 #
-# Do not use sudo. Quit PanelPro first — CATS starts its own JMRI.
+# Do not use sudo. CATS starts its own JMRI — do not launch while PanelPro /
+# another CATS/JMRI is already running (MQTT client-id + profile collide).
+# Override only if you know what you are doing: CATS_FORCE_LAUNCH=1
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
-# Default: plant Digicon + MQTT occupancy (names match hart blocks).
-# Magnet-only (no occ): ./cats/scripts/launch_cats.sh cats/panels/HART_magnet.xml
+# Default: Neville West Yard Digicon sheet (active ops panel).
+# Gate 1: ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 # Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=app|terminal.
 # (PanelPro.app handoff changed JMRI behavior — do not use as default.)
-PANEL="${1:-$ROOT/cats/panels/HART.xml}"
+PANEL="${1:-$ROOT/cats/panels/sheets/HART_sheet_West_Yard2.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).
@@ -45,6 +47,17 @@ if [[ ! -f "$PANEL" ]]; then
   exit 1
 fi
 PANEL="$(cd "$(dirname "$PANEL")" && pwd)/$(basename "$PANEL")"
+
+jmri_already_running() {
+  # Local JMRI/CATS only (java main classes). Does not probe remote layout JMRI.
+  pgrep -f 'cats\.apps\.Crandic|apps\.PanelPro|jmri\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro' >/dev/null 2>&1
+}
+if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && jmri_already_running; then
+  echo "Refusing to launch CATS: JMRI/PanelPro/CATS is already running locally." >&2
+  echo "Quit that instance first, then relaunch — or set CATS_FORCE_LAUNCH=1." >&2
+  pgrep -lf 'cats\.apps\.Crandic|apps\.PanelPro|jmri\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro' 2>/dev/null | head -5 >&2 || true
+  exit 1
+fi
 
 if [[ -z "${JAVA_HOME:-}" ]]; then
   for ver in 21 17 11; do
@@ -83,6 +96,11 @@ if [[ -n "$CATS_LAUNCH_LOG" ]]; then
   : >"$CATS_LAUNCH_LOG"
   echo "Logging stdout+stderr → $CATS_LAUNCH_LOG"
 fi
+
+# Do NOT publish/clear/sync MQTT from launch. Field + broker are SoR.
+# Digicon load safety is the prebuilt cats-pts-nullguard overlay installed by
+# tools/cats/install_into_jmri.sh (keeps RREventManager alive). No MQTT writes.
+# Diagnose (read-only): python3 cats/scripts/seed_default_thrown_turnouts.py --diagnose
 
 # Run cats.csh with optional tee of combined stdout/stderr.
 run_cats() {

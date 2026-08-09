@@ -74,3 +74,7 @@ cats/HART.xml
 cats/panels/_qa_*.png
 cats/panels/*.png
 cats/.venv/
+
+# CATS patch build artifacts
+tools/cats/patches/*.class
+tools/cats/patches/cats.jar.stock
