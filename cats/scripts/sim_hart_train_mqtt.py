@@ -98,7 +98,7 @@ def _merge(base: dict[str, str], override: dict[str, str]) -> dict[str, str]:
 
 
 # Digicon spines after Armstrong primary remap (see jmri_to_cats_digicon.py).
-# main = Armstrong spine MW→100→Block 100-102→102→EME→… (JMRI-adjacent).
+# main = Armstrong spine MW→100→Main West Brick–Plane→102→EME→… (JMRI-adjacent).
 # princess / south_yard / yard may need deck_transfer where Armstrong ≠ Neville.
 ROUTES: dict[str, Route] = {
     "main": Route(
@@ -109,7 +109,7 @@ ROUTES: dict[str, Route] = {
         steps=[
             Step("Main West", "R1 far left", "Main West (top spine west)", "Start"),
             Step("OS 100 (Brick)", "R1 · Brick", "Blue OS 100", ""),
-            Step("Block 100-102", "R1 Brick→Plane", "Block 100-102", ""),
+            Step("Main West Brick–Plane", "R1 Brick→Plane", "Main West Brick–Plane", ""),
             Step("OS 102 (Plane)", "R1 · Plane", "Blue OS 102", ""),
             Step("East Main Ext", "R1 east of Plane", "East Main Ext", ""),
             Step(
@@ -179,7 +179,7 @@ ROUTES: dict[str, Route] = {
             ),
             Step("East Main Ext", "R1", "East Main Ext", ""),
             Step("OS 102 (Plane)", "R1 · Plane", "Blue OS 102", ""),
-            Step("Block 100-102", "R1", "Block 100-102", ""),
+            Step("Main West Brick–Plane", "R1", "Main West Brick–Plane", ""),
             Step("OS 100 (Brick)", "R1 · Brick", "Blue OS 100", ""),
             Step("Main West", "R1 far left", "Main West", "Home"),
         ],
@@ -200,7 +200,7 @@ ROUTES: dict[str, Route] = {
         steps=[
             Step("Main West", "R1 far left", "Main West", "Restart for South Yard"),
             Step("OS 100 (Brick)", "R1", "Blue OS 100", ""),
-            Step("Block 100-102", "R1", "Block 100-102", ""),
+            Step("Main West Brick–Plane", "R1", "Main West Brick–Plane", ""),
             Step("OS 102 (Plane)", "R1 · Plane", "Blue OS 102", "Diverge (a4→a10/a16)"),
             Step("OS 103 (South Yard)", "R1 diverge", "Blue OS 103 · Sw 103 THROWN", ""),
             Step("OS 104 (South Yard)", "R1 diverge", "Blue OS 104", "Side cell; back via 103"),
@@ -301,7 +301,7 @@ ROUTES: dict[str, Route] = {
             ),
             Step("East Main Ext", "R1", "East Main Ext", ""),
             Step("OS 102 (Plane)", "R1 · Plane", "Blue OS 102", "Through Plane"),
-            Step("Block 100-102", "R1 Brick↔Plane", "Block 100-102", ""),
+            Step("Main West Brick–Plane", "R1 Brick↔Plane", "Main West Brick–Plane", ""),
             Step("OS 100 (Brick)", "R1 · Brick", "Blue OS 100", "Through Brick"),
             Step("Main West", "R1 far left", "Main West", "Home"),
         ],

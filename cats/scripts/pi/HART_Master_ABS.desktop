@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=HART Master ABS
+Comment=CATS Digicon HART Master ABS (open house)
+Exec=/home/pi/hart/launch_hart_master_abs_desktop.sh
+Icon=/home/pi/JMRI/crandic.gif
+Terminal=false
+Type=Application
+Categories=Utility
+StartupNotify=true
+Path=/home/pi/JMRI

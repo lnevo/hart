@@ -141,6 +141,7 @@ def wire_occupancy(root: ET.Element, occ: dict[str, tuple[str, str]]) -> None:
 HART_TRAIN_SYMBOL = "HL1"
 HART_TRAIN_ENGINE = "4501"
 HART_TRAIN_NAME = "HART Local"
+HART_TRAINS_CSV = Path(__file__).resolve().parents[1] / "data" / "hart_trains.csv"
 
 # Blocks that get TRAINREPORTER (Neville tour path — keep this list short).
 TRAIN_REPORTER_BLOCKS = frozenset(
@@ -164,60 +165,96 @@ TRAIN_REPORTER_BLOCKS = frozenset(
 )
 
 
-def ensure_hart_trains(root: ET.Element) -> None:
-    """Ensure TRAINSTORE/CREWSTORE have a trackable train for MQTT reporters."""
+def load_hart_trains(
+    csv_path: Path | None = None,
+) -> list[dict[str, str]]:
+    """Dispatcher train lineup from Car Cards DS-01 (cats/data/hart_trains.csv)."""
+    path = csv_path or HART_TRAINS_CSV
+    if not path.is_file():
+        return [
+            {
+                "train_name": HART_TRAIN_NAME,
+                "train_symbol": HART_TRAIN_SYMBOL,
+                "engine": HART_TRAIN_ENGINE,
+                "font": "FONT_TRAIN",
+                "runs_job": "true",
+            }
+        ]
+    import csv
+
+    with path.open(newline="", encoding="utf-8") as f:
+        return [
+            {k: (v or "").strip() for k, v in row.items()}
+            for row in csv.DictReader(f)
+            if (row.get("train_symbol") or "").strip()
+        ]
+
+
+def ensure_hart_trains(root: ET.Element, csv_path: Path | None = None) -> int:
+    """Replace TRAINSTORE/JOBSTORE with HART jobs from hart_trains.csv (DS-01)."""
+    trains = load_hart_trains(csv_path)
     ts = root.find("TRAINSTORE")
     if ts is None:
-        return
+        return 0
     td = ts.find("TRAINDATA")
     if td is None:
         td = ET.SubElement(ts, "TRAINDATA")
-    # Replace prior HART Local if regenerating
     for rec in list(td.findall("DATARECORD")):
-        if rec.get("TRAIN_SYMBOL") == HART_TRAIN_SYMBOL or rec.get("TRAIN_NAME") == HART_TRAIN_NAME:
-            td.remove(rec)
-    ET.SubElement(
-        td,
-        "DATARECORD",
-        {
-            "TRAIN_NAME": HART_TRAIN_NAME,
-            "TRAIN_SYMBOL": HART_TRAIN_SYMBOL,
-            "ENGINE": HART_TRAIN_ENGINE,
-            # Must match MQTT reporter loco id (payload "4501 HL1" → IdTag / report).
-            "TRANSPONDING": HART_TRAIN_ENGINE,
-            "CABOOSE": "",
-            "CREW": "Sim Crew",
-            "ONDUTY": "",
-            "DEPARTURE": "",
-            "FONT": "FONT_TRAIN",
-            "LENGTH": "0",
-            "WEIGHT": "0",
-            "CARS": "0",
-            "AUTOTERMINATE": "false",
-            "LABELBACKGROUND": "false",
-        },
-    )
-    cs = root.find("CREWSTORE")
-    if cs is None:
-        return
-    cd = cs.find("CREWDATA")
-    if cd is None:
-        cd = ET.SubElement(cs, "CREWDATA")
-    for rec in list(cd.findall("DATARECORD")):
-        if rec.get("CREW_NAME") == "Sim Crew":
-            cd.remove(rec)
-    ET.SubElement(
-        cd,
-        "DATARECORD",
-        {
-            "FONT": "",
-            "CREW_NAME": "Sim Crew",
-            "TIME_ON": "",
-            "TIME_LEFT": "",
-            "EXPIRES": "",
-            "TRAIN_ID": HART_TRAIN_SYMBOL,
-        },
-    )
+        td.remove(rec)
+    for t in trains:
+        eng = t.get("engine") or ""
+        ET.SubElement(
+            td,
+            "DATARECORD",
+            {
+                "TRAIN_NAME": t["train_name"],
+                "TRAIN_SYMBOL": t["train_symbol"],
+                "ENGINE": eng,
+                "TRANSPONDING": "false",
+                "CABOOSE": "",
+                "CREW": "",
+                "ONDUTY": "",
+                "DEPARTURE": "",
+                "FONT": t.get("font") or "FONT_TRAIN",
+                "LENGTH": "0",
+                "WEIGHT": "0",
+                "CARS": "0",
+                "AUTOTERMINATE": "false",
+                "LABELBACKGROUND": "false",
+            },
+        )
+
+    # Jobs: desk roles + DS-01 / CI crew jobs (Car Cards).
+    js = root.find("JOBSTORE")
+    if js is not None:
+        jd = js.find("JOBDATA")
+        if jd is None:
+            jd = ET.SubElement(js, "JOBDATA")
+        for rec in list(jd.findall("DATARECORD")):
+            jd.remove(rec)
+        jobs = [
+            ("Dispatcher", "false"),
+            ("Yardmaster", "false"),
+            ("Route 23", "true"),
+            ("D749", "true"),
+            ("OCS-1", "true"),
+            ("NVL", "true"),
+            ("CK1", "true"),
+        ]
+        for name, runs in jobs:
+            ET.SubElement(
+                jd,
+                "DATARECORD",
+                {
+                    "FONT": "",
+                    "JOB_NAME": name,
+                    "RUNS_TRAIN": runs,
+                    "CREW_NAME": "",
+                    "ASSISTANT": "",
+                },
+            )
+
+    return len(trains)
 
 
 def rename_blocks(root: ET.Element, mapping: dict[str, str]) -> None:

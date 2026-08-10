@@ -1,15 +1,15 @@
-# JMRI jython — at startup, read MQTT retained state and apply to JMRI beans.
+# JMRI jython - at startup, READ MQTT retain and paint JMRI beans only.
 #
-# One shot (no timers / refresh loops). Uses mosquitto_sub: on connect the broker
-# delivers retained messages for the subscribed topics.
+# One shot. Uses mosquitto_sub (broker pushes retained messages on subscribe).
+# This script must NEVER publish to MQTT.
 #
-#   track/turnout/{addr}  CLOSED | THROWN  → M2T{addr} (newKnownState)
-#   track/sensor/{addr}   ACTIVE | INACTIVE → M2S{addr} (setKnownState)
+#   track/turnout/{addr}  CLOSED | THROWN  -> M2T{addr}  (newKnownState)
+#   track/sensor/{addr}   ACTIVE | INACTIVE -> M2S{addr} (setOwnState)
 #
-# TWOSENSOR turnouts (from linear6 tables load): KnownState from FB sensors via
-# setInitialKnownStateFromFeedback — not from turnout MQTT retain.
+# Sensors: setOwnState only (setKnownState on MqttSensor publishes).
+# JMRI MQTT 11.3 = _discard/cmd/sensor/{0} (not empty, not field).
 #
-# Preferences → Start Up → Script file (My_JMRI_Railroad / CATS profile).
+# Preferences -> Start Up -> Script file (My_JMRI_Railroad / CATS profile).
 
 import os
 import subprocess
@@ -17,7 +17,8 @@ import subprocess
 from jmri import Sensor, Turnout
 
 MQTT_HOST = "minipc-e5h6x.local"
-WAIT_SECS = "3"
+# Retain is delivered immediately on subscribe; keep the wait short.
+WAIT_SECS = "1"
 
 _MOSQUITTO_CANDIDATES = (
     "/opt/local/bin/mosquitto_sub",
@@ -34,8 +35,22 @@ def _mosquitto_sub():
     return "mosquitto_sub"
 
 
+def _ascii(s):
+    if s is None:
+        return ""
+    if not isinstance(s, str):
+        try:
+            s = str(s)
+        except Exception:
+            return repr(s)
+    try:
+        return s.encode("ascii", "replace").decode("ascii")
+    except Exception:
+        return repr(s)
+
+
 def _retained():
-    """Return list of (topic, payload) from broker retain on subscribe."""
+    """Return list of (topic, payload) from broker retain. Read-only."""
     exe = _mosquitto_sub()
     cmd = [
         exe,
@@ -49,19 +64,13 @@ def _retained():
         "-W",
         WAIT_SECS,
     ]
-    # mosquitto_sub -W exits 27 (timeout) after delivering retains — that is success.
     try:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _ignored = proc.communicate()
         rc = proc.returncode
     except Exception as e:
-        print("apply_mqtt_retain: mosquitto_sub failed (" + exe + "): " + str(e))
+        print("apply_mqtt_retain: mosquitto_sub failed: " + _ascii(e))
         return []
-    if rc not in (0, 27):
-        print(
-            "apply_mqtt_retain: mosquitto_sub rc=%s (%s) — keeping any stdout"
-            % (rc, exe)
-        )
     if not isinstance(out, str):
         out = out.decode("utf-8", "replace")
     rows = []
@@ -72,8 +81,15 @@ def _retained():
         if line.lower().startswith("timed out"):
             continue
         topic, payload = line.split(" ", 1)
+        if topic.startswith("track/cmd/"):
+            continue
+        if not (
+            topic.startswith("track/turnout/") or topic.startswith("track/sensor/")
+        ):
+            continue
         rows.append((topic, payload.strip()))
-    print("apply_mqtt_retain: mosquitto_sub retained lines=%d rc=%s" % (len(rows), rc))
+    if rc not in (0, 27):
+        print("apply_mqtt_retain: mosquitto_sub rc=%s" % rc)
     return rows
 
 
@@ -90,27 +106,14 @@ def _apply_turnout(addr, payload):
     if _is_twosensor(t):
         try:
             t.setInitialKnownStateFromFeedback()
-            print(
-                "apply_mqtt_retain: "
-                + name
-                + " KnownState ← FB ("
-                + t.describeState(t.getKnownState())
-                + ")"
-            )
-        except Exception as e:
-            print("apply_mqtt_retain: " + name + " FB init failed: " + str(e))
+        except Exception:
+            pass
         return
     p = payload.upper()
     if p == "THROWN":
-        state = Turnout.THROWN
+        t.newKnownState(Turnout.THROWN)
     elif p == "CLOSED":
-        state = Turnout.CLOSED
-    else:
-        print("apply_mqtt_retain: skip turnout " + name + " payload=" + payload)
-        return
-    # MqttTurnout has newKnownState, not setKnownState.
-    t.newKnownState(state)
-    print("apply_mqtt_retain: " + name + " KnownState ← " + p)
+        t.newKnownState(Turnout.CLOSED)
 
 
 def _apply_sensor(addr, payload):
@@ -118,14 +121,9 @@ def _apply_sensor(addr, payload):
     s = sensors.provideSensor(name)
     p = payload.upper()
     if p == "ACTIVE":
-        state = Sensor.ACTIVE
+        s.setOwnState(Sensor.ACTIVE)
     elif p == "INACTIVE":
-        state = Sensor.INACTIVE
-    else:
-        print("apply_mqtt_retain: skip sensor " + name + " payload=" + payload)
-        return
-    s.setKnownState(state)
-    print("apply_mqtt_retain: " + name + " KnownState ← " + p)
+        s.setOwnState(Sensor.INACTIVE)
 
 
 n_to = n_s = 0
@@ -144,7 +142,6 @@ for topic, payload in _retained():
         _apply_sensor(addr, payload)
         n_s += 1
 
-# TWOSENSOR turnouts: FB-derived KnownState even without a turnout retain line.
 n_fb = 0
 for t in turnouts.getNamedBeanSet():
     if not _is_twosensor(t):
@@ -152,10 +149,10 @@ for t in turnouts.getNamedBeanSet():
     try:
         t.setInitialKnownStateFromFeedback()
         n_fb += 1
-    except Exception as e:
-        print("apply_mqtt_retain: FB sweep " + t.getSystemName() + ": " + str(e))
+    except Exception:
+        pass
 
 print(
-    "apply_mqtt_retain: done turnouts=%d sensors=%d twosensor_fb=%d host=%s"
-    % (n_to, n_s, n_fb, MQTT_HOST)
+    "apply_mqtt_retain: turnouts=%d sensors=%d twosensor_fb=%d"
+    % (n_to, n_s, n_fb)
 )

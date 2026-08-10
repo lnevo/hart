@@ -26,11 +26,13 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
-# Default: Neville West Yard Digicon sheet (active ops panel).
+# Default: HART Master Digicon sheet (full layout; CTC).
+# ABS open-house copy: HART_Master_ABS.xml via launch_hart_master_abs.sh
+# Scratch/designer: HART_sheet_West_Yard2.xml — not the default launch target.
 # Gate 1: ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 # Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=app|terminal.
 # (PanelPro.app handoff changed JMRI behavior — do not use as default.)
-PANEL="${1:-$ROOT/cats/panels/sheets/HART_sheet_West_Yard2.xml}"
+PANEL="${1:-$ROOT/cats/panels/sheets/HART_Master.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).
@@ -97,10 +99,10 @@ if [[ -n "$CATS_LAUNCH_LOG" ]]; then
   echo "Logging stdout+stderr → $CATS_LAUNCH_LOG"
 fi
 
-# Do NOT publish/clear/sync MQTT from launch. Field + broker are SoR.
-# Digicon load safety is the prebuilt cats-pts-nullguard overlay installed by
-# tools/cats/install_into_jmri.sh (keeps RREventManager alive). No MQTT writes.
-# Diagnose (read-only): python3 cats/scripts/seed_default_thrown_turnouts.py --diagnose
+# Do NOT touch MQTT from launch (no retain clear/sync/seed, no broker probes).
+# Field + broker are SoR. Occasional junk cleanup is manual only:
+#   python3 cats/scripts/clear_mqtt_cmd_sensor_retain.py
+# Digicon load safety: cats-pts-nullguard overlay (tools/cats/install_into_jmri.sh).
 
 # Run cats.csh with optional tee of combined stdout/stderr.
 run_cats() {

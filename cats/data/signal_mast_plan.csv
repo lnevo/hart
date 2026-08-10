@@ -1,38 +1,20 @@
 cp,direction,protects_switch,panel_x,panel_y,edge,sigorient,proposed_mast_name,heads,phase
-Brick,west,101,4,3,LEFT,RIGHT,Brick West West Yard 1,2,west-yard-sheet
-Brick,south,101,4,3,BOTTOM,TOP,Brick South West Yard 2,1,west-yard-sheet
-Brick,east,101,5,3,RIGHT,LEFT,Brick East OS 101,2,west-yard-sheet
-Brick,west,100,6,3,LEFT,RIGHT,Brick West OS 100,2,west-yard-sheet
-Brick,south,100,6,3,BOTTOM,TOP,Brick South OS 100,2,west-yard-sheet
-Brick,east,100,7,3,RIGHT,LEFT,Brick East Main West,2,west-yard-sheet
-Plane,west,102,6,7,TOP,BOTTOM,Plane West OS 102,2,west-yard-sheet
-Plane,east,102,7,7,RIGHT,LEFT,Plane East Yard T1,1,west-yard-sheet
-Plane,east,102,7,7,BOTTOM,TOP,Plane East East Main Ext,2,west-yard-sheet
-West Yard,west,117,12,7,LEFT,RIGHT,West Yard West Yard T1,1,west-yard-sheet
-West Yard,east,117,13,7,RIGHT,LEFT,West Yard East Yard T6,1,west-yard-sheet
-West Yard,west,117b,11,8,LEFT,RIGHT,West Yard West East Main Ext,2,west-yard-sheet
-West Yard,east,117b,12,8,RIGHT,LEFT,West Yard East Main East,2,west-yard-sheet
-South Yard,east,103,20,7,RIGHT,LEFT,South Yard East Yard Track 1,1,west-yard-sheet
-South Yard,east,104,21,8,RIGHT,LEFT,South Yard East Yard Track 2,1,west-yard-sheet
-South Yard,east,105,22,9,RIGHT,LEFT,South Yard East Yard Track 3,1,west-yard-sheet
-South Yard,east,106,23,10,RIGHT,LEFT,South Yard East Yard Track 4,1,west-yard-sheet
-South Yard,east,106,23,10,BOTTOM,TOP,South Yard East Yard Track 5,1,west-yard-sheet
-East End,west,111a,27,6,LEFT,RIGHT,East End West Main West,2,west-yard-sheet
-East End,east,111a,28,6,RIGHT,LEFT,East End East West Main Ext,2,west-yard-sheet
-East End,west,111b,28,7,LEFT,RIGHT,East End West Yard Track 1,1,west-yard-sheet
-East End,east,111b,29,7,RIGHT,LEFT,East End East OS 111b,1,west-yard-sheet
-East End,west,110,30,7,LEFT,RIGHT,East End West OS 110,2,west-yard-sheet
-East End,east,110,31,7,RIGHT,LEFT,East End East OS 110,2,west-yard-sheet
-East End,west,112,32,7,LEFT,RIGHT,East End West OS 112,2,west-yard-sheet
-East End,south,112,32,7,BOTTOM,TOP,East End West Main East,2,west-yard-sheet
-East End,east,112,33,7,RIGHT,LEFT,East End East East Lead,2,west-yard-sheet
-East End,west,109,29,8,LEFT,RIGHT,East End West Yard Track 2,1,west-yard-sheet
-East End,west,108,28,9,LEFT,RIGHT,East End West Yard Track 3,1,west-yard-sheet
-East End,west,107,27,10,LEFT,RIGHT,East End West Yard Track 4,1,west-yard-sheet
-Princess,west,113a,38,7,LEFT,RIGHT,Princess West East Lead,3,west-yard-sheet
-Princess,west,113b,39,6,LEFT,RIGHT,Princess West West Main Ext,3,west-yard-sheet
-Princess,east,113a,39,7,RIGHT,LEFT,Princess East OS 113a,3,west-yard-sheet
-Princess,west,115,41,6,LEFT,RIGHT,Princess West OS 115,3,west-yard-sheet
-Princess,north,115,42,6,TOP,BOTTOM,Princess North OS 115,3,west-yard-sheet
-Princess,west,114,40,7,LEFT,RIGHT,Princess West OS 114,3,west-yard-sheet
-Princess,south,114,42,7,BOTTOM,TOP,Princess South OS 114,3,west-yard-sheet
+Brick,left,,4,3,LEFT,RIGHT,Brick West Yard 1,1,west-yard-sheet
+Brick,left,,4,4,LEFT,RIGHT,Brick West Yard 2,1,west-yard-sheet
+Brick,right,,8,3,RIGHT,LEFT,Brick East Main West,2,west-yard-sheet
+Princess,right,,43,5,RIGHT,LEFT,Princess North McKees Rocks,3,west-yard-sheet
+East End,left,,28,6,LEFT,RIGHT,East End West Main West,2,west-yard-sheet
+East End,right,,30,6,RIGHT,LEFT,East End East OS 111a,2,west-yard-sheet
+Princess,left,,37,6,LEFT,RIGHT,Princess West OS 113b,2,west-yard-sheet
+Plane,right,,9,7,RIGHT,LEFT,Plane East OS 102,2,west-yard-sheet
+West Yard,left,,12,7,LEFT,RIGHT,West Yard West OS 117,2,west-yard-sheet
+West Yard,right,,14,7,RIGHT,LEFT,West Yard East Yard T6,1,west-yard-sheet
+East End,left,,28,7,LEFT,RIGHT,East End West Yard Track 1,1,west-yard-sheet
+East End,right,,34,7,RIGHT,LEFT,East End East Lead,2,west-yard-sheet
+Princess,left,,37,7,LEFT,RIGHT,Princess West OS 113a,2,west-yard-sheet
+East End,bottom,,31,7,BOTTOM,RIGHT,East End South OS 110,1,west-yard-sheet
+Plane,right,,9,8,RIGHT,LEFT,Plane East East Main Ext,2,west-yard-sheet
+West Yard,left,,12,8,LEFT,RIGHT,West Yard West East Main Ext,2,west-yard-sheet
+West Yard,right,,14,8,RIGHT,LEFT,West Yard East OS 117b,2,west-yard-sheet
+East End,left,,33,8,LEFT,RIGHT,East End South OS 112,2,west-yard-sheet
+Princess,right,,43,8,RIGHT,LEFT,Princess South McKeesport,3,west-yard-sheet

@@ -16,7 +16,7 @@ GATE1_BLOCKS = {
     "Main West",
     "OS 100 (Brick)",
     "OS 101 (Brick)",
-    "Block 100-102",
+    "Main West Brick–Plane",
     "OS 102 (Plane)",
     "East Main Ext",
 }
@@ -101,10 +101,10 @@ def check(path: Path) -> list[str]:
             errs.append(f"Gate1 missing named blocks: {', '.join(missing)}")
         # Designer Gate 1 places 100-102 on the Brick→Plane diagonal (slash cells).
         # LE WIP must keep 100-102 on a HORIZONTAL spine cell (continuing route).
-        kinds = block_track_kinds(root).get("Block 100-102", set())
+        kinds = block_track_kinds(root).get("Main West Brick–Plane", set())
         if kinds and "HORIZONTAL" not in kinds and name.startswith("HART_le"):
             errs.append(
-                "Block 100-102 has no HORIZONTAL cell "
+                "Main West Brick–Plane has no HORIZONTAL cell "
                 f"(tracks={sorted(kinds)}) — continuing route must be HORIZONTAL"
             )
 
@@ -115,10 +115,10 @@ def check(path: Path) -> list[str]:
         missing2 = sorted(GATE2_BLOCKS - blocks)
         if missing2:
             errs.append(f"LE Gate2 missing named blocks: {', '.join(missing2)}")
-        kinds = block_track_kinds(root).get("Block 100-102", set())
+        kinds = block_track_kinds(root).get("Main West Brick–Plane", set())
         if "HORIZONTAL" not in kinds:
             errs.append(
-                "LE Block 100-102 must sit on HORIZONTAL "
+                "LE Main West Brick–Plane must sit on HORIZONTAL "
                 f"(tracks={sorted(kinds) or 'none'})"
             )
         # Occupancy wiring expected on MQTT LE panel

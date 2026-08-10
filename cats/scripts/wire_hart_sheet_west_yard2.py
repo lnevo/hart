@@ -2,7 +2,11 @@
 """Assign Digicon blocks onto West Yard SoR — edges only, no cell edits.
 
 SoR: cats/panels/sheets/HART_sheet_West_Yard_SOR.xml
-  (TRACKGROUP + SEC_NAME + Designer SWITCHPOINTS; any prior BLK edges ignored)
+  Geometry + SEC_NAME only (Designer-safe). Do not put Digicon BLOCK/SP/
+  SECSIGNAL back into SoR — that crashes Designer. Designer working copy is
+  HART_sheet_West_Yard2.xml; wire also publishes the active ops panel
+  HART_sheet_West_Yard.xml plus HART_Master.xml / HART_Master_ABS.xml
+  (launch_cats.sh default is HART_Master.xml).
 
 Rules (cats/docs/CATS_SOURCE_PAINT.md):
   - Blocks flow through SWITCHPOINTS (plain→SP). Do not cut the plant throat.
@@ -30,9 +34,29 @@ import jmri_to_cats_digicon as gen  # noqa: E402
 SOR = ROOT / "cats/panels/sheets/HART_sheet_West_Yard_SOR.xml"
 SRC = ROOT / "cats/panels/sheets/HART_sheet_West_Yard2.xml"
 ACTIVE = ROOT / "cats/panels/sheets/HART_sheet_West_Yard.xml"
+MASTER = ROOT / "cats/panels/sheets/HART_Master.xml"
+MASTER_ABS = ROOT / "cats/panels/sheets/HART_Master_ABS.xml"
 SHOT = ROOT / "cats/screenshots/sheets/HART_sheet_West_Yard2.png"
 TURNOUT_CSV = ROOT / "cats/data/turnout_bindings.csv"
 HART_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+
+# Control-point SEC_NAME titles → yellow FONT_CP (Java RGB -256 = #FFFF00).
+# Values: display NAME + LOC_NAME (None = leave Designer placement).
+CP_LABEL_STYLE: dict[str, tuple[str, str | None]] = {
+    "brick": ("BRICK", None),  # Designer places LOWCENT
+    "plane": ("PLANE", None),
+    "barn": ("BARN", None),
+    "princess": ("PRINCESS", None),
+    "east end": ("EAST END", None),
+}
+CP_LABEL_NAMES = frozenset(CP_LABEL_STYLE)
+# Area titles (not yellow CP font) forced to ALL CAPS / placement.
+AREA_LABEL_STYLE: dict[str, tuple[str, str | None]] = {
+    "west yard": ("WEST YARD", None),
+    "south yard": ("SOUTH YARD", None),
+}
+FONT_CP_KEY = "FONT_CP"
+FONT_CP_YELLOW = "-256"  # opaque yellow
 
 # SoR plant cells (tracks unchanged). 111b mate has tracks but no Designer SP.
 # Second field = NORMAL route among non-points legs (not the SP edge).
@@ -42,201 +66,210 @@ HART_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 #   114 THROWN = BOTTOM McKeesport (default); CLOSED = RIGHT K-2
 #   115 THROWN = TOP Rocks; CLOSED = RIGHT K-1 (good — leave alone)
 # SEL+CMD always share polarity. Wrong frog → flip that one PLANTS NORMAL only.
+# Coords match Designer SoR after user_0125 promote (≈ dx=-1,dy=-1; Brick tip compressed).
+# NORMAL = continuing/CLOSED leg among non-points edges (must match SoR ROUTEINFO).
 PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
-    # Brick/WY on y=3; 100-102 = VERTICAL (6,4–6) into Plane tip (6,7).
-    (4, 3): ("OS 101 (Brick)", "LEFT", "TOL38"),
-    # 100: continuing=THROWN → BOTTOM (100–102); CLOSED → LEFT.
-    (6, 3): ("OS 100 (Brick)", "LEFT", "TOL3"),
-    # 102: CLOSED → East Main Ext (BOTTOM); THROWN → Yard T1 (RIGHT).
-    (7, 7): ("OS 102 (Plane)", "BOTTOM", "TOL42"),
-    (12, 7): ("OS 117 (West Yard)", "LEFT", "TO117"),
-    (12, 8): ("OS 117b (West Yard)", "RIGHT", "TO117"),
-    (14, 6): ("OS 119 (West Yard)", "LEFT", "TO10"),
-    (16, 6): ("OS 118 (West Yard)", "TOP", "TO11"),
-    (17, 7): ("OS 116 (West Yard)", "LEFT", "TO1"),
-    # SY/EE ladder: 103 entry normal RIGHT into S-1; 104–106 / 107–110
-    # ladder spine = BOTTOM (CLOSED). Diverge = RIGHT (SY) / LEFT (EE) into S-n.
-    (20, 7): ("OS 103 (South Yard)", "RIGHT", "TOR14"),
-    (21, 8): ("OS 104 (South Yard)", "BOTTOM", "TOL15"),
-    (22, 9): ("OS 105 (South Yard)", "BOTTOM", "TOL17"),
-    (23, 10): ("OS 106 (South Yard)", "BOTTOM", "TOL19"),
-    (27, 10): ("OS 107 (East End)", "BOTTOM", "TOR11"),
-    (28, 9): ("OS 108 (East End)", "BOTTOM", "TOR9"),
-    (29, 8): ("OS 109 (East End)", "BOTTOM", "TOR7"),
-    # 110: on Main East — LEFT = through to 112 (CLOSED); BOTTOM = EE ladder diverge.
-    (30, 7): ("OS 110 (East End)", "LEFT", "TOL6"),
-    # 112: THROWN = BOTTOM Barn; CLOSED = LEFT through OS110.
-    (32, 7): ("OS 112 (East End)", "LEFT", "TOL23"),
-    (28, 6): ("OS 111a (East End)", "RIGHT", "TO111"),
-    (28, 7): ("OS 111b (East End)", "LEFT", "TO111"),
-    (39, 6): ("OS 113b (Princess)", "LEFT", "TO113"),
-    (39, 7): ("OS 113a (Princess)", "RIGHT", "TO113"),
-    # 115: THROWN = TOP Rocks; CLOSED = RIGHT K-1 (confirmed good).
+    # Brick/WY on y=3; shaft (7,4–6) into Plane tip (8,7).
+    (5, 3): ("OS 101 (Brick)", "LEFT", "TOL38"),
+    (7, 3): ("OS 100 (Brick)", "LEFT", "TOL3"),
+    (8, 7): ("OS 102 (Plane)", "BOTTOM", "TOL42"),
+    (13, 7): ("OS 117 (West Yard)", "LEFT", "TO117"),
+    (13, 8): ("OS 117b (West Yard)", "RIGHT", "TO117"),
+    (15, 6): ("OS 119 (West Yard)", "LEFT", "TO10"),
+    (17, 6): ("OS 118 (West Yard)", "LEFT", "TO11"),
+    (18, 7): ("OS 116 (West Yard)", "LEFT", "TO1"),
+    (21, 7): ("OS 103 (South Yard)", "RIGHT", "TOR14"),
+    (22, 8): ("OS 104 (South Yard)", "BOTTOM", "TOL15"),
+    (23, 9): ("OS 105 (South Yard)", "BOTTOM", "TOL17"),
+    (24, 10): ("OS 106 (South Yard)", "BOTTOM", "TOL19"),
+    (28, 10): ("OS 107 (East End)", "BOTTOM", "TOR11"),
+    (29, 9): ("OS 108 (East End)", "BOTTOM", "TOR9"),
+    (30, 8): ("OS 109 (East End)", "BOTTOM", "TOR7"),
+    (31, 7): ("OS 110 (East End)", "LEFT", "TOL6"),
+    (33, 7): ("OS 112 (East End)", "LEFT", "TOL23"),
+    (29, 6): ("OS 111a (East End)", "RIGHT", "TO111"),
+    (29, 7): ("OS 111b (East End)", "LEFT", "TO111"),
+    (38, 6): ("OS 113b (Princess)", "LEFT", "TO113"),
+    (38, 7): ("OS 113a (Princess)", "RIGHT", "TO113"),
     (42, 6): ("OS 115 (Princess)", "RIGHT", "TOL29"),
-    # 114: THROWN = BOTTOM McKeesport (default); CLOSED = RIGHT K-2.
     (42, 7): ("OS 114 (Princess)", "RIGHT", "TOR36"),
 }
 
 # Named rim / approach / tip edges — only cut faces (interior stays plain).
 # Gap style: plain within a block; cut only at OS bounds (no same-name BLK↔BLK).
 ANCHORS: list[tuple[int, int, str, str]] = [
-    # Brick / WY on y=3
-    (2, 3, "LEFT", "West Yard 1"),
-    (3, 3, "RIGHT", "West Yard 1"),
+    # Brick / WY — W-1/W-2 continuous into OS101 (no Digicon gap east of 4,4 / 5,5).
+    # West-rim lamps on OS101; ANON mates west of lamps (CUTS). Tip cut → OS100.
+    (2, 3, "LEFT", "West Yard 1"),  # west-of-lamp stub region (named for R5)
     (4, 3, "LEFT", "OS 101 (Brick)"),
-    (5, 3, "RIGHT", "OS 101 (Brick)"),
+    (6, 3, "RIGHT", "OS 101 (Brick)"),
     (2, 4, "LEFT", "West Yard 2"),
-    (4, 4, "TOP", "West Yard 2"),
-    (4, 3, "BOTTOM", "OS 101 (Brick)"),
-    (6, 3, "LEFT", "OS 100 (Brick)"),
-    (6, 3, "BOTTOM", "OS 100 (Brick)"),
-    (7, 3, "RIGHT", "OS 100 (Brick)"),
+    (4, 4, "LEFT", "OS 101 (Brick)"),
+    (7, 3, "LEFT", "OS 100 (Brick)"),
+    (7, 3, "BOTTOM", "OS 100 (Brick)"),
+    (8, 3, "RIGHT", "OS 100 (Brick)"),
     # Main West: Brick tip → SE stair → EE
-    (8, 3, "LEFT", "Main West"),
-    (26, 6, "RIGHT", "Main West"),
-    # Block 100-102 vertical (6,4)–(6,6) into Plane tip (6,7)
-    (6, 4, "TOP", "Block 100-102"),
-    (6, 6, "BOTTOM", "Block 100-102"),
-    (6, 7, "TOP", "OS 102 (Plane)"),
-    (7, 7, "BOTTOM", "OS 102 (Plane)"),
-    (7, 7, "RIGHT", "OS 102 (Plane)"),
-    (8, 7, "LEFT", "Yard T1"),
+    (9, 3, "LEFT", "Main West"),
+    (27, 6, "RIGHT", "Main West"),
+    # Main West Brick–Plane vertical into Plane
+    (7, 4, "TOP", "Main West Brick–Plane"),
+    (7, 6, "BOTTOM", "Main West Brick–Plane"),
+    (7, 7, "TOP", "OS 102 (Plane)"),
+    # Plane: name OS on shaft approach only — floods through plant SP. Do NOT
+    # name (9,8) BOTTOM/(9,9) TOP (extra frog Digicon seam). East lamps on cuts.
+    (9, 7, "RIGHT", "OS 102 (Plane)"),
+    (10, 7, "LEFT", "Yard T1"),
     (11, 7, "RIGHT", "Yard T1"),
-    (7, 8, "TOP", "East Main Ext"),
-    (10, 8, "RIGHT", "East Main Ext"),
-    # Barn
     (12, 7, "LEFT", "OS 117 (West Yard)"),
-    (13, 7, "RIGHT", "OS 117 (West Yard)"),
-    (14, 7, "LEFT", "Yard T6"),
-    (11, 8, "LEFT", "OS 117b (West Yard)"),
-    (12, 8, "RIGHT", "OS 117b (West Yard)"),
-    (13, 8, "LEFT", "Main East"),
-    # ET
-    (12, 6, "LEFT", "ET-3"),
-    (13, 6, "RIGHT", "ET-3"),
+    (9, 8, "RIGHT", "OS 102 (Plane)"),
+    (10, 8, "LEFT", "East Main Ext"),
+    (11, 8, "RIGHT", "East Main Ext"),
+    (12, 8, "LEFT", "OS 117b (West Yard)"),
+    # Barn 117 / 117b (plants at 14,8 / 14,9)
+    (13, 7, "BOTTOM", "OS 117 (West Yard)"),
+    (14, 7, "RIGHT", "OS 117 (West Yard)"),
+    (15, 7, "LEFT", "Yard T6"),
+    (13, 8, "TOP", "OS 117b (West Yard)"),
+    (14, 8, "RIGHT", "OS 117b (West Yard)"),
+    (15, 8, "LEFT", "Main East"),
+    # ET: Designer mid-spur cuts (not at plant throat — OS floods into 118/119)
+    (12, 6, "LEFT", "Yard T9"),
+    (13, 6, "RIGHT", "Yard T9"),
     (14, 6, "LEFT", "OS 119 (West Yard)"),
-    (14, 6, "TOP", "OS 119 (West Yard)"),
-    (15, 6, "RIGHT", "OS 119 (West Yard)"),
-    (12, 5, "LEFT", "ET-2"),
-    (14, 5, "BOTTOM", "ET-2"),
-    (12, 4, "LEFT", "ET-1"),
-    (15, 5, "RIGHT", "ET-1"),
-    (16, 5, "LEFT", "OS 118 (West Yard)"),
+    # OS119 plant: approach names flood through SP — no plant-edge names (avoids
+    # throat Digicon seams + R4 vs plain ET stubs).
+    (16, 6, "RIGHT", "OS 119 (West Yard)"),
+    (12, 5, "LEFT", "Yard T10"),
+    (13, 5, "RIGHT", "Yard T10"),
+    (14, 5, "LEFT", "OS 119 (West Yard)"),
+    (12, 4, "LEFT", "Yard T11"),
+    (14, 4, "RIGHT", "Yard T11"),
+    (15, 4, "LEFT", "OS 118 (West Yard)"),
     (16, 6, "LEFT", "OS 118 (West Yard)"),
-    (17, 7, "LEFT", "OS 116 (West Yard)"),
-    (18, 7, "RIGHT", "OS 116 (West Yard)"),
-    # South Yard
-    (19, 7, "LEFT", "OS 103 (South Yard)"),
-    (20, 7, "RIGHT", "OS 103 (South Yard)"),
-    (21, 7, "LEFT", "Yard Track 1"),
-    (21, 8, "RIGHT", "OS 104 (South Yard)"),
-    (22, 8, "LEFT", "Yard Track 2"),
-    (22, 9, "RIGHT", "OS 105 (South Yard)"),
-    (23, 9, "LEFT", "Yard Track 3"),
-    (23, 10, "RIGHT", "OS 106 (South Yard)"),
-    (24, 10, "LEFT", "Yard Track 4"),
-    (23, 10, "BOTTOM", "OS 106 (South Yard)"),
-    (23, 11, "TOP", "Yard Track 5"),
-    # 111 / EE
-    (27, 6, "LEFT", "OS 111a (East End)"),
-    (28, 6, "RIGHT", "OS 111a (East End)"),
-    (29, 6, "LEFT", "West Main Ext"),
+    (17, 6, "LEFT", "OS 118 (West Yard)"),
+    (18, 6, "BOTTOM", "OS 118 (West Yard)"),
+    (17, 7, "RIGHT", "Yard T6"),
+    (18, 7, "TOP", "OS 116 (West Yard)"),
+    (18, 7, "LEFT", "OS 116 (West Yard)"),
+    (19, 7, "RIGHT", "OS 116 (West Yard)"),
+    # South Yard (plants shifted +1)
+    (20, 7, "LEFT", "OS 103 (South Yard)"),
+    (21, 7, "RIGHT", "OS 103 (South Yard)"),
+    (22, 7, "LEFT", "Yard Track 1"),
+    (22, 8, "RIGHT", "OS 104 (South Yard)"),
+    (23, 8, "LEFT", "Yard Track 2"),
+    (23, 9, "RIGHT", "OS 105 (South Yard)"),
+    (24, 9, "LEFT", "Yard Track 3"),
+    (24, 10, "RIGHT", "OS 106 (South Yard)"),
+    (25, 10, "LEFT", "Yard Track 4"),
+    (24, 10, "BOTTOM", "OS 106 (South Yard)"),
+    (24, 11, "TOP", "Yard Track 5"),
+    # EE 111 / 110 / 112 (plants at 30,7/30,8 / 32,8 / 34,8)
+    (28, 6, "LEFT", "OS 111a (East End)"),
+    (29, 6, "BOTTOM", "OS 111a (East End)"),
+    (30, 6, "RIGHT", "OS 111a (East End)"),
+    (31, 6, "LEFT", "West Main Ext"),
     (27, 7, "RIGHT", "Yard Track 1"),
     (28, 7, "LEFT", "OS 111b (East End)"),
-    (29, 7, "RIGHT", "OS 111b (East End)"),
-    (30, 7, "LEFT", "OS 110 (East End)"),
-    (31, 7, "RIGHT", "OS 110 (East End)"),
-    (29, 8, "LEFT", "OS 109 (East End)"),
-    (28, 9, "LEFT", "OS 108 (East End)"),
-    (27, 10, "LEFT", "OS 107 (East End)"),
-    (32, 7, "LEFT", "OS 112 (East End)"),
-    (32, 7, "BOTTOM", "OS 112 (East End)"),
-    (33, 7, "RIGHT", "OS 112 (East End)"),
-    (32, 8, "TOP", "Main East"),
-    (34, 7, "LEFT", "East Lead"),
-    (37, 7, "RIGHT", "East Lead"),
-    (28, 8, "RIGHT", "Yard Track 2"),
-    (27, 9, "RIGHT", "Yard Track 3"),
-    (26, 10, "RIGHT", "Yard Track 4"),
-    # Princess: K-1 = OS 115 body (Block 1-4); K-2 = OS 114 body (Block 1-3).
-    # Rocks / Port loops are separate (McKees Rocks 1-1 / McKeesport 1-2).
-    # Name BOTH faces of destination cuts (not plant-side anon) so OS occupancy
-    # cannot flood across the Joint into the 100/101 loops.
-    (38, 6, "RIGHT", "West Main Ext"),
-    (39, 6, "LEFT", "OS 113b (Princess)"),
-    (40, 6, "RIGHT", "OS 113b (Princess)"),
+    (29, 7, "TOP", "OS 111b (East End)"),
+    (30, 7, "RIGHT", "OS 111b (East End)"),
+    (31, 7, "LEFT", "OS 110 (East End)"),
+    (31, 7, "BOTTOM", "OS 110 (East End)"),
+    (32, 7, "RIGHT", "OS 110 (East End)"),
+    (30, 8, "LEFT", "OS 109 (East End)"),
+    (29, 9, "LEFT", "OS 108 (East End)"),
+    (28, 10, "LEFT", "OS 107 (East End)"),
+    (33, 7, "LEFT", "OS 112 (East End)"),
+    (34, 7, "RIGHT", "OS 112 (East End)"),
+    # 112 south lamp on slash face (34,9) LEFT — continuous (33,9)↔(33,10) Main East
+    (33, 8, "LEFT", "OS 112 (East End)"),
+    (32, 8, "RIGHT", "Main East"),
+    (35, 7, "LEFT", "East Lead"),
+    (36, 7, "RIGHT", "East Lead"),
+    (37, 7, "LEFT", "OS 113a (Princess)"),
+    (37, 7, "RIGHT", "OS 113a (Princess)"),
+    (29, 8, "RIGHT", "Yard Track 2"),
+    (28, 9, "RIGHT", "Yard Track 3"),
+    (27, 10, "RIGHT", "Yard Track 4"),
+    # Princess
+    (36, 6, "RIGHT", "West Main Ext"),
+    (37, 6, "LEFT", "OS 113b (Princess)"),
+    (38, 6, "BOTTOM", "OS 113b (Princess)"),
+    (39, 6, "RIGHT", "OS 113b (Princess)"),
+    (40, 6, "LEFT", "OS 115 (Princess)"),
     (38, 7, "LEFT", "OS 113a (Princess)"),
+    (38, 7, "TOP", "OS 113a (Princess)"),
     (39, 7, "RIGHT", "OS 113a (Princess)"),
     (40, 7, "LEFT", "OS 114 (Princess)"),
-    (42, 7, "BOTTOM", "OS 114 (Princess)"),
-    # K-2 stub east of 114: plain through plant tip (no BLK) so Digicon has
-    # one continuous region with OS 114 — no rail gaps on the two-cell body.
-    (42, 8, "TOP", "McKeesport"),
+    # K-2 continuous plant→(44,8); OS on approach floods through SP.
+    # Cut only at McKeesport lamp — never mid-K-2.
+    (43, 8, "RIGHT", "OS 114 (Princess)"),
+    (44, 8, "LEFT", "McKeesport"),
     (45, 7, "TOP", "McKeesport"),
-    (41, 6, "LEFT", "OS 115 (Princess)"),
-    (42, 6, "TOP", "OS 115 (Princess)"),
-    # K-1 stub east of 115: same — plain tip into two-cell body.
-    (42, 5, "BOTTOM", "McKees Rocks"),
+    # K-1 continuous plant→(44,7); cut only at Rocks lamp — never mid-K-1.
+    (43, 5, "RIGHT", "OS 115 (Princess)"),
+    (44, 5, "LEFT", "McKees Rocks"),
     (45, 6, "BOTTOM", "McKees Rocks"),
 ]
 
 CUTS: list[tuple[tuple[int, int], str, tuple[int, int], str, str]] = [
-    ((3, 3), "RIGHT", (4, 3), "LEFT", "W-1 | OS101"),
-    ((4, 4), "TOP", (4, 3), "BOTTOM", "W-2 | OS101"),
-    ((5, 3), "RIGHT", (6, 3), "LEFT", "OS101 tip | OS100"),
-    ((6, 3), "BOTTOM", (6, 4), "TOP", "OS100 | Block 100-102"),
-    ((6, 6), "BOTTOM", (6, 7), "TOP", "Block 100-102 | OS102"),
-    ((7, 3), "RIGHT", (8, 3), "LEFT", "OS100 tip | Main West"),
-    ((7, 7), "RIGHT", (8, 7), "LEFT", "OS102 | Yard T1"),
-    ((7, 7), "BOTTOM", (7, 8), "TOP", "OS102 | East Main Ext (406)"),
-    ((10, 8), "RIGHT", (11, 8), "LEFT", "East Main Ext (406) | OS117b"),
+    # West-rim lamp faces only — W-1/W-2 rail continuous into OS101 plant.
+    ((3, 3), "RIGHT", (4, 3), "LEFT", "W-1 west lamp"),
+    ((3, 4), "RIGHT", (4, 4), "LEFT", "W-2 west lamp"),
+    ((6, 3), "RIGHT", (7, 3), "LEFT", "OS101 tip | OS100"),
+    ((7, 3), "BOTTOM", (7, 4), "TOP", "OS100 | Main West Brick–Plane"),
+    ((7, 6), "BOTTOM", (7, 7), "TOP", "Main West Brick–Plane | OS102"),
+    ((8, 3), "RIGHT", (9, 3), "LEFT", "OS100 tip | Main West"),
+    ((9, 7), "RIGHT", (10, 7), "LEFT", "OS102 | Yard T1"),
+    ((9, 8), "RIGHT", (10, 8), "LEFT", "OS102 south | East Main Ext"),
+    ((11, 8), "RIGHT", (12, 8), "LEFT", "East Main Ext | OS117b"),
     ((11, 7), "RIGHT", (12, 7), "LEFT", "Yard T1 | OS117"),
-    ((13, 7), "RIGHT", (14, 7), "LEFT", "OS117 tip | Yard T6"),
-    ((12, 7), "BOTTOM", (12, 8), "TOP", "OS117 | OS117b diamond"),
-    ((12, 8), "RIGHT", (13, 8), "LEFT", "OS117b | Main East"),
-    ((13, 6), "RIGHT", (14, 6), "LEFT", "ET-3 | OS119"),
-    ((14, 5), "BOTTOM", (14, 6), "TOP", "ET-2 | OS119"),
-    ((15, 6), "RIGHT", (16, 6), "LEFT", "OS119 tip | OS118"),
-    ((15, 5), "RIGHT", (16, 5), "LEFT", "ET-1 | OS118"),
-    ((17, 6), "BOTTOM", (17, 7), "TOP", "OS118 diagonal | OS116"),
-    ((16, 7), "RIGHT", (17, 7), "LEFT", "Yard T6 | OS116"),
-    ((18, 7), "RIGHT", (19, 7), "LEFT", "OS116 tip | OS103 tip"),
-    ((20, 7), "RIGHT", (21, 7), "LEFT", "OS103 | Yard Track 1 / S-1"),
-    ((20, 7), "BOTTOM", (20, 8), "TOP", "OS103 spine"),
-    ((21, 8), "RIGHT", (22, 8), "LEFT", "OS104 | Yard Track 2"),
-    ((21, 8), "BOTTOM", (21, 9), "TOP", "OS104 spine"),
-    ((22, 9), "RIGHT", (23, 9), "LEFT", "OS105 | Yard Track 3"),
-    ((22, 9), "BOTTOM", (22, 10), "TOP", "OS105 spine"),
-    ((23, 10), "RIGHT", (24, 10), "LEFT", "OS106 | Yard Track 4"),
-    ((23, 10), "BOTTOM", (23, 11), "TOP", "OS106 | Yard Track 5"),
-    ((26, 6), "RIGHT", (27, 6), "LEFT", "Main West | OS111a tip"),
-    ((28, 6), "RIGHT", (29, 6), "LEFT", "OS111a | West Main Ext"),
-    ((28, 6), "BOTTOM", (28, 7), "TOP", "OS111a | OS111b diamond"),
+    ((14, 7), "RIGHT", (15, 7), "LEFT", "OS117 tip | Yard T6"),
+    ((13, 7), "BOTTOM", (13, 8), "TOP", "OS117 | OS117b diamond"),
+    ((14, 8), "RIGHT", (15, 8), "LEFT", "OS117b | Main East"),
+    # ET mid-spur (Designer) — continuous into OS118/119 throats
+    ((13, 6), "RIGHT", (14, 6), "LEFT", "Yard T9 mid"),
+    ((13, 5), "RIGHT", (14, 5), "LEFT", "Yard T10 mid"),
+    ((14, 4), "RIGHT", (15, 4), "LEFT", "Yard T11 mid"),
+    ((16, 6), "RIGHT", (17, 6), "LEFT", "OS119 tip | OS118"),
+    ((18, 6), "BOTTOM", (18, 7), "TOP", "OS118 | OS116"),
+    ((17, 7), "RIGHT", (18, 7), "LEFT", "Yard T6 | OS116"),
+    ((19, 7), "RIGHT", (20, 7), "LEFT", "OS116 tip | OS103 tip"),
+    ((21, 7), "RIGHT", (22, 7), "LEFT", "OS103 | Yard Track 1 / S-1"),
+    ((21, 7), "BOTTOM", (21, 8), "TOP", "OS103 spine"),
+    ((22, 8), "RIGHT", (23, 8), "LEFT", "OS104 | Yard Track 2"),
+    ((22, 8), "BOTTOM", (22, 9), "TOP", "OS104 spine"),
+    ((23, 9), "RIGHT", (24, 9), "LEFT", "OS105 | Yard Track 3"),
+    ((23, 9), "BOTTOM", (23, 10), "TOP", "OS105 spine"),
+    ((24, 10), "RIGHT", (25, 10), "LEFT", "OS106 | Yard Track 4"),
+    ((24, 10), "BOTTOM", (24, 11), "TOP", "OS106 | Yard Track 5"),
+    ((27, 6), "RIGHT", (28, 6), "LEFT", "Main West | OS111a tip"),
+    ((30, 6), "RIGHT", (31, 6), "LEFT", "OS111a | West Main Ext"),
+    ((29, 6), "BOTTOM", (29, 7), "TOP", "OS111a | OS111b diamond"),
     ((27, 7), "RIGHT", (28, 7), "LEFT", "YT1/S-1 | OS111b"),
-    ((29, 7), "RIGHT", (30, 7), "LEFT", "OS111b tip | OS110"),
-    ((30, 7), "BOTTOM", (30, 8), "TOP", "OS110 spine"),
-    ((28, 8), "RIGHT", (29, 8), "LEFT", "OS109 approach"),
-    ((29, 8), "BOTTOM", (29, 9), "TOP", "OS109 spine"),
-    ((27, 9), "RIGHT", (28, 9), "LEFT", "OS108 approach"),
-    ((28, 9), "BOTTOM", (28, 10), "TOP", "OS108 spine"),
-    ((26, 10), "RIGHT", (27, 10), "LEFT", "OS107 approach"),
-    ((27, 10), "BOTTOM", (27, 11), "TOP", "OS107 spine"),
-    ((31, 7), "RIGHT", (32, 7), "LEFT", "OS110 tip | OS112"),
-    ((33, 7), "RIGHT", (34, 7), "LEFT", "OS112 tip | East Lead"),
-    ((37, 7), "RIGHT", (38, 7), "LEFT", "East Lead | OS113a tip"),
-    ((32, 7), "BOTTOM", (32, 8), "TOP", "OS112 spine"),
-    ((38, 6), "RIGHT", (39, 6), "LEFT", "WME | OS113b"),
-    ((39, 6), "BOTTOM", (39, 7), "TOP", "OS113b | OS113a diamond"),
+    ((30, 7), "RIGHT", (31, 7), "LEFT", "OS111b tip | OS110"),
+    ((31, 7), "BOTTOM", (31, 8), "TOP", "OS110 spine"),
+    ((29, 8), "RIGHT", (30, 8), "LEFT", "OS109 approach"),
+    ((30, 8), "BOTTOM", (30, 9), "TOP", "OS109 spine"),
+    ((28, 9), "RIGHT", (29, 9), "LEFT", "OS108 approach"),
+    ((29, 9), "BOTTOM", (29, 10), "TOP", "OS108 spine"),
+    ((27, 10), "RIGHT", (28, 10), "LEFT", "OS107 approach"),
+    ((28, 10), "BOTTOM", (28, 11), "TOP", "OS107 spine"),
+    ((32, 7), "RIGHT", (33, 7), "LEFT", "OS110 tip | OS112"),
+    ((34, 7), "RIGHT", (35, 7), "LEFT", "OS112 tip | East Lead"),
+    ((36, 7), "RIGHT", (37, 7), "LEFT", "East Lead | OS113a tip"),
+    ((32, 8), "RIGHT", (33, 8), "LEFT", "OS112 south lamp"),
+    ((36, 6), "RIGHT", (37, 6), "LEFT", "WME | OS113b"),
+    ((38, 6), "BOTTOM", (38, 7), "TOP", "OS113b | OS113a diamond"),
     ((39, 7), "RIGHT", (40, 7), "LEFT", "OS113a | OS114 approach"),
-    ((40, 6), "RIGHT", (41, 6), "LEFT", "OS113b tip | OS115 tip"),
-    # OS115/114 stop at plant; destination loops are Blocks 1-1 / 1-2.
-    ((42, 6), "TOP", (42, 5), "BOTTOM", "OS115 | McKees Rocks"),
-    ((42, 7), "BOTTOM", (42, 8), "TOP", "OS114 | McKeesport"),
+    ((39, 6), "RIGHT", (40, 6), "LEFT", "OS113b tip | OS115"),
+    ((43, 5), "RIGHT", (44, 5), "LEFT", "OS115 | McKees Rocks"),
+    ((43, 8), "RIGHT", (44, 8), "LEFT", "OS114 | McKeesport"),
     ((45, 6), "BOTTOM", (45, 7), "TOP", "McKees Rocks | McKeesport"),
 ]
 
 # Panel-lamp NX targets: (x,y,edge) → (name, pantype, loc, orient).
-# Must sit on a BLOCK edge (never SP / plain). LAMP1=yard · 2=main · 3=Princess.
+# Must sit on a BLOCK edge (never SP / plain). LAMP1=yard · 2=main/CP · 3=Princess exits.
 
 
 def _tracks(sec: ET.Element) -> list[str]:
@@ -280,20 +313,28 @@ def load_turnouts() -> dict[str, tuple[str, str]]:
     return out
 
 
-def wire_turnouts(tp: ET.Element, turnout_by_ident: dict[str, tuple[str, str]]) -> int:
+def wire_turnouts(
+    tp: ET.Element,
+    turnout_by_ident: dict[str, tuple[str, str]],
+    plants: dict[tuple[int, int], tuple[str, str, str]] | None = None,
+) -> int:
     """Bind SELECTEDREPORT + ROUTECOMMAND on each plant SWITCHPOINTS.
 
     NORMAL route ↔ JMRI CLOSED (close); other leg ↔ THROWN (throw).
     SELECTEDREPORT and ROUTECOMMAND must use the same polarity — remapping
     only the report (to chase a bad MQTT retain) reverses Digicon commands.
+
+    ``plants`` defaults to module PLANTS (row 1). Pass Class-I / sidecar
+    plant maps (same tip idents) so both bands share M2T and frogs sync.
     """
+    plant_map = PLANTS if plants is None else plants
     secs = {
         (int(s.get("X")), int(s.get("Y"))): s
         for s in tp.findall("SECTION")
         if s.find("TRACKGROUP") is not None
     }
     n = 0
-    for xy, (_os, normal, ident) in PLANTS.items():
+    for xy, (_os, normal, ident) in plant_map.items():
         binding = turnout_by_ident.get(ident)
         if not binding:
             print(f"TURNOUT SKIP: plant {xy} {ident} not in CSV", file=sys.stderr)
@@ -353,63 +394,56 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
 # ADR-002: CP + direction + track. Value = (name, pantype, loc, orient).
 # Facing: tip INTO the BLOCK on that edge —
 #   LEFT→SIGORIENT RIGHT, RIGHT→LEFT, TOP→BOTTOM, BOTTOM→TOP.
-# Place on the OS-named face of each plant cut (not the approach/yard side).
-SIGNAL_DEFS: dict[tuple[int, int, str], tuple[str, str, str, str]] = {
-    # Brick 101 / 100 — OS edges only
-    (4, 3, "LEFT"): ("Brick West West Yard 1", "LAMP2", "LOWLEFT", "RIGHT"),
-    (4, 3, "BOTTOM"): ("Brick South West Yard 2", "LAMP1", "LOWLEFT", "TOP"),
-    (5, 3, "RIGHT"): ("Brick East OS 101", "LAMP2", "LOWRIGHT", "LEFT"),
-    (6, 3, "LEFT"): ("Brick West OS 100", "LAMP2", "LOWLEFT", "RIGHT"),
-    (6, 3, "BOTTOM"): ("Brick South OS 100", "LAMP2", "LOWLEFT", "TOP"),
-    (7, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWRIGHT", "LEFT"),
-    # Plane 102
-    (6, 7, "TOP"): ("Plane West OS 102", "LAMP2", "LOWLEFT", "BOTTOM"),
-    (7, 7, "RIGHT"): ("Plane East Yard T1", "LAMP1", "LOWRIGHT", "LEFT"),
-    (7, 7, "BOTTOM"): ("Plane East East Main Ext", "LAMP2", "LOWLEFT", "TOP"),
-    # Barn 117 / 117b
-    (12, 7, "LEFT"): ("West Yard West Yard T1", "LAMP1", "LOWLEFT", "RIGHT"),
-    (13, 7, "RIGHT"): ("West Yard East Yard T6", "LAMP1", "LOWRIGHT", "LEFT"),
-    (11, 8, "LEFT"): ("West Yard West East Main Ext", "LAMP2", "LOWLEFT", "RIGHT"),
-    (12, 8, "RIGHT"): ("West Yard East Main East", "LAMP2", "LOWRIGHT", "LEFT"),
-    # South Yard ladder 103–106 (into yard tracks)
-    (20, 7, "RIGHT"): ("South Yard East Yard Track 1", "LAMP1", "LOWRIGHT", "LEFT"),
-    (21, 8, "RIGHT"): ("South Yard East Yard Track 2", "LAMP1", "LOWRIGHT", "LEFT"),
-    (22, 9, "RIGHT"): ("South Yard East Yard Track 3", "LAMP1", "LOWRIGHT", "LEFT"),
-    (23, 10, "RIGHT"): ("South Yard East Yard Track 4", "LAMP1", "LOWRIGHT", "LEFT"),
-    (23, 10, "BOTTOM"): ("South Yard East Yard Track 5", "LAMP1", "LOWLEFT", "TOP"),
-    # East End 111 / 110 / 112 + ladder
-    (27, 6, "LEFT"): ("East End West Main West", "LAMP2", "LOWLEFT", "RIGHT"),
-    (28, 6, "RIGHT"): ("East End East West Main Ext", "LAMP2", "LOWRIGHT", "LEFT"),
+# SoR is geometry-only (Designer). Lamps live on West_Yard2 named cut faces.
+#
+# SIGPANTYPE = panel head count (CATS AspectMap templates):
+#   LAMP1 / single — yard / stub / one-head dwarf (Stop / Approach / Clear)
+#   LAMP2 / double — main / CP (adds Medium/Slow / diverging speed aspects)
+#   LAMP3 / triple — high-speed plant exits (full Clear/Approach/Restricting ladder)
+SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
+    # Yard stubs — single head
+    (4, 3, "LEFT"): ("Brick West Yard 1", "LAMP1", "LOWLEFT", "RIGHT"),
+    (4, 4, "LEFT"): ("Brick West Yard 2", "LAMP1", "LOWLEFT", "RIGHT"),
+    # Brick main — JMRI MQTT mast 464 (Brick East Main West); Digicon 2-lamp, lower off for now
+    (8, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWLEFT", "LEFT", "aar-single"),
+    # Main / CP — double head
+    (43, 5, "RIGHT"): ("Princess North McKees Rocks", "LAMP3", "LOWLEFT", "LEFT"),
+    (28, 6, "LEFT"): ("East End West Main West", "LAMP2", "LOWLEFT", "RIGHT"),
+    (30, 6, "RIGHT"): ("East End East OS 111a", "LAMP2", "LOWLEFT", "LEFT"),
+    (37, 6, "LEFT"): ("Princess West OS 113b", "LAMP2", "LOWLEFT", "RIGHT"),
+    (9, 7, "RIGHT"): ("Plane East OS 102", "LAMP2", "LOWLEFT", "LEFT"),
+    (12, 7, "LEFT"): ("West Yard West OS 117", "LAMP2", "LOWLEFT", "RIGHT"),
+    (14, 7, "RIGHT"): ("West Yard East Yard T6", "LAMP1", "LOWLEFT", "LEFT"),
     (28, 7, "LEFT"): ("East End West Yard Track 1", "LAMP1", "LOWLEFT", "RIGHT"),
-    (29, 7, "RIGHT"): ("East End East OS 111b", "LAMP1", "LOWRIGHT", "LEFT"),
-    (30, 7, "LEFT"): ("East End West OS 110", "LAMP2", "LOWLEFT", "RIGHT"),
-    (31, 7, "RIGHT"): ("East End East OS 110", "LAMP2", "LOWRIGHT", "LEFT"),
-    (32, 7, "LEFT"): ("East End West OS 112", "LAMP2", "LOWLEFT", "RIGHT"),
-    (32, 7, "BOTTOM"): ("East End West Main East", "LAMP2", "LOWLEFT", "TOP"),
-    (33, 7, "RIGHT"): ("East End East East Lead", "LAMP2", "LOWRIGHT", "LEFT"),
-    (29, 8, "LEFT"): ("East End West Yard Track 2", "LAMP1", "LOWLEFT", "RIGHT"),
-    (28, 9, "LEFT"): ("East End West Yard Track 3", "LAMP1", "LOWLEFT", "RIGHT"),
-    (27, 10, "LEFT"): ("East End West Yard Track 4", "LAMP1", "LOWLEFT", "RIGHT"),
-    # Princess 113 / 114 / 115
-    (38, 7, "LEFT"): ("Princess West East Lead", "LAMP3", "LOWLEFT", "RIGHT"),
-    (39, 6, "LEFT"): ("Princess West West Main Ext", "LAMP3", "LOWLEFT", "RIGHT"),
-    (39, 7, "RIGHT"): ("Princess East OS 113a", "LAMP3", "LOWRIGHT", "LEFT"),
-    (41, 6, "LEFT"): ("Princess West OS 115", "LAMP3", "LOWLEFT", "RIGHT"),
-    (42, 6, "TOP"): ("Princess North OS 115", "LAMP3", "UPRIGHT", "BOTTOM"),
-    (40, 7, "LEFT"): ("Princess West OS 114", "LAMP3", "LOWLEFT", "RIGHT"),
-    (42, 7, "BOTTOM"): ("Princess South OS 114", "LAMP3", "LOWLEFT", "TOP"),
+    (34, 7, "RIGHT"): ("East End East Lead", "LAMP2", "LOWRIGHT", "LEFT"),
+    (37, 7, "LEFT"): ("Princess West OS 113a", "LAMP2", "LOWLEFT", "RIGHT"),
+    (31, 7, "BOTTOM"): ("East End South OS 110", "LAMP1", "UPLEFT", "RIGHT"),
+    (9, 8, "RIGHT"): ("Plane East East Main Ext", "LAMP2", "LOWLEFT", "LEFT"),
+    (12, 8, "LEFT"): ("West Yard West East Main Ext", "LAMP2", "LOWLEFT", "RIGHT"),
+    (14, 8, "RIGHT"): ("West Yard East OS 117b", "LAMP2", "LOWLEFT", "LEFT"),
+    (33, 8, "LEFT"): ("East End South OS 112", "LAMP2", "RIGHTLOW", "RIGHT"),
+    (43, 8, "RIGHT"): ("Princess South McKeesport", "LAMP3", "LOWLEFT", "LEFT"),
 }
+
 _PANTYPE_PHYS = {"LAMP1": "single", "LAMP2": "double", "LAMP3": "triple"}
 
 
 def _signal_list() -> list[tuple[int, int, str, str, str, str, str]]:
     """(x, y, edge, name, loc, orient, pantype) from SIGNAL_DEFS."""
     out: list[tuple[int, int, str, str, str, str, str]] = []
-    for (x, y, edge), (name, pantype, loc, orient) in sorted(
+    for (x, y, edge), defn in sorted(
         SIGNAL_DEFS.items(), key=lambda kv: (kv[0][1], kv[0][0], kv[0][2])
     ):
+        name, pantype, loc, orient = defn[0], defn[1], defn[2], defn[3]
         out.append((x, y, edge, name, loc, orient, pantype))
     return out
+
+
+def _phys_for(defn: tuple, pantype: str) -> str:
+    """Optional 5th SIGNAL_DEFS field overrides PHYSIGNAL template name."""
+    if len(defn) >= 5 and defn[4]:
+        return str(defn[4])
+    return _PANTYPE_PHYS.get(pantype, "single")
 
 
 def _apply_signals(
@@ -427,6 +461,7 @@ def _apply_signals(
             for old in list(se.findall("SECSIGNAL")):
                 se.remove(old)
 
+    by_key = {k: v for k, v in SIGNAL_DEFS.items()}
     placed: list[str] = []
     for x, y, edge, name, loc, orient, pantype in signals:
         sec = secs.get((x, y))
@@ -443,7 +478,7 @@ def _apply_signals(
         if se.find("SWITCHPOINTS") is not None:
             print(f"SIGNAL SKIP: {name} @({x},{y}) {edge} is SP", file=sys.stderr)
             continue
-        phys_name = _PANTYPE_PHYS.get(pantype, "single")
+        phys_name = _phys_for(by_key[(x, y, edge)], pantype)
         sig = ET.Element("SECSIGNAL")
         sig.text = f"\n          {name}\n          "
         ps = ET.SubElement(
@@ -466,40 +501,12 @@ def _apply_signals(
 
 
 def _sync_sor_signals(sor_path: Path) -> None:
-    """Write SIGNAL_DEFS into SoR so Designer matches the wired panel."""
-    root = ET.parse(sor_path).getroot()
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in root.findall(".//SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
-    for sec in secs.values():
-        for se in sec.findall("SEC_EDGE"):
-            for old in list(se.findall("SECSIGNAL")):
-                se.remove(old)
-    for x, y, edge, name, loc, orient, pantype in _signal_list():
-        sec = secs.get((x, y))
-        if sec is None:
-            continue
-        se = _edge(sec, edge)
-        if se is None:
-            # ensure edge exists for Designer Track Ends
-            se = ET.SubElement(sec, "SEC_EDGE", {"EDGE": edge})
-        for old in list(se.findall("SECSIGNAL")):
-            se.remove(old)
-        sig = ET.Element("SECSIGNAL")
-        sig.text = f"\n          {name}\n          "
-        ps = ET.SubElement(
-            sig,
-            "PANELSIGNAL",
-            {"SIGLOCATION": loc, "SIGORIENT": orient, "SIGPANTYPE": pantype},
-        )
-        ps.tail = "\n          "
-        phys = ET.SubElement(sig, "PHYSIGNAL")
-        phys.text = _PANTYPE_PHYS.get(pantype, "single")
-        phys.tail = "\n        "
-        se.append(sig)
-    ET.ElementTree(root).write(sor_path, encoding="UTF-8", xml_declaration=True)
+    """Deprecated: do not write Digicon edges/signals into SoR.
+
+    Designer crashes on Digicon BLOCK/SP/SECSIGNAL payloads. SoR stays
+    geometry + SEC_NAME only; West_Yard2.xml is Designer; West_Yard.xml is ops.
+    """
+    return
 
 
 def _strip_sp_side_anchors() -> None:
@@ -603,14 +610,129 @@ def _report_gaps(tp: ET.Element) -> None:
             print(f"  y={y} empty x={missing}")
 
 
+def _sync_designer_labels_into_sor(designer: Path, sor: Path) -> int:
+    """Copy SEC_NAME placements from Designer save into SoR (tracks untouched).
+
+    Row-2 Class-I labels (y >= 14) are compose-owned — do not fold into SoR.
+    """
+    d_root = ET.parse(designer).getroot()
+    s_root = ET.parse(sor).getroot()
+    d_tp = d_root.find("TRACKPLAN")
+    s_tp = s_root.find("TRACKPLAN")
+    assert d_tp is not None and s_tp is not None
+
+    labels: dict[tuple[int, int], dict[str, str]] = {}
+    for sec in d_tp.findall("SECTION"):
+        y = int(sec.get("Y"))
+        if y >= 14:
+            continue
+        sn = sec.find("SEC_NAME")
+        if sn is None or not (sn.get("NAME") or "").strip():
+            continue
+        labels[(int(sec.get("X")), y)] = dict(sn.attrib)
+
+    s_secs = {
+        (int(s.get("X")), int(s.get("Y"))): s for s in s_tp.findall("SECTION")
+    }
+    for sec in list(s_tp.findall("SECTION")):
+        xy = (int(sec.get("X")), int(sec.get("Y")))
+        # Class-I row2 is compose-owned — strip from SoR entirely.
+        if xy[1] >= 14:
+            s_tp.remove(sec)
+            s_secs.pop(xy, None)
+            continue
+        for old in list(sec.findall("SEC_NAME")):
+            sec.remove(old)
+        if sec.find("TRACKGROUP") is None and not list(sec):
+            s_tp.remove(sec)
+            s_secs.pop(xy, None)
+
+    for (x, y), attrs in sorted(labels.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+        sec = s_secs.get((x, y))
+        if sec is None:
+            sec = ET.SubElement(s_tp, "SECTION", {"X": str(x), "Y": str(y)})
+            s_secs[(x, y)] = sec
+        ET.SubElement(sec, "SEC_NAME", attrs)
+
+    ET.indent(s_root, space="  ")
+    ET.ElementTree(s_root).write(sor, encoding="UTF-8", xml_declaration=True)
+    return len(labels)
+
+
+def _ensure_cp_yellow_labels(root: ET.Element) -> list[str]:
+    """Yellow FONT_CP for CP titles; enforce ALL-CAPS / LOW|UP placements."""
+    defs = list(root.findall("FONTDEFINITION"))
+    existing = {d.get("FONTKEY") for d in defs}
+    if FONT_CP_KEY not in existing:
+        # Insert after FONT_LABEL if present, else first among font defs.
+        fd = ET.Element(
+            "FONTDEFINITION",
+            {
+                "FONTKEY": FONT_CP_KEY,
+                "FONTNAME": "Control Points",
+                "FONTCOLOR": FONT_CP_YELLOW,
+                "FONTSIZE": "11",
+                "FONTSTYLE": "PLAIN",
+            },
+        )
+        anchor = None
+        for i, child in enumerate(list(root)):
+            if child.tag == "FONTDEFINITION" and child.get("FONTKEY") == "FONT_LABEL":
+                anchor = i
+                break
+        if anchor is not None:
+            root.insert(anchor + 1, fd)
+        else:
+            root.insert(0, fd)
+
+    painted: list[str] = []
+    for sn in root.iter("SEC_NAME"):
+        name = (sn.get("NAME") or "").strip()
+        key = name.casefold()
+        if key == "to princess":
+            key = "princess"
+
+        if key in AREA_LABEL_STYLE:
+            new_name, loc = AREA_LABEL_STYLE[key]
+            sn.set("NAME", new_name)
+            if loc:
+                sn.set("LOC_NAME", loc)
+            painted.append(f"{new_name}@{sn.get('LOC_NAME')}")
+            continue
+
+        if key not in CP_LABEL_STYLE:
+            continue
+        new_name, loc = CP_LABEL_STYLE[key]
+        sn.set("NAME", new_name)
+        if loc:
+            sn.set("LOC_NAME", loc)
+        sn.set("FONT_NAME", FONT_CP_KEY)
+        painted.append(f"{new_name}@{sn.get('LOC_NAME')}/{FONT_CP_KEY}")
+    return painted
+
+
 def wire() -> int:
     if not SOR.exists():
         print(f"MISSING SoR: {SOR}", file=sys.stderr)
         return 2
 
+    # Designer SEC_NAME edits live on West_Yard2 — fold into SoR before copy.
+    if SRC.exists():
+        n_lab = _sync_designer_labels_into_sor(SRC, SOR)
+        print(f"synced {n_lab} SEC_NAME labels Designer → SoR")
+
     # Fresh copy of SoR; we rebuild every SEC_EDGE (ignore any BLK already in SoR).
     shutil.copy2(SOR, SRC)
     root = ET.parse(SRC).getroot()
+    painted = _ensure_cp_yellow_labels(root)
+    if painted:
+        print(f"CP yellow labels: {', '.join(painted)}")
+    # Persist yellow font + CP FONT_NAME back into SoR (Designer-safe).
+    sor_root = ET.parse(SOR).getroot()
+    _ensure_cp_yellow_labels(sor_root)
+    ET.indent(sor_root, space="  ")
+    ET.ElementTree(sor_root).write(SOR, encoding="UTF-8", xml_declaration=True)
+
     tp = root.find("TRACKPLAN")
     assert tp is not None
 
@@ -649,10 +771,8 @@ def wire() -> int:
 
     _strip_sp_side_anchors()
 
-    # Rim stubs only — do NOT auto-pair every named edge (that doubles gaps).
-    for xy in ((2, 3), (2, 4)):
-        if xy in le.GRID:
-            le.an(xy, "LEFT")
+    # No west-rim BLK stubs — anonymous BLK with no neighbor crashes Digicon
+    # SecEdge→AbstractTrackEdge during findBounds. WY1/WY2 are named at cuts.
     xs = [x for x, _ in le.GRID]
     for xy, tracks in le.GRID.items():
         if xy[0] >= max(xs) and "RIGHT" in le.cell_edges(tracks):
@@ -693,8 +813,7 @@ def wire() -> int:
     gen.ensure_mqtt(root)
     gen.wire_occupancy(root, le.load_occupancy())
     # Turnout feedback: SELECTEDREPORT + ROUTECOMMAND read/write MQTT M2T.
-    # Stock CATS only. launch_cats.sh gates turnout retain across load so
-    # RREventManager is not killed by the PtsVitalLogic race.
+    # Stock CATS + cats-pts-nullguard overlay. Launch does not touch MQTT retain.
     to_map = load_turnouts()
     n_to = wire_turnouts(tp, to_map)
     n_sel = sum(1 for _ in root.iter("SELECTEDREPORT"))
@@ -714,6 +833,9 @@ def wire() -> int:
             blk.set("VISIBLE", "true")
     ctc._apply_station_labels(tp)
 
+    n_trains = gen.ensure_hart_trains(root)
+    print(f"trains={n_trains} from {gen.HART_TRAINS_CSV.name}")
+
     print(f"explicit cuts: {len(cut_reasons)}")
     for (a, ae, b, be), reason in cut_reasons.items():
         print(f"  {a} {ae} | {b} {be}  — {reason}")
@@ -721,9 +843,22 @@ def wire() -> int:
     _report_gaps(tp)
 
     ET.indent(root, space="  ")
-    for dest in (SRC, ACTIVE):
+    for dest in (SRC, ACTIVE, MASTER):
         ET.ElementTree(root).write(dest, encoding="UTF-8", xml_declaration=True)
         print(f"wrote {dest.relative_to(ROOT)}")
+
+    # Open-house ABS copy: same geometry/wiring, DISCIPLINE=ABS on every block.
+    abs_xml = dest.read_text(encoding="utf-8").replace(
+        'DISCIPLINE="CTC"', 'DISCIPLINE="ABS"'
+    )
+    MASTER_ABS.write_text(abs_xml, encoding="utf-8")
+    print(f"wrote {MASTER_ABS.relative_to(ROOT)} (ABS)")
+
+    # Keep SoR train/job tables in sync (Designer-safe; no Digicon edges).
+    sor_root = ET.parse(SOR).getroot()
+    gen.ensure_hart_trains(sor_root)
+    ET.indent(sor_root, space="  ")
+    ET.ElementTree(sor_root).write(SOR, encoding="UTF-8", xml_declaration=True)
 
     named = sorted({b.get("NAME") for b in tp.iter("BLOCK") if b.get("NAME")})
     n_occ = sum(

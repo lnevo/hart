@@ -8,7 +8,7 @@ Copy these user names into CATS Designer for the first live plant.
 |---------------------|------------------------------------------|
 | OS 100 (Brick) | `Block 4-2` |
 | OS 101 (Brick) | `Block 4-1` |
-| Block 100-102 | `Block 4-6` |
+| Main West Brick–Plane | `Block 4-6` |
 | Main West | `Block 2-1` |
 | West Main Ext | `Block 1-8` |
 | West Yard 1 | (see `occupancy_bindings.csv`) |
