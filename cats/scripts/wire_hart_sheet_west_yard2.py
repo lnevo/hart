@@ -19,6 +19,7 @@ Rules (cats/docs/CATS_SOURCE_PAINT.md):
 from __future__ import annotations
 
 import csv
+import re
 import shutil
 import subprocess
 import sys
@@ -98,12 +99,17 @@ PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
 # Named rim / approach / tip edges — only cut faces (interior stays plain).
 # Gap style: plain within a block; cut only at OS bounds (no same-name BLK↔BLK).
 ANCHORS: list[tuple[int, int, str, str]] = [
-    # Brick / WY — W-1/W-2 continuous into OS101 (no Digicon gap east of 4,4 / 5,5).
-    # West-rim lamps on OS101; ANON mates west of lamps (CUTS). Tip cut → OS100.
-    (2, 3, "LEFT", "West Yard 1"),  # west-of-lamp stub region (named for R5)
+    # Brick / WY — W-1/W-2 dead-end spurs (Joins unchecked on west faces).
+    # Digicon gaps: spur tip | mid-spur cut | anon lamp mate | OS101 lamp | plant.
+    # Same block name both sides of spur-end cut (like Yard T9 mid-spur).
+    (2, 3, "LEFT", "West Yard 1"),
+    (2, 3, "RIGHT", "West Yard 1"),
+    (3, 3, "LEFT", "West Yard 1"),
     (4, 3, "LEFT", "OS 101 (Brick)"),
     (6, 3, "RIGHT", "OS 101 (Brick)"),
     (2, 4, "LEFT", "West Yard 2"),
+    (2, 4, "RIGHT", "West Yard 2"),
+    (3, 4, "LEFT", "West Yard 2"),
     (4, 4, "LEFT", "OS 101 (Brick)"),
     (7, 3, "LEFT", "OS 100 (Brick)"),
     (7, 3, "BOTTOM", "OS 100 (Brick)"),
@@ -213,7 +219,10 @@ ANCHORS: list[tuple[int, int, str, str]] = [
 ]
 
 CUTS: list[tuple[tuple[int, int], str, tuple[int, int], str, str]] = [
-    # West-rim lamp faces only — W-1/W-2 rail continuous into OS101 plant.
+    # W-1/W-2: Joins unchecked on spur left/west faces (Designer "Joins to adjacent").
+    # Digicon encodes that as BLK↔BLK cuts — spur end | anon buffer | OS101 lamp.
+    ((2, 3), "RIGHT", (3, 3), "LEFT", "W-1 spur end (no west join)"),
+    ((2, 4), "RIGHT", (3, 4), "LEFT", "W-2 spur end (no west join)"),
     ((3, 3), "RIGHT", (4, 3), "LEFT", "W-1 west lamp"),
     ((3, 4), "RIGHT", (4, 4), "LEFT", "W-2 west lamp"),
     ((6, 3), "RIGHT", (7, 3), "LEFT", "OS101 tip | OS100"),
@@ -406,7 +415,6 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (4, 4, "LEFT"): ("Brick West Yard 2", "LAMP1", "LOWLEFT", "RIGHT"),
     # Brick main — JMRI MQTT mast 464 (Brick East Main West); Digicon 2-lamp, lower off for now
     (8, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWLEFT", "LEFT", "aar-single"),
-    # Main / CP — double head
     (43, 5, "RIGHT"): ("Princess North McKees Rocks", "LAMP3", "LOWLEFT", "LEFT"),
     (28, 6, "LEFT"): ("East End West Main West", "LAMP2", "LOWLEFT", "RIGHT"),
     (30, 6, "RIGHT"): ("East End East OS 111a", "LAMP2", "LOWLEFT", "LEFT"),
@@ -418,6 +426,7 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (34, 7, "RIGHT"): ("East End East Lead", "LAMP2", "LOWRIGHT", "LEFT"),
     (37, 7, "LEFT"): ("Princess West OS 113a", "LAMP2", "LOWLEFT", "RIGHT"),
     (31, 7, "BOTTOM"): ("East End South OS 110", "LAMP1", "UPLEFT", "RIGHT"),
+    # Plane normal route (SW102 closed → East Main Ext): JMRI heads IH465/IH466 + cats-virtual-2
     (9, 8, "RIGHT"): ("Plane East East Main Ext", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 8, "LEFT"): ("West Yard West East Main Ext", "LAMP2", "LOWLEFT", "RIGHT"),
     (14, 8, "RIGHT"): ("West Yard East OS 117b", "LAMP2", "LOWLEFT", "LEFT"),
@@ -426,6 +435,85 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
 }
 
 _PANTYPE_PHYS = {"LAMP1": "single", "LAMP2": "double", "LAMP3": "triple"}
+
+# Digicon AppearanceKey → AAR Clear/Approach/Stop for MQTT mast 464 (Brick East Main West).
+# Must stay in every wired sheet — missing template + PHYSIGNAL=aar-single NPEs CATS panel load.
+_AAR_SINGLE_ATTRS = {
+    "TEMPLATEKIND": "Lamp",
+    "TEMPLATEHEADS": "2",
+    "TEMPLATENAME": "aar-single",
+    "R281": "Clear",
+    "R281B": "Clear",
+    "R282": "Clear",
+    "R284": "Clear",
+    "RES_NORM": "Approach",
+    "ADV_NORM": "Clear",
+    "R285": "Approach",
+    "R281C": "Clear",
+    "C412": "Clear",
+    "C413": "Clear",
+    "C414": "Clear",
+    "RES_LIM": "Approach",
+    "ADV_LIM": "Clear",
+    "R281D": "Approach",
+    "R283": "Clear",
+    "C417": "Clear",
+    "R283A": "Clear",
+    "R283B": "Clear",
+    "RES_MED": "Approach",
+    "ADV_MED": "Clear",
+    "R286": "Approach",
+    "R287": "Clear",
+    "C422": "Clear",
+    "C423": "Clear",
+    "C424": "Clear",
+    "RES_SLO": "Approach",
+    "ADV_SLO": "Clear",
+    "R288": "Approach",
+    "R291": "Stop",
+    "R292": "Stop",
+}
+_AAR_SINGLE_ASPECTMAP = (
+    'R281="green|off" R281B="green|off" R282="green|off" R284="green|off" '
+    'RES_NORM="yellow|off" ADV_NORM="green|off" R285="yellow|off" R281C="green|off" '
+    'C412="green|off" C413="green|off" C414="green|off" RES_LIM="yellow|off" '
+    'ADV_LIM="green|off" R281D="yellow|off" R283="green|off" C417="green|off" '
+    'R283A="green|off" R283B="green|off" RES_MED="yellow|off" ADV_MED="green|off" '
+    'R286="yellow|off" R287="green|off" C422="green|off" C423="green|off" '
+    'C424="green|off" RES_SLO="yellow|off" ADV_SLO="green|off" R288="yellow|off" '
+    'R292="red|off" R291="red|off"'
+)
+
+
+def _ensure_aar_single_template(root: ET.Element) -> None:
+    """Insert/refresh aar-single SIGNALTEMPLATE (SoR copies lack it)."""
+    existing = [
+        t
+        for t in root.findall("SIGNALTEMPLATE")
+        if t.get("TEMPLATENAME") == "aar-single"
+    ]
+    for t in existing:
+        root.remove(t)
+    el = ET.Element("SIGNALTEMPLATE", _AAR_SINGLE_ATTRS)
+    am = ET.SubElement(el, "ASPECTMAP")
+    for k, v in re.findall(r'(\w+)="([^"]*)"', _AAR_SINGLE_ASPECTMAP):
+        am.set(k, v)
+    # Place after "single" template if present, else before first SIGNALTEMPLATE
+    singles = [
+        t for t in root.findall("SIGNALTEMPLATE") if t.get("TEMPLATENAME") == "single"
+    ]
+    if singles:
+        idx = list(root).index(singles[0]) + 1
+        root.insert(idx, el)
+    else:
+        # before first TRACKPLAN / after counters
+        for i, child in enumerate(list(root)):
+            if child.tag in ("SIGNALTEMPLATE", "TRACKPLAN", "TRAINSTORE"):
+                root.insert(i, el)
+                break
+        else:
+            root.append(el)
+
 
 
 def _signal_list() -> list[tuple[int, int, str, str, str, str, str]]:
@@ -724,6 +812,7 @@ def wire() -> int:
     # Fresh copy of SoR; we rebuild every SEC_EDGE (ignore any BLK already in SoR).
     shutil.copy2(SOR, SRC)
     root = ET.parse(SRC).getroot()
+    _ensure_aar_single_template(root)
     painted = _ensure_cp_yellow_labels(root)
     if painted:
         print(f"CP yellow labels: {', '.join(painted)}")

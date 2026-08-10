@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="../../XSLT/appearancetable.xsl" type="text/xsl"?>
+<!-- Two-head cats-virtual mast: Digicon R-codes → top|bottom head colors.
+     Color pairs match Digicon SIGNALTEMPLATE "double" ASPECTMAP on HART Master.
+     imagelink required for Layout Editor SignalMastIcon (null → NPE on load). -->
+<appearancetable xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/appearancetable.xsd">
+  <aspecttable>CATS Virtual Signals</aspecttable>
+  <name>cats-virtual-2</name>
+  <reference>CATS Digicon double-lamp PHYSIGNAL aspect keys</reference>
+  <description>Two searchlight heads driven by Digicon R/C/RES/ADV indication names</description>
+  <appearances>
+    <!-- Clear family: green over red -->
+    <appearance><aspectname>R281</aspectname><show>green</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-281.gif</imagelink></appearance>
+    <appearance><aspectname>R281B</aspectname><show>green</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-281.gif</imagelink></appearance>
+    <appearance><aspectname>R281C</aspectname><show>green</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-281.gif</imagelink></appearance>
+    <appearance><aspectname>C412</aspectname><show>green</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-281.gif</imagelink></appearance>
+    <!-- Approach family: yellow over red -->
+    <appearance><aspectname>R285</aspectname><show>yellow</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink></appearance>
+    <appearance><aspectname>R281D</aspectname><show>yellow</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink></appearance>
+    <appearance><aspectname>RES_NORM</aspectname><show>yellow</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink></appearance>
+    <appearance><aspectname>RES_LIM</aspectname><show>yellow</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink></appearance>
+    <appearance><aspectname>RES_MED</aspectname><show>yellow</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink></appearance>
+    <appearance><aspectname>RES_SLO</aspectname><show>yellow</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink></appearance>
+    <!-- Advance / flashing yellow pair -->
+    <appearance><aspectname>R282</aspectname><show>yellow</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-282A.gif</imagelink></appearance>
+    <appearance><aspectname>R284</aspectname><show>yellow</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-282A.gif</imagelink></appearance>
+    <appearance><aspectname>C413</aspectname><show>yellow</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-282A.gif</imagelink></appearance>
+    <appearance><aspectname>C414</aspectname><show>yellow</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-282A.gif</imagelink></appearance>
+    <appearance><aspectname>ADV_NORM</aspectname><show>yellow</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-282A.gif</imagelink></appearance>
+    <appearance><aspectname>ADV_LIM</aspectname><show>yellow</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-282A.gif</imagelink></appearance>
+    <!-- Medium clear: red over green -->
+    <appearance><aspectname>R283</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>R283A</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>R283B</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>R287</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>C417</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>C422</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>C423</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>C424</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>ADV_MED</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <appearance><aspectname>ADV_SLO</aspectname><show>red</show><show>green</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink></appearance>
+    <!-- Restricting-ish: red over yellow -->
+    <appearance><aspectname>R286</aspectname><show>red</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-290.gif</imagelink></appearance>
+    <appearance><aspectname>R288</aspectname><show>red</show><show>yellow</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-290.gif</imagelink></appearance>
+    <!-- Stop -->
+    <appearance><aspectname>R291</aspectname><show>red</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink></appearance>
+    <appearance><aspectname>R292</aspectname><show>red</show><show>red</show>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink></appearance>
+  </appearances>
+  <specificappearances>
+    <danger><aspect>R292</aspect></danger>
+    <!-- SignalMastIcon.loadIcons always requests "$held" / "$dark" image links. -->
+    <held>
+      <aspect>R292</aspect>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink>
+    </held>
+    <dark>
+      <aspect>R292</aspect>
+      <imagelink type="default">../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink>
+    </dark>
+    <permissive><aspect>R285</aspect></permissive>
+  </specificappearances>
+  <aspectMappings/>
+</appearancetable>

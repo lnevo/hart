@@ -860,6 +860,14 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH410</systemName>
     </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH465</systemName>
+      <userName>Plane East East Main Ext Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH466</systemName>
+      <userName>Plane East East Main Ext Bottom</userName>
+    </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <mqttsignalmast class="jmri.jmrix.mqtt.configurexml.MqttSignalMastXml">
@@ -870,6 +878,12 @@
         <disabledAspect>Restricting</disabledAspect>
       </disabledAspects>
     </mqttsignalmast>
+    <!-- Plane → Brick mainline (2 virtual heads); MqttSignalHead script publishes colors -->
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH465)(IH466)</systemName>
+      <userName>Plane East East Main Ext</userName>
+      <unlit allowed="no" />
+    </signalmast>
   </signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
@@ -2010,7 +2024,7 @@
       <reference />
       <localVariable />
       <formula />
-      <ignoreWindowNotFound>no</ignoreWindowNotFound>
+      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
       <hideOrShow>
         <addressing>Direct</addressing>
         <enum>DoNothing</enum>
@@ -2040,7 +2054,7 @@
       <reference />
       <localVariable />
       <formula />
-      <ignoreWindowNotFound>no</ignoreWindowNotFound>
+      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
       <hideOrShow>
         <addressing>Direct</addressing>
         <enum>DoNothing</enum>
@@ -2070,7 +2084,7 @@
       <reference />
       <localVariable />
       <formula />
-      <ignoreWindowNotFound>no</ignoreWindowNotFound>
+      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
       <hideOrShow>
         <addressing>Direct</addressing>
         <enum>DoNothing</enum>
@@ -2100,7 +2114,7 @@
       <reference />
       <localVariable />
       <formula />
-      <ignoreWindowNotFound>no</ignoreWindowNotFound>
+      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
       <hideOrShow>
         <addressing>Direct</addressing>
         <enum>DoNothing</enum>
@@ -2175,7 +2189,7 @@
     <positionablelabel x="1555" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="114" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1577" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="115" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <signalmasticon signalmast="Brick East Main West" x="325" y="396" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <positionablelabel x="353" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Brick" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+<positionablelabel x="353" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Brick" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="502" y="380" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Barn" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="292" y="315" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Plane" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1308" y="272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East End" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />

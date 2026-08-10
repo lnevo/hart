@@ -20,18 +20,16 @@
   <COUNTER NAME="LNGOVERNOR" VALUE="1" />
   <COUNTER NAME="DEBOUNCE" VALUE="0" />
   <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="1" TEMPLATENAME="single">
-    <ASPECTMAP R281="green" R281B="green" R282="green" R284="green" RES_NORM="yellow" ADV_NORM="green" R285="yellow" R281C="green" C412="green" C413="green" C414="green" RES_LIM="yellow" ADV_LIM="green" R281D="yellow" R283="green" C417="green" R283A="green" R283B="green" RES_MED="yellow" ADV_MED="green" R286="yellow" R287="green" C422="green" C423="green" C424="green" RES_SLO="yellow" ADV_SLO="green" R288="yellow" R292="red" R291="red" />
+    <ASPECTMAP R281="green" R281B="green" R282="green" R284="green" RES_NORM="red" ADV_NORM="green" R285="yellow" R281C="green" C412="green" C413="green" C414="green" RES_LIM="red" ADV_LIM="green" R281D="yellow" R283="green" C417="green" R283A="green" R283B="green" RES_MED="red" ADV_MED="green" R286="yellow" R287="green" C422="green" C423="green" C424="green" RES_SLO="red" ADV_SLO="green" R288="yellow" R292="red" R291="red" />
   </SIGNALTEMPLATE>
-  <!-- AAR MQTT mast bridge: AppearanceKey → Clear/Approach/Stop; Digicon 2-lamp (lower off until 2nd head exists in JMRI). -->
-  <!-- Restricting→Approach so empty spur routes (no next signal) show yellow, not Stop. -->
   <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="aar-single" R281="Clear" R281B="Clear" R282="Clear" R284="Clear" RES_NORM="Approach" ADV_NORM="Clear" R285="Approach" R281C="Clear" C412="Clear" C413="Clear" C414="Clear" RES_LIM="Approach" ADV_LIM="Clear" R281D="Approach" R283="Clear" C417="Clear" R283A="Clear" R283B="Clear" RES_MED="Approach" ADV_MED="Clear" R286="Approach" R287="Clear" C422="Clear" C423="Clear" C424="Clear" RES_SLO="Approach" ADV_SLO="Clear" R288="Approach" R291="Stop" R292="Stop">
     <ASPECTMAP R281="green|off" R281B="green|off" R282="green|off" R284="green|off" RES_NORM="yellow|off" ADV_NORM="green|off" R285="yellow|off" R281C="green|off" C412="green|off" C413="green|off" C414="green|off" RES_LIM="yellow|off" ADV_LIM="green|off" R281D="yellow|off" R283="green|off" C417="green|off" R283A="green|off" R283B="green|off" RES_MED="yellow|off" ADV_MED="green|off" R286="yellow|off" R287="green|off" C422="green|off" C423="green|off" C424="green|off" RES_SLO="yellow|off" ADV_SLO="green|off" R288="yellow|off" R292="red|off" R291="red|off" />
   </SIGNALTEMPLATE>
   <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="double">
-    <ASPECTMAP R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" RES_NORM="yellow|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="yellow|red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|green" R283B="red|green" RES_MED="yellow|red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="yellow|red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" />
+    <ASPECTMAP R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" RES_NORM="red|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="red|red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|green" R283B="red|green" RES_MED="red|red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="red|red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" />
   </SIGNALTEMPLATE>
   <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="3" TEMPLATENAME="triple">
-    <ASPECTMAP R281="green|red|red" R281B="green|red|red" R282="yellow|yellow|red" R284="yellow|yellow|red" RES_NORM="yellow|red|red" ADV_NORM="yellow|yellow|red" R285="yellow|red|red" R281C="green|red|red" C412="green|red|red" C413="yellow|yellow|red" C414="yellow|yellow|red" RES_LIM="yellow|red|red" ADV_LIM="yellow|yellow|red" R281D="yellow|red|red" R283="red|green|red" C417="red|green|red" R283A="red|green|red" R283B="red|green|red" RES_MED="yellow|red|red" ADV_MED="red|green|red" R286="red|yellow|red" R287="red|red|green" C422="red|red|green" C423="red|red|green" C424="red|red|green" RES_SLO="yellow|red|red" ADV_SLO="red|red|green" R288="red|red|yellow" R292="red|red|red" R291="red|red|red" />
+    <ASPECTMAP R281="green|red|red" R281B="green|red|red" R282="yellow|yellow|red" R284="yellow|yellow|red" RES_NORM="red|red|red" ADV_NORM="yellow|yellow|red" R285="yellow|red|red" R281C="green|red|red" C412="green|red|red" C413="yellow|yellow|red" C414="yellow|yellow|red" RES_LIM="red|red|red" ADV_LIM="yellow|yellow|red" R281D="yellow|red|red" R283="red|green|red" C417="red|green|red" R283A="red|green|red" R283B="red|green|red" RES_MED="red|red|red" ADV_MED="red|green|red" R286="red|yellow|red" R287="red|red|green" C422="red|red|green" C423="red|red|green" C424="red|red|green" RES_SLO="red|red|red" ADV_SLO="red|red|green" R288="red|red|yellow" R292="red|red|red" R291="red|red|red" />
   </SIGNALTEMPLATE>
   <TRAINSTORE>
     <TRAINEDIT>
@@ -88,16 +86,10 @@
       <EDITRECORD FIELD_KEY="TRAIN_ID" FIELD_VISIBLE="true" FIELDLABEL="Train" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="79" ALIGNMENT="" FIELD_DEFAULT="" FIELD_CLASS="TrainList" />
     </CREWEDIT>
     <CREWDATA>
-      <DATARECORD FONT="" CREW_NAME="Jim" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Mark" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Nico" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Heath" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Dan" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Larry" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Lou" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Joe" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="Keith" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
-      <DATARECORD FONT="" CREW_NAME="David" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
+      <DATARECORD FONT="" CREW_NAME="John" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
+      <DATARECORD FONT="" CREW_NAME="Paul" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
+      <DATARECORD FONT="" CREW_NAME="George" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
+      <DATARECORD FONT="" CREW_NAME="Ringo" TIME_ON="" TIME_LEFT="" EXPIRES="" TRAIN_ID="" />
     </CREWDATA>
   </CREWSTORE>
   <COLORDEFINITION COLORKEY="OCCUPIED" COLORNAME="Block Occupied" COLORTAG="-65536" />
@@ -118,8 +110,7 @@
   <COLORDEFINITION COLORKEY="DEPOT" COLORNAME="Depot" COLORTAG="-16711681" />
   <COLORDEFINITION COLORKEY="NO_ROUTE" COLORNAME="Idle Aspect" COLORTAG="-1" />
   <COLORDEFINITION COLORKEY="STOP" COLORNAME="Stop Aspect" COLORTAG="-65536" />
-  <!-- Restricting was same red as Stop (-65536); Digicon panel paints IndicationNames[][2]=RESTRICTING for RES_* rules, so stub/OS routes looked stuck at Stop. Match Approach yellow. -->
-  <COLORDEFINITION COLORKEY="RESTRICTING" COLORNAME="Restricting Aspect" COLORTAG="-256" />
+  <COLORDEFINITION COLORKEY="RESTRICTING" COLORNAME="Restricting Aspect" COLORTAG="-65536" />
   <COLORDEFINITION COLORKEY="CALLON" COLORNAME="Call-on Aspect" COLORTAG="-65536" />
   <COLORDEFINITION COLORKEY="PENDING" COLORNAME="In transition" COLORTAG="-16711681" />
   <COLORDEFINITION COLORKEY="APPROACH" COLORNAME="Approach Aspect" COLORTAG="-256" />
@@ -139,7 +130,6 @@
   <TRAINSTATLABEL />
   <COMPRESSIONTAG />
   <OPERATIONS CONNECT="true" />
-  <TEEMAST />
   <JMRINAME JMRIPREFIX="IS" XMLTYPE="Sensor">jmri.managers.InternalSensorManager</JMRINAME>
   <JMRINAME JMRIPREFIX="IT" XMLTYPE="Turnout">jmri.managers.InternalTurnoutManager</JMRINAME>
   <JMRINAME JMRIPREFIX="M2S" XMLTYPE="Sensor">jmri.jmrix.mqtt.MqttSensorManager</JMRINAME>
@@ -159,14 +149,32 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="West Yard 1" STATION="W-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="3" Y="3">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="W-1" FONT_NAME="FONT_LABEL" />
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="West Yard 1" STATION="W-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
       </SEC_EDGE>
@@ -390,14 +398,32 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="West Yard 2" STATION="W-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="3" Y="4">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="W-2" FONT_NAME="FONT_LABEL" />
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="West Yard 2" STATION="W-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
       </SEC_EDGE>
@@ -435,7 +461,7 @@
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="Main West Brick–Plane" STATION="100–102" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Main West Brick–Plane" STATION="Main West Brick–Plane" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="405" JMRIPREFIX="M2S" USER_NAME="Block 4-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -451,12 +477,12 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T11" STATION="Yard T11" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Yard T11" STATION="ET-1" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -476,12 +502,12 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Yard T11" STATION="Yard T11" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Yard T11" STATION="ET-1" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -535,7 +561,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T10" STATION="Yard T10" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Yard T10" STATION="ET-2" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="Block 13-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -553,7 +579,7 @@
       <SEC_NAME LOC_NAME="LOWCENT" NAME="Yard T10" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Yard T10" STATION="Yard T10" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Yard T10" STATION="ET-2" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="Block 13-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -671,7 +697,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="Main West Brick–Plane" STATION="100–102" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Main West Brick–Plane" STATION="Main West Brick–Plane" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="405" JMRIPREFIX="M2S" USER_NAME="Block 4-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -686,12 +712,12 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T9" STATION="Yard T9" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Yard T9" STATION="ET-3" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -704,12 +730,12 @@
       <SEC_NAME LOC_NAME="LOWCENT" NAME="Yard T9" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Yard T9" STATION="Yard T9" DISCIPLINE="ABS" VISIBLE="true">
+        <BLOCK NAME="Yard T9" STATION="ET-3" DISCIPLINE="ABS" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>

@@ -82,3 +82,22 @@ Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code 
 - `LAMP2` + `aar-single` (top follows Clear/Approach/Stop; bottom `off` until a 2-head JMRI mast exists)  
 - CATS owns aspects (no Hold only)  
 - **Stub routes:** Digicon Restricting (no next signal) maps to **Approach** on `aar-single` for MQTT; Digicon panel color uses `COLORDEFINITION RESTRICTING` (yellow, same as Approach) — stock Designer had Restricting=`-65536` identical to Stop, so every RES_* OS lamp looked stuck red
+
+**CTC opposing faces (not a bug):** lining SW100 west only opens the frog. Digicon still grants **one direction of authority**. Eastbound green on `Brick West Yard 1/2` with westbound red on `Brick East Main West` means an eastbound route is active (or was); the opposing face is held by `CONFLICTINGSIGNALLOCK`. Empty track does not clear both ways. Cancel the eastbound route, then request from **Brick East Main West** for westbound (into W-Y stubs expect Restricting→Approach, not Clear).
+
+**W-1 / W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_sheet_west_yard2.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
+
+### Plane East East Main Ext (2 virtual heads → MQTT) — POC
+
+Lower Plane face on the **normal route** (SW102 closed → East Main Ext) @ `(9,8) RIGHT`.
+
+- Digicon name / JMRI userName: **`Plane East East Main Ext`**
+- JMRI: Virtual heads `IH465` / `IH466` + SignalHeadSignalMast  
+  `IF$shsm:cats-masts:cats-virtual-2(IH465)(IH466)`
+- Head systemNames use **LCOS packed addresses** (same family as mast `464`):
+  `displayNode*100 + UID` per `LCOS_ESP32_MQTT_Client/mqtt_serial.h` / Public API UID Map
+  (Signal 0..15 = UID 32..47). Strip `signalhead/` + optional `IH` → `465` / `466`.
+- Digicon `PHYSIGNAL` = stock `double` (native R-codes; requires `cats-masts` signal system installed)
+- Publish head colors: `jmri/scripts/mqtt_signalhead_publisher.py` → `track/signalhead/IH465|IH466`
+- POC pair: **one** MQTT Signal Mast (`464` / Brick East Main West) + **one** head-based mast (this)
+- Do not add a second Plane mast (Plane North Brick was removed)
