@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-09 — **West Yard sheet** `cats/panels/sheets/HART_sheet_West_Yard2.xml`: East Lead widened (+2), 26 NX panel lamps (restored CP approaches + SY/EE ladder singles), verify=0, CATS loads. Rebuild: `python3 cats/scripts/wire_hart_sheet_west_yard2.py`
+Updated: 2026-08-11 — **Ops Digicon Masters** at `cats/panels/HART_Master*.xml` (CTC / ABS / ABS-RO). System overview: [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).
 
 ## Repo / remote
 
@@ -13,12 +13,14 @@ Updated: 2026-08-09 — **West Yard sheet** `cats/panels/sheets/HART_sheet_West_
 
 | Deliverable | Role |
 |-------------|------|
-| **`cats/panels/HART_ctc.xml`** | **Operational Digicon** — CTC interlocking schematic (loadable) |
-| `cats/panels/HART_le.xml` | Earlier LE-packed experiment (superseded for ops) |
-| `cats/panels/HART.xml` | Designer Gate 1 experiment only |
-| `render_ctc_panel.py` PNG | **Review art only** — same topology intent as `HART_ctc`, but **cannot** open in CATS |
+| **`cats/panels/HART_Master.xml`** | **Ops Digicon CTC** — Neville Island Master |
+| **`cats/panels/HART_Master_ABS.xml`** | **Ops Digicon ABS** — open house |
+| **`cats/panels/HART_Master_ABS_hold.xml`** | **ABS-RO** — signals HOLD_ONLY; turnouts on |
+| `cats/panels/sheets/HART_sheet_West_Yard2.xml` | Sheet WIP / source geometry |
+| `cats/panels/HART_ctc.xml` | Earlier CTC schematic experiment |
+| `render_ctc_panel.py` PNG | **Review art only** — cannot open in CATS |
 
-See [`cats/docs/DIGICON_VS_CTC_PNG.md`](../cats/docs/DIGICON_VS_CTC_PNG.md).
+See [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md) and [`cats/docs/DIGICON_VS_CTC_PNG.md`](../cats/docs/DIGICON_VS_CTC_PNG.md).
 
 ## Collaboration (Mac ↔ Cloud)
 

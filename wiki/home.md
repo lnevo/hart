@@ -11,4 +11,6 @@ Chat is a scratchpad. Decisions that count live here.
 
 **Active projects:** [`projects/hart-panel.md`](projects/hart-panel.md) · [`projects/cats-integration.md`](projects/cats-integration.md)  
 **Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`  
-**CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style)
+**CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style)  
+**Digicon system overview (Masters + LCOS signals):** [`../cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md)  
+**Live status:** [`STATUS.md`](STATUS.md)
