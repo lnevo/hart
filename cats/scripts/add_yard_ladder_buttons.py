@@ -15,7 +15,7 @@ Buttons sit in the same SECTION row as each S-n label (X±1). Digicon BUTTON
 has no SIGLOCATION — with FIT_TO_GRID=false the icon paints from the cell
 top-left, so the lamp is baked into a canvas that must fit *inside* one grid
 cell (taller canvases spill into the next row: S-5 appeared on Main East and
-ate clicks). Idle=red, active=green.
+ate clicks). Idle=dark, active=green.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_PANEL = ROOT / "cats/panels/sheets/HART_Master_ABS.xml"
+DEFAULT_PANEL = ROOT / "cats/panels/HART_Master_ABS.xml"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 NEW_TABLES = ROOT / "tables/new_tables.xml"
 # Pi live load is preference:tables.xml → /home/pi/JMRI_UserFiles/tables.xml
@@ -185,8 +185,8 @@ def _build_lamp_low_icons() -> None:
         d.ellipse((2, 2, 5, 5), fill=(255, 255, 255, 90))
         return im
 
-    idle = lamp((200, 24, 24, 255), (255, 120, 120, 255))  # red = idle
-    active = lamp((235, 235, 235, 255), (255, 255, 255, 255))  # white = route active
+    idle = lamp((36, 36, 40, 255), (70, 70, 78, 255))  # dark = idle
+    active = lamp((28, 170, 62, 255), (90, 230, 120, 255))  # green = route active
 
     def place(src: Image.Image, side: str) -> Image.Image:
         canvas = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
@@ -510,7 +510,7 @@ def main() -> None:
         type=Path,
         default=[
             DEFAULT_PANEL,
-            ROOT / "cats/panels/sheets/HART_Master.xml",
+            ROOT / "cats/panels/HART_Master.xml",
         ],
     )
     ap.add_argument("--skip-tables", action="store_true")

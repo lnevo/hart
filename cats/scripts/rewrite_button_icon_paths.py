@@ -5,7 +5,7 @@ Mac source panels store /Users/lnevo/hart/... paths. Pi/Windows need local roots
 or buttons are invisible (Digicon loads via java.io.File absolute path).
 
   python3 cats/scripts/rewrite_button_icon_paths.py \\
-    --panel cats/panels/sheets/HART_Master_ABS.xml \\
+    --panel cats/panels/HART_Master_ABS.xml \\
     --hart-root /home/pi/hart \\
     --out /tmp/HART_Master_ABS.xml
 """

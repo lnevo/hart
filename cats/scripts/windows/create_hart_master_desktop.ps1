@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop'
-# Desktop shortcuts only: CATS / CATS ABS / CATS ABS-RO
+# Desktop shortcuts only: CATS CTC / CATS ABS / CATS ABS-RO
 # Panels: HART_Master.xml (CTC), HART_Master_ABS.xml, HART_Master_ABS_hold.xml
 # Prefer Dropbox pack so sync updates apply immediately.
 $Work = $PSScriptRoot
 $Desktop = [Environment]::GetFolderPath('Desktop')
-$PanelDir = Join-Path $env:USERPROFILE 'hart\cats\panels\sheets'
+$PanelDir = Join-Path $env:USERPROFILE 'hart\cats\panels'
 $Hart = Join-Path $env:USERPROFILE 'hart'
 New-Item -ItemType Directory -Force -Path $PanelDir | Out-Null
 New-Item -ItemType Directory -Force -Path $Hart | Out-Null
@@ -62,8 +62,8 @@ foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_
   }
 }
 
-# Remove legacy HART Master* shortcuts if present
-foreach ($legacy in @('HART Master', 'HART Master ABS', 'HART Master ABS-RO')) {
+# Remove legacy HART Master* / bare CATS shortcuts if present
+foreach ($legacy in @('HART Master', 'HART Master ABS', 'HART Master ABS-RO', 'CATS')) {
   $legacyLnk = Join-Path $Desktop ($legacy + '.lnk')
   if (Test-Path $legacyLnk) {
     Remove-Item $legacyLnk -Force
@@ -76,7 +76,7 @@ $Wsh = New-Object -ComObject WScript.Shell
 
 $shortcuts = @(
   @{
-    Name = 'CATS'
+    Name = 'CATS CTC'
     Bat  = 'launch_hart_master.bat'
     Desc = 'CATS Digicon - CTC (HART_Master.xml)'
   },
@@ -108,4 +108,4 @@ foreach ($s in $shortcuts) {
   Write-Host ("Desktop: {0} -> {1}" -f $lnkPath, $batDropbox)
 }
 
-Write-Host 'DONE - Desktop has CATS, CATS ABS, CATS ABS-RO only'
+Write-Host 'DONE - Desktop has CATS CTC, CATS ABS, CATS ABS-RO only'

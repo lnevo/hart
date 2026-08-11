@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install /Applications icons:
-#   CATS          → HART_Master.xml       (CTC)
+#   CATS CTC      → HART_Master.xml       (CTC)
 #   CATS ABS      → HART_Master_ABS.xml   (open house)
 #   CATS ABS-RO   → HART_Master_ABS_hold.xml (listen / spectator)
 set -euo pipefail
@@ -15,7 +15,7 @@ if [[ ! -f "$ICNS" ]]; then
 fi
 
 # Ensure hold panel exists from current ABS
-if [[ ! -f "$ROOT/cats/panels/sheets/HART_Master_ABS_hold.xml" ]]; then
+if [[ ! -f "$ROOT/cats/panels/HART_Master_ABS_hold.xml" ]]; then
   python3 "$ROOT/cats/scripts/build_hart_master_abs_hold.py"
 fi
 
@@ -28,7 +28,7 @@ make_app() {
   cp "$ICNS" "$app/Contents/Resources/AppIcon.icns"
   cat > "$app/Contents/MacOS/CatsLaunch" <<EOF
 #!/usr/bin/env bash
-exec "$ROOT/cats/scripts/launch_cats.sh" "$ROOT/cats/panels/sheets/${panel}"
+exec "$ROOT/cats/scripts/launch_cats.sh" "$ROOT/cats/panels/${panel}"
 EOF
   chmod +x "$app/Contents/MacOS/CatsLaunch"
   local id="${name// /-}"
@@ -66,12 +66,14 @@ PLIST
   echo "Applications: $app -> $panel"
 }
 
-make_app "CATS" "HART_Master.xml"
+make_app "CATS CTC" "HART_Master.xml"
 make_app "CATS ABS" "HART_Master_ABS.xml"
 make_app "CATS ABS-RO" "HART_Master_ABS_hold.xml"
 
-# Remove prior Desktop copies / HART_Master .command launchers if present
-rm -rf "${DESKTOP}/CATS.app" "${DESKTOP}/CATS ABS.app" "${DESKTOP}/CATS ABS-RO.app"
+# Remove prior Desktop copies / old CATS.app / HART_Master .command launchers if present
+rm -rf "${APPS}/CATS.app" \
+  "${DESKTOP}/CATS.app" "${DESKTOP}/CATS CTC.app" \
+  "${DESKTOP}/CATS ABS.app" "${DESKTOP}/CATS ABS-RO.app"
 rm -f "${DESKTOP}/HART_Master.command" "${DESKTOP}/HART_Master_ABS.command"
 /usr/bin/osascript -e 'tell application "Finder" to update desktop' 2>/dev/null || true
 echo "DONE"

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=CATS
+Name=CATS CTC
 Comment=CATS Digicon HART Master (CTC)
 Exec=/home/pi/hart/launch_hart_master_desktop.sh
 Icon=/home/pi/JMRI/crandic.gif

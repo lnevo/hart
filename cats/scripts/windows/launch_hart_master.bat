@@ -3,7 +3,7 @@ setlocal EnableExtensions
 REM CATS Digicon - HART Master (CTC)
 REM launcher_version=20260810_1210
 
-set PANEL=%USERPROFILE%\hart\cats\panels\sheets\HART_Master.xml
+set PANEL=%USERPROFILE%\hart\cats\panels\HART_Master.xml
 if not exist "%PANEL%" set PANEL=%~dp0HART_Master.xml
 
 REM Program Files JMRI first (not %%USERPROFILE%%\JMRI prefs folder)

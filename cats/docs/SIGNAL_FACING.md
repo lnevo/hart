@@ -106,7 +106,11 @@ All West Yard Digicon lamps except **`Brick East Main West`** (`aar-single` / MQ
 - Ports + topics: `cats/data/signal_wiring.csv` (also updates LCOS inventory DNOU8)
 - Mast index: `cats/data/signal_head_plan.csv` / enriched `signal_mast_plan.csv`
 - Rebuild: `python3 cats/scripts/build_hart_signal_heads.py`
-- Publish: `jmri/scripts/mqtt_signalhead_publisher.py` → `track/signalhead/IH###`
+- Signal heads: `jmri/scripts/mqtt_signalhead_publisher.py` paints Virtual heads
+  from `track/signalhead/IH###` retain at boot (no publish on that pass), then
+  listens for Appearance changes and **publishes** JMRI → MQTT so CATS / CATS ABS
+  Digicon aspects reach LCOS. ABS-RO (`HOLD_ONLY`) still only Held/Unheld; field
+  retain is the aspect SoR for those lamps.
 - Do **not** put cats-virtual LE `signalmasticon`s on Windows tables (NPE); Digicon binds by userName
 
 **Plane East East Main Ext** @ `(9,8) RIGHT` is now `IH432`/`IH433` (was POC `IH465`/`IH466`).

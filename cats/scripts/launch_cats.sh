@@ -32,7 +32,7 @@ JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 # Gate 1: ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 # Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=app|terminal.
 # (PanelPro.app handoff changed JMRI behavior — do not use as default.)
-PANEL="${1:-$ROOT/cats/panels/sheets/HART_Master.xml}"
+PANEL="${1:-$ROOT/cats/panels/HART_Master.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).

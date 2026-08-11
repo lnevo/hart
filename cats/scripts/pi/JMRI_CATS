@@ -19,7 +19,7 @@ if [[ -z "${DISPLAY:-}" ]]; then
   export DISPLAY="${DISPLAY:-:1}"
 fi
 
-PANEL="${1:-/home/pi/hart/cats/panels/sheets/HART_Master.xml}"
+PANEL="${1:-/home/pi/hart/cats/panels/HART_Master.xml}"
 PROFILE="${JMRI_PROFILE:-TCS_MQTT.3f32a166}"
 
 exec ./cats.csh --profile="$PROFILE" "$PANEL"

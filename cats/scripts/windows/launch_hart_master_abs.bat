@@ -3,7 +3,7 @@ setlocal EnableExtensions
 REM CATS Digicon - HART Master ABS (open house)
 REM launcher_version=20260810_1210
 
-set PANEL=%USERPROFILE%\hart\cats\panels\sheets\HART_Master_ABS.xml
+set PANEL=%USERPROFILE%\hart\cats\panels\HART_Master_ABS.xml
 if not exist "%PANEL%" set PANEL=%~dp0HART_Master_ABS.xml
 
 set JMRI_HOME=

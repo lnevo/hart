@@ -20,8 +20,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SRC = ROOT / "cats/panels/sheets/HART_Master_ABS.xml"
-DST = ROOT / "cats/panels/sheets/HART_Master_ABS_hold.xml"
+SRC = ROOT / "cats/panels/HART_Master_ABS.xml"
+DST = ROOT / "cats/panels/HART_Master_ABS_hold.xml"
 
 
 def transform(root: ET.Element) -> None:
@@ -50,6 +50,18 @@ def main() -> None:
     args.dst.parent.mkdir(parents=True, exist_ok=True)
     tree.write(args.dst, encoding="UTF-8", xml_declaration=True)
     print(f"Wrote {args.dst}")
+
+    # Re-stamp publication header (ABS-RO mode) after HOLD_ONLY transform.
+    if args.dst.resolve() == DST.resolve():
+        import importlib.util
+
+        polish_path = Path(__file__).with_name("polish_hart_master_header.py")
+        spec = importlib.util.spec_from_file_location("polish_hart_master_header", polish_path)
+        mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        meta = mod.PANELS["abs_hold"]
+        mod.polish(args.dst, meta["pub_id"], meta["mode"], rev="A", effective=None)
 
 
 if __name__ == "__main__":

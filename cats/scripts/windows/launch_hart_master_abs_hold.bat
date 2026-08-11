@@ -3,7 +3,7 @@ setlocal EnableExtensions
 REM CATS Digicon - HART Master ABS-RO (hold / listen-only)
 REM launcher_version=20260810_2208
 
-set PANEL=%USERPROFILE%\hart\cats\panels\sheets\HART_Master_ABS_hold.xml
+set PANEL=%USERPROFILE%\hart\cats\panels\HART_Master_ABS_hold.xml
 if not exist "%PANEL%" set PANEL=%~dp0HART_Master_ABS_hold.xml
 
 set JMRI_HOME=

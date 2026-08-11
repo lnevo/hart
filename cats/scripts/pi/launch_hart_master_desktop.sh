@@ -7,6 +7,6 @@ export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
 export WIRINGPI_GPIOMEM=1
 export CATS_FORCE_LAUNCH=1
 mkdir -p /home/pi/hart/logs
-nohup /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/sheets/HART_Master.xml \
+nohup /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_Master.xml \
   >/home/pi/hart/logs/cats_master_nohup.log 2>&1 &
 exit 0

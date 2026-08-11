@@ -3,4 +3,4 @@
 # Usage: ./cats/scripts/launch_hart_master_abs.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-exec "$ROOT/cats/scripts/launch_cats.sh" "$ROOT/cats/panels/sheets/HART_Master_ABS.xml"
+exec "$ROOT/cats/scripts/launch_cats.sh" "$ROOT/cats/panels/HART_Master_ABS.xml"

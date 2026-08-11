@@ -4,7 +4,7 @@
 #   python3 cats/scripts/build_hart_master_abs_hold.py
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-HOLD="$ROOT/cats/panels/sheets/HART_Master_ABS_hold.xml"
+HOLD="$ROOT/cats/panels/HART_Master_ABS_hold.xml"
 if [[ ! -f "$HOLD" ]]; then
   python3 "$ROOT/cats/scripts/build_hart_master_abs_hold.py"
 fi

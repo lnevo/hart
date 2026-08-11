@@ -3,7 +3,7 @@
 # Installed to /home/pi/hart/launch_cats.sh (default panel = HART_Master.xml).
 set -euo pipefail
 JMRI_HOME="${JMRI_HOME:-/home/pi/JMRI}"
-PANEL="${1:-/home/pi/hart/cats/panels/sheets/HART_Master.xml}"
+PANEL="${1:-/home/pi/hart/cats/panels/HART_Master.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-TCS_MQTT.3f32a166}"
 LOG="${CATS_LAUNCH_LOG:-/home/pi/hart/logs/cats_launch.log}"
 

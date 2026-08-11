@@ -15,7 +15,7 @@ if [[ ! -f "$ICNS" ]]; then
 fi
 
 # Ensure hold panel exists from current ABS
-if [[ ! -f "$ROOT/cats/panels/sheets/HART_Master_ABS_hold.xml" ]]; then
+if [[ ! -f "$ROOT/cats/panels/HART_Master_ABS_hold.xml" ]]; then
   python3 "$ROOT/cats/scripts/build_hart_master_abs_hold.py"
 fi
 

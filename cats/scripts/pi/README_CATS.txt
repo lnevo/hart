@@ -5,23 +5,23 @@ Installed:
   /home/pi/JMRI/cats.jar          CATS 3.2 + MQTT load-safety overlay
   /home/pi/JMRI/designer.jar
   /home/pi/JMRI/cats.csh
-  /home/pi/hart/cats/panels/sheets/HART_Master.xml            <-- primary CTC Digicon
-  /home/pi/hart/cats/panels/sheets/HART_Master_ABS.xml        <-- ABS / open house
-  /home/pi/hart/cats/panels/sheets/HART_Master_ABS_hold.xml   <-- ABS-RO (signals hold; turnouts on)
+  /home/pi/hart/cats/panels/HART_Master.xml            <-- primary CTC Digicon
+  /home/pi/hart/cats/panels/HART_Master_ABS.xml        <-- ABS / open house
+  /home/pi/hart/cats/panels/HART_Master_ABS_hold.xml   <-- ABS-RO (signals hold; turnouts on)
 
 Launch (after quitting PanelPro):
   /home/pi/hart/launch_cats.sh
   # default panel = HART_Master.xml
 
 Desktop icons:
-  CATS         -> HART_Master.xml            (/home/pi/hart/launch_hart_master_desktop.sh)
+  CATS CTC     -> HART_Master.xml            (/home/pi/hart/launch_hart_master_desktop.sh)
   CATS ABS     -> HART_Master_ABS.xml        (/home/pi/hart/launch_hart_master_abs_desktop.sh)
   CATS ABS-RO  -> HART_Master_ABS_hold.xml   (/home/pi/hart/launch_hart_master_abs_hold_desktop.sh)
 
 Or with an explicit panel:
-  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/sheets/HART_Master.xml
-  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/sheets/HART_Master_ABS.xml
-  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/sheets/HART_Master_ABS_hold.xml
+  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_Master.xml
+  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_Master_ABS.xml
+  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_Master_ABS_hold.xml
 
 Profile used: TCS_MQTT.3f32a166 (same as current PanelPro)
 
