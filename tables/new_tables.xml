@@ -820,7 +820,7 @@
       <systemName>IT37</systemName>
       <userName>TO8</userName>
     </turnout>
-  </turnouts>
+  <turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L1</systemName><userName>Yard ladder L S-1</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L2</systemName><userName>Yard ladder L S-2</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L3</systemName><userName>Yard ladder L S-3</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L4</systemName><userName>Yard ladder L S-4</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L5</systemName><userName>Yard ladder L S-5</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R1</systemName><userName>Yard ladder R S-1</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R2</systemName><userName>Yard ladder R S-2</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R3</systemName><userName>Yard ladder R S-3</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R4</systemName><userName>Yard ladder R S-4</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R5</systemName><userName>Yard ladder R S-5</userName></turnout></turnouts>
   <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
     <operations automate="false">
       <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
@@ -861,12 +861,136 @@
       <systemName>IH410</systemName>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH465</systemName>
+      <systemName>IH432</systemName>
       <userName>Plane East East Main Ext Top</userName>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH466</systemName>
+      <systemName>IH433</systemName>
       <userName>Plane East East Main Ext Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH434</systemName>
+      <userName>Plane East OS 102 Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH435</systemName>
+      <userName>Plane East OS 102 Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH436</systemName>
+      <userName>Brick West Yard 1</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH437</systemName>
+      <userName>Brick West Yard 2</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1332</systemName>
+      <userName>West Yard West OS 117 Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1333</systemName>
+      <userName>West Yard West OS 117 Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1334</systemName>
+      <userName>West Yard East Yard T6</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1335</systemName>
+      <userName>West Yard West East Main Ext Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1336</systemName>
+      <userName>West Yard West East Main Ext Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1337</systemName>
+      <userName>West Yard East OS 117b Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1338</systemName>
+      <userName>West Yard East OS 117b Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1232</systemName>
+      <userName>East End West Main West Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1233</systemName>
+      <userName>East End West Main West Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1234</systemName>
+      <userName>East End East OS 111a Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1235</systemName>
+      <userName>East End East OS 111a Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1236</systemName>
+      <userName>East End West Yard Track 1</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1237</systemName>
+      <userName>East End East Lead Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1238</systemName>
+      <userName>East End East Lead Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1239</systemName>
+      <userName>East End South OS 110</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1240</systemName>
+      <userName>East End South OS 112 Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1241</systemName>
+      <userName>East End South OS 112 Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH132</systemName>
+      <userName>Princess North McKees Rocks Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH133</systemName>
+      <userName>Princess North McKees Rocks Middle</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH134</systemName>
+      <userName>Princess North McKees Rocks Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH135</systemName>
+      <userName>Princess West OS 113b Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH136</systemName>
+      <userName>Princess West OS 113b Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH137</systemName>
+      <userName>Princess West OS 113a Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH138</systemName>
+      <userName>Princess West OS 113a Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH139</systemName>
+      <userName>Princess South McKeesport Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH140</systemName>
+      <userName>Princess South McKeesport Middle</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH141</systemName>
+      <userName>Princess South McKeesport Bottom</userName>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -878,10 +1002,94 @@
         <disabledAspect>Restricting</disabledAspect>
       </disabledAspects>
     </mqttsignalmast>
-    <!-- Plane → Brick mainline (2 virtual heads); MqttSignalHead script publishes colors -->
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH465)(IH466)</systemName>
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH432)(IH433)</systemName>
       <userName>Plane East East Main Ext</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH434)(IH435)</systemName>
+      <userName>Plane East OS 102</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH436)</systemName>
+      <userName>Brick West Yard 1</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH437)</systemName>
+      <userName>Brick West Yard 2</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1332)(IH1333)</systemName>
+      <userName>West Yard West OS 117</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH1334)</systemName>
+      <userName>West Yard East Yard T6</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1335)(IH1336)</systemName>
+      <userName>West Yard West East Main Ext</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1337)(IH1338)</systemName>
+      <userName>West Yard East OS 117b</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1232)(IH1233)</systemName>
+      <userName>East End West Main West</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1234)(IH1235)</systemName>
+      <userName>East End East OS 111a</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH1236)</systemName>
+      <userName>East End West Yard Track 1</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1237)(IH1238)</systemName>
+      <userName>East End East Lead</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH1239)</systemName>
+      <userName>East End South OS 110</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1240)(IH1241)</systemName>
+      <userName>East End South OS 112</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-3(IH132)(IH133)(IH134)</systemName>
+      <userName>Princess North McKees Rocks</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH135)(IH136)</systemName>
+      <userName>Princess West OS 113b</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH137)(IH138)</systemName>
+      <userName>Princess West OS 113a</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-3(IH139)(IH140)(IH141)</systemName>
+      <userName>Princess South McKeesport</userName>
       <unlit allowed="no" />
     </signalmast>
   </signalmasts>
@@ -1954,7 +2162,7 @@
       <routeOutputTurnout systemName="Switch 115" state="THROWN" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onActive" />
     </route>
-  </routes>
+  <route userName="Left S-1 ladder" controlTurnout="IT:HART:YL:L1" controlTurnoutState="THROWN"><systemName>IO:AUTO:0201</systemName><userName>Left S-1 ladder</userName><routeOutputTurnout systemName="M2T411" state="CLOSED" /><routeOutputTurnout systemName="M2T308" state="CLOSED" /><routeOutputTurnout systemName="M2T309" state="CLOSED" /><routeOutputTurnout systemName="M2T310" state="CLOSED" /><routeOutputTurnout systemName="M2T311" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L1" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:L2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L5" state="CLOSED" /></route><route userName="Left S-2 ladder" controlTurnout="IT:HART:YL:L2" controlTurnoutState="THROWN"><systemName>IO:AUTO:0202</systemName><userName>Left S-2 ladder</userName><routeOutputTurnout systemName="M2T411" state="CLOSED" /><routeOutputTurnout systemName="M2T308" state="THROWN" /><routeOutputTurnout systemName="M2T309" state="THROWN" /><routeOutputTurnout systemName="M2T310" state="CLOSED" /><routeOutputTurnout systemName="M2T311" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L2" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:L3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L5" state="CLOSED" /></route><route userName="Left S-3 ladder" controlTurnout="IT:HART:YL:L3" controlTurnoutState="THROWN"><systemName>IO:AUTO:0203</systemName><userName>Left S-3 ladder</userName><routeOutputTurnout systemName="M2T411" state="CLOSED" /><routeOutputTurnout systemName="M2T308" state="THROWN" /><routeOutputTurnout systemName="M2T309" state="CLOSED" /><routeOutputTurnout systemName="M2T310" state="THROWN" /><routeOutputTurnout systemName="M2T311" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L3" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:L4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L5" state="CLOSED" /></route><route userName="Left S-4 ladder" controlTurnout="IT:HART:YL:L4" controlTurnoutState="THROWN"><systemName>IO:AUTO:0204</systemName><userName>Left S-4 ladder</userName><routeOutputTurnout systemName="M2T411" state="CLOSED" /><routeOutputTurnout systemName="M2T308" state="THROWN" /><routeOutputTurnout systemName="M2T309" state="CLOSED" /><routeOutputTurnout systemName="M2T310" state="CLOSED" /><routeOutputTurnout systemName="M2T311" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:L1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L4" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:L5" state="CLOSED" /></route><route userName="Left S-5 ladder" controlTurnout="IT:HART:YL:L5" controlTurnoutState="THROWN"><systemName>IO:AUTO:0205</systemName><userName>Left S-5 ladder</userName><routeOutputTurnout systemName="M2T411" state="CLOSED" /><routeOutputTurnout systemName="M2T308" state="THROWN" /><routeOutputTurnout systemName="M2T309" state="CLOSED" /><routeOutputTurnout systemName="M2T310" state="CLOSED" /><routeOutputTurnout systemName="M2T311" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:L5" state="THROWN" /></route><route userName="Right S-1 ladder" controlTurnout="IT:HART:YL:R1" controlTurnoutState="THROWN"><systemName>IO:AUTO:0206</systemName><userName>Right S-1 ladder</userName><routeOutputTurnout systemName="M2T1213" state="CLOSED" /><routeOutputTurnout systemName="M2T1212" state="CLOSED" /><routeOutputTurnout systemName="M2T1211" state="CLOSED" /><routeOutputTurnout systemName="M2T1210" state="CLOSED" /><routeOutputTurnout systemName="M2T1209" state="CLOSED" /><routeOutputTurnout systemName="M2T1208" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R1" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:R2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R5" state="CLOSED" /></route><route userName="Right S-2 ladder" controlTurnout="IT:HART:YL:R2" controlTurnoutState="THROWN"><systemName>IO:AUTO:0207</systemName><userName>Right S-2 ladder</userName><routeOutputTurnout systemName="M2T1213" state="CLOSED" /><routeOutputTurnout systemName="M2T1211" state="THROWN" /><routeOutputTurnout systemName="M2T1210" state="THROWN" /><routeOutputTurnout systemName="M2T1209" state="CLOSED" /><routeOutputTurnout systemName="M2T1208" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R2" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:R3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R5" state="CLOSED" /></route><route userName="Right S-3 ladder" controlTurnout="IT:HART:YL:R3" controlTurnoutState="THROWN"><systemName>IO:AUTO:0208</systemName><userName>Right S-3 ladder</userName><routeOutputTurnout systemName="M2T1213" state="CLOSED" /><routeOutputTurnout systemName="M2T1211" state="THROWN" /><routeOutputTurnout systemName="M2T1210" state="CLOSED" /><routeOutputTurnout systemName="M2T1209" state="THROWN" /><routeOutputTurnout systemName="M2T1208" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R3" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:R4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R5" state="CLOSED" /></route><route userName="Right S-4 ladder" controlTurnout="IT:HART:YL:R4" controlTurnoutState="THROWN"><systemName>IO:AUTO:0209</systemName><userName>Right S-4 ladder</userName><routeOutputTurnout systemName="M2T1213" state="CLOSED" /><routeOutputTurnout systemName="M2T1211" state="THROWN" /><routeOutputTurnout systemName="M2T1210" state="CLOSED" /><routeOutputTurnout systemName="M2T1209" state="CLOSED" /><routeOutputTurnout systemName="M2T1208" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:R1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R4" state="THROWN" /><routeOutputTurnout systemName="IT:HART:YL:R5" state="CLOSED" /></route><route userName="Right S-5 ladder" controlTurnout="IT:HART:YL:R5" controlTurnoutState="THROWN"><systemName>IO:AUTO:0210</systemName><userName>Right S-5 ladder</userName><routeOutputTurnout systemName="M2T1213" state="CLOSED" /><routeOutputTurnout systemName="M2T1211" state="THROWN" /><routeOutputTurnout systemName="M2T1210" state="CLOSED" /><routeOutputTurnout systemName="M2T1209" state="CLOSED" /><routeOutputTurnout systemName="M2T1208" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R1" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R2" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R3" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R4" state="CLOSED" /><routeOutputTurnout systemName="IT:HART:YL:R5" state="THROWN" /></route></routes>
   <signalmastlogics class="jmri.managers.configurexml.DefaultSignalMastLogicManagerXml">
     <logicDelay>500</logicDelay>
   </signalmastlogics>

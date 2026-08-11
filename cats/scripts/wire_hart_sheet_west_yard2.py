@@ -363,6 +363,11 @@ def wire_turnouts(
         sp = sp_edge.find("SWITCHPOINTS")
         if sp is None:
             sp = ET.SubElement(sp_edge, "SWITCHPOINTS")
+        # Do not set SPUR here. Digicon Spur gates CONFLICTINGSIGNALLOCK via
+        # UnlockRoute (only Normal clears it); that lock is in GUISwitchLocks and
+        # blocks dispatcher throw of SW100/101 without a coded switch-unlock.
+        if sp.get("SPUR") is not None:
+            del sp.attrib["SPUR"]
         existing = {r.get("ROUTEID"): r for r in sp.findall("ROUTEINFO")}
         for leg in legs:
             ri = existing.get(leg)
@@ -413,6 +418,10 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     # Yard stubs — single head
     (4, 3, "LEFT"): ("Brick West Yard 1", "LAMP1", "LOWLEFT", "RIGHT"),
     (4, 4, "LEFT"): ("Brick West Yard 2", "LAMP1", "LOWLEFT", "RIGHT"),
+    # Hidden westbound stub stops on mid-spur cuts (no PANELSIGNAL). Digicon-only;
+    # Stay Stop → westbound Brick East Main West (464) drops to Approach / yellow.
+    (3, 3, "RIGHT"): ("Brick W-1 West Stub", "HIDDEN", "", "LEFT"),
+    (3, 4, "RIGHT"): ("Brick W-2 West Stub", "HIDDEN", "", "LEFT"),
     # Brick main — JMRI MQTT mast 464 (Brick East Main West); Digicon 2-lamp, lower off for now
     (8, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWLEFT", "LEFT", "aar-single"),
     (43, 5, "RIGHT"): ("Princess North McKees Rocks", "LAMP3", "LOWLEFT", "LEFT"),
@@ -425,16 +434,17 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (28, 7, "LEFT"): ("East End West Yard Track 1", "LAMP1", "LOWLEFT", "RIGHT"),
     (34, 7, "RIGHT"): ("East End East Lead", "LAMP2", "LOWRIGHT", "LEFT"),
     (37, 7, "LEFT"): ("Princess West OS 113a", "LAMP2", "LOWLEFT", "RIGHT"),
-    (31, 7, "BOTTOM"): ("East End South OS 110", "LAMP1", "UPLEFT", "RIGHT"),
-    # Plane normal route (SW102 closed → East Main Ext): JMRI heads IH465/IH466 + cats-virtual-2
+    (31, 7, "BOTTOM"): ("East End South OS 110", "LAMP1", "LEFTUP", "TOP"),
+    # Plane normal route (SW102 closed → East Main Ext): virtual heads IH432/IH433 (node 4)
     (9, 8, "RIGHT"): ("Plane East East Main Ext", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 8, "LEFT"): ("West Yard West East Main Ext", "LAMP2", "LOWLEFT", "RIGHT"),
-    (14, 8, "RIGHT"): ("West Yard East OS 117b", "LAMP2", "LOWLEFT", "LEFT"),
+    # Lower-right Barn face — LOWRIGHT keeps the lamp under the Main East rail.
+    (14, 8, "RIGHT"): ("West Yard East OS 117b", "LAMP2", "LOWRIGHT", "LEFT"),
     (33, 8, "LEFT"): ("East End South OS 112", "LAMP2", "RIGHTLOW", "RIGHT"),
     (43, 8, "RIGHT"): ("Princess South McKeesport", "LAMP3", "LOWLEFT", "LEFT"),
 }
 
-_PANTYPE_PHYS = {"LAMP1": "single", "LAMP2": "double", "LAMP3": "triple"}
+_PANTYPE_PHYS = {"LAMP1": "single", "LAMP2": "double", "LAMP3": "triple", "HIDDEN": "single"}
 
 # Digicon AppearanceKey → AAR Clear/Approach/Stop for MQTT mast 464 (Brick East Main West).
 # Must stay in every wired sheet — missing template + PHYSIGNAL=aar-single NPEs CATS panel load.
@@ -569,12 +579,14 @@ def _apply_signals(
         phys_name = _phys_for(by_key[(x, y, edge)], pantype)
         sig = ET.Element("SECSIGNAL")
         sig.text = f"\n          {name}\n          "
-        ps = ET.SubElement(
-            sig,
-            "PANELSIGNAL",
-            {"SIGLOCATION": loc, "SIGORIENT": orient, "SIGPANTYPE": pantype},
-        )
-        ps.tail = "\n          "
+        # HIDDEN = interlocking-only (Armstrong SpurL/SpurR style): PHYSIGNAL, no lamp.
+        if pantype != "HIDDEN":
+            ps = ET.SubElement(
+                sig,
+                "PANELSIGNAL",
+                {"SIGLOCATION": loc, "SIGORIENT": orient, "SIGPANTYPE": pantype},
+            )
+            ps.tail = "\n          "
         phys = ET.SubElement(sig, "PHYSIGNAL")
         phys.text = phys_name
         phys.tail = "\n        "
@@ -583,7 +595,7 @@ def _apply_signals(
         bname = blk.get("NAME") if blk is not None else None
         placed.append(
             f"{name} @({x},{y}) {edge} {pantype}/{phys_name} "
-            f"loc={loc} ori={orient} blk={bname}"
+            f"loc={loc or '-'} ori={orient or '-'} blk={bname or '(cut)'}"
         )
     return placed
 
@@ -932,6 +944,14 @@ def wire() -> int:
     _report_gaps(tp)
 
     ET.indent(root, space="  ")
+    # Appearance → Tee Base: empty <TEEMAST/> toggles default-off → enabled.
+    if root.find("TEEMAST") is None:
+        idx = 0
+        for i, child in enumerate(list(root)):
+            if child.tag in ("LINE", "COUNTER"):
+                idx = i + 1
+        root.insert(idx, ET.Element("TEEMAST"))
+
     for dest in (SRC, ACTIVE, MASTER):
         ET.ElementTree(root).write(dest, encoding="UTF-8", xml_declaration=True)
         print(f"wrote {dest.relative_to(ROOT)}")

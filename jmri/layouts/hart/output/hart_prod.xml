@@ -547,12 +547,136 @@
       <systemName>IH410</systemName>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH465</systemName>
+      <systemName>IH432</systemName>
       <userName>Plane East East Main Ext Top</userName>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH466</systemName>
+      <systemName>IH433</systemName>
       <userName>Plane East East Main Ext Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH434</systemName>
+      <userName>Plane East OS 102 Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH435</systemName>
+      <userName>Plane East OS 102 Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH436</systemName>
+      <userName>Brick West Yard 1</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH437</systemName>
+      <userName>Brick West Yard 2</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1332</systemName>
+      <userName>West Yard West OS 117 Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1333</systemName>
+      <userName>West Yard West OS 117 Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1334</systemName>
+      <userName>West Yard East Yard T6</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1335</systemName>
+      <userName>West Yard West East Main Ext Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1336</systemName>
+      <userName>West Yard West East Main Ext Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1337</systemName>
+      <userName>West Yard East OS 117b Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1338</systemName>
+      <userName>West Yard East OS 117b Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1232</systemName>
+      <userName>East End West Main West Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1233</systemName>
+      <userName>East End West Main West Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1234</systemName>
+      <userName>East End East OS 111a Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1235</systemName>
+      <userName>East End East OS 111a Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1236</systemName>
+      <userName>East End West Yard Track 1</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1237</systemName>
+      <userName>East End East Lead Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1238</systemName>
+      <userName>East End East Lead Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1239</systemName>
+      <userName>East End South OS 110</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1240</systemName>
+      <userName>East End South OS 112 Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH1241</systemName>
+      <userName>East End South OS 112 Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH132</systemName>
+      <userName>Princess North McKees Rocks Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH133</systemName>
+      <userName>Princess North McKees Rocks Middle</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH134</systemName>
+      <userName>Princess North McKees Rocks Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH135</systemName>
+      <userName>Princess West OS 113b Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH136</systemName>
+      <userName>Princess West OS 113b Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH137</systemName>
+      <userName>Princess West OS 113a Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH138</systemName>
+      <userName>Princess West OS 113a Bottom</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH139</systemName>
+      <userName>Princess South McKeesport Top</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH140</systemName>
+      <userName>Princess South McKeesport Middle</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH141</systemName>
+      <userName>Princess South McKeesport Bottom</userName>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -565,8 +689,93 @@
       </disabledAspects>
     </mqttsignalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH465)(IH466)</systemName>
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH432)(IH433)</systemName>
       <userName>Plane East East Main Ext</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH434)(IH435)</systemName>
+      <userName>Plane East OS 102</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH436)</systemName>
+      <userName>Brick West Yard 1</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH437)</systemName>
+      <userName>Brick West Yard 2</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1332)(IH1333)</systemName>
+      <userName>West Yard West OS 117</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH1334)</systemName>
+      <userName>West Yard East Yard T6</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1335)(IH1336)</systemName>
+      <userName>West Yard West East Main Ext</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1337)(IH1338)</systemName>
+      <userName>West Yard East OS 117b</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1232)(IH1233)</systemName>
+      <userName>East End West Main West</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1234)(IH1235)</systemName>
+      <userName>East End East OS 111a</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH1236)</systemName>
+      <userName>East End West Yard Track 1</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1237)(IH1238)</systemName>
+      <userName>East End East Lead</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual(IH1239)</systemName>
+      <userName>East End South OS 110</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH1240)(IH1241)</systemName>
+      <userName>East End South OS 112</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-3(IH132)(IH133)(IH134)</systemName>
+      <userName>Princess North McKees Rocks</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH135)(IH136)</systemName>
+      <userName>Princess West OS 113b</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH137)(IH138)</systemName>
+      <userName>Princess West OS 113a</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-3(IH139)(IH140)(IH141)</systemName>
+      <userName>Princess South McKeesport</userName>
       <unlit allowed="no" />
     </signalmast>
   </signalmasts>
@@ -1726,7 +1935,7 @@
     <BlockContentsIcon blockcontents="OS 107 (East End)" x="1103" y="470" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Yard Track 5" x="948" y="510" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Yard Track 4" x="948" y="468" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS 106 (South Yard)" x="912" y="467" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <turnouticon turnout="IT:HART:YL:L1" x="900" y="323" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder L S-1 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:R1" x="1020" y="323" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder R S-1 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:L2" x="900" y="374" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder L S-2 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:R2" x="1020" y="374" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder R S-2 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:L3" x="900" y="421" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder L S-3 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:R3" x="1020" y="421" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder R S-3 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:L4" x="900" y="468" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder L S-4 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:R4" x="1020" y="468" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder R S-4 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:L5" x="900" y="510" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder L S-5 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><turnouticon turnout="IT:HART:YL:R5" x="1020" y="510" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml"><tooltip>Yard ladder R S-5 [hart-yard-ladder-le]</tooltip><icons><closed url="program:resources/icons/USSpanels/Lamps/lamp-r.gif" degrees="0" scale="1.0"><rotation>0</rotation></closed><thrown url="program:resources/icons/USSpanels/Lamps/lamp-w.gif" degrees="0" scale="1.0"><rotation>0</rotation></thrown><unknown url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></unknown><inconsistent url="program:resources/icons/USSpanels/Lamps/lamp-dr.gif" degrees="0" scale="1.0"><rotation>0</rotation></inconsistent></icons><iconmaps /></turnouticon><BlockContentsIcon blockcontents="OS 106 (South Yard)" x="912" y="467" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Main East" x="948" y="558" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="East Main Ext" x="405" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 117 (West Yard)" x="505" y="298" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />

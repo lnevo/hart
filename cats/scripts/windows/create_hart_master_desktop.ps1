@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
-# Create Desktop shortcuts for HART Master (CTC) and HART Master ABS.
+# Desktop shortcuts only: CATS / CATS ABS / CATS ABS-RO
+# Panels: HART_Master.xml (CTC), HART_Master_ABS.xml, HART_Master_ABS_hold.xml
 # Prefer Dropbox pack so sync updates apply immediately.
 $Work = $PSScriptRoot
 $Desktop = [Environment]::GetFolderPath('Desktop')
@@ -14,6 +15,7 @@ foreach ($helper in @(
   'kill_cats.ps1',
   'launch_hart_master.bat',
   'launch_hart_master_abs.bat',
+  'launch_hart_master_abs_hold.bat',
   'launch_cats_desktop.bat',
   'crandic.gif',
   'CATS.ICO'
@@ -24,10 +26,48 @@ foreach ($helper in @(
   }
 }
 
-foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_sheet_West_Yard.xml')) {
+foreach ($panel in @(
+  'HART_Master.xml',
+  'HART_Master_ABS.xml',
+  'HART_Master_ABS_hold.xml',
+  'HART_sheet_West_Yard.xml'
+)) {
   $src = Join-Path $Work $panel
   if (Test-Path $src) {
     Copy-Item $src (Join-Path $PanelDir $panel) -Force
+  }
+}
+
+# Yard-ladder button icons (Digicon BUTTON paths must exist locally)
+$BtnDir = Join-Path $env:USERPROFILE 'hart\cats\resources\buttons'
+New-Item -ItemType Directory -Force -Path $BtnDir | Out-Null
+$BtnSrc = Join-Path $Work 'buttons'
+if (Test-Path $BtnSrc) {
+  Copy-Item (Join-Path $BtnSrc '*') $BtnDir -Force
+}
+# Rewrite Mac absolute icon paths → this Windows hart root (forward slashes OK for Java)
+$WinRoot = (Join-Path $env:USERPROFILE 'hart') -replace '\\', '/'
+foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_hold.xml')) {
+  $p = Join-Path $PanelDir $panel
+  if (-not (Test-Path $p)) { continue }
+  $txt = Get-Content -Raw -LiteralPath $p
+  $txt2 = [regex]::Replace(
+    $txt,
+    '(PRIMARY|ALTERNATE)="[^"]*?[/\\]cats[/\\]resources[/\\]buttons[/\\]([^"]+)"',
+    { param($m) '{0}="{1}/cats/resources/buttons/{2}"' -f $m.Groups[1].Value, $WinRoot, $m.Groups[2].Value }
+  )
+  if ($txt2 -ne $txt) {
+    Set-Content -LiteralPath $p -Value $txt2 -NoNewline -Encoding UTF8
+    Write-Host ("Rewrote button icon paths in {0}" -f $panel)
+  }
+}
+
+# Remove legacy HART Master* shortcuts if present
+foreach ($legacy in @('HART Master', 'HART Master ABS', 'HART Master ABS-RO')) {
+  $legacyLnk = Join-Path $Desktop ($legacy + '.lnk')
+  if (Test-Path $legacyLnk) {
+    Remove-Item $legacyLnk -Force
+    Write-Host ("Removed legacy: {0}" -f $legacyLnk)
   }
 }
 
@@ -36,38 +76,36 @@ $Wsh = New-Object -ComObject WScript.Shell
 
 $shortcuts = @(
   @{
-    Name = 'HART Master'
-    Bat  = 'launch_hart_master.bat'
-    Desc = 'CATS Digicon - HART Master (CTC)'
-  },
-  @{
-    Name = 'HART Master ABS'
-    Bat  = 'launch_hart_master_abs.bat'
-    Desc = 'CATS Digicon - HART Master ABS (open house)'
-  },
-  @{
     Name = 'CATS'
     Bat  = 'launch_hart_master.bat'
-    Desc = 'CATS Digicon - HART Master (CTC) default'
+    Desc = 'CATS Digicon - CTC (HART_Master.xml)'
+  },
+  @{
+    Name = 'CATS ABS'
+    Bat  = 'launch_hart_master_abs.bat'
+    Desc = 'CATS Digicon - ABS open house (HART_Master_ABS.xml)'
+  },
+  @{
+    Name = 'CATS ABS-RO'
+    Bat  = 'launch_hart_master_abs_hold.bat'
+    Desc = 'CATS Digicon - ABS-RO hold/listen (HART_Master_ABS_hold.xml)'
   }
 )
 
 foreach ($s in $shortcuts) {
   $batDropbox = Join-Path $Work $s.Bat
-  $batLocal = Join-Path $Hart $s.Bat
   if (-not (Test-Path $batDropbox)) { throw "Missing $batDropbox" }
-  $target = if (Test-Path $batDropbox) { $batDropbox } else { $batLocal }
 
   $lnkPath = Join-Path $Desktop ($s.Name + '.lnk')
   if (Test-Path $lnkPath) { Remove-Item $lnkPath -Force }
   $Sc = $Wsh.CreateShortcut($lnkPath)
-  $Sc.TargetPath = $target
+  $Sc.TargetPath = $batDropbox
   $Sc.WorkingDirectory = $Work
   $Sc.WindowStyle = 1
   $Sc.Description = $s.Desc
   if (Test-Path $iconDst) { $Sc.IconLocation = "$iconDst,0" }
   $Sc.Save()
-  Write-Host ("Desktop: {0} -> {1}" -f $lnkPath, $target)
+  Write-Host ("Desktop: {0} -> {1}" -f $lnkPath, $batDropbox)
 }
 
-Write-Host 'DONE - Desktop has HART Master, HART Master ABS, and CATS'
+Write-Host 'DONE - Desktop has CATS, CATS ABS, CATS ABS-RO only'

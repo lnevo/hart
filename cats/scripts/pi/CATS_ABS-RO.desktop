@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=CATS ABS-RO
+Comment=CATS Digicon HART Master ABS hold (listen / spectator)
+Exec=/home/pi/hart/launch_hart_master_abs_hold_desktop.sh
+Icon=/home/pi/JMRI/crandic.gif
+Terminal=false
+Type=Application
+Categories=Utility
+StartupNotify=true
+Path=/home/pi/JMRI

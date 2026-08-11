@@ -4,7 +4,7 @@
 <appearancetable xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/appearancetable.xsd">
   <aspecttable>CATS Virtual Signals</aspecttable>
-  <name>Default</name>
+  <name>cats-virtual</name>
   <reference>CATS Digicon single-lamp PHYSIGNAL aspect keys</reference>
   <description>One searchlight head driven by Digicon R/C/RES/ADV indication names</description>
   <appearances>

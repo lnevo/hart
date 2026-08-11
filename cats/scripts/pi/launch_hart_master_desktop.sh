@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Pi desktop: HART Master (CTC)
-export DISPLAY="${DISPLAY:-:0}"
+# Pi GUI is Xwayland on :1 (not :0); override if already set in the session.
+export DISPLAY="${DISPLAY:-:1}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
 export WIRINGPI_GPIOMEM=1

@@ -19,7 +19,7 @@
   <COUNTER NAME="CODEDELAY" VALUE="0" />
   <COUNTER NAME="LNGOVERNOR" VALUE="1" />
   <COUNTER NAME="DEBOUNCE" VALUE="0" />
-  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="1" TEMPLATENAME="single">
+  <TEEMAST /><SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="1" TEMPLATENAME="single">
     <ASPECTMAP R281="green" R281B="green" R282="green" R284="green" RES_NORM="red" ADV_NORM="green" R285="yellow" R281C="green" C412="green" C413="green" C414="green" RES_LIM="red" ADV_LIM="green" R281D="yellow" R283="green" C417="green" R283A="green" R283B="green" RES_MED="red" ADV_MED="green" R286="yellow" R287="green" C422="green" C423="green" C424="green" RES_SLO="red" ADV_SLO="green" R288="yellow" R292="red" R291="red" />
   </SIGNALTEMPLATE>
   <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="aar-single" R281="Clear" R281B="Clear" R282="Clear" R284="Clear" RES_NORM="Approach" ADV_NORM="Clear" R285="Approach" R281C="Clear" C412="Clear" C413="Clear" C414="Clear" RES_LIM="Approach" ADV_LIM="Clear" R281D="Approach" R283="Clear" C417="Clear" R283A="Clear" R283B="Clear" RES_MED="Approach" ADV_MED="Clear" R286="Approach" R287="Clear" C422="Clear" C423="Clear" C424="Clear" RES_SLO="Approach" ADV_SLO="Clear" R288="Approach" R291="Stop" R292="Stop">
@@ -177,6 +177,10 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
+        <SECSIGNAL>
+          Brick W-1 West Stub
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="4" Y="3">
@@ -426,6 +430,10 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
+        <SECSIGNAL>
+          Brick W-2 West Stub
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="4" Y="4">
@@ -1736,7 +1744,7 @@
         </BLOCK>
         <SECSIGNAL>
           East End South OS 110
-          <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PANELSIGNAL SIGLOCATION="LEFTUP" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
@@ -2138,7 +2146,7 @@
         </BLOCK>
         <SECSIGNAL>
           West Yard East OS 117b
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>

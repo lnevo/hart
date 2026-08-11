@@ -98,5 +98,6 @@
   <appearancefiles>
     <appearancefile href="appearance-cats-virtual.xml" />
     <appearancefile href="appearance-cats-virtual-2.xml" />
+    <appearancefile href="appearance-cats-virtual-3.xml" />
   </appearancefiles>
 </aspecttable>
