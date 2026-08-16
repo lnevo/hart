@@ -26,12 +26,12 @@ Plan: `cats/data/signal_mast_plan.csv`
 
 Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT topic alone.
 
-### Prerequisites (stock JMRI — already true for mast 464)
+### Prerequisites (stock JMRI — already true for mast 432)
 
 - MQTT Signal Mast exists, e.g.  
-  `IF$mqm:AAR-1946:SL-1-high-abs($464)`  
+  `IF$mqm:AAR-1946:SL-2-high-abs($432)`  
   userName `Brick East Main West`  
-  topic `track/signalmast/464` (from `($464)`)
+  topic `track/signalmast/432` (from `($432)`)
 - Mast aspects are AAR names: **Clear**, **Approach**, **Stop** (Restricting optional/disabled)
 
 ### Digicon-only steps
@@ -50,7 +50,7 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
   R281="Clear" R285="Approach" R292="Stop"
   …all other IndicationNames → Clear|Approach|Stop…>
   <ASPECTMAP
-    R281="green|off" R285="yellow|off" R292="red|off" … />
+    R281="green|red" R285="yellow|red" R292="red|red" … />
 </SIGNALTEMPLATE>
 
 <SECSIGNAL>
@@ -76,22 +76,22 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 
 Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code aspects. His `cats-virtual` mast is one way to make JMRI speak those codes. For an **existing AAR mast**, keep the mast and remap Digicon → AAR names instead.
 
-### Brick 464 (current)
+### Brick 432 (current)
 
 - Digicon name `Brick East Main West` @ Brick east main face  
-- `LAMP2` + `aar-single` (top follows Clear/Approach/Stop; bottom `off` until a 2-head JMRI mast exists)  
+- `LAMP2` + `aar-single` (Digicon dual lamps; R-codes remapped to Clear/Approach/Stop for MQTT `SL-2-high-abs($432)`)  
 - CATS owns aspects (no Hold only)  
-- **Stub routes into W-Y:** Digicon indication is Restricting (no next signal). `aar-single` remaps `RES_*` → **Approach** for the AAR MQTT mast `464` (Restricting is disabled on that mast). Panel `COLORDEFINITION RESTRICTING` stays stock (same red as Stop unless you change it in Designer).
+- **Stub routes into W-Y:** Digicon indication is Restricting (no next signal). `aar-single` remaps `RES_*` → **Approach** for the AAR MQTT mast `432` (Restricting is disabled on that mast). Panel `COLORDEFINITION RESTRICTING` stays stock (same red as Stop unless you change it in Designer).
 
 **Do not use Digicon `SPUR="true"` on Brick SW100/101** without a coded switch-unlock. Spur makes only the Normal route clear `CONFLICTINGSIGNALLOCK` on the points; that lock is in `GUISwitchLocks`, so the dispatcher cannot throw the turnout (especially once lined reverse). Westbound “priority” needs a different approach than Spur on this plant.
 
-**CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting→Approach on `464`, not Clear.
+**CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting→Approach on `432`, not Clear.
 
 **W-1 / W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_sheet_west_yard2.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
 
 ### Digicon → virtual heads + SHSM (all faces except Brick East Main West)
 
-All West Yard Digicon lamps except **`Brick East Main West`** (`aar-single` / MQTT mast `464`) use Virtual Signal Heads + `cats-masts` SignalHeadSignalMasts.
+All West Yard Digicon lamps except **`Brick East Main West`** (`aar-single` / MQTT mast `432`) use Virtual Signal Heads + `cats-masts` SignalHeadSignalMasts.
 
 | Area | Radio → MQTT node | Parent board | Packed heads |
 |------|-------------------|--------------|--------------|
@@ -111,6 +111,8 @@ All West Yard Digicon lamps except **`Brick East Main West`** (`aar-single` / MQ
   listens for Appearance changes and **publishes** JMRI → MQTT so CATS / CATS ABS
   Digicon aspects reach LCOS. ABS-RO (`HOLD_ONLY`) still only Held/Unheld; field
   retain is the aspect SoR for those lamps.
-- Do **not** put cats-virtual LE `signalmasticon`s on Windows tables (NPE); Digicon binds by userName
+- Digicon LE `signalmasticon`s are OK on Mac / Pi / Windows when `cats-virtual*`
+  appearances include `imagelink`s (required to avoid SignalMastIcon NPE).
+  Deploy via `sync_hart_package.sh` (full `tables.xml`).
 
 **Plane East East Main Ext** @ `(9,8) RIGHT` is now `IH432`/`IH433` (was POC `IH465`/`IH466`).

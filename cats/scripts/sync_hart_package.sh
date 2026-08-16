@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# Deploy HART Digicon/JMRI package from repo SoR via SSH (no Dropbox).
+# Usage: ./cats/scripts/sync_hart_package.sh [--pi] [--win] [--all]
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+WIN_HOST="${HART_WIN_SSH:-lnevo@10.0.0.6}"
+WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
+PI_HOST="${HART_PI_SSH:-pi}"
+
+DO_PI=0
+DO_WIN=0
+DO_MAC_WEB=1
+if [[ $# -gt 0 ]]; then
+  DO_MAC_WEB=0
+  for a in "$@"; do
+    case "$a" in
+      --pi) DO_PI=1; DO_MAC_WEB=1 ;;
+      --win) DO_WIN=1; DO_MAC_WEB=1 ;;
+      --all) DO_PI=1; DO_WIN=1; DO_MAC_WEB=1 ;;
+      --mac-web-only) DO_MAC_WEB=1 ;;
+      -h|--help)
+        echo "Usage: $0 [--pi] [--win] [--all]"
+        echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %USERPROFILE%/hart"
+        echo "  Pi SSH:      ${PI_HOST} → /home/pi/hart + JMRI_UserFiles"
+        exit 0
+        ;;
+      *) echo "Unknown option: $a" >&2; exit 1 ;;
+    esac
+  done
+fi
+
+ssh_win() { ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" "$@"; }
+scp_win() { scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" "$@"; }
+
+TABLES=""
+if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
+  TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
+elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
+  TABLES="$ROOT/tables/new_tables.xml"
+fi
+
+REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
+
+if [[ "$DO_MAC_WEB" -eq 1 ]]; then
+  bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
+fi
+
+if [[ "$DO_PI" -eq 1 ]]; then
+  echo "Deploy → Pi ($PI_HOST)..."
+  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p \
+    /home/pi/hart/cats/panels \
+    /home/pi/hart/cats/resources/buttons \
+    /home/pi/hart/cats/resources/jmri-web \
+    /home/pi/hart/cats/scripts \
+    /home/pi/hart/jmri/layouts/hart/scripts \
+    /home/pi/hart/jmri/scripts \
+    /home/pi/JMRI_UserFiles/web/servlet/home'
+
+  # Rewrite button paths before upload
+  STAGE=$(mktemp -d)
+  for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml; do
+    python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" --hart-root /home/pi/hart --out "$STAGE/$p"
+  done
+  scp -o BatchMode=yes "$STAGE"/*.xml "$PI_HOST:/home/pi/hart/cats/panels/"
+  rm -rf "$STAGE"
+
+  if compgen -G "$ROOT/cats/resources/buttons/lamp_*.png" > /dev/null; then
+    scp -o BatchMode=yes "$ROOT/cats/resources/buttons/"lamp_*.png \
+      "$PI_HOST:/home/pi/hart/cats/resources/buttons/"
+  fi
+  scp -o BatchMode=yes -r "$ROOT/cats/resources/jmri-web/." \
+    "$PI_HOST:/home/pi/hart/cats/resources/jmri-web/"
+  scp -o BatchMode=yes \
+    "$ROOT/cats/scripts/install_jmri_web_override.sh" \
+    "$REWRITE" \
+    "$PI_HOST:/home/pi/hart/cats/scripts/"
+  scp -o BatchMode=yes \
+    "$ROOT/jmri/layouts/hart/scripts/apply_maintain_mqtt.py" \
+    "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
+    "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
+    "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
+    "$PI_HOST:/home/pi/hart/jmri/layouts/hart/scripts/"
+  scp -o BatchMode=yes \
+    "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py" \
+    "$PI_HOST:/home/pi/hart/jmri/scripts/"
+  ssh -o BatchMode=yes "$PI_HOST" \
+    'chmod +x /home/pi/hart/cats/scripts/install_jmri_web_override.sh; /home/pi/hart/cats/scripts/install_jmri_web_override.sh'
+  if [[ -n "$TABLES" ]]; then
+    scp -o BatchMode=yes "$TABLES" "$PI_HOST:/home/pi/JMRI_UserFiles/tables.xml"
+    echo "Pi tables.xml updated"
+  fi
+  # Digicon SHSM appearances (incl. dwarf) for LE + mast load
+  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/resources/signals/cats-masts /home/pi/hart/cats/resources/signals/cats-masts'
+  scp -o BatchMode=yes \
+    "$ROOT/cats/resources/signals/cats-masts/"appearance-cats-virtual*.xml \
+    "$ROOT/cats/resources/signals/cats-masts/aspects.xml" \
+    "$ROOT/cats/resources/signals/cats-masts/index.shtml" \
+    "$PI_HOST:/home/pi/JMRI_UserFiles/resources/signals/cats-masts/"
+  scp -o BatchMode=yes \
+    "$ROOT/cats/resources/signals/cats-masts/"appearance-cats-virtual*.xml \
+    "$ROOT/cats/resources/signals/cats-masts/aspects.xml" \
+    "$ROOT/cats/resources/signals/cats-masts/index.shtml" \
+    "$PI_HOST:/home/pi/hart/cats/resources/signals/cats-masts/"
+  echo "Pi cats-masts updated"
+  echo "Pi deploy done."
+fi
+
+if [[ "$DO_WIN" -eq 1 ]]; then
+  echo "Deploy → Windows ($WIN_HOST:$WIN_PORT)..."
+  ssh_win 'mkdir hart\cats\panels hart\cats\resources\buttons hart\cats\resources\jmri-web\servlet\home hart\cats\scripts\windows hart\jmri\layouts\hart\scripts hart\jmri\scripts 2>nul & mkdir %USERPROFILE%\JMRI_UserFiles\web\servlet\home 2>nul & echo dirs_ok'
+
+  STAGE=$(mktemp -d)
+  for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml; do
+    python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" \
+      --hart-root "C:/Users/lnevo/hart" --out "$STAGE/$p"
+  done
+  scp_win "$STAGE"/*.xml "${WIN_HOST}:hart/cats/panels/"
+  rm -rf "$STAGE"
+
+  if compgen -G "$ROOT/cats/resources/buttons/lamp_*.png" > /dev/null; then
+    scp_win "$ROOT/cats/resources/buttons/"lamp_*.png \
+      "${WIN_HOST}:hart/cats/resources/buttons/"
+  fi
+  scp_win "$ROOT/cats/resources/jmri-web/servlet/home/Home.html" \
+    "${WIN_HOST}:hart/cats/resources/jmri-web/servlet/home/Home.html"
+  scp_win "$ROOT/cats/resources/jmri-web/sts.html" \
+    "${WIN_HOST}:hart/cats/resources/jmri-web/sts.html"
+
+  scp_win \
+    "$ROOT/jmri/layouts/hart/scripts/apply_maintain_mqtt.py" \
+    "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
+    "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
+    "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
+    "${WIN_HOST}:hart/jmri/layouts/hart/scripts/"
+  if [[ -f "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" ]]; then
+    scp_win "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" \
+      "${WIN_HOST}:hart/jmri/layouts/hart/scripts/"
+  fi
+  scp_win "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py" \
+    "${WIN_HOST}:hart/jmri/scripts/"
+
+  for f in install_hart_tables.ps1 create_hart_master_desktop.ps1 \
+           apply_hart_package_local.ps1 install_cats_masts.ps1 \
+           launch_hart_master.bat launch_hart_master_abs.bat \
+           launch_hart_master_abs_hold.bat launch_cats_desktop.bat; do
+    [[ -f "$ROOT/cats/scripts/windows/$f" ]] && \
+      scp_win "$ROOT/cats/scripts/windows/$f" "${WIN_HOST}:hart/cats/scripts/windows/$f"
+  done
+
+  if [[ -n "$TABLES" ]]; then
+    # Full LE panel including Digicon signalmasticons (cats-virtual imagelinks required).
+    scp_win "$TABLES" "${WIN_HOST}:hart/tables.xml"
+  fi
+
+  # Digicon SHSM appearances for Windows profiles
+  ssh_win 'mkdir hart\cats\resources\signals\cats-masts 2>nul & echo ok'
+  scp_win \
+    "$ROOT/cats/resources/signals/cats-masts/"appearance-cats-virtual*.xml \
+    "$ROOT/cats/resources/signals/cats-masts/aspects.xml" \
+    "$ROOT/cats/resources/signals/cats-masts/index.shtml" \
+    "${WIN_HOST}:hart/cats/resources/signals/cats-masts/"
+
+  scp_win "$ROOT/cats/scripts/windows/apply_hart_package_local.ps1" \
+    "${WIN_HOST}:hart/cats/scripts/windows/apply_hart_package_local.ps1"
+  ssh_win 'powershell -NoProfile -ExecutionPolicy Bypass -File hart\cats\scripts\windows\apply_hart_package_local.ps1'
+  # Install cats-masts into Windows JMRI profiles (incl. dwarf)
+  scp_win "$ROOT/cats/scripts/windows/install_cats_masts.ps1" \
+    "${WIN_HOST}:hart/cats/scripts/windows/install_cats_masts.ps1"
+  ssh_win 'powershell -NoProfile -ExecutionPolicy Bypass -File hart\cats\scripts\windows\install_cats_masts.ps1'
+  # Keep JMRI-root tables.xml in sync if present (some launches use it)
+  ssh_win 'if exist %USERPROFILE%\JMRI\tables.xml copy /Y %USERPROFILE%\hart\tables.xml %USERPROFILE%\JMRI\tables.xml'
+  echo "Windows deploy done."
+fi
+
+echo "DONE"

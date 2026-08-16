@@ -14,6 +14,7 @@ install_into() {
   mkdir -p "$dest"
   cp -f "$SRC"/aspects.xml "$SRC"/appearance-cats-virtual.xml \
     "$SRC"/appearance-cats-virtual-2.xml "$SRC"/appearance-cats-virtual-3.xml \
+    "$SRC"/appearance-cats-virtual-dwarf.xml \
     "$SRC"/index.shtml "$dest/"
   echo "Installed CATS Virtual signals -> $dest"
 }

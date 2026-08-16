@@ -549,7 +549,7 @@
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <mqttsignalmast class="jmri.jmrix.mqtt.configurexml.MqttSignalMastXml">
-      <systemName>IF$mqm:AAR-1946:SL-1-high-abs($464)</systemName>
+      <systemName>IF$mqm:AAR-1946:SL-1-high-abs($432)</systemName>
       <userName>Brick East Main West</userName>
       <unlit allowed="no" />
       <disabledAspects>

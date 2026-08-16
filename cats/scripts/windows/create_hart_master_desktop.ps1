@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
-# Desktop shortcuts only: CATS CTC / CATS ABS / CATS ABS-RO
+# Desktop shortcuts: CATS CTC / CATS ABS / CATS ABS-RO
 # Panels: HART_Master.xml (CTC), HART_Master_ABS.xml, HART_Master_ABS_hold.xml
-# Prefer Dropbox pack so sync updates apply immediately.
+# Prefer local %USERPROFILE%\hart (deployed via SSH sync_hart_package.sh --win).
 $Work = $PSScriptRoot
 $Desktop = [Environment]::GetFolderPath('Desktop')
 $PanelDir = Join-Path $env:USERPROFILE 'hart\cats\panels'
@@ -93,19 +93,19 @@ $shortcuts = @(
 )
 
 foreach ($s in $shortcuts) {
-  $batDropbox = Join-Path $Work $s.Bat
-  if (-not (Test-Path $batDropbox)) { throw "Missing $batDropbox" }
+  $batLocal = Join-Path $Work $s.Bat
+  if (-not (Test-Path $batLocal)) { throw "Missing $batLocal" }
 
   $lnkPath = Join-Path $Desktop ($s.Name + '.lnk')
   if (Test-Path $lnkPath) { Remove-Item $lnkPath -Force }
   $Sc = $Wsh.CreateShortcut($lnkPath)
-  $Sc.TargetPath = $batDropbox
+  $Sc.TargetPath = $batLocal
   $Sc.WorkingDirectory = $Work
   $Sc.WindowStyle = 1
   $Sc.Description = $s.Desc
   if (Test-Path $iconDst) { $Sc.IconLocation = "$iconDst,0" }
   $Sc.Save()
-  Write-Host ("Desktop: {0} -> {1}" -f $lnkPath, $batDropbox)
+  Write-Host ("Desktop: {0} -> {1}" -f $lnkPath, $batLocal)
 }
 
 Write-Host 'DONE - Desktop has CATS CTC, CATS ABS, CATS ABS-RO only'

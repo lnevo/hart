@@ -1,7 +1,7 @@
 cp,direction,protects_switch,panel_x,panel_y,edge,sigorient,proposed_mast_name,heads,phase,mqtt_node,parent_node_id,packed_ids,port_ids,mast_system_name,jmri_binding
-Brick,left,,4,3,LEFT,RIGHT,Brick West Yard 1,1,west-yard-sheet,4,C4,436,C4-OU2-5,IF$shsm:cats-masts:cats-virtual(IH436),virtual-heads+shsm
-Brick,left,,4,4,LEFT,RIGHT,Brick West Yard 2,1,west-yard-sheet,4,C4,437,C4-OU2-6,IF$shsm:cats-masts:cats-virtual(IH437),virtual-heads+shsm
-Brick,right,,8,3,RIGHT,LEFT,Brick East Main West,2,west-yard-sheet,4,C4,464,,IF$mqm:AAR-1946:SL-1-high-abs($464),mqtt-mast
+Brick,left,,4,3,LEFT,RIGHT,Brick West Yard 1,1,west-yard-sheet,4,C4,436,C4-OU2-5,IF$shsm:cats-masts:cats-virtual-dwarf(IH436),virtual-heads+shsm
+Brick,left,,4,4,LEFT,RIGHT,Brick West Yard 2,1,west-yard-sheet,4,C4,437,C4-OU2-6,IF$shsm:cats-masts:cats-virtual-dwarf(IH437),virtual-heads+shsm
+Brick,right,,8,3,RIGHT,LEFT,Brick East Main West,2,west-yard-sheet,4,C4,432,,IF$mqm:AAR-1946:SL-2-high-abs($432),mqtt-mast
 Princess,right,,43,5,RIGHT,LEFT,Princess North McKees Rocks,3,west-yard-sheet,1,D1,132 133 134,D1-OU2-1 D1-OU2-2 D1-OU2-3,IF$shsm:cats-masts:cats-virtual-3(IH132)(IH133)(IH134),virtual-heads+shsm
 East End,left,,28,6,LEFT,RIGHT,East End West Main West,2,west-yard-sheet,12,C7,1232 1233,C7-OU2-1 C7-OU2-2,IF$shsm:cats-masts:cats-virtual-2(IH1232)(IH1233),virtual-heads+shsm
 East End,right,,30,6,RIGHT,LEFT,East End East OS 111a,2,west-yard-sheet,12,C7,1234 1235,C7-OU2-3 C7-OU2-4,IF$shsm:cats-masts:cats-virtual-2(IH1234)(IH1235),virtual-heads+shsm
@@ -12,7 +12,7 @@ West Yard,right,,14,7,RIGHT,LEFT,West Yard East Yard T6,1,west-yard-sheet,13,C1,
 East End,left,,28,7,LEFT,RIGHT,East End West Yard Track 1,1,west-yard-sheet,12,C7,1236,C7-OU2-5,IF$shsm:cats-masts:cats-virtual(IH1236),virtual-heads+shsm
 East End,right,,34,7,RIGHT,LEFT,East End East Lead,2,west-yard-sheet,12,C7,1237 1238,C7-OU2-6 C7-OU3-1,IF$shsm:cats-masts:cats-virtual-2(IH1237)(IH1238),virtual-heads+shsm
 Princess,left,,37,7,LEFT,RIGHT,Princess West OS 113a,2,west-yard-sheet,1,D1,137 138,D1-OU2-6 D1-OU2-7,IF$shsm:cats-masts:cats-virtual-2(IH137)(IH138),virtual-heads+shsm
-East End,bottom,,31,7,BOTTOM,RIGHT,East End South OS 110,1,west-yard-sheet,12,C7,1239,C7-OU3-2,IF$shsm:cats-masts:cats-virtual(IH1239),virtual-heads+shsm
+East End,bottom,,31,7,BOTTOM,RIGHT,East End South OS 110,1,west-yard-sheet,12,C7,1239,C7-OU3-2,IF$shsm:cats-masts:cats-virtual-dwarf(IH1239),virtual-heads+shsm
 Plane,right,,9,8,RIGHT,LEFT,Plane East East Main Ext,2,west-yard-sheet,4,C4,432 433,C4-OU2-1 C4-OU2-2,IF$shsm:cats-masts:cats-virtual-2(IH432)(IH433),virtual-heads+shsm
 West Yard,left,,12,8,LEFT,RIGHT,West Yard West East Main Ext,2,west-yard-sheet,13,C1,1335 1336,C1-OU2-4 C1-OU2-5,IF$shsm:cats-masts:cats-virtual-2(IH1335)(IH1336),virtual-heads+shsm
 West Yard,right,,14,8,RIGHT,LEFT,West Yard East OS 117b,2,west-yard-sheet,13,C1,1337 1338,C1-OU2-6 C1-OU3-1,IF$shsm:cats-masts:cats-virtual-2(IH1337)(IH1338),virtual-heads+shsm

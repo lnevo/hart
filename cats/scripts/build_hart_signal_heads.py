@@ -2,7 +2,7 @@
 """Build HART Digicon→JMRI virtual signal heads (LCOS packed MQTT numbers).
 
 Allocation (MQTT display node = radio addr octal-digits-as-decimal):
-  node 4  — Brick W-1/W-2 + both Plane faces (leave Brick East Main West / 464 alone)
+  node 4  — Brick W-1/W-2 + both Plane faces (leave Brick East Main West / 432 alone)
   node 13 — Barn / West Yard 117–117b  (radio 013 → display 13)
   node 12 — East End                 (radio 012 → display 12)
   node 1  — Princess                 (radio 1   → display 1)
@@ -11,7 +11,7 @@ Each physical lamp = one LCOS signal UID (32+index) → packed = node*100 + uid.
 Writes:
   cats/data/signal_wiring.csv
   cats/data/signal_head_plan.csv
-  patches tables/new_tables.xml + hart output tables/hart_prod/pi_tables
+  patches tables/new_tables.xml + hart output tables/hart_prod
   regenerates cats-virtual-3 appearance + aspects.xml appearancefiles
 """
 
@@ -58,6 +58,15 @@ ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
 
 # Appearance map name inside cats-masts (must match appearance-*.xml file stem suffix)
 APPEAR = {1: "cats-virtual", 2: "cats-virtual-2", 3: "cats-virtual-3"}
+
+# Single-head masts that use SL-1-low LE icons (Digicon still PHYSIGNAL=single)
+DWARF_MASTS = frozenset(
+    {
+        "Brick West Yard 1",
+        "Brick West Yard 2",
+        "East End South OS 110",
+    }
+)
 
 # DNOU8 Parent Node ID + board for each MQTT display node (LCOS inventory v48).
 # mqtt 13 ← RF24/LCOS 11 (%o → "13"); hardware Parent Node C1 (Helix Lower).
@@ -107,7 +116,11 @@ def build_rows() -> list[dict]:
                     "mast_user_name": mast,
                     "head_role": role or "S",
                     "heads": nheads,
-                    "appearance": APPEAR[nheads],
+                    "appearance": (
+                        "cats-virtual-dwarf"
+                        if mast in DWARF_MASTS and nheads == 1
+                        else APPEAR[nheads]
+                    ),
                     "physignal": lamp,
                     "port_id": ports[idx],
                     "topic": f"track/signalhead/IH{pid}",
@@ -223,9 +236,9 @@ def write_csvs(rows: list[dict]) -> None:
                     **row,
                     "mqtt_node": "4",
                     "parent_node_id": "C4",
-                    "packed_ids": "464",
+                    "packed_ids": "432",
                     "port_ids": "",
-                    "mast_system_name": "IF$mqm:AAR-1946:SL-1-high-abs($464)",
+                    "mast_system_name": "IF$mqm:AAR-1946:SL-1-high-abs($432)",
                     "jmri_binding": "mqtt-mast",
                 }
             elif name in by_name:
@@ -418,7 +431,14 @@ def write_cats_virtual_3() -> None:
             '    <appearancefile href="appearance-cats-virtual-3.xml" />\n'
             "  </appearancefiles>",
         )
-        aspects.write_text(at)
+    if "appearance-cats-virtual-dwarf.xml" not in at:
+        at = at.replace(
+            '    <appearancefile href="appearance-cats-virtual-3.xml" />\n  </appearancefiles>',
+            '    <appearancefile href="appearance-cats-virtual-3.xml" />\n'
+            '    <appearancefile href="appearance-cats-virtual-dwarf.xml" />\n'
+            "  </appearancefiles>",
+        )
+    aspects.write_text(at)
     print("wrote appearance-cats-virtual-3.xml; updated aspects + cats-virtual name")
 
 
@@ -445,7 +465,7 @@ def _masts_xml(rows: list[dict]) -> str:
     parts = [
         '  <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">',
         '    <mqttsignalmast class="jmri.jmrix.mqtt.configurexml.MqttSignalMastXml">',
-        "      <systemName>IF$mqm:AAR-1946:SL-1-high-abs($464)</systemName>",
+        "      <systemName>IF$mqm:AAR-1946:SL-1-high-abs($432)</systemName>",
         "      <userName>Brick East Main West</userName>",
         '      <unlit allowed="no" />',
         "      <disabledAspects>",
@@ -478,7 +498,6 @@ def patch_tables(rows: list[dict]) -> None:
     files = [
         ROOT / "tables/new_tables.xml",
         ROOT / "jmri/layouts/hart/output/tables.xml",
-        ROOT / "jmri/layouts/hart/output/pi_tables.xml",
         ROOT / "jmri/layouts/hart/output/hart_prod.xml",
     ]
     # Match from <signalheads ...> through </signalmasts>
@@ -492,13 +511,8 @@ def patch_tables(rows: list[dict]) -> None:
         if not pat.search(text):
             print(f"SKIP (no signalheads/masts block): {path}", file=sys.stderr)
             continue
-        # Also strip any Plane East LE icon if reintroduced
-        text2 = re.sub(
-            r"\n\s*<signalmasticon signalmast=\"Plane East East Main Ext\"[^/]*/>\s*",
-            "\n",
-            text,
-        )
-        text2, n = pat.subn(block, text2, count=1)
+        # Preserve Layout Editor signalmasticons (see add_digicon_le_signal_icons.py).
+        text2, n = pat.subn(block, text, count=1)
         path.write_text(text2)
         print(f"patched {path.relative_to(ROOT)} (masts block replaced, n={n})")
 
@@ -520,7 +534,7 @@ def write_publisher(rows: list[dict]) -> None:
 # JMRI → MQTT so LCOS / field see Digicon-driven aspects.
 #
 # Do not publish the retain-paint pass — that would echo defaults and stomp SoR.
-# Brick East Main West (MQTT mast 464) is handled by JMRI's MQTT mast adapter.
+# Brick East Main West (MQTT mast 432) is handled by JMRI's MQTT mast adapter.
 # Generated by cats/scripts/build_hart_signal_heads.py — see cats/data/signal_wiring.csv.
 
 import os

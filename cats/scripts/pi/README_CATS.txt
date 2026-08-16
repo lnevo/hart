@@ -29,9 +29,23 @@ JMRI tables (routes, internal turnouts, etc.):
   Startup loads preference:tables.xml
   On this Pi, preference: → /home/pi/JMRI_UserFiles/  (NOT the profile folder)
   Live file: /home/pi/JMRI_UserFiles/tables.xml
-  Repo mirror: jmri/layouts/hart/output/pi_tables.xml
+  Repo mirror: jmri/layouts/hart/output/tables.xml
   Yard-ladder buttons need IO:AUTO:0201–0210 + IT:HART:YL:* in that file.
   Do not patch only ~/.jmri/TCS_MQTT.jmri/tables.xml — CATS will ignore it.
+
+JMRI web home (STS link):
+  SoR: cats/resources/jmri-web/  (Home.html + sts.html)
+  Live: /home/pi/JMRI_UserFiles/web/servlet/home/Home.html
+  STS = Shipper-driven Traffic Simulator → http://10.0.0.53:8980/sts/
+  Install/refresh: /home/pi/hart/cats/scripts/install_jmri_web_override.sh
+  Full pack sync from Mac (SSH): ./cats/scripts/sync_hart_package.sh --pi
+  Windows: ./cats/scripts/sync_hart_package.sh --win  (SSH :2222; do not use Dropbox)
+
+JMRI Start Up scripts (profile PerformScript):
+  /home/pi/hart/jmri/layouts/hart/scripts/apply_maintain_mqtt.py
+  /home/pi/hart/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py
+  /home/pi/hart/jmri/scripts/mqtt_signalhead_publisher.py
+  (refreshed by sync_hart_package.sh --pi)
 
 Do NOT run PanelPro and CATS at the same time on this profile.
 Use one Digicon as signal authority (CATS or CATS ABS).

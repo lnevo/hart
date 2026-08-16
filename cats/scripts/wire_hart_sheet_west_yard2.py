@@ -419,10 +419,10 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (4, 3, "LEFT"): ("Brick West Yard 1", "LAMP1", "LOWLEFT", "RIGHT"),
     (4, 4, "LEFT"): ("Brick West Yard 2", "LAMP1", "LOWLEFT", "RIGHT"),
     # Hidden westbound stub stops on mid-spur cuts (no PANELSIGNAL). Digicon-only;
-    # Stay Stop → westbound Brick East Main West (464) drops to Approach / yellow.
+    # Stay Stop → westbound Brick East Main West (432) drops to Approach / yellow.
     (3, 3, "RIGHT"): ("Brick W-1 West Stub", "HIDDEN", "", "LEFT"),
     (3, 4, "RIGHT"): ("Brick W-2 West Stub", "HIDDEN", "", "LEFT"),
-    # Brick main — JMRI MQTT mast 464 (Brick East Main West); Digicon 2-lamp, lower off for now
+    # Brick main — JMRI MQTT mast 432 SL-2 (Brick East Main West); Digicon dual-lamp + aar remap
     (8, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWLEFT", "LEFT", "aar-single"),
     (43, 5, "RIGHT"): ("Princess North McKees Rocks", "LAMP3", "LOWLEFT", "LEFT"),
     (28, 6, "LEFT"): ("East End West Main West", "LAMP2", "LOWLEFT", "RIGHT"),
@@ -446,7 +446,7 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
 
 _PANTYPE_PHYS = {"LAMP1": "single", "LAMP2": "double", "LAMP3": "triple", "HIDDEN": "single"}
 
-# Digicon AppearanceKey → AAR Clear/Approach/Stop for MQTT mast 464 (Brick East Main West).
+# Digicon AppearanceKey → AAR Clear/Approach/Stop for MQTT mast 432 (Brick East Main West).
 # Must stay in every wired sheet — missing template + PHYSIGNAL=aar-single NPEs CATS panel load.
 _AAR_SINGLE_ATTRS = {
     "TEMPLATEKIND": "Lamp",
@@ -484,14 +484,14 @@ _AAR_SINGLE_ATTRS = {
     "R292": "Stop",
 }
 _AAR_SINGLE_ASPECTMAP = (
-    'R281="green|off" R281B="green|off" R282="green|off" R284="green|off" '
-    'RES_NORM="yellow|off" ADV_NORM="green|off" R285="yellow|off" R281C="green|off" '
-    'C412="green|off" C413="green|off" C414="green|off" RES_LIM="yellow|off" '
-    'ADV_LIM="green|off" R281D="yellow|off" R283="green|off" C417="green|off" '
-    'R283A="green|off" R283B="green|off" RES_MED="yellow|off" ADV_MED="green|off" '
-    'R286="yellow|off" R287="green|off" C422="green|off" C423="green|off" '
-    'C424="green|off" RES_SLO="yellow|off" ADV_SLO="green|off" R288="yellow|off" '
-    'R292="red|off" R291="red|off"'
+    'R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" '
+    'RES_NORM="yellow|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" '
+    'C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="yellow|red" '
+    'ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" '
+    'R283A="red|green" R283B="red|green" RES_MED="yellow|red" ADV_MED="red|green" '
+    'R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" '
+    'C424="red|green" RES_SLO="yellow|red" ADV_SLO="red|green" R288="red|yellow" '
+    'R292="red|red" R291="red|red"'
 )
 
 

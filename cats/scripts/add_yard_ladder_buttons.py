@@ -29,8 +29,7 @@ DEFAULT_PANEL = ROOT / "cats/panels/HART_Master_ABS.xml"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 NEW_TABLES = ROOT / "tables/new_tables.xml"
 # Pi live load is preference:tables.xml → /home/pi/JMRI_UserFiles/tables.xml
-# (preference: is NOT the profile dir on the Pi). Keep the repo mirror in sync:
-PI_TABLES = ROOT / "jmri/layouts/hart/output/pi_tables.xml"
+# (preference: is NOT the profile dir on the Pi). Deploy TABLES there.
 BTN_DIR = ROOT / "cats/resources/buttons"
 # Lamp-only icons on a ~grid-cell canvas (placement = where the disc sits).
 LAMP_LEFT_IDLE = BTN_DIR / "lamp_left_idle.png"
@@ -527,7 +526,6 @@ def main() -> None:
     if not args.skip_tables:
         apply_tables(TABLES)
         apply_tables(NEW_TABLES)
-        apply_tables(PI_TABLES)
     panels = args.panel if args.panel else [DEFAULT_PANEL]
     for panel in panels:
         apply_panel(panel.resolve())
