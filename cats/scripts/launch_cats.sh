@@ -20,9 +20,12 @@
 #   CATS_LAUNCH_LOG=/tmp/cats.log ./cats/scripts/launch_cats.sh
 #   CATS_LAUNCH_LOG= ./cats/scripts/launch_cats.sh   # disable
 #
-# Do not use sudo. CATS starts its own JMRI — do not launch while PanelPro /
-# another CATS/JMRI is already running (MQTT client-id + profile collide).
-# Override only if you know what you are doing: CATS_FORCE_LAUNCH=1
+# Do not use sudo. CATS starts its own JMRI and loads the profile Start Up
+# (tables.xml, then scripts) — same beans PanelPro edits. Launch PanelPro
+# alone to change/store JMRI tables; quit it before CATS. Never Store tables
+# while a CATS layout is open (Rodney Black / cats-users). Do not run both
+# on the same profile (MQTT client-id collide).
+# Emergency only: CATS_FORCE_LAUNCH=1
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
@@ -51,13 +54,14 @@ fi
 PANEL="$(cd "$(dirname "$PANEL")" && pwd)/$(basename "$PANEL")"
 
 jmri_already_running() {
-  # Local JMRI/CATS only (java main classes). Does not probe remote layout JMRI.
-  pgrep -f 'cats\.apps\.Crandic|apps\.PanelPro|jmri\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro' >/dev/null 2>&1
+  # Local JMRI/CATS JVM only (not this script / ssh / grep).
+  pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1
 }
 if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && jmri_already_running; then
   echo "Refusing to launch CATS: JMRI/PanelPro/CATS is already running locally." >&2
-  echo "Quit that instance first, then relaunch — or set CATS_FORCE_LAUNCH=1." >&2
-  pgrep -lf 'cats\.apps\.Crandic|apps\.PanelPro|jmri\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro' 2>/dev/null | head -5 >&2 || true
+  echo "Quit PanelPro first (use it only to edit/store JMRI tables), then relaunch CATS." >&2
+  echo "Do not run both at once. Emergency override: CATS_FORCE_LAUNCH=1" >&2
+  pgrep -lf 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' 2>/dev/null | head -5 >&2 || true
   exit 1
 fi
 
@@ -80,7 +84,7 @@ echo "JAVA_HOME=$JAVA_HOME"
 echo "Starting CATS from $JMRI_HOME"
 echo "JMRI profile: $JMRI_PROFILE"
 echo "Auto-open Digicon: $PANEL"
-echo "Quit any existing PanelPro first if it uses the same profile."
+echo "Quit PanelPro first if it is using this profile (tables load via Start Up)."
 
 resolve_via() {
   # Default / auto → direct cats.csh only. Never auto-pick PanelPro.app.

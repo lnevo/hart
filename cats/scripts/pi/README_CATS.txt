@@ -9,7 +9,13 @@ Installed:
   /home/pi/hart/cats/panels/HART_Master_ABS.xml        <-- ABS / open house
   /home/pi/hart/cats/panels/HART_Master_ABS_hold.xml   <-- ABS-RO (signals hold; turnouts on)
 
-Launch (after quitting PanelPro):
+PanelPro vs CATS (same profile TCS_MQTT — sequential, never both):
+  PanelPro  — edit/store JMRI tables, MQTT, Start Up. Then quit.
+  CATS      — loads preference:tables.xml from the profile, then the Digicon XML.
+  Never Store tables while CATS has a layout open (Rodney Black / cats-users).
+  Desktop CATS icons refuse to start if PanelPro is still running.
+
+Launch CATS (after quitting PanelPro):
   /home/pi/hart/launch_cats.sh
   # default panel = HART_Master.xml
 
@@ -48,6 +54,11 @@ JMRI Start Up scripts (profile PerformScript):
   (refreshed by sync_hart_package.sh --pi)
 
 Do NOT run PanelPro and CATS at the same time on this profile.
+PanelPro AutoIdentify desktop icon launches PanelPro by itself (not autostarted at login).
+
+Blank Swing windows (tables, System Console, WiThrottle, analog clock) on labwc:
+  Java needs _JAVA_AWT_WM_NONREPARENTING=1 (set in launchers + ~/.config/labwc/environment).
+  Layout Editor can still paint without it because it redraws on a timer.
 Use one Digicon as signal authority (CATS or CATS ABS).
 CATS ABS-RO still throws turnouts / shows occupancy; signals are HOLD_ONLY
 (paints from MQTT — does not drive Clear/Approach/Stop).

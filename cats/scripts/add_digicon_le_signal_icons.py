@@ -55,6 +55,10 @@ PLACEMENTS: list[tuple[str, int, int, int]] = [
     ("Princess West OS 113b", 1465, 228, 90),
     ("Princess West OS 113a", 1465, 322, 90),
     ("Princess South McKeesport", 1620, 348, 270),
+    ("Princess East McKeesport", 1855, 205, 0),
+    ("Princess East McKees Rocks", 1855, 345, 180),
+    ("Princess East K-1", 1685, 228, 270),
+    ("Princess East K-2", 1685, 322, 270),
 ]
 
 ICON_ATTRS = (

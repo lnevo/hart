@@ -17,7 +17,7 @@ HART has a Layout Editor panel (`hart_prod.xml`) with MQTT occupancy and turnout
 4. **Redraw** the railroad in CATS **Designer** under `cats/panels/`; bind the **same JMRI names** (`OS 100 (Brick)`, `M2T408` / Switch 100, occupancy `Block 4-2`, …).
 5. **First live plant: Brick** (OS 100 / OS 101), then Plane → east.
 6. NextTrain and LE click-to-throw stay **view / local** during CATS CTC sessions (do not dual-command).
-7. **Do not save** CATS-created SignalHead/Mast objects into JMRI tables (load-crash risk per Designer manual).
+7. **Do not save** CATS-created SignalHead/Mast objects into JMRI tables (load-crash risk per Designer manual / Rodney Black: never Store JMRI tables while a CATS layout is open). Edit tables in **PanelPro only**; CATS loads the same `tables.xml` via profile Start Up.
 
 ## Consequences
 

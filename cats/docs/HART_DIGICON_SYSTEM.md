@@ -28,7 +28,7 @@ Three Digicon “Master” panels for Neville Island ops, plus JMRI tables / scr
 | **CATS ABS** | `cats/panels/HART_Master_ABS.xml` | Open-house ABS — Digicon still drives aspects from plant/occupancy |
 | **CATS ABS-RO** | `cats/panels/HART_Master_ABS_hold.xml` | Spectator / second screen — turnouts + occupancy on; signals `HOLD_ONLY` (paint from MQTT) |
 
-Panels live at **`cats/panels/`** (not under `sheets/`). Sheet WIP and older experiments stay in `cats/panels/sheets/`. Checkpoints: `cats/panels/checkpoints/`.
+Panels live at **`cats/panels/`** (not under `sheets/`). **`HART_Master.xml`** is the source of record; checkpoint **Masters only** (`cats/panels/checkpoints/`). Sheet WIP (`cats/panels/sheets/`, including West Yard2) is legacy — do not snapshot it.
 
 Each Master carries a publication title row (Y=1):
 
@@ -76,7 +76,11 @@ python3 cats/scripts/polish_hart_master_header.py --panel all
 2. `jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py` — yard-ladder lamp buttons ↔ internal turnouts.
 3. `jmri/scripts/mqtt_signalhead_publisher.py` — paint Virtual heads from `track/signalhead/#` retain, then **listen** and **publish** Appearance changes JMRI → MQTT for LCOS.
 
-Do **not** run PanelPro and CATS on the same profile at once. Only **one** Digicon should be signal authority (CTC or ABS). ABS-RO is for listening / turnout help.
+**PanelPro vs CATS (same profile, sequential — never simultaneous):**
+
+- **PanelPro** — edit/store JMRI tables, connections, Start Up. Then quit. Never Store tables while a CATS layout is open (Rodney Black, cats-users #2534).
+- **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them.
+- Do **not** run both at once (MQTT client-id + profile lock). Only **one** Digicon should be signal authority (CTC or ABS). ABS-RO is for listening / turnout help.
 
 ---
 
@@ -155,13 +159,13 @@ Payload = appearance name      # Red / Yellow / Green / Dark / …
 | Plane + W-1 / W-2 | **4** | C4 | `IH432`–`IH437` | C4-OU2-1 … OU2-6 |
 | Barn / West Yard 117 | **13** (`013`) | C1 | `IH1332`–`IH1338` | C1-OU2-1 … OU3-1 |
 | East End | **12** (`012`) | C7 | `IH1232`–`IH1241` | C7-OU2-1 … OU3-4 |
-| Princess | **1** | D1 | `IH132`–`IH141` | D1-OU2-1 … OU3-2 |
+| Princess | **1** | D1 | `IH132`–`IH143` | D1-OU2-1 … OU3-4 |
 
 Head roles on multi-head masts: **T** top, **M** middle, **B** bottom, **S** single.
 
 Appearances for SHSM:
 
-- 1 head → `cats-virtual`
+- 1 head → `cats-virtual-dwarf` (SL-1-low LE icons)
 - 2 heads → `cats-virtual-2`
 - 3 heads → `cats-virtual-3`
 
@@ -183,8 +187,12 @@ Examples:
 | Brick West Yard 1 / 2 | 1 | `IH436` / `IH437` | LCOS C4 |
 | West Yard West OS 117 | 2 | `IH1332`/`IH1333` | LCOS C1 |
 | East End East Lead | 2 | `IH1237`/`IH1238` | LCOS C7 |
-| Princess North McKees Rocks | 3 | `IH132`–`IH134` | LCOS D1 |
-| Princess South McKeesport | 3 | `IH139`–`IH141` | LCOS D1 |
+| Princess North McKees Rocks | 2 | `…cats-virtual-2(IH132)(IH133)` | LCOS D1 |
+| Princess East McKeesport | 1 | `IH134` | LCOS D1 (was North middle) |
+| Princess West OS 113b / 113a | 2 | `IH135`–`IH138` | LCOS D1 |
+| Princess South McKeesport | 2 | `IH139`/`IH140` | LCOS D1 |
+| Princess East McKees Rocks | 1 | `IH141` | LCOS D1 (was South bottom) |
+| Princess East K-1 / K-2 | 1 | `IH142` / `IH143` | LCOS D1 dwarfs |
 
 ### JMRI ↔ MQTT for Virtual heads
 

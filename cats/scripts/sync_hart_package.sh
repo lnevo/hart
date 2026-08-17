@@ -74,6 +74,29 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/cats/scripts/install_jmri_web_override.sh" \
     "$REWRITE" \
     "$PI_HOST:/home/pi/hart/cats/scripts/"
+  # Launchers: CATS and PanelPro are sequential (no CATS_FORCE_LAUNCH).
+  scp -o BatchMode=yes \
+    "$ROOT/cats/scripts/pi/launch_cats.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master_abs.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master_abs_hold.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master_desktop.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master_abs_desktop.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master_abs_hold_desktop.sh" \
+    "$ROOT/cats/scripts/pi/launch_cats_desktop.sh" \
+    "$ROOT/cats/scripts/pi/JMRI_CATS" \
+    "$ROOT/cats/scripts/pi/README_CATS.txt" \
+    "$PI_HOST:/home/pi/hart/"
+  ssh -o BatchMode=yes "$PI_HOST" 'chmod +x \
+    /home/pi/hart/launch_cats.sh \
+    /home/pi/hart/launch_cats_desktop.sh \
+    /home/pi/hart/JMRI_CATS \
+    /home/pi/hart/launch_hart_master.sh \
+    /home/pi/hart/launch_hart_master_abs.sh \
+    /home/pi/hart/launch_hart_master_abs_hold.sh \
+    /home/pi/hart/launch_hart_master_desktop.sh \
+    /home/pi/hart/launch_hart_master_abs_desktop.sh \
+    /home/pi/hart/launch_hart_master_abs_hold_desktop.sh'
   scp -o BatchMode=yes \
     "$ROOT/jmri/layouts/hart/scripts/apply_maintain_mqtt.py" \
     "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \

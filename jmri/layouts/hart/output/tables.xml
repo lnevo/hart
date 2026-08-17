@@ -396,17 +396,7 @@
     <sensor inverted="false">
       <systemName>ISCLOCKRUNNING</systemName>
     </sensor>
-    <sensor inverted="false">
-      <systemName>ISIS196</systemName>
-      <userName>TO_CO34946 FB_N</userName>
-      <comment>TO_CO34946 Closed</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>ISIS197</systemName>
-      <userName>TO_CO34946 FB_R</userName>
-      <comment>TO_CO34946 Thrown</comment>
-    </sensor>
-  </sensors>
+</sensors>
   <turnouts class="jmri.jmrix.mqtt.configurexml.MqttTurnoutManagerXml">
     <operations automate="false">
       <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
@@ -504,15 +494,7 @@
     </operations>
     <defaultclosedspeed>Normal</defaultclosedspeed>
     <defaultthrownspeed>Restricted</defaultthrownspeed>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 1-1 FB R" sensor2="Switch 1-1 FB N" inverted="false" automate="Off">
-      <systemName>IT1</systemName>
-      <userName>TOL35287</userName>
-    </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-5 FB R" sensor2="Switch 12-5 FB N" inverted="false" automate="Off">
-      <systemName>IT36</systemName>
-      <userName>TOR35284</userName>
-    </turnout>
-  <turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L1</systemName><userName>Yard ladder L S-1</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L2</systemName><userName>Yard ladder L S-2</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L3</systemName><userName>Yard ladder L S-3</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L4</systemName><userName>Yard ladder L S-4</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L5</systemName><userName>Yard ladder L S-5</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R1</systemName><userName>Yard ladder R S-1</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R2</systemName><userName>Yard ladder R S-2</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R3</systemName><userName>Yard ladder R S-3</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R4</systemName><userName>Yard ladder R S-4</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R5</systemName><userName>Yard ladder R S-5</userName></turnout></turnouts>
+<turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L1</systemName><userName>Yard ladder L S-1</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L2</systemName><userName>Yard ladder L S-2</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L3</systemName><userName>Yard ladder L S-3</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L4</systemName><userName>Yard ladder L S-4</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:L5</systemName><userName>Yard ladder L S-5</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R1</systemName><userName>Yard ladder R S-1</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R2</systemName><userName>Yard ladder R S-2</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R3</systemName><userName>Yard ladder R S-3</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R4</systemName><userName>Yard ladder R S-4</userName></turnout><turnout feedback="DIRECT" inverted="false" automate="Off"><systemName>IT:HART:YL:R5</systemName><userName>Yard ladder R S-5</userName></turnout></turnouts>
   <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
     <operations automate="false">
       <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
@@ -569,17 +551,7 @@
     </memory>
   </memories>
   <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">
-    <signalhead class="jmri.implementation.configurexml.TripleTurnoutSignalHeadXml">
-      <systemName>LH464</systemName>
-      <userName>Brick East Main West Lamps</userName>
-      <turnoutname defines="red">M2T452</turnoutname>
-      <turnoutname defines="yellow">M2T453</turnoutname>
-      <turnoutname defines="green">M2T454</turnoutname>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH410</systemName>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+<signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>Plane East East Main Ext Top</userName>
     </signalhead>
@@ -677,11 +649,11 @@
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH133</systemName>
-      <userName>Princess North McKees Rocks Middle</userName>
+      <userName>Princess North McKees Rocks Bottom</userName>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
-      <userName>Princess North McKees Rocks Bottom</userName>
+      <userName>Princess East McKeesport</userName>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
@@ -705,11 +677,19 @@
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH140</systemName>
-      <userName>Princess South McKeesport Middle</userName>
+      <userName>Princess South McKeesport Bottom</userName>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
-      <userName>Princess South McKeesport Bottom</userName>
+      <userName>Princess East McKees Rocks</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH142</systemName>
+      <userName>Princess East K-1</userName>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH143</systemName>
+      <userName>Princess East K-2</userName>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -747,7 +727,7 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:cats-masts:cats-virtual(IH1334)</systemName>
+      <systemName>IF$shsm:cats-masts:cats-virtual-dwarf(IH1334)</systemName>
       <userName>West Yard East Yard T6</userName>
       <unlit allowed="no" />
     </signalmast>
@@ -772,7 +752,7 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:cats-masts:cats-virtual(IH1236)</systemName>
+      <systemName>IF$shsm:cats-masts:cats-virtual-dwarf(IH1236)</systemName>
       <userName>East End West Yard Track 1</userName>
       <unlit allowed="no" />
     </signalmast>
@@ -792,8 +772,13 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:cats-masts:cats-virtual-3(IH132)(IH133)(IH134)</systemName>
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH132)(IH133)</systemName>
       <userName>Princess North McKees Rocks</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-dwarf(IH134)</systemName>
+      <userName>Princess East McKeesport</userName>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -807,8 +792,23 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:cats-masts:cats-virtual-3(IH139)(IH140)(IH141)</systemName>
+      <systemName>IF$shsm:cats-masts:cats-virtual-2(IH139)(IH140)</systemName>
       <userName>Princess South McKeesport</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-dwarf(IH141)</systemName>
+      <userName>Princess East McKees Rocks</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-dwarf(IH142)</systemName>
+      <userName>Princess East K-1</userName>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:cats-masts:cats-virtual-dwarf(IH143)</systemName>
+      <userName>Princess East K-2</userName>
       <unlit allowed="no" />
     </signalmast>
   </signalmasts>
@@ -1891,7 +1891,7 @@
       <id>0</id>
       <name>LogixNG thread</name>
     </Thread>
-    <LogixNG enabled="yes" inline="no">
+    <LogixNG enabled="no" inline="no">
       <systemName>IQ:AUTO:0001</systemName>
       <ConditionalNGs>
         <systemName>IQC:AUTO:0001</systemName>
@@ -1910,7 +1910,7 @@
     </Clipboard>
   </LogixNGs>
   <LogixNGConditionalNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultConditionalNGManagerXml">
-    <ConditionalNG enabled="yes">
+    <ConditionalNG enabled="no">
       <systemName>IQC:AUTO:0001</systemName>
       <thread>0</thread>
       <Socket>
@@ -1918,7 +1918,7 @@
         <systemName>IQDA:AUTO:0001</systemName>
       </Socket>
     </ConditionalNG>
-    <ConditionalNG enabled="yes">
+    <ConditionalNG enabled="no">
       <systemName>IQC:AUTO:0002</systemName>
       <thread>0</thread>
       <Socket>
@@ -1926,7 +1926,7 @@
         <systemName>IQDA:AUTO:0002</systemName>
       </Socket>
     </ConditionalNG>
-    <ConditionalNG enabled="yes">
+    <ConditionalNG enabled="no">
       <systemName>IQC:AUTO:0003</systemName>
       <thread>0</thread>
       <Socket>
@@ -1934,7 +1934,7 @@
         <systemName>IQDA:AUTO:0003</systemName>
       </Socket>
     </ConditionalNG>
-    <ConditionalNG enabled="yes">
+    <ConditionalNG enabled="no">
       <systemName>IQC:AUTO:0004</systemName>
       <thread>0</thread>
       <Socket>
@@ -1959,7 +1959,7 @@
       </hideOrShow>
       <maximizeMinimizeNormalize>
         <addressing>Direct</addressing>
-        <enum>Minimize</enum>
+        <enum>DoNothing</enum>
         <listenToMemory>no</listenToMemory>
       </maximizeMinimizeNormalize>
       <bringToFrontOrBack>
@@ -1989,7 +1989,7 @@
       </hideOrShow>
       <maximizeMinimizeNormalize>
         <addressing>Direct</addressing>
-        <enum>Minimize</enum>
+        <enum>DoNothing</enum>
         <listenToMemory>no</listenToMemory>
       </maximizeMinimizeNormalize>
       <bringToFrontOrBack>
@@ -2019,7 +2019,7 @@
       </hideOrShow>
       <maximizeMinimizeNormalize>
         <addressing>Direct</addressing>
-        <enum>Minimize</enum>
+        <enum>DoNothing</enum>
         <listenToMemory>no</listenToMemory>
       </maximizeMinimizeNormalize>
       <bringToFrontOrBack>
@@ -2049,7 +2049,7 @@
       </hideOrShow>
       <maximizeMinimizeNormalize>
         <addressing>Direct</addressing>
-        <enum>Minimize</enum>
+        <enum>DoNothing</enum>
         <listenToMemory>no</listenToMemory>
       </maximizeMinimizeNormalize>
       <bringToFrontOrBack>
@@ -2405,6 +2405,10 @@
 
 
 
+
+
+
+
     <signalmasticon signalmast="Brick East Main West" x="372" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
     <signalmasticon signalmast="Brick West Yard 1" x="170" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="Brick West Yard 2" x="170" y="298" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
@@ -2424,171 +2428,16 @@
     <signalmasticon signalmast="Princess West OS 113b" x="1465" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="Princess West OS 113a" x="1465" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="Princess South McKeesport" x="1620" y="348" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Princess East McKeesport" x="1855" y="205" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="0" />
+    <signalmasticon signalmast="Princess East McKees Rocks" x="1855" y="345" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="180" />
+    <signalmasticon signalmast="Princess East K-1" x="1685" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Princess East K-2" x="1685" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
 </LayoutEditor>
   <filehistory>
     <operation>
       <type>app</type>
-      <date>Fri Aug 07 12:31:32 EDT 2026</date>
-      <filename>PanelPro (v5.15.4)</filename>
-    </operation>
-    <operation>
-      <type>Load OK</type>
-      <date>Fri Aug 07 12:31:39 EDT 2026</date>
-      <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
-      <filehistory>
-        <operation>
-          <type>app</type>
-          <date>Tue Jun 30 22:18:42 EDT 2026</date>
-          <filename>PanelPro (v5.15.5)</filename>
-        </operation>
-        <operation>
-          <type>Load OK</type>
-          <date>Tue Jun 30 22:19:07 EDT 2026</date>
-          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear6/linear5_new.xml</filename>
-          <filehistory>
-            <operation>
-              <type>app</type>
-              <date>Mon Jun 29 22:15:06 EDT 2026</date>
-              <filename>PanelPro (v5.15.5)</filename>
-            </operation>
-            <operation>
-              <type>Load OK</type>
-              <date>Mon Jun 29 22:15:20 EDT 2026</date>
-              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear6/linear5_new.xml</filename>
-              <filehistory>
-                <operation>
-                  <type>app</type>
-                  <date>Mon Jun 29 21:00:39 EDT 2026</date>
-                  <filename>PanelPro (v5.15.5)</filename>
-                </operation>
-                <operation>
-                  <type>Load OK</type>
-                  <date>Mon Jun 29 21:01:00 EDT 2026</date>
-                  <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_prod.xml</filename>
-                  <filehistory>
-                    <operation>
-                      <type>app</type>
-                      <date>Sun Jun 07 00:32:46 EDT 2026</date>
-                      <filename>PanelPro (v5.15.4)</filename>
-                    </operation>
-                    <operation>
-                      <type>Load OK</type>
-                      <date>Sun Jun 07 00:35:48 EDT 2026</date>
-                      <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
-                      <filehistory>
-                        <operation>
-                          <type>app</type>
-                          <date>Sun Jun 07 00:27:35 EDT 2026</date>
-                          <filename>PanelPro (v5.15.4)</filename>
-                        </operation>
-                        <operation>
-                          <type>Store</type>
-                          <date>Sun Jun 07 00:29:34 EDT 2026</date>
-                          <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
-                        </operation>
-                      </filehistory>
-                    </operation>
-                    <operation>
-                      <type>Store</type>
-                      <date>Sun Jun 07 00:36:04 EDT 2026</date>
-                      <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
-                    </operation>
-                  </filehistory>
-                </operation>
-                <operation>
-                  <type>Store</type>
-                  <date>Mon Jun 29 21:17:30 EDT 2026</date>
-                  <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_new.xml</filename>
-                </operation>
-              </filehistory>
-            </operation>
-            <operation>
-              <type>Store</type>
-              <date>Mon Jun 29 22:21:05 EDT 2026</date>
-              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear6/linear5_new.xml</filename>
-            </operation>
-          </filehistory>
-        </operation>
-        <operation>
-          <type>Load OK</type>
-          <date>Tue Jun 30 22:24:22 EDT 2026</date>
-          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear6/linear5_new.xml</filename>
-          <filehistory>
-            <operation>
-              <type>app</type>
-              <date>Mon Jun 29 22:15:06 EDT 2026</date>
-              <filename>PanelPro (v5.15.5)</filename>
-            </operation>
-            <operation>
-              <type>Load OK</type>
-              <date>Mon Jun 29 22:15:20 EDT 2026</date>
-              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear6/linear5_new.xml</filename>
-              <filehistory>
-                <operation>
-                  <type>app</type>
-                  <date>Mon Jun 29 21:00:39 EDT 2026</date>
-                  <filename>PanelPro (v5.15.5)</filename>
-                </operation>
-                <operation>
-                  <type>Load OK</type>
-                  <date>Mon Jun 29 21:01:00 EDT 2026</date>
-                  <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_prod.xml</filename>
-                  <filehistory>
-                    <operation>
-                      <type>app</type>
-                      <date>Sun Jun 07 00:32:46 EDT 2026</date>
-                      <filename>PanelPro (v5.15.4)</filename>
-                    </operation>
-                    <operation>
-                      <type>Load OK</type>
-                      <date>Sun Jun 07 00:35:48 EDT 2026</date>
-                      <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
-                      <filehistory>
-                        <operation>
-                          <type>app</type>
-                          <date>Sun Jun 07 00:27:35 EDT 2026</date>
-                          <filename>PanelPro (v5.15.4)</filename>
-                        </operation>
-                        <operation>
-                          <type>Store</type>
-                          <date>Sun Jun 07 00:29:34 EDT 2026</date>
-                          <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
-                        </operation>
-                      </filehistory>
-                    </operation>
-                    <operation>
-                      <type>Store</type>
-                      <date>Sun Jun 07 00:36:04 EDT 2026</date>
-                      <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
-                    </operation>
-                  </filehistory>
-                </operation>
-                <operation>
-                  <type>Store</type>
-                  <date>Mon Jun 29 21:17:30 EDT 2026</date>
-                  <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear5/output/linear5_new.xml</filename>
-                </operation>
-              </filehistory>
-            </operation>
-            <operation>
-              <type>Store</type>
-              <date>Mon Jun 29 22:21:05 EDT 2026</date>
-              <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear6/linear5_new.xml</filename>
-            </operation>
-          </filehistory>
-        </operation>
-        <operation>
-          <type>Store</type>
-          <date>Tue Jun 30 23:02:38 EDT 2026</date>
-          <filename>/Users/lnevo/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/Panel/jmri/layouts/linear6/linear5_new.xml</filename>
-        </operation>
-      </filehistory>
-    </operation>
-    <operation>
-      <type>Store</type>
-      <date>Fri Aug 07 12:39:18 EDT 2026</date>
-      <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
+      <date>Sun Aug 16 11:24:00 EDT 2026</date>
+      <filename>PanelPro (v5.15.5)</filename>
     </operation>
   </filehistory>
-  
 </layout-config>

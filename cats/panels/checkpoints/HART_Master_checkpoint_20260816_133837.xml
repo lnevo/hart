@@ -173,14 +173,25 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="3" Y="3">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="W-1" FONT_NAME="FONT_LABEL" />
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="West Yard 1" STATION="W-1" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
@@ -387,14 +398,25 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="3" Y="4">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="W-2" FONT_NAME="FONT_LABEL" />
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="West Yard 2" STATION="W-2" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
@@ -1074,7 +1096,6 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Princess East K-1
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1093,12 +1114,13 @@
             <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
+        <SECSIGNAL>
+          Princess East K-1
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
-        <SECSIGNAL>
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="K-1" FONT_NAME="FONT_LABEL" />
     </SECTION>
@@ -1766,7 +1788,6 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Princess East K-2
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1785,12 +1806,13 @@
             <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
+        <SECSIGNAL>
+          Princess East K-2
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
-        <SECSIGNAL>
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="K-2" FONT_NAME="FONT_LABEL" />
     </SECTION>

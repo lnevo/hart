@@ -13,9 +13,9 @@ Panel lamps (`SECSIGNAL` / `PANELSIGNAL`) tip **into** the named BLOCK on that e
 
 | Type | Heads | Use |
 |------|-------|-----|
-| `LAMP1` / single | 1 | Yard / stub — Stop / Approach / Clear |
-| `LAMP2` / double | 2 | Main / CP |
-| `LAMP3` / triple | 3 | High-speed exits |
+| `LAMP1` / single | 1 | Yard / stub / single-route connector — Stop / Approach / Clear |
+| `LAMP2` / double | 2 | Main / CP home — high vs medium or restricting (two speed classes) |
+| `LAMP3` / triple | 3 | High + medium + slow at one mast (none on HART Master today) |
 
 SoR wire: `cats/scripts/wire_hart_sheet_west_yard2.py` → `SIGNAL_DEFS`  
 Plan: `cats/data/signal_mast_plan.csv`
@@ -98,7 +98,9 @@ All West Yard Digicon lamps except **`Brick East Main West`** (`aar-single` / MQ
 | Plane + W-1 / W-2 | `4` | C4 | `IH432`–`IH437` |
 | Barn / West Yard 117 | `013` → **13** | C1 | `IH1332`–`IH1338` |
 | East End | `012` → **12** | C7 | `IH1232`–`IH1241` |
-| Princess | `1` | D1 | `IH132`–`IH141` |
+| Princess | `1` | D1 | `IH132`–`IH143` |
+
+Princess east exits are **2-head** (main vs K-1/K-2 restricting). All Digicon **LAMP1** masts use `cats-virtual-dwarf` on Layout Editor (T6, Yard Track 1, OS 110, W-1/W-2, K-1/K-2, Rocks–McKeesport connector). Packed IDs: connector `IH134` / `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: `cats-virtual` / `cats-virtual-2` / `cats-virtual-3` (1/2/3 heads)

@@ -58,9 +58,12 @@ CATS **must** be copied into your JMRI folder (`cats.jar` next to `jmri.jar`). R
 ./tools/cats/fetch_cats_3.2.sh          # if needed
 ./tools/cats/install_into_jmri.sh       # → /Applications/JMRI
 
-# each session (no sudo; quit PanelPro on the same profile first):
+# each session (no sudo):
+#   PanelPro — edit/store JMRI tables and connections, then quit.
+#   CATS    — loads the same profile tables.xml, then the Digicon XML.
+# Never run both on the same profile; never Store tables with CATS open.
 ./cats/scripts/launch_cats.sh
-# Digicon XML is auto-opened (default: cats/panels/HART_magnet.xml)
+# Digicon XML is auto-opened (default: cats/panels/HART_Master.xml)
 
 ./cats/scripts/launch_designer.sh       # optional polish only
 ```
@@ -82,6 +85,7 @@ Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_
 **CATS** commands turnouts/routes in CTC sessions. NextTrain and Layout Editor stay view / local (no dual-command).
 
 Do **not** save CATS-created SignalHead/Mast objects into JMRI tables (load-crash risk).
+JMRI tables are owned by **PanelPro**: edit and Store there only. CATS refers to those beans by JMRI user names and must not redefine them (cats-users #2534).
 
 ## Guides
 

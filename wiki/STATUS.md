@@ -13,10 +13,10 @@ Updated: 2026-08-11 — **Ops Digicon Masters** at `cats/panels/HART_Master*.xml
 
 | Deliverable | Role |
 |-------------|------|
-| **`cats/panels/HART_Master.xml`** | **Ops Digicon CTC** — Neville Island Master |
+| **`cats/panels/HART_Master.xml`** | **Ops Digicon CTC** — Neville Island Master (**source of record**; checkpoint this family) |
 | **`cats/panels/HART_Master_ABS.xml`** | **Ops Digicon ABS** — open house |
 | **`cats/panels/HART_Master_ABS_hold.xml`** | **ABS-RO** — signals HOLD_ONLY; turnouts on |
-| `cats/panels/sheets/HART_sheet_West_Yard2.xml` | Sheet WIP / source geometry |
+| `cats/panels/sheets/HART_sheet_West_Yard2.xml` | Legacy sheet WIP — **do not checkpoint**; Masters are the live copy |
 | `cats/panels/HART_ctc.xml` | Earlier CTC schematic experiment |
 | `render_ctc_panel.py` PNG | **Review art only** — cannot open in CATS |
 

@@ -4,6 +4,7 @@ set -euo pipefail
 cd /home/pi/JMRI
 
 export WIRINGPI_GPIOMEM="${WIRINGPI_GPIOMEM:-1}"
+export _JAVA_AWT_WM_NONREPARENTING="${_JAVA_AWT_WM_NONREPARENTING:-1}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
 export XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}"
@@ -20,6 +21,4 @@ if [[ -z "${DISPLAY:-}" ]]; then
 fi
 
 PANEL="${1:-/home/pi/hart/cats/panels/HART_Master.xml}"
-PROFILE="${JMRI_PROFILE:-TCS_MQTT.3f32a166}"
-
-exec ./cats.csh --profile="$PROFILE" "$PANEL"
+exec /home/pi/hart/launch_cats.sh "$PANEL"

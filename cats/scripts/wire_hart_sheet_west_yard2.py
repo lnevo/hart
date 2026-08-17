@@ -207,15 +207,16 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (38, 7, "TOP", "OS 113a (Princess)"),
     (39, 7, "RIGHT", "OS 113a (Princess)"),
     (40, 7, "LEFT", "OS 114 (Princess)"),
-    # K-2 continuous plant→(44,8); OS on approach floods through SP.
-    # Cut only at McKeesport lamp — never mid-K-2.
+    # K-2 stub past label — named block + eastbound dwarf at (44,7)
     (43, 8, "RIGHT", "OS 114 (Princess)"),
     (44, 8, "LEFT", "McKeesport"),
     (45, 7, "TOP", "McKeesport"),
-    # K-1 continuous plant→(44,7); cut only at Rocks lamp — never mid-K-1.
+    (44, 7, "LEFT", "K-2"),
+    # K-1 stub past label — named block + eastbound dwarf at (44,6)
     (43, 5, "RIGHT", "OS 115 (Princess)"),
     (44, 5, "LEFT", "McKees Rocks"),
     (45, 6, "BOTTOM", "McKees Rocks"),
+    (44, 6, "LEFT", "K-1"),
 ]
 
 CUTS: list[tuple[tuple[int, int], str, tuple[int, int], str, str]] = [
@@ -411,9 +412,9 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
 # SoR is geometry-only (Designer). Lamps live on West_Yard2 named cut faces.
 #
 # SIGPANTYPE = panel head count (CATS AspectMap templates):
-#   LAMP1 / single — yard / stub / one-head dwarf (Stop / Approach / Clear)
-#   LAMP2 / double — main / CP (adds Medium/Slow / diverging speed aspects)
-#   LAMP3 / triple — high-speed plant exits (full Clear/Approach/Restricting ladder)
+#   LAMP1 / single — yard / stub / one-head dwarf or single-route connector
+#   LAMP2 / double — main / CP home (high vs medium/restricting; two speed classes)
+#   LAMP3 / triple — reserved for high+medium+slow plants (none on HART Master today)
 SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     # Yard stubs — single head
     (4, 3, "LEFT"): ("Brick West Yard 1", "LAMP1", "LOWLEFT", "RIGHT"),
@@ -424,24 +425,28 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (3, 4, "RIGHT"): ("Brick W-2 West Stub", "HIDDEN", "", "LEFT"),
     # Brick main — JMRI MQTT mast 432 SL-2 (Brick East Main West); Digicon dual-lamp + aar remap
     (8, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWLEFT", "LEFT", "aar-single"),
-    (43, 5, "RIGHT"): ("Princess North McKees Rocks", "LAMP3", "LOWLEFT", "LEFT"),
+    (43, 5, "RIGHT"): ("Princess North McKees Rocks", "LAMP2", "LOWCENT", "LEFT"),
     (28, 6, "LEFT"): ("East End West Main West", "LAMP2", "LOWLEFT", "RIGHT"),
     (30, 6, "RIGHT"): ("East End East OS 111a", "LAMP2", "LOWLEFT", "LEFT"),
     (37, 6, "LEFT"): ("Princess West OS 113b", "LAMP2", "LOWLEFT", "RIGHT"),
+    (43, 6, "RIGHT"): ("Princess East K-1", "LAMP1", "LOWCENT", "LEFT"),
+    (45, 6, "BOTTOM"): ("Princess East McKeesport", "LAMP1", "RIGHTUP", "TOP"),
     (9, 7, "RIGHT"): ("Plane East OS 102", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 7, "LEFT"): ("West Yard West OS 117", "LAMP2", "LOWLEFT", "RIGHT"),
     (14, 7, "RIGHT"): ("West Yard East Yard T6", "LAMP1", "LOWLEFT", "LEFT"),
     (28, 7, "LEFT"): ("East End West Yard Track 1", "LAMP1", "LOWLEFT", "RIGHT"),
-    (34, 7, "RIGHT"): ("East End East Lead", "LAMP2", "LOWRIGHT", "LEFT"),
+    (34, 7, "RIGHT"): ("East End East Lead", "LAMP2", "LOWCENT", "LEFT"),
     (37, 7, "LEFT"): ("Princess West OS 113a", "LAMP2", "LOWLEFT", "RIGHT"),
+    (43, 7, "RIGHT"): ("Princess East K-2", "LAMP1", "LOWCENT", "LEFT"),
     (31, 7, "BOTTOM"): ("East End South OS 110", "LAMP1", "LEFTUP", "TOP"),
+    (45, 7, "TOP"): ("Princess East McKees Rocks", "LAMP1", "RIGHTLOW", "BOTTOM"),
     # Plane normal route (SW102 closed → East Main Ext): virtual heads IH432/IH433 (node 4)
     (9, 8, "RIGHT"): ("Plane East East Main Ext", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 8, "LEFT"): ("West Yard West East Main Ext", "LAMP2", "LOWLEFT", "RIGHT"),
     # Lower-right Barn face — LOWRIGHT keeps the lamp under the Main East rail.
     (14, 8, "RIGHT"): ("West Yard East OS 117b", "LAMP2", "LOWRIGHT", "LEFT"),
     (33, 8, "LEFT"): ("East End South OS 112", "LAMP2", "RIGHTLOW", "RIGHT"),
-    (43, 8, "RIGHT"): ("Princess South McKeesport", "LAMP3", "LOWLEFT", "LEFT"),
+    (43, 8, "RIGHT"): ("Princess South McKeesport", "LAMP2", "LOWCENT", "LEFT"),
 }
 
 _PANTYPE_PHYS = {"LAMP1": "single", "LAMP2": "double", "LAMP3": "triple", "HIDDEN": "single"}

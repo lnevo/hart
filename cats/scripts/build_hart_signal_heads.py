@@ -46,27 +46,22 @@ MASTS: list[tuple[str, int, int, str]] = [
     ("East End East Lead", 2, 12, "double"),
     ("East End South OS 110", 1, 12, "single"),
     ("East End South OS 112", 2, 12, "double"),
-    # node 1 — Princess
-    ("Princess North McKees Rocks", 3, 1, "triple"),
+    # node 1 — Princess (keep packed IH132–141 stable: 2-head exits, connector singles reuse old middles)
+    ("Princess North McKees Rocks", 2, 1, "double"),
+    ("Princess East McKeesport", 1, 1, "single"),
     ("Princess West OS 113b", 2, 1, "double"),
     ("Princess West OS 113a", 2, 1, "double"),
-    ("Princess South McKeesport", 3, 1, "triple"),
+    ("Princess South McKeesport", 2, 1, "double"),
+    ("Princess East McKees Rocks", 1, 1, "single"),
+    ("Princess East K-1", 1, 1, "single"),
+    ("Princess East K-2", 1, 1, "single"),
 ]
 
 ROLE = {1: ("",), 2: ("T", "B"), 3: ("T", "M", "B")}
 ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
 
 # Appearance map name inside cats-masts (must match appearance-*.xml file stem suffix)
-APPEAR = {1: "cats-virtual", 2: "cats-virtual-2", 3: "cats-virtual-3"}
-
-# Single-head masts that use SL-1-low LE icons (Digicon still PHYSIGNAL=single)
-DWARF_MASTS = frozenset(
-    {
-        "Brick West Yard 1",
-        "Brick West Yard 2",
-        "East End South OS 110",
-    }
-)
+APPEAR = {1: "cats-virtual-dwarf", 2: "cats-virtual-2", 3: "cats-virtual-3"}
 
 # DNOU8 Parent Node ID + board for each MQTT display node (LCOS inventory v48).
 # mqtt 13 ← RF24/LCOS 11 (%o → "13"); hardware Parent Node C1 (Helix Lower).
@@ -76,7 +71,7 @@ NODE_PORTS: dict[int, list[str]] = {
     4: [f"C4-OU2-{i}" for i in range(1, 7)],  # 6 heads
     13: [f"C1-OU2-{i}" for i in range(1, 7)] + ["C1-OU3-1"],  # 7 heads
     12: [f"C7-OU2-{i}" for i in range(1, 7)] + [f"C7-OU3-{i}" for i in range(1, 5)],  # 10
-    1: [f"D1-OU2-{i}" for i in range(1, 9)] + [f"D1-OU3-{i}" for i in range(1, 3)],  # 10
+    1: [f"D1-OU2-{i}" for i in range(1, 9)] + [f"D1-OU3-{i}" for i in range(1, 5)],  # 12
 }
 NODE_BOARD_LOC: dict[int, str] = {
     4: "West - Lower",
@@ -116,11 +111,7 @@ def build_rows() -> list[dict]:
                     "mast_user_name": mast,
                     "head_role": role or "S",
                     "heads": nheads,
-                    "appearance": (
-                        "cats-virtual-dwarf"
-                        if mast in DWARF_MASTS and nheads == 1
-                        else APPEAR[nheads]
-                    ),
+                    "appearance": APPEAR[nheads],
                     "physignal": lamp,
                     "port_id": ports[idx],
                     "topic": f"track/signalhead/IH{pid}",
@@ -238,7 +229,7 @@ def write_csvs(rows: list[dict]) -> None:
                     "parent_node_id": "C4",
                     "packed_ids": "432",
                     "port_ids": "",
-                    "mast_system_name": "IF$mqm:AAR-1946:SL-1-high-abs($432)",
+                    "mast_system_name": "IF$mqm:AAR-1946:SL-2-high-abs($432)",
                     "jmri_binding": "mqtt-mast",
                 }
             elif name in by_name:
@@ -443,12 +434,8 @@ def write_cats_virtual_3() -> None:
 
 
 def _heads_xml(rows: list[dict]) -> str:
-    # Keep legacy IH410 if present elsewhere — we replace whole signalheads block content carefully
     parts = [
         '  <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">',
-        '    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">',
-        "      <systemName>IH410</systemName>",
-        "    </signalhead>",
     ]
     for r in rows:
         parts.append(
@@ -465,7 +452,7 @@ def _masts_xml(rows: list[dict]) -> str:
     parts = [
         '  <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">',
         '    <mqttsignalmast class="jmri.jmrix.mqtt.configurexml.MqttSignalMastXml">',
-        "      <systemName>IF$mqm:AAR-1946:SL-1-high-abs($432)</systemName>",
+        "      <systemName>IF$mqm:AAR-1946:SL-2-high-abs($432)</systemName>",
         "      <userName>Brick East Main West</userName>",
         '      <unlit allowed="no" />',
         "      <disabledAspects>",
