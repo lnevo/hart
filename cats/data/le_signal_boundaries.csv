@@ -1,0 +1,24 @@
+kind,ident,slot,mast_user_name,notes
+turnout,TOL3,A,Brick East Main West,A=Main West; east face of Brick
+turnout,TOL38,B,Brick West Yard 1,B=West Yard 1 continuing
+turnout,TOL38,C,Brick West Yard 2,C=West Yard 2 diverge
+turnout,TOL42,B,Plane East East Main Ext,B=East Main Ext continuing
+turnout,TOL42,C,Plane East OS 102,C=Yard T1 / east upper face
+turnout,TO117,A,West Yard West OS 117,A=Yard T1 west upper
+turnout,TO117,B,West Yard East Yard T6,B=Yard T6 east upper
+turnout,TO117,C,West Yard East OS 117b,C=Main East east lower
+turnout,TO117,D,West Yard West East Main Ext,D=East Main Ext west lower
+turnout,TO111,A,East End West Main West,A=Main West west upper
+turnout,TO111,B,East End East OS 111a,B=West Main Ext east upper
+turnout,TO111,D,East End West Yard Track 1,D=Yard Track 1 west lower
+turnout,TOL6,C,East End South OS 110,C=OS 109 ladder leg; governs ladder move into OS 110
+turnout,TOL23,A,East End East Lead,A=East Lead east of 112
+turnout,TOL23,C,East End South OS 112,C=Main East diverge
+turnout,TO113,A,Princess West OS 113b,A=West Main Ext west upper
+turnout,TO113,D,Princess West OS 113a,D=East Lead west lower
+turnout,TOL29,B,Princess East K-1,B=K-1 stub block (detector Block 1-4 shared with OS 115)
+turnout,TOL29,C,Princess North McKees Rocks,C=McKees Rocks (boundary at turnout); icon deg 270 faces west
+turnout,TOR36,B,Princess East K-2,B=K-2 stub block (detector Block 1-3 shared with OS 114)
+turnout,TOR36,C,Princess South McKeesport,C=McKeesport (boundary at turnout); icon deg 270 faces west
+anchor,A48,east,Princess East McKeesport,south slot y=345 faces south (deg 180); CATS (45,7) TOP SIGORIENT BOTTOM
+anchor,A48,west,Princess East McKees Rocks,north slot y=205 faces north (deg 0); CATS (45,6) BOTTOM SIGORIENT TOP

@@ -2,7 +2,7 @@
 """Build HART Digicon→JMRI virtual signal heads (LCOS packed MQTT numbers).
 
 Allocation (MQTT display node = radio addr octal-digits-as-decimal):
-  node 4  — Brick W-1/W-2 + both Plane faces (leave Brick East Main West / 432 alone)
+  node 4  — Plane faces + Brick W-1/W-2 + Brick East Main West (IH438/IH439 on C4-OU3)
   node 13 — Barn / West Yard 117–117b  (radio 013 → display 13)
   node 12 — East End                 (radio 012 → display 12)
   node 1  — Princess                 (radio 1   → display 1)
@@ -29,11 +29,12 @@ DATA = ROOT / "cats/data"
 # (mast_userName, heads, mqtt_node, digicon_lamp) — heads count 1/2/3
 # Order within a node = signal_index assignment (top→bottom / high→low).
 MASTS: list[tuple[str, int, int, str]] = [
-    # node 4 — Plane + W-Y stubs (not Brick East Main West)
+    # node 4 — Plane + W-Y stubs + Brick east main (OU3 after OU2-1..6)
     ("Plane East East Main Ext", 2, 4, "double"),
     ("Plane East OS 102", 2, 4, "double"),
     ("Brick West Yard 1", 1, 4, "single"),
     ("Brick West Yard 2", 1, 4, "single"),
+    ("Brick East Main West", 2, 4, "double"),
     # node 13 — Barn
     ("West Yard West OS 117", 2, 13, "double"),
     ("West Yard East Yard T6", 1, 13, "single"),
@@ -60,15 +61,21 @@ MASTS: list[tuple[str, int, int, str]] = [
 ROLE = {1: ("",), 2: ("T", "B"), 3: ("T", "M", "B")}
 ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
 
-# Appearance map name inside cats-masts (must match appearance-*.xml file stem suffix)
-APPEAR = {1: "cats-virtual-dwarf", 2: "cats-virtual-2", 3: "cats-virtual-3"}
+# Dwarfs: stock AAR-1946 SL-1-low (Slow Clear / Restricting / Stop).
+# Two-head homes: custom hart-aar SL-2-digicon (Clear / Approach + Medium Clear /
+# Medium Approach on the bottom head, Stop). Stock SL-2-high-abs is unusable here:
+# its "Approach" mapping only offers Advance Approach / Approach Medium, so with
+# those aspects undisplayable the mast pins at Stop behind any Approach.
+# hart-aar lives in cats/resources/signals/hart-aar (deployed by sync_hart_package.sh).
+APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}
+SYSTEM_BY_HEADS = {1: "AAR-1946", 2: "hart-aar", 3: "AAR-1946"}
 
 # DNOU8 Parent Node ID + board for each MQTT display node (LCOS inventory v48).
 # mqtt 13 ← RF24/LCOS 11 (%o → "13"); hardware Parent Node C1 (Helix Lower).
 # mqtt 12 ← radio "012" (East End); hardware Parent Node C7 (North Upper, sheet addr 12).
 # mqtt 4  ← C4 West Lower; mqtt 1 ← D1 (Princess — OU boards added for Digicon).
 NODE_PORTS: dict[int, list[str]] = {
-    4: [f"C4-OU2-{i}" for i in range(1, 7)],  # 6 heads
+    4: [f"C4-OU2-{i}" for i in range(1, 7)] + ["C4-OU3-1", "C4-OU3-2"],  # 8 heads
     13: [f"C1-OU2-{i}" for i in range(1, 7)] + ["C1-OU3-1"],  # 7 heads
     12: [f"C7-OU2-{i}" for i in range(1, 7)] + [f"C7-OU3-{i}" for i in range(1, 5)],  # 10
     1: [f"D1-OU2-{i}" for i in range(1, 9)] + [f"D1-OU3-{i}" for i in range(1, 5)],  # 12
@@ -125,7 +132,7 @@ def mast_system_name(mast: str, rows: list[dict]) -> str:
     n = heads[0]["heads"]
     appear = heads[0]["appearance"]
     ids = "".join(f"({r['system_name']})" for r in heads)
-    return f"IF$shsm:cats-masts:{appear}{ids}"
+    return f"IF$shsm:{SYSTEM_BY_HEADS[n]}:{appear}{ids}"
 
 
 def write_csvs(rows: list[dict]) -> None:
@@ -222,17 +229,7 @@ def write_csvs(rows: list[dict]) -> None:
         enriched = []
         for row in old:
             name = row["proposed_mast_name"]
-            if name == "Brick East Main West":
-                row = {
-                    **row,
-                    "mqtt_node": "4",
-                    "parent_node_id": "C4",
-                    "packed_ids": "432",
-                    "port_ids": "",
-                    "mast_system_name": "IF$mqm:AAR-1946:SL-2-high-abs($432)",
-                    "jmri_binding": "mqtt-mast",
-                }
-            elif name in by_name:
+            if name in by_name:
                 m = by_name[name]
                 row = {
                     **row,
@@ -297,17 +294,6 @@ def update_lcos_inventory(rows: list[dict]) -> None:
                 ws.cell(rr, col, v)
         else:
             ws.append(vals)
-    # Annotate leftover C4-OU3 dwarf ports (not Digicon-converted) so they aren't confused
-    for port in ("C4-OU3-1", "C4-OU3-2"):
-        if port in by_port and port not in assigned:
-            rr = by_port[port]
-            note = ws.cell(rr, 8).value or ""
-            if "Brick East Main West" not in str(note):
-                ws.cell(
-                    rr,
-                    8,
-                    (str(note) + " | reserved / not Digicon head-mast").strip(" |"),
-                )
     out = DATA / "LCOS_Layout_Inventory_v48_signal_ports.xlsx"
     wb.save(out)
     wb.save(inv)  # update Downloads copy too
@@ -451,14 +437,6 @@ def _heads_xml(rows: list[dict]) -> str:
 def _masts_xml(rows: list[dict]) -> str:
     parts = [
         '  <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">',
-        '    <mqttsignalmast class="jmri.jmrix.mqtt.configurexml.MqttSignalMastXml">',
-        "      <systemName>IF$mqm:AAR-1946:SL-2-high-abs($432)</systemName>",
-        "      <userName>Brick East Main West</userName>",
-        '      <unlit allowed="no" />',
-        "      <disabledAspects>",
-        "        <disabledAspect>Restricting</disabledAspect>",
-        "      </disabledAspects>",
-        "    </mqttsignalmast>",
     ]
     seen = set()
     for r in rows:
@@ -473,6 +451,7 @@ def _masts_xml(rows: list[dict]) -> str:
         parts.append(f"      <systemName>{sysname}</systemName>")
         parts.append(f"      <userName>{m}</userName>")
         parts.append('      <unlit allowed="no" />')
+        # hart-aar SL-2-digicon only defines displayable aspects; no disables needed.
         parts.append("    </signalmast>")
     parts.append("  </signalmasts>")
     return "\n".join(parts)
@@ -521,7 +500,6 @@ def write_publisher(rows: list[dict]) -> None:
 # JMRI → MQTT so LCOS / field see Digicon-driven aspects.
 #
 # Do not publish the retain-paint pass — that would echo defaults and stomp SoR.
-# Brick East Main West (MQTT mast 432) is handled by JMRI's MQTT mast adapter.
 # Generated by cats/scripts/build_hart_signal_heads.py — see cats/data/signal_wiring.csv.
 
 import os

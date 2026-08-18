@@ -50,24 +50,37 @@ def patch_profile() -> None:
     if not SYNC.is_file():
         raise SystemExit(f"missing sync script: {SYNC}")
     txt = PROF.read_text(encoding="utf-8")
-    if "sync_yard_ladder_buttons.py" in txt:
-        print("profile: sync script already present")
+    changed = False
+    # Retired: unhold_signal_masts.py. Held is CATS CTC's channel (hold at
+    # load, unhold on route lining); a blanket unhold fights it.
+    if "unhold_signal_masts.py" in txt:
+        txt = "".join(
+            line
+            for line in txt.splitlines(keepends=True)
+            if "unhold_signal_masts.py" not in line
+        )
+        changed = True
+        print("profile: removed retired unhold_signal_masts.py")
+    if "sync_yard_ladder_buttons.py" not in txt:
+        insert = (
+            '        <perform xmlns="" class="jmri.util.startup.configurexml.PerformScriptModelXml" '
+            f'enabled="yes" name="{SYNC_HOME}" type="ScriptFile"/>\n'
+        )
+        key = "apply_maintain_mqtt.py"
+        idx = txt.find(key)
+        if idx < 0:
+            raise SystemExit(f"{key} not in profile")
+        end = txt.find("/>", idx)
+        if end < 0:
+            raise SystemExit("bad profile perform tag")
+        end += 2
+        txt = txt[:end] + "\n" + insert + txt[end:]
+        changed = True
+        print(f"profile: inserted {SYNC_HOME}")
+    if not changed:
+        print("profile: no changes needed")
         return
-    insert = (
-        '        <perform xmlns="" class="jmri.util.startup.configurexml.PerformScriptModelXml" '
-        f'enabled="yes" name="{SYNC_HOME}" type="ScriptFile"/>\n'
-    )
-    key = "apply_maintain_mqtt.py"
-    idx = txt.find(key)
-    if idx < 0:
-        raise SystemExit("apply_maintain_mqtt.py not in profile")
-    end = txt.find("/>", idx)
-    if end < 0:
-        raise SystemExit("bad profile perform tag")
-    end += 2
-    txt = txt[:end] + "\n" + insert + txt[end:]
     PROF.write_text(txt, encoding="utf-8")
-    print(f"profile: inserted {SYNC_HOME}")
 
 
 if __name__ == "__main__":

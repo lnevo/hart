@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pi desktop: CATS ABS-RO (hold / listen-only spectator)
+# Pi desktop: CATS ABS (HOLD_ONLY; JMRI SML owns aspects)
 # Pi GUI is Xwayland on :1 (not :0); override if already set in the session.
 export DISPLAY="${DISPLAY:-:1}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"

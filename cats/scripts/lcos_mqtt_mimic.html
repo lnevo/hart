@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HART LCOS mimic</title>
+  <style>
+    :root {
+      --bg: #12151c;
+      --panel: #1b2030;
+      --line: #2c3448;
+      --text: #e8edf7;
+      --muted: #8b95a8;
+      --closed: #3d7ea6;
+      --thrown: #c47a2c;
+      --occ: #c4453c;
+      --clear: #2f9e6b;
+      --red: #e23d32;
+      --yellow: #e6c035;
+      --green: #3cbe6e;
+      --lunar: #c9d7e8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #161a24;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    h1 { font-size: 16px; margin: 0; letter-spacing: .04em; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #666; }
+    .dot.ok { background: var(--green); }
+    .dot.bad { background: var(--red); }
+    input[type="search"] {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 6px;
+      min-width: 180px;
+    }
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 10px;
+    }
+    button:hover { border-color: #4a5670; }
+    button.danger { border-color: #6a3030; }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: calc(100vh - 120px);
+    }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+    section { padding: 12px 16px 24px; }
+    section + section { border-left: 1px solid var(--line); }
+    h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 8px 0 10px; }
+    .plant { margin-bottom: 16px; }
+    .plant h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: #aeb8cc;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: minmax(140px, 1.3fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 4px;
+      border-radius: 6px;
+    }
+    .row:hover { background: #222838; }
+    .row.hidden { display: none; }
+    .name { font-weight: 600; }
+    .sub { color: var(--muted); font-size: 11px; font-weight: 400; }
+    .btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .sw {
+      min-width: 78px;
+      padding: 7px 10px;
+      font-weight: 650;
+    }
+    .sw.on-closed { background: var(--closed); border-color: #5aa0c8; color: #fff; }
+    .sw.on-thrown { background: var(--thrown); border-color: #e0a05a; color: #fff; }
+    .occ {
+      min-width: 92px;
+      padding: 7px 10px;
+      font-weight: 650;
+    }
+    .occ.inactive { background: #243044; }
+    .occ.active { background: var(--occ); border-color: #e07068; color: #fff; }
+    .fb { font-size: 11px; color: var(--muted); }
+    .fb .n.on, .fb .r.on { color: var(--text); font-weight: 650; }
+    .heads {
+      padding: 10px 16px 16px;
+      border-top: 1px solid var(--line);
+      background: #141824;
+    }
+    .lamps { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+    .mast { display: flex; align-items: center; gap: 6px; }
+    .mast span.lbl { font-size: 11px; color: var(--muted); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lamp {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #333; box-shadow: inset 0 0 0 1px #0008;
+    }
+    .lamp.Red { background: var(--red); }
+    .lamp.Yellow, .lamp.FlashingYellow { background: var(--yellow); }
+    .lamp.Green { background: var(--green); }
+    .lamp.Lunar, .lamp.FlashingLunar { background: var(--lunar); }
+    .lamp.Dark { background: #222; }
+    footer {
+      padding: 8px 16px 16px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>HART LCOS mimic</h1>
+      <div class="meta"><span id="mqtt-dot" class="dot"></span><span id="mqtt-label">connecting…</span></div>
+    </div>
+    <input type="search" id="q" placeholder="Filter switches / blocks" />
+    <button class="danger" id="clear-occ">Clear all occupancy</button>
+  </header>
+  <div class="layout">
+    <section>
+      <h2>Turnouts</h2>
+      <div id="turnouts"></div>
+    </section>
+    <section>
+      <h2>Occupancy</h2>
+      <div id="blocks"></div>
+    </section>
+  </div>
+  <div class="heads">
+    <h2>Signal heads (live MQTT)</h2>
+    <div class="lamps" id="heads"></div>
+  </div>
+  <footer>
+    Mimics LCOS status: <code>track/turnout/{addr}</code> plus FB N/R sensors for TWOSENSOR plants.
+    Occupancy is <code>track/sensor/{addr}</code>. Does not publish <code>track/cmd</code> (motors stay put).
+  </footer>
+  <script>
+    const state = { sensors: {}, turnouts: {}, heads: {}, layout: null };
+
+    const $ = (id) => document.getElementById(id);
+
+    function plantGroups(items) {
+      const map = new Map();
+      for (const it of items) {
+        if (!map.has(it.plant)) map.set(it.plant, []);
+        map.get(it.plant).push(it);
+      }
+      return map;
+    }
+
+    function matches(q, ...parts) {
+      if (!q) return true;
+      const blob = parts.join(" ").toLowerCase();
+      return blob.includes(q);
+    }
+
+    function render() {
+      const q = $("q").value.trim().toLowerCase();
+      const layout = state.layout;
+      if (!layout) return;
+
+      const tRoot = $("turnouts");
+      tRoot.innerHTML = "";
+      for (const [plant, rows] of plantGroups(layout.turnouts)) {
+        const wrap = document.createElement("div");
+        wrap.className = "plant";
+        wrap.innerHTML = `<h3>${plant}</h3>`;
+        for (const t of rows) {
+          const st = (state.turnouts[t.addr] || "").toUpperCase();
+          const nOn = (state.sensors[t.n_addr] || "").toUpperCase() === "ACTIVE";
+          const rOn = (state.sensors[t.r_addr] || "").toUpperCase() === "ACTIVE";
+          const row = document.createElement("div");
+          row.className = "row" + (matches(q, t.label, t.plant, t.addr, t.tip) ? "" : " hidden");
+          const fb = t.n_addr
+            ? `<div class="fb">FB N <span class="n${nOn ? " on" : ""}">${t.n_addr}${nOn ? " ACTIVE" : ""}</span>
+               · R <span class="r${rOn ? " on" : ""}">${t.r_addr}${rOn ? " ACTIVE" : ""}</span></div>`
+            : `<div class="fb">DIRECT — turnout topic only</div>`;
+          row.innerHTML = `
+            <div>
+              <div class="name">${t.label} <span class="sub">M2T${t.addr}</span></div>
+              <div class="sub">${t.tip || t.feedback}</div>
+              ${fb}
+            </div>
+            <div class="btns">
+              <button class="sw ${st === "CLOSED" ? "on-closed" : ""}" data-to="${t.addr}" data-st="CLOSED">Closed</button>
+              <button class="sw ${st === "THROWN" ? "on-thrown" : ""}" data-to="${t.addr}" data-st="THROWN">Thrown</button>
+            </div>`;
+          wrap.appendChild(row);
+        }
+        tRoot.appendChild(wrap);
+      }
+
+      const bRoot = $("blocks");
+      bRoot.innerHTML = "";
+      for (const [plant, rows] of plantGroups(layout.blocks)) {
+        const wrap = document.createElement("div");
+        wrap.className = "plant";
+        wrap.innerHTML = `<h3>${plant}</h3>`;
+        for (const b of rows) {
+          const occ = (state.sensors[b.addr] || "").toUpperCase() === "ACTIVE";
+          const row = document.createElement("div");
+          row.className = "row" + (matches(q, b.label, b.userName, b.plant, b.addr) ? "" : " hidden");
+          row.innerHTML = `
+            <div>
+              <div class="name">${b.label}</div>
+              <div class="sub">${b.userName} · M2S${b.addr}</div>
+            </div>
+            <div class="btns">
+              <button class="occ ${occ ? "active" : "inactive"}" data-occ="${b.addr}" data-st="${occ ? "INACTIVE" : "ACTIVE"}">
+                ${occ ? "Occupied" : "Clear"}
+              </button>
+            </div>`;
+          wrap.appendChild(row);
+        }
+        bRoot.appendChild(wrap);
+      }
+
+      const hRoot = $("heads");
+      hRoot.innerHTML = "";
+      const byMast = new Map();
+      for (const h of layout.heads) {
+        if (!byMast.has(h.mast)) byMast.set(h.mast, []);
+        byMast.get(h.mast).push(h);
+      }
+      for (const [mast, heads] of byMast) {
+        const el = document.createElement("div");
+        el.className = "mast";
+        const lamps = heads.map(h => {
+          const aspect = (state.heads[h.id] || "Dark").split(";")[0].trim();
+          return `<i class="lamp ${aspect}" title="${h.id} ${aspect}"></i>`;
+        }).join("");
+        el.innerHTML = `${lamps}<span class="lbl" title="${mast}">${mast}</span>`;
+        hRoot.appendChild(el);
+      }
+    }
+
+    async function post(url, body) {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {}),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || j.ok === false) throw new Error(j.error || r.statusText);
+    }
+
+    document.addEventListener("click", async (e) => {
+      const to = e.target.closest("[data-to]");
+      if (to) {
+        await post("/api/turnout", { addr: to.dataset.to, state: to.dataset.st });
+        return;
+      }
+      const occ = e.target.closest("[data-occ]");
+      if (occ) {
+        await post("/api/occupancy", { addr: occ.dataset.occ, state: occ.dataset.st });
+      }
+    });
+
+    $("clear-occ").addEventListener("click", async () => {
+      if (!confirm("Set every occupancy sensor INACTIVE?")) return;
+      await post("/api/occupancy/clear", {});
+    });
+    $("q").addEventListener("input", render);
+
+    function applyEvent(ev) {
+      if (ev.type === "sensor") state.sensors[ev.addr] = ev.payload;
+      if (ev.type === "turnout") state.turnouts[ev.addr] = ev.payload;
+      if (ev.type === "head") state.heads[ev.addr] = ev.payload;
+      if (ev.type === "mqtt") {
+        $("mqtt-dot").className = "dot " + (ev.connected ? "ok" : "bad");
+        $("mqtt-label").textContent = ev.connected
+          ? `MQTT ${ev.host || ""}`
+          : `MQTT disconnected ${ev.error || ""}`;
+      }
+    }
+
+    async function boot() {
+      const [layout, snap] = await Promise.all([
+        fetch("/api/layout").then(r => r.json()),
+        fetch("/api/state").then(r => r.json()),
+      ]);
+      state.layout = layout;
+      Object.assign(state.sensors, snap.sensors || {});
+      Object.assign(state.turnouts, snap.turnouts || {});
+      Object.assign(state.heads, snap.heads || {});
+      $("mqtt-dot").className = "dot " + (snap.mqtt && snap.mqtt.connected ? "ok" : "");
+      $("mqtt-label").textContent = snap.mqtt
+        ? `MQTT ${snap.mqtt.host}${snap.mqtt.connected ? "" : " (waiting)"}`
+        : "MQTT unknown";
+      render();
+      const es = new EventSource("/api/events");
+      let renderTimer = 0;
+      const scheduleRender = () => {
+        clearTimeout(renderTimer);
+        renderTimer = setTimeout(render, 40);
+      };
+      es.onmessage = (m) => {
+        try {
+          applyEvent(JSON.parse(m.data));
+          scheduleRender();
+        } catch (err) { console.warn(err); }
+      };
+      es.onerror = () => {
+        $("mqtt-dot").className = "dot bad";
+      };
+    }
+    boot();
+  </script>
+</body>
+</html>

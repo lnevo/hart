@@ -36,8 +36,13 @@ PANELS = {
     },
     "abs_hold": {
         "path": PANELS_DIR / "HART_Master_ABS_hold.xml",
-        "pub_id": "DS-ABS-RO",
-        "mode": "ABS-RO DIGICON",
+        "pub_id": "DS-ABS",
+        "mode": "ABS DIGICON",
+    },
+    "ctc_hold": {
+        "path": PANELS_DIR / "HART_Master_CTC_hold.xml",
+        "pub_id": "DS-CTC",
+        "mode": "CTC DIGICON",
     },
 }
 
@@ -162,7 +167,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--panel",
-        choices=("ctc", "abs", "abs_hold", "all"),
+        choices=("ctc", "abs", "abs_hold", "ctc_hold", "all"),
         default="ctc",
         help="Which Digicon Master to polish (default: ctc for Mac test)",
     )

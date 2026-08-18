@@ -56,4 +56,14 @@ python3 cats/scripts/seed_default_thrown_turnouts.py --diagnose
 At rest 112/114/115 are typically JMRI/MQTT `THROWN` — Digicon throw frog
 matches the field. Commands use the same map.
 
+Layout Editor `continuing` is JMRI `Turnout` state, not 1/2 Closed/Thrown:
+
+| XML | Sense | Frog |
+|-----|--------|------|
+| `2` | CLOSED | Closed = B / through (114/115 → K stubs) |
+| `4` | THROWN | Thrown = B / through |
+| `1` | UNKNOWN | both legs drawn; LE ignores table state |
+
+`apply_le_sml_facing.py` keeps 114/115/111/113/117 at **2**. Do not write `1`.
+
 K-1/K-2 stubs are plain (no BLK↔BLK gaps).

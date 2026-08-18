@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=CATS CTC
-Comment=CATS Digicon HART Master (CTC)
+Comment=CATS Digicon CTC (HOLD_ONLY; JMRI SML aspects)
 Exec=/home/pi/hart/launch_hart_master_desktop.sh
 Icon=/home/pi/JMRI/crandic.gif
 Terminal=false

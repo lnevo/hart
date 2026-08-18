@@ -49,6 +49,13 @@ jmri/layouts/**/*_status.txt
 # Optional local JMRI prefs dumps
 **/pi_prefs/
 
+# DecoderPro roster / Operations Pro copies pulled from the Pi (CV data; not git)
+jmri/host-copies/
+
+# Local CATS Signals notes (Rodney Black; do not commit)
+cats/docs/vendor/CATS_Signals.doc
+cats/docs/vendor/~$*
+
 # CATS binaries (fetch with tools/cats/fetch_cats_3.2.sh)
 tools/cats/release3.2/
 tools/cats/*.zip
@@ -78,3 +85,7 @@ cats/.venv/
 # CATS patch build artifacts
 tools/cats/patches/*.class
 tools/cats/patches/cats.jar.stock
+
+# Runtime logs and one-off XML backups (not sources)
+cats/logs/
+jmri/layouts/**/*.xml.bak_*

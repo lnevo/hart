@@ -3,7 +3,7 @@ setlocal EnableExtensions
 REM CATS Digicon fast launcher - accepts panel path as %1
 REM launcher_version=20260811_0045
 
-REM Prefer caller-supplied panel (CTC / ABS / ABS-RO wrappers pass this).
+REM Prefer caller-supplied panel (CTC / ABS wrappers pass this).
 if not "%~1"=="" (
   set PANEL=%~1
 ) else (

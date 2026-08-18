@@ -24,6 +24,8 @@ Plan: `cats/data/signal_mast_plan.csv`
 
 ## How to attach Digicon to an **existing** JMRI mast
 
+Brick East Main West used to be this MQTT-mast case (`track/signalmast/432`). It is now Virtual heads + SHSM like the others (`IH438`/`IH439`). Keep the notes below only if you attach another leftover MQTT mast.
+
 Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT topic alone.
 
 ### Prerequisites (stock JMRI — already true for mast 432)
@@ -76,45 +78,47 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 
 Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code aspects. His `cats-virtual` mast is one way to make JMRI speak those codes. For an **existing AAR mast**, keep the mast and remap Digicon → AAR names instead.
 
-### Brick 432 (current)
+### Brick East Main West
 
 - Digicon name `Brick East Main West` @ Brick east main face  
-- `LAMP2` + `aar-single` (Digicon dual lamps; R-codes remapped to Clear/Approach/Stop for MQTT `SL-2-high-abs($432)`)  
-- CATS owns aspects (no Hold only)  
-- **Stub routes into W-Y:** Digicon indication is Restricting (no next signal). `aar-single` remaps `RES_*` → **Approach** for the AAR MQTT mast `432` (Restricting is disabled on that mast). Panel `COLORDEFINITION RESTRICTING` stays stock (same red as Stop unless you change it in Designer).
+- `LAMP2` + `double` — same Virtual-head + AAR-1946 SHSM path as the other homes  
+- Packed heads `IH438` / `IH439` on C4-OU3-1 / C4-OU3-2 (`track/signalhead/IH438`, `track/signalhead/IH439`)  
+- JMRI does **not** publish `track/signalmast/432` (old MQTT mast retired; that topic collided with LCOS status for Plane `IH432`)
 
 **Do not use Digicon `SPUR="true"` on Brick SW100/101** without a coded switch-unlock. Spur makes only the Normal route clear `CONFLICTINGSIGNALLOCK` on the points; that lock is in `GUISwitchLocks`, so the dispatcher cannot throw the turnout (especially once lined reverse). Westbound “priority” needs a different approach than Spur on this plant.
 
-**CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting→Approach on `432`, not Clear.
+**CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting, not Clear.
 
 **W-1 / W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_sheet_west_yard2.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
 
-### Digicon → virtual heads + SHSM (all faces except Brick East Main West)
+### Digicon → virtual heads + SHSM (hart-aar two-head, AAR-1946 dwarfs)
 
-All West Yard Digicon lamps except **`Brick East Main West`** (`aar-single` / MQTT mast `432`) use Virtual Signal Heads + `cats-masts` SignalHeadSignalMasts.
+All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts: two-head homes are custom **`hart-aar` `SL-2-digicon`** (Clear G/R, Approach Y/R, Medium Clear R/G, Medium Approach R/Y, Stop R/R), dwarfs stay stock **AAR-1946 `SL-1-low`**. SML uses AAR speeds (Clear=Normal, Approach/Medium=Medium, Stop=Stop; dwarfs Slow Clear / Restricting / Stop).
+
+**Why not stock `SL-2-high-abs`:** its aspect mapping for a destination at *Approach* only offers *Advance Approach* / *Approach Medium* — aspects these two-lamp heads cannot display (they were in `disabledAspects`) — so SML pinned every mast behind an Approach at **Stop** (the "always red" family). `hart-aar` (in `cats/resources/signals/hart-aar/`, deployed to each JMRI user-files `resources/signals/` by `sync_hart_package.sh`) keeps AAR aspect names but chains as 3-aspect ABS: dest Approach-or-better → Clear (Medium Clear when the route diverges), dest Stop/Restricting/Slow Clear → Approach (Medium Approach diverging). Dwarf `SL-1-low` chains fine unchanged (Clear→Slow Clear, Approach/Stop→Restricting).
 
 | Area | Radio → MQTT node | Parent board | Packed heads |
 |------|-------------------|--------------|--------------|
-| Plane + W-1 / W-2 | `4` | C4 | `IH432`–`IH437` |
+| Plane + W-1 / W-2 + Brick east | `4` | C4 | `IH432`–`IH439` |
 | Barn / West Yard 117 | `013` → **13** | C1 | `IH1332`–`IH1338` |
 | East End | `012` → **12** | C7 | `IH1232`–`IH1241` |
 | Princess | `1` | D1 | `IH132`–`IH143` |
 
-Princess east exits are **2-head** (main vs K-1/K-2 restricting). All Digicon **LAMP1** masts use `cats-virtual-dwarf` on Layout Editor (T6, Yard Track 1, OS 110, W-1/W-2, K-1/K-2, Rocks–McKeesport connector). Packed IDs: connector `IH134` / `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
+Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon connectors `Princess East McKeesport` / `Princess East McKees Rocks` stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, Yard Track 1, OS 110, W-1/W-2, K-1/K-2). Packed IDs: connector `IH134` / `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
-- Appearances: `cats-virtual` / `cats-virtual-2` / `cats-virtual-3` (1/2/3 heads)
-- Digicon `PHYSIGNAL`: stock `single` / `double` / `triple` (native R-codes)
+- Appearances: custom `hart-aar` `SL-2-digicon` two-head / stock `AAR-1946` `SL-1-low` dwarfs (not `cats-masts`)
+- Digicon `PHYSIGNAL`: templates remapped to AAR names (`cats/scripts/aar_aspect_bridge.py`); CATS CTC is `HOLD_ONLY`; CATS ABS SECSIGNAL names are unbound (`unbind_abs_from_jmri_masts.py`) so SML owns LE
+- Layout Editor facing: `cats/data/le_signal_boundaries.csv` → `python3 cats/scripts/apply_le_sml_facing.py` (`signalAMast` / `eastboundsignalmast`). Balloon A48: **eastbound = Princess East McKeesport** (`IH134`, south slot y=345, faces south deg 180), **westbound = Princess East McKees Rocks** (`IH141`, north slot y=205, faces north deg 0). CATS: McKeesport on (45,7) TOP facing BOTTOM; Rocks on (45,6) BOTTOM facing TOP. 114/115 C homes face west (CATS SIGORIENT LEFT, LE deg 270); dest WME `111a` when 113 is normal, East Lead when 113 is reverse. K-1 / K-2 dwarfs dest the same westbound next masts (`111a` / East Lead), not the opposing 113a/113b faces. South line (Plane EME ↔ Barn D) dest each other across East Main Ext — not East End Main West.
+- SML dests: **native** — discovered by Layout Editor (`cats/scripts/run_sml_discover.sh`, one-shot) and stored in `tables.xml` with `useLayoutEditor=yes`; JMRI re-paths them on every load. The old hand-pair injector `apply_sml_cats_pairs.py` is retired (its `PAIRS` list is kept as a regression oracle for `validate_le_signalling.py --dests`); the startup Jython re-apply is removed from all profiles. Runtime criteria can be inspected with `jmri/layouts/hart/scripts/dump_sml_criteria.py` (one-shot, same harness env as `discover_sml.py`). CATS ABS is the visual reference only — it must not `setAspect` on JMRI masts.
+- Plant dests (CATS MQTT compare): Barn D (lower west) dests OS 112 when 117 is closed (east into Main East), not back across East Main Ext. 117b dests Plane EME when 117 is closed (westbound). East Lead dests 117b only when 112 is thrown (diverge to Main East). OS 112 dests 113a when 112 is thrown. OS 110 dests 113a only when 110 is thrown **and** 112 is closed (ladder into East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West Main West dests 113b; 111 thrown → both Stop.
 - Ports + topics: `cats/data/signal_wiring.csv` (also updates LCOS inventory DNOU8)
 - Mast index: `cats/data/signal_head_plan.csv` / enriched `signal_mast_plan.csv`
-- Rebuild: `python3 cats/scripts/build_hart_signal_heads.py`
+- Rebuild heads: `python3 cats/scripts/build_hart_signal_heads.py`
 - Signal heads: `jmri/scripts/mqtt_signalhead_publisher.py` paints Virtual heads
   from `track/signalhead/IH###` retain at boot (no publish on that pass), then
-  listens for Appearance changes and **publishes** JMRI → MQTT so CATS / CATS ABS
-  Digicon aspects reach LCOS. ABS-RO (`HOLD_ONLY`) still only Held/Unheld; field
-  retain is the aspect SoR for those lamps.
-- Digicon LE `signalmasticon`s are OK on Mac / Pi / Windows when `cats-virtual*`
-  appearances include `imagelink`s (required to avoid SignalMastIcon NPE).
-  Deploy via `sync_hart_package.sh` (full `tables.xml`).
+  listens for Appearance changes and **publishes** JMRI → MQTT so SML / Digicon
+  appearances reach LCOS.
+- LE `signalmasticon`s use AAR schematic GIFs (stock JMRI). Deploy via `sync_hart_package.sh` (full `tables.xml`).
 
 **Plane East East Main Ext** @ `(9,8) RIGHT` is now `IH432`/`IH433` (was POC `IH465`/`IH466`).

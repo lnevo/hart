@@ -1,23 +1,24 @@
 mast_user_name,mqtt_node,parent_node_id,heads,appearance,physignal,mast_system_name,head_system_names,packed_ids,port_ids
-Plane East East Main Ext,4,C4,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH432)(IH433),IH432 IH433,432 433,C4-OU2-1 C4-OU2-2
-Plane East OS 102,4,C4,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH434)(IH435),IH434 IH435,434 435,C4-OU2-3 C4-OU2-4
-Brick West Yard 1,4,C4,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH436),IH436,436,C4-OU2-5
-Brick West Yard 2,4,C4,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH437),IH437,437,C4-OU2-6
-West Yard West OS 117,13,C1,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH1332)(IH1333),IH1332 IH1333,1332 1333,C1-OU2-1 C1-OU2-2
-West Yard East Yard T6,13,C1,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH1334),IH1334,1334,C1-OU2-3
-West Yard West East Main Ext,13,C1,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH1335)(IH1336),IH1335 IH1336,1335 1336,C1-OU2-4 C1-OU2-5
-West Yard East OS 117b,13,C1,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH1337)(IH1338),IH1337 IH1338,1337 1338,C1-OU2-6 C1-OU3-1
-East End West Main West,12,C7,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH1232)(IH1233),IH1232 IH1233,1232 1233,C7-OU2-1 C7-OU2-2
-East End East OS 111a,12,C7,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH1234)(IH1235),IH1234 IH1235,1234 1235,C7-OU2-3 C7-OU2-4
-East End West Yard Track 1,12,C7,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH1236),IH1236,1236,C7-OU2-5
-East End East Lead,12,C7,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH1237)(IH1238),IH1237 IH1238,1237 1238,C7-OU2-6 C7-OU3-1
-East End South OS 110,12,C7,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH1239),IH1239,1239,C7-OU3-2
-East End South OS 112,12,C7,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH1240)(IH1241),IH1240 IH1241,1240 1241,C7-OU3-3 C7-OU3-4
-Princess North McKees Rocks,1,D1,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH132)(IH133),IH132 IH133,132 133,D1-OU2-1 D1-OU2-2
-Princess East McKeesport,1,D1,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH134),IH134,134,D1-OU2-3
-Princess West OS 113b,1,D1,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH135)(IH136),IH135 IH136,135 136,D1-OU2-4 D1-OU2-5
-Princess West OS 113a,1,D1,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH137)(IH138),IH137 IH138,137 138,D1-OU2-6 D1-OU2-7
-Princess South McKeesport,1,D1,2,cats-virtual-2,double,IF$shsm:cats-masts:cats-virtual-2(IH139)(IH140),IH139 IH140,139 140,D1-OU2-8 D1-OU3-1
-Princess East McKees Rocks,1,D1,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH141),IH141,141,D1-OU3-2
-Princess East K-1,1,D1,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH142),IH142,142,D1-OU3-3
-Princess East K-2,1,D1,1,cats-virtual-dwarf,single,IF$shsm:cats-masts:cats-virtual-dwarf(IH143),IH143,143,D1-OU3-4
+Plane East East Main Ext,4,C4,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH432)(IH433),IH432 IH433,432 433,C4-OU2-1 C4-OU2-2
+Plane East OS 102,4,C4,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH434)(IH435),IH434 IH435,434 435,C4-OU2-3 C4-OU2-4
+Brick West Yard 1,4,C4,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH436),IH436,436,C4-OU2-5
+Brick West Yard 2,4,C4,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH437),IH437,437,C4-OU2-6
+Brick East Main West,4,C4,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH438)(IH439),IH438 IH439,438 439,C4-OU3-1 C4-OU3-2
+West Yard West OS 117,13,C1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1332)(IH1333),IH1332 IH1333,1332 1333,C1-OU2-1 C1-OU2-2
+West Yard East Yard T6,13,C1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH1334),IH1334,1334,C1-OU2-3
+West Yard West East Main Ext,13,C1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1335)(IH1336),IH1335 IH1336,1335 1336,C1-OU2-4 C1-OU2-5
+West Yard East OS 117b,13,C1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1337)(IH1338),IH1337 IH1338,1337 1338,C1-OU2-6 C1-OU3-1
+East End West Main West,12,C7,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1232)(IH1233),IH1232 IH1233,1232 1233,C7-OU2-1 C7-OU2-2
+East End East OS 111a,12,C7,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1234)(IH1235),IH1234 IH1235,1234 1235,C7-OU2-3 C7-OU2-4
+East End West Yard Track 1,12,C7,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH1236),IH1236,1236,C7-OU2-5
+East End East Lead,12,C7,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1237)(IH1238),IH1237 IH1238,1237 1238,C7-OU2-6 C7-OU3-1
+East End South OS 110,12,C7,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH1239),IH1239,1239,C7-OU3-2
+East End South OS 112,12,C7,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1240)(IH1241),IH1240 IH1241,1240 1241,C7-OU3-3 C7-OU3-4
+Princess North McKees Rocks,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH132)(IH133),IH132 IH133,132 133,D1-OU2-1 D1-OU2-2
+Princess East McKeesport,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH134),IH134,134,D1-OU2-3
+Princess West OS 113b,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH135)(IH136),IH135 IH136,135 136,D1-OU2-4 D1-OU2-5
+Princess West OS 113a,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH137)(IH138),IH137 IH138,137 138,D1-OU2-6 D1-OU2-7
+Princess South McKeesport,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH139)(IH140),IH139 IH140,139 140,D1-OU2-8 D1-OU3-1
+Princess East McKees Rocks,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH141),IH141,141,D1-OU3-2
+Princess East K-1,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH142),IH142,142,D1-OU3-3
+Princess East K-2,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH143),IH143,143,D1-OU3-4

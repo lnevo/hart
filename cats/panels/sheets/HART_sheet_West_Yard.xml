@@ -23,7 +23,7 @@
     <ASPECTMAP R281="green" R281B="green" R282="green" R284="green" RES_NORM="red" ADV_NORM="green" R285="yellow" R281C="green" C412="green" C413="green" C414="green" RES_LIM="red" ADV_LIM="green" R281D="yellow" R283="green" C417="green" R283A="green" R283B="green" RES_MED="red" ADV_MED="green" R286="yellow" R287="green" C422="green" C423="green" C424="green" RES_SLO="red" ADV_SLO="green" R288="yellow" R292="red" R291="red" />
   </SIGNALTEMPLATE>
   <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="aar-single" R281="Clear" R281B="Clear" R282="Clear" R284="Clear" RES_NORM="Approach" ADV_NORM="Clear" R285="Approach" R281C="Clear" C412="Clear" C413="Clear" C414="Clear" RES_LIM="Approach" ADV_LIM="Clear" R281D="Approach" R283="Clear" C417="Clear" R283A="Clear" R283B="Clear" RES_MED="Approach" ADV_MED="Clear" R286="Approach" R287="Clear" C422="Clear" C423="Clear" C424="Clear" RES_SLO="Approach" ADV_SLO="Clear" R288="Approach" R291="Stop" R292="Stop">
-    <ASPECTMAP R281="green|off" R281B="green|off" R282="green|off" R284="green|off" RES_NORM="yellow|off" ADV_NORM="green|off" R285="yellow|off" R281C="green|off" C412="green|off" C413="green|off" C414="green|off" RES_LIM="yellow|off" ADV_LIM="green|off" R281D="yellow|off" R283="green|off" C417="green|off" R283A="green|off" R283B="green|off" RES_MED="yellow|off" ADV_MED="green|off" R286="yellow|off" R287="green|off" C422="green|off" C423="green|off" C424="green|off" RES_SLO="yellow|off" ADV_SLO="green|off" R288="yellow|off" R292="red|off" R291="red|off" />
+    <ASPECTMAP R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" RES_NORM="yellow|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="yellow|red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|green" R283B="red|green" RES_MED="yellow|red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="yellow|red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" />
   </SIGNALTEMPLATE>
   <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="double">
     <ASPECTMAP R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" RES_NORM="red|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="red|red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|green" R283B="red|green" RES_MED="red|red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="red|red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" />
@@ -311,7 +311,7 @@
         <SECSIGNAL>
           Brick East Main West
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>aar-single</PHYSIGNAL>
+          <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
@@ -487,10 +487,10 @@
       <SEC_EDGE EDGE="LEFT">
         <BLOCK NAME="Yard T11" STATION="ET-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -512,10 +512,10 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Yard T11" STATION="ET-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -671,8 +671,8 @@
         </BLOCK>
         <SECSIGNAL>
           Princess North McKees Rocks
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP3" />
-          <PHYSIGNAL>triple</PHYSIGNAL>
+          <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
@@ -722,10 +722,10 @@
       <SEC_EDGE EDGE="LEFT">
         <BLOCK NAME="Yard T9" STATION="ET-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -740,10 +740,10 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Yard T9" STATION="ET-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -1205,13 +1205,29 @@
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="K-1" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          Princess East K-1
+          <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="44" Y="6">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="K-1" STATION="K-1" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="Block 1-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="45" Y="6">
@@ -1228,6 +1244,11 @@
             <IOSPEC DECADDR="100" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
+        <SECSIGNAL>
+          Princess East McKees Rocks
+          <PANELSIGNAL SIGLOCATION="RIGHTUP" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="7" Y="7">
@@ -1818,7 +1839,7 @@
         </BLOCK>
         <SECSIGNAL>
           East End East Lead
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
@@ -1987,13 +2008,29 @@
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="K-2" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          Princess East K-2
+          <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="44" Y="7">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="K-2" STATION="K-2" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="Block 1-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="45" Y="7">
@@ -2009,6 +2046,11 @@
             <IOSPEC DECADDR="101" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
+        <SECSIGNAL>
+          Princess East McKeesport
+          <PANELSIGNAL SIGLOCATION="RIGHTLOW" SIGORIENT="BOTTOM" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
@@ -2426,8 +2468,8 @@
         </BLOCK>
         <SECSIGNAL>
           Princess South McKeesport
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP3" />
-          <PHYSIGNAL>triple</PHYSIGNAL>
+          <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>

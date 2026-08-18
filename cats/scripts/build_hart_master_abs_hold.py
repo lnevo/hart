@@ -47,6 +47,16 @@ def main() -> None:
     tree = ET.parse(args.src)
     root = tree.getroot()
     transform(root)
+
+    import importlib.util
+
+    bridge_path = Path(__file__).with_name("aar_aspect_bridge.py")
+    spec = importlib.util.spec_from_file_location("aar_aspect_bridge", bridge_path)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    mod.apply_aar_bridge(root, hold_only=True)
+
     args.dst.parent.mkdir(parents=True, exist_ok=True)
     tree.write(args.dst, encoding="UTF-8", xml_declaration=True)
     print(f"Wrote {args.dst}")

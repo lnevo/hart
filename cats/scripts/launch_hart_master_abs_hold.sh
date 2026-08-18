@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch CATS ABS-RO: turnout control on, signals HOLD_ONLY (listen).
+# Launch CATS ABS (HOLD_ONLY): turnout control on; JMRI SML owns aspects.
 # Rebuild from Master ABS if missing:
 #   python3 cats/scripts/build_hart_master_abs_hold.py
 set -euo pipefail

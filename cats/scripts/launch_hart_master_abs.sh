@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Launch CATS with HART Master ABS Digicon sheet (open-house automatic signaling).
-# Usage: ./cats/scripts/launch_hart_master_abs.sh
+# Launch CATS ABS: Digicon reference panel. SECSIGNAL names unbound from JMRI.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-exec "$ROOT/cats/scripts/launch_cats.sh" "$ROOT/cats/panels/HART_Master_ABS.xml"
+PANEL="$ROOT/cats/panels/HART_Master_ABS.xml"
+exec "$ROOT/cats/scripts/launch_cats.sh" "$PANEL"

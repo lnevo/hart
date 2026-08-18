@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Launch CATS with HART Master Digicon sheet (CTC discipline).
-# Usage: ./cats/scripts/launch_hart_master.sh
+# Launch CATS CTC: routes/turnouts on; signals HOLD_ONLY; JMRI SML owns aspects.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-exec "$ROOT/cats/scripts/launch_cats.sh" "$ROOT/cats/panels/HART_Master.xml"
+HOLD="$ROOT/cats/panels/HART_Master_CTC_hold.xml"
+if [[ ! -f "$HOLD" ]]; then
+  python3 "$ROOT/cats/scripts/build_hart_master_ctc_hold.py"
+fi
+exec "$ROOT/cats/scripts/launch_cats.sh" "$HOLD"

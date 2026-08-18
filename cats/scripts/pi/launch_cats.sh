@@ -14,7 +14,7 @@ set -euo pipefail
 # Layout Editor still works because it repaints on a timer.
 export _JAVA_AWT_WM_NONREPARENTING="${_JAVA_AWT_WM_NONREPARENTING:-1}"
 JMRI_HOME="${JMRI_HOME:-/home/pi/JMRI}"
-PANEL="${1:-/home/pi/hart/cats/panels/HART_Master.xml}"
+PANEL="${1:-/home/pi/hart/cats/panels/HART_Master_CTC_hold.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-TCS_MQTT.3f32a166}"
 LOG="${CATS_LAUNCH_LOG:-/home/pi/hart/logs/cats_launch.log}"
 

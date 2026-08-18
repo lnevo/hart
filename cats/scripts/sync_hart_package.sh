@@ -58,7 +58,7 @@ if [[ "$DO_PI" -eq 1 ]]; then
 
   # Rewrite button paths before upload
   STAGE=$(mktemp -d)
-  for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml; do
+  for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml HART_Master_CTC_hold.xml; do
     python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" --hart-root /home/pi/hart --out "$STAGE/$p"
   done
   scp -o BatchMode=yes "$STAGE"/*.xml "$PI_HOST:/home/pi/hart/cats/panels/"
@@ -80,13 +80,21 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/cats/scripts/pi/launch_hart_master.sh" \
     "$ROOT/cats/scripts/pi/launch_hart_master_abs.sh" \
     "$ROOT/cats/scripts/pi/launch_hart_master_abs_hold.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master_ctc_hold.sh" \
     "$ROOT/cats/scripts/pi/launch_hart_master_desktop.sh" \
     "$ROOT/cats/scripts/pi/launch_hart_master_abs_desktop.sh" \
     "$ROOT/cats/scripts/pi/launch_hart_master_abs_hold_desktop.sh" \
+    "$ROOT/cats/scripts/pi/launch_hart_master_ctc_hold_desktop.sh" \
     "$ROOT/cats/scripts/pi/launch_cats_desktop.sh" \
     "$ROOT/cats/scripts/pi/JMRI_CATS" \
     "$ROOT/cats/scripts/pi/README_CATS.txt" \
     "$PI_HOST:/home/pi/hart/"
+  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/hart/cats/scripts/pi'
+  scp -o BatchMode=yes \
+    "$ROOT/cats/scripts/pi/CATS_CTC.desktop" \
+    "$ROOT/cats/scripts/pi/CATS_ABS.desktop" \
+    "$ROOT/cats/scripts/pi/install_desktop_icons.sh" \
+    "$PI_HOST:/home/pi/hart/cats/scripts/pi/"
   ssh -o BatchMode=yes "$PI_HOST" 'chmod +x \
     /home/pi/hart/launch_cats.sh \
     /home/pi/hart/launch_cats_desktop.sh \
@@ -94,15 +102,34 @@ if [[ "$DO_PI" -eq 1 ]]; then
     /home/pi/hart/launch_hart_master.sh \
     /home/pi/hart/launch_hart_master_abs.sh \
     /home/pi/hart/launch_hart_master_abs_hold.sh \
+    /home/pi/hart/launch_hart_master_ctc_hold.sh \
     /home/pi/hart/launch_hart_master_desktop.sh \
     /home/pi/hart/launch_hart_master_abs_desktop.sh \
-    /home/pi/hart/launch_hart_master_abs_hold_desktop.sh'
+    /home/pi/hart/launch_hart_master_abs_hold_desktop.sh \
+    /home/pi/hart/launch_hart_master_ctc_hold_desktop.sh \
+    /home/pi/hart/cats/scripts/pi/install_desktop_icons.sh'
+  ssh -o BatchMode=yes "$PI_HOST" '/home/pi/hart/cats/scripts/pi/install_desktop_icons.sh'
   scp -o BatchMode=yes \
     "$ROOT/jmri/layouts/hart/scripts/apply_maintain_mqtt.py" \
     "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
     "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
     "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
+    "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
     "$PI_HOST:/home/pi/hart/jmri/layouts/hart/scripts/"
+  # Native SML cutover: retired startup workarounds must stay out of the Pi
+  # profile. apply_sml_cats_pairs: SML lives in tables.xml via Discover.
+  # unhold_signal_masts: Held is CATS CTC's channel (hold at load, unhold on
+  # route lining); a blanket unhold watchdog fights it. ABS mimic is unbound.
+  scp -o BatchMode=yes "$ROOT/cats/scripts/patch_jmri_startup.py" \
+    "$PI_HOST:/home/pi/hart/cats/scripts/"
+  ssh -o BatchMode=yes "$PI_HOST" \
+    'for s in apply_sml_cats_pairs.py unhold_signal_masts.py; do \
+       python3 /home/pi/hart/cats/scripts/patch_jmri_startup.py remove \
+         --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+         --script /home/pi/hart/jmri/layouts/hart/scripts/$s \
+         2>/dev/null || true; \
+       rm -f /home/pi/hart/jmri/layouts/hart/scripts/$s; \
+     done'
   scp -o BatchMode=yes \
     "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py" \
     "$PI_HOST:/home/pi/hart/jmri/scripts/"
@@ -111,6 +138,19 @@ if [[ "$DO_PI" -eq 1 ]]; then
   if [[ -n "$TABLES" ]]; then
     scp -o BatchMode=yes "$TABLES" "$PI_HOST:/home/pi/JMRI_UserFiles/tables.xml"
     echo "Pi tables.xml updated"
+  fi
+  TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
+  if [[ -d "$TRAININFO" ]] && compgen -G "$TRAININFO/*.xml" > /dev/null; then
+    ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/dispatcher/traininfo'
+    scp -o BatchMode=yes "$TRAININFO"/*.xml \
+      "$PI_HOST:/home/pi/JMRI_UserFiles/dispatcher/traininfo/"
+    echo "Pi dispatcher/traininfo updated"
+  fi
+  if [[ -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" ]]; then
+    ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/dispatcher'
+    scp -o BatchMode=yes "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" \
+      "$PI_HOST:/home/pi/JMRI_UserFiles/dispatcher/dispatcheroptions.xml"
+    echo "Pi dispatcheroptions.xml updated"
   fi
   # Digicon SHSM appearances (incl. dwarf) for LE + mast load
   ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/resources/signals/cats-masts /home/pi/hart/cats/resources/signals/cats-masts'
@@ -125,6 +165,17 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/cats/resources/signals/cats-masts/index.shtml" \
     "$PI_HOST:/home/pi/hart/cats/resources/signals/cats-masts/"
   echo "Pi cats-masts updated"
+  # hart-aar signal system (2-head Digicon SHSM masts in tables.xml need it to load)
+  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/resources/signals/hart-aar /home/pi/hart/cats/resources/signals/hart-aar'
+  scp -o BatchMode=yes \
+    "$ROOT/cats/resources/signals/hart-aar/aspects.xml" \
+    "$ROOT/cats/resources/signals/hart-aar/appearance-SL-2-digicon.xml" \
+    "$PI_HOST:/home/pi/JMRI_UserFiles/resources/signals/hart-aar/"
+  scp -o BatchMode=yes \
+    "$ROOT/cats/resources/signals/hart-aar/aspects.xml" \
+    "$ROOT/cats/resources/signals/hart-aar/appearance-SL-2-digicon.xml" \
+    "$PI_HOST:/home/pi/hart/cats/resources/signals/hart-aar/"
+  echo "Pi hart-aar updated"
   echo "Pi deploy done."
 fi
 
@@ -133,7 +184,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   ssh_win 'mkdir hart\cats\panels hart\cats\resources\buttons hart\cats\resources\jmri-web\servlet\home hart\cats\scripts\windows hart\jmri\layouts\hart\scripts hart\jmri\scripts 2>nul & mkdir %USERPROFILE%\JMRI_UserFiles\web\servlet\home 2>nul & echo dirs_ok'
 
   STAGE=$(mktemp -d)
-  for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml; do
+  for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml HART_Master_CTC_hold.xml; do
     python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" \
       --hart-root "C:/Users/lnevo/hart" --out "$STAGE/$p"
   done
@@ -154,6 +205,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
     "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
     "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
     "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
+    "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
     "${WIN_HOST}:hart/jmri/layouts/hart/scripts/"
   if [[ -f "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" ]]; then
     scp_win "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" \
@@ -165,7 +217,8 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   for f in install_hart_tables.ps1 create_hart_master_desktop.ps1 \
            apply_hart_package_local.ps1 install_cats_masts.ps1 \
            launch_hart_master.bat launch_hart_master_abs.bat \
-           launch_hart_master_abs_hold.bat launch_cats_desktop.bat; do
+           launch_hart_master_abs_hold.bat launch_hart_master_ctc_hold.bat \
+           launch_cats_desktop.bat; do
     [[ -f "$ROOT/cats/scripts/windows/$f" ]] && \
       scp_win "$ROOT/cats/scripts/windows/$f" "${WIN_HOST}:hart/cats/scripts/windows/$f"
   done
@@ -176,12 +229,16 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   fi
 
   # Digicon SHSM appearances for Windows profiles
-  ssh_win 'mkdir hart\cats\resources\signals\cats-masts 2>nul & echo ok'
+  ssh_win 'mkdir hart\cats\resources\signals\cats-masts hart\cats\resources\signals\hart-aar 2>nul & echo ok'
   scp_win \
     "$ROOT/cats/resources/signals/cats-masts/"appearance-cats-virtual*.xml \
     "$ROOT/cats/resources/signals/cats-masts/aspects.xml" \
     "$ROOT/cats/resources/signals/cats-masts/index.shtml" \
     "${WIN_HOST}:hart/cats/resources/signals/cats-masts/"
+  scp_win \
+    "$ROOT/cats/resources/signals/hart-aar/aspects.xml" \
+    "$ROOT/cats/resources/signals/hart-aar/appearance-SL-2-digicon.xml" \
+    "${WIN_HOST}:hart/cats/resources/signals/hart-aar/"
 
   scp_win "$ROOT/cats/scripts/windows/apply_hart_package_local.ps1" \
     "${WIN_HOST}:hart/cats/scripts/windows/apply_hart_package_local.ps1"

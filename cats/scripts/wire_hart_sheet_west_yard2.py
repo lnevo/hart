@@ -274,6 +274,8 @@ CUTS: list[tuple[tuple[int, int], str, tuple[int, int], str, str]] = [
     ((39, 7), "RIGHT", (40, 7), "LEFT", "OS113a | OS114 approach"),
     ((39, 6), "RIGHT", (40, 6), "LEFT", "OS113b tip | OS115"),
     ((43, 5), "RIGHT", (44, 5), "LEFT", "OS115 | McKees Rocks"),
+    ((43, 6), "RIGHT", (44, 6), "LEFT", "K-1 stub (BLK mate — Screen.init)"),
+    ((43, 7), "RIGHT", (44, 7), "LEFT", "K-2 stub (BLK mate — Screen.init)"),
     ((43, 8), "RIGHT", (44, 8), "LEFT", "OS114 | McKeesport"),
     ((45, 6), "BOTTOM", (45, 7), "TOP", "McKees Rocks | McKeesport"),
 ]
@@ -420,17 +422,20 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (4, 3, "LEFT"): ("Brick West Yard 1", "LAMP1", "LOWLEFT", "RIGHT"),
     (4, 4, "LEFT"): ("Brick West Yard 2", "LAMP1", "LOWLEFT", "RIGHT"),
     # Hidden westbound stub stops on mid-spur cuts (no PANELSIGNAL). Digicon-only;
-    # Stay Stop → westbound Brick East Main West (432) drops to Approach / yellow.
+    # Stay Stop → westbound Brick East Main West drops to Approach / yellow.
     (3, 3, "RIGHT"): ("Brick W-1 West Stub", "HIDDEN", "", "LEFT"),
     (3, 4, "RIGHT"): ("Brick W-2 West Stub", "HIDDEN", "", "LEFT"),
-    # Brick main — JMRI MQTT mast 432 SL-2 (Brick East Main West); Digicon dual-lamp + aar remap
-    (8, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWLEFT", "LEFT", "aar-single"),
+    # Brick main — virtual heads IH438/IH439 (C4-OU3), same SHSM path as other homes
+    (8, 3, "RIGHT"): ("Brick East Main West", "LAMP2", "LOWLEFT", "LEFT"),
+    # 114/115 diverging homes face west (SIGORIENT LEFT): trains from McKees*
+    # into the plant. Dest WME (113 normal) or East Lead (113 reverse).
     (43, 5, "RIGHT"): ("Princess North McKees Rocks", "LAMP2", "LOWCENT", "LEFT"),
     (28, 6, "LEFT"): ("East End West Main West", "LAMP2", "LOWLEFT", "RIGHT"),
     (30, 6, "RIGHT"): ("East End East OS 111a", "LAMP2", "LOWLEFT", "LEFT"),
     (37, 6, "LEFT"): ("Princess West OS 113b", "LAMP2", "LOWLEFT", "RIGHT"),
     (43, 6, "RIGHT"): ("Princess East K-1", "LAMP1", "LOWCENT", "LEFT"),
-    (45, 6, "BOTTOM"): ("Princess East McKeesport", "LAMP1", "RIGHTUP", "TOP"),
+    # Balloon connector: tip into the named block (BOTTOM→TOP, TOP→BOTTOM).
+    (45, 6, "BOTTOM"): ("Princess East McKees Rocks", "LAMP1", "RIGHTUP", "TOP"),
     (9, 7, "RIGHT"): ("Plane East OS 102", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 7, "LEFT"): ("West Yard West OS 117", "LAMP2", "LOWLEFT", "RIGHT"),
     (14, 7, "RIGHT"): ("West Yard East Yard T6", "LAMP1", "LOWLEFT", "LEFT"),
@@ -439,7 +444,7 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (37, 7, "LEFT"): ("Princess West OS 113a", "LAMP2", "LOWLEFT", "RIGHT"),
     (43, 7, "RIGHT"): ("Princess East K-2", "LAMP1", "LOWCENT", "LEFT"),
     (31, 7, "BOTTOM"): ("East End South OS 110", "LAMP1", "LEFTUP", "TOP"),
-    (45, 7, "TOP"): ("Princess East McKees Rocks", "LAMP1", "RIGHTLOW", "BOTTOM"),
+    (45, 7, "TOP"): ("Princess East McKeesport", "LAMP1", "RIGHTLOW", "BOTTOM"),
     # Plane normal route (SW102 closed → East Main Ext): virtual heads IH432/IH433 (node 4)
     (9, 8, "RIGHT"): ("Plane East East Main Ext", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 8, "LEFT"): ("West Yard West East Main Ext", "LAMP2", "LOWLEFT", "RIGHT"),
@@ -967,6 +972,9 @@ def wire() -> int:
     )
     MASTER_ABS.write_text(abs_xml, encoding="utf-8")
     print(f"wrote {MASTER_ABS.relative_to(ROOT)} (ABS)")
+    subprocess.check_call(
+        [sys.executable, str(ROOT / "cats/scripts/unbind_abs_from_jmri_masts.py"), str(MASTER_ABS)]
+    )
 
     # Keep SoR train/job tables in sync (Designer-safe; no Digicon edges).
     sor_root = ET.parse(SOR).getroot()

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Legacy desktop wrapper. Prefer CATS CTC / ABS / ABS-RO icons.
+# Legacy desktop wrapper. Prefer CATS CTC / CATS ABS icons.
 # Pi GUI is Xwayland on :1 (not :0).
 export DISPLAY="${DISPLAY:-:1}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"

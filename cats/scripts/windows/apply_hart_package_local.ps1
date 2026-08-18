@@ -50,3 +50,8 @@ if (Test-Path $homeHtml) {
 }
 
 Write-Host 'apply_hart_package_local done'
+
+$desk = Join-Path $hart 'cats\scripts\windows\create_hart_master_desktop.ps1'
+if (Test-Path $desk) {
+  & $desk
+}

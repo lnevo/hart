@@ -1,7 +1,5 @@
 $ErrorActionPreference = 'Stop'
-# Desktop shortcuts: CATS CTC / CATS ABS / CATS ABS-RO
-# Panels: HART_Master.xml (CTC), HART_Master_ABS.xml, HART_Master_ABS_hold.xml
-# Prefer local %USERPROFILE%\hart (deployed via SSH sync_hart_package.sh --win).
+# Desktop shortcuts: CATS CTC + CATS ABS (HOLD_ONLY; JMRI SML owns aspects)
 $Work = $PSScriptRoot
 $Desktop = [Environment]::GetFolderPath('Desktop')
 $PanelDir = Join-Path $env:USERPROFILE 'hart\cats\panels'
@@ -16,6 +14,7 @@ foreach ($helper in @(
   'launch_hart_master.bat',
   'launch_hart_master_abs.bat',
   'launch_hart_master_abs_hold.bat',
+  'launch_hart_master_ctc_hold.bat',
   'launch_cats_desktop.bat',
   'crandic.gif',
   'CATS.ICO'
@@ -30,6 +29,7 @@ foreach ($panel in @(
   'HART_Master.xml',
   'HART_Master_ABS.xml',
   'HART_Master_ABS_hold.xml',
+  'HART_Master_CTC_hold.xml',
   'HART_sheet_West_Yard.xml'
 )) {
   $src = Join-Path $Work $panel
@@ -38,16 +38,14 @@ foreach ($panel in @(
   }
 }
 
-# Yard-ladder button icons (Digicon BUTTON paths must exist locally)
 $BtnDir = Join-Path $env:USERPROFILE 'hart\cats\resources\buttons'
 New-Item -ItemType Directory -Force -Path $BtnDir | Out-Null
 $BtnSrc = Join-Path $Work 'buttons'
 if (Test-Path $BtnSrc) {
   Copy-Item (Join-Path $BtnSrc '*') $BtnDir -Force
 }
-# Rewrite Mac absolute icon paths → this Windows hart root (forward slashes OK for Java)
 $WinRoot = (Join-Path $env:USERPROFILE 'hart') -replace '\\', '/'
-foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_hold.xml')) {
+foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_hold.xml', 'HART_Master_CTC_hold.xml')) {
   $p = Join-Path $PanelDir $panel
   if (-not (Test-Path $p)) { continue }
   $txt = Get-Content -Raw -LiteralPath $p
@@ -62,8 +60,10 @@ foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_
   }
 }
 
-# Remove legacy HART Master* / bare CATS shortcuts if present
-foreach ($legacy in @('HART Master', 'HART Master ABS', 'HART Master ABS-RO', 'CATS')) {
+foreach ($legacy in @(
+  'HART Master', 'HART Master ABS', 'HART Master ABS-RO', 'CATS',
+  'CATS CTC SML', 'CATS ABS-RO'
+)) {
   $legacyLnk = Join-Path $Desktop ($legacy + '.lnk')
   if (Test-Path $legacyLnk) {
     Remove-Item $legacyLnk -Force
@@ -78,17 +78,12 @@ $shortcuts = @(
   @{
     Name = 'CATS CTC'
     Bat  = 'launch_hart_master.bat'
-    Desc = 'CATS Digicon - CTC (HART_Master.xml)'
+    Desc = 'CATS Digicon CTC (HOLD_ONLY; JMRI SML aspects)'
   },
   @{
     Name = 'CATS ABS'
     Bat  = 'launch_hart_master_abs.bat'
-    Desc = 'CATS Digicon - ABS open house (HART_Master_ABS.xml)'
-  },
-  @{
-    Name = 'CATS ABS-RO'
-    Bat  = 'launch_hart_master_abs_hold.bat'
-    Desc = 'CATS Digicon - ABS-RO hold/listen (HART_Master_ABS_hold.xml)'
+    Desc = 'CATS Digicon ABS (stock; CATS drives aspects)'
   }
 )
 
@@ -108,4 +103,4 @@ foreach ($s in $shortcuts) {
   Write-Host ("Desktop: {0} -> {1}" -f $lnkPath, $batLocal)
 }
 
-Write-Host 'DONE - Desktop has CATS CTC, CATS ABS, CATS ABS-RO only'
+Write-Host 'DONE - Desktop has CATS CTC and CATS ABS'

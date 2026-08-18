@@ -29,13 +29,12 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
-# Default: HART Master Digicon sheet (full layout; CTC).
-# ABS open-house copy: HART_Master_ABS.xml via launch_hart_master_abs.sh
-# Scratch/designer: HART_sheet_West_Yard2.xml — not the default launch target.
+# Default: live CATS CTC (HOLD_ONLY; JMRI SML).
+# ABS: ./cats/scripts/launch_hart_master_abs.sh
 # Gate 1: ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 # Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=app|terminal.
 # (PanelPro.app handoff changed JMRI behavior — do not use as default.)
-PANEL="${1:-$ROOT/cats/panels/HART_Master.xml}"
+PANEL="${1:-$ROOT/cats/panels/HART_Master_CTC_hold.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).

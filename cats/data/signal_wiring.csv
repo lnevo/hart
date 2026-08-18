@@ -5,6 +5,8 @@ C4-OU2-3,C4,4,West - Lower,2,34,434,IH434,Plane East OS 102 Top,Plane East OS 10
 C4-OU2-4,C4,4,West - Lower,3,35,435,IH435,Plane East OS 102 Bottom,Plane East OS 102,B,track/signalhead/IH435,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; Digicon mast 'Plane East OS 102'
 C4-OU2-5,C4,4,West - Lower,4,36,436,IH436,Brick West Yard 1,Brick West Yard 1,S,track/signalhead/IH436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; Digicon mast 'Brick West Yard 1'
 C4-OU2-6,C4,4,West - Lower,5,37,437,IH437,Brick West Yard 2,Brick West Yard 2,S,track/signalhead/IH437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; Digicon mast 'Brick West Yard 2'
+C4-OU3-1,C4,4,West - Lower,6,38,438,IH438,Brick East Main West Top,Brick East Main West,T,track/signalhead/IH438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; Digicon mast 'Brick East Main West'
+C4-OU3-2,C4,4,West - Lower,7,39,439,IH439,Brick East Main West Bottom,Brick East Main West,B,track/signalhead/IH439,Searchlight Signal Head,5V,LCOS Signal 7 UID 39; Digicon mast 'Brick East Main West'
 C1-OU2-1,C1,13,Helix - Lower (Barn / West Yard),0,32,1332,IH1332,West Yard West OS 117 Top,West Yard West OS 117,T,track/signalhead/IH1332,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; Digicon mast 'West Yard West OS 117'
 C1-OU2-2,C1,13,Helix - Lower (Barn / West Yard),1,33,1333,IH1333,West Yard West OS 117 Bottom,West Yard West OS 117,B,track/signalhead/IH1333,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; Digicon mast 'West Yard West OS 117'
 C1-OU2-3,C1,13,Helix - Lower (Barn / West Yard),2,34,1334,IH1334,West Yard East Yard T6,West Yard East Yard T6,S,track/signalhead/IH1334,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; Digicon mast 'West Yard East Yard T6'

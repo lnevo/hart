@@ -8,7 +8,8 @@
 ## Locked
 
 - JMRI: current (**5.15.4plus** / ≤5.16 for CATS 3.2)
-- CTC command authority: **CATS**
+- CTC **route** authority: **CATS** (`HART_Master_CTC_hold.xml` HOLD_ONLY)
+- Signal **aspects**: **JMRI SML** (AAR-1946). Without CATS, Unhold = ABS.
 - First plant: **Brick**
 
 ## Artifacts

@@ -352,6 +352,7 @@ function Copy-PackScript([string]$name, [string]$destDir) {
 
 foreach ($s in @(
   'apply_maintain_mqtt.py',
+  'discover_sml.py',
   'sync_yard_ladder_buttons.py',
   'add_yard_ladder_le_icons.py',
   'apply_mqtt_retain_at_startup.py',

@@ -1,15 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <DOCUMENT VERSION="3.1" WIDTH="1900" HEIGHT="940" X="0" Y="0">
   <FONTDEFINITION FONTKEY="FONT_LABEL" FONTNAME="Grid Labels" FONTCOLOR="-1" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <FONTDEFINITION FONTKEY="FONT_TITLE" FONTNAME="Panel Title" FONTCOLOR="-1" FONTSIZE="16" FONTSTYLE="BOLD" /><FONTDEFINITION FONTKEY="FONT_SUBTITLE" FONTNAME="Panel Subtitle" FONTCOLOR="-256" FONTSIZE="12" FONTSTYLE="PLAIN" /><FONTDEFINITION FONTKEY="FONT_CP" FONTNAME="Control Points" FONTCOLOR="-256" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="FONT_TRAIN" FONTNAME="Train Identities" FONTCOLOR="-1" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="ONCALL" FONTNAME="On Call Train" FONTCOLOR="-4144960" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="ACTIVE" FONTNAME="Active Train" FONTCOLOR="-14336" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="SELECTED" FONTNAME="Selected Train" FONTCOLOR="-16711681" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="TIEDUP" FONTNAME="Tied Down Train" FONTCOLOR="-65281" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="UNLOCK_ICON" FONTNAME="Unlocked Icon" FONTCOLOR="-1" FONTSIZE="11" FONTSTYLE="PLAIN" />
-  <FONTDEFINITION FONTKEY="FONT_TITLE" FONTNAME="Panel Title" FONTCOLOR="-1" FONTSIZE="16" FONTSTYLE="BOLD" />
-  <FONTDEFINITION FONTKEY="FONT_SUBTITLE" FONTNAME="Panel Subtitle" FONTCOLOR="-256" FONTSIZE="12" FONTSTYLE="PLAIN" />
-  <FONTDEFINITION FONTKEY="FONT_CP" FONTNAME="Control Points" FONTCOLOR="-256" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="f0" FONTNAME="East" FONTCOLOR="-16711936" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <FONTDEFINITION FONTKEY="f1" FONTNAME="West" FONTCOLOR="-65536" FONTSIZE="11" FONTSTYLE="PLAIN" />
   <LINE />
@@ -21,16 +19,16 @@
   <COUNTER NAME="CODEDELAY" VALUE="0" />
   <COUNTER NAME="LNGOVERNOR" VALUE="1" />
   <COUNTER NAME="DEBOUNCE" VALUE="0" />
-  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="1" TEMPLATENAME="single">
+  <TEEMAST /><SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="1" TEMPLATENAME="single" R281="Slow Clear" R281B="Slow Clear" R282="Slow Clear" R284="Slow Clear" RES_NORM="Stop" ADV_NORM="Slow Clear" R285="Restricting" R281C="Slow Clear" C412="Slow Clear" C413="Slow Clear" C414="Slow Clear" RES_LIM="Stop" ADV_LIM="Slow Clear" R281D="Slow Clear" R283="Slow Clear" C417="Slow Clear" R283A="Slow Clear" R283B="Slow Clear" RES_MED="Stop" ADV_MED="Slow Clear" R286="Slow Clear" R287="Slow Clear" C422="Slow Clear" C423="Slow Clear" C424="Slow Clear" RES_SLO="Stop" ADV_SLO="Slow Clear" R288="Slow Clear" R292="Stop" R291="Stop">
     <ASPECTMAP R281="green" R281B="green" R282="green" R284="green" RES_NORM="red" ADV_NORM="green" R285="yellow" R281C="green" C412="green" C413="green" C414="green" RES_LIM="red" ADV_LIM="green" R281D="yellow" R283="green" C417="green" R283A="green" R283B="green" RES_MED="red" ADV_MED="green" R286="yellow" R287="green" C422="green" C423="green" C424="green" RES_SLO="red" ADV_SLO="green" R288="yellow" R292="red" R291="red" HOLD_ONLY="true" />
   </SIGNALTEMPLATE>
-  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="aar-single" R281="Clear" R281B="Clear" R282="Clear" R284="Clear" RES_NORM="Approach" ADV_NORM="Clear" R285="Approach" R281C="Clear" C412="Clear" C413="Clear" C414="Clear" RES_LIM="Approach" ADV_LIM="Clear" R281D="Approach" R283="Clear" C417="Clear" R283A="Clear" R283B="Clear" RES_MED="Approach" ADV_MED="Clear" R286="Approach" R287="Clear" C422="Clear" C423="Clear" C424="Clear" RES_SLO="Approach" ADV_SLO="Clear" R288="Approach" R292="Stop" R291="Stop">
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="aar-single" R281="Clear" R281B="Clear" R282="Clear" R284="Clear" RES_NORM="Stop" ADV_NORM="Approach" R285="Approach" R281C="Clear" C412="Clear" C413="Clear" C414="Clear" RES_LIM="Stop" ADV_LIM="Approach" R281D="Approach" R283="Medium Clear" C417="Clear" R283A="Clear" R283B="Clear" RES_MED="Stop" ADV_MED="Approach" R286="Medium Approach" R287="Clear" C422="Clear" C423="Clear" C424="Clear" RES_SLO="Stop" ADV_SLO="Approach" R288="Approach" R291="Stop" R292="Stop">
     <ASPECTMAP R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" RES_NORM="yellow|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="yellow|red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|green" R283B="red|green" RES_MED="yellow|red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="yellow|red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" HOLD_ONLY="true" />
   </SIGNALTEMPLATE>
-  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="double">
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="double" R281="Clear" R281B="Clear" R282="Clear" R284="Clear" RES_NORM="Stop" ADV_NORM="Approach" R285="Approach" R281C="Clear" C412="Clear" C413="Clear" C414="Clear" RES_LIM="Stop" ADV_LIM="Approach" R281D="Approach" R283="Medium Clear" C417="Clear" R283A="Clear" R283B="Clear" RES_MED="Stop" ADV_MED="Approach" R286="Medium Approach" R287="Clear" C422="Clear" C423="Clear" C424="Clear" RES_SLO="Stop" ADV_SLO="Approach" R288="Approach" R292="Stop" R291="Stop">
     <ASPECTMAP R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" RES_NORM="red|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="red|red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|green" R283B="red|green" RES_MED="red|red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="red|red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" HOLD_ONLY="true" />
   </SIGNALTEMPLATE>
-  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="3" TEMPLATENAME="triple">
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="3" TEMPLATENAME="triple" R281="Clear" R281B="Clear" R282="Clear" R284="Clear" RES_NORM="Stop" ADV_NORM="Approach" R285="Approach" R281C="Clear" C412="Clear" C413="Clear" C414="Clear" RES_LIM="Stop" ADV_LIM="Approach" R281D="Approach" R283="Medium Clear" C417="Clear" R283A="Clear" R283B="Clear" RES_MED="Stop" ADV_MED="Approach" R286="Medium Approach" R287="Clear" C422="Clear" C423="Clear" C424="Clear" RES_SLO="Stop" ADV_SLO="Approach" R288="Approach" R292="Stop" R291="Stop">
     <ASPECTMAP R281="green|red|red" R281B="green|red|red" R282="yellow|yellow|red" R284="yellow|yellow|red" RES_NORM="red|red|red" ADV_NORM="yellow|yellow|red" R285="yellow|red|red" R281C="green|red|red" C412="green|red|red" C413="yellow|yellow|red" C414="yellow|yellow|red" RES_LIM="red|red|red" ADV_LIM="yellow|yellow|red" R281D="yellow|red|red" R283="red|green|red" C417="red|green|red" R283A="red|green|red" R283B="red|green|red" RES_MED="red|red|red" ADV_MED="red|green|red" R286="red|yellow|red" R287="red|red|green" C422="red|red|green" C423="red|red|green" C424="red|red|green" RES_SLO="red|red|red" ADV_SLO="red|red|green" R288="red|red|yellow" R292="red|red|red" R291="red|red|red" HOLD_ONLY="true" />
   </SIGNALTEMPLATE>
   <TRAINSTORE>
@@ -132,19 +130,12 @@
   <TRAINSTATLABEL />
   <COMPRESSIONTAG />
   <OPERATIONS CONNECT="true" />
-  <JMRINAME JMRIPREFIX="IO" XMLTYPE="Route">jmri.managers.DefaultRouteManager</JMRINAME>
   <JMRINAME JMRIPREFIX="IS" XMLTYPE="Sensor">jmri.managers.InternalSensorManager</JMRINAME>
   <JMRINAME JMRIPREFIX="IT" XMLTYPE="Turnout">jmri.managers.InternalTurnoutManager</JMRINAME>
   <JMRINAME JMRIPREFIX="M2S" XMLTYPE="Sensor">jmri.jmrix.mqtt.MqttSensorManager</JMRINAME>
   <JMRINAME JMRIPREFIX="M2T" XMLTYPE="Turnout">jmri.jmrix.mqtt.MqttTurnoutManager</JMRINAME>
-  <TRACKPLAN COLUMNS="50" ROWS="15">
-    <SECTION X="38" Y="1"><SEC_NAME LOC_NAME="LOWLEFT" NAME="DS-ABS-RO  Rev A  Eff 2026-08-16" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="30" Y="1"><SEC_NAME LOC_NAME="LOWCENT" NAME="ABS-RO DIGICON" FONT_NAME="FONT_SUBTITLE" /></SECTION><SECTION X="22" Y="1"><SEC_NAME LOC_NAME="LOWCENT" NAME="P&amp;CV DIVISION" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="10" Y="1"><SEC_NAME LOC_NAME="LOWLEFT" NAME="NEVILLE ISLAND OPERATIONS" FONT_NAME="FONT_SUBTITLE" /></SECTION><SECTION X="3" Y="1"><SEC_NAME LOC_NAME="LOWLEFT" NAME="HART RAILROAD" FONT_NAME="FONT_TITLE" /></SECTION><SECTION X="3" Y="2">
-      <SEC_NAME LOC_NAME="LOWLEFT" NAME="WEST YARD" FONT_NAME="FONT_LABEL" />
-    </SECTION>
-    <SECTION X="7" Y="2">
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="BRICK" FONT_NAME="FONT_CP" />
-    </SECTION>
-    <SECTION X="2" Y="3">
+  <JMRINAME JMRIPREFIX="IO" XMLTYPE="Route">jmri.managers.DefaultRouteManager</JMRINAME><TRACKPLAN COLUMNS="50" ROWS="15">
+    <SECTION X="38" Y="1"><SEC_NAME LOC_NAME="LOWLEFT" NAME="DS-ABS  Rev A  Eff 2026-08-18" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="30" Y="1"><SEC_NAME LOC_NAME="LOWCENT" NAME="ABS DIGICON" FONT_NAME="FONT_SUBTITLE" /></SECTION><SECTION X="22" Y="1"><SEC_NAME LOC_NAME="LOWCENT" NAME="P&amp;CV DIVISION" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="10" Y="1"><SEC_NAME LOC_NAME="LOWLEFT" NAME="NEVILLE ISLAND OPERATIONS" FONT_NAME="FONT_SUBTITLE" /></SECTION><SECTION X="3" Y="1"><SEC_NAME LOC_NAME="LOWLEFT" NAME="HART RAILROAD" FONT_NAME="FONT_TITLE" /></SECTION><SECTION X="2" Y="3">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -158,18 +149,36 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="West Yard 1" STATION="W-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="3" Y="3">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="W-1" FONT_NAME="FONT_LABEL" />
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="West Yard 1" STATION="W-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Brick W-1 West Stub
+          CATS Brick W-1 West Stub
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
@@ -188,7 +197,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Brick West Yard 1
+          CATS Brick West Yard 1
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -203,20 +212,20 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
               <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -229,7 +238,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 101 (Brick)" STATION="101" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="400" JMRIPREFIX="M2S" USER_NAME="Block 4-1">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="400" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="7" Y="3">
@@ -249,14 +265,6 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC>
@@ -265,10 +273,25 @@
               <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="OS 100 (Brick)" STATION="100" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="401" JMRIPREFIX="M2S" USER_NAME="Block 4-2">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="401" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="8" Y="3">
@@ -277,11 +300,18 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 100 (Brick)" STATION="100" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="401" JMRIPREFIX="M2S" USER_NAME="Block 4-2">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="401" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Brick East Main West
+          CATS Brick East Main West
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>aar-single</PHYSIGNAL>
+          <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
@@ -372,18 +402,36 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="West Yard 2" STATION="W-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="3" Y="4">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="W-2" FONT_NAME="FONT_LABEL" />
-      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="West Yard 2" STATION="W-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Brick W-2 West Stub
+          CATS Brick W-2 West Stub
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
@@ -393,9 +441,16 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
+        <BLOCK NAME="OS 101 (Brick)" STATION="101" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="400" JMRIPREFIX="M2S" USER_NAME="Block 4-1">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="400" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Brick West Yard 2
+          CATS Brick West Yard 2
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -455,7 +510,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard T11" STATION="ET-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="15" Y="4">
@@ -495,9 +557,6 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="43" Y="4">
-      <SEC_NAME LOC_NAME="CENT" NAME="McKees Rocks, PA" FONT_NAME="FONT_LABEL" />
-    </SECTION>
     <SECTION X="7" Y="5">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
@@ -528,7 +587,14 @@
       <SEC_NAME LOC_NAME="LOWCENT" NAME="Yard T10" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard T10" STATION="ET-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="Block 13-6">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1305" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="14" Y="5">
@@ -582,15 +648,6 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="26" Y="5">
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="SOUTH YARD" FONT_NAME="FONT_LABEL" />
-    </SECTION>
-    <SECTION X="32" Y="5">
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="EAST END" FONT_NAME="FONT_CP" />
-    </SECTION>
-    <SECTION X="40" Y="5">
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="PRINCESS" FONT_NAME="FONT_CP" />
-    </SECTION>
     <SECTION X="42" Y="5">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
@@ -613,7 +670,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess North McKees Rocks
+          CATS Princess North McKees Rocks
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -648,7 +705,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="Main West Brick–Plane" STATION="Main West Brick–Plane" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="405" JMRIPREFIX="M2S" USER_NAME="Block 4-6">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="405" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="12" Y="6">
@@ -674,7 +738,14 @@
       <SEC_NAME LOC_NAME="LOWCENT" NAME="Yard T9" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard T9" STATION="ET-3" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="14" Y="6">
@@ -682,7 +753,14 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
+        <BLOCK NAME="OS 119 (West Yard)" STATION="119" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1307" JMRIPREFIX="M2S" USER_NAME="Block 13-8">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1307" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -720,7 +798,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 119 (West Yard)" STATION="119" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1307" JMRIPREFIX="M2S" USER_NAME="Block 13-8">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1307" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="17" Y="6">
@@ -729,7 +814,14 @@
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
+        <BLOCK NAME="OS 118 (West Yard)" STATION="118" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S" USER_NAME="Block 13-2">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
@@ -759,7 +851,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="OS 118 (West Yard)" STATION="118" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S" USER_NAME="Block 13-2">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="19" Y="6">
@@ -825,7 +924,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Main West" STATION="Main West" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="200" JMRIPREFIX="M2S" USER_NAME="Block 2-1">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="200" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="28" Y="6">
@@ -842,7 +948,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          East End West Main West
+          CATS East End West Main West
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -876,7 +982,14 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="OS 111a (East End)" STATION="111" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1203" JMRIPREFIX="M2S" USER_NAME="Block 12-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1203" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="30" Y="6">
@@ -885,9 +998,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 111a (East End)" STATION="111" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1203" JMRIPREFIX="M2S" USER_NAME="Block 12-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1203" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          East End East OS 111a
+          CATS East End East OS 111a
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -944,7 +1064,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="West Main Ext" STATION="Main West" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="Block 1-8">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="107" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="37" Y="6">
@@ -961,7 +1088,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess West OS 113b
+          CATS Princess West OS 113b
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -976,14 +1103,6 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">close</IOSPEC>
@@ -992,10 +1111,25 @@
               <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="OS 113b (Princess)" STATION="113" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="104" JMRIPREFIX="M2S" USER_NAME="Block 1-5">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="104" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="39" Y="6">
@@ -1004,7 +1138,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 113b (Princess)" STATION="113" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="104" JMRIPREFIX="M2S" USER_NAME="Block 1-5">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="104" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="40" Y="6">
@@ -1012,7 +1153,14 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
+        <BLOCK NAME="OS 115 (Princess)" STATION="K-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="Block 1-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -1055,11 +1203,19 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="K-1" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 115 (Princess)" STATION="K-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="Block 1-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Princess East K-1
+          CATS Princess East K-1
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1079,13 +1235,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="K-1" FONT_NAME="FONT_LABEL" />
+      <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="45" Y="6">
       <TRACKGROUP>
@@ -1093,9 +1243,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="McKees Rocks" STATION="McKees Rocks" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="100" JMRIPREFIX="M2S" USER_NAME="Block 1-1">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="100" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Princess East McKeesport
+          CATS Princess East McKees Rocks
           <PANELSIGNAL SIGLOCATION="RIGHTUP" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1151,9 +1308,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 102 (Plane)" STATION="102" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="404" JMRIPREFIX="M2S" USER_NAME="Block 4-5">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="404" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Plane East OS 102
+          CATS Plane East OS 102
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1181,7 +1345,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard T1" STATION="West Lead" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="407" JMRIPREFIX="M2S" USER_NAME="Block 4-8">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="407" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="12" Y="7">
@@ -1198,7 +1369,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          West Yard West OS 117
+          CATS West Yard West OS 117
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1213,14 +1384,6 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">close</IOSPEC>
@@ -1229,10 +1392,25 @@
               <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="OS 117 (West Yard)" STATION="117" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1302" JMRIPREFIX="M2S" USER_NAME="Block 13-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1302" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="14" Y="7">
@@ -1241,9 +1419,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 117 (West Yard)" STATION="117" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1302" JMRIPREFIX="M2S" USER_NAME="Block 13-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1302" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          West Yard East Yard T6
+          CATS West Yard East Yard T6
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1279,7 +1464,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard T6" STATION="West Lead" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1300" JMRIPREFIX="M2S" USER_NAME="Block 13-1">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1300" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="18" Y="7">
@@ -1318,7 +1510,14 @@
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP">
-        <BLOCK />
+        <BLOCK NAME="OS 116 (West Yard)" STATION="116" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="300" JMRIPREFIX="M2S" USER_NAME="Block 3-1">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="300" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="19" Y="7">
@@ -1327,7 +1526,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 116 (West Yard)" STATION="116" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="300" JMRIPREFIX="M2S" USER_NAME="Block 3-1">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="300" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="20" Y="7">
@@ -1372,7 +1578,14 @@
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 103 (South Yard)" STATION="103" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="301" JMRIPREFIX="M2S" USER_NAME="Block 3-2">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="301" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
         <BLOCK />
@@ -1409,12 +1622,7 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="25" Y="7">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:L1" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-1">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:L1" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-1">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -1429,17 +1637,19 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="27" Y="7">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:R1" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-1">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:R1" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-1">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard Track 1" STATION="S-1" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="207" JMRIPREFIX="M2S" USER_NAME="Block 2-8">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="207" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="28" Y="7">
@@ -1456,7 +1666,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          East End West Yard Track 1
+          CATS East End West Yard Track 1
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1490,7 +1700,14 @@
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP">
-        <BLOCK />
+        <BLOCK NAME="OS 111b (East End)" STATION="111" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1205" JMRIPREFIX="M2S" USER_NAME="Block 12-6">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1205" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="30" Y="7">
@@ -1499,7 +1716,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 111b (East End)" STATION="111" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1205" JMRIPREFIX="M2S" USER_NAME="Block 12-6">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1205" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="31" Y="7">
@@ -1519,14 +1743,6 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">close</IOSPEC>
@@ -1535,12 +1751,27 @@
               <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">throw</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">throw</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="OS 110 (East End)" STATION="110" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1206" JMRIPREFIX="M2S" USER_NAME="Block 12-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1206" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          East End South OS 110
+          CATS East End South OS 110
           <PANELSIGNAL SIGLOCATION="LEFTUP" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1552,7 +1783,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 110 (East End)" STATION="110" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1206" JMRIPREFIX="M2S" USER_NAME="Block 12-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1206" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="33" Y="7">
@@ -1572,20 +1810,20 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">throw</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">throw</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
               <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">close</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">throw</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1598,9 +1836,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 112 (East End)" STATION="112" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1207" JMRIPREFIX="M2S" USER_NAME="Block 12-8">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1207" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          East End East Lead
+          CATS East End East Lead
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1629,7 +1874,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="East Lead" STATION="East Lead" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="106" JMRIPREFIX="M2S" USER_NAME="Block 1-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="106" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="37" Y="7">
@@ -1646,7 +1898,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess West OS 113a
+          CATS Princess West OS 113a
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1680,7 +1932,14 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK />
+        <BLOCK NAME="OS 113a (Princess)" STATION="113" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="105" JMRIPREFIX="M2S" USER_NAME="Block 1-6">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="105" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="39" Y="7">
@@ -1689,7 +1948,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 113a (Princess)" STATION="113" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="105" JMRIPREFIX="M2S" USER_NAME="Block 1-6">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="105" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="40" Y="7">
@@ -1747,11 +2013,19 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="K-2" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 114 (Princess)" STATION="K-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="Block 1-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Princess East K-2
+          CATS Princess East K-2
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1771,13 +2045,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
-        <SECSIGNAL>
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
-      </SEC_EDGE>
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="K-2" FONT_NAME="FONT_LABEL" />
+      <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="45" Y="7">
       <TRACKGROUP>
@@ -1793,7 +2061,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess East McKees Rocks
+          CATS Princess East McKeesport
           <PANELSIGNAL SIGLOCATION="RIGHTLOW" SIGORIENT="BOTTOM" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1813,9 +2081,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 102 (Plane)" STATION="102" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="404" JMRIPREFIX="M2S" USER_NAME="Block 4-5">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="404" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Plane East East Main Ext
+          CATS Plane East East Main Ext
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1843,7 +2118,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="East Main Ext" STATION="Main East" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="406" JMRIPREFIX="M2S" USER_NAME="Block 4-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="406" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="12" Y="8">
@@ -1860,7 +2142,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          West Yard West East Main Ext
+          CATS West Yard West East Main Ext
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1894,7 +2176,14 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK />
+        <BLOCK NAME="OS 117b (West Yard)" STATION="117" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1303" JMRIPREFIX="M2S" USER_NAME="Block 13-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1303" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="14" Y="8">
@@ -1903,9 +2192,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 117b (West Yard)" STATION="117" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1303" JMRIPREFIX="M2S" USER_NAME="Block 13-4">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1303" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          West Yard East OS 117b
+          CATS West Yard East OS 117b
           <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1968,14 +2264,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 104 (South Yard)" STATION="104" DISCIPLINE="ABS" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="302" JMRIPREFIX="M2S" USER_NAME="Block 3-3">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="302" JMRIPREFIX="M2S">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="22" Y="8">
@@ -2004,7 +2293,14 @@
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 104 (South Yard)" STATION="104" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="302" JMRIPREFIX="M2S" USER_NAME="Block 3-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="302" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
         <BLOCK />
@@ -2034,12 +2330,7 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="25" Y="8">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:L2" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-2">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:L2" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-2">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -2054,12 +2345,7 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="27" Y="8">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:R2" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-2">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:R2" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-2">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -2078,7 +2364,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard Track 2" STATION="S-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="206" JMRIPREFIX="M2S" USER_NAME="Block 2-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="206" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="30" Y="8">
@@ -2098,20 +2391,20 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">close</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">close</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
               <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">throw</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">close</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -2134,7 +2427,14 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Main East" STATION="Main East" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="202" JMRIPREFIX="M2S" USER_NAME="Block 2-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="202" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
@@ -2143,9 +2443,16 @@
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
+        <BLOCK NAME="OS 112 (East End)" STATION="112" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1207" JMRIPREFIX="M2S" USER_NAME="Block 12-8">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1207" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          East End South OS 112
+          CATS East End South OS 112
           <PANELSIGNAL SIGLOCATION="RIGHTLOW" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -2165,9 +2472,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 114 (Princess)" STATION="K-2" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="Block 1-3">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
         <SECSIGNAL>
-          Princess South McKeesport
+          CATS Princess South McKeesport
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -2178,7 +2492,14 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
+        <BLOCK NAME="McKeesport" STATION="McKeesport" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="Block 1-2">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="101" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -2188,12 +2509,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="8" Y="9">
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="PLANE" FONT_NAME="FONT_CP" />
-    </SECTION>
-    <SECTION X="13" Y="9">
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="BARN" FONT_NAME="FONT_CP" />
     </SECTION>
     <SECTION X="20" Y="9">
       <TRACKGROUP>
@@ -2215,14 +2530,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 105 (South Yard)" STATION="105" DISCIPLINE="ABS" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="304" JMRIPREFIX="M2S" USER_NAME="Block 3-5">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="304" JMRIPREFIX="M2S">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="23" Y="9">
@@ -2251,7 +2559,14 @@
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 105 (South Yard)" STATION="105" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="304" JMRIPREFIX="M2S" USER_NAME="Block 3-5">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="304" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
         <BLOCK />
@@ -2274,12 +2589,7 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="25" Y="9">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:L3" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-3">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:L3" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-3">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -2294,12 +2604,7 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="27" Y="9">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:R3" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-3">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:R3" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-3">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -2311,7 +2616,14 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard Track 3" STATION="S-3" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="205" JMRIPREFIX="M2S" USER_NAME="Block 2-6">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="205" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="29" Y="9">
@@ -2331,20 +2643,20 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">close</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">close</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
               <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">throw</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">close</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -2376,9 +2688,6 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="43" Y="9">
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="McKeesport, PA" FONT_NAME="FONT_LABEL" />
-    </SECTION>
     <SECTION X="21" Y="10">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -2399,14 +2708,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 106 (South Yard)" STATION="106" DISCIPLINE="ABS" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="306" JMRIPREFIX="M2S" USER_NAME="Block 3-7">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="306" JMRIPREFIX="M2S">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
+        <BLOCK />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="24" Y="10">
@@ -2435,19 +2737,28 @@
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="OS 106 (South Yard)" STATION="106" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="306" JMRIPREFIX="M2S" USER_NAME="Block 3-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="306" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK />
+        <BLOCK NAME="OS 106 (South Yard)" STATION="106" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="306" JMRIPREFIX="M2S" USER_NAME="Block 3-7">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="306" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="25" Y="10">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:L4" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-4">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:L4" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-4">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
@@ -2471,17 +2782,19 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="27" Y="10">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:R4" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-4">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:R4" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-4">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK />
+        <BLOCK NAME="Yard Track 4" STATION="S-4" DISCIPLINE="ABS" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="204" JMRIPREFIX="M2S" USER_NAME="Block 2-5">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="204" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="28" Y="10">
@@ -2501,20 +2814,20 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">close</IOSPEC>
-            </SELECTEDREPORT>
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">close</IOSPEC>
-            </ROUTECOMMAND>
-          </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT">
             <SELECTEDREPORT>
               <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
               <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">throw</IOSPEC>
+            </ROUTECOMMAND>
+          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">close</IOSPEC>
+            </SELECTEDREPORT>
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -2577,12 +2890,7 @@
       </SEC_EDGE>
     </SECTION>
     <SECTION X="25" Y="11">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:L5" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-5">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_left_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_left_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:L5" JMRIPREFIX="IT" USER_NAME="Yard ladder L S-5">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -2597,12 +2905,7 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="27" Y="11">
-      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false">
-        <TRIGGER>
-          <IOSPEC DECADDR=":HART:YL:R5" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-5">close</IOSPEC>
-        </TRIGGER>
-      </BUTTON>
-      <TRACKGROUP>
+      <BUTTON PRIMARY="/Users/lnevo/hart/cats/resources/buttons/lamp_right_idle.png" ALTERNATE="/Users/lnevo/hart/cats/resources/buttons/lamp_right_active.png" DELAY="0" STATUS="false" FIT_TO_GRID="false" COMMENT="hart-yard-ladder-buttons"><TRIGGER><IOSPEC DECADDR=":HART:YL:R5" JMRIPREFIX="IT" USER_NAME="Yard ladder R S-5">close</IOSPEC></TRIGGER></BUTTON><TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -2680,6 +2983,33 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="3" Y="2">
+      <SEC_NAME LOC_NAME="LOWLEFT" NAME="WEST YARD" FONT_NAME="FONT_LABEL" />
+    </SECTION>
+    <SECTION X="7" Y="2">
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="BRICK" FONT_NAME="FONT_CP" />
+    </SECTION>
+    <SECTION X="43" Y="4">
+      <SEC_NAME LOC_NAME="CENT" NAME="McKees Rocks, PA" FONT_NAME="FONT_LABEL" />
+    </SECTION>
+    <SECTION X="26" Y="5">
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="SOUTH YARD" FONT_NAME="FONT_LABEL" />
+    </SECTION>
+    <SECTION X="32" Y="5">
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="EAST END" FONT_NAME="FONT_CP" />
+    </SECTION>
+    <SECTION X="40" Y="5">
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="PRINCESS" FONT_NAME="FONT_CP" />
+    </SECTION>
+    <SECTION X="8" Y="9">
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="PLANE" FONT_NAME="FONT_CP" />
+    </SECTION>
+    <SECTION X="13" Y="9">
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="BARN" FONT_NAME="FONT_CP" />
+    </SECTION>
+    <SECTION X="43" Y="9">
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="McKeesport, PA" FONT_NAME="FONT_LABEL" />
     </SECTION>
   </TRACKPLAN>
 </DOCUMENT>
