@@ -787,6 +787,16 @@
       <userName>Princess East K-2</userName>
       <unlit allowed="no" />
     </signalmast>
+    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
+      <userName>South Yard East OS 104</userName>
+      <unlit allowed="yes" />
+    </virtualsignalmast>
+    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
+      <userName>West Yard North OS 116</userName>
+      <unlit allowed="yes" />
+    </virtualsignalmast>
   </signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
@@ -1972,7 +1982,9 @@
       <signalAMast>Brick East Main West</signalAMast>
     </layoutturnout>
     <layoutturnout ident="TOR11" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1088.5" ycen="459.5" xa="1103.0" ya="451.0" xb="1074.0" yb="468.0" xc="1075.0999755859375" yc="460.0" xd="1103.0" yd="451.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1208" blockname="OS 107 (East End)" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" />
-    <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="708.5" ycen="366.0" xa="694.5" ya="356.5" xb="722.5" yb="375.5" xc="722.2999877929688" yc="366.0" xd="694.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="OS 104 (South Yard)" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15" />
+    <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="708.5" ycen="366.0" xa="694.5" ya="356.5" xb="722.5" yb="375.5" xc="722.2999877929688" yc="366.0" xd="694.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="OS 104 (South Yard)" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15">
+      <signalCMast>South Yard East OS 104</signalCMast>
+    </layoutturnout>
     <layoutturnout ident="TOL23" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="1371.5" ycen="315.0" xa="1386.5" ya="315.0" xb="1356.5" yb="315.0" xc="1356.4000244140625" yc="324.79998779296875" xd="1386.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1213" blockname="OS 112 (East End)" connectaname="T-I-TOL23" connectbname="T-ER-TOL23" connectcname="T-EL-TOL23">
       <signalAMast>East End East Lead</signalAMast>
       <signalCMast>East End South OS 112</signalCMast>
@@ -2005,16 +2017,19 @@
       <signalBMast>Princess East K-2</signalBMast>
       <signalCMast>Princess South McKeesport</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="639.5" ycen="315.0" xa="624.5" ya="315.0" xb="654.5" yb="315.0" xc="653.7999877929688" yc="325.8999938964844" xd="624.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="OS 103 (South Yard)" connectaname="T-I-TOR14" connectbname="F46-S-0" connectcname="F16-S-0" />
+    <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="639.5" ycen="315.0" xa="624.5" ya="315.0" xb="654.5" yb="315.0" xc="653.7999877929688" yc="325.8999938964844" xd="624.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="OS 103 (South Yard)" connectaname="T-I-TOR14" connectbname="F46-S-0" connectcname="F16-S-0">
+      <signalBMast>West Yard East Yard T6</signalBMast>
+    </layoutturnout>
     <layoutturnout ident="TO113" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1525.199951171875" ycen="283.5" xa="1508.2999843479004" ya="252.0" xb="1575.89990234375" yb="252.0" xc="1542.0999179958496" yc="315.0" xd="1474.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 113" blockname="OS 113b (Princess)" blockcname="OS 113a (Princess)" blockdname="OS 113a (Princess)" connectaname="T-ER-TOL1" connectbname="T-I-TOL1" connectcname="T-ER-TOL2" connectdname="T-I-TOL2">
       <signalAMast>Princess West OS 113b</signalAMast>
       <signalDMast>Princess West OS 113a</signalDMast>
     </layoutturnout>
-    <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="576.0" ycen="315.0" xa="592.0" ya="315.0" xb="560.0" yb="315.0" xc="567.0" yc="305.0" xd="592.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 116" blockname="OS 116 (West Yard)" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1" />
+    <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="576.0" ycen="315.0" xa="592.0" ya="315.0" xb="560.0" yb="315.0" xc="567.0" yc="305.0" xd="592.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 116" blockname="OS 116 (West Yard)" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1">
+      <signalCMast>West Yard North OS 116</signalCMast>
+    </layoutturnout>
     <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="484.0" ycen="289.0" xa="500.0" ya="289.0" xb="468.0" yb="289.0" xc="468.0" yc="277.0" xd="500.0" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 119" blockname="OS 119 (West Yard)" connectaname="T-A-TO10" connectbname="T11" connectcname="T10" />
     <layoutturnout ident="TO117" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="505.0" ycen="338.5" xa="489.5" ya="315.0" xb="540.0" yb="315.0" xc="520.5" yc="362.0" xd="458.5" yd="362.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 117" blockname="OS 117 (West Yard)" blockcname="OS 117b (West Yard)" blockdname="OS 117b (West Yard)" connectaname="T3" connectbname="T6" connectcname="T5" connectdname="T8">
       <signalAMast>West Yard West OS 117</signalAMast>
-      <signalBMast>West Yard East Yard T6</signalBMast>
       <signalCMast>West Yard East OS 117b</signalCMast>
       <signalDMast>West Yard West East Main Ext</signalDMast>
     </layoutturnout>
@@ -2230,7 +2245,9 @@
     <signalmasticon signalmast="Plane East OS 102" x="335" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
     <signalmasticon signalmast="Plane East East Main Ext" x="335" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
     <signalmasticon signalmast="West Yard West OS 117" x="420" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="West Yard East Yard T6" x="530" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="West Yard East Yard T6" x="663" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="South Yard East OS 104" x="733" y="374" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="West Yard North OS 116" x="585" y="288" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="West Yard West East Main Ext" x="420" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="West Yard East OS 117b" x="530" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
     <signalmasticon signalmast="East End West Main West" x="1095" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
