@@ -81,11 +81,8 @@ TURNOUTS = [
     ("Switch 102", 151, 97,  T + "left/east/os-l-e"),    # main; yard siding diverges up-east
     ("Switch 117", 216, 97,  X + "left/os-l-sc"),        # scissor: yard (103-107) <-> main (126-130)
     ("Switch 116", 281, 74,  T + "right/west/os-r-w"),   # yard row (bar 103-107); WY ladder stub up-west
-    ("Switch 103", 346, 97,  T + "right/east/os-r-e"),   # yard row; South Yard ladder stub down-east
-    ("Switch 107", 411, 117, T + "left/west/os-l-w"),    # ladder row (bar 127-131); yard stub down-west
-    ("Switch 108", 476, 117, T + "left/west/os-l-w"),    # ladder row
+    ("Switch 103", 346, 97,  T + "right/east/os-r-e"),   # yard row; stub feeds the South Yard fan (spurs east)
     ("Switch 111", 552, 74,  X + "right/os-r-sc"),       # scissor: Main West (80-84) <-> yard (103-107)
-    ("Switch 109", 606, 117, T + "left/west/os-l-w"),    # ladder row
     ("Switch 110", 671, 97,  T + "left/west/os-l-w"),    # yard row; stub descends onto the ladder row
     ("Switch 112", 736, 97,  T + "right/west/os-r-w"),   # main (bar 126-130); yard row joins up-west
     ("Switch 113", 801, 74,  X + "left/os-l-sc"),        # scissor: Main West (80-84) <-> East Lead (103-107)
@@ -95,6 +92,8 @@ TURNOUTS = [
 
 # (sensor, x, y, tooltip) -- lamp y = bar top - 8
 LAMPS = [
+    ("Block 4-4",  4,   118, "W-1 (West Yard 1)"),
+    ("Block 4-3",  12,  143, "W-2 (West Yard 2)"),
     ("Block 4-1",  33,  118, "OS 101 (Brick)"),
     ("Block 4-2",  98,  118, "OS 100 (Brick)"),
     ("Block 4-6",  133, 118, "Main West Brick-Plane"),
@@ -106,19 +105,21 @@ LAMPS = [
     ("Block 3-1",  293, 95,  "OS 116 (West Yard)"),
     ("Block 3-2",  358, 95,  "OS 103 (South Yard)"),
     ("Block 2-8",  393, 95,  "Yard Track 1"),
-    ("Block 12-1", 423, 115, "OS 107 (East End ladder)"),
-    ("Block 12-3", 488, 115, "OS 108 (East End ladder)"),
-    ("Block 2-3",  450, 148, "Main East"),
+    ("Block 12-1", 525, 137, "OS 107 (yard ladder)"),
+    ("Block 12-3", 560, 137, "OS 108 (yard ladder)"),
+    ("Block 2-3",  320, 148, "Main East"),
     ("Block 12-4", 553, 72,  "OS 111a (Main West side)"),
     ("Block 12-6", 553, 95,  "OS 111b (yard side)"),
-    ("Block 12-5", 618, 115, "OS 109 (East End ladder)"),
+    ("Block 12-5", 640, 123, "OS 109 (yard ladder)"),
     ("Block 12-7", 683, 95,  "OS 110 (East End)"),
     ("Block 12-8", 748, 118, "OS 112 (East End)"),
     ("Block 1-7",  783, 108, "East Lead"),
     ("Block 1-5",  813, 72,  "OS 113b (Main West side)"),
     ("Block 1-6",  813, 95,  "OS 113a (East Lead side)"),
-    ("Block 1-3",  878, 95,  "OS 114 (Princess)"),
-    ("Block 1-4",  943, 72,  "OS 115 (Princess)"),
+    ("Block 1-2",  898, 124, "McKeesport"),
+    ("Block 1-1",  968, 52,  "McKees Rocks"),
+    ("Block 1-3",  916, 95,  "K-2 (via OS 114)"),
+    ("Block 1-4",  982, 72,  "K-1 (via OS 115)"),
 ]
 
 # (x, y, gif, rotation) -- line bar rows: line025 2-6, line050 3-7, line1 4-8,
@@ -142,10 +143,17 @@ TRACKS = [
     (700, 100, "line050.gif", 0),   # 110 -> 112 diverging leg
     (838, 100, "line050.gif", 0),   # 113 bottom -> 114 (East Lead row)
     (906, 100, "line050.gif", 0),   # 114 -> K-2 stub
-    # row L (East End ladder, bar 127-131)
-    (441, 120, "line050.gif", 0),   # 107-108
-    (518, 119, "line1.gif",   0),   # 108-109 (under SW111's column)
-    (640, 120, "line050.gif", 0),   # 109 -> SW110's descending stub
+    # South Yard fan off SW103 (spurs heading east, QV yard style)
+    (378, 127, "line1.gif",   0),   # spur A (bars 131-135)
+    (378, 131, "b-45-short.gif", 0),
+    (390, 141, "line1.gif",   0),   # spur B (bars 145-149)
+    # South Yard fan off SW110 (inverse: spurs heading west, lamps 12-1/3/5)
+    (595, 127, "line1.gif",   0),   # spur A (meets SW110's stub tip)
+    (585, 131, "b-45-short.gif", 1),
+    (505, 141, "line1.gif",   0),   # spur B
+    # W-1 / W-2 staging stubs west of Brick
+    (0,   124, "line025.gif", 0),   # W-1: main continues west of SW101
+    (8,   149, "line025.gif", 0),   # W-2: off SW101's diverging leg
     # row N (Main West siding, bar 80-84)
     (110, 100, "line025.gif", 0),   # SW100 Main West stub (short, gapped)
     (508, 77,  "line050.gif", 0),   # Main West stub west of 111
@@ -167,10 +175,12 @@ TEXTS = [
     (838, 52, "PRINCESS",  12, WHITE),
     (100, 87,  "MAIN WEST", 8, CREAM),
     (450, 67,  "MAIN WEST", 8, CREAM),
-    (425, 166, "MAIN EAST", 8, CREAM),
-    (370, 138, "YARD",      8, CREAM),
-    (878, 124, "McKEESPORT", 8, CREAM),
-    (920, 42,  "McKEES ROCKS", 8, CREAM),
+    (300, 166, "MAIN EAST", 8, CREAM),
+    (448, 112, "SOUTH YARD", 8, CREAM),
+    (855, 142, "McKEESPORT", 8, CREAM),
+    (908, 36,  "McKEES ROCKS", 8, CREAM),
+    (2,   134, "W-1", 8, CREAM),
+    (8,   158, "W-2", 8, CREAM),
     (1018, 76, "K-1", 8, CREAM),
     (953, 97,  "K-2", 8, CREAM),
 ]
@@ -193,7 +203,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="[^"]*USS/track/block/[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2)".*?</positionablelabel>', re.S),
 ]
 
 

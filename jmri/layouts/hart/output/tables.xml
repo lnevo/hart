@@ -10185,40 +10185,6 @@
       </icons>
       <iconmaps />
     </turnouticon>
-    <turnouticon turnout="Switch 107" x="411" y="117" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
-      <icons>
-        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
-          <rotation>0</rotation>
-        </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </thrown>
-        <unknown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-unknown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </unknown>
-        <inconsistent url="program:resources/icons/USS/track/turnout/left/west/os-l-w-inconsistent.gif" scale="1.0">
-          <rotation>0</rotation>
-        </inconsistent>
-      </icons>
-      <iconmaps />
-    </turnouticon>
-    <turnouticon turnout="Switch 108" x="476" y="117" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
-      <icons>
-        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
-          <rotation>0</rotation>
-        </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </thrown>
-        <unknown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-unknown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </unknown>
-        <inconsistent url="program:resources/icons/USS/track/turnout/left/west/os-l-w-inconsistent.gif" scale="1.0">
-          <rotation>0</rotation>
-        </inconsistent>
-      </icons>
-      <iconmaps />
-    </turnouticon>
     <turnouticon turnout="Switch 111" x="552" y="74" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
         <closed url="program:resources/icons/USS/track/crossover/right/os-r-sc-closed.gif" scale="1.0">
@@ -10231,23 +10197,6 @@
           <rotation>0</rotation>
         </unknown>
         <inconsistent url="program:resources/icons/USS/track/crossover/right/os-r-sc-inconsistent.gif" scale="1.0">
-          <rotation>0</rotation>
-        </inconsistent>
-      </icons>
-      <iconmaps />
-    </turnouticon>
-    <turnouticon turnout="Switch 109" x="606" y="117" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
-      <icons>
-        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
-          <rotation>0</rotation>
-        </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </thrown>
-        <unknown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-unknown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </unknown>
-        <inconsistent url="program:resources/icons/USS/track/turnout/left/west/os-l-w-inconsistent.gif" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -10338,6 +10287,38 @@
       </icons>
       <iconmaps />
     </turnouticon>
+    <sensoricon sensor="Block 4-4" x="4" y="118" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>W-1 (West Yard 1)</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="Block 4-3" x="12" y="143" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>W-2 (West Yard 2)</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <sensoricon sensor="Block 4-1" x="33" y="118" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS 101 (Brick)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
@@ -10514,8 +10495,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 12-1" x="423" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 107 (East End ladder)</tooltip>
+    <sensoricon sensor="Block 12-1" x="525" y="137" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 107 (yard ladder)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -10530,8 +10511,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 12-3" x="488" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 108 (East End ladder)</tooltip>
+    <sensoricon sensor="Block 12-3" x="560" y="137" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 108 (yard ladder)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -10546,7 +10527,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 2-3" x="450" y="148" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 2-3" x="320" y="148" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Main East</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -10594,8 +10575,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 12-5" x="618" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 109 (East End ladder)</tooltip>
+    <sensoricon sensor="Block 12-5" x="640" y="123" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 109 (yard ladder)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -10690,8 +10671,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 1-3" x="878" y="95" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 114 (Princess)</tooltip>
+    <sensoricon sensor="Block 1-2" x="898" y="124" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>McKeesport</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -10706,8 +10687,40 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 1-4" x="943" y="72" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 115 (Princess)</tooltip>
+    <sensoricon sensor="Block 1-1" x="968" y="52" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>McKees Rocks</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="Block 1-3" x="916" y="95" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>K-2 (via OS 114)</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="Block 1-4" x="982" y="72" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>K-1 (via OS 115)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -10797,18 +10810,43 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="441" y="120" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <positionablelabel x="518" y="119" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="378" y="127" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="640" y="120" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+    <positionablelabel x="378" y="131" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/b-45-short.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="390" y="141" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="595" y="127" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="585" y="131" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/b-45-short.gif" degrees="0" scale="1.0">
+        <rotation>1</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="505" y="141" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="0" y="124" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="8" y="149" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
@@ -10863,16 +10901,22 @@
     <positionablelabel x="450" y="67" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="MAIN WEST" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="425" y="166" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="MAIN EAST" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="300" y="166" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="MAIN EAST" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="370" y="138" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="YARD" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="448" y="112" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="SOUTH YARD" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="878" y="124" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKEESPORT" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="855" y="142" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKEESPORT" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="920" y="42" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKEES ROCKS" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="908" y="36" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKEES ROCKS" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="2" y="134" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="8" y="158" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="1018" y="76" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
