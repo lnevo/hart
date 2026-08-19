@@ -1427,11 +1427,6 @@
             <IOSPEC DECADDR="1302" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
-        <SECSIGNAL>
-          CATS West Yard East Yard T6
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="15" Y="7">
@@ -1518,6 +1513,11 @@
             <IOSPEC DECADDR="300" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
+              <SECSIGNAL>
+          CATS West Yard North OS 116
+          <PANELSIGNAL SIGLOCATION="RIGHTLOW" SIGORIENT="BOTTOM" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="19" Y="7">
@@ -1586,9 +1586,19 @@
             <IOSPEC DECADDR="301" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
+              <SECSIGNAL>
+          CATS West Yard East Yard T6
+          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
         <BLOCK />
+              <SECSIGNAL>
+          CATS South Yard East OS 104
+          <PANELSIGNAL SIGLOCATION="LEFTUP" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="22" Y="7">

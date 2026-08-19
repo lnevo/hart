@@ -713,7 +713,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 13-4" x="228" y="133" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 13-4" x="228" y="101" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Block 13-4</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -763,33 +763,16 @@
     </sensoricon>
     <turnouticon turnout="Switch 117" x="216" y="80" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
-        <closed url="program:resources/icons/USS/track/turnout/right/east/os-r-e-closed.gif" scale="1.0">
+        <closed url="program:resources/icons/USS/track/crossover/left/os-l-sc-closed.gif" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/right/east/os-r-e-thrown.gif" scale="1.0">
+        <thrown url="program:resources/icons/USS/track/crossover/left/os-l-sc-thrown.gif" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="program:resources/icons/USS/track/turnout/right/east/os-r-e-unknown.gif" scale="1.0">
+        <unknown url="program:resources/icons/USS/track/crossover/left/os-l-sc-unknown.gif" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="program:resources/icons/USS/track/turnout/right/east/os-r-e-inconsistent.gif" scale="1.0">
-          <rotation>0</rotation>
-        </inconsistent>
-      </icons>
-      <iconmaps />
-    </turnouticon>
-    <turnouticon turnout="Switch 117" x="216" y="135" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
-      <icons>
-        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
-          <rotation>0</rotation>
-        </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </thrown>
-        <unknown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-unknown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </unknown>
-        <inconsistent url="program:resources/icons/USS/track/turnout/left/west/os-l-w-inconsistent.gif" scale="1.0">
+        <inconsistent url="program:resources/icons/USS/track/crossover/left/os-l-sc-inconsistent.gif" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -1664,7 +1647,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 12-6" x="553" y="38" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 12-6" x="553" y="101" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Block 12-6</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1712,7 +1695,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <turnouticon turnout="Switch 111" x="552" y="40" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
+    <turnouticon turnout="Switch 111" x="552" y="80" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
         <closed url="program:resources/icons/USS/track/crossover/right/os-r-sc-closed.gif" scale="1.0">
           <rotation>0</rotation>
@@ -2466,7 +2449,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 1-6" x="813" y="133" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 1-6" x="813" y="101" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Block 1-6</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -2516,33 +2499,16 @@
     </sensoricon>
     <turnouticon turnout="Switch 113" x="801" y="80" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
-        <closed url="program:resources/icons/USS/track/turnout/right/east/os-r-e-closed.gif" scale="1.0">
+        <closed url="program:resources/icons/USS/track/crossover/left/os-l-sc-closed.gif" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/right/east/os-r-e-thrown.gif" scale="1.0">
+        <thrown url="program:resources/icons/USS/track/crossover/left/os-l-sc-thrown.gif" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="program:resources/icons/USS/track/turnout/right/east/os-r-e-unknown.gif" scale="1.0">
+        <unknown url="program:resources/icons/USS/track/crossover/left/os-l-sc-unknown.gif" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="program:resources/icons/USS/track/turnout/right/east/os-r-e-inconsistent.gif" scale="1.0">
-          <rotation>0</rotation>
-        </inconsistent>
-      </icons>
-      <iconmaps />
-    </turnouticon>
-    <turnouticon turnout="Switch 113" x="801" y="135" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
-      <icons>
-        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
-          <rotation>0</rotation>
-        </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </thrown>
-        <unknown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-unknown.gif" scale="1.0">
-          <rotation>0</rotation>
-        </unknown>
-        <inconsistent url="program:resources/icons/USS/track/turnout/left/west/os-l-w-inconsistent.gif" scale="1.0">
+        <inconsistent url="program:resources/icons/USS/track/crossover/left/os-l-sc-inconsistent.gif" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -3079,5 +3045,155 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
+      <positionablelabel x="51" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="116" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="181" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="246" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="311" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="376" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="441" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="512" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="577" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="636" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="701" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="766" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="831" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="896" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <sensoricon sensor="Block 4-6" x="133" y="78" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Main West Brick-Plane</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="Block 4-7" x="199" y="78" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>East Main Ext</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="Block 13-1" x="263" y="78" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Yard T6</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="Block 2-8" x="393" y="78" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Yard Track 1</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="Block 1-7" x="789" y="78" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>East Lead</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
   </paneleditor>
 </layout-config>
