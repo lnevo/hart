@@ -40,9 +40,9 @@ South Yard: straight 45deg thin ladders off SW103 (down-east) and SW110
 (down-west, mirror) — the switch legs continue as ladder lines parallel
 to the Main East 45deg legs — with THREE run-through yard tracks (9px
 pitch) connecting the two ladders (SW104-109 are hand-throw, not drawn).
-Engine Terminal: the same ladder rotated 180deg, up-west off SW116
-(split = hand-throw SW118, treated like 104-109), three stub tracks
-ending flush at x=330.
+Engine House: the same ladder rotated 180deg, up-west off SW116
+(split = hand-throw SW118, treated like 104-109), two stub tracks
+ending flush at x=340, tucked close to the yard row.
 
 All east branch stubs (K-1, K-2, McKees Rocks, McKeesport) end flush at
 x=1105 with their lamps aligned at x=1060 and labels centered on the
@@ -144,7 +144,7 @@ TURNOUTS = [
     ("Switch 100", 151, 82,  "swap:" + T + "left/west/os-l-w"),  # Main West row, throat east; leg down-west = hairpin to 102 (closed route)
     ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = Yard T1
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
-    ("Switch 116", 411, 82,  "thin:os-r-w-thin"),        # yard row; Engine Terminal ladder up-west
+    ("Switch 116", 411, 82,  "thin:os-r-w-thin"),        # yard row; Engine House ladder up-west
     ("Switch 103", 476, 105, "thin:os-r-e-thin"),        # yard row; South Yard ladder down-east
     ("Switch 111", 606, 82,  X + "right/os-r-sc"),       # scissor: Main West (88-92) <-> yard (111-115)
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # yard row; South Yard ladder down-west
@@ -163,6 +163,7 @@ LAMPS = [
     ("Block 4-2",  163, 80,  "OS 100 (Brick)"),
     ("Block 4-6",  192, 126, "Main West Brick-Plane"),
     ("Block 4-5",  228, 126, "OS 102 (Plane)"),
+    ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
     ("Block 13-3", 358, 103, "OS 117 (yard side)"),
@@ -241,15 +242,12 @@ TRACKS = [
     (584, 137, "thin085.gif", 0),
     (526, 146, "thin085.gif", 0),   # yard track 4 (526-660)
     (575, 146, "thin085.gif", 0),
-    # Engine Terminal: same ladder rotated 180deg, up-west off SW116's leg
-    # exit (411,90); ladder line x = y + 321, three stubs flush at x=330
-    (397, 76,  "thin-45.gif", 0),   # ladder (411,90) up-west...
-    (390, 69,  "thin4512.gif", 0),  # ...ending at terminal track 1 (390,69)
-    (330, 68,  "thin044.gif", 0),   # terminal track 1 (330-389)
-    (345, 68,  "thin044.gif", 0),
-    (330, 77,  "thin044.gif", 0),   # terminal track 2 (330-398)
-    (354, 77,  "thin044.gif", 0),
-    (330, 86,  "thin044.gif", 0),   # terminal track 3 (330-407)
+    # Engine House: two-stub ladder up-west off SW116's leg exit (411,90);
+    # ladder line x = y + 321, stubs flush at x=340, tucked close to the track
+    (397, 76,  "thin-45.gif", 0),   # ladder (411,90) up-west to (397,76)
+    (340, 77,  "thin044.gif", 0),   # house track 1 (340-399)
+    (355, 77,  "thin044.gif", 0),
+    (340, 86,  "thin044.gif", 0),   # house track 2 (340-407)
     (363, 86,  "thin044.gif", 0),
     # row N (Main West siding, bar 88-92)
     (519, 84,  "line1.gif",   0),   # Main West approach stub (blank slot 8)
@@ -283,7 +281,7 @@ TEXTS = [
     (525, 174, "MAIN EAST", 8, CREAM),
     (585, 152, "SOUTH YARD", 8, CREAM),
     (16,  68,  "WEST YARD", 8, CREAM),
-    (300, 52,  "ENGINE TERMINAL", 8, CREAM),
+    (302, 64,  "ENGINE HOUSE", 8, CREAM),
     (1035, 153, "McKEESPORT", 8, CREAM),
     (1030, 44, "McKEES ROCKS", 8, CREAM),
     (8,   96,  "W-1", 8, CREAM),
@@ -316,7 +314,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|WEST YARD|ENGINE TERMINAL|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2)".*?</positionablelabel>', re.S),
 ]
 
 
