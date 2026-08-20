@@ -167,7 +167,7 @@ LAMPS = [
     ("Block 4-1",  99,  200, "OS 101 (Brick)"),
     ("Block 4-2",  164, 200, "OS 100 (Brick)"),
     ("Block 4-6",  192, 126, "Main West Brick-Plane"),
-    ("Block 4-5",  229, 200, "OS 102 (Plane)"),
+    ("Block 4-5",  164, 119, "OS 102 (Plane)"),  # centered in tile column 3, on the hairpin's "\" stroke
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
@@ -205,9 +205,12 @@ TRACKS = [
     # cap (ends x=12), mirroring the east edge (flush 1106, right cap 1117).
     # Line gifs have intrinsic end margins: line025 1px, line050 2px,
     # line1 7px, line25 12px.
-    (16,  84,  "line1.gif",   0),   # W-1 (drawn 23-93, into SW101's bar)
-    (16,  107, "line1.gif",   0),   # W-2: off SW101's diverging leg
-    (72,  109, "line025.gif", 0),   # ...to the leg tip (95,115)
+    # W-1 / W-2 end with a 3px block gap short of SW101 (bar at 86, leg
+    # tip at (95,115)) -- W-1/W-2 are separate circuits from the Brick OS
+    (21,  85,  "line050.gif", 0),   # W-1 (drawn 23-62...)
+    (60,  86,  "line025.gif", 0),   # ...to 82, gap, icon at 86
+    (21,  108, "line050.gif", 0),   # W-2 (drawn 23-62...)
+    (47,  108, "line050.gif", 0),   # ...to 88, gap, leg graphics from ~92
     (117, 85,  "line050.gif", 0),   # 101-100
     (194, 84,  "line1.gif",   0),   # MAIN WEST east of SW100's throat (gapped;
     (264, 85,  "line050.gif", 0),   #  loops around the room to column 9)
@@ -216,8 +219,8 @@ TRACKS = [
     (159, 114, "thick45-24.gif", 0),
     (183, 132, "line025.gif", 0),   # hairpin -> SW102 (4-6 lamp here)
     # row M (main, bar 134-138): SW102 bar -> East Main Ext -> SW117
-    (254, 132, "line025.gif", 0),
-    (258, 130, "line1.gif",   0),   # through blank slot 4 to SW117's main bar
+    (257, 132, "line025.gif", 0),   # gap after SW102's bar (icon ends 255)
+    (258, 130, "line1.gif",   0),   # through blank slot 4 toward SW117's bar
                                     #  (line1 bar rows 4-8: y130 -> 134-138, flat)
     # main dips under the South Yard and rises into SW112's leg
     (388, 136, "b-45.gif",    0),   # down: bar 134-138 -> bottom 164-168
@@ -225,9 +228,8 @@ TRACKS = [
     (524, 155, "line25.gif",  0),   # overlapped: one block, no joint (to 714)
     (715, 136, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (745,138)
     # row S (yard run-through / East Lead, bar 111-115)
-    (243, 109, "line025.gif", 0),   # 102 leg tip -> 117: Yard T1 (blank slot 4)
-    (250, 107, "line1.gif",   0),
-    (325, 109, "line025.gif", 0),
+    (252, 107, "line1.gif",   0),   # Yard T1 (drawn 259-343): gap to 102's leg
+    (321, 109, "line025.gif", 0),   #  tip (255) and gap to SW117's icon (346)
     (388, 109, "line025.gif", 0),   # 117-116: Yard T6 (one block, overlapped;
     (394, 108, "line050.gif", 0),   #  116 abuts 103 directly -- no block)
     (518, 107, "line1.gif",   0),   # 103 -> 111 (Yard Track 1, blank slot 8)
@@ -260,14 +262,12 @@ TRACKS = [
     (394, 90,  "thin044.gif", 0),
     # row N (Main West siding, bar 88-92)
     (519, 84,  "line1.gif",   0),   # Main West approach stub (blank slot 8)
-    (645, 86,  "line025.gif", 0),   # 111 -> 113 (West Main Ext, one block --
-    (648, 79,  "line25.gif",  0),   #  overlapped all the way to SW113's bar)
-    (824, 85,  "line050.gif", 0),
-    (904, 86,  "line025.gif", 0),   # 113 -> 115 direct (no block; joined
-    (908, 84,  "line1.gif",   0),   #  flush to both crossover/turnout bars)
-    (984, 86,  "line025.gif", 0),
-    (1020, 84, "line1.gif",   0),   # 115 -> K-1...
-    (1084, 86, "line025.gif", 0),   # ...flush to x=1106
+    (645, 86,  "line025.gif", 0),   # 111 -> 113 (West Main Ext, one block,
+    (648, 79,  "line25.gif",  0),   #  overlapped; block gap short of SW113)
+    (820, 85,  "line050.gif", 0),   #  (drawn to 861, icon at 866)
+    (908, 84,  "line1.gif",   0),   # 113 -> 115 (gaps both ends: separate OS circuits)
+    (1037, 85, "line050.gif", 0),   # 115 -> K-1 (drawn 1039-1106): gap after
+    (1065, 85, "line050.gif", 0),   #  SW115's icon (ends 1035), flush at 1106
     # McKees Rocks branch (bar 65-69) off SW115's riser, flush to x=1106
     (1028, 62, "line050.gif", 0),
     (1061, 62, "line050.gif", 0),
@@ -280,8 +280,11 @@ TRACKS = [
 
 WHITE = dict(red=255, green=255, blue=255)
 CREAM = dict(red=220, green=220, blue=180)
+BLACK = dict(red=0, green=0, blue=0)
 # (x, y, text, size, color)
 TEXTS = [
+    # banner engraved in the gold band (tile rows 0-33)
+    (415, 8, "HART RAILROAD - NEVILLE ISLAND", 16, BLACK),
     (40,  60, "WEST YARD", 12, WHITE),   # promoted; between W-* lamps and SW101
     (149, 60, "BRICK",     12, WHITE),   # over SW100
     (205, 60, "PLANE",     12, WHITE),
@@ -339,7 +342,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2|1[01][0-9])".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
     # stock CTC Unlocked indicators + labels, replaced by the OS lamp row
     # (GUI only -- the IS*:UNLOCKEDINDICATOR sensors still exist; delete
     # these two patterns to bring the buttons back)
