@@ -142,7 +142,7 @@ BLANK_SLOTS = {0, 4, 8, 12, 16}
 # leg), so the lit route matches the actual turnout state.
 TURNOUTS = [
     ("Switch 101", 86,  82,  T + "left/west/os-l-w"),    # Main West row; W-2 leg down-west
-    ("Switch 100", 151, 82,  "swap:" + T + "left/west/os-l-w"),  # Main West row, throat east; leg down-west = hairpin to 102 (closed route)
+    ("Switch 100", 151, 82,  T + "left/west/os-l-w"),  # agree with JMRI Closed/Thrown (rests Thrown)
     ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = Yard T1
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
     ("Switch 116", 436, 82,  "thin:os-r-w-thin"),        # yard row, abuts SW103 (direct, no block); Engine House ladder up-west

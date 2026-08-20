@@ -531,6 +531,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:LEVER</systemName>
+      <comment>Default Reverse: Switch 100 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:SWNI</systemName>
@@ -921,6 +922,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:LEVER</systemName>
+      <comment>Default Reverse: Switch 112 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:SWNI</systemName>
@@ -999,6 +1001,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:LEVER</systemName>
+      <comment>Default Reverse: Switch 114 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:SWNI</systemName>
@@ -1038,6 +1041,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:LEVER</systemName>
+      <comment>Default Reverse: Switch 115 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:SWNI</systemName>
@@ -5464,6 +5468,11 @@
       <userName>Run Dispatcher</userName>
       <logixConditional systemName="IX:DSLX:1C1" order="0" />
     </logix>
+    <logix userName="CTC reverse-default levers" enabled="yes">
+      <systemName>IX:CTC:REVDEF</systemName>
+      <userName>CTC reverse-default levers</userName>
+      <logixConditional systemName="IX:CTC:REVDEF:C1" order="0" />
+    </logix>
   </logixs>
   <conditionals class="jmri.managers.configurexml.DefaultConditionalManagerXml">
     <conditional systemName="IX:DSLX:1C1" userName="Run Dispatcher" antecedent="" logicType="1" triggerOnChange="yes">
@@ -5471,6 +5480,15 @@
       <userName>Run Dispatcher</userName>
       <conditionalStateVariable operator="1" negated="no" type="1" systemName="startDispatcherSensor" dataString="" num1="0" num2="0" triggersCalc="yes" />
       <conditionalAction option="1" type="16" systemName="" data="-1" delay="0" string="program:jython/DispatcherSystem/Startup.py" />
+    </conditional>
+    <conditional systemName="IX:CTC:REVDEF:C1" userName="Set 100/112/114/115 levers Reverse" antecedent="" logicType="1" triggerOnChange="yes">
+      <systemName>IX:CTC:REVDEF:C1</systemName>
+      <userName>Set 100/112/114/115 levers Reverse</userName>
+      <conditionalStateVariable operator="1" negated="no" type="1" systemName="IS:RELOADCTC" dataString="" num1="0" num2="0" triggersCalc="yes" />
+      <conditionalAction option="1" type="2" systemName="IS3:LEVER" data="4" delay="0" string="" />
+      <conditionalAction option="1" type="2" systemName="IS23:LEVER" data="4" delay="0" string="" />
+      <conditionalAction option="1" type="2" systemName="IS27:LEVER" data="4" delay="0" string="" />
+      <conditionalAction option="1" type="2" systemName="IS29:LEVER" data="4" delay="0" string="" />
     </conditional>
   </conditionals>
   <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" time="Mon Feb 16 14:52:35 EST 2026" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
@@ -5752,7 +5770,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
+              <SwitchAlignment>Normal</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5775,7 +5793,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
+              <SwitchAlignment>Normal</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5831,7 +5849,7 @@
       <SWDI_ReversedInternalSensor>IS3:SWRI</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 100</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
-      <SWDI_FeedbackDifferent>true</SWDI_FeedbackDifferent>
+      <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
       <SWDI_GUITurnoutType>0</SWDI_GUITurnoutType>
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
@@ -5854,7 +5872,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
+              <SwitchAlignment>Reverse</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5878,7 +5896,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
+              <SwitchAlignment>Reverse</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5895,7 +5913,7 @@
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS4:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 100</TUL_ExternalTurnout>
-      <TUL_ExternalTurnoutFeedbackDifferent>true</TUL_ExternalTurnoutFeedbackDifferent>
+      <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
       <TUL_DispatcherInternalSensorUnlockedIndicator>IS4:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
@@ -5960,7 +5978,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
+              <SwitchAlignment>Reverse</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5984,7 +6002,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
+              <SwitchAlignment>Reverse</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -9368,10 +9386,10 @@
     </turnouticon>
     <turnouticon turnout="Switch 100" x="151" y="82" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
-        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
+        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
+        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
           <rotation>0</rotation>
         </thrown>
         <unknown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-unknown.gif" scale="1.0">
