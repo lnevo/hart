@@ -166,7 +166,7 @@ LAMPS = [
     ("Block 4-3",  48,  103, "W-2 (West Yard 2)"),
     ("Block 4-1",  99,  200, "OS 101 (Brick)"),
     ("Block 4-2",  164, 200, "OS 100 (Brick)"),
-    ("Block 4-6",  164, 103, "100-102 (Brick-Plane)"),  # hairpin corner, T1/T6/Yard1/East Lead plane
+    ("Block 4-6",  150, 103, "100-102 (Brick-Plane)"),  # on the hairpin "\" , T1 plane
     ("Block 4-5",  229, 200, "OS 102 (Plane)"),
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
@@ -252,20 +252,17 @@ TRACKS = [
     (584, 137, "thin085.gif", 0),
     (532, 146, "thin085.gif", 0),   # yard track 4
     (575, 146, "thin085.gif", 0),
-    # Engine House: two-stub ladder up-west off SW116's leg exit (436,90),
-    # dropped right against the yard lead: track 2 joins the leg exit itself
-    # (y90), track 1 one 9px pitch above (y81); ladder line x = y + 346
-    (428, 82,  "thin459.gif", 0),   # ladder (436,90) up-west, top even with track 1 (no lip)
-    (365, 81,  "thin044.gif", 0),   # house track 1 (365-428)
-    (385, 81,  "thin044.gif", 0),
-    (365, 90,  "thin044.gif", 0),   # house track 2 (365-437)
-    (394, 90,  "thin044.gif", 0),
+    # Engine House: two stubs, west ends even with T6 (drawn ~393)
+    (428, 82,  "thin459.gif", 0),   # ladder (436,90) up-west, top even with track 1
+    (393, 81,  "thin044.gif", 0),   # house track 1 (393-436)
+    (393, 90,  "thin044.gif", 0),   # house track 2 (393-436)
     # row N (Main West siding, bar 88-92)
     (519, 84,  "line1.gif",   0),   # Main West approach stub (blank slot 8)
     (645, 86,  "line025.gif", 0),   # 111 -> 113 (West Main Ext, one block,
     (648, 79,  "line25.gif",  0),   #  overlapped; block gap short of SW113)
     (820, 85,  "line050.gif", 0),   #  (drawn to 861, icon at 866)
-    (908, 84,  "line1.gif",   0),   # 113 -> 115 (gaps both ends: separate OS circuits)
+    (904, 86,  "line025.gif", 0),   # 113 -> 115: flush to SW113 (ends 906),
+    (908, 84,  "line1.gif",   0),   #  one gap before SW115 (drawn to 985, icon 996)
     (1037, 85, "line050.gif", 0),   # 115 -> K-1 (drawn 1039-1106): gap after
     (1065, 85, "line050.gif", 0),   #  SW115's icon (ends 1035), flush at 1106
     # McKees Rocks branch (bar 65-69) off SW115's riser, flush to x=1106
