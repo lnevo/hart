@@ -13,26 +13,28 @@ for lever slots), right cap at x=1117.
 
 Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
 
-  N   88-92   Main West passing siding SW111 -> SW113 (straight through,
-              one block: West Main Ext `Block 1-8`, lamp centered in blank
-              slot 12), then SW113 -> SW115 DIRECT (no block, no lamp),
-              SW115 / McKees Rocks / K-1. Main West approach lamp `Block
-              2-1` centered in blank slot 8 west of SW111.
-  S  111-115  SW100's diverging leg rises here: Main West Brick-Plane
-              (`Block 4-6`) -> SW102 (bar on THIS row; its thick leg drops
-              back to row M = East Main Ext, the continuing route) ->
-              Yard T1 (`Block 4-8`, lamp centered in blank slot 4) ->
-              SW117 -> Yard T6 -> SW116 -> SW103 -> Yard Track 1 (`Block
-              2-8`, lamp centered in blank slot 8) -> SW110 -> SW112 ->
-              East Lead (`Block 1-7`, lamp centered in blank slot 12) ->
-              SW113 -> SW114 -> K-2.
-  M  134-138  main at Brick: W-1 -> SW101 -> SW100; east of SW100 the row
-              continues as the gapped MAIN WEST stub (SW100's continuing
-              route — the westbound main loops around the room to SW111's
-              approach). From SW102's leg tip: East Main Ext (`Block 4-7`
-              lamp centered in blank slot 4) -> SW117; dips 45deg east of
-              SW117 to a bottom straight (164-168) under the South Yard,
-              rising into SW112's leg.
+  N   88-92   the MAIN WEST level. At Brick: W-1 -> SW101 -> SW100, with
+              Main West running east from SW100's throat as a gapped line
+              (it loops around the room) at the SAME height as its restart
+              in blank slot 8 (`Block 2-1` approach lamp) west of SW111.
+              SW100's diverging leg hairpins "<" down to Main West
+              Brick-Plane (`Block 4-6`) on row M into SW102. Then SW111 ->
+              SW113 passing siding (one block: West Main Ext `Block 1-8`,
+              lamp centered in blank slot 12), SW113 -> SW115 DIRECT (no
+              block, no lamp), SW115 / McKees Rocks / K-1. W-2 stub is on
+              the 111-115 level off SW101's leg.
+  S  111-115  yard run-through: SW102's up-east leg -> Yard T1 (`Block
+              4-8`, lamp centered in blank slot 4) -> SW117 -> Yard T6 ->
+              SW116 -> SW103 -> Yard Track 1 (`Block 2-8`, lamp centered
+              in blank slot 8) -> SW110 -> SW112 -> East Lead (`Block
+              1-7`, lamp centered in blank slot 12) -> SW113 -> SW114 ->
+              K-2.
+  M  134-138  SW102's bar: Main West Brick-Plane (west, from the hairpin)
+              <-> East Main Ext (east, `Block 4-7` lamp centered in blank
+              slot 4, the continuing route curving back east) -> SW117;
+              dips 45deg east of SW117 to a bottom straight (164-168)
+              under the South Yard (`Block 2-3` Main East lamp centered in
+              blank slot 8), rising into SW112's leg.
 
 South Yard: straight 45deg thin ladders off SW103 (down-east) and SW110
 (down-west, mirror) — the switch legs continue as ladder lines parallel
@@ -138,9 +140,9 @@ BLANK_SLOTS = {0, 4, 8, 12, 16}
 # SW100/112 have continuing=4, and SW102's continuing route is the drawn
 # leg), so the lit route matches the actual turnout state.
 TURNOUTS = [
-    ("Switch 101", 86,  128, T + "left/west/os-l-w"),    # main; W-2 leg down-west
-    ("Switch 100", 151, 105, "swap:" + T + "left/east/os-l-e"),  # bar = 101<->Main West stub; leg up-east = Brick-Plane (closed route)
-    ("Switch 102", 216, 105, "swap:" + T + "right/east/os-r-e"), # bar on yard row = Brick-Plane<->Yard T1; thick leg down-east = East Main Ext (closed route)
+    ("Switch 101", 86,  82,  T + "left/west/os-l-w"),    # Main West row; W-2 leg down-west
+    ("Switch 100", 151, 82,  "swap:" + T + "left/west/os-l-w"),  # Main West row, throat east; leg down-west = hairpin to 102 (closed route)
+    ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = Yard T1
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
     ("Switch 116", 411, 82,  "thin:os-r-w-thin"),        # yard row; Engine Terminal ladder up-west
     ("Switch 103", 476, 105, "thin:os-r-e-thin"),        # yard row; South Yard ladder down-east
@@ -155,12 +157,12 @@ TURNOUTS = [
 # (sensor, x, y, tooltip) -- lamp y = bar top - 8; connector lamps centered
 # in their blank slot (slot center x = 65*slot + 26)
 LAMPS = [
-    ("Block 4-4",  30,  126, "W-1 (West Yard 1)"),
-    ("Block 4-3",  30,  151, "W-2 (West Yard 2)"),
-    ("Block 4-1",  98,  126, "OS 101 (Brick)"),
-    ("Block 4-2",  163, 126, "OS 100 (Brick)"),
-    ("Block 4-6",  192, 103, "Main West Brick-Plane"),
-    ("Block 4-5",  228, 103, "OS 102 (Plane)"),
+    ("Block 4-4",  30,  80,  "W-1 (West Yard 1)"),
+    ("Block 4-3",  30,  103, "W-2 (West Yard 2)"),
+    ("Block 4-1",  98,  80,  "OS 101 (Brick)"),
+    ("Block 4-2",  163, 80,  "OS 100 (Brick)"),
+    ("Block 4-6",  192, 126, "Main West Brick-Plane"),
+    ("Block 4-5",  228, 126, "OS 102 (Plane)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
     ("Block 13-3", 358, 103, "OS 117 (yard side)"),
@@ -170,7 +172,7 @@ LAMPS = [
     ("Block 3-2",  488, 103, "OS 103 (South Yard)"),
     ("Block 2-8",  546, 103, "Yard Track 1"),
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
-    ("Block 2-3",  450, 156, "Main East"),
+    ("Block 2-3",  546, 156, "Main East"),
     ("Block 12-4", 607, 80,  "OS 111a (Main West side)"),
     ("Block 12-6", 607, 103, "OS 111b (yard side)"),
     ("Block 12-7", 683, 103, "OS 110 (East End)"),
@@ -190,26 +192,31 @@ LAMPS = [
 # from preference:ctc/icons/ (thin044 44px, thin085 85px, thin-45 15x15 "\",
 # rotation 1 -> "/").
 TRACKS = [
-    # W-1 / W-2 (WEST YARD) stubs, flush to the west edge (line gifs have
+    # Brick on the Main West row (bar 88-92, same level as the column-9
+    # restart): W-1 / W-2 stubs flush to the west edge (line gifs have
     # intrinsic end margins: line025 1px, line050 2px, line1 7px, line25 12px)
-    (0,   132, "line025.gif", 0),   # W-1 flush at x=0
-    (0,   130, "line1.gif",   0),   # W-1: main continues west of SW101
-    (0,   157, "line025.gif", 0),   # W-2 flush at x=0
-    (0,   155, "line1.gif",   0),   # W-2: off SW101's diverging leg
-    (72,  157, "line025.gif", 0),   # ...to the leg tip (95,161)
-    # row M (main, bar 134-138) at Brick/Plane
-    (117, 131, "line050.gif", 0),   # 101-100
-    (192, 131, "line050.gif", 0),   # Main West stub east of SW100 (goes around to 111)
-    (246, 132, "line025.gif", 0),   # SW102 leg tip (246,138) -> East Main Ext...
-    (258, 131, "line1.gif",   0),   # ...through blank slot 4 to SW117's main bar
+    (0,   86,  "line025.gif", 0),   # W-1 flush at x=0
+    (0,   84,  "line1.gif",   0),   # W-1: Main West continues west of SW101
+    (0,   109, "line025.gif", 0),   # W-2 flush at x=0
+    (0,   107, "line1.gif",   0),   # W-2: off SW101's diverging leg
+    (72,  109, "line025.gif", 0),   # ...to the leg tip (95,115)
+    (117, 85,  "line050.gif", 0),   # 101-100
+    (194, 84,  "line1.gif",   0),   # MAIN WEST east of SW100's throat (gapped;
+    (264, 85,  "line050.gif", 0),   #  loops around the room to column 9)
+    # SW100's diverging leg hairpins "<": leg down-west to (160,115), then
+    # thick 45 back down-east to row M at (182,137) = Main West Brick-Plane
+    (159, 114, "thick45-24.gif", 0),
+    (183, 132, "line025.gif", 0),   # hairpin -> SW102 (4-6 lamp here)
+    # row M (main, bar 134-138): SW102 bar -> East Main Ext -> SW117
+    (254, 132, "line025.gif", 0),
+    (258, 131, "line1.gif",   0),   # through blank slot 4 to SW117's main bar
     # main dips under the South Yard and rises into SW112's leg
     (388, 136, "b-45.gif",    0),   # down: bar 134-138 -> bottom 164-168
     (407, 155, "line25.gif",  0),   # Main East bottom straight (drawn 419-597)
     (524, 155, "line25.gif",  0),   # overlapped: one block, no joint (to 714)
     (715, 136, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (745,138)
     # row S (yard run-through / East Lead, bar 111-115)
-    (183, 109, "line025.gif", 0),   # SW100 leg tip -> SW102 (Main West Brick-Plane)
-    (243, 109, "line025.gif", 0),   # 102 bar -> 117: Yard T1 (blank slot 4)
+    (243, 109, "line025.gif", 0),   # 102 leg tip -> 117: Yard T1 (blank slot 4)
     (250, 107, "line1.gif",   0),
     (325, 109, "line025.gif", 0),
     (388, 109, "line025.gif", 0),   # 117-116 (Yard T6)
@@ -271,16 +278,16 @@ TEXTS = [
     (415, 60, "BARN",      12, WHITE),
     (645, 60, "EAST END",  12, WHITE),
     (905, 60, "PRINCESS",  12, WHITE),
-    (186, 142, "MAIN WEST", 8, CREAM),
+    (205, 95,  "MAIN WEST", 8, CREAM),
     (525, 68,  "MAIN WEST", 8, CREAM),
-    (440, 174, "MAIN EAST", 8, CREAM),
-    (552, 152, "SOUTH YARD", 8, CREAM),
-    (16,  112, "WEST YARD", 8, CREAM),
+    (525, 174, "MAIN EAST", 8, CREAM),
+    (585, 152, "SOUTH YARD", 8, CREAM),
+    (16,  68,  "WEST YARD", 8, CREAM),
     (300, 52,  "ENGINE TERMINAL", 8, CREAM),
     (1035, 153, "McKEESPORT", 8, CREAM),
     (1030, 44, "McKEES ROCKS", 8, CREAM),
-    (8,   140, "W-1", 8, CREAM),
-    (8,   166, "W-2", 8, CREAM),
+    (8,   96,  "W-1", 8, CREAM),
+    (8,   118, "W-2", 8, CREAM),
     (1090, 74, "K-1", 8, CREAM),
     (1090, 96, "K-2", 8, CREAM),
 ]
@@ -298,7 +305,7 @@ def build_block():
     for sensor, x, y, tip in LAMPS:
         parts.append(LAMP.format(sensor=sensor, x=x, y=y, tip=tip, u=U))
     for x, y, gif, rot in TRACKS:
-        url = THIN if gif.startswith("thin") else U + "track/block/"
+        url = THIN if gif.startswith(("thin", "thick")) else U + "track/block/"
         parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, url=url))
     for x, y, text, size, col in TEXTS:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
