@@ -1573,10 +1573,9 @@
       <systemName>M2T311</systemName>
       <userName>Switch 106</userName>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N" inverted="true" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N" inverted="false" automate="Off">
       <systemName>M2T408</systemName>
       <userName>Switch 100</userName>
-      <comment>Inverted: hardware rests Thrown; JMRI Closed / CTC Normal = rest (W-1 / continuing). Do not use CTC FeedbackDifferent — that only flips the indicator, not the command.</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 4-2 FB R" sensor2="Switch 4-2 FB N" inverted="false" automate="Off">
       <systemName>M2T409</systemName>
@@ -5753,7 +5752,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
+              <SwitchAlignment>Reverse</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5776,7 +5775,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
+              <SwitchAlignment>Reverse</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5832,7 +5831,7 @@
       <SWDI_ReversedInternalSensor>IS3:SWRI</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 100</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
-      <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
+      <SWDI_FeedbackDifferent>true</SWDI_FeedbackDifferent>
       <SWDI_GUITurnoutType>0</SWDI_GUITurnoutType>
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
@@ -5855,7 +5854,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
+              <SwitchAlignment>Normal</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5879,7 +5878,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
+              <SwitchAlignment>Normal</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5896,7 +5895,7 @@
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS4:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 100</TUL_ExternalTurnout>
-      <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
+      <TUL_ExternalTurnoutFeedbackDifferent>true</TUL_ExternalTurnoutFeedbackDifferent>
       <TUL_DispatcherInternalSensorUnlockedIndicator>IS4:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
@@ -5961,7 +5960,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
+              <SwitchAlignment>Normal</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
@@ -5985,7 +5984,7 @@
             </switch>
             <switch>
               <UserText>3/4</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
+              <SwitchAlignment>Normal</SwitchAlignment>
               <UniqueID>14</UniqueID>
             </switch>
           </switches>
