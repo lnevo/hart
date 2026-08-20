@@ -20,6 +20,12 @@ railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 
 - **Track diagram row** — OS lamp lights **red while a train occupies the
   plant**. Crossover columns have a second lamp on the lower track's bar.
+  Small searchlight icons on the rails are the **CTC-held masts** for that
+  column (Quaker Valley style): two-head homes and one-head dwarfs, facing
+  the traffic they govern. They paint the field aspect (red at Hold/Stop,
+  yellow Approach / Restricting, green Clear). Hover for the mast name.
+  Switches **116** and **103** have no signal icons — those columns are
+  switch-only.
 - **Switch lever** (odd numbers 1–29) — points **N** (Normal/straight) or
   **R** (Reverse/diverging), with N/R correspondence indicators.
 - **Signal lever** (even numbers 2–30) — three positions: **L**, **N**, **R** —
@@ -33,13 +39,13 @@ railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 | 1 | Brick | 1 / 2 | Switch 101 (yard exits W-1 / W-2) |
 | 2 | Brick | 3 / 4 | Switch 100 |
 | 3 | Plane | 5 / 6 | Switch 102 (main vs Yard T1) |
-| 4 | Barn | 7 / 8 | Switch 117 crossover (OS 117 / 117b) |
-| 5 | Barn | 9 / 10 | Switch 116 (West Yard ladder) |
-| 6 | Barn | 11 / 12 | Switch 103 (east end of plant) |
+| 4 | Barn | 7 / 8 | Switch 117 crossover (OS 117 / 117b). One signal lever releases both tracks |
+| 5 | Barn | 9 / — | Switch 116 (ladder, switch-only, defaults Local) |
+| 6 | Barn | 11 / — | Switch 103 (ladder, switch-only, defaults Local) |
 | 7–8 | East End | 13 / 14, 15 / 16 | Switches 107, 108 (ladder, switch-only) |
 | 9 | East End | 17 / 18 | Switch 111 crossover (OS 111a / 111b) |
 | 10 | East End | 19 / 20 | Switch 109 (ladder, switch-only) |
-| 11 | East End | 21 / 22 | Switch 110 (ladder → East Lead) |
+| 11 | East End | 21 / 22 | Switch 110 (ladder → East Lead; defaults Local) |
 | 12 | East End | 23 / 24 | Switch 112 (East Lead vs Main East) |
 | 13 | Princess | 25 / 26 | Switch 113 crossover (OS 113b / 113a) |
 | 14 | Princess | 27 / 28 | Switch 114 (McKeesport vs K-2) |
@@ -111,14 +117,17 @@ Never fleet a route you may need to take back quickly.
 6. **Respect time locking.** After you take a signal away, wait out the
    release delay. Plan far enough ahead that you rarely need to snatch a
    signal back from an approaching train.
-7. **Keep columns Locked.** Move the lock toggle to Unlocked/Local only to
-   hand a switch to a crew for hand operation — plant unoccupied, signals
+7. **Keep mainline columns Locked.** Switches **116, 103, and 110** boot
+   **Local** so the yard crew can throw the ladder without a code. Re-lock
+   a column only if you need to take it back from the desk. Other columns
+   stay Locked unless you hand them to a crew — plant unoccupied, signals
    at Stop — and re-lock the moment they report clear. You have no route
    protection through an unlocked switch.
-8. **Yard entrances are on you.** Switch 104 (South Yard ladder) is
-   **uncontrolled** — protected by occupancy only. The K-1 / K-2 stubs at
-   Princess and the yard tracks are unsignaled territory beyond the dwarf:
-   moves there are at restricted speed, prepared to stop short.
+8. **Yard ladder is unsignaled.** Switches 116 and 103 have **no signal
+   levers**. The westbound home into Barn from the yard lead is
+   **West Yard East Yard T6** on the 117 column. Switch 104 and the rest
+   of the South Yard ladder are occupancy-only. The K-1 / K-2 stubs and
+   yard tracks are restricted-speed territory beyond the dwarf.
 9. **During an automated dispatch, hands off the throttle.** A phone
    throttle press on a dispatched locomotive flips its direction bit and
    the auto train will run the wrong way. Release the locomotive from
@@ -149,7 +158,8 @@ UNKNOWN). Once started, most switch levers initialize **N**. Switches **100, 112
 114, and 115** rest Thrown in the field — run
 `jmri/layouts/hart/scripts/ctc_default_reverse_levers.py` after CTC
 starts (or add it as a PanelPro startup action after Run CTC Logic) so
-those selectors sit at **R**. Reload CTC re-applies the same defaults.
+those selectors sit at **R**, and lock toggles for **116, 103, and 110**
+sit at **Local**. Reload CTC re-applies the same defaults.
 The CTC-held masts go to Stop: that is the correct idle state. **Machine off:** there is no stop
 command — quit and relaunch PanelPro without starting the runtime; masts
 boot Unheld and the railroad runs as plain ABS. The **Reload CTC** button

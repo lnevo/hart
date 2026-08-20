@@ -25,7 +25,7 @@ Two Digicon “Master” launchers for Neville Island ops, plus JMRI tables / sc
 | Launcher | Panel file | Role |
 |----------|------------|------|
 | **CATS CTC** | `cats/panels/HART_Master_CTC_hold.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
-| **CATS ABS** | `cats/panels/HART_Master_ABS.xml` | **Live ABS reference** — Digicon paints its own lamps; **SML** owns Layout Editor (SECSIGNAL names unbound from JMRI masts; no `HOLD_ONLY`) |
+| **CATS ABS** | `cats/panels/HART_Master_ABS_hold.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. Geometry source `HART_Master_ABS.xml` stays unbound. |
 
 Geometry sources (no desktop icons): `HART_Master.xml` (CTC rebuild) and `HART_Master_ABS.xml` (ABS rebuild). Checkpoint **Masters only** (`cats/panels/checkpoints/`). Sheet WIP (`cats/panels/sheets/`, including West Yard2) is legacy — do not snapshot it.
 
@@ -142,7 +142,7 @@ Digicon binds by **mast userName** (exact string match). Panel lamps (`LAMP1|2|3
 | Mode | Who drives Clear/Approach/Stop |
 |------|--------------------------------|
 | **CATS CTC** | Occupancy + points via MQTT → JMRI; **SML** sets aspects; Digicon paints (`HOLD_ONLY`). CTC also Held/Unhold. |
-| **CATS ABS** | Occupancy + points via MQTT; Digicon paints **its own** lamps (reference). **SML** sets JMRI/LE aspects. SECSIGNAL names are prefixed so CATS does not `setAspect`/`setHeld`. |
+| **CATS ABS** | Occupancy + points via MQTT → JMRI; **SML** sets aspects; Digicon paints (`HOLD_ONLY`). SECSIGNALs bind real JMRI mast names. CATS ABS vital logic still Hold/Unhold. |
 
 ### LCOS packing (signal heads)
 
@@ -278,11 +278,11 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 
 ## 7. Operating rules (short)
 
-1. **CATS CTC** Holds/Unholds and **SML** sets aspects. **CATS ABS** is Digicon reference only (no hold, no JMRI mast writes). Layout Editor is always SML.
+1. **CATS CTC** and **CATS ABS** both `HOLD_ONLY`: SML sets aspects; Digicon paints JMRI appearances. CTC also Held/Unhold on coded routes. ABS Hold/Unhold follows Digicon ABS vital logic. Layout Editor is always SML.
 2. Never publish turnout “fix” commands at launch; retain paint is read-only.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
 4. All Digicon lamps are packed `IH*` SHSM — two-head homes on custom **hart-aar** (`SL-2-digicon`), dwarfs on stock **AAR-1946** (`SL-1-low`). Brick East Main West is `IH438`/`IH439`.
-5. After Master / ABS geometry edits, rebuild the CTC hold copy so `HOLD_ONLY` and the header stay in sync. ABS live panel is `HART_Master_ABS.xml`.
+5. After Master / ABS geometry edits, rebuild both hold copies (`build_hart_master_ctc_hold.py`, `build_hart_master_abs_hold.py`) so `HOLD_ONLY` and mast bindings stay in sync. ABS live panel is `HART_Master_ABS_hold.xml`.
 6. Without CATS: Unhold + SML = ABS. Do not launch CTC geometry-source `HART_Master.xml` against live SML.
 
 ---
