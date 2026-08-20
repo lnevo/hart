@@ -42,7 +42,8 @@ to the Main East 45deg legs — with THREE run-through yard tracks (9px
 pitch) connecting the two ladders (SW104-109 are hand-throw, not drawn).
 Engine House: the same ladder rotated 180deg, up-west off SW116
 (split = hand-throw SW118, treated like 104-109), two stub tracks
-ending flush at x=340, tucked close to the yard row.
+ending flush at x=365, tucked close to the yard row. SW116 abuts SW103
+directly (no block between them); Yard T6 is the 117-116 stretch.
 
 All east branch stubs (K-1, K-2, McKees Rocks, McKeesport) end flush at
 x=1105 with their lamps aligned at x=1060 and labels centered on the
@@ -144,7 +145,7 @@ TURNOUTS = [
     ("Switch 100", 151, 82,  "swap:" + T + "left/west/os-l-w"),  # Main West row, throat east; leg down-west = hairpin to 102 (closed route)
     ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = Yard T1
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
-    ("Switch 116", 411, 82,  "thin:os-r-w-thin"),        # yard row; Engine House ladder up-west
+    ("Switch 116", 436, 82,  "thin:os-r-w-thin"),        # yard row, abuts SW103 (direct, no block); Engine House ladder up-west
     ("Switch 103", 476, 105, "thin:os-r-e-thin"),        # yard row; South Yard ladder down-east
     ("Switch 111", 606, 82,  X + "right/os-r-sc"),       # scissor: Main West (88-92) <-> yard (111-115)
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # yard row; South Yard ladder down-west
@@ -168,8 +169,8 @@ LAMPS = [
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
     ("Block 13-3", 358, 103, "OS 117 (yard side)"),
     ("Block 13-4", 358, 126, "OS 117b (main side)"),
-    ("Block 13-1", 392, 103, "Yard T6"),
-    ("Block 3-1",  423, 103, "OS 116 (Barn)"),
+    ("Block 13-1", 404, 103, "Yard T6"),
+    ("Block 3-1",  448, 103, "OS 116 (Barn)"),
     ("Block 3-2",  488, 103, "OS 103 (South Yard)"),
     ("Block 2-8",  546, 103, "Yard Track 1"),
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
@@ -194,12 +195,12 @@ LAMPS = [
 # rotation 1 -> "/").
 TRACKS = [
     # Brick on the Main West row (bar 88-92, same level as the column-9
-    # restart): W-1 / W-2 stubs flush to the west edge (line gifs have
-    # intrinsic end margins: line025 1px, line050 2px, line1 7px, line25 12px)
-    (0,   86,  "line025.gif", 0),   # W-1 flush at x=0
-    (0,   84,  "line1.gif",   0),   # W-1: Main West continues west of SW101
-    (0,   109, "line025.gif", 0),   # W-2 flush at x=0
-    (0,   107, "line1.gif",   0),   # W-2: off SW101's diverging leg
+    # restart): W-1 / W-2 stubs start at x=23 -- 11px margin after the left
+    # cap (ends x=12), mirroring the east edge (flush 1106, right cap 1117).
+    # Line gifs have intrinsic end margins: line025 1px, line050 2px,
+    # line1 7px, line25 12px.
+    (16,  84,  "line1.gif",   0),   # W-1 (drawn 23-93, into SW101's bar)
+    (16,  107, "line1.gif",   0),   # W-2: off SW101's diverging leg
     (72,  109, "line025.gif", 0),   # ...to the leg tip (95,115)
     (117, 85,  "line050.gif", 0),   # 101-100
     (194, 84,  "line1.gif",   0),   # MAIN WEST east of SW100's throat (gapped;
@@ -220,8 +221,8 @@ TRACKS = [
     (243, 109, "line025.gif", 0),   # 102 leg tip -> 117: Yard T1 (blank slot 4)
     (250, 107, "line1.gif",   0),
     (325, 109, "line025.gif", 0),
-    (388, 109, "line025.gif", 0),   # 117-116 (Yard T6)
-    (452, 109, "line025.gif", 0),   # 116-103
+    (388, 109, "line025.gif", 0),   # 117-116: Yard T6 (one block, overlapped;
+    (394, 108, "line050.gif", 0),   #  116 abuts 103 directly -- no block)
     (518, 107, "line1.gif",   0),   # 103 -> 111 (Yard Track 1, blank slot 8)
     (648, 109, "line025.gif", 0),   # 111 lower -> 110
     (713, 109, "line025.gif", 0),   # 110 -> 112
@@ -242,19 +243,21 @@ TRACKS = [
     (584, 137, "thin085.gif", 0),
     (526, 146, "thin085.gif", 0),   # yard track 4 (526-660)
     (575, 146, "thin085.gif", 0),
-    # Engine House: two-stub ladder up-west off SW116's leg exit (411,90);
-    # ladder line x = y + 321, stubs flush at x=340, tucked close to the track
-    (397, 76,  "thin-45.gif", 0),   # ladder (411,90) up-west to (397,76)
-    (340, 77,  "thin044.gif", 0),   # house track 1 (340-399)
-    (355, 77,  "thin044.gif", 0),
-    (340, 86,  "thin044.gif", 0),   # house track 2 (340-407)
-    (363, 86,  "thin044.gif", 0),
+    # Engine House: two-stub ladder up-west off SW116's leg exit (436,90);
+    # ladder line x = y + 346, stubs flush at x=365, tucked close to the track
+    (422, 76,  "thin-45.gif", 0),   # ladder (436,90) up-west to (422,76)
+    (365, 77,  "thin044.gif", 0),   # house track 1 (365-423)
+    (380, 77,  "thin044.gif", 0),
+    (365, 86,  "thin044.gif", 0),   # house track 2 (365-432)
+    (389, 86,  "thin044.gif", 0),
     # row N (Main West siding, bar 88-92)
     (519, 84,  "line1.gif",   0),   # Main West approach stub (blank slot 8)
-    (645, 86,  "line025.gif", 0),   # 111 -> 113 (West Main Ext, one block)
-    (648, 79,  "line25.gif",  0),
-    (840, 86,  "line025.gif", 0),
-    (908, 84,  "line1.gif",   0),   # 113 -> 115 direct (no block)
+    (645, 86,  "line025.gif", 0),   # 111 -> 113 (West Main Ext, one block --
+    (648, 79,  "line25.gif",  0),   #  overlapped all the way to SW113's bar)
+    (824, 85,  "line050.gif", 0),
+    (904, 86,  "line025.gif", 0),   # 113 -> 115 direct (no block; joined
+    (908, 84,  "line1.gif",   0),   #  flush to both crossover/turnout bars)
+    (984, 86,  "line025.gif", 0),
     (1020, 84, "line1.gif",   0),   # 115 -> K-1...
     (1084, 86, "line025.gif", 0),   # ...flush to x=1106
     # McKees Rocks branch (bar 65-69) off SW115's riser, flush to x=1106
@@ -271,21 +274,21 @@ WHITE = dict(red=255, green=255, blue=255)
 CREAM = dict(red=220, green=220, blue=180)
 # (x, y, text, size, color)
 TEXTS = [
-    (105, 60, "BRICK",     12, WHITE),
+    (40,  60, "WEST YARD", 12, WHITE),   # promoted; between W-* lamps and SW101
+    (149, 60, "BRICK",     12, WHITE),   # over SW100
     (205, 60, "PLANE",     12, WHITE),
-    (415, 60, "BARN",      12, WHITE),
+    (347, 60, "BARN",      12, WHITE),   # over the SW117 crossover
     (645, 60, "EAST END",  12, WHITE),
     (905, 60, "PRINCESS",  12, WHITE),
     (205, 95,  "MAIN WEST", 8, CREAM),
     (525, 68,  "MAIN WEST", 8, CREAM),
     (525, 174, "MAIN EAST", 8, CREAM),
     (585, 152, "SOUTH YARD", 8, CREAM),
-    (16,  68,  "WEST YARD", 8, CREAM),
-    (302, 64,  "ENGINE HOUSE", 8, CREAM),
+    (410, 60,  "ENGINE HOUSE", 8, CREAM),  # over the fan, where BARN used to be
     (1035, 153, "McKEESPORT", 8, CREAM),
     (1030, 44, "McKEES ROCKS", 8, CREAM),
-    (8,   96,  "W-1", 8, CREAM),
-    (8,   118, "W-2", 8, CREAM),
+    (24,  96,  "W-1", 8, CREAM),
+    (24,  118, "W-2", 8, CREAM),
     (1090, 74, "K-1", 8, CREAM),
     (1090, 96, "K-2", 8, CREAM),
 ]
