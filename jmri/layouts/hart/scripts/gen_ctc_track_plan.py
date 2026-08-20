@@ -1,37 +1,46 @@
 #!/usr/bin/env python3
-"""Generate the CTC panel track diagram (v5 — 16-slot machine, yard fans).
+"""Generate the CTC panel track diagram (v6 — straight rows, thin yard lines).
 
 Machine slots are 65px wide (slot = x//65). Blank slots 0, 7, 11 and 15;
 Brick/Plane occupy slots 1-3 (SW101/100/102), Barn 4-6 (117/116/103),
-East End 8-10 (111/110/112 — SW107/108/109 are hand-throw now, no levers),
-Princess 12-14 (113/114/115). Switch icons sit at slot*65 + 21.
+East End 8-10 (111/110/112 — SW107/108/109 are hand-throw, no levers and
+no lamps on the board), Princess 12-14 (113/114/115). Switch icons sit at
+slot*65 + 21.
 
 Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
 
-  N   80-84   Main West passing siding between SW111 and SW113, SW115 /
-              McKees Rocks / K-1.
-  S  103-107  yard run-through siding, Plane/Barn -> East End (Yard Track 1),
-              rejoining the main at SW112; carries East Lead / SW114 /
-              McKeesport / K-2 east of SW113.
-  M  126-130  main at Brick/Plane/Barn and at SW112; between them it dips
-              45deg to a bottom straight (156-160) that loops under the
-              South Yard, rising back up just west of SW112.
+  N   80-84   Main West passing siding SW111 -> SW113 (straight through),
+              SW115 / McKees Rocks / K-1. Approach lamp `Block 2-1` (Main
+              West) sits in blank slot 7 on the stub west of SW111.
+  S  103-107  yard run-through siding, Plane/Barn -> East End (Yard Track
+              1) -> SW110 -> SW112 -> East Lead -> SW113 -> SW114 -> K-2:
+              one dead-straight line from SW103 to the K-2 stub. SW112 is
+              drawn os-l-w (bar on this row) with its leg dropping SW to
+              the main's 45deg rise. East Lead lamp `Block 1-7` sits in
+              blank slot 11.
+  M  126-130  main at Brick/Plane/Barn; dips 45deg east of SW117 to a
+              bottom straight (156-160) under the South Yard, rising into
+              SW112's leg (the main loops around the yard).
 
-South Yard is drawn QV-style: a two-spur fan heading east off SW103's stub
-and the inverted fan heading west off SW110's stub (step at the switch),
-carrying the hand-throw ladder OS lamps 12-1/12-3/12-5.
+Yard symbols are thin 2px lines (QV style), served from ctc/icons/ via
+"preference:ctc/icons/*.gif" (deploy them to JMRI_UserFiles/ctc/icons/):
+a two-spur fan east off SW103, its mirror west off SW110, and a small
+West Yard fan up-west off SW116.
 
-Princess detection: OS 114 and K-2 are the SAME circuit (Block 1-3), as are
-OS 115 and K-1 (Block 1-4) — one lamp each, at the OS position. McKeesport
-(Block 1-2) and McKees Rocks (Block 1-1) are separate circuits with their
-own lamps out on the branch stubs.
+Princess detection: OS 114 and K-2 are the SAME circuit (Block 1-3), as
+are OS 115 and K-1 (Block 1-4) — one lamp each at the OS position.
+McKeesport (Block 1-2) and McKees Rocks (Block 1-1) are separate circuits
+with lamps on their long horizontal branch stubs. W-1/W-2 staging stubs
+run west from Brick to the panel edge.
 
-Writes both ctc/GUIObjects.xml and the embedded <paneleditor> in tables.xml.
+Writes both ctc/GUIObjects.xml and the embedded <paneleditor> in
+tables.xml, and normalizes the panel window geometry to show all 16 slots.
 """
 import re
 import sys
 
 U = "program:resources/icons/USS/"
+THIN = "preference:ctc/icons/"
 
 TURNOUT = """<turnouticon turnout="{name}" x="{x}" y="{y}" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
@@ -69,7 +78,7 @@ LAMP = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontrolo
     </sensoricon>"""
 
 TRACK = """<positionablelabel x="{x}" y="{y}" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="{u}track/block/{gif}" degrees="0" scale="1.0">
+      <icon url="{url}{gif}" degrees="0" scale="1.0">
         <rotation>{rot}</rotation>
       </icon>
     </positionablelabel>"""
@@ -87,20 +96,20 @@ TURNOUTS = [
     ("Switch 100", 151, 97,  T + "left/east/os-l-e"),    # main (bar 126-130); Main West diverges up-east
     ("Switch 102", 216, 97,  T + "left/east/os-l-e"),    # main; yard siding diverges up-east
     ("Switch 117", 281, 97,  X + "left/os-l-sc"),        # scissor: yard (103-107) <-> main (126-130)
-    ("Switch 116", 346, 74,  T + "right/west/os-r-w"),   # yard row; WY ladder stub up-west
+    ("Switch 116", 346, 74,  T + "right/west/os-r-w"),   # yard row; West Yard fan up-west
     ("Switch 103", 411, 97,  T + "right/east/os-r-e"),   # yard row; South Yard fan (spurs east)
     ("Switch 111", 541, 74,  X + "right/os-r-sc"),       # scissor: Main West (80-84) <-> yard (103-107)
     ("Switch 110", 606, 97,  T + "left/west/os-l-w"),    # yard row; South Yard fan (spurs west)
-    ("Switch 112", 671, 97,  T + "right/west/os-r-w"),   # main (bar 126-130); yard row joins up-west
+    ("Switch 112", 671, 97,  T + "left/west/os-l-w"),    # East Lead straight through; main joins via SW leg
     ("Switch 113", 801, 74,  X + "left/os-l-sc"),        # scissor: Main West (80-84) <-> East Lead (103-107)
-    ("Switch 114", 866, 97,  T + "right/east/os-r-e"),   # East Lead row; McKeesport stub down-east
+    ("Switch 114", 866, 97,  T + "right/east/os-r-e"),   # East Lead row; McKeesport branch down-east
     ("Switch 115", 931, 51,  T + "left/east/os-l-e"),    # Main West row (bar 80-84); McKees Rocks up-east
 ]
 
 # (sensor, x, y, tooltip) -- lamp y = bar top - 8
 LAMPS = [
-    ("Block 4-4",  69,  118, "W-1 (West Yard 1)"),
-    ("Block 4-3",  77,  143, "W-2 (West Yard 2)"),
+    ("Block 4-4",  35,  118, "W-1 (West Yard 1)"),
+    ("Block 4-3",  45,  143, "W-2 (West Yard 2)"),
     ("Block 4-1",  98,  118, "OS 101 (Brick)"),
     ("Block 4-2",  163, 118, "OS 100 (Brick)"),
     ("Block 4-6",  198, 118, "Main West Brick-Plane"),
@@ -112,41 +121,38 @@ LAMPS = [
     ("Block 3-1",  358, 95,  "OS 116 (West Yard)"),
     ("Block 3-2",  423, 95,  "OS 103 (South Yard)"),
     ("Block 2-8",  462, 95,  "Yard Track 1"),
+    ("Block 2-1",  480, 72,  "Main West (approach to 111)"),
     ("Block 2-3",  390, 148, "Main East"),
     ("Block 12-4", 542, 72,  "OS 111a (Main West side)"),
     ("Block 12-6", 542, 95,  "OS 111b (yard side)"),
-    ("Block 12-5", 588, 123, "OS 109 (hand-throw ladder)"),
-    ("Block 12-3", 563, 137, "OS 108 (hand-throw ladder)"),
-    ("Block 12-1", 525, 137, "OS 107 (hand-throw ladder)"),
     ("Block 12-7", 618, 95,  "OS 110 (East End)"),
-    ("Block 12-8", 683, 118, "OS 112 (East End)"),
-    ("Block 1-7",  781, 108, "East Lead"),
+    ("Block 12-8", 683, 95,  "OS 112 (East End)"),
+    ("Block 1-7",  740, 95,  "East Lead"),
     ("Block 1-5",  813, 72,  "OS 113b (Main West side)"),
     ("Block 1-6",  813, 95,  "OS 113a (East Lead side)"),
     ("Block 1-3",  878, 95,  "OS 114 + K-2 (one circuit)"),
-    ("Block 1-2",  898, 124, "McKeesport branch"),
+    ("Block 1-2",  930, 123, "McKeesport branch"),
     ("Block 1-4",  943, 72,  "OS 115 + K-1 (one circuit)"),
-    ("Block 1-1",  968, 52,  "McKees Rocks branch"),
+    ("Block 1-1",  975, 49,  "McKees Rocks branch"),
 ]
 
 # (x, y, gif, rotation) -- line bar rows: line025 2-6, line050 3-7, line1 4-8,
-# line2 7-11, line25 9-13, line5 18-22; b-45 30x30 "\" (rotation 1 -> "/"),
-# b-45-short 15x15
+# line25 9-13; b-45 30x30 "\" (rotation 1 -> "/"). thin* gifs come from
+# preference:ctc/icons/ (2px lines: thin044 44x4, thin085 85x4, thin-45 15x15).
 TRACKS = [
-    # W-1 / W-2 staging stubs west of Brick
-    (65,  124, "line025.gif", 0),   # W-1: main continues west of SW101
-    (73,  149, "line025.gif", 0),   # W-2: off SW101's diverging leg
+    # W-1 / W-2 staging stubs, long horizontals to the panel edge
+    (3,   122, "line1.gif",   0),   # W-1: main continues west of SW101
+    (10,  147, "line1.gif",   0),   # W-2: off SW101's diverging leg
     # row M (main, bar 126-130) at Brick/Plane/Barn
     (117, 123, "line050.gif", 0),   # 101-100
     (181, 123, "line050.gif", 0),   # 100-102 (Brick-Plane)
     (247, 123, "line050.gif", 0),   # 102-117 (East Main Ext)
-    # main dips under the South Yard and comes back up at SW112
+    # main dips under the South Yard and rises into SW112's leg
     (323, 128, "b-45.gif",    0),   # down: bar 126-130 -> bottom 156-160
-    (355, 147, "line25.gif",  0),   # Main East bottom straight (355-558)
-    (577, 153, "line050.gif", 0),   # bottom straight (577-621)
-    (623, 128, "b-45.gif",    1),   # up: bottom -> bar 126-130
-    (649, 124, "line025.gif", 0),   # short run into SW112
-    # row S (yard run-through, bar 103-107)
+    (360, 147, "line25.gif",  0),   # Main East bottom straight (360-563)
+    (565, 152, "line1.gif",   0),   # bottom straight (565-650)
+    (650, 128, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (680,130)
+    # row S (yard run-through / East Lead, bar 103-107): straight 103 -> K-2
     (175, 100, "line025.gif", 0),   # SW100 Main West stub (short, gapped)
     (243, 100, "line050.gif", 0),   # 102 diverging leg -> 117 top bar
     (311, 100, "line050.gif", 0),   # 117-116 (Yard T6)
@@ -154,26 +160,38 @@ TRACKS = [
     (453, 99,  "line1.gif",   0),   # 103 -> 111 lower (Yard Track 1)
     (528, 100, "line050.gif", 0),   # into SW111's lower bar
     (578, 100, "line025.gif", 0),   # 111 lower -> 110
-    (640, 100, "line050.gif", 0),   # 110 -> 112 diverging leg
-    (709, 123, "line050.gif", 0),   # SW112 main bar -> East Lead rise
-    (748, 124, "line025.gif", 0),
-    (773, 100, "b-45.gif",    1),   # East Lead rise up to SW113's lower bar
-    (838, 100, "line050.gif", 0),   # 113 bottom -> 114 (East Lead row)
-    (906, 100, "line050.gif", 0),   # 114 -> K-2 stub
-    # South Yard fan off SW103 (spurs heading east, QV yard style)
-    (443, 128, "line050.gif", 0),   # spur A (bars 131-135)
-    (443, 131, "b-45-short.gif", 0),
-    (455, 142, "line050.gif", 0),   # spur B (bars 145-149)
-    # South Yard fan off SW110 (inverted: step at the switch, spurs west)
-    (532, 127, "line1.gif",   0),   # spur A (meets SW110's stub tip)
-    (598, 131, "b-45-short.gif", 1),
-    (518, 141, "line1.gif",   0),   # spur B
+    (640, 100, "line050.gif", 0),   # 110 -> 112
+    (709, 99,  "line1.gif",   0),   # 112 -> 113 (East Lead, lamp 1-7)
+    (790, 100, "line025.gif", 0),
+    (838, 100, "line050.gif", 0),   # 113 bottom -> 114
+    (906, 100, "line050.gif", 0),   # 114 -> K-2 stub...
+    (948, 100, "line050.gif", 0),
+    (992, 100, "line050.gif", 0),   # ...to the panel edge
+    # South Yard fan off SW103 (thin QV-style, spurs east)
+    (443, 129, "thin044.gif", 0),
+    (443, 132, "thin-45.gif", 0),
+    (457, 145, "thin044.gif", 0),
+    # South Yard fan off SW110 (mirror: step at the switch, spurs west)
+    (573, 129, "thin044.gif", 0),
+    (602, 132, "thin-45.gif", 1),
+    (559, 145, "thin044.gif", 0),
+    # West Yard fan off SW116 (thin, up-west)
+    (309, 78,  "thin044.gif", 0),
+    (294, 64,  "thin-45.gif", 0),
+    (252, 62,  "thin044.gif", 0),
     # row N (Main West siding, bar 80-84)
-    (497, 77,  "line050.gif", 0),   # Main West stub west of 111
+    (456, 76,  "line1.gif",   0),   # Main West approach stub (lamp 2-1)
     (583, 71,  "line25.gif",  0),   # 111 -> 113 passing siding
-    (780, 72,  "line025.gif", 0),
+    (780, 78,  "line025.gif", 0),
     (843, 76,  "line1.gif",   0),   # 113 -> 115
-    (971, 77,  "line050.gif", 0),   # 115 -> K-1 stub
+    (971, 77,  "line050.gif", 0),   # 115 -> K-1 stub...
+    (1013, 78, "line025.gif", 0),   # ...to the panel edge
+    # McKees Rocks branch (bar 57-61) off SW115's riser
+    (959, 54,  "line050.gif", 0),
+    (1001, 55, "line025.gif", 0),
+    # McKeesport branch (bar 131-135) off SW114's leg
+    (891, 127, "line1.gif",   0),
+    (974, 128, "line050.gif", 0),
 ]
 
 WHITE = dict(red=255, green=255, blue=255)
@@ -181,20 +199,21 @@ CREAM = dict(red=220, green=220, blue=180)
 # (x, y, text, size, color)
 TEXTS = [
     (105, 52, "BRICK",     12, WHITE),
-    (213, 52, "PLANE",     12, WHITE),
+    (200, 52, "PLANE",     12, WHITE),
     (350, 52, "BARN",      12, WHITE),
     (580, 52, "EAST END",  12, WHITE),
     (838, 52, "PRINCESS",  12, WHITE),
     (165, 87,  "MAIN WEST", 8, CREAM),
-    (440, 67,  "MAIN WEST", 8, CREAM),
+    (395, 67,  "MAIN WEST", 8, CREAM),
     (370, 166, "MAIN EAST", 8, CREAM),
-    (492, 118, "SOUTH YARD", 8, CREAM),
-    (855, 142, "McKEESPORT", 8, CREAM),
-    (908, 36,  "McKEES ROCKS", 8, CREAM),
-    (67,  134, "W-1", 8, CREAM),
-    (73,  158, "W-2", 8, CREAM),
-    (1018, 76, "K-1", 8, CREAM),
-    (953, 97,  "K-2", 8, CREAM),
+    (495, 134, "SOUTH YARD", 8, CREAM),
+    (290, 50,  "WEST YARD", 8, CREAM),
+    (920, 140, "McKEESPORT", 8, CREAM),
+    (930, 36,  "McKEES ROCKS", 8, CREAM),
+    (28,  134, "W-1", 8, CREAM),
+    (40,  158, "W-2", 8, CREAM),
+    (1010, 64, "K-1", 8, CREAM),
+    (1005, 88, "K-2", 8, CREAM),
 ]
 
 
@@ -205,7 +224,8 @@ def build_block():
     for sensor, x, y, tip in LAMPS:
         parts.append(LAMP.format(sensor=sensor, x=x, y=y, tip=tip, u=U))
     for x, y, gif, rot in TRACKS:
-        parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, u=U))
+        url = THIN if gif.startswith("thin") else U + "track/block/"
+        parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, url=url))
     for x, y, text, size, col in TEXTS:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
     return "    " + "\n    ".join(parts) + "\n"
@@ -214,15 +234,18 @@ def build_block():
 STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="[^"]*USS/track/block/[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/track/block/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|WEST YARD|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2)".*?</positionablelabel>', re.S),
 ]
 
 
 def apply(text, close_tag="</paneleditor>"):
-    """Strip old diagram elements and insert the new block before close_tag."""
+    """Strip old diagram elements, fix window geometry, insert new block."""
     for pat in STRIP:
         text = pat.sub("", text)
+    text = re.sub(
+        r'(<paneleditor\b[^>]*?) x="-?\d+" y="-?\d+" height="\d+" width="\d+"',
+        r'\1 x="40" y="40" height="780" width="1120"', text, count=1)
     idx = text.rindex(close_tag)
     return text[:idx] + build_block() + "  " + text[idx:]
 
