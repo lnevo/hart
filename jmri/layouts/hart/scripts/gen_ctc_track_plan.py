@@ -146,7 +146,7 @@ TURNOUTS = [
     ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = Yard T1
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
     ("Switch 116", 436, 82,  "thin:os-r-w-thin"),        # yard row, abuts SW103 (direct, no block); Engine House ladder up-west
-    ("Switch 103", 476, 105, "thin:os-r-e-thin"),        # yard row; South Yard ladder down-east
+    ("Switch 103", 482, 105, "thin:os-r-e-thin"),        # yard row; 6px gap after SW116 (no block)
     ("Switch 111", 606, 82,  X + "right/os-r-sc"),       # scissor: Main West (88-92) <-> yard (111-115)
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # yard row; South Yard ladder down-west
     ("Switch 112", 736, 105, "swap:" + T + "left/west/os-l-w"),  # East Lead bar; leg = Main East (closed route, continuing=4)
@@ -166,8 +166,8 @@ LAMPS = [
     ("Block 4-3",  48,  103, "W-2 (West Yard 2)"),
     ("Block 4-1",  99,  200, "OS 101 (Brick)"),
     ("Block 4-2",  164, 200, "OS 100 (Brick)"),
-    ("Block 4-6",  192, 126, "Main West Brick-Plane"),
-    ("Block 4-5",  164, 119, "OS 102 (Plane)"),  # centered in tile column 3, on the hairpin's "\" stroke
+    ("Block 4-6",  164, 103, "100-102 (Brick-Plane)"),  # hairpin corner, T1/T6/Yard1/East Lead plane
+    ("Block 4-5",  229, 200, "OS 102 (Plane)"),
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
@@ -217,22 +217,22 @@ TRACKS = [
     # SW100's diverging leg hairpins "<": leg down-west to (160,115), then
     # thick 45 back down-east to row M at (182,137) = Main West Brick-Plane
     (159, 114, "thick45-24.gif", 0),
-    (183, 132, "line025.gif", 0),   # hairpin -> SW102 (4-6 lamp here)
+    (183, 132, "line025.gif", 0),   # hairpin -> SW102
     # row M (main, bar 134-138): SW102 bar -> East Main Ext -> SW117
     (257, 132, "line025.gif", 0),   # gap after SW102's bar (icon ends 255)
-    (258, 130, "line1.gif",   0),   # through blank slot 4 toward SW117's bar
-                                    #  (line1 bar rows 4-8: y130 -> 134-138, flat)
+    (258, 130, "line1.gif",   0),   # through blank slot 4, stop short of SW117
+                                    #  (line1 bar 4-8: y130 -> 134-138, flat; drawn to 335)
     # main dips under the South Yard and rises into SW112's leg
-    (388, 136, "b-45.gif",    0),   # down: bar 134-138 -> bottom 164-168
+    (392, 136, "b-45.gif",    0),   # down: gapped off SW117, bar 134-138 -> bottom 164-168
     (407, 155, "line25.gif",  0),   # Main East bottom straight (drawn 419-597)
     (524, 155, "line25.gif",  0),   # overlapped: one block, no joint (to 714)
     (715, 136, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (745,138)
     # row S (yard run-through / East Lead, bar 111-115)
     (252, 107, "line1.gif",   0),   # Yard T1 (drawn 259-343): gap to 102's leg
     (321, 109, "line025.gif", 0),   #  tip (255) and gap to SW117's icon (346)
-    (388, 109, "line025.gif", 0),   # 117-116: Yard T6 (one block, overlapped;
-    (394, 108, "line050.gif", 0),   #  116 abuts 103 directly -- no block)
-    (518, 107, "line1.gif",   0),   # 103 -> 111 (Yard Track 1, blank slot 8)
+    (392, 109, "line025.gif", 0),   # 117-116: Yard T6, gapped off SW117 (ends 386)
+    (394, 108, "line050.gif", 0),   # ...to SW116 (436); 6px empty to SW103
+    (522, 107, "line1.gif",   0),   # 103 -> 111 (Yard Track 1, blank slot 8)
     (648, 109, "line025.gif", 0),   # 111 lower -> 110
     (713, 109, "line025.gif", 0),   # 110 -> 112
     (778, 107, "line1.gif",   0),   # 112 -> 113 (East Lead, blank slot 12)
@@ -244,13 +244,13 @@ TRACKS = [
     # (east ladder line x = y + 379, west ladder x = 807 - y); the three
     # run-through yard tracks (9px pitch) branch off the icon legs
     # themselves, tucked up close under Yard Track 1
-    (516, 137, "thin4512.gif", 0),  # east ladder tail, ends at track 4 (527,148)
+    (522, 137, "thin4512.gif", 0),  # east ladder tail (SW103 moved +6)
     (660, 137, "thin4512.gif", 1),  # west ladder tail, ends at track 4 (660,148)
-    (508, 128, "thin085.gif", 0),   # yard track 2 (508-678)
+    (514, 128, "thin085.gif", 0),   # yard track 2
     (593, 128, "thin085.gif", 0),
-    (517, 137, "thin085.gif", 0),   # yard track 3 (517-669)
+    (523, 137, "thin085.gif", 0),   # yard track 3
     (584, 137, "thin085.gif", 0),
-    (526, 146, "thin085.gif", 0),   # yard track 4 (526-660)
+    (532, 146, "thin085.gif", 0),   # yard track 4
     (575, 146, "thin085.gif", 0),
     # Engine House: two-stub ladder up-west off SW116's leg exit (436,90),
     # dropped right against the yard lead: track 2 joins the leg exit itself

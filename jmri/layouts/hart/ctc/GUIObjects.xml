@@ -2045,7 +2045,7 @@
       </icons>
       <iconmaps />
     </turnouticon>
-    <turnouticon turnout="Switch 103" x="476" y="105" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
+    <turnouticon turnout="Switch 103" x="482" y="105" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
         <closed url="preference:ctc/icons/os-r-e-thin-closed.gif" scale="1.0">
           <rotation>0</rotation>
@@ -2228,8 +2228,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 4-6" x="192" y="126" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Main West Brick-Plane</tooltip>
+    <sensoricon sensor="Block 4-6" x="164" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>100-102 (Brick-Plane)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2244,7 +2244,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 4-5" x="164" y="119" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 4-5" x="229" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS 102 (Plane)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -2715,7 +2715,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="388" y="136" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="392" y="136" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/b-45.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2745,7 +2745,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="388" y="109" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="392" y="109" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2755,7 +2755,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="518" y="107" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="522" y="107" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2795,7 +2795,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="516" y="137" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="522" y="137" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/thin4512.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2805,7 +2805,7 @@
         <rotation>1</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="508" y="128" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="514" y="128" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/thin085.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2815,7 +2815,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="517" y="137" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="523" y="137" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/thin085.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2825,7 +2825,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="526" y="146" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="532" y="146" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/thin085.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
