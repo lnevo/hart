@@ -18,15 +18,21 @@ Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
               slot 12), then SW113 -> SW115 DIRECT (no block, no lamp),
               SW115 / McKees Rocks / K-1. Main West approach lamp `Block
               2-1` centered in blank slot 8 west of SW111.
-  S  111-115  yard run-through siding: SW102 leg -> Yard T1 (`Block 4-8`,
-              lamp centered in blank slot 4) -> SW117 -> Yard T6 -> SW116
-              -> SW103 -> Yard Track 1 (`Block 2-8`, lamp centered in
-              blank slot 8) -> SW110 -> SW112 -> East Lead (`Block 1-7`,
-              lamp centered in blank slot 12) -> SW113 -> SW114 -> K-2.
-  M  134-138  main at Brick/Plane; East Main Ext lamp (`Block 4-7`)
-              centered in blank slot 4; dips 45deg east of SW117 to a
-              bottom straight (164-168) under the South Yard, rising into
-              SW112's leg.
+  S  111-115  SW100's diverging leg rises here: Main West Brick-Plane
+              (`Block 4-6`) -> SW102 (bar on THIS row; its thick leg drops
+              back to row M = East Main Ext, the continuing route) ->
+              Yard T1 (`Block 4-8`, lamp centered in blank slot 4) ->
+              SW117 -> Yard T6 -> SW116 -> SW103 -> Yard Track 1 (`Block
+              2-8`, lamp centered in blank slot 8) -> SW110 -> SW112 ->
+              East Lead (`Block 1-7`, lamp centered in blank slot 12) ->
+              SW113 -> SW114 -> K-2.
+  M  134-138  main at Brick: W-1 -> SW101 -> SW100; east of SW100 the row
+              continues as the gapped MAIN WEST stub (SW100's continuing
+              route — the westbound main loops around the room to SW111's
+              approach). From SW102's leg tip: East Main Ext (`Block 4-7`
+              lamp centered in blank slot 4) -> SW117; dips 45deg east of
+              SW117 to a bottom straight (164-168) under the South Yard,
+              rising into SW112's leg.
 
 South Yard: straight 45deg thin ladders off SW103 (down-east) and SW110
 (down-west, mirror) — the switch legs continue as ladder lines parallel
@@ -60,21 +66,37 @@ BG = """<positionablelabel x="{x}" y="0" level="1" forcecontroloff="false" hidde
 
 TURNOUT = """<turnouticon turnout="{name}" x="{x}" y="{y}" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
-        <closed url="{u}{kind}-closed.gif" scale="1.0">
+        <closed url="{closed}" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="{u}{kind}-thrown.gif" scale="1.0">
+        <thrown url="{thrown}" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="{u}{kind}-unknown.gif" scale="1.0">
+        <unknown url="{unknown}" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="{u}{kind}-inconsistent.gif" scale="1.0">
+        <inconsistent url="{inconsistent}" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
       <iconmaps />
     </turnouticon>"""
+
+
+def turnout_urls(kind):
+    """Resolve a TURNOUTS kind ("swap:"/"thin:" prefixes) to state gif urls."""
+    swap = kind.startswith("swap:")
+    if swap:
+        kind = kind[5:]
+    if kind.startswith("thin:"):
+        base = THIN + kind[5:]
+    else:
+        base = U + kind
+    urls = dict(closed=base + "-closed.gif", thrown=base + "-thrown.gif",
+                unknown=base + "-unknown.gif", inconsistent=base + "-inconsistent.gif")
+    if swap:
+        urls["closed"], urls["thrown"] = urls["thrown"], urls["closed"]
+    return urls
 
 LAMP = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>{tip}</tooltip>
@@ -111,17 +133,20 @@ BLANK_SLOTS = {0, 4, 8, 12, 16}
 
 # (turnout name, x, y, icon kind) -- bar rows: y+6..10 (os-l-w/os-r-e top),
 # y+29..33 (os-l-e/os-r-w bottom). "thin:" kinds are the custom 2px-leg
-# icons from preference:ctc/icons/.
+# icons from preference:ctc/icons/. "swap:" swaps the closed/thrown gifs:
+# used where the drawn BAR is the diverged route (LE continuing sense —
+# SW100/112 have continuing=4, and SW102's continuing route is the drawn
+# leg), so the lit route matches the actual turnout state.
 TURNOUTS = [
     ("Switch 101", 86,  128, T + "left/west/os-l-w"),    # main; W-2 leg down-west
-    ("Switch 100", 151, 105, T + "left/east/os-l-e"),    # main (bar 134-138); Main West stub up-east
-    ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # main; yard siding diverges up-east
+    ("Switch 100", 151, 105, "swap:" + T + "left/east/os-l-e"),  # bar = 101<->Main West stub; leg up-east = Brick-Plane (closed route)
+    ("Switch 102", 216, 105, "swap:" + T + "right/east/os-r-e"), # bar on yard row = Brick-Plane<->Yard T1; thick leg down-east = East Main Ext (closed route)
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
     ("Switch 116", 411, 82,  "thin:os-r-w-thin"),        # yard row; Engine Terminal ladder up-west
     ("Switch 103", 476, 105, "thin:os-r-e-thin"),        # yard row; South Yard ladder down-east
     ("Switch 111", 606, 82,  X + "right/os-r-sc"),       # scissor: Main West (88-92) <-> yard (111-115)
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # yard row; South Yard ladder down-west
-    ("Switch 112", 736, 105, T + "left/west/os-l-w"),    # East Lead straight through; main joins via SW leg
+    ("Switch 112", 736, 105, "swap:" + T + "left/west/os-l-w"),  # East Lead bar; leg = Main East (closed route, continuing=4)
     ("Switch 113", 866, 82,  X + "left/os-l-sc"),        # scissor: Main West (88-92) <-> East Lead (111-115)
     ("Switch 114", 931, 105, T + "right/east/os-r-e"),   # East Lead row; McKeesport branch down-east
     ("Switch 115", 996, 59,  T + "left/east/os-l-e"),    # Main West row (bar 88-92); McKees Rocks up-east
@@ -134,8 +159,8 @@ LAMPS = [
     ("Block 4-3",  30,  151, "W-2 (West Yard 2)"),
     ("Block 4-1",  98,  126, "OS 101 (Brick)"),
     ("Block 4-2",  163, 126, "OS 100 (Brick)"),
-    ("Block 4-6",  197, 126, "Main West Brick-Plane"),
-    ("Block 4-5",  228, 126, "OS 102 (Plane)"),
+    ("Block 4-6",  192, 103, "Main West Brick-Plane"),
+    ("Block 4-5",  228, 103, "OS 102 (Plane)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
     ("Block 13-3", 358, 103, "OS 117 (yard side)"),
@@ -174,16 +199,17 @@ TRACKS = [
     (72,  157, "line025.gif", 0),   # ...to the leg tip (95,161)
     # row M (main, bar 134-138) at Brick/Plane
     (117, 131, "line050.gif", 0),   # 101-100
-    (181, 131, "line050.gif", 0),   # 100-102 (Main West Brick-Plane)
-    (258, 131, "line1.gif",   0),   # 102-117 (East Main Ext, blank slot 4)
+    (192, 131, "line050.gif", 0),   # Main West stub east of SW100 (goes around to 111)
+    (246, 132, "line025.gif", 0),   # SW102 leg tip (246,138) -> East Main Ext...
+    (258, 131, "line1.gif",   0),   # ...through blank slot 4 to SW117's main bar
     # main dips under the South Yard and rises into SW112's leg
     (388, 136, "b-45.gif",    0),   # down: bar 134-138 -> bottom 164-168
     (407, 155, "line25.gif",  0),   # Main East bottom straight (drawn 419-597)
     (524, 155, "line25.gif",  0),   # overlapped: one block, no joint (to 714)
     (715, 136, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (745,138)
     # row S (yard run-through / East Lead, bar 111-115)
-    (175, 109, "line025.gif", 0),   # SW100 Main West stub (short, gapped)
-    (243, 109, "line025.gif", 0),   # 102 leg -> 117: Yard T1 (blank slot 4)
+    (183, 109, "line025.gif", 0),   # SW100 leg tip -> SW102 (Main West Brick-Plane)
+    (243, 109, "line025.gif", 0),   # 102 bar -> 117: Yard T1 (blank slot 4)
     (250, 107, "line1.gif",   0),
     (325, 109, "line025.gif", 0),
     (388, 109, "line025.gif", 0),   # 117-116 (Yard T6)
@@ -197,18 +223,17 @@ TRACKS = [
     (1020, 107, "line1.gif",  0),
     (1084, 109, "line025.gif", 0),  # ...flush to x=1106
     # South Yard: the 45deg icon legs continue as straight 45deg ladders
-    # (east ladder line x = y + 379, west ladder x = 807 - y) with three
-    # run-through yard tracks at 9px pitch connecting them
-    (516, 137, "thin-45.gif", 0),   # east ladder off SW103 leg exit (516,137)...
-    (528, 149, "thin4512.gif", 0),  # ...ending at yard track 4 (539,160)
-    (657, 137, "thin-45.gif", 1),   # west ladder off SW110 leg exit (671,136)...
-    (648, 149, "thin4512.gif", 1),  # ...ending at yard track 4 (648,160)
-    (521, 142, "thin085.gif", 0),   # yard track 2 (521-665)
-    (580, 142, "thin085.gif", 0),
-    (530, 151, "thin085.gif", 0),   # yard track 3 (530-656)
-    (571, 151, "thin085.gif", 0),
-    (539, 160, "thin085.gif", 0),   # yard track 4 (539-647)
-    (562, 160, "thin085.gif", 0),
+    # (east ladder line x = y + 379, west ladder x = 807 - y); the three
+    # run-through yard tracks (9px pitch) branch off the icon legs
+    # themselves, tucked up close under Yard Track 1
+    (516, 137, "thin4512.gif", 0),  # east ladder tail, ends at track 4 (527,148)
+    (660, 137, "thin4512.gif", 1),  # west ladder tail, ends at track 4 (660,148)
+    (508, 128, "thin085.gif", 0),   # yard track 2 (508-678)
+    (593, 128, "thin085.gif", 0),
+    (517, 137, "thin085.gif", 0),   # yard track 3 (517-669)
+    (584, 137, "thin085.gif", 0),
+    (526, 146, "thin085.gif", 0),   # yard track 4 (526-660)
+    (575, 146, "thin085.gif", 0),
     # Engine Terminal: same ladder rotated 180deg, up-west off SW116's leg
     # exit (411,90); ladder line x = y + 321, three stubs flush at x=330
     (397, 76,  "thin-45.gif", 0),   # ladder (411,90) up-west...
@@ -246,16 +271,16 @@ TEXTS = [
     (415, 60, "BARN",      12, WHITE),
     (645, 60, "EAST END",  12, WHITE),
     (905, 60, "PRINCESS",  12, WHITE),
-    (165, 95,  "MAIN WEST", 8, CREAM),
+    (186, 142, "MAIN WEST", 8, CREAM),
     (525, 68,  "MAIN WEST", 8, CREAM),
     (440, 174, "MAIN EAST", 8, CREAM),
-    (552, 122, "SOUTH YARD", 8, CREAM),
-    (2,   115, "WEST YARD", 8, CREAM),
+    (552, 152, "SOUTH YARD", 8, CREAM),
+    (16,  112, "WEST YARD", 8, CREAM),
     (300, 52,  "ENGINE TERMINAL", 8, CREAM),
-    (1035, 148, "McKEESPORT", 8, CREAM),
+    (1035, 153, "McKEESPORT", 8, CREAM),
     (1030, 44, "McKEES ROCKS", 8, CREAM),
-    (34,  140, "W-1", 8, CREAM),
-    (34,  166, "W-2", 8, CREAM),
+    (8,   140, "W-1", 8, CREAM),
+    (8,   166, "W-2", 8, CREAM),
     (1090, 74, "K-1", 8, CREAM),
     (1090, 96, "K-2", 8, CREAM),
 ]
@@ -269,10 +294,7 @@ def build_block():
         parts.append(BG.format(x=12 + 65 * slot, u=U, gif=gif))
     parts.append(BG.format(x=12 + 65 * N_SLOTS, u=U, gif="Panel-right-7.gif"))
     for name, x, y, kind in TURNOUTS:
-        if kind.startswith("thin:"):
-            parts.append(TURNOUT.format(name=name, x=x, y=y, u=THIN, kind=kind[5:]))
-        else:
-            parts.append(TURNOUT.format(name=name, x=x, y=y, u=U, kind=kind))
+        parts.append(TURNOUT.format(name=name, x=x, y=y, **turnout_urls(kind)))
     for sensor, x, y, tip in LAMPS:
         parts.append(LAMP.format(sensor=sensor, x=x, y=y, tip=tip, u=U))
     for x, y, gif, rot in TRACKS:
