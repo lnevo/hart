@@ -156,39 +156,39 @@ TURNOUTS = [
 ]
 
 # (sensor, x, y, tooltip). Block lamps sit embedded on their track line
-# (y = bar top - 8). Turnout OS lamps form a machine row at y176, directly
-# above each switch column's Unlocked indicator (21x21 icons at y200, x =
-# 99/164/229, 359/424/489, 619/684/749, 879/944/1009) so the icons stay
-# uncluttered; crossover columns get their two OS lamps side by side,
-# centered on the column, with the UPPER track's lamp on the left.
+# (y = bar top - 8). Turnout OS lamps form a machine row at y200, replacing
+# the stock Unlocked indicators (stripped below; sensors still exist, GUI
+# only) at x = 99/164/229, 359/424/489, 619/684/749, 879/944/1009, with the
+# switch number labelled underneath; crossover columns get their two OS
+# lamps side by side, centered on the column, UPPER track's lamp on the left.
 LAMPS = [
     ("Block 4-4",  48,  80,  "W-1 (West Yard 1)"),
     ("Block 4-3",  48,  103, "W-2 (West Yard 2)"),
-    ("Block 4-1",  99,  176, "OS 101 (Brick)"),
-    ("Block 4-2",  164, 176, "OS 100 (Brick)"),
+    ("Block 4-1",  99,  200, "OS 101 (Brick)"),
+    ("Block 4-2",  164, 200, "OS 100 (Brick)"),
     ("Block 4-6",  192, 126, "Main West Brick-Plane"),
-    ("Block 4-5",  229, 176, "OS 102 (Plane)"),
+    ("Block 4-5",  229, 200, "OS 102 (Plane)"),
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
-    ("Block 13-3", 347, 176, "OS 117 (yard side)"),
-    ("Block 13-4", 371, 176, "OS 117b (main side)"),
+    ("Block 13-3", 347, 200, "OS 117 (yard side)"),
+    ("Block 13-4", 371, 200, "OS 117b (main side)"),
     ("Block 13-1", 404, 103, "Yard T6"),
-    ("Block 3-1",  424, 176, "OS 116 (Barn)"),
-    ("Block 3-2",  489, 176, "OS 103 (South Yard)"),
+    ("Block 3-1",  424, 200, "OS 116 (Barn)"),
+    ("Block 3-2",  489, 200, "OS 103 (South Yard)"),
     ("Block 2-8",  546, 103, "Yard Track 1"),
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
     ("Block 2-3",  546, 156, "Main East"),
-    ("Block 12-4", 607, 176, "OS 111a (Main West side)"),
-    ("Block 12-6", 631, 176, "OS 111b (yard side)"),
-    ("Block 12-7", 684, 176, "OS 110 (East End)"),
-    ("Block 12-8", 749, 176, "OS 112 (East End)"),
+    ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
+    ("Block 12-6", 631, 200, "OS 111b (yard side)"),
+    ("Block 12-7", 684, 200, "OS 110 (East End)"),
+    ("Block 12-8", 749, 200, "OS 112 (East End)"),
     ("Block 1-7",  806, 103, "East Lead"),
     ("Block 1-8",  806, 80,  "West Main Ext (111-113 siding)"),
-    ("Block 1-5",  867, 176, "OS 113b (Main West side)"),
-    ("Block 1-6",  891, 176, "OS 113a (East Lead side)"),
-    ("Block 1-3",  944, 176, "OS 114 + K-2 (one circuit)"),
-    ("Block 1-4",  1009, 176, "OS 115 + K-1 (one circuit)"),
+    ("Block 1-5",  867, 200, "OS 113b (Main West side)"),
+    ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
+    ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
+    ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
     ("Block 1-1",  1060, 57, "McKees Rocks branch"),
     ("Block 1-4",  1060, 80, "K-1 (same circuit as OS 115)"),
     ("Block 1-3",  1060, 103, "K-2 (same circuit as OS 114)"),
@@ -299,6 +299,20 @@ TEXTS = [
     (24,  118, "W-2", 8, CREAM),
     (1090, 74, "K-1", 8, CREAM),
     (1090, 96, "K-2", 8, CREAM),
+    # switch numbers under the OS lamp row (lamps 21px at y200 -> labels
+    # y223), centered under the lamp / lamp pair
+    (102, 223, "101", 8, WHITE),
+    (167, 223, "100", 8, WHITE),
+    (232, 223, "102", 8, WHITE),
+    (362, 223, "117", 8, WHITE),
+    (427, 223, "116", 8, WHITE),
+    (492, 223, "103", 8, WHITE),
+    (622, 223, "111", 8, WHITE),
+    (687, 223, "110", 8, WHITE),
+    (752, 223, "112", 8, WHITE),
+    (882, 223, "113", 8, WHITE),
+    (947, 223, "114", 8, WHITE),
+    (1012, 223, "115", 8, WHITE),
 ]
 
 
@@ -325,7 +339,12 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|SOUTH YARD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2|1[01][0-9])".*?</positionablelabel>', re.S),
+    # stock CTC Unlocked indicators + labels, replaced by the OS lamp row
+    # (GUI only -- the IS*:UNLOCKEDINDICATOR sensors still exist; delete
+    # these two patterns to bring the buttons back)
+    re.compile(r'\s*<sensoricon\b[^>]*sensor="IS\d+:UNLOCKEDINDICATOR".*?</sensoricon>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="Unlocked".*?</positionablelabel>', re.S),
 ]
 
 
