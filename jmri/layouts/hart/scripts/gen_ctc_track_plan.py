@@ -159,20 +159,22 @@ TURNOUTS = [
 # (y = bar top - 8). Turnout OS lamps are lifted CLEAR of the icon graphics
 # so the points stay visible: single turnouts get the lamp fully above the
 # icon (row N bar 88 -> y74; yard row bar 111 -> y97); crossovers get the
-# upper-bar lamp above and the lower-bar lamp below the icon; SW115's goes
-# below its bar (the McKees Rocks riser fills the icon above).
+# upper-bar lamp above (y = bar top - 14, bottom arc dips 6px into the bar)
+# and the lower-bar lamp below at the mirrored offset (y = bar bottom - 6,
+# top arc dips 6px into the bar); SW115's goes below its bar (the McKees
+# Rocks riser fills the icon above), raised just enough to kiss the bar.
 LAMPS = [
     ("Block 4-4",  48,  80,  "W-1 (West Yard 1)"),
     ("Block 4-3",  48,  103, "W-2 (West Yard 2)"),
     ("Block 4-1",  98,  74,  "OS 101 (Brick)"),
     ("Block 4-2",  163, 74,  "OS 100 (Brick)"),
     ("Block 4-6",  192, 126, "Main West Brick-Plane"),
-    ("Block 4-5",  163, 97,  "OS 102 (Plane)"),  # in the hairpin pocket, under OS 100
+    ("Block 4-5",  166, 126, "OS 102 (Plane)"),  # embedded on the hairpin (the 102 circuit), even with 4-6/4-7
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
     ("Block 13-3", 358, 97,  "OS 117 (yard side)"),
-    ("Block 13-4", 358, 140, "OS 117b (main side)"),
+    ("Block 13-4", 358, 132, "OS 117b (main side)"),
     ("Block 13-1", 404, 103, "Yard T6"),
     ("Block 3-1",  460, 97,  "OS 116 (Barn)"),
     ("Block 3-2",  488, 97,  "OS 103 (South Yard)"),
@@ -180,15 +182,15 @@ LAMPS = [
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
     ("Block 2-3",  546, 156, "Main East"),
     ("Block 12-4", 607, 74,  "OS 111a (Main West side)"),
-    ("Block 12-6", 607, 117, "OS 111b (yard side)"),
+    ("Block 12-6", 607, 109, "OS 111b (yard side)"),
     ("Block 12-7", 683, 97,  "OS 110 (East End)"),
     ("Block 12-8", 748, 97,  "OS 112 (East End)"),
     ("Block 1-7",  806, 103, "East Lead"),
     ("Block 1-8",  806, 80,  "West Main Ext (111-113 siding)"),
     ("Block 1-5",  867, 74,  "OS 113b (Main West side)"),
-    ("Block 1-6",  867, 117, "OS 113a (East Lead side)"),
+    ("Block 1-6",  867, 109, "OS 113a (East Lead side)"),
     ("Block 1-3",  943, 97,  "OS 114 + K-2 (one circuit)"),
-    ("Block 1-4",  1008, 94, "OS 115 + K-1 (one circuit)"),
+    ("Block 1-4",  1008, 91, "OS 115 + K-1 (one circuit)"),
     ("Block 1-1",  1060, 57, "McKees Rocks branch"),
     ("Block 1-2",  1060, 131, "McKeesport branch"),
 ]
