@@ -433,9 +433,10 @@
       <systemName>M2T311</systemName>
       <userName>Switch 106</userName>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N" inverted="true" automate="Off">
       <systemName>M2T408</systemName>
       <userName>Switch 100</userName>
+      <comment>Inverted: hardware rests Thrown; JMRI Closed / CTC Normal = rest.</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 4-2 FB R" sensor2="Switch 4-2 FB N" inverted="false" automate="Off">
       <systemName>M2T409</systemName>
