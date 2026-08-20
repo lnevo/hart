@@ -156,42 +156,42 @@ TURNOUTS = [
 ]
 
 # (sensor, x, y, tooltip). Block lamps sit embedded on their track line
-# (y = bar top - 8). Turnout OS lamps are lifted CLEAR of the icon graphics
-# so the points stay visible: single turnouts get the lamp fully above the
-# icon (row N bar 88 -> y74; yard row bar 111 -> y97); crossovers get the
-# upper-bar lamp above (y = bar top - 14, bottom arc dips 6px into the bar)
-# and the lower-bar lamp below at the mirrored offset (y = bar bottom - 6,
-# top arc dips 6px into the bar); SW115's goes below its bar (the McKees
-# Rocks riser fills the icon above), raised just enough to kiss the bar.
+# (y = bar top - 8). Turnout OS lamps form a machine row at y176, directly
+# above each switch column's Unlocked indicator (21x21 icons at y200, x =
+# 99/164/229, 359/424/489, 619/684/749, 879/944/1009) so the icons stay
+# uncluttered; crossover columns get their two OS lamps side by side,
+# centered on the column, with the UPPER track's lamp on the left.
 LAMPS = [
     ("Block 4-4",  48,  80,  "W-1 (West Yard 1)"),
     ("Block 4-3",  48,  103, "W-2 (West Yard 2)"),
-    ("Block 4-1",  98,  74,  "OS 101 (Brick)"),
-    ("Block 4-2",  163, 74,  "OS 100 (Brick)"),
+    ("Block 4-1",  99,  176, "OS 101 (Brick)"),
+    ("Block 4-2",  164, 176, "OS 100 (Brick)"),
     ("Block 4-6",  192, 126, "Main West Brick-Plane"),
-    ("Block 4-5",  166, 126, "OS 102 (Plane)"),  # embedded on the hairpin (the 102 circuit), even with 4-6/4-7
+    ("Block 4-5",  229, 176, "OS 102 (Plane)"),
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
-    ("Block 13-3", 358, 97,  "OS 117 (yard side)"),
-    ("Block 13-4", 358, 132, "OS 117b (main side)"),
+    ("Block 13-3", 347, 176, "OS 117 (yard side)"),
+    ("Block 13-4", 371, 176, "OS 117b (main side)"),
     ("Block 13-1", 404, 103, "Yard T6"),
-    ("Block 3-1",  460, 97,  "OS 116 (Barn)"),
-    ("Block 3-2",  488, 97,  "OS 103 (South Yard)"),
+    ("Block 3-1",  424, 176, "OS 116 (Barn)"),
+    ("Block 3-2",  489, 176, "OS 103 (South Yard)"),
     ("Block 2-8",  546, 103, "Yard Track 1"),
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
     ("Block 2-3",  546, 156, "Main East"),
-    ("Block 12-4", 607, 74,  "OS 111a (Main West side)"),
-    ("Block 12-6", 607, 109, "OS 111b (yard side)"),
-    ("Block 12-7", 683, 97,  "OS 110 (East End)"),
-    ("Block 12-8", 748, 97,  "OS 112 (East End)"),
+    ("Block 12-4", 607, 176, "OS 111a (Main West side)"),
+    ("Block 12-6", 631, 176, "OS 111b (yard side)"),
+    ("Block 12-7", 684, 176, "OS 110 (East End)"),
+    ("Block 12-8", 749, 176, "OS 112 (East End)"),
     ("Block 1-7",  806, 103, "East Lead"),
     ("Block 1-8",  806, 80,  "West Main Ext (111-113 siding)"),
-    ("Block 1-5",  867, 74,  "OS 113b (Main West side)"),
-    ("Block 1-6",  867, 109, "OS 113a (East Lead side)"),
-    ("Block 1-3",  943, 97,  "OS 114 + K-2 (one circuit)"),
-    ("Block 1-4",  1008, 91, "OS 115 + K-1 (one circuit)"),
+    ("Block 1-5",  867, 176, "OS 113b (Main West side)"),
+    ("Block 1-6",  891, 176, "OS 113a (East Lead side)"),
+    ("Block 1-3",  944, 176, "OS 114 + K-2 (one circuit)"),
+    ("Block 1-4",  1009, 176, "OS 115 + K-1 (one circuit)"),
     ("Block 1-1",  1060, 57, "McKees Rocks branch"),
+    ("Block 1-4",  1060, 80, "K-1 (same circuit as OS 115)"),
+    ("Block 1-3",  1060, 103, "K-2 (same circuit as OS 114)"),
     ("Block 1-2",  1060, 131, "McKeesport branch"),
 ]
 
@@ -217,7 +217,8 @@ TRACKS = [
     (183, 132, "line025.gif", 0),   # hairpin -> SW102 (4-6 lamp here)
     # row M (main, bar 134-138): SW102 bar -> East Main Ext -> SW117
     (254, 132, "line025.gif", 0),
-    (258, 131, "line1.gif",   0),   # through blank slot 4 to SW117's main bar
+    (258, 130, "line1.gif",   0),   # through blank slot 4 to SW117's main bar
+                                    #  (line1 bar rows 4-8: y130 -> 134-138, flat)
     # main dips under the South Yard and rises into SW112's leg
     (388, 136, "b-45.gif",    0),   # down: bar 134-138 -> bottom 164-168
     (407, 155, "line25.gif",  0),   # Main East bottom straight (drawn 419-597)
@@ -252,7 +253,7 @@ TRACKS = [
     # Engine House: two-stub ladder up-west off SW116's leg exit (436,90),
     # dropped right against the yard lead: track 2 joins the leg exit itself
     # (y90), track 1 one 9px pitch above (y81); ladder line x = y + 346
-    (425, 79,  "thin4512.gif", 0),  # ladder (436,90) up-west to (425,79)
+    (428, 82,  "thin459.gif", 0),   # ladder (436,90) up-west, top even with track 1 (no lip)
     (365, 81,  "thin044.gif", 0),   # house track 1 (365-428)
     (385, 81,  "thin044.gif", 0),
     (365, 90,  "thin044.gif", 0),   # house track 2 (365-437)
