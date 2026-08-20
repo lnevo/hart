@@ -2015,16 +2015,6 @@
       <userName>West Yard East OS 117b</userName>
       <unlit allowed="no" />
     </signalmast>
-    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
-      <userName>South Yard East OS 104</userName>
-      <unlit allowed="yes" />
-    </virtualsignalmast>
-    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
-      <userName>West Yard North OS 116</userName>
-      <unlit allowed="yes" />
-    </virtualsignalmast>
   </signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
@@ -5285,48 +5275,6 @@
         <associatedSection>East End East Lead:West Yard East OS 117b</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="South Yard East OS 104">
-        <destinationSignalMast>South Yard East OS 104</destinationSignalMast>
-        <comment>Manual: East Lead westward via Yard Track 2 into Barn; discovery declines this pairing</comment>
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>no</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-        <blocks>
-          <block>
-            <blockName>Yard Track 2</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-          <block>
-            <blockName>OS 112 (East End)</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-          <block>
-            <blockName>OS 110 (East End)</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-          <block>
-            <blockName>OS 109 (East End)</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-        </blocks>
-        <turnouts>
-          <turnout>
-            <turnoutName>Switch 109</turnoutName>
-            <turnoutState>thrown</turnoutState>
-          </turnout>
-          <turnout>
-            <turnoutName>Switch 110</turnoutName>
-            <turnoutState>thrown</turnoutState>
-          </turnout>
-          <turnout>
-            <turnoutName>Switch 112</turnoutName>
-            <turnoutState>closed</turnoutState>
-          </turnout>
-        </turnouts>
-      </destinationMast>
     </signalmastlogic>
     <signalmastlogic source="East End South OS 112">
       <sourceSignalMast>East End South OS 112</sourceSignalMast>
@@ -5415,52 +5363,6 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="South Yard East OS 104">
-      <sourceSignalMast>South Yard East OS 104</sourceSignalMast>
-      <destinationMast destination="Plane East East Main Ext">
-        <destinationSignalMast>Plane East East Main Ext</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Plane East OS 102">
-        <destinationSignalMast>Plane East OS 102</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="West Yard North OS 116">
-      <sourceSignalMast>West Yard North OS 116</sourceSignalMast>
-      <destinationMast destination="East End West Yard Track 1">
-        <destinationSignalMast>East End West Yard Track 1</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="East End South OS 110">
-        <destinationSignalMast>East End South OS 110</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
   </signalmastlogics>
   <logixs class="jmri.managers.configurexml.DefaultLogixManagerXml">
     <logix userName="Run Dispatcher" enabled="yes">
@@ -5481,14 +5383,17 @@
       <conditionalStateVariable operator="1" negated="no" type="1" systemName="startDispatcherSensor" dataString="" num1="0" num2="0" triggersCalc="yes" />
       <conditionalAction option="1" type="16" systemName="" data="-1" delay="0" string="program:jython/DispatcherSystem/Startup.py" />
     </conditional>
-    <conditional systemName="IX:CTC:REVDEF:C1" userName="Set 100/112/114/115 levers Reverse" antecedent="" logicType="1" triggerOnChange="yes">
+    <conditional systemName="IX:CTC:REVDEF:C1" userName="Set reverse levers + 116/103/110 local" antecedent="" logicType="1" triggerOnChange="yes">
       <systemName>IX:CTC:REVDEF:C1</systemName>
-      <userName>Set 100/112/114/115 levers Reverse</userName>
+      <userName>Set reverse levers + 116/103/110 local</userName>
       <conditionalStateVariable operator="1" negated="no" type="1" systemName="IS:RELOADCTC" dataString="" num1="0" num2="0" triggersCalc="yes" />
       <conditionalAction option="1" type="2" systemName="IS3:LEVER" data="4" delay="0" string="" />
       <conditionalAction option="1" type="2" systemName="IS23:LEVER" data="4" delay="0" string="" />
       <conditionalAction option="1" type="2" systemName="IS27:LEVER" data="4" delay="0" string="" />
       <conditionalAction option="1" type="2" systemName="IS29:LEVER" data="4" delay="0" string="" />
+      <conditionalAction option="1" type="2" systemName="IS10:LOCKTOGGLE" data="2" delay="0" string="" />
+      <conditionalAction option="1" type="2" systemName="IS12:LOCKTOGGLE" data="2" delay="0" string="" />
+      <conditionalAction option="1" type="2" systemName="IS22:LOCKTOGGLE" data="2" delay="0" string="" />
     </conditional>
   </conditionals>
   <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" time="Mon Feb 16 14:52:35 EST 2026" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
@@ -6053,6 +5958,7 @@
       </SIDI_LeftRightTrafficSignals>
       <SIDI_RightLeftTrafficSignals>
         <signal>West Yard East OS 117b</signal>
+        <signal>West Yard East Yard T6</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
       <SIDL_LeftInternalSensor>IS8:LDGL</SIDL_LeftInternalSensor>
@@ -6088,6 +5994,23 @@
           <OccupancyExternalSensors>
             <sensor>Block 13-4</sensor>
             <sensor>Block 4-7</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:2</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Plane East OS 102</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>7/8</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>16</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 13-3</sensor>
+            <sensor>Block 4-8</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -6261,18 +6184,16 @@
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
-      <SIDI_Enabled>true</SIDI_Enabled>
+      <SIDI_Enabled>false</SIDI_Enabled>
       <SIDI_LeftInternalSensor>IS10:LDGK</SIDI_LeftInternalSensor>
       <SIDI_NormalInternalSensor>IS10:NGK</SIDI_NormalInternalSensor>
       <SIDI_RightInternalSensor>IS10:RDGK</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
-      <SIDI_LeftRightTrafficSignals>
-        <signal>West Yard North OS 116</signal>
-      </SIDI_LeftRightTrafficSignals>
+      <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
-      <SIDL_Enabled>true</SIDL_Enabled>
+      <SIDL_Enabled>false</SIDL_Enabled>
       <SIDL_LeftInternalSensor>IS10:LDGL</SIDL_LeftInternalSensor>
       <SIDL_NormalInternalSensor>IS10:NGL</SIDL_NormalInternalSensor>
       <SIDL_RightInternalSensor>IS10:RDGL</SIDL_RightInternalSensor>
@@ -6290,58 +6211,9 @@
       <CO_Enabled>false</CO_Enabled>
       <CO_CallOnToggleInternalSensor>IS10:CALLON</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
-      <TRL_Enabled>true</TRL_Enabled>
+      <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
-      <TRL_RightRules>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:1</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>East End West Yard Track 1</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>9/10</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>17</UniqueID>
-            </switch>
-            <switch>
-              <UserText>11/12</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>18</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>Block 3-1</sensor>
-            <sensor>Block 3-2</sensor>
-            <sensor>Block 2-8</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:2</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>East End South OS 110</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>9/10</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>17</UniqueID>
-            </switch>
-            <switch>
-              <UserText>11/12</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>18</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>Block 3-1</sensor>
-            <sensor>Block 3-2</sensor>
-            <sensor>Block 3-3</sensor>
-            <sensor>Block 2-7</sensor>
-            <sensor>Block 12-5</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-      </TRL_RightRules>
+      <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS10:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 116</TUL_ExternalTurnout>
@@ -6366,7 +6238,7 @@
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
-      <SIDI_Enabled>true</SIDI_Enabled>
+      <SIDI_Enabled>false</SIDI_Enabled>
       <SIDI_LeftInternalSensor>IS12:LDGK</SIDI_LeftInternalSensor>
       <SIDI_NormalInternalSensor>IS12:NGK</SIDI_NormalInternalSensor>
       <SIDI_RightInternalSensor>IS12:RDGK</SIDI_RightInternalSensor>
@@ -6374,11 +6246,8 @@
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
-      <SIDI_RightLeftTrafficSignals>
-        <signal>West Yard East Yard T6</signal>
-        <signal>South Yard East OS 104</signal>
-      </SIDI_RightLeftTrafficSignals>
-      <SIDL_Enabled>true</SIDL_Enabled>
+      <SIDI_RightLeftTrafficSignals />
+      <SIDL_Enabled>false</SIDL_Enabled>
       <SIDL_LeftInternalSensor>IS12:LDGL</SIDL_LeftInternalSensor>
       <SIDL_NormalInternalSensor>IS12:NGL</SIDL_NormalInternalSensor>
       <SIDL_RightInternalSensor>IS12:RDGL</SIDL_RightInternalSensor>
@@ -6396,133 +6265,8 @@
       <CO_Enabled>false</CO_Enabled>
       <CO_CallOnToggleInternalSensor>IS12:CALLON</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
-      <TRL_Enabled>true</TRL_Enabled>
-      <TRL_LeftRules>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:1</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Plane East East Main Ext</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>9/10</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>17</UniqueID>
-            </switch>
-            <switch>
-              <UserText>11/12</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>18</UniqueID>
-            </switch>
-            <switch>
-              <UserText>7/8</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>16</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>Block 3-2</sensor>
-            <sensor>Block 3-1</sensor>
-            <sensor>Block 13-1</sensor>
-            <sensor>Block 13-3</sensor>
-            <sensor>Block 13-4</sensor>
-            <sensor>Block 4-7</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:2</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Plane East OS 102</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>9/10</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>17</UniqueID>
-            </switch>
-            <switch>
-              <UserText>11/12</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>18</UniqueID>
-            </switch>
-            <switch>
-              <UserText>7/8</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>16</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>Block 3-2</sensor>
-            <sensor>Block 3-1</sensor>
-            <sensor>Block 13-1</sensor>
-            <sensor>Block 13-3</sensor>
-            <sensor>Block 4-8</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:3</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Plane East East Main Ext</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>11/12</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>18</UniqueID>
-            </switch>
-            <switch>
-              <UserText>9/10</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>17</UniqueID>
-            </switch>
-            <switch>
-              <UserText>7/8</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>16</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>Block 3-3</sensor>
-            <sensor>Block 3-2</sensor>
-            <sensor>Block 3-1</sensor>
-            <sensor>Block 13-1</sensor>
-            <sensor>Block 13-3</sensor>
-            <sensor>Block 13-4</sensor>
-            <sensor>Block 4-7</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:4</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Plane East OS 102</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>11/12</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>18</UniqueID>
-            </switch>
-            <switch>
-              <UserText>9/10</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>17</UniqueID>
-            </switch>
-            <switch>
-              <UserText>7/8</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>16</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>Block 3-3</sensor>
-            <sensor>Block 3-2</sensor>
-            <sensor>Block 3-1</sensor>
-            <sensor>Block 13-1</sensor>
-            <sensor>Block 13-3</sensor>
-            <sensor>Block 4-8</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-      </TRL_LeftRules>
+      <TRL_Enabled>false</TRL_Enabled>
+      <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS12:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
@@ -6674,6 +6418,23 @@
             <sensor>Block 12-7</sensor>
             <sensor>Block 12-8</sensor>
             <sensor>Block 1-7</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+              <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:2</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Princess West OS 113b</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>17/18</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>21</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 12-4</sensor>
+            <sensor>Block 1-8</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -6940,30 +6701,6 @@
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:5</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>South Yard East OS 104</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>23/24</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>24</UniqueID>
-            </switch>
-            <switch>
-              <UserText>21/22</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>23</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>Block 12-7</sensor>
-            <sensor>Block 12-8</sensor>
-            <sensor>Block 2-7</sensor>
-            <sensor>Block 12-5</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
       </TRL_LeftRules>
       <TRL_RightRules>
         <TRL_TrafficLockingRule>
@@ -6973,7 +6710,7 @@
           <switches>
             <switch>
               <UserText>23/24</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
+              <SwitchAlignment>Normal</SwitchAlignment>
               <UniqueID>24</UniqueID>
             </switch>
           </switches>
@@ -7061,6 +6798,40 @@
             <sensor>Block 1-4</sensor>
             <sensor>Block 1-1</sensor>
             <sensor>Block 1-2</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+              <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:2</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>East End East OS 111a</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>25/26</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>25</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 1-5</sensor>
+            <sensor>Block 1-8</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:3</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>East End East Lead</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>25/26</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>25</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 1-6</sensor>
+            <sensor>Block 1-7</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -7168,8 +6939,10 @@
       <SIDI_RightInternalSensor>IS28:RDGK</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
-      <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
-      <SIDI_LeftRightTrafficSignals />
+      <SIDI_TrafficDirection>BOTH</SIDI_TrafficDirection>
+      <SIDI_LeftRightTrafficSignals>
+        <signal>Princess East McKeesport</signal>
+      </SIDI_LeftRightTrafficSignals>
       <SIDI_RightLeftTrafficSignals>
         <signal>Princess East K-2</signal>
         <signal>Princess South McKeesport</signal>
@@ -7241,7 +7014,41 @@
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
       </TRL_LeftRules>
-      <TRL_RightRules />
+            <TRL_RightRules>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:1</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Princess East K-2</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>27/28</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>26</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 1-3</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:2</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Princess South McKeesport</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>27/28</UserText>
+              <SwitchAlignment>Reverse</SwitchAlignment>
+              <UniqueID>26</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 1-3</sensor>
+            <sensor>Block 1-2</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+      </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS28:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 114</TUL_ExternalTurnout>
@@ -7272,8 +7079,10 @@
       <SIDI_RightInternalSensor>IS30:RDGK</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
-      <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
-      <SIDI_LeftRightTrafficSignals />
+      <SIDI_TrafficDirection>BOTH</SIDI_TrafficDirection>
+      <SIDI_LeftRightTrafficSignals>
+        <signal>Princess East McKees Rocks</signal>
+      </SIDI_LeftRightTrafficSignals>
       <SIDI_RightLeftTrafficSignals>
         <signal>Princess East K-1</signal>
         <signal>Princess North McKees Rocks</signal>
@@ -7393,7 +7202,41 @@
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
       </TRL_LeftRules>
-      <TRL_RightRules />
+            <TRL_RightRules>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:1</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Princess East K-1</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>29/30</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>27</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 1-4</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:2</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Princess North McKees Rocks</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>29/30</UserText>
+              <SwitchAlignment>Reverse</SwitchAlignment>
+              <UniqueID>27</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>Block 1-4</sensor>
+            <sensor>Block 1-1</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+      </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS30:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 115</TUL_ExternalTurnout>
@@ -8135,64 +7978,6 @@
     <positionablelabel x="431" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="9" fontFamily="Dialog" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="406" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <sensoricon sensor="IS10:NGK" x="424" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS10:NGK</tooltip>
-      <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/red-off.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS10:RDGK" x="440" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS10:RDGK</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <multisensoricon x="410" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
-      <tooltip>,IS10:NGL,IS10:RDGL</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" degrees="0" scale="1.0" sensor="IS10:NGL">
-        <rotation>0</rotation>
-      </active>
-      <active url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" degrees="0" scale="1.0" sensor="IS10:RDGL">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-inactive-wide.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-    </multisensoricon>
-    <positionablelabel x="428" y="470" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="10" fontFamily="Dialog" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS10:LOCKTOGGLE" x="423" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS10:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" degrees="0" scale="1.0">
@@ -8280,64 +8065,6 @@
       <iconmaps />
     </sensoricon>
     <positionablelabel x="493" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="11" fontFamily="Dialog" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <sensoricon sensor="IS12:LDGK" x="471" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS12:LDGK</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS12:NGK" x="489" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS12:NGK</tooltip>
-      <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/red-off.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="505" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <multisensoricon x="475" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
-      <tooltip>IS12:LDGL,IS12:NGL,</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" degrees="0" scale="1.0" sensor="IS12:LDGL">
-        <rotation>0</rotation>
-      </active>
-      <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" degrees="0" scale="1.0" sensor="IS12:NGL">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-inactive-wide.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-    </multisensoricon>
-    <positionablelabel x="493" y="470" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="12" fontFamily="Dialog" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <sensoricon sensor="IS12:LOCKTOGGLE" x="488" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
@@ -9308,12 +9035,12 @@
       </icon>
     </positionablelabel>
     <positionablelabel x="402" y="0" level="1" forcecontroloff="false" hidden="no" positionable="false" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/background/Panel-sw-sig-7.gif" scale="1.0">
+      <icon url="program:resources/icons/USS/background/Panel-switch-7.gif" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
     <positionablelabel x="467" y="0" level="1" forcecontroloff="false" hidden="no" positionable="false" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/background/Panel-sw-sig-7.gif" scale="1.0">
+      <icon url="program:resources/icons/USS/background/Panel-switch-7.gif" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
@@ -9505,10 +9232,10 @@
     </turnouticon>
     <turnouticon turnout="Switch 112" x="736" y="105" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
-        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
+        <closed url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-closed.gif" scale="1.0">
+        <thrown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-thrown.gif" scale="1.0">
           <rotation>0</rotation>
         </thrown>
         <unknown url="program:resources/icons/USS/track/turnout/left/west/os-l-w-unknown.gif" scale="1.0">
@@ -10248,7 +9975,7 @@
       </icon>
     </positionablelabel>
     <positionablelabel x="393" y="81" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:ctc/icons/thin044.gif" degrees="0" scale="1.0">
+      <icon url="preference:ctc/icons/thin035.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
@@ -10417,6 +10144,372 @@
     <positionablelabel x="1012" y="223" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="115" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <signalheadicon signalhead="IH436" x="72" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>Brick West Yard 1</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalheadicon signalhead="IH437" x="72" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>Brick West Yard 2</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalmasticon signalmast="Brick East Main West" x="190" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>Brick East Main West</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="Plane East OS 102" x="245" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>Plane East OS 102</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="Plane East East Main Ext" x="245" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>Plane East East Main Ext</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="West Yard West OS 117" x="328" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>West Yard West OS 117</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="West Yard West East Main Ext" x="328" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>West Yard West East Main Ext</tooltip>
+    </signalmasticon>
+    <signalheadicon signalhead="IH1334" x="385" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>West Yard East Yard T6</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalmasticon signalmast="West Yard East OS 117b" x="376" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>West Yard East OS 117b</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="East End West Main West" x="588" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>East End West Main West</tooltip>
+    </signalmasticon>
+    <signalheadicon signalhead="IH1236" x="588" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>East End West Yard Track 1</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalmasticon signalmast="East End East OS 111a" x="630" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>East End East OS 111a</tooltip>
+    </signalmasticon>
+    <signalheadicon signalhead="IH1239" x="658" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>East End South OS 110</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalmasticon signalmast="East End South OS 112" x="708" y="163" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>East End South OS 112</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="East End East Lead" x="760" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>East End East Lead</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="Princess West OS 113b" x="848" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>Princess West OS 113b</tooltip>
+    </signalmasticon>
+    <signalmasticon signalmast="Princess West OS 113a" x="848" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>Princess West OS 113a</tooltip>
+    </signalmasticon>
+    <signalheadicon signalhead="IH134" x="960" y="138" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>Princess East McKeesport</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalheadicon signalhead="IH143" x="1039" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>Princess East K-2</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalmasticon signalmast="Princess South McKeesport" x="1030" y="138" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>Princess South McKeesport</tooltip>
+    </signalmasticon>
+    <signalheadicon signalhead="IH141" x="1020" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>Princess East McKees Rocks</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalheadicon signalhead="IH142" x="1039" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>Princess East K-1</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalmasticon signalmast="Princess North McKees Rocks" x="1030" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>Princess North McKees Rocks</tooltip>
+    </signalmasticon>
   </paneleditor>
   <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="My Layout" x="400" y="200" windowheight="760" windowwidth="1885" panelheight="650" panelwidth="1959" sliders="no" scrollable="none" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30.0" turnoutcx="30.0" turnoutwid="15.0" xoverlong="45.0" xoverhwid="15.0" xovershort="15.0" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="10" gridSize2nd="10" openDispatcher="no" useDirectTurnoutControl="no">
     <layoutTrackDrawingOptions name="My Layout" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTrackDrawingOptionsXml">
@@ -10680,7 +10773,7 @@
     <signalmasticon signalmast="Plane East OS 102" x="335" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Plane East East Main Ext" x="335" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="West Yard West OS 117" x="420" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="West Yard East Yard T6" x="663" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="West Yard East Yard T6" x="520" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="West Yard West East Main Ext" x="420" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="West Yard East OS 117b" x="530" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="East End West Main West" x="1095" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
@@ -11743,14 +11836,11 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS 111a (East End)" x="1185" y="263" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <signalmasticon signalmast="South Yard East OS 104" x="653" y="303" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="0" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="West Yard North OS 116" x="610" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="OS 100 (Brick)" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
       <signalAMast>Brick East Main West</signalAMast>
     </layoutturnout>
     <layoutturnout ident="TOR11" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1088.5" ycen="459.5" xa="1103.0" ya="451.0" xb="1074.0" yb="468.0" xc="1075.0999755859375" yc="460.0" xd="1103.0" yd="451.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1208" blockname="OS 107 (East End)" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" />
     <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="708.5" ycen="366.0" xa="694.5" ya="356.5" xb="722.5" yb="375.5" xc="722.2999877929688" yc="366.0" xd="694.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="OS 104 (South Yard)" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15">
-      <signalCMast>South Yard East OS 104</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOL23" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1371.5" ycen="315.0" xa="1386.5" ya="315.0" xb="1356.5" yb="315.0" xc="1356.4000244140625" yc="324.79998779296875" xd="1386.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1213" blockname="OS 112 (East End)" connectaname="T-I-TOL23" connectbname="T-ER-TOL23" connectcname="T-EL-TOL23">
       <signalAMast>East End East Lead</signalAMast>
@@ -11785,20 +11875,19 @@
       <signalCMast>Princess South McKeesport</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="639.5" ycen="315.0" xa="624.5" ya="315.0" xb="654.5" yb="315.0" xc="653.7999877929688" yc="325.8999938964844" xd="624.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="OS 103 (South Yard)" connectaname="T-I-TOR14" connectbname="F46-S-0" connectcname="F16-S-0">
-      <signalBMast>West Yard East Yard T6</signalBMast>
     </layoutturnout>
     <layoutturnout ident="TO113" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1525.199951171875" ycen="283.5" xa="1508.2999267578125" ya="252.0" xb="1575.9000244140625" yb="252.0" xc="1542.0999755859375" yc="315.0" xd="1474.4998779296875" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 113" blockname="OS 113b (Princess)" blockcname="OS 113a (Princess)" blockdname="OS 113a (Princess)" connectaname="T-ER-TOL1" connectbname="T-I-TOL1" connectcname="T-ER-TOL2" connectdname="T-I-TOL2">
       <signalAMast>Princess West OS 113b</signalAMast>
       <signalDMast>Princess West OS 113a</signalDMast>
     </layoutturnout>
     <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="576.0" ycen="315.0" xa="592.0" ya="315.0" xb="560.0" yb="315.0" xc="567.0" yc="305.0" xd="592.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 116" blockname="OS 116 (West Yard)" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1">
-      <signalCMast>West Yard North OS 116</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="484.0" ycen="289.0" xa="500.0" ya="289.0" xb="468.0" yb="289.0" xc="468.0" yc="277.0" xd="500.0" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 119" blockname="OS 119 (West Yard)" connectaname="T-A-TO10" connectbname="T11" connectcname="T10" />
     <layoutturnout ident="TO117" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="505.0" ycen="338.5" xa="489.5" ya="315.0" xb="551.5" yb="315.0" xc="520.5" yc="362.0" xd="458.5" yd="362.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 117" blockname="OS 117 (West Yard)" blockcname="OS 117b (West Yard)" blockdname="OS 117b (West Yard)" connectaname="T3" connectbname="T6" connectcname="T5" connectdname="T8">
       <signalAMast>West Yard West OS 117</signalAMast>
       <signalCMast>West Yard East OS 117b</signalCMast>
       <signalDMast>West Yard West East Main Ext</signalDMast>
+      <signalBMast>West Yard East Yard T6</signalBMast>
     </layoutturnout>
     <layoutturnout ident="TO11" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="551.0" ycen="289.0" xa="563.0" ya="301.0" xb="539.0" yb="277.0" xc="535.0" yc="289.0" xd="563.0" yd="301.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 118" blockname="OS 118 (West Yard)" connectaname="T-A-TO11" connectbname="T2" connectcname="T-C-TO11" />
     <tracksegment ident="T6" blockname="Yard T6" connect1name="TO117" type1="TURNOUT_B" connect2name="TO1" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />

@@ -49,6 +49,43 @@ if (Test-Path $homeHtml) {
   Write-Host 'No jmri-web Home.html (skip web)'
 }
 
+$ctcSrc = Join-Path $hart 'ctc'
+if (Test-Path (Join-Path $ctcSrc 'icons')) {
+  $roots = New-Object System.Collections.Generic.List[string]
+  foreach ($p in @(
+    (Join-Path $env:USERPROFILE 'JMRI_UserFiles'),
+    (Join-Path $env:USERPROFILE 'JMRI'),
+    (Join-Path $env:USERPROFILE 'Documents\JMRI')
+  )) {
+    if (Test-Path $p) { [void]$roots.Add($p) }
+  }
+  foreach ($root in @(
+    (Join-Path $env:USERPROFILE 'JMRI'),
+    (Join-Path $env:USERPROFILE 'Documents\JMRI'),
+    (Join-Path $env:USERPROFILE '.jmri'),
+    (Join-Path $env:APPDATA 'JMRI')
+  )) {
+    if (Test-Path $root) {
+      Get-ChildItem $root -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+        [void]$roots.Add($_.FullName)
+      }
+    }
+  }
+  foreach ($r in ($roots | Select-Object -Unique)) {
+    $dest = Join-Path $r 'ctc\icons'
+    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+    Copy-Item (Join-Path $ctcSrc 'icons\*') $dest -Force
+    $gui = Join-Path $ctcSrc 'GUIObjects.xml'
+    if (Test-Path $gui) {
+      New-Item -ItemType Directory -Force -Path (Join-Path $r 'ctc') | Out-Null
+      Copy-Item $gui (Join-Path $r 'ctc\GUIObjects.xml') -Force
+    }
+    Write-Host ("ctc icons -> {0}\ctc" -f $r)
+  }
+} else {
+  Write-Host 'No hart\ctc\icons (skip CTC icons)'
+}
+
 Write-Host 'apply_hart_package_local done'
 
 $desk = Join-Path $hart 'cats\scripts\windows\create_hart_master_desktop.ps1'

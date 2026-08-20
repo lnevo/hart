@@ -6,8 +6,8 @@
 #   col  2  SW 3/4    Switch 100  LH        Brick
 #   col  3  SW 5/6    Switch 102  LH        Plane
 #   col  4  SW 7/8    Switch 117  LH XOVER  Barn      OS 117 + OS 117b
-#   col  5  SW 9/10   Switch 116  RH        Barn      (West Yard ladder)
-#   col  6  SW 11/12  Switch 103  RH        Barn      (east end of plant)
+#   col  5  SW 9/10   Switch 116  RH        Barn      (ladder, switch-only + local)
+#   col  6  SW 11/12  Switch 103  RH        Barn      (ladder, switch-only + local)
 #   col  7  SW 13/14  Switch 107  RH        East End  (ladder, switch-only)
 #   col  8  SW 15/16  Switch 108  RH        East End  (ladder, switch-only)
 #   col  9  SW 17/18  Switch 111  RH XOVER  East End  OS 111a + OS 111b
@@ -92,12 +92,12 @@ add_os(5, 3, "Block 4-5", "Switch 102",
 # Barn
 add_os(7, 4, "Block 13-3", "Switch 117",
        ["West Yard West OS 117", "West Yard West East Main Ext"],
-       ["West Yard East OS 117b"],
+       ["West Yard East OS 117b", "West Yard East Yard T6"],
        secondary="Block 13-4", ttype=CROSSOVER, left_hand=True)
-add_os(9, 5, "Block 3-1", "Switch 116",
-       ["West Yard North OS 116"], [])
-add_os(11, 6, "Block 3-2", "Switch 103",
-       [], ["West Yard East Yard T6", "South Yard East OS 104"])
+# Yard ladder is switch-only (no CTC homes). Lock toggles default Local
+# via ctc_default_reverse_levers.py / IX:CTC:REVDEF.
+add_os(9, 5, "Block 3-1", "Switch 116", [], [])
+add_os(11, 6, "Block 3-2", "Switch 103", [], [])
 # East End
 add_os(13, 7, "Block 12-1", "Switch 107", [], [])
 add_os(15, 8, "Block 12-3", "Switch 108", [], [])
@@ -114,10 +114,17 @@ add_os(23, 12, "Block 12-8", "Switch 112",
 add_os(25, 13, "Block 1-5", "Switch 113",
        ["Princess West OS 113b", "Princess West OS 113a"], [],
        secondary="Block 1-6", ttype=CROSSOVER, left_hand=True)
-add_os(27, 14, "Block 1-3", "Switch 114",
-       [], ["Princess East K-2", "Princess South McKeesport"])
-add_os(29, 15, "Block 1-4", "Switch 115",
-       [], ["Princess East K-1", "Princess North McKees Rocks"], left_hand=True)
+# Balloon: 114/115 BOTH. Each SIDI list needs a unique mast (JMRI
+# rejects empty lists and forbids sharing a mast across columns).
+# Eastbound homes on the loop were previously unlisted.
+c114 = add_os(27, 14, "Block 1-3", "Switch 114",
+       ["Princess East McKeesport"],
+       ["Princess East K-2", "Princess South McKeesport"])
+c115 = add_os(29, 15, "Block 1-4", "Switch 115",
+       ["Princess East McKees Rocks"],
+       ["Princess East K-1", "Princess North McKees Rocks"], left_hand=True)
+c114._mSIDI_TrafficDirection = BOTH
+c115._mSIDI_TrafficDirection = BOTH
 
 # Traffic locking auto-generation from SML topology
 for i in range(data.getCodeButtonHandlerDataSize()):

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Build HART_Master_ABS_hold.xml — ABS-RO Digicon (signals listen-only).
+"""Build HART_Master_ABS_hold.xml — ABS Digicon, signals listen-only (SML).
 
 Derived from HART_Master_ABS.xml:
 
-1. HOLD_ONLY=true on every ASPECTMAP — Digicon paints aspects from JMRI/MQTT;
-   CATS does not drive Clear/Approach/Stop (authoritative Digicon / field does).
-2. Keep ROUTECOMMAND — plant clicks still throw turnouts on the layout.
-3. Keep yard-ladder BUTTONs — same ladder routes as CTC/ABS.
-4. Keep DISCIPLINE=ABS, geometry, occupancy, SELECTEDREPORT feedback.
+1. HOLD_ONLY=true on every ASPECTMAP — CATS does not setAspect; SML owns
+   Clear/Approach/Stop. CATS Hold/Unhold follows its ABS vital logic.
+2. Strip the ``CATS `` SECSIGNAL prefix so lamps bind to real JMRI masts
+   and paint the aspect SML is showing (the live ABS file stays unbound).
+3. Keep ROUTECOMMAND / yard-ladder BUTTONs / DISCIPLINE=ABS.
 
-Use as a second screen / spectator for signals while still lining turnouts.
-Only one Digicon should be the signal authority (CATS or CATS ABS).
+Only one Digicon should be open (CATS CTC or CATS ABS).
 """
 
 from __future__ import annotations
@@ -24,15 +23,27 @@ SRC = ROOT / "cats/panels/HART_Master_ABS.xml"
 DST = ROOT / "cats/panels/HART_Master_ABS_hold.xml"
 
 
+PREFIX = "CATS "
+
+
 def transform(root: ET.Element) -> None:
     n_maps = 0
     for am in root.iter("ASPECTMAP"):
         am.set("HOLD_ONLY", "true")
         n_maps += 1
 
+    n_bind = 0
+    for sig in root.iter("SECSIGNAL"):
+        raw = (sig.text or "")
+        name = raw.strip()
+        if name.startswith(PREFIX):
+            sig.text = raw.replace(PREFIX, "", 1)
+            n_bind += 1
+
     btns = sum(1 for _ in root.iter("BUTTON"))
     rc = sum(1 for _ in root.iter("ROUTECOMMAND"))
     print(f"ASPECTMAP HOLD_ONLY set on {n_maps} maps")
+    print(f"re-bound {n_bind} SECSIGNAL names (stripped {PREFIX!r})")
     print(f"kept ROUTECOMMAND={rc} BUTTON={btns} (turnout control on)")
 
 

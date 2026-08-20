@@ -38,6 +38,8 @@
       <show>red</show>
       <reference>Page 42 B</reference>
       <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-281.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-clear.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-clear-w.gif</imagelink>
     </appearance>
 
     <appearance>
@@ -46,6 +48,8 @@
       <show>green</show>
       <reference>Page 45 B</reference>
       <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-medium-clear.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-medium-clear-w.gif</imagelink>
     </appearance>
 
     <appearance>
@@ -54,6 +58,8 @@
       <show>red</show>
       <reference>Page 47 B</reference>
       <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-approach.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-approach-w.gif</imagelink>
     </appearance>
 
     <appearance>
@@ -62,6 +68,8 @@
       <show>yellow</show>
       <reference>Page 47 D</reference>
       <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-286.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-medium-approach.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-medium-approach-w.gif</imagelink>
     </appearance>
 
     <appearance>
@@ -70,6 +78,8 @@
       <show>red</show>
       <reference>Page 50 B</reference>
       <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-stop.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-stop-w.gif</imagelink>
     </appearance>
 
   </appearances>

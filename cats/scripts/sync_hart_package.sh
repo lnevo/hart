@@ -41,8 +41,45 @@ fi
 
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
 
+install_ctc_icons_local() {
+  local src="$ROOT/jmri/layouts/hart/ctc"
+  [[ -d "$src/icons" ]] || return 0
+  _install_ctc_into() {
+    local dest="$1/ctc"
+    mkdir -p "$dest/icons"
+    cp -f "$src/icons/"*.gif "$dest/icons/"
+    if [[ -f "$src/GUIObjects.xml" ]]; then
+      cp -f "$src/GUIObjects.xml" "$dest/GUIObjects.xml"
+    fi
+    echo "CTC icons -> $dest"
+  }
+  _install_hart_aar_into() {
+    local dest="$1/resources/signals/hart-aar"
+    mkdir -p "$dest"
+    cp -f "$ROOT/cats/resources/signals/hart-aar/"aspects.xml \
+      "$ROOT/cats/resources/signals/hart-aar/"appearance-SL-2-digicon.xml \
+      "$dest/"
+    echo "hart-aar -> $dest"
+  }
+  if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
+    for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d"
+    done
+  fi
+  if [[ -d "${HOME}/.jmri" ]]; then
+    for d in "${HOME}/.jmri"/*.jmri; do
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d"
+    done
+  fi
+  if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
+    _install_ctc_into "${HOME}/JMRI_UserFiles"
+    _install_hart_aar_into "${HOME}/JMRI_UserFiles"
+  fi
+}
+
 if [[ "$DO_MAC_WEB" -eq 1 ]]; then
   bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
+  install_ctc_icons_local
 fi
 
 if [[ "$DO_PI" -eq 1 ]]; then
@@ -175,13 +212,33 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/cats/resources/signals/hart-aar/aspects.xml" \
     "$ROOT/cats/resources/signals/hart-aar/appearance-SL-2-digicon.xml" \
     "$PI_HOST:/home/pi/hart/cats/resources/signals/hart-aar/"
+  ssh -o BatchMode=yes "$PI_HOST" 'for d in /home/pi/.jmri/*.jmri; do
+    [ -d "$d" ] || continue
+    mkdir -p "$d/resources/signals/hart-aar"
+    cp -f /home/pi/JMRI_UserFiles/resources/signals/hart-aar/* "$d/resources/signals/hart-aar/"
+  done'
   echo "Pi hart-aar updated"
+  # Custom CTC track/turnout gifs + GUIObjects (preference:ctc/)
+  if [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
+    ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/ctc/icons /home/pi/hart/ctc/icons'
+    scp -o BatchMode=yes "$ROOT/jmri/layouts/hart/ctc/icons/"*.gif \
+      "$PI_HOST:/home/pi/JMRI_UserFiles/ctc/icons/"
+    scp -o BatchMode=yes "$ROOT/jmri/layouts/hart/ctc/icons/"*.gif \
+      "$PI_HOST:/home/pi/hart/ctc/icons/"
+    if [[ -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" ]]; then
+      scp -o BatchMode=yes "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" \
+        "$PI_HOST:/home/pi/JMRI_UserFiles/ctc/GUIObjects.xml"
+      scp -o BatchMode=yes "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" \
+        "$PI_HOST:/home/pi/hart/ctc/GUIObjects.xml"
+    fi
+    echo "Pi CTC icons + GUIObjects updated"
+  fi
   echo "Pi deploy done."
 fi
 
 if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Deploy → Windows ($WIN_HOST:$WIN_PORT)..."
-  ssh_win 'mkdir hart\cats\panels hart\cats\resources\buttons hart\cats\resources\jmri-web\servlet\home hart\cats\scripts\windows hart\jmri\layouts\hart\scripts hart\jmri\scripts 2>nul & mkdir %USERPROFILE%\JMRI_UserFiles\web\servlet\home 2>nul & echo dirs_ok'
+  ssh_win 'mkdir hart\cats\panels hart\cats\resources\buttons hart\cats\resources\jmri-web\servlet\home hart\cats\scripts\windows hart\jmri\layouts\hart\scripts hart\jmri\scripts hart\ctc\icons 2>nul & mkdir %USERPROFILE%\JMRI_UserFiles\web\servlet\home 2>nul & echo dirs_ok'
 
   STAGE=$(mktemp -d)
   for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml HART_Master_CTC_hold.xml; do
@@ -226,6 +283,15 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   if [[ -n "$TABLES" ]]; then
     # Full LE panel including Digicon signalmasticons (cats-virtual imagelinks required).
     scp_win "$TABLES" "${WIN_HOST}:hart/tables.xml"
+  fi
+  if [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
+    scp_win "$ROOT/jmri/layouts/hart/ctc/icons/"*.gif \
+      "${WIN_HOST}:hart/ctc/icons/"
+    if [[ -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" ]]; then
+      scp_win "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" \
+        "${WIN_HOST}:hart/ctc/GUIObjects.xml"
+    fi
+    echo "Windows hart/ctc icons staged"
   fi
 
   # Digicon SHSM appearances for Windows profiles

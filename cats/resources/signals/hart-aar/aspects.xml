@@ -71,6 +71,11 @@
       <route>Either</route>
     </aspect>
   </aspects>
+  <imagetypes>
+    <imagetype type="default" />
+    <imagetype type="ctc" />
+    <imagetype type="ctc-w" />
+  </imagetypes>
   <appearancefiles>
     <appearancefile href="appearance-SL-2-digicon.xml" />
   </appearancefiles>

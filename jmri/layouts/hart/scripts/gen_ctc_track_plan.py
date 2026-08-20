@@ -8,8 +8,9 @@ SW107/108/109 are hand-throw, no levers and no lamps), Princess 13-15
 (113/114/115). Switch icons sit at slot*65 + 21.
 
 The gold background is generated too: 12px left cap at x=0, one 65px tile
-per slot at x=12+65*slot (Panel-blank-7 for blank slots, Panel-sw-sig-7
-for lever slots), right cap at x=1117.
+per slot at x=12+65*slot (Panel-blank-7 for blank slots,
+Panel-switch-7 for 116/103 switch-only, Panel-sw-sig-7 for the rest),
+right cap at x=1117.
 
 Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
 
@@ -51,6 +52,11 @@ stubs; W-1/W-2 (WEST YARD) start flush at x=0 with lamps aligned at x=30.
 
 Thin 2px gifs and the os-*-thin turnout icons (SW103/110/116) come from
 "preference:ctc/icons/*.gif" — deploy to JMRI_UserFiles/ctc/icons/.
+
+CTC-held signal masts sit on the diagram as Quaker Valley-style proto
+lollipops (stock USS `sig-h-2` / `sig-d-1`, recolored by aspect). Two-head
+homes are live `<signalmasticon>` imageset `ctc` / `ctc-w`; dwarfs are
+`<signalheadicon>` on the single IH* head. 116/103 have no CTC homes.
 
 Writes both ctc/GUIObjects.xml and the embedded <paneleditor> in
 tables.xml, and normalizes the panel window geometry to show all 17 slots.
@@ -133,6 +139,8 @@ X = "track/crossover/"
 
 N_SLOTS = 17
 BLANK_SLOTS = {0, 4, 8, 12, 16}
+# 116 and 103: switch lever only — no SIGNAL plate (brass blanks on the tile)
+SWITCH_ONLY_SLOTS = {6, 7}
 
 # (turnout name, x, y, icon kind) -- bar rows: y+6..10 (os-l-w/os-r-e top),
 # y+29..33 (os-l-e/os-r-w bottom). "thin:" kinds are the custom 2px-leg
@@ -149,7 +157,7 @@ TURNOUTS = [
     ("Switch 103", 482, 105, "thin:os-r-e-thin"),        # yard row; 6px gap after SW116 (no block)
     ("Switch 111", 606, 82,  X + "right/os-r-sc"),       # scissor: Main West (88-92) <-> yard (111-115)
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # yard row; South Yard ladder down-west
-    ("Switch 112", 736, 105, "swap:" + T + "left/west/os-l-w"),  # East Lead bar; leg = Main East (closed route, continuing=4)
+    ("Switch 112", 736, 105, T + "left/west/os-l-w"),  # Closed = East Lead ↔ 110; Thrown = Main East
     ("Switch 113", 866, 82,  X + "left/os-l-sc"),        # scissor: Main West (88-92) <-> East Lead (111-115)
     ("Switch 114", 931, 105, T + "right/east/os-r-e"),   # East Lead row; McKeesport branch down-east
     ("Switch 115", 996, 59,  T + "left/east/os-l-e"),    # Main West row (bar 88-92); McKees Rocks up-east
@@ -252,9 +260,10 @@ TRACKS = [
     (584, 137, "thin085.gif", 0),
     (532, 146, "thin085.gif", 0),   # yard track 4
     (575, 146, "thin085.gif", 0),
-    # Engine House: two stubs, west ends even with T6 (drawn ~393)
+    # Engine House: two stubs, west ends even with T6 (drawn ~393).
+    # Top spur stops at the ladder tip (428); track 2 meets SW116's leg (436).
     (428, 82,  "thin459.gif", 0),   # ladder (436,90) up-west, top even with track 1
-    (393, 81,  "thin044.gif", 0),   # house track 1 (393-436)
+    (393, 81,  "thin035.gif", 0),   # house track 1 (393-427, abuts ladder)
     (393, 90,  "thin044.gif", 0),   # house track 2 (393-436)
     # row N (Main West siding, bar 88-92)
     (519, 84,  "line1.gif",   0),   # Main West approach stub (blank slot 8)
@@ -315,12 +324,113 @@ TEXTS = [
     (1012, 223, "115", 8, WHITE),
 ]
 
+# Live signal masts on the diagram (QV style). stem_x is where the mast
+# attaches to the rail; facing E = heads east of the stem (eastbound /
+# Right lever), W = heads west (westbound / Left lever). kind h2 = 2-head
+# home (signalmasticon, hart-aar ctc imageset); d1 = dwarf (signalheadicon
+# on the IH* head). Bar centers: N 90, S 113, M 136, McRocks 67,
+# McKeesport 141, Main East 166. 116/103 are switch-only — no icons.
+N, S, M, MR, MK, ME = 90, 113, 136, 67, 141, 166
+# (mast, stem_x, bar_center, facing, kind, head_or_None)
+SIGNALS = [
+    # Brick 101 Right: yard exits
+    ("Brick West Yard 1",           72,  N,  "E", "d1", "IH436"),
+    ("Brick West Yard 2",           72,  S,  "E", "d1", "IH437"),
+    # Brick 100 Left
+    ("Brick East Main West",       210,  N,  "W", "h2", None),
+    # Plane 102 Left
+    ("Plane East OS 102",          265,  S,  "W", "h2", None),
+    ("Plane East East Main Ext",   265,  M,  "W", "h2", None),
+    # Barn 117 both ways (T6 is the westbound yard-lead home)
+    ("West Yard West OS 117",      328,  S,  "E", "h2", None),
+    ("West Yard West East Main Ext", 328, M, "E", "h2", None),
+    ("West Yard East Yard T6",     396,  S,  "W", "d1", "IH1334"),
+    ("West Yard East OS 117b",     396,  M,  "W", "h2", None),
+    # East End 111 both ways
+    ("East End West Main West",    588,  N,  "E", "h2", None),
+    ("East End West Yard Track 1", 588,  S,  "E", "d1", "IH1236"),
+    ("East End East OS 111a",      650,  N,  "W", "h2", None),
+    # East End 110 Right (dwarf off the yard / ladder)
+    ("East End South OS 110",      658,  S,  "E", "d1", "IH1239"),
+    # East End 112 both ways
+    ("East End South OS 112",      708,  ME, "E", "h2", None),
+    ("East End East Lead",         780,  S,  "W", "h2", None),
+    # Princess 113 Right
+    ("Princess West OS 113b",      848,  N,  "E", "h2", None),
+    ("Princess West OS 113a",      848,  S,  "E", "h2", None),
+    # Princess 114 balloon
+    ("Princess East McKeesport",   960,  MK, "E", "d1", "IH134"),
+    ("Princess East K-2",         1050,  S,  "W", "d1", "IH143"),
+    ("Princess South McKeesport", 1050,  MK, "W", "h2", None),
+    # Princess 115 balloon
+    ("Princess East McKees Rocks", 1020, MR, "E", "d1", "IH141"),
+    ("Princess East K-1",         1050,  N,  "W", "d1", "IH142"),
+    ("Princess North McKees Rocks", 1050, MR, "W", "h2", None),
+]
+
+MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>{name}</tooltip>
+    </signalmasticon>"""
+
+HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>{name}</tooltip>
+      <icons>
+        <held url="{stop}" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="{unk}" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="{stop}" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="{rest}" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="{clr}" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="{rest}" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="{stop}" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="{rest}" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="{clr}" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="{rest}" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>"""
+
+
+def sig_url(kind, aspect, facing):
+    suf = "-w" if facing == "W" else ""
+    return "preference:ctc/icons/sig-%s-%s%s.gif" % (kind, aspect, suf)
+
+
+def signal_xy(stem_x, bar_c, facing, kind):
+    width = 21 if kind == "h2" else 12
+    x = stem_x if facing == "E" else stem_x - width + 1
+    return x, bar_c - 3
+
 
 def build_block():
     parts = []
     parts.append(BG.format(x=0, u=U, gif="Panel-left-7.gif"))
     for slot in range(N_SLOTS):
-        gif = "Panel-blank-7.gif" if slot in BLANK_SLOTS else "Panel-sw-sig-7.gif"
+        if slot in BLANK_SLOTS:
+            gif = "Panel-blank-7.gif"
+        elif slot in SWITCH_ONLY_SLOTS:
+            gif = "Panel-switch-7.gif"
+        else:
+            gif = "Panel-sw-sig-7.gif"
         parts.append(BG.format(x=12 + 65 * slot, u=U, gif=gif))
     parts.append(BG.format(x=12 + 65 * N_SLOTS, u=U, gif="Panel-right-7.gif"))
     for name, x, y, kind in TURNOUTS:
@@ -332,6 +442,19 @@ def build_block():
         parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, url=url))
     for x, y, text, size, col in TEXTS:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
+    for name, stem_x, bar_c, facing, kind, head in SIGNALS:
+        x, y = signal_xy(stem_x, bar_c, facing, kind)
+        if kind == "h2":
+            parts.append(MAST.format(
+                name=name, x=x, y=y,
+                imageset="ctc-w" if facing == "W" else "ctc"))
+        else:
+            parts.append(HEAD.format(
+                name=name, head=head, x=x, y=y,
+                stop=sig_url("d1", "stop", facing),
+                rest=sig_url("d1", "restricting", facing),
+                clr=sig_url("d1", "slow-clear", facing),
+                unk=sig_url("d1", "unknown", facing)))
     return "    " + "\n    ".join(parts) + "\n"
 
 
@@ -345,6 +468,9 @@ STRIP = [
     # these two patterns to bring the buttons back)
     re.compile(r'\s*<sensoricon\b[^>]*sensor="IS\d+:UNLOCKEDINDICATOR".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*text="Unlocked".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<signalmasticon\b[^>]*/>', re.S),
+    re.compile(r'\s*<signalmasticon\b[^>]*>.*?</signalmasticon>', re.S),
+    re.compile(r'\s*<signalheadicon\b[^>]*>.*?</signalheadicon>', re.S),
 ]
 
 

@@ -1,14 +1,19 @@
-# Set CTC switch levers to Reverse for turnouts that rest Thrown.
-# CTC itself initializes UNKNOWN levers to Normal (ACTIVE). Run this
-# after "Run CTC Logic" and it also re-applies after Reload CTC.
+# Set CTC switch levers to Reverse for turnouts that rest Thrown,
+# and default the West Yard / East End ladder lock toggles to Local.
+# CTC itself initializes UNKNOWN levers to Normal (ACTIVE) and lock
+# toggles to Locked (INACTIVE). Run this after "Run CTC Logic"; it
+# also re-applies after Reload CTC.
 #
 # Levers: IS3=SW100, IS23=SW112, IS27=SW114, IS29=SW115
-# ACTIVE = Normal, INACTIVE = Reverse.
+#   ACTIVE = Normal, INACTIVE = Reverse.
+# Lock toggles: IS10=SW116, IS12=SW103, IS22=SW110
+#   ACTIVE = Local, INACTIVE = Locked.
 
 import jmri
 from java.beans import PropertyChangeListener
 
 LEVERS = ("IS3:LEVER", "IS23:LEVER", "IS27:LEVER", "IS29:LEVER")
+LOCAL_LOCKS = ("IS10:LOCKTOGGLE", "IS12:LOCKTOGGLE", "IS22:LOCKTOGGLE")
 
 
 def set_reverse(reason=""):
@@ -16,7 +21,11 @@ def set_reverse(reason=""):
         s = sensors.getSensor(name)
         if s is not None:
             s.setKnownState(INACTIVE)
-    print("CTC reverse-default levers%s: 100, 112, 114, 115 -> Reverse" %
+    for name in LOCAL_LOCKS:
+        s = sensors.getSensor(name)
+        if s is not None:
+            s.setKnownState(ACTIVE)
+    print("CTC defaults%s: 100/112/114/115 Reverse; 116/103/110 Local" %
           ((" (%s)" % reason) if reason else ""))
 
 

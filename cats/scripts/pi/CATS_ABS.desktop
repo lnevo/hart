@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=CATS ABS
-Comment=CATS Digicon ABS (reference only; JMRI SML owns LE)
+Comment=CATS Digicon ABS (HOLD_ONLY; lamps paint JMRI/SML aspects)
 Exec=/home/pi/hart/launch_hart_master_abs_desktop.sh
 Icon=/home/pi/JMRI/crandic.gif
 Terminal=false

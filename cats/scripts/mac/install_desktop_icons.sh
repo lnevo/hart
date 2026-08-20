@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Install /Applications icons:
 #   CATS CTC  → HART_Master_CTC_hold.xml (HOLD_ONLY)
-#   CATS ABS  → HART_Master_ABS.xml (stock; CATS drives aspects)
+#   CATS ABS  → HART_Master_ABS_hold.xml (HOLD_ONLY; paint JMRI/SML)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 ICNS="$ROOT/cats/resources/CATS.icns"
@@ -68,7 +68,7 @@ PLIST
 }
 
 make_app "CATS CTC" "HART_Master_CTC_hold.xml"
-make_app "CATS ABS" "HART_Master_ABS.xml"
+make_app "CATS ABS" "HART_Master_ABS_hold.xml"
 
 rm -rf \
   "${APPS}/CATS.app" \
