@@ -23,11 +23,11 @@ BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
 PANEL_NAMES = {"HART", "My Layout"}
 STATION_COMMENTS = {
-    "East Lead": "stop",
+    "South Yard East": "stop",
     "East Main Ext": "Between Switch 102 and Switch 117 (TO6); sensor 406; stop",
     "Main East": "stop",
     "Main West": "stop",
-    "Main West Brick-Plane": "stop",
+    "Main West Brick–Plane": "stop",
     "McKees Rocks": "stop",
     "McKeesport": "Split from PIR Interchange; east tip; stop",
     "West Main Ext": "Main West trackage; separate occupancy; stop",

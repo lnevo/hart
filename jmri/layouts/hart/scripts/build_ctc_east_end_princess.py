@@ -77,22 +77,22 @@ else:
     add_os(7, 4, "Block 12-1", "Switch 107", [], [])
     add_os(9, 5, "Block 12-3", "Switch 108", [], [])
     add_os(11, 6, "Block 12-4", "Switch 111",
-           ["East End West Main West", "East End West Yard Track 1"],
-           ["East End East OS 111a"],
+           ["111RA", "111RB"],
+           ["111L"],
            secondary="Block 12-6", ttype=CROSSOVER)
     add_os(13, 7, "Block 12-5", "Switch 109", [], [])
     add_os(15, 8, "Block 12-7", "Switch 110",
-           ["East End South OS 110"], [], left_hand=True)
+           ["110R"], [], left_hand=True)
     add_os(17, 9, "Block 12-8", "Switch 112",
-           ["East End South OS 112"], ["East End East Lead"], left_hand=True)
+           ["112R"], ["112L"], left_hand=True)
     # Princess
     add_os(19, 10, "Block 1-5", "Switch 113",
-           ["Princess West OS 113b", "Princess West OS 113a"], [],
+           ["113RA", "113RB"], [],
            secondary="Block 1-6", ttype=CROSSOVER, left_hand=True)
     add_os(21, 11, "Block 1-3", "Switch 114",
-           [], ["Princess East K-2", "Princess South McKeesport"])
+           [], ["114LA", "114LB"])
     add_os(23, 12, "Block 1-4", "Switch 115",
-           [], ["Princess East K-1", "Princess North McKees Rocks"], left_hand=True)
+           [], ["115LA", "115LB"], left_hand=True)
 
     # Traffic locking auto-generate for every signal-equipped column
     for i in range(data.getCodeButtonHandlerDataSize()):

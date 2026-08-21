@@ -1,24 +1,24 @@
 user_name,occupancy_sensor,inches,flag,old_source
 West Yard 1,Block 4-4,105,assigned,Spur 1
 West Yard 2,Block 4-3,93,assigned,Spur 2
-Main West Brick-Plane,Block 4-6,72,assigned,West Loop
-East Lead,Block 1-7,172,assigned,Yard Lead W
+Main West Brick–Plane,Block 4-6,72,assigned,West Loop
+South Yard East,Block 1-7,172,assigned,Yard Lead W
 Main West,Block 2-1,220,assigned,West Bypass
 West Main Ext,Block 1-8,160,assigned,Outer Passing
 Main East,Block 2-3,185,cut,East Bypass 195 minus OS 117
 East Main Ext,Block 4-7,88,cut,Yard Lead 108 minus OS 116 and OS 117b
-Yard Track 1,Block 2-8,218,assigned,Yard 5 (reversed)
-Yard Track 2,Block 2-7,212,assigned,Yard 4 (reversed)
-Yard Track 3,Block 2-6,178,assigned,Yard 3
-Yard Track 4,Block 2-5,142,assigned,Yard 2 (reversed)
-Yard Track 5,Block 2-4,100,assigned,Yard 1 (reversed)
+South Yard 1,Block 2-8,218,assigned,Yard 5 (reversed)
+South Yard 2,Block 2-7,212,assigned,Yard 4 (reversed)
+South Yard 3,Block 2-6,178,assigned,Yard 3
+South Yard 4,Block 2-5,142,assigned,Yard 2 (reversed)
+South Yard 5,Block 2-4,100,assigned,Yard 1 (reversed)
 McKees Rocks,Block 1-1,122.5,split,East Loop / 2
 McKeesport,Block 1-2,122.5,split,East Loop / 2
-Yard T1,Block 4-8,24,estimate,new with 116/117
-Yard T6,Block 13-1,24,estimate,new with 116/117
-Yard T9,Block 13-7,24,estimate,
-Yard T10,Block 13-6,24,estimate,
-Yard T11,Block 13-5,24,estimate,
+South Yard Scale,Block 4-8,24,estimate,new with 116/117
+South Yard West,Block 13-1,24,estimate,new with 116/117
+Engine House 1,Block 13-7,24,estimate,
+Engine House 2,Block 13-6,24,estimate,
+Engine House 3,Block 13-5,24,estimate,
 OS 100 (Brick),Block 4-2,10,estimate,switch
 OS 101 (Brick),Block 4-1,10,estimate,switch
 OS 102 (Plane),Block 4-5,10,estimate,switch
@@ -37,8 +37,8 @@ OS 113a (Princess),Block 1-6,10,estimate,switch
 OS 113b (Princess),Block 1-5,10,estimate,switch
 OS 114 (Princess),Block 1-3,10,estimate,switch
 OS 115 (Princess),Block 1-4,10,estimate,switch
-OS 116 (West Yard),Block 3-1,10,estimate,cut from West Lead
-OS 117 (West Yard),Block 13-3,10,estimate,cut from Main East
-OS 117b (West Yard),Block 13-4,10,estimate,cut from West Lead
-OS 118 (West Yard),Block 13-2,10,estimate,switch
-OS 119 (West Yard),Block 13-8,10,estimate,switch
+OS 116,Block 3-1,10,estimate,cut from West Lead
+OS 117 (Barn),Block 13-3,10,estimate,cut from Main East
+OS 117b (Barn),Block 13-4,10,estimate,cut from West Lead
+OS 118,Block 13-2,10,estimate,switch
+OS 119,Block 13-8,10,estimate,switch

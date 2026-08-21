@@ -2,7 +2,7 @@
 """Build HART Digicon→JMRI virtual signal heads (LCOS packed MQTT numbers).
 
 Allocation (MQTT display node = radio addr octal-digits-as-decimal):
-  node 4  — Plane faces + Brick W-1/W-2 + Brick East Main West (IH438/IH439 on C4-OU3)
+  node 4  — Plane faces + Brick W-1/W-2 + 100L (IH438/IH439 on C4-OU3)
   node 13 — Barn / West Yard 117–117b  (radio 013 → display 13)
   node 12 — East End                 (radio 012 → display 12)
   node 1  — Princess                 (radio 1   → display 1)
@@ -30,32 +30,32 @@ DATA = ROOT / "cats/data"
 # Order within a node = signal_index assignment (top→bottom / high→low).
 MASTS: list[tuple[str, int, int, str]] = [
     # node 4 — Plane + W-Y stubs + Brick east main (OU3 after OU2-1..6)
-    ("Plane East East Main Ext", 2, 4, "double"),
-    ("Plane East OS 102", 2, 4, "double"),
-    ("Brick West Yard 1", 1, 4, "single"),
-    ("Brick West Yard 2", 1, 4, "single"),
-    ("Brick East Main West", 2, 4, "double"),
+    ("102LB", 2, 4, "double"),
+    ("102LA", 2, 4, "double"),
+    ("101RA", 1, 4, "single"),
+    ("101RB", 1, 4, "single"),
+    ("100L", 2, 4, "double"),
     # node 13 — Barn
-    ("West Yard West OS 117", 2, 13, "double"),
-    ("West Yard East Yard T6", 1, 13, "single"),
-    ("West Yard West East Main Ext", 2, 13, "double"),
-    ("West Yard East OS 117b", 2, 13, "double"),
+    ("117RA", 2, 13, "double"),
+    ("117LB", 1, 13, "single"),
+    ("117RB", 2, 13, "double"),
+    ("117LA", 2, 13, "double"),
     # node 12 — East End
-    ("East End West Main West", 2, 12, "double"),
-    ("East End East OS 111a", 2, 12, "double"),
-    ("East End West Yard Track 1", 1, 12, "single"),
-    ("East End East Lead", 2, 12, "double"),
-    ("East End South OS 110", 1, 12, "single"),
-    ("East End South OS 112", 2, 12, "double"),
+    ("111RA", 2, 12, "double"),
+    ("111L", 2, 12, "double"),
+    ("111RB", 1, 12, "single"),
+    ("112L", 2, 12, "double"),
+    ("110R", 1, 12, "single"),
+    ("112R", 2, 12, "double"),
     # node 1 — Princess (keep packed IH132–141 stable: 2-head exits, connector singles reuse old middles)
-    ("Princess North McKees Rocks", 2, 1, "double"),
-    ("Princess East McKeesport", 1, 1, "single"),
-    ("Princess West OS 113b", 2, 1, "double"),
-    ("Princess West OS 113a", 2, 1, "double"),
-    ("Princess South McKeesport", 2, 1, "double"),
-    ("Princess East McKees Rocks", 1, 1, "single"),
-    ("Princess East K-1", 1, 1, "single"),
-    ("Princess East K-2", 1, 1, "single"),
+    ("115LB", 2, 1, "double"),
+    ("114R", 1, 1, "single"),
+    ("113RA", 2, 1, "double"),
+    ("113RB", 2, 1, "double"),
+    ("114LB", 2, 1, "double"),
+    ("115R", 1, 1, "single"),
+    ("115LA", 1, 1, "single"),
+    ("114LA", 1, 1, "single"),
 ]
 
 ROLE = {1: ("",), 2: ("T", "B"), 3: ("T", "M", "B")}

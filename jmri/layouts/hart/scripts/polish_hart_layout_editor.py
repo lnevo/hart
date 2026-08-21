@@ -26,35 +26,35 @@ STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 # Horizontal masts follow the North American right-hand placement convention:
 # east-facing (90 degrees) below the rail, west-facing (270) above it.
 SIGNAL_PLACEMENTS: dict[str, tuple[int, int, int]] = {
-    "Brick East Main West": (378, 222, 270),
-    "Brick West Yard 1": (185, 258, 90),
-    "Brick West Yard 2": (185, 321, 90),
-    "Plane East OS 102": (360, 297, 270),
-    "Plane East East Main Ext": (365, 345, 270),
+    "100L": (378, 222, 270),
+    "101RA": (185, 258, 90),
+    "101RB": (185, 321, 90),
+    "102LA": (360, 297, 270),
+    "102LB": (365, 345, 270),
     # 117 east homes sit just east of the diamond, not out on 116 / engine house.
-    "West Yard West OS 117": (435, 321, 90),
-    "West Yard East Yard T6": (534, 297, 270),
-    "West Yard West East Main Ext": (425, 368, 90),
-    "West Yard East OS 117b": (534, 344, 270),
-    "East End West Main West": (1095, 258, 90),
-    "East End East OS 111a": (1225, 222, 270),
-    "East End West Yard Track 1": (1135, 321, 90),
-    "East End East Lead": (1392, 285, 270),
-    "East End South OS 110": (1248, 350, 60),
-    "East End South OS 112": (1320, 348, 60),
-    "Princess North McKees Rocks": (1608, 185, 225),
-    "Princess West OS 113b": (1465, 258, 90),
-    "Princess West OS 113a": (1465, 321, 90),
-    "Princess South McKeesport": (1628, 322, 310),
-    "Princess East McKees Rocks": (1810, 276, 180),
-    "Princess East McKeesport": (1855, 276, 0),
-    "Princess East K-1": (1665, 239, 270),
-    "Princess East K-2": (1665, 302, 270),
+    "117RA": (435, 321, 90),
+    "117LB": (534, 297, 270),
+    "117RB": (425, 368, 90),
+    "117LA": (534, 344, 270),
+    "111RA": (1095, 258, 90),
+    "111L": (1225, 222, 270),
+    "111RB": (1135, 321, 90),
+    "112L": (1392, 285, 270),
+    "110R": (1248, 350, 60),
+    "112R": (1320, 348, 60),
+    "115LB": (1608, 185, 225),
+    "113RA": (1465, 258, 90),
+    "113RB": (1465, 321, 90),
+    "114LB": (1628, 322, 310),
+    "115R": (1810, 276, 180),
+    "114R": (1855, 276, 0),
+    "115LA": (1665, 239, 270),
+    "114LA": (1665, 302, 270),
 }
 
 SIGNAL_ICON_SCALE = "1.0"
 REDUNDANT_OCCUPANCY_SENSOR = re.compile(r"Block \d+-\d+")
-REMOVED_LABELS = {"East Lead", "Main East", "Main West"}
+REMOVED_LABELS = {"South Yard East", "Main East", "Main West"}
 
 # ADR-002 visible hierarchy.
 LABEL_STYLE: dict[str, tuple[str, str]] = {

@@ -76,7 +76,7 @@ def main() -> int:
     secondary_ok = {
         "OS 111b (East End)",
         "OS 113a (Princess)",
-        "OS 117b (West Yard)",
+        "OS 117b (Barn)",
     }
     missing = [m for m in missing if m not in secondary_ok]
     if missing:

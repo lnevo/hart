@@ -55,7 +55,7 @@ Visual scripts patch each output independently; they never copy
 CTC panel and `<ctcdata>`.
 
 Dispatcher stations are exactly: Main West, West Main Ext, McKees Rocks,
-McKeesport, East Lead, Main East, East Main Ext, and Main West Brick-Plane.
+McKeesport, South Yard East, Main East, East Main Ext, and Main West Brick–Plane.
 The deployment bundle retains 41 generated sections, 102 transits, and 220
 HEAD_AND_TAIL traininfo files for this station graph.
 

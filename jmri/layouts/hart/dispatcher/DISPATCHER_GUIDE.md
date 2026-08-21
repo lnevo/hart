@@ -31,10 +31,10 @@ Stations, west → east around the plant:
 
 | Station | Where it is |
 |---------|-------------|
-| **Main West Brick-Plane** | Hairpin between Brick and Plane |
+| **Main West Brick–Plane** | Hairpin between Brick and Plane |
 | **East Main Ext** | Main between Plane (102) and Barn (117) |
 | **Main East** | Main south of the yard, approaching East End |
-| **East Lead** | East End lead off 112 |
+| **South Yard East** | East End lead off 112 |
 | **Main West** | Main West at East End (around-the-room from Brick) |
 | **West Main Ext** | Main West between East End and Princess |
 | **McKees Rocks** | Princess, north branch |
@@ -131,9 +131,9 @@ is in place.
 Train on **East Main Ext**, facing east, want Barn then East End without
 going the long way around Plane:
 
-**East Main Ext** → **Main East** → **East Lead**
+**East Main Ext** → **Main East** → **South Yard East**
 
-To send it the long way on purpose, put **Main West Brick-Plane** (and
+To send it the long way on purpose, put **Main West Brick–Plane** (and
 whatever else you need) in the list so shortest-path cannot skip it.
 
 ---

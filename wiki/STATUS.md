@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-21 — ADR-005 public names applied (masts `100L`/`117RA`/…, South Yard Scale/West/East, Engine House 1–3, OS 117 (Barn)). Hardware MQTT / `Block n-n` / `Switch n` unchanged. SML dests renamed in XML (36 still match the model); live PanelPro Discover still pending. MQTT turnout retain restored after offline testing.
+
 Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is back on the 117 yard lead. **CATS CTC** / **CATS ABS** still `HOLD_ONLY` and paint SML. System overview: [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).
 
 ## Layout Editor polish contract (2026-08-20)
@@ -15,8 +17,8 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   36 native SML destinations are unchanged. Reapply/check with
   `jmri/layouts/hart/scripts/polish_hart_layout_editor.py`.
 - Dispatcher station contract is exactly eight blocks: **Main West, West Main
-  Ext, McKees Rocks, McKeesport, East Lead, Main East, East Main Ext, Main West
-  Brick-Plane**. The deployment graph remains 41 sections / 102 transits / 220
+  Ext, McKees Rocks, McKeesport, South Yard East, Main East, East Main Ext, Main West
+  Brick–Plane**. The deployment graph remains 41 sections / 102 transits / 220
   HEAD_AND_TAIL traininfo files.
 - **Dispatcher compatibility fixed (2026-08-20):** HART now launches the stock
   Dispatcher System through `hart_dispatcher_startup.py`, so its classes are

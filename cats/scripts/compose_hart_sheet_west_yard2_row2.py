@@ -61,7 +61,7 @@ PLANTS: dict[tuple[int, int], tuple[list[str], str, str, str]] = {
     P108: (["HORIZONTAL", "LOWERSLASH"], "OS 108 (East End)", "BOTTOM", "TOR9"),
     P107: (["HORIZONTAL", "LOWERSLASH"], "OS 107 (East End)", "BOTTOM", "TOR11"),
     P111: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 111a (East End)", "RIGHT", "TO111"),
-    # Normal BOTTOM = Barn spine (CLOSED); throw LEFT = Main East → East Lead
+    # Normal BOTTOM = Barn spine (CLOSED); throw LEFT = Main East → South Yard East
     # (Brick 100 pattern: throw = continuing main).
     P112: (["HORIZONTAL", "LOWERSLASH"], "OS 112 (East End)", "BOTTOM", "TOL23"),
 }
@@ -105,7 +105,7 @@ def _build_row2_grid() -> dict[tuple[int, int], list[str]]:
     put(P111, ["HORIZONTAL", "LOWERBACKSLASH"])
     put((P111[0], y_s1), ["HORIZONTAL", "UPPERBACKSLASH"])
 
-    # --- West Lead / S-1 / East Lead ---
+    # --- West Lead / S-1 / South Yard East ---
     for x in range(X0, X1 + 1):
         put((x, y_s1), ["HORIZONTAL"])
     put(P103, ["HORIZONTAL", "LOWERBACKSLASH"])
@@ -166,24 +166,24 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (X0, _Y_MW, "LEFT", "Main West"),
     (P111[0] - 1, _Y_MW, "LEFT", "OS 111a (East End)"),
     (P111[0], _Y_S1, "LEFT", "OS 111a (East End)"),
-    (P111[0] + 1, _Y_S1, "LEFT", "Yard Track 1"),
+    (P111[0] + 1, _Y_S1, "LEFT", "South Yard 1"),
     (X0, _Y_S1, "LEFT", "West Lead"),
     (P103[0] - 1, _Y_S1, "LEFT", "OS 103 (South Yard)"),
-    (P103[0] + 1, _Y_S1, "LEFT", "Yard Track 1"),
+    (P103[0] + 1, _Y_S1, "LEFT", "South Yard 1"),
     (P104[0], _Y_S2, "RIGHT", "OS 104 (South Yard)"),
-    (P104[0] + 1, _Y_S2, "LEFT", "Yard Track 2"),
+    (P104[0] + 1, _Y_S2, "LEFT", "South Yard 2"),
     (P105[0], _Y_S3, "RIGHT", "OS 105 (South Yard)"),
-    (P105[0] + 1, _Y_S3, "LEFT", "Yard Track 3"),
+    (P105[0] + 1, _Y_S3, "LEFT", "South Yard 3"),
     (P106[0], _Y_S4, "RIGHT", "OS 106 (South Yard)"),
-    (P106[0] + 1, _Y_S4, "LEFT", "Yard Track 4"),
-    (P106[0], _Y_S5, "RIGHT", "Yard Track 5"),
-    (P106[0] + 1, _Y_S5, "LEFT", "Yard Track 5"),
+    (P106[0] + 1, _Y_S4, "LEFT", "South Yard 4"),
+    (P106[0], _Y_S5, "RIGHT", "South Yard 5"),
+    (P106[0] + 1, _Y_S5, "LEFT", "South Yard 5"),
     (P110[0], _Y_S1, "LEFT", "OS 110 (East End)"),
     (P109[0], _Y_S2, "LEFT", "OS 109 (East End)"),
     (P108[0], _Y_S3, "LEFT", "OS 108 (East End)"),
     (P107[0], _Y_S4, "LEFT", "OS 107 (East End)"),
     (P112[0], _Y_S1, "LEFT", "OS 112 (East End)"),
-    (X1, _Y_S1, "LEFT", "East Lead"),
+    (X1, _Y_S1, "LEFT", "South Yard East"),
     (X0, _Y_S2, "LEFT", "Main East"),
 ]
 
@@ -229,7 +229,7 @@ LABELS: list[tuple] = [
     (_S_MID, _Y_S4, "S-4", "LOWCENT"),
     (_S_MID, _Y_S5, "S-5", "LOWCENT"),
     (X1, _Y_MW - 1, "to Princess"),
-    (X1, _Y_S2, "East Lead"),
+    (X1, _Y_S2, "South Yard East"),
     (P112[0], _Y_S4, "EAST END"),
     (X0, _Y_S3, "To Barn"),
     (_S_MID, _Y_LAB, "Main East"),

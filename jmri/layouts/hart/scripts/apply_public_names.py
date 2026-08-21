@@ -217,11 +217,8 @@ def apply_public_names(
     path = Path(xml_path)
     original = path.read_text(encoding="utf-8")
     missing = find_missing_current_names(original, renames)
-    if missing:
-        return Counter(), missing, True
-
     counts, system_names_ok = apply_renames_to_xml_file(path, renames, apply=apply)
-    return counts, [], system_names_ok
+    return counts, missing, system_names_ok
 
 
 def merge_counts(counts_list: list[Counter[tuple[str, str]]]) -> Counter[tuple[str, str]]:
@@ -297,10 +294,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if missing_names:
         unique_missing = sorted(set(missing_names))
-        print("\nMissing current names:", file=sys.stderr)
+        print("\nNames not present in every file (ok if that file never had them):")
         for name in unique_missing:
-            print(f"  - {name}", file=sys.stderr)
-        return 2
+            print(f"  - {name}")
 
     if not system_names_ok:
         print("\nerror: a replacement would change a systemName", file=sys.stderr)

@@ -101,7 +101,7 @@ def _build_panel_a() -> None:
     nm((AX0 + 8, y_mw), "LEFT", "Main West")
     an((AX1, y_mw), "RIGHT")
     _sig(AX0 + 2, y_mw, "LEFT", "Brick West West Yard 1", "LAMP1", "LOWLEFT", "RIGHT")
-    _sig(AX0 + 7, y_mw, "RIGHT", "Brick East Main West", "LAMP2", "LOWLEFT", "LEFT")
+    _sig(AX0 + 7, y_mw, "RIGHT", "100L", "LAMP2", "LOWLEFT", "LEFT")
 
     # W-2 merges into 101 BOTTOM (LS frog) via UPPERSLASH stub.
     _H(AX0, AX0 + 2, y_wl)
@@ -113,7 +113,7 @@ def _build_panel_a() -> None:
 
     # Brick diverge → Plane: 100 BOTTOM → UB elbow → Plane tip (H+LB, NORMAL BOTTOM).
     le.GRID[(AX0 + 6, y_wl)] = ["UPPERBACKSLASH"]
-    nm((AX0 + 6, y_wl), "RIGHT", "Block 100-102")
+    nm((AX0 + 6, y_wl), "RIGHT", "Main West Brick–Plane")
     cut((AX0 + 6, y_wl), "RIGHT", (AX0 + 7, y_wl), "LEFT")
     H((AX0 + 7, y_wl))
     nm((AX0 + 7, y_wl), "LEFT", "OS 102 (Plane)")
@@ -122,47 +122,47 @@ def _build_panel_a() -> None:
     nm((AX0 + 9, y_wl), "RIGHT", "OS 102 (Plane)")
     cut((AX0 + 9, y_wl), "RIGHT", (AX0 + 10, y_wl), "LEFT")
     _H(AX0 + 10, AX0 + 12, y_wl)
-    nm((AX0 + 10, y_wl), "LEFT", "Yard T1")
-    _sig(AX0 + 9, y_wl, "RIGHT", "Plane East OS 102", "LAMP2", "LOWLEFT", "LEFT")
+    nm((AX0 + 10, y_wl), "LEFT", "South Yard Scale")
+    _sig(AX0 + 9, y_wl, "RIGHT", "102LA", "LAMP2", "LOWLEFT", "LEFT")
     # Main East peel under Plane — UB stub so Plane BOTTOM meets a TOP edge.
     le.GRID[(AX0 + 8, y_me)] = ["UPPERBACKSLASH"]
     nm((AX0 + 8, y_me), "RIGHT", "East Main Ext")
     cut((AX0 + 8, y_me), "RIGHT", (AX0 + 9, y_me), "LEFT")
     _H(AX0 + 9, AX0 + 12, y_me)
     nm((AX0 + 9, y_me), "LEFT", "East Main Ext")
-    _sig(AX0 + 9, y_me, "LEFT", "Plane East East Main Ext", "LAMP2", "LOWLEFT", "LEFT")
+    _sig(AX0 + 9, y_me, "LEFT", "102LB", "LAMP2", "LOWLEFT", "LEFT")
 
     # Barn 117/117b — row-1 `\` XO only (H+LOWERSLASH over H+UPPERSLASH).
     # Never cut on SWITCHPOINTS (plain→SP only).
     bx = AX0 + 14
-    # Yard T1 → 117 approach → plant (SP=RIGHT) → tip → Yard T6
+    # South Yard Scale → 117 approach → plant (SP=RIGHT) → tip → South Yard West
     cut((AX0 + 12, y_wl), "RIGHT", (bx - 1, y_wl), "LEFT")
     H((bx - 1, y_wl))
-    nm((bx - 1, y_wl), "LEFT", "OS 117 (West Yard)")
-    plant((bx, y_wl), ["HORIZONTAL", "LOWERSLASH"], "OS 117 (West Yard)", "LEFT", "TO117")
+    nm((bx - 1, y_wl), "LEFT", "OS 117 (Barn)")
+    plant((bx, y_wl), ["HORIZONTAL", "LOWERSLASH"], "OS 117 (Barn)", "LEFT", "TO117")
     H((bx + 1, y_wl))
-    nm((bx + 1, y_wl), "RIGHT", "OS 117 (West Yard)")
+    nm((bx + 1, y_wl), "RIGHT", "OS 117 (Barn)")
     cut((bx + 1, y_wl), "RIGHT", (bx + 2, y_wl), "LEFT")
     _H(bx + 2, AX1, y_wl)
-    nm((bx + 2, y_wl), "LEFT", "Yard T6")
+    nm((bx + 2, y_wl), "LEFT", "South Yard West")
     an((AX1, y_wl), "RIGHT")
     # EME → 117b approach → plant (SP=LEFT) → tip → Main East
     cut((AX0 + 12, y_me), "RIGHT", (bx - 1, y_me), "LEFT")
     H((bx - 1, y_me))
-    nm((bx - 1, y_me), "LEFT", "OS 117b (West Yard)")
-    plant((bx, y_me), ["HORIZONTAL", "UPPERSLASH"], "OS 117b (West Yard)", "RIGHT", "TO117")
+    nm((bx - 1, y_me), "LEFT", "OS 117b (Barn)")
+    plant((bx, y_me), ["HORIZONTAL", "UPPERSLASH"], "OS 117b (Barn)", "RIGHT", "TO117")
     # Diamond between XO halves (BOTTOM/TOP are non-SP frog legs)
     cut((bx, y_wl), "BOTTOM", (bx, y_me), "TOP")
     H((bx + 1, y_me))
-    nm((bx + 1, y_me), "RIGHT", "OS 117b (West Yard)")
+    nm((bx + 1, y_me), "RIGHT", "OS 117b (Barn)")
     cut((bx + 1, y_me), "RIGHT", (bx + 2, y_me), "LEFT")
     _H(bx + 2, AX1, y_me)
     nm((bx + 2, y_me), "LEFT", "Main East")
     an((AX1, y_me), "RIGHT")
-    _sig(bx - 1, y_wl, "LEFT", "West Yard West OS 117", "LAMP2", "LOWLEFT", "RIGHT")
-    _sig(bx + 1, y_wl, "RIGHT", "West Yard East Yard T6", "LAMP1", "LOWLEFT", "LEFT")
-    _sig(bx - 1, y_me, "LEFT", "West Yard West East Main Ext", "LAMP2", "LOWLEFT", "RIGHT")
-    _sig(bx + 1, y_me, "RIGHT", "West Yard East OS 117b", "LAMP2", "LOWLEFT", "LEFT")
+    _sig(bx - 1, y_wl, "LEFT", "117RA", "LAMP2", "LOWLEFT", "RIGHT")
+    _sig(bx + 1, y_wl, "RIGHT", "117LB", "LAMP1", "LOWLEFT", "LEFT")
+    _sig(bx - 1, y_me, "LEFT", "117RB", "LAMP2", "LOWLEFT", "RIGHT")
+    _sig(bx + 1, y_me, "RIGHT", "117LA", "LAMP2", "LOWLEFT", "LEFT")
 
     _label(AX0 + 3, Y_BANNER, "BRICK", loc="LOWCENT", font="FONT_CP")
     _label(AX0 + 8, Y_BANNER, "PLANE", loc="LOWCENT", font="FONT_CP")
@@ -191,7 +191,7 @@ def _build_panel_b() -> None:
     s_end = BX0 + 8  # S-body east (gap before EE)
     ee_app = s_end + 2  # EE west approach
     ee = ee_app + 1  # EE plant column (vertical ladder)
-    ee_tip = ee + 1  # tip / East Lead start
+    ee_tip = ee + 1  # tip / South Yard East start
 
     # --- Main West → 111a → West Main Ext ---
     _H(BX0, ee_app - 1, y_mw)
@@ -206,12 +206,12 @@ def _build_panel_b() -> None:
     _H(ee_tip + 1, BX1, y_mw)
     nm((ee_tip + 1, y_mw), "LEFT", "West Main Ext")
     an((BX1, y_mw), "RIGHT")
-    _sig(ee_app, y_mw, "LEFT", "East End West Main West", "LAMP2", "LOWLEFT", "RIGHT")
-    _sig(ee_tip, y_mw, "RIGHT", "East End East OS 111a", "LAMP2", "LOWLEFT", "LEFT")
+    _sig(ee_app, y_mw, "LEFT", "111RA", "LAMP2", "LOWLEFT", "RIGHT")
+    _sig(ee_tip, y_mw, "RIGHT", "111L", "LAMP2", "LOWLEFT", "LEFT")
 
-    # --- Yard T6 → 103 → S-1 ---
+    # --- South Yard West → 103 → S-1 ---
     _H(BX0, lx - 2, y_s1)
-    nm((BX0, y_s1), "LEFT", "Yard T6")
+    nm((BX0, y_s1), "LEFT", "South Yard West")
     cut((lx - 2, y_s1), "RIGHT", (lx - 1, y_s1), "LEFT")
     H((lx - 1, y_s1))
     nm((lx - 1, y_s1), "LEFT", "OS 103 (South Yard)")
@@ -219,7 +219,7 @@ def _build_panel_b() -> None:
     cut((lx, y_s1), "RIGHT", (sx, y_s1), "LEFT")
     # S-1 continuous into 111b approach (no dead-end gap at s_end).
     _H(sx, ee_app - 1, y_s1)
-    nm((sx, y_s1), "LEFT", "Yard Track 1")
+    nm((sx, y_s1), "LEFT", "South Yard 1")
     cut((ee_app - 1, y_s1), "RIGHT", (ee_app, y_s1), "LEFT")
 
     # --- 111b under 111a (same column) + S-1 into EE ---
@@ -244,15 +244,15 @@ def _build_panel_b() -> None:
     nm((ee_tip + 6, y_s1), "RIGHT", "OS 112 (East End)")
     cut((ee_tip + 6, y_s1), "RIGHT", (ee_tip + 7, y_s1), "LEFT")
     _H(ee_tip + 7, BX1, y_s1)
-    nm((ee_tip + 7, y_s1), "LEFT", "East Lead")
+    nm((ee_tip + 7, y_s1), "LEFT", "South Yard East")
     an((BX1, y_s1), "RIGHT")
-    _sig(ee_app, y_s1, "LEFT", "East End West Yard Track 1", "LAMP1", "LOWLEFT", "RIGHT")
-    _sig(ee_tip + 3, y_s1, "RIGHT", "East End South OS 110", "LAMP1", "UPLEFT", "RIGHT")
-    _sig(ee_tip + 6, y_s1, "RIGHT", "East End East East Lead", "LAMP2", "LOWRIGHT", "LEFT")
+    _sig(ee_app, y_s1, "LEFT", "111RB", "LAMP1", "LOWLEFT", "RIGHT")
+    _sig(ee_tip + 3, y_s1, "RIGHT", "110R", "LAMP1", "UPLEFT", "RIGHT")
+    _sig(ee_tip + 6, y_s1, "RIGHT", "East End East South Yard East", "LAMP2", "LOWRIGHT", "LEFT")
     # 112 south lamp on slash face below plant
     le.GRID[(ee_tip + 5, y_s2)] = ["UPPERSLASH"]
     nm((ee_tip + 5, y_s2), "LEFT", "OS 112 (East End)")
-    _sig(ee_tip + 5, y_s2, "LEFT", "East End South OS 112", "LAMP2", "RIGHTLOW", "RIGHT")
+    _sig(ee_tip + 5, y_s2, "LEFT", "112R", "LAMP2", "RIGHTLOW", "RIGHT")
 
     # --- SY + EE ladders ---
     # Vertical frog chain needs TOP↔BOTTOM: use V+LS (body east) / V+LB (body west).
@@ -260,9 +260,9 @@ def _build_panel_b() -> None:
     ee_lad = ee_tip + 2  # under 110 column
 
     for yb, sy_os, sy_tip, body, ee_os, ee_tip_id in (
-        (y_s2, "OS 104 (South Yard)", "TOL15", "Yard Track 2", "OS 109 (East End)", "TOR7"),
-        (y_s3, "OS 105 (South Yard)", "TOL17", "Yard Track 3", "OS 108 (East End)", "TOR9"),
-        (y_s4, "OS 106 (South Yard)", "TOL19", "Yard Track 4", "OS 107 (East End)", "TOR11"),
+        (y_s2, "OS 104 (South Yard)", "TOL15", "South Yard 2", "OS 109 (East End)", "TOR7"),
+        (y_s3, "OS 105 (South Yard)", "TOL17", "South Yard 3", "OS 108 (East End)", "TOR9"),
+        (y_s4, "OS 106 (South Yard)", "TOL19", "South Yard 4", "OS 107 (East End)", "TOR11"),
     ):
         # SY: V+LS — SP BOTTOM, NORMAL RIGHT into yard body; TOP from plant above.
         plant((lx, yb), ["VERTICAL", "LOWERSLASH"], sy_os, "RIGHT", sy_tip)
@@ -277,12 +277,12 @@ def _build_panel_b() -> None:
 
     # S-5 into 106 BOTTOM and across into 107 BOTTOM.
     le.GRID[(lx, y_s5)] = ["UPPERBACKSLASH"]  # TOP↔RIGHT into body
-    nm((lx, y_s5), "RIGHT", "Yard Track 5")
+    nm((lx, y_s5), "RIGHT", "South Yard 5")
     cut((lx, y_s5), "RIGHT", (sx, y_s5), "LEFT")
     _H(sx, ee_lad - 1, y_s5)
-    nm((sx, y_s5), "LEFT", "Yard Track 5")
+    nm((sx, y_s5), "LEFT", "South Yard 5")
     le.GRID[(ee_lad, y_s5)] = ["UPPERSLASH"]  # TOP↔LEFT under 107
-    nm((ee_lad, y_s5), "LEFT", "Yard Track 5")
+    nm((ee_lad, y_s5), "LEFT", "South Yard 5")
     cut((ee_lad - 1, y_s5), "RIGHT", (ee_lad, y_s5), "LEFT")
 
     _label((sx + ee_lad) // 2, Y_BANNER, "SOUTH YARD", loc="LOWCENT", font="FONT_CP")
@@ -327,12 +327,12 @@ def _build_panel_c() -> None:
     _H(kx + 2, CX1, y_mw)
     nm((kx + 2, y_mw), "LEFT", "McKees Rocks")
     an((CX1, y_mw), "RIGHT")
-    _sig(xo, y_mw, "LEFT", "Princess West OS 113b", "LAMP2", "LOWLEFT", "RIGHT")
-    _sig(kx + 1, y_mw, "RIGHT", "Princess North McKees Rocks", "LAMP3", "LOWLEFT", "LEFT")
+    _sig(xo, y_mw, "LEFT", "113RA", "LAMP2", "LOWLEFT", "RIGHT")
+    _sig(kx + 1, y_mw, "RIGHT", "115LB", "LAMP3", "LOWLEFT", "LEFT")
 
-    # South: East Lead → 113a → 114 → K-2 / McKeesport
+    # South: South Yard East → 113a → 114 → K-2 / McKeesport
     _H(CX0, xo - 2, y_me)
-    nm((CX0, y_me), "LEFT", "East Lead")
+    nm((CX0, y_me), "LEFT", "South Yard East")
     cut((xo - 2, y_me), "RIGHT", (xo - 1, y_me), "LEFT")
     H((xo - 1, y_me))
     nm((xo - 1, y_me), "LEFT", "OS 113a (Princess)")
@@ -350,8 +350,8 @@ def _build_panel_c() -> None:
     _H(kx + 2, CX1, y_me)
     nm((kx + 2, y_me), "LEFT", "McKeesport")
     an((CX1, y_me), "RIGHT")
-    _sig(xo - 1, y_me, "LEFT", "Princess West OS 113a", "LAMP2", "LOWLEFT", "RIGHT")
-    _sig(kx + 1, y_me, "RIGHT", "Princess South McKeesport", "LAMP3", "LOWLEFT", "LEFT")
+    _sig(xo - 1, y_me, "LEFT", "113RB", "LAMP2", "LOWLEFT", "RIGHT")
+    _sig(kx + 1, y_me, "RIGHT", "114LB", "LAMP3", "LOWLEFT", "LEFT")
 
     _label(xo, Y_BANNER, "PRINCESS", loc="LOWCENT", font="FONT_CP")
     _label(kx + 3, y_mw, "K-1", loc="LOWCENT")

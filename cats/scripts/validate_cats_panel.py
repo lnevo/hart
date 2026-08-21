@@ -23,11 +23,11 @@ GATE1_BLOCKS = {
 
 # Gate 2 SoR — required on LE WIP (cats/panels/HART_le.xml) once built.
 GATE2_BLOCKS = {
-    "OS 116 (West Yard)",
-    "OS 117 (West Yard)",
-    "OS 117b (West Yard)",
-    "OS 118 (West Yard)",
-    "OS 119 (West Yard)",
+    "OS 116",
+    "OS 117 (Barn)",
+    "OS 117b (Barn)",
+    "OS 118",
+    "OS 119",
     "Main East",
 }
 

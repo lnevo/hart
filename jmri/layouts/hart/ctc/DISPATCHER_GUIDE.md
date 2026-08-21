@@ -42,15 +42,15 @@ railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 |------|---------|----------------|-------|
 | 1 | Brick | 1 / 2 | Switch 101 (yard exits W-1 / W-2) |
 | 2 | Brick | 3 / 4 | Switch 100 |
-| 3 | Plane | 5 / 6 | Switch 102 (main vs Yard T1) |
+| 3 | Plane | 5 / 6 | Switch 102 (main vs South Yard Scale) |
 | 4 | Barn | 7 / 8 | Switch 117 crossover (OS 117 / 117b). One signal lever releases both tracks |
 | 5 | Barn | 9 / — | Switch 116 (ladder, switch-only, defaults Local) |
 | 6 | Barn | 11 / — | Switch 103 (ladder, switch-only, defaults Local) |
 | 7–8 | East End | 13 / 14, 15 / 16 | Switches 107, 108 (ladder, switch-only) |
 | 9 | East End | 17 / 18 | Switch 111 crossover (OS 111a / 111b) |
 | 10 | East End | 19 / 20 | Switch 109 (ladder, switch-only) |
-| 11 | East End | 21 / 22 | Switch 110 (ladder → East Lead; defaults Local) |
-| 12 | East End | 23 / 24 | Switch 112 (East Lead vs Main East) |
+| 11 | East End | 21 / 22 | Switch 110 (ladder → South Yard East; defaults Local) |
+| 12 | East End | 23 / 24 | Switch 112 (South Yard East vs Main East) |
 | 13 | Princess | 25 / 26 | Switch 113 crossover (OS 113b / 113a) |
 | 14 | Princess | 27 / 28 | Switch 114 (McKeesport vs K-2) |
 | 15 | Princess | 29 / 30 | Switch 115 (McKees Rocks vs K-1) |
@@ -129,7 +129,7 @@ Never fleet a route you may need to take back quickly.
    protection through an unlocked switch.
 8. **Yard ladder is unsignaled.** Switches 116 and 103 have **no signal
    levers**. The westbound home into Barn from the yard lead is
-   **West Yard East Yard T6** on the 117 column. Switch 104 and the rest
+   **117LB** on the 117 column. Switch 104 and the rest
    of the South Yard ladder are occupancy-only. The K-1 / K-2 stubs and
    yard tracks are restricted-speed territory beyond the dwarf.
 9. **During an automated dispatch, hands off the throttle.** A phone

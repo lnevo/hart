@@ -24,13 +24,13 @@ Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
               lamp centered in blank slot 12), SW113 -> SW115 DIRECT (no
               block, no lamp), SW115 / McKees Rocks / K-1. W-2 stub is on
               the 111-115 level off SW101's leg.
-  S  111-115  yard run-through: SW102's up-east leg -> Yard T1 (`Block
-              4-8`, lamp centered in blank slot 4) -> SW117 -> Yard T6 ->
-              SW116 -> SW103 -> Yard Track 1 (`Block 2-8`, lamp centered
-              in blank slot 8) -> SW110 -> SW112 -> East Lead (`Block
+  S  111-115  yard run-through: SW102's up-east leg -> South Yard Scale (`Block
+              4-8`, lamp centered in blank slot 4) -> SW117 -> South Yard West ->
+              SW116 -> SW103 -> South Yard 1 (`Block 2-8`, lamp centered
+              in blank slot 8) -> SW110 -> SW112 -> South Yard East (`Block
               1-7`, lamp centered in blank slot 12) -> SW113 -> SW114 ->
               K-2.
-  M  134-138  SW102's bar: Main West Brick-Plane (west, from the hairpin)
+  M  134-138  SW102's bar: Main West Brick–Plane (west, from the hairpin)
               <-> East Main Ext (east, `Block 4-7` lamp centered in blank
               slot 4, the continuing route curving back east) -> SW117;
               dips 45deg east of SW117 to a bottom straight (164-168)
@@ -44,7 +44,7 @@ pitch) connecting the two ladders (SW104-109 are hand-throw, not drawn).
 Engine House: the same ladder rotated 180deg, up-west off SW116
 (split = hand-throw SW118, treated like 104-109), two stub tracks
 ending flush at x=365, tucked close to the yard row. SW116 abuts SW103
-directly (no block between them); Yard T6 is the 117-116 stretch.
+directly (no block between them); South Yard West is the 117-116 stretch.
 
 All east branch stubs (K-1, K-2, McKees Rocks, McKeesport) end flush at
 x=1105 with their lamps aligned at x=1060 and labels centered on the
@@ -151,15 +151,15 @@ SWITCH_ONLY_SLOTS = {6, 7}
 TURNOUTS = [
     ("Switch 101", 86,  82,  T + "left/west/os-l-w"),    # Main West row; W-2 leg down-west
     ("Switch 100", 151, 82,  T + "left/west/os-l-w"),  # agree with JMRI Closed/Thrown (rests Thrown)
-    ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = Yard T1
+    ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = South Yard Scale
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
     ("Switch 116", 436, 82,  "thin:os-r-w-thin"),        # yard row, abuts SW103 (direct, no block); Engine House ladder up-west
     ("Switch 103", 482, 105, "thin:os-r-e-thin"),        # yard row; 6px gap after SW116 (no block)
     ("Switch 111", 606, 82,  X + "right/os-r-sc"),       # scissor: Main West (88-92) <-> yard (111-115)
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # yard row; South Yard ladder down-west
-    ("Switch 112", 736, 105, T + "left/west/os-l-w"),  # Closed = East Lead ↔ 110; Thrown = Main East
-    ("Switch 113", 866, 82,  X + "left/os-l-sc"),        # scissor: Main West (88-92) <-> East Lead (111-115)
-    ("Switch 114", 931, 105, T + "right/east/os-r-e"),   # East Lead row; McKeesport branch down-east
+    ("Switch 112", 736, 105, T + "left/west/os-l-w"),  # Closed = South Yard East ↔ 110; Thrown = Main East
+    ("Switch 113", 866, 82,  X + "left/os-l-sc"),        # scissor: Main West (88-92) <-> South Yard East (111-115)
+    ("Switch 114", 931, 105, T + "right/east/os-r-e"),   # South Yard East row; McKeesport branch down-east
     ("Switch 115", 996, 59,  T + "left/east/os-l-e"),    # Main West row (bar 88-92); McKees Rocks up-east
 ]
 
@@ -178,23 +178,23 @@ LAMPS = [
     ("Block 4-5",  229, 200, "OS 102 (Plane)"),
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
-    ("Block 4-8",  286, 103, "Yard T1 (Plane-Barn diverging)"),
+    ("Block 4-8",  286, 103, "South Yard Scale (Plane-Barn diverging)"),
     ("Block 13-3", 347, 200, "OS 117 (yard side)"),
     ("Block 13-4", 371, 200, "OS 117b (main side)"),
-    ("Block 13-1", 404, 103, "Yard T6"),
+    ("Block 13-1", 404, 103, "South Yard West"),
     ("Block 3-1",  424, 200, "OS 116 (Barn)"),
     ("Block 3-2",  489, 200, "OS 103 (South Yard)"),
-    ("Block 2-8",  546, 103, "Yard Track 1"),
+    ("Block 2-8",  546, 103, "South Yard 1"),
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
     ("Block 2-3",  546, 156, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
     ("Block 12-7", 684, 200, "OS 110 (East End)"),
     ("Block 12-8", 749, 200, "OS 112 (East End)"),
-    ("Block 1-7",  806, 103, "East Lead"),
+    ("Block 1-7",  806, 103, "South Yard East"),
     ("Block 1-8",  806, 80,  "West Main Ext (111-113 siding)"),
     ("Block 1-5",  867, 200, "OS 113b (Main West side)"),
-    ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
+    ("Block 1-6",  891, 200, "OS 113a (South Yard East side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
     ("Block 1-1",  1060, 57, "McKees Rocks branch"),
@@ -223,7 +223,7 @@ TRACKS = [
     (194, 84,  "line1.gif",   0),   # MAIN WEST east of SW100's throat (gapped;
     (264, 85,  "line050.gif", 0),   #  loops around the room to column 9)
     # SW100's diverging leg hairpins "<": leg down-west to (160,115), then
-    # thick 45 back down-east to row M at (182,137) = Main West Brick-Plane
+    # thick 45 back down-east to row M at (182,137) = Main West Brick–Plane
     (159, 114, "thick45-24.gif", 0),
     (183, 132, "line025.gif", 0),   # hairpin -> SW102
     # row M (main, bar 134-138): SW102 bar -> East Main Ext -> SW117
@@ -235,15 +235,15 @@ TRACKS = [
     (407, 155, "line25.gif",  0),   # Main East bottom straight (drawn 419-597)
     (524, 155, "line25.gif",  0),   # overlapped: one block, no joint (to 714)
     (715, 136, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (745,138)
-    # row S (yard run-through / East Lead, bar 111-115)
-    (252, 107, "line1.gif",   0),   # Yard T1 (drawn 259-343): gap to 102's leg
+    # row S (yard run-through / South Yard East, bar 111-115)
+    (252, 107, "line1.gif",   0),   # South Yard Scale (drawn 259-343): gap to 102's leg
     (321, 109, "line025.gif", 0),   #  tip (255) and gap to SW117's icon (346)
-    (392, 109, "line025.gif", 0),   # 117-116: Yard T6, gapped off SW117 (ends 386)
+    (392, 109, "line025.gif", 0),   # 117-116: South Yard West, gapped off SW117 (ends 386)
     (394, 108, "line050.gif", 0),   # ...to SW116 (436); 6px empty to SW103
-    (522, 107, "line1.gif",   0),   # 103 -> 111 (Yard Track 1, blank slot 8)
+    (522, 107, "line1.gif",   0),   # 103 -> 111 (South Yard 1, blank slot 8)
     (648, 109, "line025.gif", 0),   # 111 lower -> 110
     (713, 109, "line025.gif", 0),   # 110 -> 112
-    (778, 107, "line1.gif",   0),   # 112 -> 113 (East Lead, blank slot 12)
+    (778, 107, "line1.gif",   0),   # 112 -> 113 (South Yard East, blank slot 12)
     (908, 109, "line025.gif", 0),   # 113 bottom -> 114
     (973, 107, "line1.gif",   0),   # 114 -> K-2 stub...
     (1020, 107, "line1.gif",  0),
@@ -251,7 +251,7 @@ TRACKS = [
     # South Yard: the 45deg icon legs continue as straight 45deg ladders
     # (east ladder line x = y + 379, west ladder x = 807 - y); the three
     # run-through yard tracks (9px pitch) branch off the icon legs
-    # themselves, tucked up close under Yard Track 1
+    # themselves, tucked up close under South Yard 1
     (522, 137, "thin4512.gif", 0),  # east ladder tail (SW103 moved +6)
     (660, 137, "thin4512.gif", 1),  # west ladder tail, ends at track 4 (660,148)
     (514, 128, "thin085.gif", 0),   # yard track 2
@@ -334,38 +334,38 @@ N, S, M, MR, MK, ME = 90, 113, 136, 67, 141, 166
 # (mast, stem_x, bar_center, facing, kind, head_or_None)
 SIGNALS = [
     # Brick 101 Right: yard exits
-    ("Brick West Yard 1",           72,  N,  "E", "d1", "IH436"),
-    ("Brick West Yard 2",           72,  S,  "E", "d1", "IH437"),
+    ("101RA",           72,  N,  "E", "d1", "IH436"),
+    ("101RB",           72,  S,  "E", "d1", "IH437"),
     # Brick 100 Left
-    ("Brick East Main West",       210,  N,  "W", "h2", None),
+    ("100L",       210,  N,  "W", "h2", None),
     # Plane 102 Left
-    ("Plane East OS 102",          265,  S,  "W", "h2", None),
-    ("Plane East East Main Ext",   265,  M,  "W", "h2", None),
+    ("102LA",          265,  S,  "W", "h2", None),
+    ("102LB",   265,  M,  "W", "h2", None),
     # Barn 117 both ways (T6 is the westbound yard-lead home)
-    ("West Yard West OS 117",      328,  S,  "E", "h2", None),
-    ("West Yard West East Main Ext", 328, M, "E", "h2", None),
-    ("West Yard East Yard T6",     396,  S,  "W", "d1", "IH1334"),
-    ("West Yard East OS 117b",     396,  M,  "W", "h2", None),
+    ("117RA",      328,  S,  "E", "h2", None),
+    ("117RB", 328, M, "E", "h2", None),
+    ("117LB",     396,  S,  "W", "d1", "IH1334"),
+    ("117LA",     396,  M,  "W", "h2", None),
     # East End 111 both ways
-    ("East End West Main West",    588,  N,  "E", "h2", None),
-    ("East End West Yard Track 1", 588,  S,  "E", "d1", "IH1236"),
-    ("East End East OS 111a",      650,  N,  "W", "h2", None),
+    ("111RA",    588,  N,  "E", "h2", None),
+    ("111RB", 588,  S,  "E", "d1", "IH1236"),
+    ("111L",      650,  N,  "W", "h2", None),
     # East End 110 Right (dwarf off the yard / ladder)
-    ("East End South OS 110",      658,  S,  "E", "d1", "IH1239"),
+    ("110R",      658,  S,  "E", "d1", "IH1239"),
     # East End 112 both ways
-    ("East End South OS 112",      708,  ME, "E", "h2", None),
-    ("East End East Lead",         780,  S,  "W", "h2", None),
+    ("112R",      708,  ME, "E", "h2", None),
+    ("112L",         780,  S,  "W", "h2", None),
     # Princess 113 Right
-    ("Princess West OS 113b",      848,  N,  "E", "h2", None),
-    ("Princess West OS 113a",      848,  S,  "E", "h2", None),
+    ("113RA",      848,  N,  "E", "h2", None),
+    ("113RB",      848,  S,  "E", "h2", None),
     # Princess 114 balloon
-    ("Princess East McKeesport",  1088,  MK, "E", "d1", "IH134"),
-    ("Princess East K-2",         1050,  S,  "W", "d1", "IH143"),
-    ("Princess South McKeesport", 1050,  MK, "W", "h2", None),
+    ("114R",  1088,  MK, "E", "d1", "IH134"),
+    ("114LA",         1050,  S,  "W", "d1", "IH143"),
+    ("114LB", 1050,  MK, "W", "h2", None),
     # Princess 115 balloon
-    ("Princess East McKees Rocks", 1088, MR, "E", "d1", "IH141"),
-    ("Princess East K-1",         1050,  N,  "W", "d1", "IH142"),
-    ("Princess North McKees Rocks", 1050, MR, "W", "h2", None),
+    ("115R", 1088, MR, "E", "d1", "IH141"),
+    ("115LA",         1050,  N,  "W", "d1", "IH142"),
+    ("115LB", 1050, MR, "W", "h2", None),
 ]
 
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">

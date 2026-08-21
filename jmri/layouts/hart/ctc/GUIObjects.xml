@@ -2177,7 +2177,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 4-8" x="286" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Yard T1 (Plane-Barn diverging)</tooltip>
+      <tooltip>South Yard Scale (Plane-Barn diverging)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2225,7 +2225,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 13-1" x="404" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Yard T6</tooltip>
+      <tooltip>South Yard West</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2273,7 +2273,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 2-8" x="546" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Yard Track 1</tooltip>
+      <tooltip>South Yard 1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2385,7 +2385,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 1-7" x="806" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>East Lead</tooltip>
+      <tooltip>South Yard East</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2433,7 +2433,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 1-6" x="891" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 113a (East Lead side)</tooltip>
+      <tooltip>OS 113a (South Yard East side)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2895,7 +2895,7 @@
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <signalheadicon signalhead="IH436" x="72" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>Brick West Yard 1</tooltip>
+      <tooltip>101RA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>
@@ -2931,7 +2931,7 @@
       <iconmaps />
     </signalheadicon>
     <signalheadicon signalhead="IH437" x="72" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>Brick West Yard 2</tooltip>
+      <tooltip>101RB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>
@@ -2966,23 +2966,23 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Brick East Main West" x="190" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>Brick East Main West</tooltip>
+    <signalmasticon signalmast="100L" x="190" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>100L</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Plane East OS 102" x="245" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>Plane East OS 102</tooltip>
+    <signalmasticon signalmast="102LA" x="245" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>102LA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Plane East East Main Ext" x="245" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>Plane East East Main Ext</tooltip>
+    <signalmasticon signalmast="102LB" x="245" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>102LB</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="West Yard West OS 117" x="328" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>West Yard West OS 117</tooltip>
+    <signalmasticon signalmast="117RA" x="328" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>117RA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="West Yard West East Main Ext" x="328" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>West Yard West East Main Ext</tooltip>
+    <signalmasticon signalmast="117RB" x="328" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>117RB</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH1334" x="385" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>West Yard East Yard T6</tooltip>
+      <tooltip>117LB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3017,14 +3017,14 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="West Yard East OS 117b" x="376" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>West Yard East OS 117b</tooltip>
+    <signalmasticon signalmast="117LA" x="376" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>117LA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="East End West Main West" x="588" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>East End West Main West</tooltip>
+    <signalmasticon signalmast="111RA" x="588" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>111RA</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH1236" x="588" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>East End West Yard Track 1</tooltip>
+      <tooltip>111RB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3059,11 +3059,11 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="East End East OS 111a" x="630" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>East End East OS 111a</tooltip>
+    <signalmasticon signalmast="111L" x="630" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>111L</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH1239" x="658" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>East End South OS 110</tooltip>
+      <tooltip>110R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3098,20 +3098,20 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="East End South OS 112" x="708" y="163" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>East End South OS 112</tooltip>
+    <signalmasticon signalmast="112R" x="708" y="163" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>112R</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="East End East Lead" x="760" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>East End East Lead</tooltip>
+    <signalmasticon signalmast="112L" x="760" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>112L</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Princess West OS 113b" x="848" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>Princess West OS 113b</tooltip>
+    <signalmasticon signalmast="113RA" x="848" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>113RA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Princess West OS 113a" x="848" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>Princess West OS 113a</tooltip>
+    <signalmasticon signalmast="113RB" x="848" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>113RB</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH134" x="1088" y="138" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>Princess East McKeesport</tooltip>
+      <tooltip>114R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3147,7 +3147,7 @@
       <iconmaps />
     </signalheadicon>
     <signalheadicon signalhead="IH143" x="1039" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>Princess East K-2</tooltip>
+      <tooltip>114LA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3182,11 +3182,11 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Princess South McKeesport" x="1030" y="138" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>Princess South McKeesport</tooltip>
+    <signalmasticon signalmast="114LB" x="1030" y="138" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>114LB</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH141" x="1088" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>Princess East McKees Rocks</tooltip>
+      <tooltip>115R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3222,7 +3222,7 @@
       <iconmaps />
     </signalheadicon>
     <signalheadicon signalhead="IH142" x="1039" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>Princess East K-1</tooltip>
+      <tooltip>115LA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3257,8 +3257,8 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Princess North McKees Rocks" x="1030" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
-      <tooltip>Princess North McKees Rocks</tooltip>
+    <signalmasticon signalmast="115LB" x="1030" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+      <tooltip>115LB</tooltip>
     </signalmasticon>
   </paneleditor>
 </layout-config>

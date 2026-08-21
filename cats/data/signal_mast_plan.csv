@@ -1,24 +1,24 @@
 cp,direction,protects_switch,panel_x,panel_y,edge,sigorient,proposed_mast_name,heads,phase,mqtt_node,parent_node_id,packed_ids,port_ids,mast_system_name,jmri_binding
-Brick,left,,4,3,LEFT,RIGHT,Brick West Yard 1,1,west-yard-sheet,4,C4,436,C4-OU2-5,IF$shsm:AAR-1946:SL-1-low(IH436),virtual-heads+shsm
-Brick,left,,4,4,LEFT,RIGHT,Brick West Yard 2,1,west-yard-sheet,4,C4,437,C4-OU2-6,IF$shsm:AAR-1946:SL-1-low(IH437),virtual-heads+shsm
-Brick,right,,8,3,RIGHT,LEFT,Brick East Main West,2,west-yard-sheet,4,C4,438 439,C4-OU3-1 C4-OU3-2,IF$shsm:AAR-1946:SL-2-high-abs(IH438)(IH439),virtual-heads+shsm
-Princess,right,,43,5,RIGHT,LEFT,Princess North McKees Rocks,2,west-yard-sheet,1,D1,132 133,D1-OU2-1 D1-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH132)(IH133),virtual-heads+shsm
-East End,left,,28,6,LEFT,RIGHT,East End West Main West,2,west-yard-sheet,12,C7,1232 1233,C7-OU2-1 C7-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH1232)(IH1233),virtual-heads+shsm
-East End,right,,30,6,RIGHT,LEFT,East End East OS 111a,2,west-yard-sheet,12,C7,1234 1235,C7-OU2-3 C7-OU2-4,IF$shsm:AAR-1946:SL-2-high-abs(IH1234)(IH1235),virtual-heads+shsm
-Princess,left,,37,6,LEFT,RIGHT,Princess West OS 113b,2,west-yard-sheet,1,D1,135 136,D1-OU2-4 D1-OU2-5,IF$shsm:AAR-1946:SL-2-high-abs(IH135)(IH136),virtual-heads+shsm
-Princess,left,,43,6,RIGHT,LEFT,Princess East K-1,1,west-yard-sheet,1,D1,142,D1-OU3-3,IF$shsm:AAR-1946:SL-1-low(IH142),virtual-heads+shsm
-Princess,bottom,,45,6,BOTTOM,BOTTOM,Princess East McKees Rocks,1,west-yard-sheet,1,D1,141,D1-OU3-2,IF$shsm:AAR-1946:SL-1-low(IH141),virtual-heads+shsm
-Plane,right,,9,7,RIGHT,LEFT,Plane East OS 102,2,west-yard-sheet,4,C4,434 435,C4-OU2-3 C4-OU2-4,IF$shsm:AAR-1946:SL-2-high-abs(IH434)(IH435),virtual-heads+shsm
-West Yard,left,,12,7,LEFT,RIGHT,West Yard West OS 117,2,west-yard-sheet,13,C1,1332 1333,C1-OU2-1 C1-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH1332)(IH1333),virtual-heads+shsm
-West Yard,right,,14,7,RIGHT,LEFT,West Yard East Yard T6,1,west-yard-sheet,13,C1,1334,C1-OU2-3,IF$shsm:AAR-1946:SL-1-low(IH1334),virtual-heads+shsm
-East End,left,,28,7,LEFT,RIGHT,East End West Yard Track 1,1,west-yard-sheet,12,C7,1236,C7-OU2-5,IF$shsm:AAR-1946:SL-1-low(IH1236),virtual-heads+shsm
-East End,right,,34,7,RIGHT,LEFT,East End East Lead,2,west-yard-sheet,12,C7,1237 1238,C7-OU2-6 C7-OU3-1,IF$shsm:AAR-1946:SL-2-high-abs(IH1237)(IH1238),virtual-heads+shsm
-Princess,left,,37,7,LEFT,RIGHT,Princess West OS 113a,2,west-yard-sheet,1,D1,137 138,D1-OU2-6 D1-OU2-7,IF$shsm:AAR-1946:SL-2-high-abs(IH137)(IH138),virtual-heads+shsm
-Princess,left,,43,7,RIGHT,LEFT,Princess East K-2,1,west-yard-sheet,1,D1,143,D1-OU3-4,IF$shsm:AAR-1946:SL-1-low(IH143),virtual-heads+shsm
-Princess,top,,45,7,TOP,TOP,Princess East McKeesport,1,west-yard-sheet,1,D1,134,D1-OU2-3,IF$shsm:AAR-1946:SL-1-low(IH134),virtual-heads+shsm
-East End,bottom,,31,7,BOTTOM,TOP,East End South OS 110,1,west-yard-sheet,12,C7,1239,C7-OU3-2,IF$shsm:AAR-1946:SL-1-low(IH1239),virtual-heads+shsm
-Plane,right,,9,8,RIGHT,LEFT,Plane East East Main Ext,2,west-yard-sheet,4,C4,432 433,C4-OU2-1 C4-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH432)(IH433),virtual-heads+shsm
-West Yard,left,,12,8,LEFT,RIGHT,West Yard West East Main Ext,2,west-yard-sheet,13,C1,1335 1336,C1-OU2-4 C1-OU2-5,IF$shsm:AAR-1946:SL-2-high-abs(IH1335)(IH1336),virtual-heads+shsm
-West Yard,right,,14,8,RIGHT,LEFT,West Yard East OS 117b,2,west-yard-sheet,13,C1,1337 1338,C1-OU2-6 C1-OU3-1,IF$shsm:AAR-1946:SL-2-high-abs(IH1337)(IH1338),virtual-heads+shsm
-East End,left,,33,8,LEFT,RIGHT,East End South OS 112,2,west-yard-sheet,12,C7,1240 1241,C7-OU3-3 C7-OU3-4,IF$shsm:AAR-1946:SL-2-high-abs(IH1240)(IH1241),virtual-heads+shsm
-Princess,right,,43,8,RIGHT,LEFT,Princess South McKeesport,2,west-yard-sheet,1,D1,139 140,D1-OU2-8 D1-OU3-1,IF$shsm:AAR-1946:SL-2-high-abs(IH139)(IH140),virtual-heads+shsm
+Brick,left,,4,3,LEFT,RIGHT,101RA,1,west-yard-sheet,4,C4,436,C4-OU2-5,IF$shsm:AAR-1946:SL-1-low(IH436),virtual-heads+shsm
+Brick,left,,4,4,LEFT,RIGHT,101RB,1,west-yard-sheet,4,C4,437,C4-OU2-6,IF$shsm:AAR-1946:SL-1-low(IH437),virtual-heads+shsm
+Brick,right,,8,3,RIGHT,LEFT,100L,2,west-yard-sheet,4,C4,438 439,C4-OU3-1 C4-OU3-2,IF$shsm:AAR-1946:SL-2-high-abs(IH438)(IH439),virtual-heads+shsm
+Princess,right,,43,5,RIGHT,LEFT,115LB,2,west-yard-sheet,1,D1,132 133,D1-OU2-1 D1-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH132)(IH133),virtual-heads+shsm
+East End,left,,28,6,LEFT,RIGHT,111RA,2,west-yard-sheet,12,C7,1232 1233,C7-OU2-1 C7-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH1232)(IH1233),virtual-heads+shsm
+East End,right,,30,6,RIGHT,LEFT,111L,2,west-yard-sheet,12,C7,1234 1235,C7-OU2-3 C7-OU2-4,IF$shsm:AAR-1946:SL-2-high-abs(IH1234)(IH1235),virtual-heads+shsm
+Princess,left,,37,6,LEFT,RIGHT,113RA,2,west-yard-sheet,1,D1,135 136,D1-OU2-4 D1-OU2-5,IF$shsm:AAR-1946:SL-2-high-abs(IH135)(IH136),virtual-heads+shsm
+Princess,left,,43,6,RIGHT,LEFT,115LA,1,west-yard-sheet,1,D1,142,D1-OU3-3,IF$shsm:AAR-1946:SL-1-low(IH142),virtual-heads+shsm
+Princess,bottom,,45,6,BOTTOM,BOTTOM,115R,1,west-yard-sheet,1,D1,141,D1-OU3-2,IF$shsm:AAR-1946:SL-1-low(IH141),virtual-heads+shsm
+Plane,right,,9,7,RIGHT,LEFT,102LA,2,west-yard-sheet,4,C4,434 435,C4-OU2-3 C4-OU2-4,IF$shsm:AAR-1946:SL-2-high-abs(IH434)(IH435),virtual-heads+shsm
+West Yard,left,,12,7,LEFT,RIGHT,117RA,2,west-yard-sheet,13,C1,1332 1333,C1-OU2-1 C1-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH1332)(IH1333),virtual-heads+shsm
+West Yard,right,,14,7,RIGHT,LEFT,117LB,1,west-yard-sheet,13,C1,1334,C1-OU2-3,IF$shsm:AAR-1946:SL-1-low(IH1334),virtual-heads+shsm
+East End,left,,28,7,LEFT,RIGHT,111RB,1,west-yard-sheet,12,C7,1236,C7-OU2-5,IF$shsm:AAR-1946:SL-1-low(IH1236),virtual-heads+shsm
+East End,right,,34,7,RIGHT,LEFT,112L,2,west-yard-sheet,12,C7,1237 1238,C7-OU2-6 C7-OU3-1,IF$shsm:AAR-1946:SL-2-high-abs(IH1237)(IH1238),virtual-heads+shsm
+Princess,left,,37,7,LEFT,RIGHT,113RB,2,west-yard-sheet,1,D1,137 138,D1-OU2-6 D1-OU2-7,IF$shsm:AAR-1946:SL-2-high-abs(IH137)(IH138),virtual-heads+shsm
+Princess,left,,43,7,RIGHT,LEFT,114LA,1,west-yard-sheet,1,D1,143,D1-OU3-4,IF$shsm:AAR-1946:SL-1-low(IH143),virtual-heads+shsm
+Princess,top,,45,7,TOP,TOP,114R,1,west-yard-sheet,1,D1,134,D1-OU2-3,IF$shsm:AAR-1946:SL-1-low(IH134),virtual-heads+shsm
+East End,bottom,,31,7,BOTTOM,TOP,110R,1,west-yard-sheet,12,C7,1239,C7-OU3-2,IF$shsm:AAR-1946:SL-1-low(IH1239),virtual-heads+shsm
+Plane,right,,9,8,RIGHT,LEFT,102LB,2,west-yard-sheet,4,C4,432 433,C4-OU2-1 C4-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH432)(IH433),virtual-heads+shsm
+West Yard,left,,12,8,LEFT,RIGHT,117RB,2,west-yard-sheet,13,C1,1335 1336,C1-OU2-4 C1-OU2-5,IF$shsm:AAR-1946:SL-2-high-abs(IH1335)(IH1336),virtual-heads+shsm
+West Yard,right,,14,8,RIGHT,LEFT,117LA,2,west-yard-sheet,13,C1,1337 1338,C1-OU2-6 C1-OU3-1,IF$shsm:AAR-1946:SL-2-high-abs(IH1337)(IH1338),virtual-heads+shsm
+East End,left,,33,8,LEFT,RIGHT,112R,2,west-yard-sheet,12,C7,1240 1241,C7-OU3-3 C7-OU3-4,IF$shsm:AAR-1946:SL-2-high-abs(IH1240)(IH1241),virtual-heads+shsm
+Princess,right,,43,8,RIGHT,LEFT,114LB,2,west-yard-sheet,1,D1,139 140,D1-OU2-8 D1-OU3-1,IF$shsm:AAR-1946:SL-2-high-abs(IH139)(IH140),virtual-heads+shsm

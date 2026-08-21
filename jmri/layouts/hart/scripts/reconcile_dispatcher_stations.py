@@ -34,10 +34,10 @@ STATIONS = (
     "West Main Ext",
     "McKees Rocks",
     "McKeesport",
-    "East Lead",
+    "South Yard East",
     "Main East",
     "East Main Ext",
-    "Main West Brick-Plane",
+    "Main West Brick–Plane",
 )
 
 INTERNAL_SENSOR_CLASS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
@@ -51,18 +51,18 @@ PAIR_DX = 26
 # Keep each compact status/command pair near its station block while offsetting
 # it from rails, mast icons, turnout numbers, and the future NX layer.
 STATION_ICON_POSITIONS = {
-    "Main West Brick-Plane": (250, 293),
+    "Main West Brick–Plane": (250, 293),
     "East Main Ext": (360, 390),
     "Main West": (943, 230),
     "Main East": (943, 520),
     "West Main Ext": (1400, 210),
-    "East Lead": (1400, 345),
+    "South Yard East": (1400, 345),
     "McKees Rocks": (1690, 185),
     "McKeesport": (1690, 345),
 }
 
 STATION_DISPLAY_NAMES = {
-    "Main West Brick-Plane": "MW Brick-Plane",
+    "Main West Brick–Plane": "MW Brick-Plane",
 }
 
 

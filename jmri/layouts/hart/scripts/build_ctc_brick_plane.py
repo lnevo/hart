@@ -8,7 +8,7 @@
 # Columns (levers odd switch / even signal), panel left-to-right:
 #   col 1  SW 1/SIG 2   Switch 101, OS 101 (Brick)  - yard tracks converge
 #   col 2  SW 3/SIG 4   Switch 100, OS 100 (Brick)  - Main West / Brick-Plane
-#   col 3  SW 5/SIG 6   Switch 102, OS 102 (Plane)  - East Main Ext / Yard T1
+#   col 3  SW 5/SIG 6   Switch 102, OS 102 (Plane)  - East Main Ext / South Yard Scale
 #
 # Traffic direction sense: JMRI CTC "left" = west. Signals here are
 # directional (sparse Digicon ABS), so sections are uni-directional.
@@ -73,11 +73,11 @@ else:
 
     cols = [
         add_os(1, 1, "Block 4-1", "Switch 101",
-               ["Brick West Yard 1", "Brick West Yard 2"], []),
+               ["101RA", "101RB"], []),
         add_os(3, 2, "Block 4-2", "Switch 100",
-               [], ["Brick East Main West"]),
+               [], ["100L"]),
         add_os(5, 3, "Block 4-5", "Switch 102",
-               [], ["Plane East East Main Ext", "Plane East OS 102"]),
+               [], ["102LB", "102LA"]),
     ]
 
     # Traffic locking auto-generate (same as editor's Auto-Generate button)

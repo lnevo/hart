@@ -1,6 +1,6 @@
 # ADR-005 — Public equipment names (switch / signal / track)
 
-- **Status:** Proposed (mapping locked; rename not executed)
+- **Status:** Accepted (rename executed 2026-08-21; SML re-discover still pending live PanelPro)
 - **Date:** 2026-08-20
 - **Deciders:** lnevo
 - **Amends:** [ADR-002](ADR-002-naming-contract.md) — **Barn** is Switch 117 / 117b; **West Yard** is the yard at Brick; signal names are numbers; T1/T6/T9 are retired; Engine House 1/2/3 top-to-bottom
@@ -106,12 +106,12 @@ After convert: `systemName` columns identical; public strings follow the CSV; oc
 
 ADR-002’s `block_display_names.csv` is superseded for this pass.
 
-## Attack (when executing)
+## Attack (executed 2026-08-21)
 
-There is **no convert script yet**. One cutover from `public_name_map.csv`. Do not hand-edit names in XML.
+Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. Remaining live steps: walk-down node 13, PanelPro SML Discover, load + Run CTC Logic, deploy `--pi --win`. Do not change MQTT topics.
 
 1. Walk-down node 13 (1301=118, 1304–1306=house, 1307=119). Freeze the CSV.  
-2. Write `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
+2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
 3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_hart_sheet_west_yard2.py` then `build_hart_master_abs_hold.py`.  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  
 5. Re-discover SML (dests are mast userNames).  

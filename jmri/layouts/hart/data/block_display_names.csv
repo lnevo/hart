@@ -17,16 +17,16 @@ Switch 113a,OS 113a (Princess),Princess,os,Crossover leg
 Switch 113b,OS 113b (Princess),Princess,os,Crossover leg
 Switch 114,OS 114 (Princess),Princess,os,
 Switch 115,OS 115 (Princess),Princess,os,
-Switch 116,OS 116 (West Yard),West Yard,os,
-Switch 117,OS 117 (West Yard),West Yard,os,
-Switch 117b,OS 117b (West Yard),West Yard,os,
-Switch 118,OS 118 (West Yard),West Yard,os,
-Switch 119,OS 119 (West Yard),West Yard,os,
+Switch 116,OS 116,,os,hand-throw
+Switch 117,OS 117 (Barn),Barn,os,
+Switch 117b,OS 117b (Barn),Barn,os,
+Switch 118,OS 118,,os,hand-throw
+Switch 119,OS 119,,os,hand-throw
 Main West,Main West,,"track",
 Main East,Main East,,"track",
 West Main Ext,West Main Ext,,"track",
 East Main Ext,East Main Ext,,"track",
-East Lead,East Lead,East End,track,
+East Lead,South Yard East,East End,track,
 Block 100-102,Main West Brick–Plane,Brick,track,CP limit Brick–Plane
 West Yard Track 1,West Yard 1,West Yard,yard,
 West Yard Track 2,West Yard 2,West Yard,yard,

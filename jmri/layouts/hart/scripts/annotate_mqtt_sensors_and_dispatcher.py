@@ -59,7 +59,7 @@ UNUSED_OCC = {
 
 # 2091 circuit. Tuple: (block, enter-from along lap, enter-from opposite).
 # FORWARD = lap direction (WME west → Brick → Plane → Barn → Main East →
-# 112 → East Lead → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME).
+# 112 → South Yard East → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME).
 LAP_SECTIONS = [
     ("West Main Ext", "OS 113b (Princess)", "OS 111a (East End)"),
     ("OS 111a (East End)", "West Main Ext", "Main West"),
@@ -67,12 +67,12 @@ LAP_SECTIONS = [
     ("OS 100 (Brick)", "Main West", "Main West Brick–Plane"),
     ("Main West Brick–Plane", "OS 100 (Brick)", "OS 102 (Plane)"),
     ("OS 102 (Plane)", "Main West Brick–Plane", "East Main Ext"),
-    ("East Main Ext", "OS 102 (Plane)", "OS 117b (West Yard)"),
-    ("OS 117b (West Yard)", "East Main Ext", "Main East"),
-    ("Main East", "OS 117b (West Yard)", "OS 112 (East End)"),
-    ("OS 112 (East End)", "Main East", "East Lead"),
-    ("East Lead", "OS 112 (East End)", "OS 113a (Princess)"),
-    ("OS 113a (Princess)", "East Lead", "OS 114 (Princess)"),
+    ("East Main Ext", "OS 102 (Plane)", "OS 117b (Barn)"),
+    ("OS 117b (Barn)", "East Main Ext", "Main East"),
+    ("Main East", "OS 117b (Barn)", "OS 112 (East End)"),
+    ("OS 112 (East End)", "Main East", "South Yard East"),
+    ("South Yard East", "OS 112 (East End)", "OS 113a (Princess)"),
+    ("OS 113a (Princess)", "South Yard East", "OS 114 (Princess)"),
     ("OS 114 (Princess)", "OS 113a (Princess)", "McKeesport"),
     ("McKeesport", "OS 114 (Princess)", "McKees Rocks"),
     ("McKees Rocks", "McKeesport", "OS 115 (Princess)"),
@@ -89,10 +89,10 @@ TRANSIT_SEQ = [
     ("Main West Brick–Plane", FORWARD),
     ("OS 102 (Plane)", FORWARD),
     ("East Main Ext", FORWARD),
-    ("OS 117b (West Yard)", FORWARD),
+    ("OS 117b (Barn)", FORWARD),
     ("Main East", FORWARD),
     ("OS 112 (East End)", FORWARD),
-    ("East Lead", FORWARD),
+    ("South Yard East", FORWARD),
     ("OS 113a (Princess)", FORWARD),
     ("OS 114 (Princess)", FORWARD),
     ("McKeesport", FORWARD),
@@ -274,7 +274,7 @@ def build_transits_xml() -> str:
         '    <transit systemName="IZ:HART:2091" userName="2091 West Main Ext lap">',
         "      <systemName>IZ:HART:2091</systemName>",
         "      <userName>2091 West Main Ext lap</userName>",
-        "      <comment>WME → 111 → Brick → Plane → Barn 117 → Main East → 112 → East Lead → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
+        "      <comment>WME → 111 → Brick → Plane → Barn 117 → Main East → 112 → South Yard East → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
     ]
     for seq, (name, direction) in enumerate(TRANSIT_SEQ, start=1):
         iy = sys_by_user[name]

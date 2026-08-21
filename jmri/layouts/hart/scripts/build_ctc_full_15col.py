@@ -84,15 +84,15 @@ def add_os(sw_num, col, os_sensor, turnout, ltr_masts, rtl_masts,
 
 # Brick + Plane
 add_os(1, 1, "Block 4-1", "Switch 101",
-       ["Brick West Yard 1", "Brick West Yard 2"], [], left_hand=True)
+       ["101RA", "101RB"], [], left_hand=True)
 add_os(3, 2, "Block 4-2", "Switch 100",
-       [], ["Brick East Main West"], left_hand=True)
+       [], ["100L"], left_hand=True)
 add_os(5, 3, "Block 4-5", "Switch 102",
-       [], ["Plane East East Main Ext", "Plane East OS 102"], left_hand=True)
+       [], ["102LB", "102LA"], left_hand=True)
 # Barn
 add_os(7, 4, "Block 13-3", "Switch 117",
-       ["West Yard West OS 117", "West Yard West East Main Ext"],
-       ["West Yard East OS 117b", "West Yard East Yard T6"],
+       ["117RA", "117RB"],
+       ["117LA", "117LB"],
        secondary="Block 13-4", ttype=CROSSOVER, left_hand=True)
 # Yard ladder is switch-only (no CTC homes). Lock toggles default Local
 # via ctc_default_reverse_levers.py / IX:CTC:REVDEF.
@@ -102,27 +102,27 @@ add_os(11, 6, "Block 3-2", "Switch 103", [], [])
 add_os(13, 7, "Block 12-1", "Switch 107", [], [])
 add_os(15, 8, "Block 12-3", "Switch 108", [], [])
 add_os(17, 9, "Block 12-4", "Switch 111",
-       ["East End West Main West", "East End West Yard Track 1"],
-       ["East End East OS 111a"],
+       ["111RA", "111RB"],
+       ["111L"],
        secondary="Block 12-6", ttype=CROSSOVER)
 add_os(19, 10, "Block 12-5", "Switch 109", [], [])
 add_os(21, 11, "Block 12-7", "Switch 110",
-       ["East End South OS 110"], [], left_hand=True)
+       ["110R"], [], left_hand=True)
 add_os(23, 12, "Block 12-8", "Switch 112",
-       ["East End South OS 112"], ["East End East Lead"], left_hand=True)
+       ["112R"], ["112L"], left_hand=True)
 # Princess
 add_os(25, 13, "Block 1-5", "Switch 113",
-       ["Princess West OS 113b", "Princess West OS 113a"], [],
+       ["113RA", "113RB"], [],
        secondary="Block 1-6", ttype=CROSSOVER, left_hand=True)
 # Balloon: 114/115 BOTH. Each SIDI list needs a unique mast (JMRI
 # rejects empty lists and forbids sharing a mast across columns).
 # Eastbound homes on the loop were previously unlisted.
 c114 = add_os(27, 14, "Block 1-3", "Switch 114",
-       ["Princess East McKees Rocks"],
-       ["Princess East K-2", "Princess South McKeesport"])
+       ["115R"],
+       ["114LA", "114LB"])
 c115 = add_os(29, 15, "Block 1-4", "Switch 115",
-       ["Princess East McKeesport"],
-       ["Princess East K-1", "Princess North McKees Rocks"], left_hand=True)
+       ["114R"],
+       ["115LA", "115LB"], left_hand=True)
 c114._mSIDI_TrafficDirection = BOTH
 c115._mSIDI_TrafficDirection = BOTH
 

@@ -15,7 +15,7 @@ TOL17,OS 105 (South Yard),M2T310,M2T310,points_command
 TOR36,OS 114 (Princess),M2T109,M2T109,points_command
 TOR14,OS 103 (South Yard),M2T308,M2T308,points_command
 TO113,OS 113b (Princess),Switch 113,Switch 113,points_command
-TO1,OS 116 (West Yard),Switch 116,Switch 116,points_command
-TO10,OS 119 (West Yard),Switch 119,Switch 119,points_command
-TO117,OS 117 (West Yard),Switch 117,Switch 117,points_command
-TO11,OS 118 (West Yard),Switch 118,Switch 118,points_command
+TO1,OS 116,Switch 116,Switch 116,points_command
+TO10,OS 119,Switch 119,Switch 119,points_command
+TO117,OS 117 (Barn),Switch 117,Switch 117,points_command
+TO11,OS 118,Switch 118,Switch 118,points_command

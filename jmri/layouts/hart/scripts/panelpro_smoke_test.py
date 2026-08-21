@@ -16,10 +16,10 @@ STATIONS = (
     "West Main Ext",
     "McKees Rocks",
     "McKeesport",
-    "East Lead",
+    "South Yard East",
     "Main East",
     "East Main Ext",
-    "Main West Brick-Plane",
+    "Main West Brick–Plane",
 )
 
 
