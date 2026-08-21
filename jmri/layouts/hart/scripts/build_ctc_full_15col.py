@@ -118,10 +118,10 @@ add_os(25, 13, "Block 1-5", "Switch 113",
 # rejects empty lists and forbids sharing a mast across columns).
 # Eastbound homes on the loop were previously unlisted.
 c114 = add_os(27, 14, "Block 1-3", "Switch 114",
-       ["Princess East McKeesport"],
+       ["Princess East McKees Rocks"],
        ["Princess East K-2", "Princess South McKeesport"])
 c115 = add_os(29, 15, "Block 1-4", "Switch 115",
-       ["Princess East McKees Rocks"],
+       ["Princess East McKeesport"],
        ["Princess East K-1", "Princess North McKees Rocks"], left_hand=True)
 c114._mSIDI_TrafficDirection = BOTH
 c115._mSIDI_TrafficDirection = BOTH

@@ -1,0 +1,35 @@
+sectionUserName
+Brick East Main West:West Yard West East Main Ext
+Brick East Main West:West Yard West OS 117
+Brick West Yard 1:East End West Main West
+Brick West Yard 2:East End West Main West
+East End East Lead:Brick East Main West
+East End East Lead:West Yard East OS 117b
+East End East Lead:West Yard East Yard T6
+East End East OS 111a:Brick East Main West
+East End South OS 110:Princess West OS 113a
+East End South OS 112:Princess West OS 113a
+East End West Main West:Princess West OS 113a
+East End West Main West:Princess West OS 113b
+East End West Yard Track 1:Princess West OS 113a
+Plane East East Main Ext:East End West Main West
+Plane East OS 102:East End West Main West
+Princess East K-1:East End East Lead
+Princess East K-1:East End East OS 111a
+Princess East K-2:East End East Lead
+Princess East McKees Rocks:Princess South McKeesport
+Princess East McKeesport:Princess North McKees Rocks
+Princess North McKees Rocks:East End East Lead
+Princess North McKees Rocks:East End East OS 111a
+Princess South McKeesport:East End East Lead
+Princess West OS 113a:Princess East McKees Rocks
+Princess West OS 113a:Princess East McKeesport
+Princess West OS 113b:Princess East McKees Rocks
+West Yard East OS 117b:Plane East East Main Ext
+West Yard East Yard T6:Plane East East Main Ext
+West Yard East Yard T6:Plane East OS 102
+West Yard West East Main Ext:East End South OS 110
+West Yard West East Main Ext:East End South OS 112
+West Yard West East Main Ext:East End West Yard Track 1
+West Yard West OS 117:East End South OS 110
+West Yard West OS 117:East End West Yard Track 1

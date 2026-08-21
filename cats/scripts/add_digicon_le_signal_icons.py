@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Place Digicon West Yard JMRI signal masts as Layout Editor SignalMastIcons.
+"""Place HART JMRI signal masts as Layout Editor SignalMastIcons.
 
-Targets tables/new_tables.xml (writable SoR) and syncs hart output + Mac preference
-tables when present. Brick East Main West (IH438/IH439) sits east of Brick / switch 100;
-Plane East OS 102 takes the former icon spot near switch 102.
+Targets tables/new_tables.xml (writable SoR). Synchronization is opt-in because
+output/tables.xml also contains CTC data that must never be replaced by the
+working file. The reviewed coordinates put horizontal masts on the engineer's
+right side of the governed track.
 
 Mac/Pi/Windows-safe when cats-virtual appearances include imagelinks.
 Digicon also binds by userName (LE icons optional for Digicon itself).
@@ -13,15 +14,12 @@ from __future__ import annotations
 
 import argparse
 import re
-import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PANEL = ROOT / "tables/new_tables.xml"
-SYNC_COPIES = [
-    ROOT / "jmri/layouts/hart/output/tables.xml",
-    ROOT / "jmri/layouts/hart/output/hart_prod.xml",
-]
+OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
 
 # Digicon PANELSIGNAL SIGORIENT → LE SignalMastIcon degrees (AAR schematic GIFs):
@@ -29,42 +27,38 @@ PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tabl
 #   LEFT  → 270 (horizontal, heads west / post east)
 #   TOP   → 0   (vertical upright)
 #   BOTTOM→ 180
-# Positions are first-pass; Digicon cell facing is SoR for rotation.
+# Positions are the reviewed LE standard. Digicon cell facing remains the SoR
+# for route direction, while the LE x/y puts each mast trackside.
 PLACEMENTS: list[tuple[str, int, int, int]] = [
-    # Brick — east face SIGORIENT LEFT; W-1/W-2 west stubs RIGHT (dwarf masts)
-    ("Brick East Main West", 372, 228, 270),
-    ("Brick West Yard 1", 170, 228, 90),
-    ("Brick West Yard 2", 170, 298, 90),
-    # Plane — upper (OS 102) even with East Lead; Main Ext even with barn main-east
-    ("Plane East OS 102", 335, 322, 270),
-    ("Plane East East Main Ext", 335, 370, 270),
-    # Barn — uppers even with East Lead (322); main-east row at 370
-    ("West Yard West OS 117", 420, 322, 90),
-    ("West Yard East Yard T6", 520, 322, 270),
-    ("West Yard West East Main Ext", 420, 370, 90),
-    ("West Yard East OS 117b", 538, 370, 270),
-    # East End — East Lead west under track; OS 112 further down clear of 110
-    ("East End West Main West", 1135, 228, 90),
-    ("East End East OS 111a", 1225, 228, 270),
-    ("East End West Yard Track 1", 1135, 298, 90),
-    ("East End East Lead", 1375, 322, 270),
-    ("East End South OS 110", 1315, 305, 0),
-    ("East End South OS 112", 1325, 358, 90),
-    # Princess
-    ("Princess North McKees Rocks", 1620, 198, 270),
-    ("Princess West OS 113b", 1465, 228, 90),
-    ("Princess West OS 113a", 1465, 322, 90),
-    ("Princess South McKeesport", 1620, 348, 270),
-    ("Princess East McKees Rocks", 1855, 205, 0),
-    ("Princess East McKeesport", 1855, 345, 180),
-    ("Princess East K-1", 1685, 228, 270),
-    ("Princess East K-2", 1685, 322, 270),
+    ("Brick East Main West", 378, 222, 270),
+    ("Brick West Yard 1", 185, 258, 90),
+    ("Brick West Yard 2", 185, 321, 90),
+    ("Plane East OS 102", 360, 297, 270),
+    ("Plane East East Main Ext", 365, 345, 270),
+    ("West Yard West OS 117", 435, 321, 90),
+    ("West Yard East Yard T6", 534, 297, 270),
+    ("West Yard West East Main Ext", 425, 368, 90),
+    ("West Yard East OS 117b", 534, 344, 270),
+    ("East End West Main West", 1095, 258, 90),
+    ("East End East OS 111a", 1225, 222, 270),
+    ("East End West Yard Track 1", 1135, 321, 90),
+    ("East End East Lead", 1392, 285, 270),
+    ("East End South OS 110", 1248, 350, 60),
+    ("East End South OS 112", 1320, 348, 60),
+    ("Princess North McKees Rocks", 1608, 185, 225),
+    ("Princess West OS 113b", 1465, 258, 90),
+    ("Princess West OS 113a", 1465, 321, 90),
+    ("Princess South McKeesport", 1628, 322, 310),
+    ("Princess East McKees Rocks", 1810, 276, 180),
+    ("Princess East McKeesport", 1855, 276, 0),
+    ("Princess East K-1", 1665, 239, 270),
+    ("Princess East K-2", 1665, 302, 270),
 ]
 
 ICON_ATTRS = (
     'level="9" forcecontroloff="false" hidden="no" positionable="true" '
     'showtooltip="true" editable="false" clickmode="0" litmode="false" '
-    'scale="1.5" imageset="default" '
+    'scale="1.0" imageset="default" '
     'class="jmri.jmrit.display.configurexml.SignalMastIconXml"'
 )
 
@@ -117,27 +111,35 @@ def patch_file(path: Path, *, dry_run: bool = False) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, default=DEFAULT_PANEL)
-    ap.add_argument("--no-sync", action="store_true")
-    ap.add_argument("--no-pref", action="store_true", help="Do not update Mac preference tables")
+    ap.add_argument(
+        "--sync-output",
+        action="store_true",
+        help="Patch output/tables.xml and hart_prod.xml independently",
+    )
+    ap.add_argument(
+        "--sync-pref",
+        action="store_true",
+        help="Patch the Mac preference tables independently",
+    )
+    ap.add_argument(
+        "--no-sync",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
     patch_file(args.panel, dry_run=args.dry_run)
-    if args.no_sync or args.dry_run:
+    if args.dry_run:
         return
-    for dest in SYNC_COPIES:
-        if not dest.is_file():
-            print(f"SKIP sync missing {dest}")
-            continue
-        # hart_prod may lack some masts — still place icons; JMRI ignores unknown quietly
-        if dest.name == "hart_prod.xml":
+    if args.sync_output:
+        for dest in (OUTPUT_TABLES, STANDALONE_PANEL):
+            if not dest.is_file():
+                print(f"SKIP sync missing {dest}")
+                continue
             patch_file(dest)
-        else:
-            shutil.copy2(args.panel, dest)
-            print(f"synced {dest.relative_to(ROOT)}")
-    if not args.no_pref and PREF_TABLES.is_file():
-        shutil.copy2(args.panel, PREF_TABLES)
-        print(f"synced preference {PREF_TABLES}")
+    if args.sync_pref and PREF_TABLES.is_file():
+        patch_file(PREF_TABLES)
 
 
 if __name__ == "__main__":

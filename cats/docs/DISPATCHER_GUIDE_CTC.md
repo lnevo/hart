@@ -14,6 +14,10 @@ software manual (menus, install, Designer, MQTT). For that, see the CATS PDF in
 
 → [`jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md) (DS-DISP)
 
+To **run a train automatically** between stations (PanelPro, not CATS):
+[`../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md)
+(DS-AUTO).
+
 Run **either** CATS CTC **or** the JMRI USS panel — never both. Both drive Hold on the
 same masts. CATS ABS is a view-only mimic and is fine alongside either.
 

@@ -1,6 +1,6 @@
 # ADR-002 — Public naming contract (CP / OS / tracks)
 
-- **Status:** Accepted
+- **Status:** Accepted (amended 2026-08-20 by [ADR-005](ADR-005-public-equipment-names.md))
 - **Date:** 2026-08-07
 - **Deciders:** lnevo
 
@@ -13,8 +13,8 @@ The panel mixes `Switch 10x`, MQTT system names, geography, and station labels. 
 ### Label hierarchy (visible)
 
 1. **Area** — Neville Island, West Yard, South Yard, Industries, directions  
-2. **Control point** — Brick, Plane, East End, Princess  
-3. **Track** — Main West, Main East, Track 1…5, East Lead  
+2. **Control point** — Brick, Plane, Barn, East End, Princess
+3. **Track** — Main West, Main East, South Yard 1…5, South Yard Scale / West / East
 4. **Equipment** — DCC / switch numbers (100–119) as small labels only  
 
 ### Block user names (public)
@@ -35,12 +35,12 @@ Switch / MQTT / DCC IDs remain in turnout table comments and mapping CSVs — no
 |----|----------|
 | Brick | 100, 101 |
 | Plane | 102 |
-| West Yard | 116, 117, 117b, 118, 119 |
+| **Barn** | 117, 117b |
 | South Yard | 103, 104, 105, 106 |
 | East End | 107, 108, 109, 110, 111a, 111b, 112 |
 | Princess | 113a, 113b, 114, 115 |
 
-Source of truth for renames: `jmri/layouts/hart/data/block_display_names.csv`.
+Source of truth for this pass: [`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv) (ADR-005). `block_display_names.csv` is historical.
 
 ## Consequences
 

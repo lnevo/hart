@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-"""Apply dispatcher label hierarchy on hart panel CP / area labels (in-place XML)."""
+"""Apply the HART dispatcher label hierarchy without replacing config files.
+
+The canonical writable target is tables/new_tables.xml.  Output files are
+patched independently when ``--sync-output`` is requested so their CTC/SML
+content cannot be lost through a whole-file copy.
+"""
 
 from __future__ import annotations
 
-import shutil
+import argparse
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-HART = Path(__file__).resolve().parents[1] / "layouts" / "hart"
-SRC = HART / "output" / "hart_prod.xml"
+ROOT = Path(__file__).resolve().parents[2]
+HART = ROOT / "jmri/layouts/hart"
+SRC = ROOT / "tables/new_tables.xml"
+OUTPUTS = [HART / "output/tables.xml", HART / "output/hart_prod.xml"]
 
 # text -> (size, style)  style 1=bold
 HIERARCHY = {
@@ -23,11 +30,18 @@ HIERARCHY = {
 }
 
 
-def main() -> int:
-    tree = ET.parse(SRC)
+def apply(path: Path) -> int:
+    tree = ET.parse(path)
     root = tree.getroot()
+    editors = [
+        le for le in root.findall("LayoutEditor")
+        if len(le.findall("tracksegment")) >= 90
+    ]
+    if len(editors) != 1:
+        raise SystemExit(f"expected one HART geometry panel in {path}, found {len(editors)}")
+    le = editors[0]
     n = 0
-    for el in root.iter("positionablelabel"):
+    for el in le.iter("positionablelabel"):
         text = el.get("text") or ""
         if text not in HIERARCHY:
             continue
@@ -36,11 +50,21 @@ def main() -> int:
         el.set("style", style)
         n += 1
 
-    out = HART / "output" / "hart_blocked.xml"
-    tree.write(out, encoding="UTF-8", xml_declaration=True)
-    shutil.copy2(out, HART / "output" / "hart_prod.xml")
-    shutil.copy2(out, HART / "authoritative" / "hart.xml")
-    print(f"Updated {n} labels → {out}")
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    print(f"Updated {n} labels → {path}")
+    return n
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--panel", type=Path, default=SRC)
+    ap.add_argument("--sync-output", action="store_true")
+    args = ap.parse_args()
+
+    apply(args.panel)
+    if args.sync_output and args.panel.resolve() == SRC.resolve():
+        for output in OUTPUTS:
+            apply(output)
     return 0
 
 

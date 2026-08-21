@@ -1,0 +1,6 @@
+working: tables/new_tables.xml (panel=My Layout, errors=0, warnings=0)
+deployment: jmri/layouts/hart/output/tables.xml (panel=My Layout, errors=0, warnings=0)
+standalone: jmri/layouts/hart/output/hart_prod.xml (panel=HART, errors=0, warnings=0)
+source drift: 0 difference(s)
+RESULT: PASS (default; hard errors=0, warnings=0, drift=0)
+EXIT:0

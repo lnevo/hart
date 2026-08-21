@@ -2,7 +2,7 @@
 All occ clear; 113/114/115/110/111/117/100/102 CLOSED, 112 THROWN (field rest).
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Clear   —             
 East End East OS 111a                      Approach       —             
@@ -29,7 +29,7 @@ West Yard West OS 117                      Stop           —
 115 THROWN: main runs via McKees Rocks balloon; K-1 cut off.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Clear   —             
 East End East OS 111a                      Approach       —             
@@ -46,7 +46,7 @@ Princess East McKeesport                   Restricting    —
 Princess North McKees Rocks                Medium Clear   —             
 Princess South McKeesport                  Stop           —             
 Princess West OS 113a                      Approach       —             
-Princess West OS 113b                      Medium Approach —             
+Princess West OS 113b                      Approach       —             
 West Yard East OS 117b                     Approach       —             
 West Yard East Yard T6                     Restricting    —             
 West Yard West East Main Ext               Clear          —             
@@ -56,7 +56,7 @@ West Yard West OS 117                      Stop           —
 115 THROWN + West Main Ext occupied: Rocks-main path fouled.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Restricting    —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Clear   —             
 East End East OS 111a                      Approach       —             
@@ -73,7 +73,7 @@ Princess East McKeesport                   Restricting    —
 Princess North McKees Rocks                Stop           —             
 Princess South McKeesport                  Stop           —             
 Princess West OS 113a                      Approach       —             
-Princess West OS 113b                      Medium Approach —             
+Princess West OS 113b                      Approach       —             
 West Yard East OS 117b                     Approach       —             
 West Yard East Yard T6                     Restricting    —             
 West Yard West East Main Ext               Clear          —             
@@ -83,7 +83,7 @@ West Yard West OS 117                      Stop           —
 114 THROWN: main runs via McKeesport balloon; K-2 cut off.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Clear   —             
 East End East OS 111a                      Approach       —             
@@ -110,7 +110,7 @@ West Yard West OS 117                      Stop           —
 114 THROWN + McKeesport balloon occupied (A48 boundary test).
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Clear   —             
 East End East OS 111a                      Approach       —             
@@ -137,7 +137,7 @@ West Yard West OS 117                      Stop           —
 East Lead occupied: K-2's route to East Lead mast fouled; K-1 (via 111a) unaffected.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Clear   —             
 East End East OS 111a                      Approach       —             
@@ -164,7 +164,7 @@ West Yard West OS 117                      Stop           —
 110 THROWN + 112 CLOSED: ladder move OS110 -> East Lead -> 113a lined.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Stop           —             
 East End East OS 111a                      Approach       —             
@@ -191,7 +191,7 @@ West Yard West OS 117                      Stop           —
 110 CLOSED again: OS 110 dwarf back to Stop.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Stop           —             
 East End East OS 111a                      Approach       —             
@@ -218,7 +218,7 @@ West Yard West OS 117                      Stop           —
 East Main Ext occupied: 117b's route to Plane EME fouled.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Approach —             
 East End East OS 111a                      Approach       —             
@@ -245,7 +245,7 @@ West Yard West OS 117                      Stop           —
 117 THROWN: T6 mast routes to Plane EME; 117b cut off.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Approach —             
 East End East OS 111a                      Approach       —             
@@ -326,7 +326,7 @@ West Yard West OS 117                      Stop           —
 Everything back at field rest.
 mast                                       SML            CATS-twin
 Brick East Main West                       Stop           —             
-Brick West Yard 1                          Slow Clear     —             
+Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Medium Clear   —             
 East End East OS 111a                      Approach       —             
@@ -352,26 +352,26 @@ West Yard West OS 117                      Stop           —
 ## qa99_restored
 Retained baseline restored.
 mast                                       SML            CATS-twin
-Brick East Main West                       Medium Clear   —             
+Brick East Main West                       Medium Approach —             
 Brick West Yard 1                          Stop           —             
 Brick West Yard 2                          Stop           —             
 East End East Lead                         Stop           —             
 East End East OS 111a                      Clear          —             
-East End South OS 110                      Restricting    —             
+East End South OS 110                      Stop           —             
 East End South OS 112                      Stop           —             
 East End West Main West                    Clear          —             
 East End West Yard Track 1                 Stop           —             
 Plane East East Main Ext                   Medium Clear   —             
 Plane East OS 102                          Stop           —             
-Princess East K-1                          Slow Clear     —             
+Princess East K-1                          Stop           —             
 Princess East K-2                          Stop           —             
-Princess East McKees Rocks                 Restricting    —             
+Princess East McKees Rocks                 Slow Clear     —             
 Princess East McKeesport                   Restricting    —             
-Princess North McKees Rocks                Stop           —             
+Princess North McKees Rocks                Medium Clear   —             
 Princess South McKeesport                  Medium Approach —             
 Princess West OS 113a                      Medium Approach —             
 Princess West OS 113b                      Approach       —             
 West Yard East OS 117b                     Clear          —             
 West Yard East Yard T6                     Restricting    —             
-West Yard West East Main Ext               Approach       —             
+West Yard West East Main Ext               Stop           —             
 West Yard West OS 117                      Stop           —             

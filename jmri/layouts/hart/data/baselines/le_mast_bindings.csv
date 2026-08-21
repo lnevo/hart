@@ -1,0 +1,24 @@
+kind,ident,slot,mast
+point,A48,east,Princess East McKees Rocks
+point,A48,west,Princess East McKeesport
+turnout,TO111,A,East End West Main West
+turnout,TO111,B,East End East OS 111a
+turnout,TO111,D,East End West Yard Track 1
+turnout,TO113,A,Princess West OS 113b
+turnout,TO113,D,Princess West OS 113a
+turnout,TO117,A,West Yard West OS 117
+turnout,TO117,B,West Yard East Yard T6
+turnout,TO117,C,West Yard East OS 117b
+turnout,TO117,D,West Yard West East Main Ext
+turnout,TOL23,A,East End East Lead
+turnout,TOL23,C,East End South OS 112
+turnout,TOL29,B,Princess East K-1
+turnout,TOL29,C,Princess North McKees Rocks
+turnout,TOL3,A,Brick East Main West
+turnout,TOL38,B,Brick West Yard 1
+turnout,TOL38,C,Brick West Yard 2
+turnout,TOL42,B,Plane East East Main Ext
+turnout,TOL42,C,Plane East OS 102
+turnout,TOL6,C,East End South OS 110
+turnout,TOR36,B,Princess East K-2
+turnout,TOR36,C,Princess South McKeesport

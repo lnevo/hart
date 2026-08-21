@@ -359,11 +359,11 @@ SIGNALS = [
     ("Princess West OS 113b",      848,  N,  "E", "h2", None),
     ("Princess West OS 113a",      848,  S,  "E", "h2", None),
     # Princess 114 balloon
-    ("Princess East McKeesport",   960,  MK, "E", "d1", "IH134"),
+    ("Princess East McKeesport",  1088,  MK, "E", "d1", "IH134"),
     ("Princess East K-2",         1050,  S,  "W", "d1", "IH143"),
     ("Princess South McKeesport", 1050,  MK, "W", "h2", None),
     # Princess 115 balloon
-    ("Princess East McKees Rocks", 1020, MR, "E", "d1", "IH141"),
+    ("Princess East McKees Rocks", 1088, MR, "E", "d1", "IH141"),
     ("Princess East K-1",         1050,  N,  "W", "d1", "IH142"),
     ("Princess North McKees Rocks", 1050, MR, "W", "h2", None),
 ]

@@ -20,5 +20,5 @@ turnout,TOL29,B,Princess East K-1,B=K-1 stub block (detector Block 1-4 shared wi
 turnout,TOL29,C,Princess North McKees Rocks,C=McKees Rocks (boundary at turnout); icon deg 270 faces west
 turnout,TOR36,B,Princess East K-2,B=K-2 stub block (detector Block 1-3 shared with OS 114)
 turnout,TOR36,C,Princess South McKeesport,C=McKeesport (boundary at turnout); icon deg 270 faces west
-anchor,A48,east,Princess East McKeesport,south slot y=345 faces south (deg 180); CATS (45,7) TOP SIGORIENT BOTTOM
-anchor,A48,west,Princess East McKees Rocks,north slot y=205 faces north (deg 0); CATS (45,6) BOTTOM SIGORIENT TOP
+anchor,A48,east,Princess East McKees Rocks,north-track signal protects McKeesport and OS 114; CATS (45,6) BOTTOM SIGORIENT TOP
+anchor,A48,west,Princess East McKeesport,south-track signal protects McKees Rocks and OS 115; CATS (45,7) TOP SIGORIENT BOTTOM

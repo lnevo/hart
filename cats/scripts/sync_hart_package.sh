@@ -39,7 +39,44 @@ elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
   TABLES="$ROOT/tables/new_tables.xml"
 fi
 
+PANEL_AUDIT="$ROOT/jmri/layouts/hart/scripts/audit_panel_contracts.py"
+if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
+  python3 "$PANEL_AUDIT" --strict
+fi
+
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
+
+install_dispatcher_facing_patch() {
+  local patch="$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
+  local startup="$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
+  local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
+  [[ -f "$patch" && -f "$startup" ]] || return 0
+  _install_facing_into() {
+    local profile="$1"
+    local dest="$profile/jython"
+    mkdir -p "$dest"
+    cp -f "$patch" "$startup" "$dest/"
+    echo "Dispatcher compatibility scripts -> $dest"
+    if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
+      mkdir -p "$profile/dispatcher/traininfo"
+      cp -f "$traininfo/"*.xml "$profile/dispatcher/traininfo/"
+      echo "Dispatcher traininfo -> $profile/dispatcher/traininfo"
+    fi
+  }
+  if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
+    for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
+      [[ -d "$d" ]] && _install_facing_into "$d"
+    done
+  fi
+  if [[ -d "${HOME}/.jmri" ]]; then
+    for d in "${HOME}/.jmri"/*.jmri; do
+      [[ -d "$d" ]] && _install_facing_into "$d"
+    done
+  fi
+  if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
+    _install_facing_into "${HOME}/JMRI_UserFiles"
+  fi
+}
 
 install_ctc_icons_local() {
   local src="$ROOT/jmri/layouts/hart/ctc"
@@ -80,6 +117,7 @@ install_ctc_icons_local() {
 if [[ "$DO_MAC_WEB" -eq 1 ]]; then
   bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
   install_ctc_icons_local
+  install_dispatcher_facing_patch
 fi
 
 if [[ "$DO_PI" -eq 1 ]]; then
@@ -152,6 +190,9 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
     "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
+    "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
+    "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
+    "$ROOT/jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py" \
     "$PI_HOST:/home/pi/hart/jmri/layouts/hart/scripts/"
   # Native SML cutover: retired startup workarounds must stay out of the Pi
   # profile. apply_sml_cats_pairs: SML lives in tables.xml via Discover.
@@ -189,6 +230,12 @@ if [[ "$DO_PI" -eq 1 ]]; then
       "$PI_HOST:/home/pi/JMRI_UserFiles/dispatcher/dispatcheroptions.xml"
     echo "Pi dispatcheroptions.xml updated"
   fi
+  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/jython'
+  scp -o BatchMode=yes \
+    "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
+    "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
+    "$PI_HOST:/home/pi/JMRI_UserFiles/jython/"
+  echo "Pi Dispatcher compatibility scripts updated"
   # Digicon SHSM appearances (incl. dwarf) for LE + mast load
   ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/resources/signals/cats-masts /home/pi/hart/cats/resources/signals/cats-masts'
   scp -o BatchMode=yes \
@@ -238,7 +285,7 @@ fi
 
 if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Deploy → Windows ($WIN_HOST:$WIN_PORT)..."
-  ssh_win 'mkdir hart\cats\panels hart\cats\resources\buttons hart\cats\resources\jmri-web\servlet\home hart\cats\scripts\windows hart\jmri\layouts\hart\scripts hart\jmri\scripts hart\ctc\icons 2>nul & mkdir %USERPROFILE%\JMRI_UserFiles\web\servlet\home 2>nul & echo dirs_ok'
+  ssh_win 'mkdir hart\cats\panels hart\cats\resources\buttons hart\cats\resources\jmri-web\servlet\home hart\cats\scripts\windows hart\jmri\layouts\hart\scripts hart\jmri\layouts\hart\dispatcher\traininfo hart\jmri\scripts hart\ctc\icons 2>nul & mkdir %USERPROFILE%\JMRI_UserFiles\web\servlet\home 2>nul & echo dirs_ok'
 
   STAGE=$(mktemp -d)
   for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml HART_Master_CTC_hold.xml; do
@@ -263,7 +310,12 @@ if [[ "$DO_WIN" -eq 1 ]]; then
     "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
     "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
+    "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
+    "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
+    "$ROOT/jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py" \
     "${WIN_HOST}:hart/jmri/layouts/hart/scripts/"
+  scp_win "$ROOT/jmri/layouts/hart/dispatcher/traininfo/"*.xml \
+    "${WIN_HOST}:hart/jmri/layouts/hart/dispatcher/traininfo/"
   if [[ -f "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" ]]; then
     scp_win "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" \
       "${WIN_HOST}:hart/jmri/layouts/hart/scripts/"

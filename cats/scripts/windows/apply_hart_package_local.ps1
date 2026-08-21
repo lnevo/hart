@@ -86,6 +86,35 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
   Write-Host 'No hart\ctc\icons (skip CTC icons)'
 }
 
+$facingSrc = Join-Path $hart 'jmri\layouts\hart\scripts\patch_dispatcher_facing.py'
+$startupSrc = Join-Path $hart 'jmri\layouts\hart\scripts\hart_dispatcher_startup.py'
+$trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
+if ((Test-Path $facingSrc) -and (Test-Path $startupSrc)) {
+  $roots = New-Object System.Collections.Generic.List[string]
+  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  $jmri = Join-Path $env:USERPROFILE 'JMRI'
+  if (Test-Path $jmri) {
+    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+      [void]$roots.Add($_.FullName)
+    }
+  }
+  foreach ($r in ($roots | Select-Object -Unique)) {
+    $dest = Join-Path $r 'jython'
+    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+    Copy-Item $facingSrc (Join-Path $dest 'patch_dispatcher_facing.py') -Force
+    Copy-Item $startupSrc (Join-Path $dest 'hart_dispatcher_startup.py') -Force
+    Write-Host ("Dispatcher compatibility scripts -> {0}\jython" -f $r)
+    if (Test-Path $trainInfoSrc) {
+      $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
+      New-Item -ItemType Directory -Force -Path $trainInfoDest | Out-Null
+      Copy-Item (Join-Path $trainInfoSrc '*.xml') $trainInfoDest -Force
+      Write-Host ("Dispatcher traininfo -> {0}\dispatcher\traininfo" -f $r)
+    }
+  }
+} else {
+  Write-Host 'No Dispatcher compatibility scripts (skip)'
+}
+
 Write-Host 'apply_hart_package_local done'
 
 $desk = Join-Path $hart 'cats\scripts\windows\create_hart_master_desktop.ps1'

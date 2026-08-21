@@ -2,11 +2,40 @@
 
 Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is back on the 117 yard lead. **CATS CTC** / **CATS ABS** still `HOLD_ONLY` and paint SML. System overview: [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).
 
+## Layout Editor polish contract (2026-08-20)
+
+- Writable full-config source: `tables/new_tables.xml`; deployment bundle:
+  `jmri/layouts/hart/output/tables.xml`; `hart_prod.xml` is the standalone
+  monitor artifact. Never copy the working file wholesale over the deployment
+  bundle because the latter owns USS CTC data.
+- The 23 LE signal icons use consistent right-hand trackside placement and
+  native 1:1 AAR artwork. Redundant `Block n-n` occupancy dots are hidden from
+  the monitor because track coloring already shows occupancy; their beans and
+  logic remain intact. Mast names, IH heads, turnout/anchor bindings, and the
+  36 native SML destinations are unchanged. Reapply/check with
+  `jmri/layouts/hart/scripts/polish_hart_layout_editor.py`.
+- Dispatcher station contract is exactly eight blocks: **Main West, West Main
+  Ext, McKees Rocks, McKeesport, East Lead, Main East, East Main Ext, Main West
+  Brick-Plane**. The deployment graph remains 41 sections / 102 transits / 220
+  HEAD_AND_TAIL traininfo files.
+- **Dispatcher compatibility fixed (2026-08-20):** HART now launches the stock
+  Dispatcher System through `hart_dispatcher_startup.py`, so its classes are
+  patched in the same Jython namespace. Missing registration speed factors
+  default safely to 100%; route-clear checks and allocation highlighting cover
+  only the requested start/destination subsection and fail closed on invalid
+  mappings. The A48
+  change left 40 stale TrainInfo files; all were repaired against the live
+  graph and the smoke gate verifies 220/220 ordered routes. Deployed to Pi,
+  Mac, and Windows profiles.
+- Regression gate:
+  `python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict`.
+
 ## Signals — native SML live (2026-08-18)
 
 - SML is **native**: 36 dests discovered by Layout Editor, stored `useLayoutEditor=yes` in `tables.xml`; the `apply_sml_cats_pairs.py` hand-pair injector and its startup Jython are retired (PAIRS kept as oracle for `cats/scripts/validate_le_signalling.py`). Re-running Discover is safe.
 - Two-head homes retyped to custom **`hart-aar` `SL-2-digicon`** (in `cats/resources/signals/hart-aar/`; deployed by `sync_hart_package.sh`). Stock `SL-2-high-abs` pinned masts at Stop behind an Approach (its mapping only offered undisplayable Advance Approach / Approach Medium) — root cause of the "always red" signals. Dwarfs stay AAR-1946 `SL-1-low`.
 - MQTT mimic QA green (30/30): `cats/screenshots/mimic_qa/run_native_sml_qa.py` — covers 100/102, 110, 111a, 114/115, K-1/K-2, A48 balloon occupancy, 117/117b, incl. diverging **Medium Clear** (R/G) and 3-aspect **Clear** chaining. Notes: `cats/screenshots/mimic_qa/native_sml_qa_notes.md`; runtime criteria dump: `jmri/layouts/hart/scripts/dump_sml_criteria.py`.
+- **A48 balloon facing corrected (2026-08-20):** because A48 joins the east ends of both loop blocks, the McKeesport mast (`IH134`) protects McKees Rocks / OS 115 and the McKees Rocks mast (`IH141`) protects McKeesport / OS 114. The CATS icon positions and physical IH wiring were already correct; only the Layout Editor directional slots and native SML/section associations were reversed. Live Pi verification after deployment: `IH134` Yellow, `IH141` Green.
 - **CATS "blank windows" bug fixed (2026-08-18)**: unpainted System Console / clock / WiThrottle windows were CATS `Screen.init` dying on the Swing EDT at panel load, not LogixNG. Two causes, both fixed: (1) K-1/K-2 boundary sections (43,6)/(43,7) had anonymous `<BLOCK />` edges → `ClassCastException` in `discoverAdvanceVitalLogic`; now named `OS 115 (Princess)`/`OS 114 (Princess)` in all four Masters. (2) drive-mode templates requested `Restricting`, which `hart-aar` masts don't define → `IllegalArgumentException`; `aar_aspect_bridge.py` now maps RES_\*→Stop and R283/R286→Medium Clear/Medium Approach (CATS lamps paint the diverging pair). Verified: CATS ABS loads clean on the Pi, all windows paint.
 - **Held ownership (2026-08-18)**: `unhold_signal_masts.py` retired (removed from Mac/Pi profiles, sync, and installers). Masts boot Unheld, so SML runs ABS by default with no script; **Held is CATS CTC's channel**. Verified live on the Pi: CTC load holds all 25 masts at Stop; left-click entrance (`Princess West OS 113b`) → CATS unholds, SML posts Approach, MQTT head goes Yellow; click again → re-held, Stop, Red.
 
@@ -71,6 +100,7 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
 - **2091 speed profile**: synthesized linear profile (10 steps, 400 mm/s at full) written into the Pi roster via the JMRI API — required by the system (registration lists only speed-profiled locos, traininfo uses `usespeedprofile=yes`). Replace with a measured profile (Roster ▸ Speed Profiling) for accurate station stops.
 - Dispatcher options: `autoturnouts=yes` + `useturnoutconnectiondelay=yes` added (Stage 2 requirements); rest already correct (`usesignaltype=signalmast`, roster trains, auto-allocate, HO scale).
 - Cleanups en route: K-1/K-2 block lengths set (609.6 mm); en-dashes removed from `Yard T6` comment and the `Main West Brick-Plane` block name (DispatcherSystem scripts crash on non-ASCII).
+- Operator guide: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md).
 - **To test (layout on)**: launch PanelPro (not CATS) on the Pi → Dispatcher System panel ▸ *Run Dispatcher System* ▸ OK → place 2091 at a station ▸ *Setup Train in Section* (pick block, train, facing) → *Run Dispatch* ▸ click destination station button. *Simulate Dispatched Trains* dry-runs without hardware.
 - **Hands off the phone throttle during a dispatch.** Root cause of the 2026-08-18 "train runs backwards" incidents: JMRI shares one throttle per loco address, and `AutoActiveTrain`'s direction is the *live throttle direction bit* — the auto engineer asserts it once at dispatch start, never continuously. Any WiThrottle direction press (or re-acquiring the loco, which re-sends the phone's last direction) flips the shared bit, and the next dispatcher speed command drives the train the wrong way (`runInReverse=yes` + `forward=True` observed live). Registration/facing answers were correct all along. Rule: release 2091 from WiThrottle before dispatching, and never nudge a stalled auto train with the phone — terminate and re-dispatch instead.
 - Temporary: `jmri_cmd_watcher.py` is in the TCS_MQTT startup for agent-driven automation; remove with `python3 cats/scripts/patch_jmri_startup.py remove --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml --script jmri_cmd_watcher.py` when done testing.

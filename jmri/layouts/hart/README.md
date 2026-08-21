@@ -19,7 +19,10 @@ export JMRI_LAYOUT=hart
 python3 jmri/scripts/bootstrap_hart_from_linear6.py
 ```
 
-Open in JMRI: **`output/hart_prod.xml`** (same bytes as `hart_blocked.xml` after bootstrap).
+For the complete live configuration, deploy/load **`output/tables.xml`**. It
+contains the Layout Editor, native SML, Dispatcher System, and USS CTC data.
+`output/hart_prod.xml` is the standalone monitor-panel artifact and must not be
+used to replace the complete tables bundle.
 
 | Path | Role |
 |------|------|
@@ -27,7 +30,9 @@ Open in JMRI: **`output/hart_prod.xml`** (same bytes as `hart_blocked.xml` after
 | `anyrail/hart.xml` | Geometry source snapshot |
 | `authoritative/hart.xml` | Authoritative panel snapshot |
 | `output/hart_blocked.xml` | Working blocked panel |
-| `output/hart_prod.xml` | Load this for ops/dev |
+| `tables/new_tables.xml` | Writable working source for the complete JMRI configuration |
+| `output/tables.xml` | Deployment bundle: LE + SML + Dispatcher + CTC |
+| `output/hart_prod.xml` | Standalone Layout Editor monitor artifact |
 | `data/block_display_names.csv` | Rename map |
 | `data/control_points.csv` | CP → switches |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
@@ -39,7 +44,31 @@ python3 jmri/scripts/cleanup_hart_duplicate_blocks.py   # drop empty duplicate <
 python3 jmri/scripts/polish_hart_cp_labels.py           # CP/area label hierarchy
 python3 jmri/scripts/export_hart_devices_for_cats.py    # CATS Designer bindings
 python3 jmri/scripts/check_hart_phase02.py
+python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check
+python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
+python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync
+python3 jmri/layouts/hart/scripts/sync_hart_sml_to_deployment.py --check
 ```
+
+Visual scripts patch each output independently; they never copy
+`tables/new_tables.xml` over `output/tables.xml`, because that would remove the
+CTC panel and `<ctcdata>`.
+
+Dispatcher stations are exactly: Main West, West Main Ext, McKees Rocks,
+McKeesport, East Lead, Main East, East Main Ext, and Main West Brick-Plane.
+The deployment bundle retains 41 generated sections, 102 transits, and 220
+HEAD_AND_TAIL traininfo files for this station graph.
+
+Operator guide (click destinations or named station lists):
+[`dispatcher/DISPATCHER_GUIDE.md`](dispatcher/DISPATCHER_GUIDE.md).
+
+Layout Editor interaction layers are reserved as follows: signal icons level 9,
+yard-ladder controls level 10, future track-side NX controls level 11, and
+compact Dispatcher station status/command pairs level 12 beside their station
+blocks.
+Signal masts use JMRI's native AAR artwork at 1:1 icon scale. Duplicate
+`Block n-n` occupancy sensor dots are intentionally omitted from the monitor;
+the sensor beans remain available to Dispatcher, CTC, and signaling logic.
 
 ## CATS CTC
 

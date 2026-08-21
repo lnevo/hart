@@ -10,6 +10,10 @@ logic — not you — decides whether a signal can actually clear. Field signal
 aspects are computed by JMRI signal logic (ABS rules behind your CTC
 authority). You grant permission; the plant protects the railroad.
 
+To **run a train automatically** between stations, use Dispatcher System, not
+this machine: [`../dispatcher/DISPATCHER_GUIDE.md`](../dispatcher/DISPATCHER_GUIDE.md)
+(DS-AUTO).
+
 ---
 
 ## 1. Reading the machine

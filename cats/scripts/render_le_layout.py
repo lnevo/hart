@@ -32,6 +32,8 @@ SIDE = (128, 134, 144)      # non-mainline (yard/siding) track
 THRU = (232, 236, 242)      # turnout continuing legs (A/B)
 DIVERGE = (95, 205, 255)    # turnout diverging legs (C/D)
 POINT = (255, 190, 60)      # turnout center / control point
+SIGNAL = (255, 105, 125)    # signal mast icon / facing marker
+STATION = (110, 220, 180)   # Dispatcher station control pair
 ANCHOR = (66, 72, 82)
 OSNUM = (255, 255, 255)
 OSSUB = (150, 230, 160)
@@ -103,11 +105,37 @@ def load_geometry(src: Path):
         b = resolve(s.get("connect2name"), s.get("type2"))
         if a and b:
             segs.append((a, b, s.get("mainline") == "yes", s.get("blockname") or ""))
-    return pp, legs, turnouts, segs
+    signals = []
+    for icon in le.findall("signalmasticon"):
+        try:
+            signals.append({
+                "name": icon.get("signalmast") or "",
+                "x": float(icon.get("x") or "0"),
+                "y": float(icon.get("y") or "0"),
+                "degrees": int(float(icon.get("degrees") or "0")) % 360,
+            })
+        except ValueError:
+            continue
+    stations = []
+    for icon in le.findall("sensoricon"):
+        sensor = icon.get("sensor") or ""
+        if not sensor.startswith("MoveTo") or not sensor.endswith("_stored"):
+            continue
+        try:
+            stations.append({
+                "name": icon.get("text") or sensor.removeprefix("MoveTo").removesuffix("_stored"),
+                "x": float(icon.get("x") or "0"),
+                "y": float(icon.get("y") or "0"),
+            })
+        except ValueError:
+            continue
+    return pp, legs, turnouts, segs, signals, stations
 
 
-def render_view(pp, legs, turnouts, segs, out: Path, title: str, subtitle: str,
-                xmin=None, xmax=None):
+def render_view(
+    pp, legs, turnouts, segs, signals, stations, out: Path, title: str, subtitle: str,
+    xmin=None, xmax=None
+):
     pad = 34
     if xmin is None:
         allx = [p[0] for p in pp.values()] + [t["cen"][0] for t in turnouts]
@@ -121,12 +149,18 @@ def render_view(pp, legs, turnouts, segs, out: Path, title: str, subtitle: str,
 
     vsegs = [s for s in segs if seg_in(s[0], s[1])]
     vturn = [t for t in turnouts if xmin - pad <= t["cen"][0] <= xmax + pad]
+    vsignals = [s for s in signals if xmin - pad <= s["x"] <= xmax + pad]
+    vstations = [s for s in stations if xmin - pad <= s["x"] <= xmax + pad]
 
     pts = []
     for a, b, _m, _bl in vsegs:
         pts += [a, b]
     for t in vturn:
         pts.append(t["cen"])
+    for signal in vsignals:
+        pts.append((signal["x"], signal["y"]))
+    for station in vstations:
+        pts.append((station["x"], station["y"]))
     if not pts:
         return
     bx0 = min(p[0] for p in pts) - pad
@@ -217,6 +251,31 @@ def render_view(pp, legs, turnouts, segs, out: Path, title: str, subtitle: str,
             d.text((lx, ly + 20), area, font=f_sub, fill=OSSUB)
         d.text((lx, ly + 36), f"{t['tn']} · {t['ident']}", font=f_id, fill=SWID)
 
+    # Display-only signal markers. The stem points in the mast's facing
+    # direction (0=north, 90=east, 180=south, 270=west).
+    f_sig = _font(10)
+    vectors = {0: (0, -1), 90: (1, 0), 180: (0, 1), 270: (-1, 0)}
+    for signal in vsignals:
+        px, py = X(signal["x"]), Y(signal["y"])
+        dx, dy = vectors.get(signal["degrees"], (0, -1))
+        d.ellipse([px - 5, py - 5, px + 5, py + 5], fill=SIGNAL)
+        d.line([(px, py), (px + 18 * dx, py + 18 * dy)], fill=SIGNAL, width=4)
+        tx = px + (8 if dx >= 0 else -8)
+        ty = py + (9 if dy >= 0 else -20)
+        anchor = "la" if dx >= 0 else "ra"
+        d.text((tx, ty), signal["name"], font=f_sig, fill=SIGNAL, anchor=anchor)
+
+    f_station = _font(10, bold=True)
+    for station in vstations:
+        px, py = X(station["x"]), Y(station["y"])
+        d.rounded_rectangle(
+            [px - 6, py - 5, px + 18, py + 7],
+            radius=3,
+            outline=STATION,
+            width=2,
+        )
+        d.text((px + 24, py + 1), station["name"], font=f_station, fill=STATION, anchor="lm")
+
     # legend
     ly = H - 22
     d.line([(pad, ly), (pad + 26, ly)], fill=MAIN, width=6)
@@ -227,10 +286,22 @@ def render_view(pp, legs, turnouts, segs, out: Path, title: str, subtitle: str,
     d.text((pad + 282, ly - 7), "diverging leg", font=f_id, fill=SUBTITLE)
     d.ellipse([pad + 400, ly - 5, pad + 410, ly + 5], fill=POINT)
     d.text((pad + 418, ly - 7), "control point (turnout)", font=f_id, fill=SUBTITLE)
+    d.ellipse([pad + 590, ly - 5, pad + 600, ly + 5], fill=SIGNAL)
+    d.text((pad + 608, ly - 7), "signal facing", font=f_id, fill=SUBTITLE)
+    d.rounded_rectangle(
+        [pad + 720, ly - 5, pad + 744, ly + 7],
+        radius=3,
+        outline=STATION,
+        width=2,
+    )
+    d.text((pad + 752, ly - 7), "Dispatcher station", font=f_id, fill=SUBTITLE)
 
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out)
-    print(f"wrote {out}  ({W}x{H})  turnouts={len(vturn)} segments={len(vsegs)}")
+    print(
+        f"wrote {out}  ({W}x{H})  turnouts={len(vturn)} "
+        f"segments={len(vsegs)} signals={len(vsignals)} stations={len(vstations)}"
+    )
 
 
 def main():
@@ -243,11 +314,11 @@ def main():
     ap.add_argument("--xwin", type=float, nargs=2, metavar=("XMIN", "XMAX"))
     args = ap.parse_args()
 
-    pp, legs, turnouts, segs = load_geometry(args.src)
+    pp, legs, turnouts, segs, signals, stations = load_geometry(args.src)
 
     if args.all_views:
         for key, (title, subtitle, xmin, xmax) in VIEWS.items():
-            render_view(pp, legs, turnouts, segs,
+            render_view(pp, legs, turnouts, segs, signals, stations,
                         args.all_views / f"hart_ctc_{key}.png",
                         title, subtitle, xmin, xmax)
         return
@@ -255,8 +326,10 @@ def main():
         ap.error("out PNG path required unless --all-views is used")
     xmin = args.xwin[0] if args.xwin else None
     xmax = args.xwin[1] if args.xwin else None
-    render_view(pp, legs, turnouts, segs, args.out, args.title, args.subtitle,
-                xmin, xmax)
+    render_view(
+        pp, legs, turnouts, segs, signals, stations,
+        args.out, args.title, args.subtitle, xmin, xmax
+    )
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ East End,right,,34,7,RIGHT,LEFT,East End East Lead,2,west-yard-sheet,12,C7,1237 
 Princess,left,,37,7,LEFT,RIGHT,Princess West OS 113a,2,west-yard-sheet,1,D1,137 138,D1-OU2-6 D1-OU2-7,IF$shsm:AAR-1946:SL-2-high-abs(IH137)(IH138),virtual-heads+shsm
 Princess,left,,43,7,RIGHT,LEFT,Princess East K-2,1,west-yard-sheet,1,D1,143,D1-OU3-4,IF$shsm:AAR-1946:SL-1-low(IH143),virtual-heads+shsm
 Princess,top,,45,7,TOP,TOP,Princess East McKeesport,1,west-yard-sheet,1,D1,134,D1-OU2-3,IF$shsm:AAR-1946:SL-1-low(IH134),virtual-heads+shsm
-East End,bottom,,31,7,BOTTOM,RIGHT,East End South OS 110,1,west-yard-sheet,12,C7,1239,C7-OU3-2,IF$shsm:AAR-1946:SL-1-low(IH1239),virtual-heads+shsm
+East End,bottom,,31,7,BOTTOM,TOP,East End South OS 110,1,west-yard-sheet,12,C7,1239,C7-OU3-2,IF$shsm:AAR-1946:SL-1-low(IH1239),virtual-heads+shsm
 Plane,right,,9,8,RIGHT,LEFT,Plane East East Main Ext,2,west-yard-sheet,4,C4,432 433,C4-OU2-1 C4-OU2-2,IF$shsm:AAR-1946:SL-2-high-abs(IH432)(IH433),virtual-heads+shsm
 West Yard,left,,12,8,LEFT,RIGHT,West Yard West East Main Ext,2,west-yard-sheet,13,C1,1335 1336,C1-OU2-4 C1-OU2-5,IF$shsm:AAR-1946:SL-2-high-abs(IH1335)(IH1336),virtual-heads+shsm
 West Yard,right,,14,8,RIGHT,LEFT,West Yard East OS 117b,2,west-yard-sheet,13,C1,1337 1338,C1-OU2-6 C1-OU3-1,IF$shsm:AAR-1946:SL-2-high-abs(IH1337)(IH1338),virtual-heads+shsm

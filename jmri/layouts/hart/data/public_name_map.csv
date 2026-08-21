@@ -1,0 +1,133 @@
+layer,current,proposed,cp,hardware,notes
+turnout,Switch 100,Switch 100,Brick,M2T408,keep
+turnout,Switch 101,Switch 101,Brick,M2T409,keep
+turnout,Switch 102,Switch 102,Plane,M2T410,keep
+turnout,Switch 103,Switch 103,South Yard,M2T308,keep; east of South Yard West
+turnout,Switch 104,Switch 104,South Yard,M2T309,keep; hand-throw
+turnout,Switch 105,Switch 105,South Yard,M2T310,keep; hand-throw
+turnout,Switch 106,Switch 106,South Yard,M2T311,keep; hand-throw
+turnout,Switch 107,Switch 107,East End,M2T1208,keep
+turnout,Switch 108,Switch 108,East End,M2T1209,keep
+turnout,Switch 109,Switch 109,East End,M2T1210,keep
+turnout,Switch 110,Switch 110,East End,M2T1211,keep
+turnout,Switch 111,Switch 111,East End,M2T1212,keep; crossover 111a/111b
+turnout,Switch 112,Switch 112,East End,M2T1213,keep
+turnout,Switch 113,Switch 113,Princess,M2T108,keep; crossover 113a/113b
+turnout,Switch 114,Switch 114,Princess,M2T109,keep
+turnout,Switch 115,Switch 115,Princess,M2T110,keep
+turnout,Switch 116,Switch 116,,M2T411,hand-throw
+turnout,Switch 117,Switch 117,Barn,M2T1308,crossover 117/117b; field still hand-throw
+turnout,Switch 118,Switch 118,,M2T1309,hand-throw; Engine House
+turnout,Switch 119,Switch 119,,M2T1310,hand-throw; Engine House
+block,OS 100 (Brick),OS 100 (Brick),Brick,Block 4-2,keep
+block,OS 101 (Brick),OS 101 (Brick),Brick,Block 4-1,keep
+block,OS 102 (Plane),OS 102 (Plane),Plane,Block 4-5,keep
+block,OS 103 (South Yard),OS 103 (South Yard),South Yard,Block 3-2,keep; between South Yard West and South Yard 1
+block,OS 104 (South Yard),OS 104 (South Yard),South Yard,Block 3-3,keep
+block,OS 105 (South Yard),OS 105 (South Yard),South Yard,Block 3-5,keep
+block,OS 106 (South Yard),OS 106 (South Yard),South Yard,Block 3-7,keep
+block,OS 107 (East End),OS 107 (East End),East End,Block 12-1,keep
+block,OS 108 (East End),OS 108 (East End),East End,Block 12-3,keep
+block,OS 109 (East End),OS 109 (East End),East End,Block 12-5,keep
+block,OS 110 (East End),OS 110 (East End),East End,Block 12-7,keep
+block,OS 111a (East End),OS 111a (East End),East End,Block 12-4,keep
+block,OS 111b (East End),OS 111b (East End),East End,Block 12-6,keep
+block,OS 112 (East End),OS 112 (East End),East End,Block 12-8,keep
+block,OS 113a (Princess),OS 113a (Princess),Princess,Block 1-6,keep
+block,OS 113b (Princess),OS 113b (Princess),Princess,Block 1-5,keep
+block,OS 114 (Princess),OS 114 (Princess),Princess,Block 1-3,keep; same circuit as K-2
+block,OS 115 (Princess),OS 115 (Princess),Princess,Block 1-4,keep; same circuit as K-1
+block,OS 116 (West Yard),OS 116,,Block 3-1,hand-throw
+block,OS 117 (West Yard),OS 117 (Barn),Barn,Block 13-3,
+block,OS 117b (West Yard),OS 117b (Barn),Barn,Block 13-4,MQTT 1303
+block,OS 118 (West Yard),OS 118,,Block 13-2,MQTT 1301
+block,OS 119 (West Yard),OS 119,,Block 13-8,MQTT 1307
+block,Main West,Main West,,Block 2-1,keep
+block,Main East,Main East,,Block 2-3,keep
+block,Main West Brick-Plane,Main West Brick–Plane,Brick,Block 4-6,en-dash; also listed as Block 100-102
+block,Block 100-102,Main West Brick–Plane,Brick,Block 4-6,alias retire
+block,East Main Ext,East Main Ext,Plane,Block 4-7,keep
+block,West Main Ext,West Main Ext,East End,Block 1-8,keep
+block,East Lead,South Yard East,East End,Block 1-7,east of 110/112 toward Princess
+block,Yard T1,South Yard Scale,Plane,Block 4-8,Plane diverging to 117
+block,Yard T6,South Yard West,South Yard,Block 13-1,MQTT 1300
+block,Yard Track 1,South Yard 1,South Yard,Block 2-8,run-through east of 103 to 110/112
+block,Yard Track 2,South Yard 2,South Yard,Block 2-7,
+block,Yard Track 3,South Yard 3,South Yard,Block 2-6,
+block,Yard Track 4,South Yard 4,South Yard,Block 2-5,
+block,Yard Track 5,South Yard 5,South Yard,Block 2-4,
+block,West Yard 1,West Yard 1,Brick,Block 4-4,yard body; access Switch 101 only; plate W-1
+block,West Yard 2,West Yard 2,Brick,Block 4-3,yard body; access Switch 101 only; plate W-2
+block,K-1,K-1,Princess,Block 1-4,keep; same sensor as OS 115
+block,K-2,K-2,Princess,Block 1-3,keep; same sensor as OS 114
+block,McKees Rocks,McKees Rocks,Princess,Block 1-1,keep
+block,McKeesport,McKeesport,Princess,Block 1-2,keep
+block,Yard T9,Engine House 1,,Block 13-5,MQTT 1304
+block,Yard T10,Engine House 2,,Block 13-6,MQTT 1305
+block,Yard T11,Engine House 3,,Block 13-7,MQTT 1306
+block,ET-1,Engine House 3,,Block 13-7,CATS station alias
+block,ET-2,Engine House 2,,Block 13-6,CATS station alias
+block,ET-3,Engine House 1,,Block 13-5,CATS station alias
+mast,Brick West Yard 1,101RA,Brick,IH436,lever 2 Right; W-1 dwarf
+mast,Brick West Yard 2,101RB,Brick,IH437,lever 2 Right; W-2 dwarf
+mast,Brick East Main West,100L,Brick,IH438 IH439,lever 4 Left
+mast,Plane East OS 102,102LA,Plane,IH434 IH435,lever 6 Left; South Yard Scale
+mast,Plane East East Main Ext,102LB,Plane,IH432 IH433,lever 6 Left; main
+mast,West Yard West OS 117,117RA,Barn,IH1332 IH1333,lever 8 Right; yard
+mast,West Yard West East Main Ext,117RB,Barn,IH1335 IH1336,lever 8 Right; main
+mast,West Yard East OS 117b,117LA,Barn,IH1337 IH1338,lever 8 Left; main
+mast,West Yard East Yard T6,117LB,Barn,IH1334,lever 8 Left; South Yard West dwarf
+mast,East End West Main West,111RA,East End,IH1232 IH1233,lever 18 Right; Main West
+mast,East End West Yard Track 1,111RB,East End,IH1236,lever 18 Right; South Yard 1 dwarf
+mast,East End East OS 111a,111L,East End,IH1234 IH1235,lever 18 Left
+mast,East End South OS 110,110R,East End,IH1239,lever 20 Right; dwarf
+mast,East End South OS 112,112R,East End,IH1240 IH1241,lever 24 Right; Main East
+mast,East End East Lead,112L,East End,IH1237 IH1238,lever 24 Left
+mast,Princess West OS 113b,113RA,Princess,IH135 IH136,lever 26 Right; Main West
+mast,Princess West OS 113a,113RB,Princess,IH137 IH138,lever 26 Right; South Yard East
+mast,Princess East McKeesport,114R,Princess,IH134,lever 28 Right; dwarf
+mast,Princess East K-2,114LA,Princess,IH143,lever 28 Left; dwarf
+mast,Princess South McKeesport,114LB,Princess,IH139 IH140,lever 28 Left
+mast,Princess East McKees Rocks,115R,Princess,IH141,lever 30 Right; dwarf
+mast,Princess East K-1,115LA,Princess,IH142,lever 30 Left; dwarf
+mast,Princess North McKees Rocks,115LB,Princess,IH132 IH133,lever 30 Left
+head,Brick West Yard 1,101RA,Brick,IH436,dwarf
+head,Brick West Yard 2,101RB,Brick,IH437,dwarf
+head,Brick East Main West Top,100L Top,Brick,IH438,
+head,Brick East Main West Bottom,100L Bottom,Brick,IH439,
+head,Plane East OS 102 Top,102LA Top,Plane,IH434,
+head,Plane East OS 102 Bottom,102LA Bottom,Plane,IH435,
+head,Plane East East Main Ext Top,102LB Top,Plane,IH432,
+head,Plane East East Main Ext Bottom,102LB Bottom,Plane,IH433,
+head,West Yard West OS 117 Top,117RA Top,Barn,IH1332,
+head,West Yard West OS 117 Bottom,117RA Bottom,Barn,IH1333,
+head,West Yard West East Main Ext Top,117RB Top,Barn,IH1335,
+head,West Yard West East Main Ext Bottom,117RB Bottom,Barn,IH1336,
+head,West Yard East OS 117b Top,117LA Top,Barn,IH1337,
+head,West Yard East OS 117b Bottom,117LA Bottom,Barn,IH1338,
+head,West Yard East Yard T6,117LB,Barn,IH1334,dwarf
+head,East End West Main West Top,111RA Top,East End,IH1232,
+head,East End West Main West Bottom,111RA Bottom,East End,IH1233,
+head,East End West Yard Track 1,111RB,East End,IH1236,dwarf
+head,East End East OS 111a Top,111L Top,East End,IH1234,
+head,East End East OS 111a Bottom,111L Bottom,East End,IH1235,
+head,East End South OS 110,110R,East End,IH1239,dwarf
+head,East End South OS 112 Top,112R Top,East End,IH1240,
+head,East End South OS 112 Bottom,112R Bottom,East End,IH1241,
+head,East End East Lead Top,112L Top,East End,IH1237,
+head,East End East Lead Bottom,112L Bottom,East End,IH1238,
+head,Princess West OS 113b Top,113RA Top,Princess,IH135,
+head,Princess West OS 113b Bottom,113RA Bottom,Princess,IH136,
+head,Princess West OS 113a Top,113RB Top,Princess,IH137,
+head,Princess West OS 113a Bottom,113RB Bottom,Princess,IH138,
+head,Princess East McKeesport,114R,Princess,IH134,dwarf
+head,Princess East K-2,114LA,Princess,IH143,dwarf
+head,Princess South McKeesport Top,114LB Top,Princess,IH139,
+head,Princess South McKeesport Bottom,114LB Bottom,Princess,IH140,
+head,Princess East McKees Rocks,115R,Princess,IH141,dwarf
+head,Princess East K-1,115LA,Princess,IH142,dwarf
+head,Princess North McKees Rocks Top,115LB Top,Princess,IH132,
+head,Princess North McKees Rocks Bottom,115LB Bottom,Princess,IH133
+fb_comment,Switch 4-1 FB N,Switch 4-1 FB N,Brick,M2S470,comment: Switch 100
+fb_comment,Switch 4-2 FB N,Switch 4-2 FB N,Brick,M2S472,comment: Switch 101
+fb_comment,Switch 4-3 FB N,Switch 4-3 FB N,Plane,M2S474,comment: Switch 102

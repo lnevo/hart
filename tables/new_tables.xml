@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet href="/xml/XSLT/panelfile-5-5-5.xsl" type="text/xsl"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <layout-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/layout-5-5-5.xsd">
   <jmriversion>
     <major>5</major>
@@ -893,6 +892,46 @@
     <sensor inverted="false">
       <systemName>ISCLOCKRUNNING</systemName>
     </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMT:4</systemName>
+      <userName>MoveToMain_West_stored</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMP:4</systemName>
+      <userName>MoveInProgressMain_West</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMT:5</systemName>
+      <userName>MoveToEast_Lead_stored</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMP:5</systemName>
+      <userName>MoveInProgressEast_Lead</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMT:6</systemName>
+      <userName>MoveToMain_East_stored</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMP:6</systemName>
+      <userName>MoveInProgressMain_East</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMT:7</systemName>
+      <userName>MoveToEast_Main_Ext_stored</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMP:7</systemName>
+      <userName>MoveInProgressEast_Main_Ext</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMT:8</systemName>
+      <userName>MoveToMain_West_Brick-Plane_stored</userName>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:DSMP:8</systemName>
+      <userName>MoveInProgressMain_West_Brick-Plane</userName>
+    </sensor>
   </sensors>
   <turnouts class="jmri.jmrix.mqtt.configurexml.MqttTurnoutManagerXml">
     <operations automate="false">
@@ -1748,6 +1787,7 @@
     <block systemName="IB:AUTO:0001" length="4699.0" curve="0">
       <systemName>IB:AUTO:0001</systemName>
       <userName>Main East</userName>
+      <comment>stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-3</occupancysensor>
       <path todir="128" fromdir="64" block="IB6">
@@ -1764,6 +1804,7 @@
     <block systemName="IB:AUTO:0003" length="5588.0" curve="0">
       <systemName>IB:AUTO:0003</systemName>
       <userName>Main West</userName>
+      <comment>stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-1</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0033" />
@@ -1772,6 +1813,7 @@
     <block systemName="IB:AUTO:0005" length="1828.8" curve="0">
       <systemName>IB:AUTO:0005</systemName>
       <userName>Main West Brick-Plane</userName>
+      <comment>stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-6</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0031" />
@@ -1861,6 +1903,7 @@
     <block systemName="IB:AUTO:0017" length="4368.8" curve="0">
       <systemName>IB:AUTO:0017</systemName>
       <userName>East Lead</userName>
+      <comment>stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 1-7</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0030" />
@@ -2273,7 +2316,7 @@
     <block systemName="IB:AUTO:0051" length="2235.2" curve="0">
       <systemName>IB:AUTO:0051</systemName>
       <userName>East Main Ext</userName>
-      <comment>Between Switch 102 and Switch 117 (TO6); sensor 406</comment>
+      <comment>Between Switch 102 and Switch 117 (TO6); sensor 406; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-7</occupancysensor>
       <path todir="64" fromdir="128" block="IB6" />
@@ -2467,9 +2510,9 @@
     </layoutblock>
   </layoutblocks>
   <sections class="jmri.configurexml.SectionManagerXml">
-    <section systemName="IY:AUTO:0042" userName="Princess East McKeesport:Princess South McKeesport" creationtype="signalmastlogic" fsensorname="IY:AUTO:0042:forward" rsensorname="IY:AUTO:0042:reverse">
+    <section systemName="IY:AUTO:0042" userName="Princess East McKees Rocks:Princess South McKeesport" creationtype="signalmastlogic" fsensorname="IY:AUTO:0042:forward" rsensorname="IY:AUTO:0042:reverse">
       <systemName>IY:AUTO:0042</systemName>
-      <userName>Princess East McKeesport:Princess South McKeesport</userName>
+      <userName>Princess East McKees Rocks:Princess South McKeesport</userName>
       <properties>
         <property>
           <key>forwardMast</key>
@@ -2481,9 +2524,9 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0043" userName="Princess East McKees Rocks:Princess North McKees Rocks" creationtype="signalmastlogic" fsensorname="IY:AUTO:0043:forward" rsensorname="IY:AUTO:0043:reverse">
+    <section systemName="IY:AUTO:0043" userName="Princess East McKeesport:Princess North McKees Rocks" creationtype="signalmastlogic" fsensorname="IY:AUTO:0043:forward" rsensorname="IY:AUTO:0043:reverse">
       <systemName>IY:AUTO:0043</systemName>
-      <userName>Princess East McKees Rocks:Princess North McKees Rocks</userName>
+      <userName>Princess East McKeesport:Princess North McKees Rocks</userName>
       <properties>
         <property>
           <key>forwardMast</key>
@@ -2649,13 +2692,13 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0055" userName="Princess West OS 113b:Princess East McKeesport" creationtype="signalmastlogic" fsensorname="IY:AUTO:0055:forward" rsensorname="IY:AUTO:0055:reverse">
+    <section systemName="IY:AUTO:0055" userName="Princess West OS 113b:Princess East McKees Rocks" creationtype="signalmastlogic" fsensorname="IY:AUTO:0055:forward" rsensorname="IY:AUTO:0055:reverse">
       <systemName>IY:AUTO:0055</systemName>
-      <userName>Princess West OS 113b:Princess East McKeesport</userName>
+      <userName>Princess West OS 113b:Princess East McKees Rocks</userName>
       <properties>
         <property>
           <key>forwardMast</key>
-          <value class="java.lang.String">Princess East McKeesport</value>
+          <value class="java.lang.String">Princess East McKees Rocks</value>
         </property>
         <property>
           <key>intermediateSection</key>
@@ -3297,20 +3340,6 @@
     <logicDelay>500</logicDelay>
     <signalmastlogic source="Princess East McKeesport">
       <sourceSignalMast>Princess East McKeesport</sourceSignalMast>
-      <destinationMast destination="Princess South McKeesport">
-        <destinationSignalMast>Princess South McKeesport</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Princess East McKeesport:Princess South McKeesport</associatedSection>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Princess East McKees Rocks">
-      <sourceSignalMast>Princess East McKees Rocks</sourceSignalMast>
       <destinationMast destination="Princess North McKees Rocks">
         <destinationSignalMast>Princess North McKees Rocks</destinationSignalMast>
         <comment />
@@ -3319,7 +3348,21 @@
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Princess East McKees Rocks:Princess North McKees Rocks</associatedSection>
+        <associatedSection>Princess East McKeesport:Princess North McKees Rocks</associatedSection>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+    </signalmastlogic>
+    <signalmastlogic source="Princess East McKees Rocks">
+      <sourceSignalMast>Princess East McKees Rocks</sourceSignalMast>
+      <destinationMast destination="Princess South McKeesport">
+        <destinationSignalMast>Princess South McKeesport</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <associatedSection>Princess East McKees Rocks:Princess South McKeesport</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
@@ -3470,15 +3513,15 @@
     </signalmastlogic>
     <signalmastlogic source="Princess West OS 113b">
       <sourceSignalMast>Princess West OS 113b</sourceSignalMast>
-      <destinationMast destination="Princess East McKeesport">
-        <destinationSignalMast>Princess East McKeesport</destinationSignalMast>
+      <destinationMast destination="Princess East McKees Rocks">
+        <destinationSignalMast>Princess East McKees Rocks</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Princess West OS 113b:Princess East McKeesport</associatedSection>
+        <associatedSection>Princess West OS 113b:Princess East McKees Rocks</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
       <destinationMast destination="Princess East K-1">
@@ -3791,7 +3834,7 @@
       <systemName>IX:DSLX:1C1</systemName>
       <userName>Run Dispatcher</userName>
       <conditionalStateVariable operator="1" negated="no" type="1" systemName="startDispatcherSensor" dataString="" num1="0" num2="0" triggersCalc="yes" />
-      <conditionalAction option="1" type="16" systemName="" data="-1" delay="0" string="program:jython/DispatcherSystem/Startup.py" />
+      <conditionalAction option="1" type="16" systemName="" data="-1" delay="0" string="preference:jython/hart_dispatcher_startup.py" />
     </conditional>
   </conditionals>
   <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" time="Mon Feb 16 14:52:35 EST 2026" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
@@ -4001,42 +4044,39 @@
       <sideTieLength>0</sideTieLength>
       <sideTieWidth>0</sideTieWidth>
     </layoutTrackDrawingOptions>
-    <positionablelabel x="877" y="48" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Neville Island" size="24" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="113" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="West Yard" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="765" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="South Yard" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1043" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Industries" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="877" y="48" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Neville Island" size="28" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="113" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="West Yard" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="765" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="South Yard" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1043" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Industries" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1648" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="McKees Rocks, PA →" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="55" y="419" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="← Neville Island West" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1648" y="419" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="McKeesport, PA →" fontFamily="Dialog" fontname="Dialog.plain" size="18" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="242" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="101" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="325" y="398" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="102" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="332" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="100" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="631" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="103" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="702" y="386" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="104" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="773" y="432" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="105" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="843" y="478" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="106" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1063" y="480" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="107" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1174" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="111" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1131" y="432" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="108" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1204" y="386" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="109" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1273" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="110" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1344" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="112" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1514" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="113" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1555" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="114" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1577" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="115" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="353" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Brick" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="502" y="432" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Barn" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="325" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Plane" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1308" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East End" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1545" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Princess" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Main West" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="528" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Main East" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="242" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="101" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="325" y="398" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="102" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="332" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="100" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="631" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="103" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="702" y="386" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="104" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="773" y="432" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="105" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="843" y="478" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="106" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1063" y="480" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="107" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1174" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="111" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1131" y="432" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="108" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1204" y="386" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="109" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1273" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="110" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1344" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="112" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1514" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="113" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1570" y="340" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="114" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1570" y="220" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="115" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="353" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Brick" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="464" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Barn" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="325" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Plane" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1308" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East End" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1510" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Princess" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="103" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1651" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1730" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="943" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="105" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 2" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1405" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East Lead" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1653" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 2" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1730" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 2" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="943" y="344" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 2" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="943" y="391" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 3" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="943" y="438" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 4" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -4226,33 +4266,33 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="572" y="292" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="116" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="470" y="398" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="117" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="527" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="118" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="451" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="119" size="18" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <signalmasticon signalmast="Brick East Main West" x="378" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Brick West Yard 1" x="170" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Brick West Yard 2" x="170" y="298" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Plane East OS 102" x="335" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Plane East East Main Ext" x="335" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="West Yard West OS 117" x="420" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="West Yard East Yard T6" x="530" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="West Yard West East Main Ext" x="420" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="West Yard East OS 117b" x="530" y="370" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="East End West Main West" x="1095" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="East End East OS 111a" x="1225" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="East End West Yard Track 1" x="1135" y="298" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="East End East Lead" x="1392" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="East End South OS 110" x="1315" y="305" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="East End South OS 112" x="1325" y="358" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess North McKees Rocks" x="1620" y="198" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess West OS 113b" x="1440" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess West OS 113a" x="1465" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess South McKeesport" x="1620" y="348" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess East McKees Rocks" x="1855" y="205" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess East McKeesport" x="1855" y="345" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess East K-1" x="1722" y="228" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Princess East K-2" x="1685" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <positionablelabel x="572" y="270" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="116" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="470" y="398" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="117" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="527" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="118" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="451" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="119" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <signalmasticon signalmast="Brick East Main West" x="378" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Brick West Yard 1" x="185" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Brick West Yard 2" x="185" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Plane East OS 102" x="360" y="297" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Plane East East Main Ext" x="365" y="345" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="West Yard West OS 117" x="435" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="West Yard East Yard T6" x="534" y="297" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="West Yard West East Main Ext" x="425" y="368" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="West Yard East OS 117b" x="534" y="344" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="East End West Main West" x="1095" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="East End East OS 111a" x="1225" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="East End West Yard Track 1" x="1135" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="East End East Lead" x="1392" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="East End South OS 110" x="1248" y="350" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="60" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="East End South OS 112" x="1320" y="348" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="60" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess North McKees Rocks" x="1608" y="185" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess West OS 113b" x="1465" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess West OS 113a" x="1465" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess South McKeesport" x="1628" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="310" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess East McKees Rocks" x="1810" y="276" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="180" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess East McKeesport" x="1855" y="276" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess East K-1" x="1665" y="239" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Princess East K-2" x="1665" y="302" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <BlockContentsIcon blockcontents="Main West" x="755" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 107 (East End)" x="1078" y="439" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 110 (East End)" x="1291" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -4296,7 +4336,7 @@
     <BlockContentsIcon blockcontents="West Yard 2" x="211" y="270" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="West Yard 1" x="208" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 111a (East End)" x="1185" y="263" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="MoveToMcKees_Rocks_stored" x="1659" y="216" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" text="McKees Rock" size="9" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveToMain_West_stored" x="969" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="Main West" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -4310,12 +4350,12 @@
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
-      <activeText text="MoveToMcKees_Rocks_stored" red="255" green="0" blue="0" />
-      <inactiveText text="MoveToMcKees_Rocks_stored" red="255" green="255" blue="0" />
-      <unknownText text="MoveToMcKees_Rocks_stored" red="0" green="0" blue="255" />
-      <inconsistentText text="MoveToMcKees_Rocks_stored" red="0" green="0" blue="0" />
+      <activeText text="MoveToMain_West_stored" red="255" green="0" blue="0" />
+      <inactiveText text="MoveToMain_West_stored" red="255" green="255" blue="0" />
+      <unknownText text="MoveToMain_West_stored" red="0" green="0" blue="255" />
+      <inconsistentText text="MoveToMain_West_stored" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressMcKees_Rocks" x="1649" y="216" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressMain_West" x="943" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -4330,41 +4370,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToMcKeesport_stored" x="1649" y="372" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" text="McKeesport" size="9" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/markers/loco-red.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/markers/loco-gray.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/markers/loco-yellow.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-      <activeText text="MoveToMcKeesport_stored" red="255" green="0" blue="0" />
-      <inactiveText text="MoveToMcKeesport_stored" red="255" green="255" blue="0" />
-      <unknownText text="MoveToMcKeesport_stored" red="0" green="0" blue="255" />
-      <inconsistentText text="MoveToMcKeesport_stored" red="0" green="0" blue="0" />
-    </sensoricon>
-    <sensoricon sensor="MoveInProgressMcKeesport" x="1639" y="372" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="MoveToWest_Main_Ext_stored" x="1404" y="252" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" text="West Main E" size="9" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveToWest_Main_Ext_stored" x="1426" y="210" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="West Main Ext" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -4383,7 +4389,7 @@
       <unknownText text="MoveToWest_Main_Ext_stored" red="0" green="0" blue="255" />
       <inconsistentText text="MoveToWest_Main_Ext_stored" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressWest_Main_Ext" x="1394" y="252" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressWest_Main_Ext" x="1400" y="210" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -4398,7 +4404,196 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 2-1" x="755" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveToMcKees_Rocks_stored" x="1716" y="185" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="McKees Rocks" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+      <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/markers/loco-red.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/markers/loco-gray.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/markers/loco-yellow.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+      <activeText text="MoveToMcKees_Rocks_stored" red="255" green="0" blue="0" />
+      <inactiveText text="MoveToMcKees_Rocks_stored" red="255" green="255" blue="0" />
+      <unknownText text="MoveToMcKees_Rocks_stored" red="0" green="0" blue="255" />
+      <inconsistentText text="MoveToMcKees_Rocks_stored" red="0" green="0" blue="0" />
+    </sensoricon>
+    <sensoricon sensor="MoveInProgressMcKees_Rocks" x="1690" y="185" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="MoveToMcKeesport_stored" x="1716" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="McKeesport" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+      <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/markers/loco-red.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/markers/loco-gray.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/markers/loco-yellow.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+      <activeText text="MoveToMcKeesport_stored" red="255" green="0" blue="0" />
+      <inactiveText text="MoveToMcKeesport_stored" red="255" green="255" blue="0" />
+      <unknownText text="MoveToMcKeesport_stored" red="0" green="0" blue="255" />
+      <inconsistentText text="MoveToMcKeesport_stored" red="0" green="0" blue="0" />
+    </sensoricon>
+    <sensoricon sensor="MoveInProgressMcKeesport" x="1690" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="MoveToEast_Lead_stored" x="1426" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="East Lead" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+      <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/markers/loco-red.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/markers/loco-gray.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/markers/loco-yellow.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+      <activeText text="MoveToEast_Lead_stored" red="255" green="0" blue="0" />
+      <inactiveText text="MoveToEast_Lead_stored" red="255" green="255" blue="0" />
+      <unknownText text="MoveToEast_Lead_stored" red="0" green="0" blue="255" />
+      <inconsistentText text="MoveToEast_Lead_stored" red="0" green="0" blue="0" />
+    </sensoricon>
+    <sensoricon sensor="MoveInProgressEast_Lead" x="1400" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="MoveToMain_East_stored" x="969" y="520" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="Main East" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+      <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/markers/loco-red.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/markers/loco-gray.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/markers/loco-yellow.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+      <activeText text="MoveToMain_East_stored" red="255" green="0" blue="0" />
+      <inactiveText text="MoveToMain_East_stored" red="255" green="255" blue="0" />
+      <unknownText text="MoveToMain_East_stored" red="0" green="0" blue="255" />
+      <inconsistentText text="MoveToMain_East_stored" red="0" green="0" blue="0" />
+    </sensoricon>
+    <sensoricon sensor="MoveInProgressMain_East" x="943" y="520" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="MoveToEast_Main_Ext_stored" x="386" y="390" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="East Main Ext" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+      <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/markers/loco-red.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/markers/loco-gray.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/markers/loco-yellow.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+      <activeText text="MoveToEast_Main_Ext_stored" red="255" green="0" blue="0" />
+      <inactiveText text="MoveToEast_Main_Ext_stored" red="255" green="255" blue="0" />
+      <unknownText text="MoveToEast_Main_Ext_stored" red="0" green="0" blue="255" />
+      <inconsistentText text="MoveToEast_Main_Ext_stored" red="0" green="0" blue="0" />
+    </sensoricon>
+    <sensoricon sensor="MoveInProgressEast_Main_Ext" x="360" y="390" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="MoveToMain_West_Brick-Plane_stored" x="276" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="MW Brick-Plane" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+      <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/markers/loco-red.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/markers/loco-gray.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/markers/loco-yellow.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+      <activeText text="MoveToMain_West_Brick-Plane_stored" red="255" green="0" blue="0" />
+      <inactiveText text="MoveToMain_West_Brick-Plane_stored" red="255" green="255" blue="0" />
+      <unknownText text="MoveToMain_West_Brick-Plane_stored" red="0" green="0" blue="255" />
+      <inconsistentText text="MoveToMain_West_Brick-Plane_stored" red="0" green="0" blue="0" />
+    </sensoricon>
+    <sensoricon sensor="MoveInProgressMain_West_Brick-Plane" x="250" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -4414,677 +4609,47 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Main West" x="755" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 12-1" x="1078" y="469" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 107 (East End)" x="1078" y="439" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 12-7" x="1291" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 110 (East End)" x="1291" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-5" x="1568" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 113b (Princess)" x="1568" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-6" x="281" y="352" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Main West Brick-Plane" x="281" y="322" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-4" x="1592" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 115 (Princess)" x="1592" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-2" x="338" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 100 (Brick)" x="338" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-7" x="1417" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="East Lead" x="1417" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 12-3" x="1148" y="424" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 108 (East End)" x="1148" y="394" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 3-1" x="566" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 116 (West Yard)" x="566" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-1" x="245" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 101 (Brick)" x="245" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 13-3" x="495" y="348" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 117 (West Yard)" x="495" y="318" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-8" x="1394" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="West Main Ext" x="1394" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 13-2" x="541" y="299" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 118 (West Yard)" x="541" y="269" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 3-2" x="629" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 103 (South Yard)" x="629" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-3" x="1573" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 114 (Princess)" x="1573" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 2-6" x="966" y="423" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard Track 3" x="966" y="393" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-5" x="332" y="373" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 102 (Plane)" x="332" y="343" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 2-5" x="960" y="470" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard Track 4" x="960" y="440" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-2" x="1639" y="382" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="McKeesport" x="1639" y="352" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-6" x="1523" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 113a (Princess)" x="1523" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 2-4" x="958" y="512" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard Track 5" x="958" y="482" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 13-8" x="474" y="299" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 119 (West Yard)" x="474" y="269" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 3-7" x="841" y="470" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 106 (South Yard)" x="841" y="440" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 3-3" x="698" y="376" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 104 (South Yard)" x="698" y="346" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 12-5" x="1220" y="376" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 109 (East End)" x="1220" y="346" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-8" x="425" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard T1" x="425" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 3-5" x="769" y="422" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 105 (South Yard)" x="769" y="392" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 12-8" x="1361" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 112 (East End)" x="1361" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 2-3" x="738" y="452" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Main East" x="738" y="422" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 13-1" x="545" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard T6" x="545" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-7" x="398" y="372" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="East Main Ext" x="398" y="342" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 2-8" x="1146" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard Track 1" x="1146" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-4" x="1672" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="K-1" x="1672" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 13-5" x="522" y="281" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard T9" x="522" y="251" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 2-7" x="965" y="376" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard Track 2" x="965" y="346" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 13-7" x="427" y="299" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard T11" x="427" y="269" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-3" x="1620" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="K-2" x="1620" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 13-6" x="427" y="287" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Yard T10" x="427" y="257" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 1-1" x="1649" y="226" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="McKees Rocks" x="1649" y="196" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-3" x="211" y="300" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="West Yard 2" x="211" y="270" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 4-4" x="208" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="West Yard 1" x="208" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="Block 12-4" x="1185" y="293" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="OS 111a (East End)" x="1185" y="263" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="OS 100 (Brick)" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
       <signalAMast>Brick East Main West</signalAMast>
@@ -5119,7 +4684,7 @@
       <signalCMast>Princess North McKees Rocks</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOL17" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="779.0" ycen="412.0" xa="767.0" ya="404.0" xb="791.0" yb="420.0" xc="794.5999755859375" yc="413.0" xd="767.0" yd="404.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T310" blockname="OS 105 (South Yard)" connectaname="T-I-TOL17" connectbname="T-ER-TOL17" connectcname="T-EL-TOL17" />
-    <layoutturnout ident="TOR36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1583.0" ycen="315.0" xa="1566.5" ya="315.0" xb="1599.5" yb="315.0" xc="1592.5999755859375" yc="322.6000061035156" xd="1566.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T109" blockname="OS 114 (Princess)" connectaname="T-I-TOR36" connectbname="T-EL-TOR36" connectcname="T-ER-TOR36">
+    <layoutturnout ident="TOR36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1602.5" ycen="315.0" xa="1586.0" ya="315.0" xb="1619.0" yb="315.0" xc="1612.0999755859375" yc="322.6000061035156" xd="1586.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T109" blockname="OS 114 (Princess)" connectaname="T-I-TOR36" connectbname="T-EL-TOR36" connectcname="T-ER-TOR36">
       <signalBMast>Princess East K-2</signalBMast>
       <signalCMast>Princess South McKeesport</signalCMast>
     </layoutturnout>
@@ -5255,7 +4820,7 @@
     <positionablepoint ident="A77" type="ANCHOR" x="520.0" y="289.0" connect1name="F-T12-S-0" connect2name="T-C-TO11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A78" type="ANCHOR" x="558.0" y="296.0" connect1name="T-A-TO11" connect2name="F-T13-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A79" type="ANCHOR" x="567.0" y="305.0" connect1name="F-T13-S-0" connect2name="T-C-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A62" type="ANCHOR" x="1607.0" y="334.0" connect1name="F60-S-0" connect2name="T-ER-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A62" type="ANCHOR" x="1623" y="334" connect1name="F60-S-0" connect2name="T-ER-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EB72" type="END_BUMPER" x="1725.0" y="315.0" connect1name="F57-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A60" type="ANCHOR" x="259.0" y="322.0" connect1name="F62-S-0" connect2name="T-EL-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A57" type="ANCHOR" x="1639.0" y="315.0" connect1name="F57-S-0" connect2name="F5-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -5292,7 +4857,7 @@
     <positionablepoint ident="A33" type="ANCHOR" x="277.0" y="252.0" connect1name="F40-S-0" connect2name="T-I-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A42" type="ANCHOR" x="732.0" y="382.0" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A43" type="ANCHOR" x="1183.0" y="398.0" connect1name="F10-S-0" connect2name="T-I-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A48" type="ANCHOR" x="1837.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" eastboundsignalmast="Princess East McKeesport" westboundsignalmast="Princess East McKees Rocks" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A48" type="ANCHOR" x="1837.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" eastboundsignalmast="Princess East McKees Rocks" westboundsignalmast="Princess East McKeesport" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A45" type="ANCHOR" x="381.6000061035156" y="315.0" connect1name="T3" connect2name="T1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A44" type="ANCHOR" x="1268.0" y="315.0" connect1name="T-I-TOR32" connect2name="F34-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A47" type="ANCHOR" x="1333.0" y="340.0" connect1name="F24-S-0" connect2name="T-EL-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -5305,7 +4870,7 @@
     <positionablepoint ident="A36" type="ANCHOR" x="1134.0" y="414.0" connect1name="F48-S-0" connect2name="T-ER-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A53" type="ANCHOR" x="743.0" y="366.0" connect1name="F47-S-0" connect2name="T-EL-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A39" type="ANCHOR" x="1055.0" y="460.0" connect1name="F49-S-0" connect2name="T-ER-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A55" type="ANCHOR" x="1621.0" y="315.0" connect1name="F5-S-0" connect2name="T-EL-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A55" type="ANCHOR" x="1639" y="315" connect1name="F5-S-0" connect2name="T-EL-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A3" type="ANCHOR" x="626.0" y="363.0" connect1name="F26-S-0" connect2name="T5" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A9" type="ANCHOR" x="617.0" y="315.0" connect1name="T-I-TOR14" connect2name="F103-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A1" type="ANCHOR" x="1623.0" y="232.0" connect1name="F59-S-0" connect2name="T-EL-TOL29" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -5808,5 +5373,4 @@
       <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
     </operation>
   </filehistory>
-  <!--Written by JMRI version 5.15.4plus+jenkins+20260220T0403Z+R20f7db4fc0 on Tue Aug 18 18:20:56 EDT 2026-->
 </layout-config>
