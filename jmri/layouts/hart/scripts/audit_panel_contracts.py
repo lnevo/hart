@@ -23,14 +23,14 @@ BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
 PANEL_NAMES = {"HART", "My Layout"}
 STATION_COMMENTS = {
-    "South Yard East": "stop",
-    "East Main Ext": "Between Switch 102 and Switch 117 (TO6); sensor 406; stop",
-    "Main East": "stop",
-    "Main West": "stop",
-    "Main West Brick–Plane": "stop",
-    "McKees Rocks": "stop",
-    "McKeesport": "Split from PIR Interchange; east tip; stop",
-    "West Main Ext": "Main West trackage; separate occupancy; stop",
+    "South Yard East": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
+    "East Main Ext": "Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop",
+    "Main East": "Main east of East End; occupancy Block 2-3 / M2S202; stop",
+    "Main West": "Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop",
+    "Brick-Plane": "Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop",
+    "McKees Rocks": "Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop",
+    "McKeesport": "Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop",
+    "West Main Ext": "Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
 }
 
 

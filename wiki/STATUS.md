@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-21 — ADR-005 public names applied (masts `100L`/`117RA`/…, South Yard Scale/West/East, Engine House 1–3, OS 117 (Barn)). Hardware MQTT / `Block n-n` / `Switch n` unchanged. SML dests renamed in XML (36 still match the model); live PanelPro Discover still pending. MQTT turnout retain restored after offline testing.
+Updated: 2026-08-21 — ADR-005 public names applied and deployed `--pi --win`. Discover 36 dests; PanelPro smoke 23/41/102/220; CTC Logic starts (12 columns). Hardware MQTT / `Block n-n` / `Switch n` unchanged. Optional later: node 13 occupancy walk-down.
 
 Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is back on the 117 yard lead. **CATS CTC** / **CATS ABS** still `HOLD_ONLY` and paint SML. System overview: [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).
 

@@ -66,7 +66,7 @@ def patch_profile() -> None:
             '        <perform xmlns="" class="jmri.util.startup.configurexml.PerformScriptModelXml" '
             f'enabled="yes" name="{SYNC_HOME}" type="ScriptFile"/>\n'
         )
-        key = "apply_maintain_mqtt.py"
+        key = "tables.xml"
         idx = txt.find(key)
         if idx < 0:
             raise SystemExit(f"{key} not in profile")

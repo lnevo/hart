@@ -51,13 +51,13 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "117RB",
         "112R",
-        ["OS 117b (Barn)", "Main East"],
+        ["OS 117b", "Main East"],
         [("Switch 117", "closed")],
     ),
     (
         "117RB",
         "117RA",
-        ["OS 117 (Barn)"],
+        ["OS 117"],
         [("Switch 117", "thrown")],
     ),
     (
@@ -75,19 +75,19 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "117RA",
         "117LB",
-        ["OS 117 (Barn)", "South Yard West"],
+        ["OS 117", "South Yard West"],
         [("Switch 117", "closed")],
     ),
     (
         "100L",
         "117RB",
-        ["OS 102 (Plane)", "East Main Ext"],
+        ["OS 102", "East Main Ext"],
         [("Switch 100", "thrown"), ("Switch 102", "closed")],
     ),
     (
         "100L",
         "117RA",
-        ["OS 102 (Plane)", "South Yard Scale"],
+        ["OS 102", "South Yard Scale"],
         [("Switch 100", "thrown"), ("Switch 102", "thrown")],
     ),
     (
@@ -99,7 +99,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "112L",
         "117LA",
-        ["OS 112 (East End)", "Main East"],
+        ["OS 112", "Main East"],
         [("Switch 112", "thrown")],
     ),
     (
@@ -111,7 +111,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "110R",
         "113RB",
-        ["OS 110 (East End)", "South Yard East"],
+        ["OS 110", "South Yard East"],
         [("Switch 110", "thrown"), ("Switch 112", "closed")],
     ),
     (
@@ -129,7 +129,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "117LB",
         "117RA",
-        ["South Yard West", "OS 117 (Barn)"],
+        ["South Yard West", "OS 117"],
         [("Switch 117", "closed")],
     ),
     (
@@ -142,73 +142,73 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "115LB",
         "111L",
-        ["OS 115 (Princess)", "West Main Ext"],
+        ["OS 115", "West Main Ext"],
         [("Switch 115", "thrown"), ("Switch 113", "closed")],
     ),
     (
         "115LB",
         "112L",
-        ["OS 115 (Princess)", "South Yard East"],
+        ["OS 115", "South Yard East"],
         [("Switch 115", "thrown"), ("Switch 113", "thrown")],
     ),
     (
         "114LB",
         "111L",
-        ["OS 114 (Princess)", "West Main Ext"],
+        ["OS 114", "West Main Ext"],
         [("Switch 114", "thrown"), ("Switch 113", "closed")],
     ),
     (
         "114LB",
         "112L",
-        ["OS 114 (Princess)", "South Yard East"],
+        ["OS 114", "South Yard East"],
         [("Switch 114", "thrown"), ("Switch 113", "thrown")],
     ),
     (
         "115LA",
         "111L",
-        ["OS 115 (Princess)", "West Main Ext"],
+        ["OS 115", "West Main Ext"],
         [("Switch 115", "closed"), ("Switch 113", "closed")],
     ),
     (
         "115LA",
         "112L",
-        ["OS 115 (Princess)", "South Yard East"],
+        ["OS 115", "South Yard East"],
         [("Switch 115", "closed"), ("Switch 113", "thrown")],
     ),
     (
         "114LA",
         "111L",
-        ["OS 114 (Princess)", "West Main Ext"],
+        ["OS 114", "West Main Ext"],
         [("Switch 114", "closed"), ("Switch 113", "closed")],
     ),
     (
         "114LA",
         "112L",
-        ["OS 114 (Princess)", "South Yard East"],
+        ["OS 114", "South Yard East"],
         [("Switch 114", "closed"), ("Switch 113", "thrown")],
     ),
     (
         "113RA",
         "115R",
-        ["OS 113b (Princess)", "OS 115 (Princess)"],
+        ["OS 113b", "OS 115"],
         [("Switch 113", "closed"), ("Switch 115", "thrown")],
     ),
     (
         "113RA",
         "115LA",
-        ["OS 113b (Princess)", "OS 115 (Princess)"],
+        ["OS 113b", "OS 115"],
         [("Switch 113", "closed"), ("Switch 115", "closed")],
     ),
     (
         "113RB",
         "114R",
-        ["OS 113a (Princess)", "OS 114 (Princess)"],
+        ["OS 113a", "OS 114"],
         [("Switch 113", "closed"), ("Switch 114", "thrown")],
     ),
     (
         "113RB",
         "114LA",
-        ["OS 113a (Princess)", "OS 114 (Princess)"],
+        ["OS 113a", "OS 114"],
         [("Switch 113", "closed"), ("Switch 114", "closed")],
     ),
     # Balloon: dest each other. Rocks includes McKees Rocks so occupy → Stop.
@@ -228,13 +228,13 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "101RA",
         "111RA",
-        ["West Yard 1", "OS 101 (Brick)", "Main West"],
+        ["West Yard 1", "OS 101", "Main West"],
         [("Switch 101", "closed")],
     ),
     (
         "101RB",
         "111RA",
-        ["West Yard 2", "OS 101 (Brick)", "Main West"],
+        ["West Yard 2", "OS 101", "Main West"],
         [("Switch 101", "thrown")],
     ),
 ]

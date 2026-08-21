@@ -185,10 +185,8 @@ if [[ "$DO_PI" -eq 1 ]]; then
     /home/pi/hart/cats/scripts/pi/install_desktop_icons.sh'
   ssh -o BatchMode=yes "$PI_HOST" '/home/pi/hart/cats/scripts/pi/install_desktop_icons.sh'
   scp -o BatchMode=yes \
-    "$ROOT/jmri/layouts/hart/scripts/apply_maintain_mqtt.py" \
     "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
     "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
-    "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
     "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
@@ -201,7 +199,7 @@ if [[ "$DO_PI" -eq 1 ]]; then
   scp -o BatchMode=yes "$ROOT/cats/scripts/patch_jmri_startup.py" \
     "$PI_HOST:/home/pi/hart/cats/scripts/"
   ssh -o BatchMode=yes "$PI_HOST" \
-    'for s in apply_sml_cats_pairs.py unhold_signal_masts.py; do \
+    'for s in apply_sml_cats_pairs.py unhold_signal_masts.py apply_maintain_mqtt.py apply_mqtt_retain_at_startup.py; do \
        python3 /home/pi/hart/cats/scripts/patch_jmri_startup.py remove \
          --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
          --script /home/pi/hart/jmri/layouts/hart/scripts/$s \
@@ -305,10 +303,8 @@ if [[ "$DO_WIN" -eq 1 ]]; then
     "${WIN_HOST}:hart/cats/resources/jmri-web/sts.html"
 
   scp_win \
-    "$ROOT/jmri/layouts/hart/scripts/apply_maintain_mqtt.py" \
     "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
     "$ROOT/jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py" \
-    "$ROOT/jmri/layouts/hart/scripts/apply_mqtt_retain_at_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
     "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \

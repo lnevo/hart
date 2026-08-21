@@ -30,7 +30,7 @@ Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
               in blank slot 8) -> SW110 -> SW112 -> South Yard East (`Block
               1-7`, lamp centered in blank slot 12) -> SW113 -> SW114 ->
               K-2.
-  M  134-138  SW102's bar: Main West Brick–Plane (west, from the hairpin)
+  M  134-138  SW102's bar: Brick-Plane (west, from the hairpin)
               <-> East Main Ext (east, `Block 4-7` lamp centered in blank
               slot 4, the continuing route curving back east) -> SW117;
               dips 45deg east of SW117 to a bottom straight (164-168)
@@ -172,10 +172,10 @@ TURNOUTS = [
 LAMPS = [
     ("Block 4-4",  48,  80,  "W-1 (West Yard 1)"),
     ("Block 4-3",  48,  103, "W-2 (West Yard 2)"),
-    ("Block 4-1",  99,  200, "OS 101 (Brick)"),
-    ("Block 4-2",  164, 200, "OS 100 (Brick)"),
+    ("Block 4-1",  99,  200, "OS 101"),
+    ("Block 4-2",  164, 200, "OS 100"),
     ("Block 4-6",  150, 103, "100-102 (Brick-Plane)"),  # on the hairpin "\" , T1 plane
-    ("Block 4-5",  229, 200, "OS 102 (Plane)"),
+    ("Block 4-5",  229, 200, "OS 102"),
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
     ("Block 4-8",  286, 103, "South Yard Scale (Plane-Barn diverging)"),
@@ -183,14 +183,14 @@ LAMPS = [
     ("Block 13-4", 371, 200, "OS 117b (main side)"),
     ("Block 13-1", 404, 103, "South Yard West"),
     ("Block 3-1",  424, 200, "OS 116 (Barn)"),
-    ("Block 3-2",  489, 200, "OS 103 (South Yard)"),
+    ("Block 3-2",  489, 200, "OS 103"),
     ("Block 2-8",  546, 103, "South Yard 1"),
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
     ("Block 2-3",  546, 156, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
-    ("Block 12-7", 684, 200, "OS 110 (East End)"),
-    ("Block 12-8", 749, 200, "OS 112 (East End)"),
+    ("Block 12-7", 684, 200, "OS 110"),
+    ("Block 12-8", 749, 200, "OS 112"),
     ("Block 1-7",  806, 103, "South Yard East"),
     ("Block 1-8",  806, 80,  "West Main Ext (111-113 siding)"),
     ("Block 1-5",  867, 200, "OS 113b (Main West side)"),
@@ -223,7 +223,7 @@ TRACKS = [
     (194, 84,  "line1.gif",   0),   # MAIN WEST east of SW100's throat (gapped;
     (264, 85,  "line050.gif", 0),   #  loops around the room to column 9)
     # SW100's diverging leg hairpins "<": leg down-west to (160,115), then
-    # thick 45 back down-east to row M at (182,137) = Main West Brick–Plane
+    # thick 45 back down-east to row M at (182,137) = Brick-Plane
     (159, 114, "thick45-24.gif", 0),
     (183, 132, "line025.gif", 0),   # hairpin -> SW102
     # row M (main, bar 134-138): SW102 bar -> East Main Ext -> SW117

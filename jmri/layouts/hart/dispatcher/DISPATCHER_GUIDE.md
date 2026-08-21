@@ -31,7 +31,7 @@ Stations, west → east around the plant:
 
 | Station | Where it is |
 |---------|-------------|
-| **Main West Brick–Plane** | Hairpin between Brick and Plane |
+| **Brick-Plane** | Hairpin between Brick and Plane |
 | **East Main Ext** | Main between Plane (102) and Barn (117) |
 | **Main East** | Main south of the yard, approaching East End |
 | **South Yard East** | East End lead off 112 |
@@ -133,7 +133,7 @@ going the long way around Plane:
 
 **East Main Ext** → **Main East** → **South Yard East**
 
-To send it the long way on purpose, put **Main West Brick–Plane** (and
+To send it the long way on purpose, put **Brick-Plane** (and
 whatever else you need) in the list so shortest-path cannot skip it.
 
 ---

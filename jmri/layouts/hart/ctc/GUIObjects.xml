@@ -2081,7 +2081,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 4-1" x="99" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 101 (Brick)</tooltip>
+      <tooltip>OS 101</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2097,7 +2097,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 4-2" x="164" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 100 (Brick)</tooltip>
+      <tooltip>OS 100</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2129,7 +2129,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 4-5" x="229" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 102 (Plane)</tooltip>
+      <tooltip>OS 102</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2257,7 +2257,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 3-2" x="489" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 103 (South Yard)</tooltip>
+      <tooltip>OS 103</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2353,7 +2353,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 12-7" x="684" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 110 (East End)</tooltip>
+      <tooltip>OS 110</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2369,7 +2369,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 12-8" x="749" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 112 (East End)</tooltip>
+      <tooltip>OS 112</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>

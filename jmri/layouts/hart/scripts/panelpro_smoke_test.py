@@ -12,14 +12,14 @@ import jmri
 
 
 STATIONS = (
-    "Main West",
-    "West Main Ext",
-    "McKees Rocks",
-    "McKeesport",
-    "South Yard East",
-    "Main East",
-    "East Main Ext",
-    "Main West Brick–Plane",
+    u"Main West",
+    u"West Main Ext",
+    u"McKees Rocks",
+    u"McKeesport",
+    u"South Yard East",
+    u"Main East",
+    u"East Main Ext",
+    u"Brick-Plane",
 )
 
 
@@ -142,11 +142,16 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
         except Exception:
             errors.append(traceback.format_exc())
 
+        def _line(text):
+            if isinstance(text, unicode):
+                return text.encode("utf-8")
+            return str(text)
+
         handle = open(marker, "w")
         try:
             if errors:
                 handle.write("fail\n")
-                handle.write("\n".join(errors))
+                handle.write("\n".join(_line(item) for item in errors))
             else:
                 handle.write("ok\n")
                 handle.write(

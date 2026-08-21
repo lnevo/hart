@@ -1,21 +1,21 @@
 layout_ident,os_block,turnout_user_or_system,jmri_system_name,cats_role
-TOL3,OS 100 (Brick),M2T408,M2T408,points_command
-TOR11,OS 107 (East End),M2T1208,M2T1208,points_command
-TOL15,OS 104 (South Yard),M2T309,M2T309,points_command
-TOL23,OS 112 (East End),M2T1213,M2T1213,points_command
-TOL38,OS 101 (Brick),M2T409,M2T409,points_command
-TOL42,OS 102 (Plane),M2T410,M2T410,points_command
-TOR7,OS 109 (East End),M2T1210,M2T1210,points_command
-TOL19,OS 106 (South Yard),M2T311,M2T311,points_command
-TOR9,OS 108 (East End),M2T1209,M2T1209,points_command
-TO111,OS 111a (East End),Switch 111,Switch 111,points_command
-TOL6,OS 110 (East End),M2T1211,M2T1211,points_command
-TOL29,OS 115 (Princess),M2T110,M2T110,points_command
-TOL17,OS 105 (South Yard),M2T310,M2T310,points_command
-TOR36,OS 114 (Princess),M2T109,M2T109,points_command
-TOR14,OS 103 (South Yard),M2T308,M2T308,points_command
-TO113,OS 113b (Princess),Switch 113,Switch 113,points_command
+TOL3,OS 100,M2T408,M2T408,points_command
+TOR11,OS 107,M2T1208,M2T1208,points_command
+TOL15,OS 104,M2T309,M2T309,points_command
+TOL23,OS 112,M2T1213,M2T1213,points_command
+TOL38,OS 101,M2T409,M2T409,points_command
+TOL42,OS 102,M2T410,M2T410,points_command
+TOR7,OS 109,M2T1210,M2T1210,points_command
+TOL19,OS 106,M2T311,M2T311,points_command
+TOR9,OS 108,M2T1209,M2T1209,points_command
+TO111,OS 111a,Switch 111,Switch 111,points_command
+TOL6,OS 110,M2T1211,M2T1211,points_command
+TOL29,OS 115,M2T110,M2T110,points_command
+TOL17,OS 105,M2T310,M2T310,points_command
+TOR36,OS 114,M2T109,M2T109,points_command
+TOR14,OS 103,M2T308,M2T308,points_command
+TO113,OS 113b,Switch 113,Switch 113,points_command
 TO1,OS 116,Switch 116,Switch 116,points_command
 TO10,OS 119,Switch 119,Switch 119,points_command
-TO117,OS 117 (Barn),Switch 117,Switch 117,points_command
+TO117,OS 117,Switch 117,Switch 117,points_command
 TO11,OS 118,Switch 118,Switch 118,points_command

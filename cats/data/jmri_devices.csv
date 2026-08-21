@@ -108,7 +108,6 @@ turnout,M2T1310,Switch 119,points_command,
 turnout,IT1,TOL35287,points_command,
 turnout,IT36,TOR35284,points_command,
 turnout,IT37,TO8,points_command,
-turnout,MTTOL23,,points_command,
 turnout,MTT100,,points_command,
 turnout,MTT111,,points_command,
 turnout,MTT113,,points_command,
@@ -190,23 +189,23 @@ turnout,M2T109,,points_command,
 turnout,Switch 111,,points_command,
 turnout,Switch 113,,points_command,
 turnout,M2T410,,points_command,
-layout_os,TOL3,OS 100 (Brick),os_block,turnoutname=M2T408
-layout_os,TOR11,OS 107 (East End),os_block,turnoutname=M2T1208
-layout_os,TOL15,OS 104 (South Yard),os_block,turnoutname=M2T309
-layout_os,TOL23,OS 112 (East End),os_block,turnoutname=M2T1213
-layout_os,TOL38,OS 101 (Brick),os_block,turnoutname=M2T409
-layout_os,TOL42,OS 102 (Plane),os_block,turnoutname=M2T410
-layout_os,TOR7,OS 109 (East End),os_block,turnoutname=M2T1210
-layout_os,TOL19,OS 106 (South Yard),os_block,turnoutname=M2T311
-layout_os,TOR9,OS 108 (East End),os_block,turnoutname=M2T1209
-layout_os,TO111,OS 111a (East End),os_block,turnoutname=Switch 111
-layout_os,TOL6,OS 110 (East End),os_block,turnoutname=M2T1211
-layout_os,TOL29,OS 115 (Princess),os_block,turnoutname=M2T110
-layout_os,TOL17,OS 105 (South Yard),os_block,turnoutname=M2T310
-layout_os,TOR36,OS 114 (Princess),os_block,turnoutname=M2T109
-layout_os,TOR14,OS 103 (South Yard),os_block,turnoutname=M2T308
-layout_os,TO113,OS 113b (Princess),os_block,turnoutname=Switch 113
+layout_os,TOL3,OS 100,os_block,turnoutname=M2T408
+layout_os,TOR11,OS 107,os_block,turnoutname=M2T1208
+layout_os,TOL15,OS 104,os_block,turnoutname=M2T309
+layout_os,TOL23,OS 112,os_block,turnoutname=M2T1213
+layout_os,TOL38,OS 101,os_block,turnoutname=M2T409
+layout_os,TOL42,OS 102,os_block,turnoutname=M2T410
+layout_os,TOR7,OS 109,os_block,turnoutname=M2T1210
+layout_os,TOL19,OS 106,os_block,turnoutname=M2T311
+layout_os,TOR9,OS 108,os_block,turnoutname=M2T1209
+layout_os,TO111,OS 111a,os_block,turnoutname=Switch 111
+layout_os,TOL6,OS 110,os_block,turnoutname=M2T1211
+layout_os,TOL29,OS 115,os_block,turnoutname=M2T110
+layout_os,TOL17,OS 105,os_block,turnoutname=M2T310
+layout_os,TOR36,OS 114,os_block,turnoutname=M2T109
+layout_os,TOR14,OS 103,os_block,turnoutname=M2T308
+layout_os,TO113,OS 113b,os_block,turnoutname=Switch 113
 layout_os,TO1,OS 116,os_block,turnoutname=Switch 116
 layout_os,TO10,OS 119,os_block,turnoutname=Switch 119
-layout_os,TO117,OS 117 (Barn),os_block,turnoutname=Switch 117
+layout_os,TO117,OS 117,os_block,turnoutname=Switch 117
 layout_os,TO11,OS 118,os_block,turnoutname=Switch 118

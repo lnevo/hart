@@ -1,7 +1,7 @@
 user_name,occupancy_sensor,inches,flag,old_source
 West Yard 1,Block 4-4,105,assigned,Spur 1
 West Yard 2,Block 4-3,93,assigned,Spur 2
-Main West Brick–Plane,Block 4-6,72,assigned,West Loop
+Brick-Plane,Block 4-6,72,assigned,West Loop
 South Yard East,Block 1-7,172,assigned,Yard Lead W
 Main West,Block 2-1,220,assigned,West Bypass
 West Main Ext,Block 1-8,160,assigned,Outer Passing
@@ -19,26 +19,26 @@ South Yard West,Block 13-1,24,estimate,new with 116/117
 Engine House 1,Block 13-7,24,estimate,
 Engine House 2,Block 13-6,24,estimate,
 Engine House 3,Block 13-5,24,estimate,
-OS 100 (Brick),Block 4-2,10,estimate,switch
-OS 101 (Brick),Block 4-1,10,estimate,switch
-OS 102 (Plane),Block 4-5,10,estimate,switch
-OS 103 (South Yard),Block 3-2,10,estimate,switch
-OS 104 (South Yard),Block 3-3,10,estimate,switch
-OS 105 (South Yard),Block 3-5,10,estimate,switch
-OS 106 (South Yard),Block 3-7,10,estimate,switch
-OS 107 (East End),Block 12-1,10,estimate,switch
-OS 108 (East End),Block 12-3,10,estimate,switch
-OS 109 (East End),Block 12-5,10,estimate,switch
-OS 110 (East End),Block 12-7,10,estimate,switch
-OS 111a (East End),Block 12-4,10,estimate,switch
-OS 111b (East End),Block 12-6,10,estimate,switch
-OS 112 (East End),Block 12-8,10,estimate,switch
-OS 113a (Princess),Block 1-6,10,estimate,switch
-OS 113b (Princess),Block 1-5,10,estimate,switch
-OS 114 (Princess),Block 1-3,10,estimate,switch
-OS 115 (Princess),Block 1-4,10,estimate,switch
+OS 100,Block 4-2,10,estimate,switch
+OS 101,Block 4-1,10,estimate,switch
+OS 102,Block 4-5,10,estimate,switch
+OS 103,Block 3-2,10,estimate,switch
+OS 104,Block 3-3,10,estimate,switch
+OS 105,Block 3-5,10,estimate,switch
+OS 106,Block 3-7,10,estimate,switch
+OS 107,Block 12-1,10,estimate,switch
+OS 108,Block 12-3,10,estimate,switch
+OS 109,Block 12-5,10,estimate,switch
+OS 110,Block 12-7,10,estimate,switch
+OS 111a,Block 12-4,10,estimate,switch
+OS 111b,Block 12-6,10,estimate,switch
+OS 112,Block 12-8,10,estimate,switch
+OS 113a,Block 1-6,10,estimate,switch
+OS 113b,Block 1-5,10,estimate,switch
+OS 114,Block 1-3,10,estimate,switch
+OS 115,Block 1-4,10,estimate,switch
 OS 116,Block 3-1,10,estimate,cut from West Lead
-OS 117 (Barn),Block 13-3,10,estimate,cut from Main East
-OS 117b (Barn),Block 13-4,10,estimate,cut from West Lead
+OS 117,Block 13-3,10,estimate,cut from Main East
+OS 117b,Block 13-4,10,estimate,cut from West Lead
 OS 118,Block 13-2,10,estimate,switch
 OS 119,Block 13-8,10,estimate,switch

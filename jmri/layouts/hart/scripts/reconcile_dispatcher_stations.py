@@ -37,7 +37,7 @@ STATIONS = (
     "South Yard East",
     "Main East",
     "East Main Ext",
-    "Main West Brick–Plane",
+    "Brick-Plane",
 )
 
 INTERNAL_SENSOR_CLASS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
@@ -51,7 +51,7 @@ PAIR_DX = 26
 # Keep each compact status/command pair near its station block while offsetting
 # it from rails, mast icons, turnout numbers, and the future NX layer.
 STATION_ICON_POSITIONS = {
-    "Main West Brick–Plane": (250, 293),
+    "Brick-Plane": (250, 293),
     "East Main Ext": (360, 390),
     "Main West": (943, 230),
     "Main East": (943, 520),
@@ -62,7 +62,7 @@ STATION_ICON_POSITIONS = {
 }
 
 STATION_DISPLAY_NAMES = {
-    "Main West Brick–Plane": "MW Brick-Plane",
+    "Brick-Plane": "Brick-Plane",
 }
 
 

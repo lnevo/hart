@@ -14,18 +14,18 @@ FORBIDDEN = {
 # Gate 1 SoR — must appear on Designer primary (cats/panels/HART.xml).
 GATE1_BLOCKS = {
     "Main West",
-    "OS 100 (Brick)",
-    "OS 101 (Brick)",
-    "Main West Brick–Plane",
-    "OS 102 (Plane)",
+    "OS 100",
+    "OS 101",
+    "Brick-Plane",
+    "OS 102",
     "East Main Ext",
 }
 
 # Gate 2 SoR — required on LE WIP (cats/panels/HART_le.xml) once built.
 GATE2_BLOCKS = {
     "OS 116",
-    "OS 117 (Barn)",
-    "OS 117b (Barn)",
+    "OS 117",
+    "OS 117b",
     "OS 118",
     "OS 119",
     "Main East",
@@ -101,10 +101,10 @@ def check(path: Path) -> list[str]:
             errs.append(f"Gate1 missing named blocks: {', '.join(missing)}")
         # Designer Gate 1 places 100-102 on the Brick→Plane diagonal (slash cells).
         # LE WIP must keep 100-102 on a HORIZONTAL spine cell (continuing route).
-        kinds = block_track_kinds(root).get("Main West Brick–Plane", set())
+        kinds = block_track_kinds(root).get("Brick-Plane", set())
         if kinds and "HORIZONTAL" not in kinds and name.startswith("HART_le"):
             errs.append(
-                "Main West Brick–Plane has no HORIZONTAL cell "
+                "Brick-Plane has no HORIZONTAL cell "
                 f"(tracks={sorted(kinds)}) — continuing route must be HORIZONTAL"
             )
 
@@ -115,10 +115,10 @@ def check(path: Path) -> list[str]:
         missing2 = sorted(GATE2_BLOCKS - blocks)
         if missing2:
             errs.append(f"LE Gate2 missing named blocks: {', '.join(missing2)}")
-        kinds = block_track_kinds(root).get("Main West Brick–Plane", set())
+        kinds = block_track_kinds(root).get("Brick-Plane", set())
         if "HORIZONTAL" not in kinds:
             errs.append(
-                "LE Main West Brick–Plane must sit on HORIZONTAL "
+                "LE Brick-Plane must sit on HORIZONTAL "
                 f"(tracks={sorted(kinds) or 'none'})"
             )
         # Occupancy wiring expected on MQTT LE panel

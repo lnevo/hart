@@ -291,15 +291,15 @@ def add_local_defaults_logix(text: str) -> str:
         print("  Logix REVDEF: lock toggles already present")
         return text
     needle = (
-        '      <conditionalAction option="1" type="2" systemName="IS29:LEVER" '
+        '      <conditionalAction option="1" type="9" systemName="IS29:LEVER" '
         'data="4" delay="0" string="" />'
     )
     extra = (
-        '      <conditionalAction option="1" type="2" systemName="IS10:LOCKTOGGLE" '
+        '      <conditionalAction option="1" type="9" systemName="IS10:LOCKTOGGLE" '
         'data="2" delay="0" string="" />\n'
-        '      <conditionalAction option="1" type="2" systemName="IS12:LOCKTOGGLE" '
+        '      <conditionalAction option="1" type="9" systemName="IS12:LOCKTOGGLE" '
         'data="2" delay="0" string="" />\n'
-        '      <conditionalAction option="1" type="2" systemName="IS22:LOCKTOGGLE" '
+        '      <conditionalAction option="1" type="9" systemName="IS22:LOCKTOGGLE" '
         'data="2" delay="0" string="" />'
     )
     if needle not in text:

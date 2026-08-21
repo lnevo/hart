@@ -115,6 +115,33 @@ if ((Test-Path $facingSrc) -and (Test-Path $startupSrc)) {
   Write-Host 'No Dispatcher compatibility scripts (skip)'
 }
 
+$retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py')
+$profileRoots = New-Object System.Collections.Generic.List[string]
+foreach ($p in @(
+  (Join-Path $env:USERPROFILE 'JMRI'),
+  (Join-Path $env:USERPROFILE 'Documents\JMRI'),
+  (Join-Path $env:USERPROFILE '.jmri')
+)) {
+  if (Test-Path $p) {
+    Get-ChildItem $p -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+      [void]$profileRoots.Add($_.FullName)
+    }
+  }
+}
+foreach ($r in ($profileRoots | Select-Object -Unique)) {
+  $prof = Join-Path $r 'profile\profile.xml'
+  if (-not (Test-Path $prof)) { continue }
+  $txt = Get-Content -Raw -Encoding UTF8 $prof
+  $orig = $txt
+  foreach ($name in $retired) {
+    $txt = [regex]::Replace($txt, ('\r?\n[ \t]*<perform\b[^>]*' + [regex]::Escape($name) + '[^>]*/>'), '')
+  }
+  if ($txt -ne $orig) {
+    Set-Content -Path $prof -Value $txt -Encoding UTF8 -NoNewline
+    Write-Host ("startup: removed MQTT retain scripts -> {0}" -f $prof)
+  }
+}
+
 Write-Host 'apply_hart_package_local done'
 
 $desk = Join-Path $hart 'cats\scripts\windows\create_hart_master_desktop.ps1'

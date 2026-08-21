@@ -1,25 +1,25 @@
 current_user_name,public_user_name,cp,role,notes
-Switch 100,OS 100 (Brick),Brick,os,
-Switch 101,OS 101 (Brick),Brick,os,
-Switch 102,OS 102 (Plane),Plane,os,
-Switch 103,OS 103 (South Yard),South Yard,os,
-Switch 104,OS 104 (South Yard),South Yard,os,
-Switch 105,OS 105 (South Yard),South Yard,os,
-Switch 106,OS 106 (South Yard),South Yard,os,
-Switch 107,OS 107 (East End),East End,os,
-Switch 108,OS 108 (East End),East End,os,
-Switch 109,OS 109 (East End),East End,os,
-Switch 110,OS 110 (East End),East End,os,
-Switch 111a,OS 111a (East End),East End,os,Crossover leg
-Switch 111b,OS 111b (East End),East End,os,Crossover leg
-Switch 112,OS 112 (East End),East End,os,
-Switch 113a,OS 113a (Princess),Princess,os,Crossover leg
-Switch 113b,OS 113b (Princess),Princess,os,Crossover leg
-Switch 114,OS 114 (Princess),Princess,os,
-Switch 115,OS 115 (Princess),Princess,os,
+Switch 100,OS 100,Brick,os,
+Switch 101,OS 101,Brick,os,
+Switch 102,OS 102,Plane,os,
+Switch 103,OS 103,South Yard,os,
+Switch 104,OS 104,South Yard,os,
+Switch 105,OS 105,South Yard,os,
+Switch 106,OS 106,South Yard,os,
+Switch 107,OS 107,East End,os,
+Switch 108,OS 108,East End,os,
+Switch 109,OS 109,East End,os,
+Switch 110,OS 110,East End,os,
+Switch 111a,OS 111a,East End,os,Crossover leg
+Switch 111b,OS 111b,East End,os,Crossover leg
+Switch 112,OS 112,East End,os,
+Switch 113a,OS 113a,Princess,os,Crossover leg
+Switch 113b,OS 113b,Princess,os,Crossover leg
+Switch 114,OS 114,Princess,os,
+Switch 115,OS 115,Princess,os,
 Switch 116,OS 116,,os,hand-throw
-Switch 117,OS 117 (Barn),Barn,os,
-Switch 117b,OS 117b (Barn),Barn,os,
+Switch 117,OS 117,Barn,os,
+Switch 117b,OS 117b,Barn,os,
 Switch 118,OS 118,,os,hand-throw
 Switch 119,OS 119,,os,hand-throw
 Main West,Main West,,"track",
@@ -27,7 +27,7 @@ Main East,Main East,,"track",
 West Main Ext,West Main Ext,,"track",
 East Main Ext,East Main Ext,,"track",
 East Lead,South Yard East,East End,track,
-Block 100-102,Main West Brick–Plane,Brick,track,CP limit Brick–Plane
+Block 100-102,Brick-Plane,Brick,track,CP limit Brick–Plane
 West Yard Track 1,West Yard 1,West Yard,yard,
 West Yard Track 2,West Yard 2,West Yard,yard,
 Yard T1,Yard T1,West Yard,yard,

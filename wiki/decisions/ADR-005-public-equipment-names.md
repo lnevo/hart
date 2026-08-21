@@ -1,6 +1,6 @@
 # ADR-005 — Public equipment names (switch / signal / track)
 
-- **Status:** Accepted (rename executed 2026-08-21; SML re-discover still pending live PanelPro)
+- **Status:** Accepted (rename executed 2026-08-21; Discover 36 dests; deployed `--pi --win`)
 - **Date:** 2026-08-20
 - **Deciders:** lnevo
 - **Amends:** [ADR-002](ADR-002-naming-contract.md) — **Barn** is Switch 117 / 117b; **West Yard** is the yard at Brick; signal names are numbers; T1/T6/T9 are retired; Engine House 1/2/3 top-to-bottom
@@ -14,9 +14,9 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 | Kind | Pattern | Example |
 |------|---------|---------|
 | Switch | `Switch <n>` | `Switch 100` |
-| OS block | `OS <n>[a\|b] (<CP>)` | `OS 117b (Barn)` |
+| OS block | `OS <n>[a\|b]` (CP in the bean comment) | `OS 117b` |
 | Track body | `<Name>` | `South Yard Scale`, `South Yard West` |
-| Main between CPs | `<Track> <west>–<east>` | `Main West Brick–Plane` |
+| Main between CPs | `<west>–<east>` | `Brick-Plane` |
 | Yard track | `<Yard> <n>` | `West Yard 1`, `South Yard 3` |
 | Stub | letter-number | `K-1`, `K-2` |
 | Signal mast | `<n><L\|R>[A\|B]` | `117LA`, `100L` |
@@ -55,12 +55,12 @@ T1 / T6 / East Lead were scaffold names. The three lead bodies belong to South Y
 | Circuit | Today | Public |
 |---------|-------|--------|
 | Block 4-8 | Yard T1 | `South Yard Scale` |
-| Block 13-3 | OS 117 (West Yard) | `OS 117 (Barn)` |
+| Block 13-3 | OS 117 (West Yard) | `OS 117` |
 | Block 13-1 | Yard T6 | `South Yard West` |
 | Block 3-1 | OS 116 (West Yard) | `OS 116` |
 | Block 13-2 | OS 118 (West Yard) | `OS 118` (MQTT 1301) |
 | Block 13-8 | OS 119 (West Yard) | `OS 119` (MQTT 1307) |
-| Block 3-2 | OS 103 (South Yard) | `OS 103 (South Yard)` |
+| Block 3-2 | OS 103 (South Yard) | `OS 103` |
 | Block 2-8 | Yard Track 1 | `South Yard 1` (run-through to 110/112) |
 | Block 1-7 | East Lead | `South Yard East` |
 
@@ -108,7 +108,7 @@ ADR-002’s `block_display_names.csv` is superseded for this pass.
 
 ## Attack (executed 2026-08-21)
 
-Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. Remaining live steps: walk-down node 13, PanelPro SML Discover, load + Run CTC Logic, deploy `--pi --win`. Do not change MQTT topics.
+Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. Discover + CTC Logic smoke + `--pi --win` done 2026-08-21. Optional later: node 13 occupancy walk-down. Do not change MQTT topics.
 
 1. Walk-down node 13 (1301=118, 1304–1306=house, 1307=119). Freeze the CSV.  
 2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  

@@ -199,8 +199,6 @@ turnout,M2T1213,Switch 112
 turnout,M2T1308,Switch 117
 turnout,M2T1309,Switch 118
 turnout,M2T1310,Switch 119
-turnout,M2T208,
-turnout,M2T209,
 turnout,M2T308,Switch 103
 turnout,M2T309,Switch 104
 turnout,M2T310,Switch 105
@@ -209,7 +207,3 @@ turnout,M2T408,Switch 100
 turnout,M2T409,Switch 101
 turnout,M2T410,Switch 102
 turnout,M2T411,Switch 116
-turnout,M2T451,Brick Relay 0 Detector Reset
-turnout,M2T452,Brick Lamp Stop
-turnout,M2T453,Brick Lamp Approach
-turnout,M2T454,Brick Lamp Clear
