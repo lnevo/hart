@@ -80,7 +80,10 @@ for a later SHSM/throat-mast pass. Manual Princess pairs (`113RA→115LA`,
 
 1. Click **Setup Train in Section**.
 2. Choose **1 train** (or several if you are registering more than one).
-3. Pick the station block the engine is in, then the roster entry (e.g. 2091).
+3. Pick the station block the engine is in, then the roster entry. Every
+   DecoderPro loco with a speed profile is listed (the full HART roster).
+   Dispatcher System hides locos that have no profile; `ensure_dispatcher_roster_profiles.py`
+   writes the same synthetic 10-step / 400 mm/s profile 2091 already had.
 4. A neighbor block highlights. Answer **which way the train is facing** —
    toward that highlight, or the other way. That is polarity, not the route.
 5. Accept length and speed factor if they look right.
@@ -184,7 +187,7 @@ stations unless you are locking a one-way plant for the session.
 
 | Goal | Clicks |
 |------|--------|
-| Register 2091 | **Setup Train in Section** → block → 2091 → facing |
+| Register a train | **Setup Train in Section** → block → roster loco → facing |
 | One destination | **Run Dispatch** → click destination label |
 | Same trip every time | **Setup Route** → click stations in order → **Complete Route**; later **Run Route** → pick that route |
 | Stop at every station | **Express Train** **off** |
