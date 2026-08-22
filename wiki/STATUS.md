@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Restored Dispatcher System OS occupancy circuit icons on My Layout (19 plant/OS `Block n-n` dots at Stage 1 positions). Station occupancy dots unchanged.
+
 Updated: 2026-08-22 — Dispatcher Stage 1 re-run on Pi PanelPro. Graph is **41 sections / 175 transits / 394 HEAD_AND_TAIL traininfo** covering the original eight plus **Scale, Barn, South Yard 1**. Bumper `IF$vsm` virtuals do not get Layout Editor facing, so Engine House / West Yard / K / South Yard 2–5 stay occupancy-only until SHSM or throat masts. Manual pairs `113RA→115LA` and `113RB→114LA` restored. Stage 2 options already correct (`autoturnouts`, turnout delay). EH buffer masts flipped westbound to face the plant.
 
 Updated: 2026-08-21 — LE cleanup: MTT100/113/114/115 are TWOSENSOR on the same FB as Switch 100/113–115 (M2T); 114→McKeesport bezier tangent at A62 now matches the frog (0° kink); zero-length K-2 F5-S-0 merged. Hidden stub-end virtual masts added for new dispatcher stations — **Stage 1/2 not re-run yet** (traininfo still 220 / original 8). Run Stage 1 in PanelPro (not CATS), then `fix_traininfo_detection.py` + `reconcile_dispatcher_stations.py`.
@@ -15,10 +17,10 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   monitor artifact. Never copy the working file wholesale over the deployment
   bundle because the latter owns USS CTC data.
 - The 23 LE signal icons use consistent right-hand trackside placement and
-  native 1:1 AAR artwork. Redundant `Block n-n` occupancy dots are hidden from
-  the monitor because track coloring already shows occupancy; their beans and
-  logic remain intact. Mast names, IH heads, turnout/anchor bindings, and the
-  36 native SML destinations are unchanged. Reapply/check with
+  native 1:1 AAR artwork. Station occupancy dots stay; Dispatcher System
+  **OS occupancy** circuit icons (`Block 4-5` / OS 102, etc.) stay on My
+  Layout at Stage 1 positions. Other leftover `Block n-n` dots are omitted
+  because track coloring already shows occupancy. Reapply/check with
   `jmri/layouts/hart/scripts/polish_hart_layout_editor.py`.
 - Dispatcher graph stations (CreateTransits): **Main West, West Main Ext,
   McKees Rocks, McKeesport, South Yard East, Main East, East Main Ext,

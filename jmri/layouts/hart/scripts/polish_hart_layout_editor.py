@@ -54,6 +54,29 @@ SIGNAL_PLACEMENTS: dict[str, tuple[int, int, int]] = {
 
 SIGNAL_ICON_SCALE = "1.0"
 REDUNDANT_OCCUPANCY_SENSOR = re.compile(r"Block \d+-\d+")
+# Dispatcher System Stage 1 occupancy dots on OS / plant blocks.
+# Same circuit-occupied.gif set as CreateIcons.addOccupancyIconsAndLabels.
+OS_OCCUPANCY_ICONS = {
+    "Block 4-1": (245, 262),
+    "Block 4-2": (338, 262),
+    "Block 4-5": (332, 373),
+    "Block 3-1": (635, 325),
+    "Block 3-2": (669, 325),
+    "Block 3-3": (738, 376),
+    "Block 3-5": (809, 422),
+    "Block 3-7": (881, 470),
+    "Block 12-1": (1078, 469),
+    "Block 12-3": (1148, 424),
+    "Block 12-4": (1185, 293),
+    "Block 12-5": (1220, 376),
+    "Block 12-7": (1291, 325),
+    "Block 12-8": (1361, 325),
+    "Block 13-2": (622, 299),
+    "Block 13-3": (495, 349),
+    "Block 13-8": (600, 299),
+    "Block 1-5": (1568, 262),
+    "Block 1-6": (1523, 325),
+}
 REMOVED_LABELS = {"South Yard East", "Main East", "Main West"}
 
 # ADR-002 visible hierarchy.
@@ -130,6 +153,74 @@ def _set_xy(el: ET.Element, x: int, y: int) -> bool:
     el.set("x", str(x))
     el.set("y", str(y))
     return changed
+
+
+def _circuit_occupancy_icon(sensor: str, x: int, y: int) -> ET.Element:
+    icon = ET.Element(
+        "sensoricon",
+        {
+            "sensor": sensor,
+            "x": str(x),
+            "y": str(y),
+            "level": "10",
+            "forcecontroloff": "false",
+            "hidden": "no",
+            "positionable": "true",
+            "showtooltip": "true",
+            "editable": "true",
+            "momentary": "false",
+            "icon": "yes",
+            "class": "jmri.jmrit.display.configurexml.SensorIconXml",
+        },
+    )
+    for state, url in (
+        ("active", "program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif"),
+        ("inactive", "program:resources/icons/smallschematics/tracksegments/circuit-empty.gif"),
+        ("unknown", "program:resources/icons/smallschematics/tracksegments/circuit-error.gif"),
+        ("inconsistent", "program:resources/icons/smallschematics/tracksegments/circuit-error.gif"),
+    ):
+        child = ET.SubElement(icon, state, {"url": url, "degrees": "0", "scale": "1.0"})
+        ET.SubElement(child, "rotation").text = "0"
+    ET.SubElement(icon, "iconmaps")
+    return icon
+
+
+def _os_icon_insert_index(le: ET.Element, x: int, y: int) -> int:
+    """Place the circuit dot immediately before its OS BlockContentsIcon."""
+    children = list(le)
+    label_x, label_y = str(x), str(y - 30)
+    for idx, child in enumerate(children):
+        if (
+            child.tag == "BlockContentsIcon"
+            and child.get("x") == label_x
+            and child.get("y") == label_y
+        ):
+            return idx
+    for idx, child in enumerate(children):
+        if child.tag == "layoutturnout":
+            return idx
+    return len(children)
+
+
+def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+    """Keep Dispatcher System OS occupancy dots on My Layout."""
+    changes = 0
+    errors: list[str] = []
+    existing = {
+        (icon.get("sensor") or "").strip()
+        for icon in le.findall("sensoricon")
+        if (icon.get("sensor") or "").strip() in OS_OCCUPANCY_ICONS
+    }
+    missing = [name for name in OS_OCCUPANCY_ICONS if name not in existing]
+    if check:
+        for name in missing:
+            errors.append(f"missing OS occupancy icon {name!r}")
+        return 0, errors
+    for name in missing:
+        x, y = OS_OCCUPANCY_ICONS[name]
+        le.insert(_os_icon_insert_index(le, x, y), _circuit_occupancy_icon(name, x, y))
+        changes += 1
+    return changes, errors
 
 
 def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
@@ -231,12 +322,18 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
                 icon.set(attr, value)
                 changes += 1
 
-    # Layout Editor track coloring already provides occupancy indication.
-    # Retain the sensor beans for Dispatcher/CTC logic, but omit their
-    # duplicate dots from the geographic monitor.
+    os_added, os_errors = ensure_os_occupancy_icons(le, check=check)
+    changes += os_added
+    errors.extend(os_errors)
+
+    # Layout Editor track coloring already provides occupancy indication
+    # for leftover Block n-n sensors. Keep Dispatcher System OS occupancy
+    # dots; omit other duplicate occupancy icons from the monitor.
     for icon in list(le.findall("sensoricon")):
         name = (icon.get("sensor") or "").strip()
         if not REDUNDANT_OCCUPANCY_SENSOR.fullmatch(name):
+            continue
+        if name in OS_OCCUPANCY_ICONS:
             continue
         if check:
             errors.append(f"{path.name}: redundant occupancy icon {name!r}")

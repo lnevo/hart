@@ -322,9 +322,34 @@ def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
             "Block 1-4",
             "Block 1-3",
         }
+        os_occupancy = {
+            "Block 4-1",
+            "Block 4-2",
+            "Block 4-5",
+            "Block 3-1",
+            "Block 3-2",
+            "Block 3-3",
+            "Block 3-5",
+            "Block 3-7",
+            "Block 12-1",
+            "Block 12-3",
+            "Block 12-4",
+            "Block 12-5",
+            "Block 12-7",
+            "Block 12-8",
+            "Block 13-2",
+            "Block 13-3",
+            "Block 13-8",
+            "Block 1-5",
+            "Block 1-6",
+        }
         for icon in panel.iter("sensoricon"):
             name = (icon.get("sensor") or "").strip()
-            if re.fullmatch(r"Block \d+-\d+", name) and name not in station_occupancy:
+            if (
+                re.fullmatch(r"Block \d+-\d+", name)
+                and name not in station_occupancy
+                and name not in os_occupancy
+            ):
                 redundant_occupancy_icons.append(name)
     if placeholders:
         audit.warn(f"stale SIG placeholder labels remain: {sorted(placeholders)}")

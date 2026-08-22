@@ -59,15 +59,22 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
 
             after_root = ET.parse(target).getroot()
             after_le = polish.find_layout_editor(after_root)
-            self.assertFalse(
-                [
-                    icon.get("sensor")
-                    for icon in after_le.findall("sensoricon")
-                    if polish.REDUNDANT_OCCUPANCY_SENSOR.fullmatch(
-                        (icon.get("sensor") or "").strip()
-                    )
-                ]
-            )
+            leftover = [
+                icon.get("sensor")
+                for icon in after_le.findall("sensoricon")
+                if polish.REDUNDANT_OCCUPANCY_SENSOR.fullmatch(
+                    (icon.get("sensor") or "").strip()
+                )
+                and (icon.get("sensor") or "").strip()
+                not in polish.OS_OCCUPANCY_ICONS
+            ]
+            self.assertFalse(leftover)
+            os_present = {
+                (icon.get("sensor") or "").strip()
+                for icon in after_le.findall("sensoricon")
+                if (icon.get("sensor") or "").strip() in polish.OS_OCCUPANCY_ICONS
+            }
+            self.assertEqual(os_present, set(polish.OS_OCCUPANCY_ICONS))
             after_topology = [
                 (
                     el.tag,
