@@ -80,7 +80,7 @@ magnet board plus occupancy. See `cats/data/turnout_bindings.csv`.
 
 ## Why the wiring looks the way it does
 
-Derived from the CATS sources in `tools/cats/src-repo` and the golden
+Derived from the CATS sources (`./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo`) and the golden
 `CTC-Tests` panels; `Chubb_CTC.xml` is the reference for tight plants. Full rule
 list is the module docstring of `cats/scripts/wire_designer_ctc_rules.py`. The
 two that drive every layout decision:

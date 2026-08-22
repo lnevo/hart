@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-08-07
 - **Deciders:** lnevo
-- **Sources:** [CATS home](http://cats4ctc.wikidot.com/), [downloads](http://cats4ctc.wikidot.com/main:downloads), [user guides](http://cats4ctc.wikidot.com/main:userguides)
+- **Sources:** [CATS home](http://cats4ctc.wikidot.com/), [source](https://bitbucket.org/Kb0oys/cats/src/master/), [downloads](http://cats4ctc.wikidot.com/main:downloads), [user guides](http://cats4ctc.wikidot.com/main:userguides)
 
 ## Context
 

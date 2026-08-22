@@ -16,8 +16,11 @@ Use **CATS 3.2** with **JMRI 4.24–5.16** ([downloads](http://cats4ctc.wikidot.
 HART’s recent panels target JMRI **5.15.5** — compatible with 3.2.
 
 ```bash
+./tools/cats/fetch_cats_src.sh   # Bitbucket source → tools/cats/src-repo/ (gitignored)
 ./tools/cats/fetch_cats_3.2.sh   # → tools/cats/release3.2/ (gitignored binaries)
 ```
+
+Do **not** unzip or decompile `cats.jar` into `cats/` — that folder is HART panels/scripts. See [`AGENTS.md`](AGENTS.md).
 
 ## Bindings from hart panel
 

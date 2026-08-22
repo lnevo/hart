@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-21 — CATS Java is the Bitbucket clone (`./tools/cats/fetch_cats_src.sh`); exploded `cats.jar` class tree under `cats/gui` removed. Agent close-out is commit + push + `sync_hart_package.sh` (see `AGENTS.md`).
+
 Updated: 2026-08-21 — ADR-005 public names applied and deployed `--pi --win`. Discover 36 dests; PanelPro smoke 23/41/102/220; CTC Logic starts (12 columns). Hardware MQTT / `Block n-n` / `Switch n` unchanged. Optional later: node 13 occupancy walk-down.
 
 Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is back on the 117 yard lead. **CATS CTC** / **CATS ABS** still `HOLD_ONLY` and paint SML. System overview: [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).

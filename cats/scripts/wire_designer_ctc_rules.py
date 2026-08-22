@@ -14,7 +14,8 @@ TRACKPLAN geometry comes verbatim from cats/panels/HART_designer_raw.xml (the
 user's Designer draw).  Only the Armstrong *header* (fonts, colours, signal
 template, stores) is reused as a shell.
 
-Wiring rules are taken from the CATS sources in tools/cats/src-repo and the
+Wiring rules are taken from the CATS sources (tools/cats/src-repo via
+tools/cats/fetch_cats_src.sh) and the
 golden CTC-Tests panels (Chubb_CTC.xml is the reference for tight plants):
 
 R1  Track geometry -> edges
@@ -83,7 +84,7 @@ ARM = armstrong_magnet()
 
 WIDTH, HEIGHT = "560", "380"
 
-# cats/gui/Compression.java: "Compress Screen" defaults to true, which shrinks
+# tools/cats/src-repo/cats/gui/Compression.java: "Compress Screen" defaults to true, which shrinks
 # every horizontal-only column to a sliver so a 27 cell board renders postage
 # stamp sized.  BooleanGui.newElement() sets the flag to !default purely from
 # the element being present, so a bare <COMPRESSIONTAG /> turns compression off

@@ -36,7 +36,7 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
 2. Agents do not push to `main`.  
 3. Do not amend pushed commits.  
 4. Prefer `git worktree` for parallel agents on the same machine.  
-5. Irreversible ops (Pi deploy, Sheets push) stay human-gated; not in phases 0–2.  
+5. **Close-out:** commit + push the current branch (never `main`). Deploy with `./cats/scripts/sync_hart_package.sh --pi` (and `--win` / `--all` when needed) when live artifacts changed. Google Sheets push stays human-gated.  
 6. Update `wiki/` when a decision changes; chat is not SoR.
 
 ## Layout env

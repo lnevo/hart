@@ -1,10 +1,10 @@
 # CATS source: why Digicon paints (or doesn’t)
 
-Upstream: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/) — local clone `tools/cats/src-repo/`.
+Upstream (open source): [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/). Clone with `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` (gitignored). Do **not** explode `cats.jar` into `cats/`.
 
 ## Paint gate
 
-`TrackGroup.isVisible()` (`cats/layout/items/TrackGroup.java`): first track with a non-null `Block` returns `block.getVisible()`; if every track has `getBlock() == null`, returns **false** → `Section.showSec()` skips `GridTile` → **blank cell**.
+`TrackGroup.isVisible()` (`tools/cats/src-repo/cats/layout/items/TrackGroup.java`): first track with a non-null `Block` returns `block.getVisible()`; if every track has `getBlock() == null`, returns **false** → `Section.showSec()` skips `GridTile` → **blank cell**.
 
 So: no resolved VISIBLE block ⇒ no rails. Designer red track ≠ CATS paint.
 
@@ -52,7 +52,7 @@ OS always reaches back through its approach cell. `CTC-Tests/Chubb_CTC.xml`
 - `DISCIPLINE` only accepts `UNDEFINED|ABS|APB|CTC|DTC` (`Discipline.java`).
   The `YARD` values in `cats/data/occupancy_bindings.csv` are **not** valid CATS
   disciplines and are written as `CTC`.
-- `Compression` ("Compress Screen", `cats/gui/Compression.java`) defaults to
+- `Compression` ("Compress Screen", `tools/cats/src-repo/cats/gui/Compression.java`) defaults to
   **true** and shrinks every horizontal-only column to a sliver. `BooleanGui.
   newElement()` sets the flag to `!default` from the element merely being
   present, so a bare `<COMPRESSIONTAG />` turns it off.

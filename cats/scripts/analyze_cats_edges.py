@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Report SEC_EDGE joint typing for a CATS panel.
 
-Edge runtime class (cats/layout/items/EdgeBuilder):
+Edge runtime class (tools/cats/src-repo/cats/layout/items/EdgeBuilder):
   child BLOCK        -> BlkEdge   (AbstractTrackEdge)
   child SWITCHPOINTS -> OSEdge / PtsEdge (AbstractTrackEdge)
   neither            -> plain SecEdge (NOT AbstractTrackEdge)
