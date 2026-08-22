@@ -2,7 +2,7 @@
 
 **Publication:** DS-AUTO · Rev A · Eff 2026-08-20
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations
-**Scope:** JMRI Dispatcher System on PanelPro (panels **Dispatcher System** and **My Layout**)
+**Scope:** JMRI Dispatcher System on PanelPro (panels **Dispatcher System** and **HART Railroad**)
 
 This is how you **send a train** from one station to another, or along a
 named list of stations. You click stations; the system picks the path, throws
@@ -25,7 +25,7 @@ Two windows:
 | Window | What it is |
 |--------|------------|
 | **Dispatcher System** | Command panel: start/stop, register trains, Run Dispatch vs Setup Route vs Run Route |
-| **My Layout** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House 1–3 where occupancy sits further left on the same row |
+| **HART Railroad** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House 1–3 where occupancy sits further left on the same row |
 
 Stations, west → east around the plant, then the yard and house:
 
@@ -85,7 +85,7 @@ for a later SHSM/throat-mast pass. Manual Princess pairs (`113RA→115LA`,
    toward that highlight, or the other way. That is polarity, not the route.
 5. Accept length and speed factor if they look right.
 
-The station label on **My Layout** should show the train name. If you lift the
+The station label on **HART Railroad** should show the train name. If you lift the
 train to another station by hand, register it again there.
 
 ---
@@ -95,7 +95,7 @@ train to another station by hand, register it again there.
 Use this when you just want “go to Main East.”
 
 1. Click **Run Dispatch** so it is selected (**Setup Route** must be off).
-2. On **My Layout**, click the **wide label** of the destination station.
+2. On **HART Railroad**, click the **wide label** of the destination station.
 3. Pick the train if asked, and Express vs stopping if asked.
 
 The system takes the **shortest** path (block lengths). It does **not** ask
@@ -114,7 +114,7 @@ Use this when you want a specific itinerary: stop here, then here, then there.
 ### Build it once
 
 1. Click **Setup Route** (**Run Dispatch** turns off).
-2. On **My Layout**, click stations **in the order the train should visit
+2. On **HART Railroad**, click stations **in the order the train should visit
    them**, starting where it is (or where it should begin).
 3. After each click, choose **Select another station** until the last stop,
    then **Complete Route**.
@@ -193,9 +193,9 @@ stations unless you are locking a one-way plant for the session.
 
 ---
 
-## 9. NX on My Layout (separate desk)
+## 9. NX on HART Railroad (separate desk)
 
-JMRI Entry/Exit lives on **My Layout** as a **white USS lamp** on the
+JMRI Entry/Exit lives on **HART Railroad** as a **white USS lamp** on the
 approach track into each CTC switch (`NX 100L`, `NX 102LB`, …). It turns
 **green** when that end of a route is active. That is not the Dispatcher
 System pair: the **loco** is MoveTo, the **small track-circuit square** is

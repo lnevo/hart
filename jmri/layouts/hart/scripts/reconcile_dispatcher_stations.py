@@ -342,10 +342,16 @@ def reconcile_sensors(root: ET.Element, changes: Changes) -> None:
             changes.details.append(f"created sensor {system_name} / {user_name}")
 
 
+GEOGRAPHIC_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
+
+
 def main_layout_editor(root: ET.Element) -> ET.Element:
     editors = root.findall("LayoutEditor")
-    named = [editor for editor in editors if editor.get("name") == "My Layout"]
-    candidates = named or [
+    by_name = {editor.get("name"): editor for editor in editors}
+    for name in GEOGRAPHIC_PANEL_NAMES:
+        if name in by_name:
+            return by_name[name]
+    candidates = [
         editor for editor in editors if editor.get("name") != "Dispatcher System"
     ]
     if len(candidates) != 1:

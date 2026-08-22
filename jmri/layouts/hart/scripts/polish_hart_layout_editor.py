@@ -135,7 +135,7 @@ EXPECTED_TURNOUT_DEFAULTS = {
 def _panel_score(le: ET.Element) -> tuple[int, int]:
     """Prefer the railroad LayoutEditor and never the command panel."""
     geometry = len(le.findall("tracksegment")) + len(le.findall("layoutturnout"))
-    named = 1 if le.get("name") in {"HART", "My Layout"} else 0
+    named = 1 if le.get("name") in {"HART Railroad", "HART", "My Layout"} else 0
     return named, geometry
 
 
@@ -203,7 +203,7 @@ def _os_icon_insert_index(le: ET.Element, x: int, y: int) -> int:
 
 
 def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Keep Dispatcher System OS occupancy dots on My Layout."""
+    """Keep Dispatcher System OS occupancy dots on HART Railroad."""
     changes = 0
     errors: list[str] = []
     existing = {

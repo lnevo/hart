@@ -220,7 +220,11 @@ def track_text_labels(le: ET.Element) -> dict[str, tuple[int, int]]:
 
 
 def find_layout_editor(root: ET.Element) -> ET.Element | None:
-    named = [le for le in root.findall("LayoutEditor") if le.get("name") == "My Layout"]
+    named = [
+        le
+        for le in root.findall("LayoutEditor")
+        if le.get("name") in {"HART Railroad", "My Layout", "HART"}
+    ]
     if named:
         return named[0]
     return root.find("LayoutEditor")

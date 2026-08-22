@@ -47,8 +47,8 @@ def main() -> int:
 
     # Panel title
     le_names = [le.get("name") for le in root.iter("LayoutEditor")]
-    if "HART" not in le_names:
-        errors.append(f"LayoutEditor name not HART: {le_names}")
+    if not any(name in {"HART Railroad", "HART"} for name in le_names):
+        errors.append(f"LayoutEditor name not HART Railroad: {le_names}")
 
     # No duplicate block userNames
     from collections import Counter

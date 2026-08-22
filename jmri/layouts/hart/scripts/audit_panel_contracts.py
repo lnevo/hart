@@ -21,7 +21,7 @@ DEFAULT_SOURCES = (
 )
 BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
-PANEL_NAMES = {"HART", "My Layout"}
+PANEL_NAMES = {"HART", "HART Railroad"}
 STATION_COMMENTS = {
     "South Yard East": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
     "East Main Ext": "Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop",
@@ -118,7 +118,7 @@ def select_panel(root: ET.Element, audit: Audit) -> ET.Element | None:
     if len(candidates) != 1:
         names = [(panel.get("name") or "<unnamed>") for panel in root.iter("LayoutEditor")]
         audit.error(
-            "expected exactly one LayoutEditor named HART or My Layout; "
+            "expected exactly one LayoutEditor named HART or HART Railroad; "
             f"found {len(candidates)} (all panels: {names or ['<none>']})"
         )
         return None

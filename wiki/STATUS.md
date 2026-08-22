@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Panel window titles: Layout Editor is **HART Railroad** (was My Layout / HART); Panel Editor USS machine is **USS CTC** (was `Panel `). Entry/Exit `layoutPanel` and Dispatcher `lename` match.
+
 Updated: 2026-08-22 — South Yard body tracks renamed **S-1…S-5** (was South Yard 1–5 / SY-1…SY-5). JMRI block userNames, dispatcher stations/MoveTo, and CATS `BLOCK NAME` match the Digicon plates. Occupancy sensors stay `Block 2-4`…`Block 2-8`.
 
 Updated: 2026-08-22 — NX 117RB lamp moved to y=353, even with NX 102LB on East Main Ext.
@@ -22,8 +24,8 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   bundle because the latter owns USS CTC data.
 - The 23 LE signal icons use consistent right-hand trackside placement and
   native 1:1 AAR artwork. Station occupancy dots stay; Dispatcher System
-  **OS occupancy** circuit icons (`Block 4-5` / OS 102, etc.) stay on My
-  Layout at Stage 1 positions. Other leftover `Block n-n` dots are omitted
+  **OS occupancy** circuit icons (`Block 4-5` / OS 102, etc.) stay on
+  **HART Railroad** at Stage 1 positions. Other leftover `Block n-n` dots are omitted
   because track coloring already shows occupancy. Reapply/check with
   `jmri/layouts/hart/scripts/polish_hart_layout_editor.py`.
 - Dispatcher graph stations (CreateTransits): **Main West, West Main Ext,

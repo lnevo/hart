@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="/xml/XSLT/dispatcheroptions.xsl" type="text/xsl"?>
 <dispatcheroptions>
-  <options lename="My Layout"
+  <options lename="HART Railroad"
     useconnectivity="yes"
     trainsfrom="TRAINSFROMROSTER"
     autoallocate="yes"

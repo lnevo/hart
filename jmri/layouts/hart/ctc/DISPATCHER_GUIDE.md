@@ -2,7 +2,7 @@
 
 **Publication:** DS-DISP · Rev A · Eff 2026-08-19
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations
-**Scope:** JMRI USS CTC machine ("Panel"), basic dispatching rules
+**Scope:** JMRI USS CTC machine (**USS CTC**), basic dispatching rules
 
 Welcome to the desk. This machine is a model of a US&S Centralized Traffic
 Control panel: you line switches and signals from here, and the interlocking
@@ -42,7 +42,7 @@ railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 |------|---------|----------------|-------|
 | 1 | Brick | 1 / 2 | Switch 101 (yard exits W-1 / W-2) |
 | 2 | Brick | 3 / 4 | Switch 100 |
-| 3 | Plane | 5 / 6 | Switch 102 (main vs South Yard Scale) |
+| 3 | Plane | 5 / 6 | Switch 102 (main vs Scale) |
 | 4 | Barn | 7 / 8 | Switch 117 crossover (OS 117 / 117b). One signal lever releases both tracks |
 | 5 | Barn | 9 / — | Switch 116 (ladder, switch-only, defaults Local) |
 | 6 | Barn | 11 / — | Switch 103 (ladder, switch-only, defaults Local) |

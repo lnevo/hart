@@ -43,7 +43,7 @@ MTT_FB = {
 def _le(root: ET.Element) -> ET.Element | None:
     for panel in root.findall("LayoutEditor"):
         name = (panel.get("name") or "").strip()
-        if name in ("My Layout", "HART"):
+        if name in ("HART Railroad", "My Layout", "HART"):
             return panel
     return None
 

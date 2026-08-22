@@ -14,7 +14,7 @@ time, not both:
 
 | Panel | Look & feel | How it was built |
 |-------|-------------|------------------|
-| **JMRI USS machine** (“Panel ”) | Classic lever machine + track diagram | **Programmatic** (scripts below) |
+| **JMRI USS machine** (**USS CTC**) | Classic lever machine + track diagram | **Programmatic** (scripts below) |
 | **CATS Digicon** | Mouse/track-click CTC | Redrawn in **CATS Designer** (`cats/panels/`) |
 
 This document focuses on the **JMRI USS** panel — the one that shows code buttons,
