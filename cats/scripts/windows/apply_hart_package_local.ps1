@@ -46,6 +46,30 @@ if (Test-Path $homeHtml) {
   Write-Host 'No jmri-web Home.html (skip web)'
 }
 
+$btnSrc = Join-Path $hart 'cats\resources\buttons'
+if (Test-Path $btnSrc) {
+  $roots = New-Object System.Collections.Generic.List[string]
+  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  $jmri = Join-Path $env:USERPROFILE 'JMRI'
+  if (Test-Path $jmri) {
+    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+      [void]$roots.Add($_.FullName)
+    }
+  }
+  $pngs = @()
+  $pngs += Get-ChildItem $btnSrc -Filter 'triangle_*.png' -ErrorAction SilentlyContinue
+  $pngs += Get-ChildItem $btnSrc -Filter 'lamp_*.png' -ErrorAction SilentlyContinue
+  foreach ($r in ($roots | Select-Object -Unique)) {
+    if (-not (Test-Path $r)) { continue }
+    $dest = Join-Path $r 'resources\buttons'
+    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+    foreach ($p in $pngs) {
+      Copy-Item $p.FullName $dest -Force
+    }
+    Write-Host ("button icons -> {0}\resources\buttons" -f $r)
+  }
+}
+
 $ctcSrc = Join-Path $hart 'ctc'
 if (Test-Path (Join-Path $ctcSrc 'icons')) {
   $roots = New-Object System.Collections.Generic.List[string]

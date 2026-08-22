@@ -39,9 +39,9 @@ SOUTH_YARD_STATION_ANCHORS = {
 }
 
 # One equilateral pair, pointing east. West buttons use the same files at 180°.
-# Idle grey, lined warm white. Install copies them to preference:hart/icons/.
+# Idle grey, lined warm white. Install copies them to preference:resources/buttons/.
 ICON_SCALE = "1.0"
-PREF = "preference:hart/icons"
+PREF = "preference:resources/buttons"
 IDLE_URL = f"{PREF}/triangle_idle.png"
 ACTIVE_URL = f"{PREF}/triangle_active.png"
 FACE_URLS = {
@@ -65,7 +65,7 @@ STALE_ICON_FILES = (
 
 
 def install_preference_icons() -> list[Path]:
-    """Copy triangle PNGs into JMRI user-files / profile hart/icons dirs."""
+    """Copy triangle PNGs into JMRI user-files / profile resources/buttons dirs."""
     src = ROOT / "cats/resources/buttons"
     missing = [n for n in ICON_FILES if not (src / n).is_file()]
     if missing:
@@ -76,14 +76,14 @@ def install_preference_icons() -> list[Path]:
         Path.home() / "JMRI_UserFiles",
         Path.home() / "Library/Preferences/JMRI",
         Path.home() / ".jmri",
+        Path.home() / "JMRI",
     ]
     for base in candidates:
         if not base.is_dir():
             continue
         if base.name == "JMRI_UserFiles":
-            dests.append(base / "hart/icons")
-            continue
-        dests.extend(p / "hart/icons" for p in base.glob("*.jmri") if p.is_dir())
+            dests.append(base / "resources/buttons")
+        dests.extend(p / "resources/buttons" for p in base.glob("*.jmri") if p.is_dir())
 
     written: list[Path] = []
     for dest in dests:

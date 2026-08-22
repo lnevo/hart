@@ -46,6 +46,12 @@ fi
 
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
 
+BUTTON_PNGS=()
+for f in "$ROOT/cats/resources/buttons/"lamp_*.png \
+         "$ROOT/cats/resources/buttons/"triangle_*.png; do
+  [[ -f "$f" ]] && BUTTON_PNGS+=("$f")
+done
+
 JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
@@ -117,19 +123,29 @@ install_ctc_icons_local() {
       "$dest/"
     echo "hart-aar -> $dest"
   }
+  _install_buttons_into() {
+    local dest="$1/resources/buttons"
+    mkdir -p "$dest"
+    local f
+    for f in "$ROOT/cats/resources/buttons/"triangle_*.png; do
+      [[ -f "$f" ]] && cp -f "$f" "$dest/"
+    done
+    echo "button icons -> $dest"
+  }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d"
     done
   fi
   if [[ -d "${HOME}/.jmri" ]]; then
     for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d"
     done
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
     _install_ctc_into "${HOME}/JMRI_UserFiles"
     _install_hart_aar_into "${HOME}/JMRI_UserFiles"
+    _install_buttons_into "${HOME}/JMRI_UserFiles"
   fi
 }
 
@@ -158,8 +174,8 @@ if [[ "$DO_PI" -eq 1 ]]; then
   scp -o BatchMode=yes "$STAGE"/*.xml "$PI_HOST:/home/pi/hart/cats/panels/"
   rm -rf "$STAGE"
 
-  if compgen -G "$ROOT/cats/resources/buttons/lamp_*.png" > /dev/null; then
-    scp -o BatchMode=yes "$ROOT/cats/resources/buttons/"lamp_*.png \
+  if ((${#BUTTON_PNGS[@]})); then
+    scp -o BatchMode=yes "${BUTTON_PNGS[@]}" \
       "$PI_HOST:/home/pi/hart/cats/resources/buttons/"
   fi
   scp -o BatchMode=yes -r "$ROOT/cats/resources/jmri-web/." \
@@ -296,6 +312,17 @@ if [[ "$DO_PI" -eq 1 ]]; then
     cp -f /home/pi/JMRI_UserFiles/resources/signals/hart-aar/* "$d/resources/signals/hart-aar/"
   done'
   echo "Pi hart-aar updated"
+  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/resources/buttons'
+  if ((${#BUTTON_PNGS[@]})); then
+    scp -o BatchMode=yes "${BUTTON_PNGS[@]}" \
+      "$PI_HOST:/home/pi/JMRI_UserFiles/resources/buttons/"
+  fi
+  ssh -o BatchMode=yes "$PI_HOST" 'for d in /home/pi/.jmri/*.jmri; do
+    [ -d "$d" ] || continue
+    mkdir -p "$d/resources/buttons"
+    cp -f /home/pi/JMRI_UserFiles/resources/buttons/* "$d/resources/buttons/" 2>/dev/null || true
+  done'
+  echo "Pi button icons updated"
   # Custom CTC track/turnout gifs + GUIObjects (preference:ctc/)
   if [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
     ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/ctc/icons /home/pi/hart/ctc/icons'
@@ -326,8 +353,8 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   scp_win "$STAGE"/*.xml "${WIN_HOST}:hart/cats/panels/"
   rm -rf "$STAGE"
 
-  if compgen -G "$ROOT/cats/resources/buttons/lamp_*.png" > /dev/null; then
-    scp_win "$ROOT/cats/resources/buttons/"lamp_*.png \
+  if ((${#BUTTON_PNGS[@]})); then
+    scp_win "${BUTTON_PNGS[@]}" \
       "${WIN_HOST}:hart/cats/resources/buttons/"
   fi
   scp_win "$ROOT/cats/resources/jmri-web/servlet/home/Home.html" \

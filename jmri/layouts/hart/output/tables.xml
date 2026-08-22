@@ -12360,16 +12360,16 @@
     <turnouticon turnout="IT:HART:YL:L1" x="921" y="293" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder L S-1 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="180" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12378,16 +12378,16 @@
     <turnouticon turnout="IT:HART:YL:R1" x="1020" y="293" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder R S-1 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="0" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12396,16 +12396,16 @@
     <turnouticon turnout="IT:HART:YL:L2" x="921" y="344" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder L S-2 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="180" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12414,16 +12414,16 @@
     <turnouticon turnout="IT:HART:YL:R2" x="1020" y="344" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder R S-2 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="0" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12432,16 +12432,16 @@
     <turnouticon turnout="IT:HART:YL:L3" x="921" y="391" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder L S-3 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="180" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12450,16 +12450,16 @@
     <turnouticon turnout="IT:HART:YL:R3" x="1020" y="391" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder R S-3 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="0" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12468,16 +12468,16 @@
     <turnouticon turnout="IT:HART:YL:L4" x="921" y="438" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder L S-4 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="180" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12486,16 +12486,16 @@
     <turnouticon turnout="IT:HART:YL:R4" x="1020" y="438" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder R S-4 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="0" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12504,16 +12504,16 @@
     <turnouticon turnout="IT:HART:YL:L5" x="921" y="480" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder L S-5 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="180" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="180" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="180" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>
@@ -12522,16 +12522,16 @@
     <turnouticon turnout="IT:HART:YL:R5" x="1020" y="480" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <tooltip>Yard ladder R S-5 [hart-yard-ladder-le]</tooltip>
       <icons>
-        <closed url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <closed url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:hart/icons/triangle_active.png" degrees="0" scale="1.0">
+        <thrown url="preference:resources/buttons/triangle_active.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </thrown>
-        <unknown url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <unknown url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </unknown>
-        <inconsistent url="preference:hart/icons/triangle_idle.png" degrees="0" scale="1.0">
+        <inconsistent url="preference:resources/buttons/triangle_idle.png" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </inconsistent>
       </icons>

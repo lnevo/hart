@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Yard-ladder LE triangles live at `preference:resources/buttons/` (`triangle_idle.png` / `triangle_active.png`) and deploy copies them into JMRI user files on Mac/Pi/Windows. They are not loaded from the hart clone.
+
 Updated: 2026-08-22 — CTC Panel Help/Quit is the **bottom** Apps button strip only (unwraps the extra top toolbar; File keeps a single Exit, no extra Quit). Dispatcher Panel still has the in-window toolbar. Cleared 20 retained MQTT junk topics. STS is the Home.html link only.
 
 Updated: 2026-08-22 — Mac and Windows now match the Pi for Start Up scripts: copies live in `preference:jython/` (profile `jython/` on Mac/Windows; `JMRI_UserFiles/jython/` on the Pi). PerformScript no longer points at `home:hart/...` or `/Users/lnevo/hart/...`.
