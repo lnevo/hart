@@ -4,7 +4,7 @@ Updated: 2026-08-22 — LCOS wiring docs in git at [`docs/wiring/`](../docs/wiri
 
 Updated: 2026-08-22 — Yard plates: **W-1 / W-2** (was West Yard 1/2), **East Lead** (was South Yard East), **EH-1 / EH-2 / EH-3** (was Engine House 1–3). Every tables.xml bean has a User Name; missing comments filled.
 
-Updated: 2026-08-22 — Stripped LayoutBlock `<comment>`s (schema wants `<metric>` first; default metric is omitted). Block comments stay on the Block beans. Pi `tables.xml` can load again.
+Updated: 2026-08-22 — Stub bumper virtuals **101LA/101LB** (west end) and **115RA/114RA** (east end) use the EH-style bound slot so JMRI can resolve a facing block on END_BUMPER (connect1 only). Stops CATS SML `No facing block found for destination mast`.
 
 Updated: 2026-08-22 — LE **119** plate moved left (x 586→548) so it no longer sits on **118**. LogixNG still hides **USS CTC Editor**, **Dispatcher System**, and **WiThrottle** at every start. Under **CATS** (`cats.apps.Crandic` / `CatsConfig.xml`) it also hides the **USS CTC** machine and **HART Railroad**; PanelPro leaves those two up. Script: `preference:jython/hide_cats_desk_windows.py`.
 

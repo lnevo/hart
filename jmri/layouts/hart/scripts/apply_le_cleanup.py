@@ -19,10 +19,15 @@ HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
 STUB_MASTS = [
     # systemName, userName, bumper ident, bound attr, icon x,y, degrees
-    ("IF$vsm:AAR-1946:SL-1-low($1001)", "101LA", "EB70", "eastboundsignalmast", 40, 236, 90),
-    ("IF$vsm:AAR-1946:SL-1-low($1002)", "101LB", "EB73", "eastboundsignalmast", 40, 299, 90),
-    ("IF$vsm:AAR-1946:SL-1-low($1003)", "115RA", "EB71", "westboundsignalmast", 1740, 236, 270),
-    ("IF$vsm:AAR-1946:SL-1-low($1004)", "114RA", "EB72", "westboundsignalmast", 1740, 299, 270),
+    # Bound slot is the opposite of geography: JMRI getFacingBlock on an
+    # END_BUMPER only has connect1, and the east/west lookup uses connect2
+    # (null) unless the mast is in the "far" slot. West-end bumpers therefore
+    # use westboundsignalmast; east-end bumpers use eastboundsignalmast.
+    # Same trick as the Engine House buffers (118L / 119LA / 119LB).
+    ("IF$vsm:AAR-1946:SL-1-low($1001)", "101LA", "EB70", "westboundsignalmast", 40, 236, 270),
+    ("IF$vsm:AAR-1946:SL-1-low($1002)", "101LB", "EB73", "westboundsignalmast", 40, 299, 270),
+    ("IF$vsm:AAR-1946:SL-1-low($1003)", "115RA", "EB71", "eastboundsignalmast", 1740, 236, 90),
+    ("IF$vsm:AAR-1946:SL-1-low($1004)", "114RA", "EB72", "eastboundsignalmast", 1740, 299, 90),
     ("IF$vsm:AAR-1946:SL-1-low($1005)", "118L", "EB1", "westboundsignalmast", 548, 250, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1006)", "119LA", "EB2", "westboundsignalmast", 548, 261, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1007)", "119LB", "EB3", "westboundsignalmast", 548, 273, 270),
