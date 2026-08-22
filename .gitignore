@@ -21,6 +21,7 @@ venv/
 
 # Nested / external checkouts (own repos or local-only)
 NextTrainDispatcherApp/
+# Desktop LCOS tree (venv + ARCHIVE). Tracked copy: docs/wiring/
 Wiring Documentation
 Wiring Documentation/
 tables/.git/
@@ -43,8 +44,9 @@ jmri/layouts/linear6/blockvalues_preview.xml
 jmri/layouts/**/.pi_*
 jmri/layouts/**/*_status.txt
 
-# Excel lock / junk
+# Excel / PowerPoint lock / junk
 ~$*.xlsx
+~$*.pptx
 
 # Optional local JMRI prefs dumps
 **/pi_prefs/
@@ -85,6 +87,13 @@ cats/package-info.class
 cats/HART.xml
 cats/panels/_qa_*.png
 cats/panels/*.png
+cats/panels/sheets/*.pre_*
+cats/panels/sheets/checkpoints/
+
+# Generated CTC evolution video (regenerate with make_ctc_evolution_video.py)
+jmri/layouts/hart/ctc/history/CTC_Evolution_crops/
+jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.gif
+jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.mp4
 cats/.venv/
 
 # CATS patch build artifacts

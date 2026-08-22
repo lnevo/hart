@@ -18,8 +18,9 @@ evolution video and [`HOW_WE_BUILT_CTC.md`](../HOW_WE_BUILT_CTC.md).
 | 10 | `Screenshot 2026-08-19 at 11.35.49 PM.png` | Connected — occupancy + aspects |
 | 11 | `Screenshot 2026-08-20 at 1.34.22 AM.png` | HART RAILROAD — NEVILLE ISLAND |
 
-The **final** panel screenshot stays on the Desktop for quick reference:
-`Screenshot 2026-08-20 at 7.42.19 AM.png`.
+Stop-motion outputs (`CTC_Panel_Evolution.gif`, `.mp4`, `CTC_Evolution_crops/`) are
+generated locally and gitignored. Regenerate:
 
-Regenerate the evolution video from Desktop: `~/Desktop/make_ctc_evolution_video.py`
-(update `DESKTOP` / paths to this folder if sources move again).
+```bash
+python3 jmri/layouts/hart/ctc/history/make_ctc_evolution_video.py
+```

@@ -1,0 +1,35 @@
+# HART LCOS wiring documentation
+
+Git copy of the Desktop `HART/Wiring Documentation` package, refreshed against current public names and Digicon searchlight heads.
+
+Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is **not** git — it has a Python venv and an `ARCHIVE/` of every inventory bump. Root `.gitignore` still ignores a repo-root `Wiring Documentation/` folder so that checkout is not committed by accident.
+
+## Current files
+
+| File | Role |
+|------|------|
+| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `cats/data/signal_wiring.csv`. |
+| [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v85. |
+| [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | Live lower-deck Digicon ABS matrix (100L, 117LA, 114LA, …). |
+| [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix (`S1-1`…`S6-15`). Upper deck still uses this plan. Do not rename those IDs to Digicon 11x names. |
+| [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). |
+
+CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
+
+## Refresh
+
+```bash
+python3 docs/wiring/scripts/refresh_wiring_docs.py
+# needs python-pptx (Desktop wiring venv is fine):
+python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
+```
+
+Copy the three current workbooks back to Desktop after a refresh so the bench copy matches git.
+
+## What v85 changed vs Desktop v84
+
+- Lower-deck **BlockSensors** names follow the panel: Scale, Barn, S-1…S-5, W-1/W-2, EH-1…EH-3, OS 100… (MQTT `Block n-n` stays in Notes).
+- **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB `S3-6 G` etc. on those ports). Previous RGB label is kept in Notes.
+- **D1-OU2/OU3** Princess heads appended (114LA / 115LA and the split 2-head + dwarf faces).
+- Upper-deck RGB (`S4-*` / `S5-*` / `S6-*`) left as planned.
+- C# vs radio address is unchanged from v84b: client IDs are enclosure groups; MQTT packed IDs use the radio address (`C# ≠ node`).

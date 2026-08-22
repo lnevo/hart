@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Wiki cleanup: `hart-panel.md` / `cats-integration.md` match the live Masters + SML desk (Gate 1 `HART.xml` is history). Remaining railroad work is measured speed profiles, dispatcher stub stations, and portable CATS button paths.
+
 Updated: 2026-08-22 — Yard-ladder LE triangles live at `preference:resources/buttons/` (`triangle_idle.png` / `triangle_active.png`) and deploy copies them into JMRI user files on Mac/Pi/Windows. They are not loaded from the hart clone.
 
 Updated: 2026-08-22 — CTC Panel Help/Quit is the **bottom** Apps button strip only (unwraps the extra top toolbar; File keeps a single Exit, no extra Quit). Dispatcher Panel still has the in-window toolbar. Cleared 20 retained MQTT junk topics. STS is the Home.html link only.
@@ -167,41 +169,22 @@ See [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md) an
 | **Mac / local** | Builder cell-role fixes, live CATS load, occupancy path accept, screenshots |
 | **Cloud** | Help on builder/verify when asked; do not overwrite Mac ops branch with PNG-only commits |
 
-Active tip for ops work: this working tree / branch with `build_hart_digicon_from_le.py` Gate‑1 spine fix.
+Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.xml` / `HART_le.xml`. See [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).
 
-## Now
+## Remaining
 
-| Panel | Role | Rebuild |
-|-------|------|---------|
-| `cats/panels/HART_ctc.xml` | **Ops Digicon** — CTC interlockings | `python3 cats/scripts/build_hart_digicon_ctc.py --mqtt` |
-| `cats/panels/HART_le.xml` | LE-pack experiment | `python3 cats/scripts/build_hart_digicon_from_le.py --mqtt` |
-| `cats/panels/HART.xml` | Designer Gate 1 | `python3 cats/scripts/wire_designer_ctc_rules.py --mqtt` |
-
-### Gate 1 spine (ops board — required)
-
-```
-Main West ═══[ OS 100 ]═══ Block 100-102 (HORIZONTAL) ═══[ OS 102 ]═══ East Main Ext
-                  ╲
-                   OS 101 (yard)
-```
-
-- OS100 plant: continuing **RIGHT** into 100-102; diverge **BOTTOM** to OS101  
-- Contiguous West Yard / South Yard / East End ladders (approach+plant pairs)
-
-### Still open
-
-- [ ] Live MQTT: `M2S405` → red only on Block 100-102; `M2S401` → OS 100 only  
-- [ ] Wire turnout `ROUTECOMMAND` / `SELECTEDREPORT` from `turnout_bindings.csv`  
-- [ ] Princess / East End visual polish after path-accept  
-- [ ] Designer redraw or retire as dual-primary
+- Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
+- Dispatcher stub stations (EH, W-1/W-2, K, S-2…S-5) until SHSM or throat masts
+- Digicon lamp PNGs still rewritten onto the hart clone on Pi/Windows
+- Optional: node 13 occupancy walk-down; NX product choice (do not merge ISIS200 with mast `ISNX:*`)
 
 ## Manual launch (local Mac only)
 
 ```bash
-CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_le.xml
-python3 cats/scripts/validate_cats_panel.py cats/panels/HART_le.xml
-# optional schematic review PNG (not a substitute for CATS):
-python3 cats/scripts/render_cats_panel.py cats/panels/HART_le.xml /tmp/le.png
+./cats/scripts/launch_cats.sh
+# default: cats/panels/HART_Master.xml (CTC); ABS: launch_hart_master_abs.sh
+python3 cats/scripts/validate_cats_panel.py cats/panels/HART_Master_CTC_hold.xml
 ```
 
 Do **not** use `CATS_LAUNCH_VIA=app`. Keep-alive LaunchAgent stays disabled.
+Never run CATS CTC and the USS machine at the same time.

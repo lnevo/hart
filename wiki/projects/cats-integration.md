@@ -1,31 +1,37 @@
 # Project — CATS CTC integration
 
 - **Owner:** lnevo
-- **Status:** Active — Brick first (ADR-004 **Accepted**)
+- **Status:** Active — live desks are **CATS CTC** + **CATS ABS** (Masters), not Gate 1 `HART.xml`
 - **ADR:** [`../decisions/ADR-004-cats-ctc.md`](../decisions/ADR-004-cats-ctc.md)
-- **Code/docs:** [`cats/`](../../cats/)
+- **Code/docs:** [`cats/`](../../cats/) · system: [`../../cats/docs/HART_DIGICON_SYSTEM.md`](../../cats/docs/HART_DIGICON_SYSTEM.md)
 
 ## Locked
 
 - JMRI: current (**5.15.4plus** / ≤5.16 for CATS 3.2)
 - CTC **route** authority: **CATS** (`HART_Master_CTC_hold.xml` HOLD_ONLY)
-- Signal **aspects**: **JMRI SML** (AAR-1946). Without CATS, Unhold = ABS.
-- First plant: **Brick**
+- Signal **aspects**: **JMRI SML** (`hart-aar` / AAR-1946). Without CATS, Unhold = ABS.
+- Never run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.
 
-## Artifacts
+## Live artifacts
 
 | Path | Role |
 |------|------|
-| `cats/panels/HART.xml` | **Primary** Designer Gate 1 + MQTT |
-| `cats/panels/HART_le.xml` | LE WIP Gate 1–5 schematic + MQTT |
-| `cats/panels/HART_Brick.xml` | Starter Digicon panel (MQTT-bound Brick strip) |
-| `cats/docs/BRICK_BINDINGS.md` | Cheat-sheet |
-| `cats/scripts/launch_*.sh` | Designer / CATS launchers |
+| `cats/panels/HART_Master_CTC_hold.xml` | **Live CATS CTC** — routes/turnouts on; signals HOLD_ONLY; SML owns aspects |
+| `cats/panels/HART_Master_ABS_hold.xml` | **Live CATS ABS** — HOLD_ONLY; SECSIGNAL bound to JMRI masts (paints SML) |
+| `cats/panels/HART_Master.xml` | CTC geometry source (rebuild hold copy after edits) |
+| `cats/panels/HART_Master_ABS.xml` | ABS geometry source (unbound; hold copy is what launches) |
 
-## Next
+Gate 1 Designer files (`HART.xml`, `HART_Brick.xml`, `HART_le.xml`, `HART_ctc.xml`) are history / experiments, not the ops board.
 
-- [ ] Live test Gate 1: occupy `Block 4-6` → red on HORIZONTAL Block 100-102 only
-- [ ] Live test Gate 1: occupy `Block 4-2` → CATS colors OS 100
-- [ ] Live test: throw Switch 100 from CATS → MQTT motor (points IO not wired yet)
-- [ ] Mac-accept `HART_le.xml` Gate 2 (EME / 117b / Main East / 118 / 119)
-- [ ] Expand Designer draw Gates 3–5 or promote LE board after accept
+## Remaining
+
+- [ ] Digicon lamp PNGs: stop rewriting `BUTTON PRIMARY` onto the hart clone; same portable pattern as LE triangles (`preference:resources/buttons/`)
+- [ ] Designer as dual-primary: leave parked unless we redraw; do not treat `HART.xml` as live
+- [ ] Optional: node 13 occupancy walk-down (hardware)
+
+Gate 1 occupancy color checks (`Block 4-6` / `Block 4-2`) and Switch 100 throws from CATS were overtaken by the Master board + native SML QA (30/30). Re-open only if a plant mis-paints.
+
+## Related
+
+- Dispatcher guide: [`../../cats/docs/DISPATCHER_GUIDE_CTC.md`](../../cats/docs/DISPATCHER_GUIDE_CTC.md)
+- Deploy: `./cats/scripts/sync_hart_package.sh --pi` (add `--win` / `--all`)
