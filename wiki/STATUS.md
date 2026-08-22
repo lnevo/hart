@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Digicon BUTTON icons on Pi/Windows are absolute files under `JMRI_UserFiles/resources/buttons/` (CATS uses `java.io.File`, not `preference:`). PNGs already deploy there. No CATS jar patch.
+
 Updated: 2026-08-22 — Wiki cleanup: `hart-panel.md` / `cats-integration.md` match the live Masters + SML desk (Gate 1 `HART.xml` is history). Remaining railroad work is measured speed profiles, dispatcher stub stations, and portable CATS button paths.
 
 Updated: 2026-08-22 — Yard-ladder LE triangles live at `preference:resources/buttons/` (`triangle_idle.png` / `triangle_active.png`) and deploy copies them into JMRI user files on Mac/Pi/Windows. They are not loaded from the hart clone.
@@ -175,7 +177,6 @@ Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.
 
 - Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
 - Dispatcher stub stations (EH, W-1/W-2, K, S-2…S-5): occupancy icons are on the panel; auto-dispatch still cannot start/stop there
-- Digicon lamp artwork is done; CATS XML still uses host hart-clone paths for those PNGs
 - Node 13 occupancy walk-down (1301=118, 1304–1306=house, 1307=119)
 
 ## Manual launch (local Mac only)

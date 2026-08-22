@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""Rewrite Digicon BUTTON PRIMARY/ALTERNATE icon paths for a target host root.
+"""Point Digicon BUTTON PRIMARY/ALTERNATE at JMRI user-files.
 
-Mac source panels store /Users/lnevo/hart/... paths. Pi/Windows need local roots
-or buttons are invisible (Digicon loads via java.io.File absolute path).
+CATS opens those attributes with java.io.File (not FileUtil). A
+preference: prefix will not resolve. Deploy therefore writes a real
+directory under the host user-files tree:
+
+  <user-files>/resources/buttons/<file>
+
+Git Masters keep the Mac repo paths. Pi/Windows copies are rewritten
+here so CATS does not look in the hart clone.
 
   python3 cats/scripts/rewrite_button_icon_paths.py \\
-    --panel cats/panels/HART_Master_ABS.xml \\
-    --hart-root /home/pi/hart \\
-    --out /tmp/HART_Master_ABS.xml
+    --panel cats/panels/HART_Master.xml \\
+    --user-files /home/pi/JMRI_UserFiles
 """
 
 from __future__ import annotations
@@ -16,18 +21,22 @@ import argparse
 import re
 from pathlib import Path
 
-# Any absolute .../cats/resources/buttons/<file> → <hart_root>/cats/resources/buttons/<file>
 _BTN_RE = re.compile(
-    r'(PRIMARY|ALTERNATE)="[^"]*?[/\\]cats[/\\]resources[/\\]buttons[/\\]([^"]+)"'
+    r'(PRIMARY|ALTERNATE)="[^"]*?[/\\](?:cats[/\\])?resources[/\\]buttons[/\\]([^"]+)"'
 )
 
 
-def rewrite(text: str, hart_root: str) -> str:
-    root = hart_root.rstrip("/\\").replace("\\", "/")
+def buttons_dir(user_files: str) -> str:
+    root = user_files.rstrip("/\\").replace("\\", "/")
+    return f"{root}/resources/buttons"
+
+
+def rewrite(text: str, user_files: str) -> str:
+    dest = buttons_dir(user_files)
 
     def repl(m: re.Match[str]) -> str:
-        attr, name = m.group(1), m.group(2).replace("\\", "/")
-        return f'{attr}="{root}/cats/resources/buttons/{name}"'
+        name = m.group(2).replace("\\", "/").rsplit("/", 1)[-1]
+        return f'{m.group(1)}="{dest}/{name}"'
 
     return _BTN_RE.sub(repl, text)
 
@@ -35,16 +44,29 @@ def rewrite(text: str, hart_root: str) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, required=True)
-    ap.add_argument("--hart-root", required=True, help="e.g. /home/pi/hart or C:/Users/lnevo/hart")
+    ap.add_argument(
+        "--user-files",
+        required=True,
+        help="JMRI user-files root, e.g. /home/pi/JMRI_UserFiles",
+    )
+    ap.add_argument(
+        "--hart-root",
+        default="",
+        help="deprecated; ignored if --user-files is set",
+    )
     ap.add_argument("--out", type=Path, help="default: overwrite --panel")
     args = ap.parse_args()
+    user_files = args.user_files or args.hart_root
+    if not user_files:
+        raise SystemExit("need --user-files")
     out = args.out or args.panel
     text = args.panel.read_text(encoding="utf-8")
-    new = rewrite(text, args.hart_root)
+    new = rewrite(text, user_files)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(new, encoding="utf-8")
-    n = new.count("/cats/resources/buttons/")
-    print(f"rewrote button icon paths → {args.hart_root} ({n} refs) → {out}")
+    dest = buttons_dir(user_files)
+    n = new.count(f"{dest}/")
+    print(f"rewrote button icon paths → {dest} ({n} refs) → {out}")
 
 
 if __name__ == "__main__":

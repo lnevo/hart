@@ -25,7 +25,6 @@ Gate 1 Designer files (`HART.xml`, `HART_Brick.xml`, `HART_le.xml`, `HART_ctc.xm
 
 ## Remaining
 
-- [ ] Digicon lamp PNGs: artwork is live; stop rewriting `BUTTON PRIMARY` onto the hart clone (`preference:resources/buttons/` same as LE triangles, if CATS will load that)
 - [ ] Designer as dual-primary: leave parked unless we redraw; do not treat `HART.xml` as live
 - [ ] Node 13 occupancy walk-down (hardware: 1301=118, 1304–1306=house, 1307=119)
 

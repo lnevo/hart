@@ -40,7 +40,6 @@ Native SML (36 dests, `hart-aar` / `SL-2-digicon`), CATS CTC + ABS HOLD_ONLY, US
 |------|--------|
 | Measured speed profiles | Synthetic 10-step / 400 mm/s on every roster loco — [`speedmatching.md`](speedmatching.md) |
 | Dispatcher stub stations | EH, W-1/W-2, K, S-2…S-5 have occupancy icons; CreateTransits still cannot treat them as start/stop |
-| Digicon button PNG paths | Artwork is done; CATS XML still points at the hart clone on Pi/Windows |
 | Node 13 occupancy walk-down | Hardware: 1301=118, 1304–1306=house, 1307=119 — freeze the CSV |
 
 ## Decisions (locked 2026-08-07)

@@ -169,7 +169,8 @@ if [[ "$DO_PI" -eq 1 ]]; then
   # Rewrite button paths before upload
   STAGE=$(mktemp -d)
   for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml HART_Master_CTC_hold.xml; do
-    python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" --hart-root /home/pi/hart --out "$STAGE/$p"
+    python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" \
+      --user-files /home/pi/JMRI_UserFiles --out "$STAGE/$p"
   done
   scp -o BatchMode=yes "$STAGE"/*.xml "$PI_HOST:/home/pi/hart/cats/panels/"
   rm -rf "$STAGE"
@@ -348,7 +349,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   STAGE=$(mktemp -d)
   for p in HART_Master.xml HART_Master_ABS.xml HART_Master_ABS_hold.xml HART_Master_CTC_hold.xml; do
     python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" \
-      --hart-root "C:/Users/lnevo/hart" --out "$STAGE/$p"
+      --user-files "C:/Users/lnevo/JMRI_UserFiles" --out "$STAGE/$p"
   done
   scp_win "$STAGE"/*.xml "${WIN_HOST}:hart/cats/panels/"
   rm -rf "$STAGE"

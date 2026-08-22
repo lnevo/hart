@@ -44,19 +44,19 @@ $BtnSrc = Join-Path $Work 'buttons'
 if (Test-Path $BtnSrc) {
   Copy-Item (Join-Path $BtnSrc '*') $BtnDir -Force
 }
-$WinRoot = (Join-Path $env:USERPROFILE 'hart') -replace '\\', '/'
+$UserFiles = (Join-Path $env:USERPROFILE 'JMRI_UserFiles') -replace '\\', '/'
 foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_hold.xml', 'HART_Master_CTC_hold.xml')) {
   $p = Join-Path $PanelDir $panel
   if (-not (Test-Path $p)) { continue }
   $txt = Get-Content -Raw -LiteralPath $p
   $txt2 = [regex]::Replace(
     $txt,
-    '(PRIMARY|ALTERNATE)="[^"]*?[/\\]cats[/\\]resources[/\\]buttons[/\\]([^"]+)"',
-    { param($m) '{0}="{1}/cats/resources/buttons/{2}"' -f $m.Groups[1].Value, $WinRoot, $m.Groups[2].Value }
+    '(PRIMARY|ALTERNATE)="[^"]*?[/\\](?:cats[/\\])?resources[/\\]buttons[/\\]([^"]+)"',
+    { param($m) '{0}="{1}/resources/buttons/{2}"' -f $m.Groups[1].Value, $UserFiles, $m.Groups[2].Value }
   )
   if ($txt2 -ne $txt) {
     Set-Content -LiteralPath $p -Value $txt2 -NoNewline -Encoding UTF8
-    Write-Host ("Rewrote button icon paths in {0}" -f $panel)
+    Write-Host ("Rewrote button icon paths in {0} -> {1}/resources/buttons" -f $panel, $UserFiles)
   }
 }
 
