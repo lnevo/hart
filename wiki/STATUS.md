@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — LogixNG window hide is on at PanelPro start: **USS CTC**, **Dispatcher System**, and **WiThrottle**. Ignore-if-not-found stays checked. **HART Railroad** stays visible.
+
 Updated: 2026-08-22 — Panel window titles: Layout Editor is **HART Railroad** (was My Layout / HART); Panel Editor USS machine is **USS CTC** (was `Panel `). Entry/Exit `layoutPanel` and Dispatcher `lename` match.
 
 Updated: 2026-08-22 — South Yard body tracks renamed **S-1…S-5** (was South Yard 1–5 / SY-1…SY-5). JMRI block userNames, dispatcher stations/MoveTo, and CATS `BLOCK NAME` match the Digicon plates. Occupancy sensors stay `Block 2-4`…`Block 2-8`.

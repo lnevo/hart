@@ -6678,7 +6678,7 @@
       <id>0</id>
       <name>LogixNG thread</name>
     </Thread>
-    <LogixNG enabled="no" inline="no">
+    <LogixNG enabled="yes" inline="no">
       <systemName>IQ:AUTO:0001</systemName>
       <ConditionalNGs>
         <systemName>IQC:AUTO:0001</systemName>
@@ -6687,7 +6687,9 @@
         <systemName>IQC:AUTO:0004</systemName>
       </ConditionalNGs>
     </LogixNG>
-    <InitializationTable />
+    <InitializationTable>
+      <LogixNG>IQ:AUTO:0001</LogixNG>
+    </InitializationTable>
     <Clipboard>
       <Many class="jmri.jmrit.logixng.implementation.configurexml.ClipboardManyXml">
         <Socket>
@@ -6697,7 +6699,7 @@
     </Clipboard>
   </LogixNGs>
   <LogixNGConditionalNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultConditionalNGManagerXml">
-    <ConditionalNG enabled="no">
+    <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0001</systemName>
       <thread>0</thread>
       <Socket>
@@ -6705,7 +6707,7 @@
         <systemName>IQDA:AUTO:0001</systemName>
       </Socket>
     </ConditionalNG>
-    <ConditionalNG enabled="no">
+    <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0002</systemName>
       <thread>0</thread>
       <Socket>
@@ -6713,7 +6715,7 @@
         <systemName>IQDA:AUTO:0002</systemName>
       </Socket>
     </ConditionalNG>
-    <ConditionalNG enabled="no">
+    <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0003</systemName>
       <thread>0</thread>
       <Socket>
@@ -6741,7 +6743,7 @@
       <ignoreWindowNotFound>yes</ignoreWindowNotFound>
       <hideOrShow>
         <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
+        <enum>Hide</enum>
         <listenToMemory>no</listenToMemory>
       </hideOrShow>
       <maximizeMinimizeNormalize>
@@ -6763,7 +6765,7 @@
     </DisplayActionWindowManagement>
     <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
       <systemName>IQDA:AUTO:0002</systemName>
-      <jmriJFrameTitle>JMRI System Console</jmriJFrameTitle>
+      <jmriJFrameTitle>USS CTC</jmriJFrameTitle>
       <addressing>Direct</addressing>
       <reference />
       <localVariable />
@@ -6771,7 +6773,7 @@
       <ignoreWindowNotFound>yes</ignoreWindowNotFound>
       <hideOrShow>
         <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
+        <enum>Hide</enum>
         <listenToMemory>no</listenToMemory>
       </hideOrShow>
       <maximizeMinimizeNormalize>
@@ -6793,7 +6795,7 @@
     </DisplayActionWindowManagement>
     <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
       <systemName>IQDA:AUTO:0003</systemName>
-      <jmriJFrameTitle>Power Control : All Connections</jmriJFrameTitle>
+      <jmriJFrameTitle>Dispatcher System</jmriJFrameTitle>
       <addressing>Direct</addressing>
       <reference />
       <localVariable />
@@ -6801,7 +6803,7 @@
       <ignoreWindowNotFound>yes</ignoreWindowNotFound>
       <hideOrShow>
         <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
+        <enum>Hide</enum>
         <listenToMemory>no</listenToMemory>
       </hideOrShow>
       <maximizeMinimizeNormalize>
