@@ -2,7 +2,7 @@
 
 Updated: 2026-08-22 — Digicon BUTTON icons on Pi/Windows are absolute files under `JMRI_UserFiles/resources/buttons/` (CATS uses `java.io.File`, not `preference:`). PNGs already deploy there. No CATS jar patch.
 
-Updated: 2026-08-22 — Wiki cleanup: `hart-panel.md` / `cats-integration.md` match the live Masters + SML desk (Gate 1 `HART.xml` is history). Remaining railroad work is measured speed profiles, dispatcher stub stations, and portable CATS button paths.
+Updated: 2026-08-22 — Wiki cleanup: `hart-panel.md` / `cats-integration.md` match the live Masters + SML desk (Gate 1 `HART.xml` is history).
 
 Updated: 2026-08-22 — Yard-ladder LE triangles live at `preference:resources/buttons/` (`triangle_idle.png` / `triangle_active.png`) and deploy copies them into JMRI user files on Mac/Pi/Windows. They are not loaded from the hart clone.
 
