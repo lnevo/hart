@@ -174,9 +174,9 @@ Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.
 ## Remaining
 
 - Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
-- Dispatcher stub stations (EH, W-1/W-2, K, S-2…S-5) until SHSM or throat masts
-- Digicon lamp PNGs still rewritten onto the hart clone on Pi/Windows
-- Optional: node 13 occupancy walk-down; NX product choice (do not merge ISIS200 with mast `ISNX:*`)
+- Dispatcher stub stations (EH, W-1/W-2, K, S-2…S-5): occupancy icons are on the panel; auto-dispatch still cannot start/stop there
+- Digicon lamp artwork is done; CATS XML still uses host hart-clone paths for those PNGs
+- Node 13 occupancy walk-down (1301=118, 1304–1306=house, 1307=119)
 
 ## Manual launch (local Mac only)
 

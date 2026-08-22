@@ -25,9 +25,9 @@ Gate 1 Designer files (`HART.xml`, `HART_Brick.xml`, `HART_le.xml`, `HART_ctc.xm
 
 ## Remaining
 
-- [ ] Digicon lamp PNGs: stop rewriting `BUTTON PRIMARY` onto the hart clone; same portable pattern as LE triangles (`preference:resources/buttons/`)
+- [ ] Digicon lamp PNGs: artwork is live; stop rewriting `BUTTON PRIMARY` onto the hart clone (`preference:resources/buttons/` same as LE triangles, if CATS will load that)
 - [ ] Designer as dual-primary: leave parked unless we redraw; do not treat `HART.xml` as live
-- [ ] Optional: node 13 occupancy walk-down (hardware)
+- [ ] Node 13 occupancy walk-down (hardware: 1301=118, 1304–1306=house, 1307=119)
 
 Gate 1 occupancy color checks (`Block 4-6` / `Block 4-2`) and Switch 100 throws from CATS were overtaken by the Master board + native SML QA (30/30). Re-open only if a plant mis-paints.
 
