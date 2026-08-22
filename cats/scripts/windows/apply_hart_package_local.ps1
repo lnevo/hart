@@ -88,6 +88,7 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
 
 $facingSrc = Join-Path $hart 'jmri\layouts\hart\scripts\patch_dispatcher_facing.py'
 $startupSrc = Join-Path $hart 'jmri\layouts\hart\scripts\hart_dispatcher_startup.py'
+$hideCatsSrc = Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 if ((Test-Path $facingSrc) -and (Test-Path $startupSrc)) {
   $roots = New-Object System.Collections.Generic.List[string]
@@ -103,6 +104,9 @@ if ((Test-Path $facingSrc) -and (Test-Path $startupSrc)) {
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
     Copy-Item $facingSrc (Join-Path $dest 'patch_dispatcher_facing.py') -Force
     Copy-Item $startupSrc (Join-Path $dest 'hart_dispatcher_startup.py') -Force
+    if (Test-Path $hideCatsSrc) {
+      Copy-Item $hideCatsSrc (Join-Path $dest 'hide_cats_desk_windows.py') -Force
+    }
     Write-Host ("Dispatcher compatibility scripts -> {0}\jython" -f $r)
     if (Test-Path $trainInfoSrc) {
       $trainInfoDest = Join-Path $r 'dispatcher\traininfo'

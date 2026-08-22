@@ -49,13 +49,14 @@ REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
 install_dispatcher_facing_patch() {
   local patch="$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
   local startup="$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
+  local hide_cats="$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
-  [[ -f "$patch" && -f "$startup" ]] || return 0
+  [[ -f "$patch" && -f "$startup" && -f "$hide_cats" ]] || return 0
   _install_facing_into() {
     local profile="$1"
     local dest="$profile/jython"
     mkdir -p "$dest"
-    cp -f "$patch" "$startup" "$dest/"
+    cp -f "$patch" "$startup" "$hide_cats" "$dest/"
     echo "Dispatcher compatibility scripts -> $dest"
     if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
@@ -190,6 +191,7 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
     "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
+    "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py" \
     "$ROOT/jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py" \
     "$PI_HOST:/home/pi/hart/jmri/layouts/hart/scripts/"
   # Native SML cutover: retired startup workarounds must stay out of the Pi
@@ -232,6 +234,7 @@ if [[ "$DO_PI" -eq 1 ]]; then
   scp -o BatchMode=yes \
     "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
+    "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py" \
     "$PI_HOST:/home/pi/JMRI_UserFiles/jython/"
   echo "Pi Dispatcher compatibility scripts updated"
   # Digicon SHSM appearances (incl. dwarf) for LE + mast load
@@ -308,6 +311,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
     "$ROOT/jmri/layouts/hart/scripts/discover_sml.py" \
     "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
+    "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py" \
     "$ROOT/jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py" \
     "${WIN_HOST}:hart/jmri/layouts/hart/scripts/"
   scp_win "$ROOT/jmri/layouts/hart/dispatcher/traininfo/"*.xml \

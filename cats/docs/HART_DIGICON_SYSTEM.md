@@ -82,7 +82,7 @@ SML dests are **native**: Layout Editor Discover generates them (`cats/scripts/r
 **PanelPro vs CATS (same profile, sequential — never simultaneous):**
 
 - **PanelPro** — edit/store JMRI tables, connections, Start Up. Then quit. Never Store tables while a CATS layout is open (Rodney Black, cats-users #2534).
-- **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them.
+- **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them. LogixNG then hides **USS CTC** and **HART Railroad** (script `hide_cats_desk_windows.py`) so only the Digicon stays up.
 - Do **not** run both at once (MQTT client-id + profile lock). Only **one** Digicon should be signal authority (**CATS CTC** or **CATS ABS**).
 
 ---

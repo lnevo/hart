@@ -7232,7 +7232,7 @@
   <LogixNGConditionalNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultConditionalNGManagerXml">
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0001</systemName>
-      <userName>Hide USS CTC Editor</userName>
+      <userName>Hide WiThrottle</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -7241,7 +7241,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0002</systemName>
-      <userName>Hide Dispatcher System</userName>
+      <userName>Hide USS CTC Editor</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -7250,16 +7250,16 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0003</systemName>
-      <userName>Hide WiThrottle</userName>
+      <userName>Hide Dispatcher System</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
         <systemName>IQDA:AUTO:0003</systemName>
       </Socket>
     </ConditionalNG>
-    <ConditionalNG enabled="no">
+    <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0004</systemName>
-      <userName>Keep HART Railroad</userName>
+      <userName>Hide USS CTC and HART Railroad under CATS</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -7358,36 +7358,26 @@
         </AbstractMaleSocket>
       </MaleSocket>
     </DisplayActionWindowManagement>
-    <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
+    <ActionScript class="jmri.jmrit.logixng.actions.configurexml.ActionScriptXml">
       <systemName>IQDA:AUTO:0004</systemName>
-      <jmriJFrameTitle>HART Railroad</jmriJFrameTitle>
-      <addressing>Direct</addressing>
-      <reference />
-      <localVariable />
-      <formula />
-      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
-      <hideOrShow>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </hideOrShow>
-      <maximizeMinimizeNormalize>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </maximizeMinimizeNormalize>
-      <bringToFrontOrBack>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </bringToFrontOrBack>
+      <userName>Hide USS CTC and HART Railroad under CATS</userName>
+      <operationAddressing>Direct</operationAddressing>
+      <operationType>RunScript</operationType>
+      <operationReference></operationReference>
+      <operationLocalVariable></operationLocalVariable>
+      <operationFormula></operationFormula>
+      <scriptAddressing>Direct</scriptAddressing>
+      <script>preference:jython/hide_cats_desk_windows.py</script>
+      <scriptReference></scriptReference>
+      <scriptLocalVariable></scriptLocalVariable>
+      <scriptFormula></scriptFormula>
       <MaleSocket>
         <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
         <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
           <errorHandling>Default</errorHandling>
         </AbstractMaleSocket>
       </MaleSocket>
-    </DisplayActionWindowManagement>
+    </ActionScript>
   </LogixNGDigitalActions>
   <ctcdata class="jmri.jmrit.ctc.configurexml.CtcManagerXml">
     <ctcProperties>
@@ -12600,7 +12590,7 @@
     <positionablelabel x="648" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="116" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="470" y="398" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="117" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="610" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="118" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="586" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="119" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="548" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="119" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <signalmasticon signalmast="100L" x="378" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="101RA" x="185" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="101RB" x="185" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />

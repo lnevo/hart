@@ -134,10 +134,11 @@ MEMORY_USERNAMES = {
 
 LOGIXNG_USERNAMES = {
     "IQ:AUTO:0001": "Hide windows on start",
-    "IQC:AUTO:0001": "Hide USS CTC Editor",
-    "IQC:AUTO:0002": "Hide Dispatcher System",
-    "IQC:AUTO:0003": "Hide WiThrottle",
-    "IQC:AUTO:0004": "Keep HART Railroad",
+    "IQC:AUTO:0001": "Hide WiThrottle",
+    "IQC:AUTO:0002": "Hide USS CTC Editor",
+    "IQC:AUTO:0003": "Hide Dispatcher System",
+    "IQC:AUTO:0004": "Hide USS CTC and HART Railroad under CATS",
+    "IQDA:AUTO:0004": "Hide USS CTC and HART Railroad under CATS",
 }
 
 BLOCK_COMMENTS = {

@@ -2,7 +2,7 @@
 
 Updated: 2026-08-22 — Yard plates: **W-1 / W-2** (was West Yard 1/2), **East Lead** (was South Yard East), **EH-1 / EH-2 / EH-3** (was Engine House 1–3). Every tables.xml bean has a User Name; missing comments filled.
 
-Updated: 2026-08-22 — USS CTC machine window is **USS CTC**; LogixNG hides the Panel Editor toolbox (**USS CTC Editor**), **Dispatcher System**, and **WiThrottle** at start. Ignore-if-not-found stays checked. **HART Railroad** stays visible.
+Updated: 2026-08-22 — LE **119** plate moved left (x 586→548) so it no longer sits on **118**. LogixNG still hides **USS CTC Editor**, **Dispatcher System**, and **WiThrottle** at every start. Under **CATS** (`cats.apps.Crandic` / `CatsConfig.xml`) it also hides the **USS CTC** machine and **HART Railroad**; PanelPro leaves those two up. Script: `preference:jython/hide_cats_desk_windows.py`.
 
 Updated: 2026-08-22 — Panel window titles: Layout Editor is **HART Railroad** (was My Layout / HART); Panel Editor USS machine is **USS CTC** (was `Panel `). Entry/Exit `layoutPanel` and Dispatcher `lename` match.
 
