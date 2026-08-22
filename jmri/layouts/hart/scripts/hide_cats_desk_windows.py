@@ -8,9 +8,10 @@
 # MUST stay ASCII. Jython 2.7 LogixNG ActionScript crashes the whole file on a
 # UnicodeDecodeError (em-dash in a print previously aborted before chrome).
 #
-# Mac puts JMenuBar items in the screen menu bar and drops JButtons on a
-# JMenuBar, so Help/Quit are a toolbar inside the window. Restart RPi /
-# Shutdown RPi stay on Apps.buttonSpace(); do not put Help/Quit there too.
+# CTC Panel: Help/Quit go on Apps.buttonSpace() (bottom, with Restart RPi).
+# Do not wrap a second toolbar at the top. Dispatcher Panel has no button
+# strip, so it keeps the in-window toolbar. File already has Exit; do not
+# add a second Quit.
 
 from __future__ import print_function
 
@@ -144,6 +145,72 @@ def _find_menu(bar, title):
     return None
 
 
+def _remove_named_menu_item(menu, name):
+    if menu is None:
+        return
+    doomed = []
+    for i in range(menu.getItemCount()):
+        item = menu.getItem(i)
+        if item is not None and item.getName() == name:
+            doomed.append(item)
+    for item in doomed:
+        try:
+            menu.remove(item)
+        except Exception:
+            pass
+
+
+def _item_label(item):
+    if item is None:
+        return ""
+    try:
+        return (item.getText() or "").strip().lower()
+    except Exception:
+        return ""
+
+
+def _clean_file_quit(menu):
+    """Drop the extra File -> Quit we used to add. Keep File -> Exit."""
+    if menu is None:
+        return
+    _remove_named_menu_item(menu, QUIT_ITEM_NAME)
+    has_exit = False
+    quits = []
+    for i in range(menu.getItemCount()):
+        item = menu.getItem(i)
+        if item is None:
+            continue
+        label = _item_label(item)
+        if label in ("exit", "exit..."):
+            has_exit = True
+        elif label == "quit":
+            quits.append(item)
+    doomed = quits if has_exit else quits[1:]
+    for item in doomed:
+        try:
+            menu.remove(item)
+        except Exception:
+            pass
+
+
+def _has_button_text(container, title):
+    if container is None:
+        return False
+    want = (title or "").strip().lower()
+    try:
+        count = container.getComponentCount()
+    except Exception:
+        return False
+    for i in range(count):
+        try:
+            label = container.getComponent(i).getText()
+        except Exception:
+            continue
+        if label is not None and label.strip().lower() == want:
+            return True
+    return False
+
+
 def _new_button(title, name, fn):
     btn = JButton(title)
     btn.setName(name)
@@ -176,6 +243,30 @@ def _refresh(frame):
         pass
 
 
+def remove_window_toolbar(frame):
+    """Undo a prior wrap so CTC Panel is not stuck with a top Help/Quit row."""
+    if frame is None:
+        return False
+    cp = frame.getContentPane()
+    if cp is None or cp.getName() != WRAP_NAME:
+        return False
+    inner = None
+    layout = cp.getLayout()
+    if isinstance(layout, BorderLayout):
+        inner = layout.getLayoutComponent(BorderLayout.CENTER)
+    if inner is None:
+        for i in range(cp.getComponentCount()):
+            child = cp.getComponent(i)
+            if child.getName() != TOOLBAR_NAME:
+                inner = child
+                break
+    if inner is None:
+        return False
+    frame.setContentPane(inner)
+    _refresh(frame)
+    return True
+
+
 def install_window_toolbar(frame):
     """Help/Quit strip inside the frame (visible on Mac; JMenuBar buttons are not)."""
     if frame is None:
@@ -198,20 +289,41 @@ def install_window_toolbar(frame):
     return True
 
 
+def add_script_style_buttons():
+    """Help/Quit on the Apps button strip (bottom of CTC Panel)."""
+    try:
+        from apps import Apps
+        space = Apps.buttonSpace()
+    except Exception:
+        return False
+    if space is None:
+        return False
+    added = False
+    if not _has_named(space, HELP_NAME) and not _has_button_text(space, "Help"):
+        space.add(_new_button("Help", HELP_NAME, _show_jmri_help))
+        added = True
+    if not _has_named(space, QUIT_NAME) and not _has_button_text(space, "Quit"):
+        space.add(_new_button("Quit", QUIT_NAME, _quit_cats))
+        added = True
+    if added:
+        try:
+            space.revalidate()
+            space.repaint()
+        except Exception:
+            pass
+        print("HART: CATS Help/Quit on CTC Panel button strip")
+    return True
+
+
 def decorate_menus(frame):
-    """File/Help items (Mac screen menu bar). Safe if bar is missing."""
+    """Help menu extras only. File already has Exit; do not add Quit."""
     if frame is None:
         return False
     bar = frame.getJMenuBar()
     if bar is None:
         return True
     file_menu = _find_menu(bar, "File")
-    if file_menu is not None and not _menu_has_named(file_menu, QUIT_ITEM_NAME):
-        item = JMenuItem("Quit")
-        item.setName(QUIT_ITEM_NAME)
-        item.addActionListener(_Call(_quit_cats))
-        file_menu.addSeparator()
-        file_menu.add(item)
+    _clean_file_quit(file_menu)
     help_menu = _find_menu(bar, "Help")
     if help_menu is not None and not _menu_has_named(help_menu, GUIDE_NAME):
         jmri_item = JMenuItem("Window Help...")
@@ -236,14 +348,9 @@ def decorate_ctc_panel():
     if frame is None:
         return False
     decorate_menus(frame)
-    cp = frame.getContentPane()
-    already = cp is not None and (
-        cp.getName() == WRAP_NAME or _has_named(cp, TOOLBAR_NAME)
-    )
-    if not install_window_toolbar(frame):
+    remove_window_toolbar(frame)
+    if not add_script_style_buttons():
         return False
-    if not already:
-        print("HART: CATS Help/Quit on CTC Panel")
     return True
 
 

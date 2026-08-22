@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-22 — CTC Panel Help/Quit is only the in-window toolbar (Restart RPi / Shutdown RPi stay on Apps.buttonSpace()). Same toolbar on Dispatcher Panel. ASCII-only `hide_cats_desk_windows.py`. Cleared 20 retained MQTT junk topics (`_discard/cmd/sensor/#` and leftovers). STS is the Home.html link only; `web/sts.html` is gone.
+Updated: 2026-08-22 — CTC Panel Help/Quit is the **bottom** Apps button strip only (unwraps the extra top toolbar; File keeps a single Exit, no extra Quit). Dispatcher Panel still has the in-window toolbar. Cleared 20 retained MQTT junk topics. STS is the Home.html link only.
 
 Updated: 2026-08-22 — Mac and Windows now match the Pi for Start Up scripts: copies live in `preference:jython/` (profile `jython/` on Mac/Windows; `JMRI_UserFiles/jython/` on the Pi). PerformScript no longer points at `home:hart/...` or `/Users/lnevo/hart/...`.
 
