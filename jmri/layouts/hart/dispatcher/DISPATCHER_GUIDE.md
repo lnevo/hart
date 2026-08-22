@@ -25,23 +25,36 @@ Two windows:
 | Window | What it is |
 |--------|------------|
 | **Dispatcher System** | Command panel: start/stop, register trains, Run Dispatch vs Setup Route vs Run Route |
-| **My Layout** | The eight stations. The **wide label** is the destination button. The **small bubble** next to it is progress (occupied / moving), not a second stop |
+| **My Layout** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House 1–3 where occupancy sits further left on the same row |
 
-Stations, west → east around the plant:
+Stations, west → east around the plant, then the yard and house:
 
 | Station | Where it is |
 |---------|-------------|
 | **Brick-Plane** | Hairpin between Brick and Plane |
 | **East Main Ext** | Main between Plane (102) and Barn (117) |
 | **Main East** | Main south of the yard, approaching East End |
-| **South Yard East** | East End lead off 112 |
+| **South Yard East** | East End lead off 112; destination label **East** |
 | **Main West** | Main West at East End (around-the-room from Brick) |
 | **West Main Ext** | Main West between East End and Princess |
 | **McKees Rocks** | Princess, north branch |
 | **McKeesport** | Princess, south branch |
+| **Scale** | Left of the engine house, Plane–117 lead; destination label **Scale** |
+| **Barn** | Immediately to the right of Scale (Barn lead); destination label **Barn** |
+| **Engine House 1 / 2 / 3** | Right of the 116 ladder |
+| **South Yard 1–5** | South Yard body; destination labels **Track 1–5**, aligned with Main W / Main E |
+| **West Yard 1 / 2** | Brick yard body; destination labels **W-1** / **W-2** |
+| **K-1 / K-2** | Princess stubs east of 115 / 114; destination labels **K-1** / **K-2** |
 
-You can only start and stop at those eight. Yard tracks, W-1/W-2, and K-1/K-2
-are not stations.
+You can only start and stop at those stations. Occupancy icons and MoveTo
+buttons are in place. **Stage 1 / Stage 2 have not been re-run** for the
+new stations: generated transits and traininfo are still the original eight
+blocks. Hidden stub-end virtual masts (`101LA`/`101LB`, `114RA`/`115RA`,
+`118L`/`119LA`/`119LB`, `104L`–`107L`) are in `tables.xml` so CreateTransits
+can cover the stubs. In **PanelPro** (not CATS): Dispatcher System → Stage 1,
+re-add the two manual Princess pairs (`113RA→115LA`, `113RB→114LA`), Store,
+then `python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py` and
+`reconcile_dispatcher_stations.py`.
 
 ---
 
@@ -175,3 +188,34 @@ stations unless you are locking a one-way plant for the session.
 | Stop at every station | **Express Train** **off** |
 | Skip intermediates | **Express Train** **on** |
 | Tail hanging out of the station | **Dispatch Path must be clear** **off** before you click |
+
+---
+
+## 9. NX on My Layout (separate desk)
+
+JMRI Entry/Exit lives on **My Layout** as a **white USS lamp** on the
+approach track into each CTC switch (`NX 100L`, `NX 102LB`, …). It turns
+**green** when that end of a route is active. That is not the Dispatcher
+System pair: the **loco** is MoveTo, the **small track-circuit square** is
+progress.
+
+**Now (SML mode):** click two white lamps to throw the path and let SML
+set the facing mast. Default AAR icons stay. LE turnout circles still
+work. NX does not Hold or reserve blocks.
+
+**Later (lock mode):** `python3 jmri/layouts/hart/scripts/apply_nx_layer.py --mode lock`
+then deploy. After that, NX Holds every source mast at Stop until you
+click a route, and reserves the path. Use that desk **instead of** CATS
+CTC and USS Logic. Switch back with `--mode sml`.
+
+You can also flip it in PanelPro: **Tools → Entry Exit** — pair type
+**Turnout and Signal Mast Logic** vs **Full Interlock**, and **Use ABS
+Signal Mode**. Store from PanelPro if you change it there.
+
+1. Open **PanelPro**.
+2. Click the white lamp, then the exit lamp to line turnouts / SML.
+3. First prove-out pair: **NX 100L → NX 102LB** (Brick main) and
+   **NX 101RA → NX 100L** (W-1 out).
+
+Do not click Dispatcher System **MoveTo** labels as NX points — those are a
+different desk. Hand-throws 116/118/119 and yard stubs are not NX ends.

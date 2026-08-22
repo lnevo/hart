@@ -31,6 +31,20 @@ STATION_COMMENTS = {
     "McKees Rocks": "Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop",
     "McKeesport": "Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop",
     "West Main Ext": "Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
+    "Engine House 1": "Top house track; occupancy Block 13-5 / M2S1304; stop",
+    "Engine House 2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
+    "Engine House 3": "Bottom house track; occupancy Block 13-7 / M2S1306; stop",
+    "South Yard 1": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
+    "South Yard 2": "South Yard body; occupancy Block 2-7 / M2S206; stop",
+    "South Yard 3": "South Yard body; occupancy Block 2-6 / M2S205; stop",
+    "South Yard 4": "South Yard body; occupancy Block 2-5 / M2S204; stop",
+    "South Yard 5": "South Yard body; occupancy Block 2-4 / M2S203; stop",
+    "Scale": "Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop",
+    "Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
+    "West Yard 1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
+    "West Yard 2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
+    "K-1": "Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop",
+    "K-2": "Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop",
 }
 
 
@@ -120,11 +134,13 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
         for mast in masts.findall("signalmast"):
             name = text(mast, "userName")
             system_name = text(mast, "systemName")
-            if name:
-                names.add(name)
             normalized = (system_name + " " + name).upper()
             if "IF$VSM:CATS" in normalized or "CATS1" in normalized or "CATS2" in normalized:
                 cats_virtual.append(f"{name or '<unnamed>'} [{system_name or '<no system name>'}]")
+            if (system_name or "").startswith("IF$vsm:AAR-1946:"):
+                continue
+            if name:
+                names.add(name)
     missing = sorted(expected - names)
     extra = sorted(names - expected)
     if missing or extra or len(names) != 23:
@@ -282,9 +298,33 @@ def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
             value = (label.get("text") or text(label, "text")).strip()
             if value.upper().startswith("SIG"):
                 placeholders.append(value)
+        station_occupancy = {
+            "Block 4-6",
+            "Block 4-7",
+            "Block 2-1",
+            "Block 2-3",
+            "Block 1-8",
+            "Block 1-7",
+            "Block 1-1",
+            "Block 1-2",
+            "Block 13-5",
+            "Block 13-6",
+            "Block 13-7",
+            "Block 2-8",
+            "Block 2-7",
+            "Block 2-6",
+            "Block 2-5",
+            "Block 2-4",
+            "Block 4-8",
+            "Block 13-1",
+            "Block 4-4",
+            "Block 4-3",
+            "Block 1-4",
+            "Block 1-3",
+        }
         for icon in panel.iter("sensoricon"):
             name = (icon.get("sensor") or "").strip()
-            if re.fullmatch(r"Block \d+-\d+", name):
+            if re.fullmatch(r"Block \d+-\d+", name) and name not in station_occupancy:
                 redundant_occupancy_icons.append(name)
     if placeholders:
         audit.warn(f"stale SIG placeholder labels remain: {sorted(placeholders)}")

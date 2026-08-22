@@ -2,7 +2,7 @@ layer,current,proposed,cp,hardware,notes
 turnout,Switch 100,Switch 100,Brick,M2T408,keep
 turnout,Switch 101,Switch 101,Brick,M2T409,keep
 turnout,Switch 102,Switch 102,Plane,M2T410,keep
-turnout,Switch 103,Switch 103,South Yard,M2T308,keep; east of South Yard West
+turnout,Switch 103,Switch 103,South Yard,M2T308,keep; east of Barn
 turnout,Switch 104,Switch 104,South Yard,M2T309,keep; hand-throw
 turnout,Switch 105,Switch 105,South Yard,M2T310,keep; hand-throw
 turnout,Switch 106,Switch 106,South Yard,M2T311,keep; hand-throw
@@ -22,7 +22,7 @@ turnout,Switch 119,Switch 119,,M2T1310,hand-throw; Engine House
 block,OS 100 (Brick),OS 100,Brick,Block 4-2,CP in comment
 block,OS 101 (Brick),OS 101,Brick,Block 4-1,CP in comment
 block,OS 102 (Plane),OS 102,Plane,Block 4-5,CP in comment
-block,OS 103 (South Yard),OS 103,South Yard,Block 3-2,CP in comment; between South Yard West and South Yard 1
+block,OS 103 (South Yard),OS 103,South Yard,Block 3-2,CP in comment; between Barn and South Yard 1
 block,OS 104 (South Yard),OS 104,South Yard,Block 3-3,CP in comment
 block,OS 105 (South Yard),OS 105,South Yard,Block 3-5,CP in comment
 block,OS 106 (South Yard),OS 106,South Yard,Block 3-7,CP in comment
@@ -48,9 +48,11 @@ block,Main West Brick-Plane,Brick-Plane,Brick,Block 4-6,also listed as Block 100
 block,Block 100-102,Brick-Plane,Brick,Block 4-6,alias retire
 block,East Main Ext,East Main Ext,Plane,Block 4-7,keep
 block,West Main Ext,West Main Ext,East End,Block 1-8,keep
-block,East Lead,South Yard East,East End,Block 1-7,east of 110/112 toward Princess
-block,Yard T1,South Yard Scale,Plane,Block 4-8,Plane diverging to 117
-block,Yard T6,South Yard West,South Yard,Block 13-1,MQTT 1300
+block,East Lead,South Yard East,East End,Block 1-7,east of 110/112 toward Princess; dest button East
+block,Yard T1,Scale,Plane,Block 4-8,Plane diverging to 117; was South Yard Scale
+block,Yard T6,Barn,Barn,Block 13-1,MQTT 1300; 117 to 116; was South Yard West
+block,South Yard Scale,Scale,Plane,Block 4-8,alias after Scale/West public names
+block,South Yard West,Barn,Barn,Block 13-1,alias after Scale/West public names
 block,Yard Track 1,South Yard 1,South Yard,Block 2-8,run-through east of 103 to 110/112
 block,Yard Track 2,South Yard 2,South Yard,Block 2-7,
 block,Yard Track 3,South Yard 3,South Yard,Block 2-6,
@@ -71,12 +73,12 @@ block,ET-3,Engine House 1,,Block 13-5,CATS station alias
 mast,Brick West Yard 1,101RA,Brick,IH436,lever 2 Right; W-1 dwarf
 mast,Brick West Yard 2,101RB,Brick,IH437,lever 2 Right; W-2 dwarf
 mast,Brick East Main West,100L,Brick,IH438 IH439,lever 4 Left
-mast,Plane East OS 102,102LA,Plane,IH434 IH435,lever 6 Left; South Yard Scale
+mast,Plane East OS 102,102LA,Plane,IH434 IH435,lever 6 Left; Scale
 mast,Plane East East Main Ext,102LB,Plane,IH432 IH433,lever 6 Left; main
 mast,West Yard West OS 117,117RA,Barn,IH1332 IH1333,lever 8 Right; yard
 mast,West Yard West East Main Ext,117RB,Barn,IH1335 IH1336,lever 8 Right; main
 mast,West Yard East OS 117b,117LA,Barn,IH1337 IH1338,lever 8 Left; main
-mast,West Yard East Yard T6,117LB,Barn,IH1334,lever 8 Left; South Yard West dwarf
+mast,West Yard East Yard T6,117LB,Barn,IH1334,lever 8 Left; Barn dwarf
 mast,East End West Main West,111RA,East End,IH1232 IH1233,lever 18 Right; Main West
 mast,East End West Yard Track 1,111RB,East End,IH1236,lever 18 Right; South Yard 1 dwarf
 mast,East End East OS 111a,111L,East End,IH1234 IH1235,lever 18 Left
@@ -91,6 +93,17 @@ mast,Princess South McKeesport,114LB,Princess,IH139 IH140,lever 28 Left
 mast,Princess East McKees Rocks,115R,Princess,IH141,lever 30 Right; dwarf
 mast,Princess East K-1,115LA,Princess,IH142,lever 30 Left; dwarf
 mast,Princess North McKees Rocks,115LB,Princess,IH132 IH133,lever 30 Left
+mast,West Yard 1 buffer,101LA,Brick,virtual $1001,hidden stub-end for Dispatcher Stage 1
+mast,West Yard 2 buffer,101LB,Brick,virtual $1002,hidden stub-end for Dispatcher Stage 1
+mast,K-1 buffer,115RA,Princess,virtual $1003,hidden stub-end for Dispatcher Stage 1
+mast,K-2 buffer,114RA,Princess,virtual $1004,hidden stub-end for Dispatcher Stage 1
+mast,Engine House 1 buffer,118L,,virtual $1005,hidden stub-end for Dispatcher Stage 1
+mast,Engine House 2 buffer,119LA,,virtual $1006,hidden stub-end for Dispatcher Stage 1
+mast,Engine House 3 buffer,119LB,,virtual $1007,hidden stub-end for Dispatcher Stage 1
+mast,South Yard 2 west,104L,South Yard,virtual $1008,hidden stub-end for Dispatcher Stage 1
+mast,South Yard 3 west,105L,South Yard,virtual $1009,hidden stub-end for Dispatcher Stage 1
+mast,South Yard 4 west,106L,South Yard,virtual $1010,hidden stub-end for Dispatcher Stage 1
+mast,South Yard 5 west,107L,South Yard,virtual $1011,hidden stub-end for Dispatcher Stage 1
 head,Brick West Yard 1,101RA,Brick,IH436,dwarf
 head,Brick West Yard 2,101RB,Brick,IH437,dwarf
 head,Brick East Main West Top,100L Top,Brick,IH438,

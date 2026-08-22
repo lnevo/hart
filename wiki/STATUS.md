@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-21 — CATS Java is the Bitbucket clone (`./tools/cats/fetch_cats_src.sh`); exploded `cats.jar` class tree under `cats/gui` removed. Agent close-out is commit + push + `sync_hart_package.sh` (see `AGENTS.md`).
+Updated: 2026-08-21 — LE cleanup: MTT100/113/114/115 are TWOSENSOR on the same FB as Switch 100/113–115 (M2T); 114→McKeesport bezier tangent at A62 now matches the frog (0° kink); zero-length K-2 F5-S-0 merged. Hidden stub-end virtual masts added for new dispatcher stations — **Stage 1/2 not re-run yet** (traininfo still 220 / original 8). Run Stage 1 in PanelPro (not CATS), then `fix_traininfo_detection.py` + `reconcile_dispatcher_stations.py`.
 
 Updated: 2026-08-21 — ADR-005 public names applied and deployed `--pi --win`. Discover 36 dests; PanelPro smoke 23/41/102/220; CTC Logic starts (12 columns). Hardware MQTT / `Block n-n` / `Switch n` unchanged. Optional later: node 13 occupancy walk-down.
 

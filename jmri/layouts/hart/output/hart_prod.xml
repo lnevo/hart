@@ -215,7 +215,7 @@
     <sensor inverted="false">
       <systemName>M2S407</systemName>
       <userName>Block 4-8</userName>
-      <comment>Occupancy South Yard Scale; MQTT M2S407</comment>
+      <comment>Occupancy Scale; MQTT M2S407</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S470</systemName>
@@ -355,7 +355,7 @@
     <sensor inverted="false">
       <systemName>M2S1300</systemName>
       <userName>Block 13-1</userName>
-      <comment>Occupancy South Yard West; MQTT M2S1300</comment>
+      <comment>Occupancy Barn; MQTT M2S1300</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1301</systemName>
@@ -555,25 +555,25 @@
     </operations>
     <defaultclosedspeed>Normal</defaultclosedspeed>
     <defaultthrownspeed>Restricted</defaultthrownspeed>
-    <turnout feedback="MONITORING" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N">
       <systemName>MTT100</systemName>
-      <comment>Unused OpenLCB leftover; not connected on the railroad</comment>
+      <comment>OpenLCB alias of Switch 100; same FB as MQTT hardware (Switch 4-1)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 12-5 FB R" sensor2="Switch 12-5 FB N" inverted="false" automate="Off">
       <systemName>MTT111</systemName>
-      <comment>Unused OpenLCB leftover; not connected on the railroad</comment>
+      <comment>OpenLCB alias of Switch 111; same FB as MQTT hardware (Switch 12-5)</comment>
     </turnout>
-    <turnout feedback="MONITORING" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="Switch 1-1 FB R" sensor2="Switch 1-1 FB N">
       <systemName>MTT113</systemName>
-      <comment>Unused OpenLCB leftover; not connected on the railroad</comment>
+      <comment>OpenLCB alias of Switch 113; same FB as MQTT hardware (Switch 1-1)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 1-2 FB R" sensor2="Switch 1-2 FB N" inverted="false" automate="Off">
       <systemName>MTT114</systemName>
-      <comment>Unused OpenLCB leftover; not connected on the railroad</comment>
+      <comment>OpenLCB alias of Switch 114; same FB as MQTT hardware (Switch 1-2)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 1-3 FB R" sensor2="Switch 1-3 FB N" inverted="false" automate="Off">
       <systemName>MTT115</systemName>
-      <comment>Unused OpenLCB leftover; not connected on the railroad</comment>
+      <comment>OpenLCB alias of Switch 115; same FB as MQTT hardware (Switch 1-3)</comment>
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
@@ -850,6 +850,61 @@
       <userName>114LA</userName>
       <unlit allowed="no" />
     </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
+      <userName>101LA</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
+      <userName>101LB</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1003)</systemName>
+      <userName>115RA</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1004)</systemName>
+      <userName>114RA</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1005)</systemName>
+      <userName>118L</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1006)</systemName>
+      <userName>119LA</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1007)</systemName>
+      <userName>119LB</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1008)</systemName>
+      <userName>104L</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1009)</systemName>
+      <userName>105L</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1010)</systemName>
+      <userName>106L</userName>
+      <unlit allowed="yes" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:AAR-1946:SL-1-low($1011)</systemName>
+      <userName>107L</userName>
+      <unlit allowed="yes" />
+    </signalmast>
   </signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
@@ -873,8 +928,8 @@
     </block>
     <block systemName="IB3" length="0.0" curve="0">
       <systemName>IB3</systemName>
-      <userName>South Yard Scale</userName>
-      <comment>Plane diverging lead to Barn; occupancy Block 4-8 / M2S407</comment>
+      <userName>Scale</userName>
+      <comment>Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-8</occupancysensor>
       <path todir="64" fromdir="128" block="IB8">
@@ -926,8 +981,8 @@
     </block>
     <block systemName="IB15" length="0.0" curve="0">
       <systemName>IB15</systemName>
-      <userName>South Yard West</userName>
-      <comment>Lead 117 to 116; occupancy Block 13-1 / M2S1300</comment>
+      <userName>Barn</userName>
+      <comment>Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-1</occupancysensor>
       <path todir="64" fromdir="128" block="IB1">
@@ -984,7 +1039,7 @@
     <block systemName="IB20" length="0.0" curve="0">
       <systemName>IB20</systemName>
       <userName>Engine House 1</userName>
-      <comment>Top house track; occupancy Block 13-5 / M2S1304</comment>
+      <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-5</occupancysensor>
       <path todir="64" fromdir="128" block="IB19">
@@ -996,7 +1051,7 @@
     <block systemName="IB21" length="0.0" curve="0">
       <systemName>IB21</systemName>
       <userName>Engine House 2</userName>
-      <comment>Middle house track; occupancy Block 13-6 / M2S1305</comment>
+      <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-6</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
@@ -1008,7 +1063,7 @@
     <block systemName="IB22" length="0.0" curve="0">
       <systemName>IB22</systemName>
       <userName>Engine House 3</userName>
-      <comment>Bottom house track; occupancy Block 13-7 / M2S1306</comment>
+      <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-7</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
@@ -1059,7 +1114,7 @@
     <block systemName="IB:AUTO:0007" length="0.0" curve="0">
       <systemName>IB:AUTO:0007</systemName>
       <userName>South Yard 5</userName>
-      <comment>South Yard body; occupancy Block 2-4 / M2S203</comment>
+      <comment>South Yard body; occupancy Block 2-4 / M2S203; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-4</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0036">
@@ -1076,7 +1131,7 @@
     <block systemName="IB:AUTO:0008" length="0.0" curve="0">
       <systemName>IB:AUTO:0008</systemName>
       <userName>South Yard 4</userName>
-      <comment>South Yard body; occupancy Block 2-5 / M2S204</comment>
+      <comment>South Yard body; occupancy Block 2-5 / M2S204; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-5</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0036">
@@ -1106,7 +1161,7 @@
     <block systemName="IB:AUTO:0012" length="0.0" curve="0">
       <systemName>IB:AUTO:0012</systemName>
       <userName>South Yard 1</userName>
-      <comment>Run-through east of 103; occupancy Block 2-8 / M2S207</comment>
+      <comment>Run-through east of 103; occupancy Block 2-8 / M2S207; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-8</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0039">
@@ -1123,7 +1178,7 @@
     <block systemName="IB:AUTO:0016" length="0.0" curve="0">
       <systemName>IB:AUTO:0016</systemName>
       <userName>South Yard 2</userName>
-      <comment>South Yard body; occupancy Block 2-7 / M2S206</comment>
+      <comment>South Yard body; occupancy Block 2-7 / M2S206; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-7</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0043">
@@ -1149,7 +1204,7 @@
     <block systemName="IB:AUTO:0020" length="0.0" curve="0">
       <systemName>IB:AUTO:0020</systemName>
       <userName>West Yard 1</userName>
-      <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403</comment>
+      <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-4</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0035">
@@ -1161,7 +1216,7 @@
     <block systemName="IB:AUTO:0022" length="0.0" curve="0">
       <systemName>IB:AUTO:0022</systemName>
       <userName>West Yard 2</userName>
-      <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402</comment>
+      <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-3</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0035">
@@ -1173,7 +1228,7 @@
     <block systemName="IB:AUTO:0026" length="0.0" curve="0">
       <systemName>IB:AUTO:0026</systemName>
       <userName>South Yard 3</userName>
-      <comment>South Yard body; occupancy Block 2-6 / M2S205</comment>
+      <comment>South Yard body; occupancy Block 2-6 / M2S205; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-6</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0037">
@@ -1563,12 +1618,12 @@
     <block systemName="IB23" length="609.6" curve="0">
       <systemName>IB23</systemName>
       <userName>K-1</userName>
-      <comment>Princess stub east of Switch 115; shares Block 1-4 with OS 115</comment>
+      <comment>Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop</comment>
     </block>
     <block systemName="IB24" length="609.6" curve="0">
       <systemName>IB24</systemName>
       <userName>K-2</userName>
-      <comment>Princess stub east of Switch 114; shares Block 1-3 with OS 114</comment>
+      <comment>Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop</comment>
     </block>
   </blocks>
   <layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml" blockrouting="yes">
@@ -1698,7 +1753,7 @@
     </layoutblock>
     <layoutblock systemName="ILB50" occupancysensor="Block 4-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB50</systemName>
-      <userName>South Yard Scale</userName>
+      <userName>Scale</userName>
     </layoutblock>
     <layoutblock systemName="ILB53" occupancysensor="Block 13-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB53</systemName>
@@ -1710,7 +1765,7 @@
     </layoutblock>
     <layoutblock systemName="ILB62" occupancysensor="Block 13-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB62</systemName>
-      <userName>South Yard West</userName>
+      <userName>Barn</userName>
     </layoutblock>
     <layoutblock systemName="ILB65" occupancysensor="Block 13-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB65</systemName>
@@ -1978,24 +2033,15 @@
     <positionablelabel x="325" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Plane" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1308" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East End" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1510" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Princess" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="103" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1730" y="230" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 1" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="105" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 2" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1730" y="293" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 2" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="344" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 2" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="391" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 3" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="438" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 4" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="480" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 5" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="9" y="0" level="1" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:resources/misc/linear5_panel_bg.jpg" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="572" y="270" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="116" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="648" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="116" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="470" y="398" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="117" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="527" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="118" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="451" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="119" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="610" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="118" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="586" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="119" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <BlockContentsIcon blockcontents="McKees Rocks" x="1755" y="191" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Main West" x="948" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="West Main Ext" x="1360" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -2003,15 +2049,15 @@
     <BlockContentsIcon blockcontents="OS 111a" x="1190" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 113b" x="1530" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 115" x="1655" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 1" x="500" y="255" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 3" x="425" y="290" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Engine House 1" x="585" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Engine House 3" x="585" y="269" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 101" x="255" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 100" x="335" y="250" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="West Yard 2" x="170" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 2" x="425" y="266" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS 119" x="464" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS 118" x="540" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS 116" x="600" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Engine House 2" x="585" y="257" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS 119" x="504" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS 118" x="580" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS 116" x="640" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 110" x="1313" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="South Yard East" x="1460" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 103" x="700" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -2022,7 +2068,7 @@
     <BlockContentsIcon blockcontents="OS 114" x="1655" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Brick-Plane" x="287" y="298" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="McKeesport" x="1755" y="360" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard Scale" x="420" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Scale" x="420" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 102" x="345" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 104" x="771" y="375" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="South Yard 2" x="948" y="374" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -2037,13 +2083,13 @@
     <BlockContentsIcon blockcontents="Main East" x="948" y="558" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="East Main Ext" x="405" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 117" x="505" y="298" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard West" x="540" y="344" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Barn" x="540" y="344" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 117b" x="465" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="OS 100" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
+    <signalmasticon signalmast="101LA" x="40" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="101LB" x="40" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="115RA" x="1740" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="114RA" x="1740" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="118L" x="548" y="250" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="119LA" x="548" y="261" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="119LB" x="548" y="273" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="104L" x="768" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="105L" x="843" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="106L" x="910" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="107L" x="1050" y="458" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="OS 100" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
       <signalAMast>100L</signalAMast>
     </layoutturnout>
     <layoutturnout ident="TOR11" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1088.5" ycen="459.5" xa="1103.0" ya="451.0" xb="1074.0" yb="468.0" xc="1075.0999755859375" yc="460.0" xd="1103.0" yd="451.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1208" blockname="OS 107" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" />
-    <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="708.5" ycen="366.0" xa="694.5" ya="356.5" xb="722.5" yb="375.5" xc="722.2999877929688" yc="366.0" xd="694.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="OS 104" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15">
+    <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="748.5" ycen="366.0" xa="734.5" ya="356.5" xb="762.5" yb="375.5" xc="762.2999877929688" yc="366.0" xd="734.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="OS 104" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15">
     </layoutturnout>
     <layoutturnout ident="TOL23" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="1371.5" ycen="315.0" xa="1386.5" ya="315.0" xb="1356.5" yb="315.0" xc="1356.4000244140625" yc="324.79998779296875" xd="1386.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1213" blockname="OS 112" connectaname="T-I-TOL23" connectbname="T-ER-TOL23" connectcname="T-EL-TOL23">
       <signalAMast>112L</signalAMast>
@@ -2058,7 +2104,7 @@
       <signalCMast>102LA</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOR7" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1230.5" ycen="366.0" xa="1244.5" ya="356.5" xb="1216.5" yb="375.5" xc="1221.0999755859375" yc="366.0" xd="1244.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1210" blockname="OS 109" connectaname="T-I-TOR7" connectbname="T-EL-TOR7" connectcname="T-ER-TOR7" />
-    <layoutturnout ident="TOL19" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="851.5" ycen="460.5" xa="839.0" ya="452.0" xb="864.0" yb="469.0" xc="864.9000244140625" yc="460.0" xd="839.0" yd="452.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T311" blockname="OS 106" connectaname="T-I-TOL19" connectbname="T-ER-TOL19" connectcname="T-EL-TOL19" />
+    <layoutturnout ident="TOL19" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="891.5" ycen="460.5" xa="879.0" ya="452.0" xb="904.0" yb="469.0" xc="904.9000244140625" yc="460.0" xd="879.0" yd="452.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T311" blockname="OS 106" connectaname="T-I-TOL19" connectbname="T-ER-TOL19" connectcname="T-EL-TOL19" />
     <layoutturnout ident="TOR9" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1158.5" ycen="414.0" xa="1171.5" ya="405.5" xb="1145.5" yb="422.5" xc="1148.699951171875" yc="414.0" xd="1171.5" yd="405.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1209" blockname="OS 108" connectaname="T-I-TOR9" connectbname="T-EL-TOR9" connectcname="T-ER-TOR9" />
     <layoutturnout ident="TO111" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1195.0" ycen="283.5" xa="1111.0" ya="252.0" xb="1223.0" yb="252.0" xc="1279.0" yc="315.0" xd="1167.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 111" blockname="OS 111a" blockcname="OS 111b" blockdname="OS 111b" connectaname="T-I-TOR31" connectbname="T-EL-TOR31" connectcname="T-I-TOR32" connectdname="T-EL-TOR32">
       <signalAMast>111RA</signalAMast>
@@ -2072,31 +2118,30 @@
       <signalBMast>115LA</signalBMast>
       <signalCMast>115LB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOL17" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="779.0" ycen="412.0" xa="767.0" ya="404.0" xb="791.0" yb="420.0" xc="794.5999755859375" yc="413.0" xd="767.0" yd="404.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T310" blockname="OS 105" connectaname="T-I-TOL17" connectbname="T-ER-TOL17" connectcname="T-EL-TOL17" />
+    <layoutturnout ident="TOL17" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="819.0" ycen="412.0" xa="807.0" ya="404.0" xb="831.0" yb="420.0" xc="834.5999755859375" yc="413.0" xd="807.0" yd="404.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T310" blockname="OS 105" connectaname="T-I-TOL17" connectbname="T-ER-TOL17" connectcname="T-EL-TOL17" />
     <layoutturnout ident="TOR36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1602.5" ycen="315.0" xa="1586.0" ya="315.0" xb="1619.0" yb="315.0" xc="1612.0999755859375" yc="322.6000061035156" xd="1586.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T109" blockname="OS 114" connectaname="T-I-TOR36" connectbname="T-EL-TOR36" connectcname="T-ER-TOR36">
       <signalBMast>114LA</signalBMast>
       <signalCMast>114LB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="639.5" ycen="315.0" xa="624.5" ya="315.0" xb="654.5" yb="315.0" xc="653.7999877929688" yc="325.8999938964844" xd="624.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="OS 103" connectaname="T-I-TOR14" connectbname="F46-S-0" connectcname="F16-S-0">
+    <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="679.5" ycen="315.0" xa="664.5" ya="315.0" xb="694.5" yb="315.0" xc="693.7999877929688" yc="325.8999938964844" xd="664.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="OS 103" connectaname="T-I-TOR14" connectbname="F46-S-0" connectcname="F16-S-0">
     </layoutturnout>
     <layoutturnout ident="TO113" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1525.199951171875" ycen="283.5" xa="1508.2999843479004" ya="252.0" xb="1575.89990234375" yb="252.0" xc="1542.0999179958496" yc="315.0" xd="1474.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 113" blockname="OS 113b" blockcname="OS 113a" blockdname="OS 113a" connectaname="T-ER-TOL1" connectbname="T-I-TOL1" connectcname="T-ER-TOL2" connectdname="T-I-TOL2">
       <signalAMast>113RA</signalAMast>
       <signalDMast>113RB</signalDMast>
     </layoutturnout>
-    <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="576.0" ycen="315.0" xa="592.0" ya="315.0" xb="560.0" yb="315.0" xc="567.0" yc="305.0" xd="592.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 116" blockname="OS 116" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1">
+    <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="645.0" ycen="315.0" xa="652.0" ya="315.0" xb="638.0" yb="315.0" xc="640.0" yc="304.3" xd="652.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 116" blockname="OS 116" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1">
     </layoutturnout>
-    <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="484.0" ycen="289.0" xa="500.0" ya="289.0" xb="468.0" yb="289.0" xc="468.0" yc="277.0" xd="500.0" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 119" blockname="OS 119" connectaname="T-A-TO10" connectbname="T11" connectcname="T10" />
-    <layoutturnout ident="TO117" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="505.0" ycen="338.5" xa="489.5" ya="315.0" xb="540.0" yb="315.0" xc="520.5" yc="362.0" xd="458.5" yd="362.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 117" blockname="OS 117" blockcname="OS 117b" blockdname="OS 117b" connectaname="T3" connectbname="T6" connectcname="T5" connectdname="T8">
+    <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="610.9" ycen="289.0" xa="617.9" ya="289.0" xb="603.9" yb="289.0" xc="605.9" yc="278.3" xd="617.9" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 119" blockname="OS 119" connectaname="T-A-TO10" connectbname="T11" connectcname="T10" />
+    <layoutturnout ident="TO117" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="505.0" ycen="339.0" xa="496.0" ya="315.0" xb="532.5" yb="315.0" xc="514.0" yc="363.0" xd="477.5" yd="363.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 117" blockname="OS 117" blockcname="OS 117b" blockdname="OS 117b" connectaname="T3" connectbname="T6" connectcname="T5" connectdname="T8">
       <signalAMast>117RA</signalAMast>
       <signalCMast>117LA</signalCMast>
       <signalDMast>117RB</signalDMast>
       <signalBMast>117LB</signalBMast>
     </layoutturnout>
-    <layoutturnout ident="TO11" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="551.0" ycen="289.0" xa="558.0" ya="296.0" xb="539.0" yb="277.0" xc="535.0" yc="289.0" xd="555.0" yd="293.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 118" blockname="OS 118" connectaname="T-A-TO11" connectbname="T2" connectcname="T-C-TO11" />
-    <tracksegment ident="T6" blockname="South Yard West" connect1name="TO117" type1="TURNOUT_B" connect2name="TO1" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <layoutturnout ident="TO11" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="632.9" ycen="289.0" xa="637.1" ya="298.1" xb="628.6" yb="279.9" xc="626.0" yc="289.0" xd="637.1" yd="298.1" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 118" blockname="OS 118" connectaname="T-A-TO11" connectbname="T2" connectcname="T-C-TO11" />
+    <tracksegment ident="T6" blockname="Barn" connect1name="TO117" type1="TURNOUT_B" connect2name="TO1" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T8" blockname="East Main Ext" connect1name="TO117" type1="TURNOUT_D" connect2name="TOL42" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F25-S-0" blockname="Main East" connect1name="A13" type1="POS_POINT" connect2name="A69" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F5-S-0" blockname="K-2" connect1name="A57" type1="POS_POINT" connect2name="A55" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL3" blockname="Main West" connect1name="TOL3" type1="TURNOUT_A" connect2name="A59" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL3" blockname="OS 100" connect1name="TOL3" type1="TURNOUT_B" connect2name="A29" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL3" blockname="Brick-Plane" connect1name="TOL3" type1="TURNOUT_C" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
@@ -2158,12 +2203,12 @@
     <tracksegment ident="F60-S-0" blockname="McKeesport" connect1name="A67" type1="POS_POINT" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
       <controlpoints>
         <controlpoint index="0" x="1695.5" y="385.5" />
-        <controlpoint index="1" x="1635.5" y="355.5" />
+        <controlpoint index="1" x="1640.2" y="352.0" />
       </controlpoints>
     </tracksegment>
     <tracksegment ident="T-I-TOR31" blockname="Main West" connect1name="TO111" type1="TURNOUT_A" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR31" blockname="West Main Ext" connect1name="TO111" type1="TURNOUT_B" connect2name="A7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F57-S-0" blockname="K-2" connect1name="EB72" type1="POS_POINT" connect2name="A57" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F57-S-0" blockname="K-2" connect1name="EB72" type1="POS_POINT" connect2name="A55" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F62-S-0" blockname="Brick-Plane" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F40-S-0" blockname="OS 100" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F13-S-0" blockname="South Yard 5" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2191,7 +2236,7 @@
     <tracksegment ident="F34-S-0" blockname="OS 110" connect1name="A24" type1="POS_POINT" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR14" blockname="OS 103" connect1name="TOR14" type1="TURNOUT_A" connect2name="A9" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F68-S-0" blockname="Main East" connect1name="A69" type1="POS_POINT" connect2name="A68" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T3" blockname="South Yard Scale" connect1name="A45" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T3" blockname="Scale" connect1name="A45" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T5" blockname="Main East" connect1name="A3" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_C" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F103-S-0" blockname="OS 103" connect1name="A9" type1="POS_POINT" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TO1" blockname="OS 103" connect1name="TO1" type1="TURNOUT_A" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2204,26 +2249,25 @@
     <tracksegment ident="T-A-TO11" blockname="OS 118" connect1name="TO11" type1="TURNOUT_A" connect2name="A78" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F-T13-S-0" blockname="OS 118" connect1name="A78" type1="POS_POINT" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-C-TO1" blockname="OS 118" connect1name="TO1" type1="TURNOUT_C" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T1" blockname="South Yard Scale" connect1name="TOL42" type1="TURNOUT_C" connect2name="A45" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T1" blockname="Scale" connect1name="TOL42" type1="TURNOUT_C" connect2name="A45" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T2" blockname="Engine House 1" connect1name="A2" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <positionablepoint ident="A80" type="ANCHOR" x="604.0" y="315.0" connect1name="F103-S-0" connect2name="T-I-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A76" type="ANCHOR" x="503" y="289" connect1name="T-A-TO10" connect2name="F-T12-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A77" type="ANCHOR" x="520" y="289" connect1name="F-T12-S-0" connect2name="T-C-TO11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A78" type="ANCHOR" x="558" y="296" connect1name="T-A-TO11" connect2name="F-T13-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A79" type="ANCHOR" x="567" y="305" connect1name="F-T13-S-0" connect2name="T-C-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A80" type="ANCHOR" x="655" y="315" connect1name="F103-S-0" connect2name="T-I-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A76" type="ANCHOR" x="620" y="289" connect1name="T-A-TO10" connect2name="F-T12-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A77" type="ANCHOR" x="623" y="289" connect1name="F-T12-S-0" connect2name="T-C-TO11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A78" type="ANCHOR" x="638" y="300" connect1name="T-A-TO11" connect2name="F-T13-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A79" type="ANCHOR" x="639" y="302" connect1name="F-T13-S-0" connect2name="T-C-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A62" type="ANCHOR" x="1623" y="334" connect1name="F60-S-0" connect2name="T-ER-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EB72" type="END_BUMPER" x="1725.0" y="315.0" connect1name="F57-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB72" type="END_BUMPER" x="1725.0" y="315.0" connect1name="F57-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="114RA" />
     <positionablepoint ident="A60" type="ANCHOR" x="259.0" y="322.0" connect1name="F62-S-0" connect2name="T-EL-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A57" type="ANCHOR" x="1639.0" y="315.0" connect1name="F57-S-0" connect2name="F5-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A66" type="ANCHOR" x="1639.0" y="252.0" connect1name="F58-S-0" connect2name="T-ER-TOL29" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A69" type="ANCHOR" x="1025.0" y="550.0" connect1name="F68-S-0" connect2name="F25-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EB70" type="END_BUMPER" x="55.0" y="252.0" connect1name="F53-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB70" type="END_BUMPER" x="55.0" y="252.0" connect1name="F53-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="101LA" />
     <positionablepoint ident="A63" type="ANCHOR" x="1514.0" y="252.0" connect1name="T-ER-TOL1" connect2name="F41-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A58" type="ANCHOR" x="1735.0" y="170.0" connect1name="F59-S-0" connect2name="F56-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A61" type="ANCHOR" x="1207.0" y="366.0" connect1name="F47-S-0" connect2name="T-ER-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EB71" type="END_BUMPER" x="1725.0" y="252.0" connect1name="F58-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB71" type="END_BUMPER" x="1725.0" y="252.0" connect1name="F58-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="115RA" />
     <positionablepoint ident="A56" type="ANCHOR" x="1461.0" y="315.0" connect1name="T-I-TOL2" connect2name="F22-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EB73" type="END_BUMPER" x="55.0" y="315.0" connect1name="F54-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EB73" type="END_BUMPER" x="55.0" y="315.0" connect1name="F54-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="101LB" />
     <positionablepoint ident="A67" type="ANCHOR" x="1731.0" y="381.0" connect1name="F60-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A68" type="ANCHOR" x="917.0" y="550.0" connect1name="F27-S-0" connect2name="F68-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A59" type="ANCHOR" x="409.0" y="252.0" connect1name="F61-S-0" connect2name="T-I-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -2231,11 +2275,11 @@
     <positionablepoint ident="A34" type="ANCHOR" x="1122.0" y="252.0" connect1name="F61-S-0" connect2name="T-I-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A20" type="ANCHOR" x="1393.0" y="315.0" connect1name="F22-S-0" connect2name="T-I-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A28" type="ANCHOR" x="1110.0" y="446.0" connect1name="F12-S-0" connect2name="T-I-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A14" type="ANCHOR" x="915.0" y="502.0" connect1name="F50-S-0" connect2name="F21-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A14" type="ANCHOR" x="980" y="502" connect1name="F50-S-0" connect2name="F21-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A32" type="ANCHOR" x="1021.0" y="502.0" connect1name="F13-S-0" connect2name="F50-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A35" type="ANCHOR" x="1351.0" y="315.0" connect1name="F28-S-0" connect2name="T-ER-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A16" type="ANCHOR" x="1277.0" y="333.0" connect1name="F8-S-0" connect2name="T-EL-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A15" type="ANCHOR" x="875.0" y="476.0" connect1name="F21-S-0" connect2name="T-ER-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A15" type="ANCHOR" x="953" y="502" connect1name="F21-S-0" connect2name="T-ER-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A22" type="ANCHOR" x="1208.0" y="381.0" connect1name="F10-S-0" connect2name="T-EL-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A23" type="ANCHOR" x="871.0" y="522.0" connect1name="F26-S-0" connect2name="F27-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A19" type="ANCHOR" x="1255.0" y="349.0" connect1name="F8-S-0" connect2name="T-I-TOR7" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -2243,39 +2287,39 @@
     <positionablepoint ident="A24" type="ANCHOR" x="1279.0" y="315.0" connect1name="F34-S-0" connect2name="T-ER-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A29" type="ANCHOR" x="315.0" y="252.0" connect1name="T-ER-TOL3" connect2name="F40-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A21" type="ANCHOR" x="199.0" y="315.0" connect1name="F54-S-0" connect2name="T-EL-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A31" type="ANCHOR" x="757.0" y="398.0" connect1name="F18-S-0" connect2name="T-I-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A31" type="ANCHOR" x="797" y="398" connect1name="F18-S-0" connect2name="T-I-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A27" type="ANCHOR" x="1319.0" y="315.0" connect1name="F28-S-0" connect2name="T-I-TOL6" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A33" type="ANCHOR" x="277.0" y="252.0" connect1name="F40-S-0" connect2name="T-I-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A42" type="ANCHOR" x="732.0" y="382.0" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A42" type="ANCHOR" x="772" y="382" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A43" type="ANCHOR" x="1183.0" y="398.0" connect1name="F10-S-0" connect2name="T-I-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A48" type="ANCHOR" x="1837.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="115R" westboundsignalmast="114R" />
     <positionablepoint ident="A45" type="ANCHOR" x="381.6000061035156" y="315.0" connect1name="T3" connect2name="T1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A44" type="ANCHOR" x="1268.0" y="315.0" connect1name="T-I-TOR32" connect2name="F34-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A47" type="ANCHOR" x="1333.0" y="340.0" connect1name="F24-S-0" connect2name="T-EL-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A46" type="ANCHOR" x="818.0" y="413.0" connect1name="F48-S-0" connect2name="T-EL-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A46" type="ANCHOR" x="858" y="413" connect1name="F48-S-0" connect2name="T-EL-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="105L" />
     <positionablepoint ident="A50" type="ANCHOR" x="1561.0" y="315.0" connect1name="T-I-TOR36" connect2name="F37-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A51" type="ANCHOR" x="1581.0" y="252.0" connect1name="T-I-TOL29" connect2name="T-I-TOL1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A37" type="ANCHOR" x="1145.0" y="315.0" connect1name="F46-S-0" connect2name="T-EL-TOR32" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A41" type="ANCHOR" x="885.0" y="460.0" connect1name="F49-S-0" connect2name="T-EL-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A41" type="ANCHOR" x="925" y="460" connect1name="F49-S-0" connect2name="T-EL-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="106L" />
     <positionablepoint ident="A54" type="ANCHOR" x="196.0" y="252.0" connect1name="F53-S-0" connect2name="T-ER-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A36" type="ANCHOR" x="1134.0" y="414.0" connect1name="F48-S-0" connect2name="T-ER-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A53" type="ANCHOR" x="743.0" y="366.0" connect1name="F47-S-0" connect2name="T-EL-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A53" type="ANCHOR" x="783" y="366" connect1name="F47-S-0" connect2name="T-EL-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="104L" />
     <positionablepoint ident="A39" type="ANCHOR" x="1055.0" y="460.0" connect1name="F49-S-0" connect2name="T-ER-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A55" type="ANCHOR" x="1639" y="315" connect1name="F5-S-0" connect2name="T-EL-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A55" type="ANCHOR" x="1639" y="315" connect1name="F57-S-0" connect2name="T-EL-TOR36" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A3" type="ANCHOR" x="626.0" y="363.0" connect1name="F26-S-0" connect2name="T5" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A9" type="ANCHOR" x="617.0" y="315.0" connect1name="T-I-TOR14" connect2name="F103-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A9" type="ANCHOR" x="660" y="315" connect1name="T-I-TOR14" connect2name="F103-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A1" type="ANCHOR" x="1623.0" y="232.0" connect1name="F59-S-0" connect2name="T-EL-TOL29" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A6" type="ANCHOR" x="688.0" y="352.0" connect1name="F16-S-0" connect2name="T-I-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A6" type="ANCHOR" x="728" y="352" connect1name="F16-S-0" connect2name="T-I-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A5" type="ANCHOR" x="1137.0" y="428.0" connect1name="F12-S-0" connect2name="T-EL-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A13" type="ANCHOR" x="1069.0" y="519.0" connect1name="F24-S-0" connect2name="F25-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A4" type="ANCHOR" x="830.0" y="446.0" connect1name="F20-S-0" connect2name="T-I-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A4" type="ANCHOR" x="870" y="446" connect1name="F20-S-0" connect2name="T-I-TOL19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A7" type="ANCHOR" x="1245.0" y="252.0" connect1name="F41-S-0" connect2name="T-EL-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A10" type="ANCHOR" x="803.0" y="429.0" connect1name="F20-S-0" connect2name="T-ER-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A12" type="ANCHOR" x="1065.0" y="474.0" connect1name="F13-S-0" connect2name="T-EL-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EB1" type="END_BUMPER" x="407" y="266" connect1name="T9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EB2" type="END_BUMPER" x="407" y="277" connect1name="T10" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EB3" type="END_BUMPER" x="406" y="289" connect1name="T11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A2" type="ANCHOR" x="525" y="266" connect1name="T9" connect2name="T2" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A10" type="ANCHOR" x="843" y="429" connect1name="F20-S-0" connect2name="T-ER-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A12" type="ANCHOR" x="1065.0" y="474.0" connect1name="F13-S-0" connect2name="T-EL-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="107L" />
+    <positionablepoint ident="EB1" type="END_BUMPER" x="573" y="266" connect1name="T9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="118L" />
+    <positionablepoint ident="EB2" type="END_BUMPER" x="573" y="277" connect1name="T10" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="119LA" />
+    <positionablepoint ident="EB3" type="END_BUMPER" x="573" y="289" connect1name="T11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="119LB" />
+    <positionablepoint ident="A2" type="ANCHOR" x="622" y="266" connect1name="T9" connect2name="T2" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
 
 
 
@@ -2301,26 +2345,26 @@
     <signalmasticon signalmast="100L" x="378" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
     <signalmasticon signalmast="101RA" x="185" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="101RB" x="185" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="102LA" x="360" y="297" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="102LB" x="365" y="345" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="117RA" x="435" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="117LB" x="534" y="297" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="117RB" x="425" y="368" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="117LA" x="534" y="344" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="111RA" x="1095" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="111L" x="1225" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="111RB" x="1135" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="112L" x="1392" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="110R" x="1248" y="350" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="60" />
+    <signalmasticon signalmast="102LA" x="366" y="290" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="102LB" x="366" y="338" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="117RA" x="445" y="327" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="117LB" x="552" y="290" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="117RB" x="445" y="374" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="117LA" x="529" y="341" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="111RA" x="1095" y="263" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="111L" x="1248" y="218" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="111RB" x="1095" y="326" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="112L" x="1392" y="289" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="110R" x="1265" y="349" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="60" />
     <signalmasticon signalmast="112R" x="1320" y="348" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="60" />
     <signalmasticon signalmast="115LB" x="1608" y="185" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="225" />
-    <signalmasticon signalmast="113RA" x="1465" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="113RB" x="1465" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="113RA" x="1465" y="264" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="113RB" x="1465" y="325" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="114LB" x="1628" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="310" />
-    <signalmasticon signalmast="115R" x="1810" y="276" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="180" />
-    <signalmasticon signalmast="114R" x="1855" y="276" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="0" />
-    <signalmasticon signalmast="115LA" x="1665" y="239" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="114LA" x="1665" y="302" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="115R" x="1811" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="180" />
+    <signalmasticon signalmast="114R" x="1848" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="0" />
+    <signalmasticon signalmast="115LA" x="1665" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="114LA" x="1665" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
 </LayoutEditor>
   <filehistory>
     <operation>

@@ -122,20 +122,20 @@ BLOCK_COMMENTS = {
     "OS 117b": "Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303",
     "OS 118": "Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301",
     "OS 119": "Hand-throw Engine House; occupancy Block 13-8 / M2S1307",
-    "South Yard Scale": "Plane diverging lead to Barn; occupancy Block 4-8 / M2S407",
-    "South Yard West": "Lead 117 to 116; occupancy Block 13-1 / M2S1300",
-    "South Yard 1": "Run-through east of 103; occupancy Block 2-8 / M2S207",
-    "South Yard 2": "South Yard body; occupancy Block 2-7 / M2S206",
-    "South Yard 3": "South Yard body; occupancy Block 2-6 / M2S205",
-    "South Yard 4": "South Yard body; occupancy Block 2-5 / M2S204",
-    "South Yard 5": "South Yard body; occupancy Block 2-4 / M2S203",
-    "West Yard 1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403",
-    "West Yard 2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402",
-    "Engine House 1": "Top house track; occupancy Block 13-5 / M2S1304",
-    "Engine House 2": "Middle house track; occupancy Block 13-6 / M2S1305",
-    "Engine House 3": "Bottom house track; occupancy Block 13-7 / M2S1306",
-    "K-1": "Princess stub east of Switch 115; shares Block 1-4 with OS 115",
-    "K-2": "Princess stub east of Switch 114; shares Block 1-3 with OS 114",
+    "Scale": "Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop",
+    "Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
+    "South Yard 1": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
+    "South Yard 2": "South Yard body; occupancy Block 2-7 / M2S206; stop",
+    "South Yard 3": "South Yard body; occupancy Block 2-6 / M2S205; stop",
+    "South Yard 4": "South Yard body; occupancy Block 2-5 / M2S204; stop",
+    "South Yard 5": "South Yard body; occupancy Block 2-4 / M2S203; stop",
+    "West Yard 1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
+    "West Yard 2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
+    "Engine House 1": "Top house track; occupancy Block 13-5 / M2S1304; stop",
+    "Engine House 2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
+    "Engine House 3": "Bottom house track; occupancy Block 13-7 / M2S1306; stop",
+    "K-1": "Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop",
+    "K-2": "Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop",
 }
 
 TURNOUT_COMMENTS = {
@@ -189,7 +189,7 @@ OCC_SENSOR = {
     "Block 4-5": "Occupancy OS 102; MQTT M2S404",
     "Block 4-6": "Occupancy Brick-Plane; MQTT M2S405",
     "Block 4-7": "Occupancy East Main Ext; MQTT M2S406",
-    "Block 4-8": "Occupancy South Yard Scale; MQTT M2S407",
+    "Block 4-8": "Occupancy Scale; MQTT M2S407",
     "Block 12-1": "Occupancy OS 107; MQTT M2S1200",
     "Block 12-3": "Occupancy OS 108; MQTT M2S1202",
     "Block 12-4": "Occupancy OS 111a; MQTT M2S1203",
@@ -197,7 +197,7 @@ OCC_SENSOR = {
     "Block 12-6": "Occupancy OS 111b; MQTT M2S1205",
     "Block 12-7": "Occupancy OS 110; MQTT M2S1206",
     "Block 12-8": "Occupancy OS 112; MQTT M2S1207",
-    "Block 13-1": "Occupancy South Yard West; MQTT M2S1300",
+    "Block 13-1": "Occupancy Barn; MQTT M2S1300",
     "Block 13-2": "Occupancy OS 118; MQTT M2S1301",
     "Block 13-3": "Occupancy OS 117; MQTT M2S1302",
     "Block 13-4": "Occupancy OS 117b; MQTT M2S1303",
@@ -275,6 +275,15 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
         if system_name.startswith("IT:HART:YL:"):
             return f"Internal yard-ladder control {user_name}"
         if system_name.startswith("MTT"):
+            alias = {
+                "MTT100": "Switch 100; same FB as MQTT hardware (Switch 4-1)",
+                "MTT111": "Switch 111; same FB as MQTT hardware (Switch 12-5)",
+                "MTT113": "Switch 113; same FB as MQTT hardware (Switch 1-1)",
+                "MTT114": "Switch 114; same FB as MQTT hardware (Switch 1-2)",
+                "MTT115": "Switch 115; same FB as MQTT hardware (Switch 1-3)",
+            }.get(system_name)
+            if alias:
+                return f"OpenLCB alias of {alias}"
             return "Unused OpenLCB leftover; not connected on the railroad"
         return None
     if kind == "sensor":
@@ -300,6 +309,12 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
             return "Dispatcher preconditioning enable"
         if system_name.startswith("IS:IY:AUTO:"):
             return f"Auto warrant direction {user_name or system_name}"
+        if system_name.startswith("ISNX:"):
+            mast = system_name.split(":", 1)[-1]
+            return existing or (
+                f"Entry/Exit at mast {mast}. Full interlock. "
+                "CATS CTC and USS Logic off while NX is in use."
+            )
         if system_name.startswith("IS:DS"):
             return existing or f"Dispatcher System {user_name or system_name}"
         if "unused LCOS" in existing:
