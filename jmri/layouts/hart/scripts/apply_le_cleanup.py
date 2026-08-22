@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""LE cleanup: MTT FB share, 114-McKeesport kink, zero-length K-2, hidden stub masts.
+"""LE cleanup: MTT FB share, 114-McKeesport kink, zero-length K-2, hidden stub
+and South Yard turnout-leg virtual masts.
 
 Writable source is tables/new_tables.xml. --sync-output also patches
 jmri/layouts/hart/output/tables.xml and hart_prod.xml independently.
@@ -31,11 +32,23 @@ STUB_MASTS = [
     ("IF$vsm:AAR-1946:SL-1-low($1005)", "118L", "EB1", "westboundsignalmast", 548, 250, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1006)", "119LA", "EB2", "westboundsignalmast", 548, 261, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1007)", "119LB", "EB3", "westboundsignalmast", 548, 273, 270),
-    ("IF$vsm:AAR-1946:SL-1-low($1008)", "104L", "A53", "westboundsignalmast", 768, 350, 270),
-    ("IF$vsm:AAR-1946:SL-1-low($1009)", "105L", "A46", "westboundsignalmast", 843, 397, 270),
-    ("IF$vsm:AAR-1946:SL-1-low($1010)", "106L", "A41", "westboundsignalmast", 910, 444, 270),
-    ("IF$vsm:AAR-1946:SL-1-low($1011)", "107L", "A12", "westboundsignalmast", 1050, 458, 270),
 ]
+
+# South Yard body tracks are run-through (not bumpers). Discover only sees
+# masts at block boundaries, so these sit on the ladder turnout legs, not
+# on mid-block anchors A53/A46/A41/A12.
+YARD_TURNOUT_MASTS = [
+    # turnout ident, child tag, systemName, userName, icon x, y, degrees
+    ("TOL15", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1008)", "104L", 768, 350, 270),
+    ("TOL17", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1009)", "105L", 843, 397, 270),
+    ("TOL19", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1010)", "106L", 910, 444, 270),
+    ("TOL19", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1011)", "107L", 910, 474, 270),
+    ("TOR7", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1012)", "104R", 1148, 350, 90),
+    ("TOR9", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1013)", "105R", 1148, 397, 90),
+    ("TOR11", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1014)", "106R", 1148, 444, 90),
+    ("TOR11", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1015)", "107R", 1148, 474, 90),
+]
+YARD_CLEAR_ANCHORS = ("A53", "A46", "A41", "A12")
 
 MTT_FB = {
     "MTT100": ("Switch 4-1 FB R", "Switch 4-1 FB N", "Switch 100"),
@@ -146,6 +159,59 @@ def patch_zero_length_k2(le: ET.Element) -> int:
     return n
 
 
+def _ensure_virtual_mast(
+    masts: ET.Element, existing: set[str], sysname: str, uname: str
+) -> int:
+    if sysname in existing:
+        return 0
+    el = ET.SubElement(masts, "virtualsignalmast")
+    el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
+    sn = ET.SubElement(el, "systemName")
+    sn.text = sysname
+    un = ET.SubElement(el, "userName")
+    un.text = uname
+    unlit = ET.SubElement(el, "unlit")
+    unlit.set("allowed", "yes")
+    existing.add(sysname)
+    return 1
+
+
+def _ensure_hidden_icon(le: ET.Element, uname: str, x: int, y: int, deg: int) -> int:
+    icons = [
+        ic
+        for ic in le.findall("signalmasticon")
+        if ic.get("signalmast") == uname and ic.get("hidden") == "yes"
+    ]
+    if icons:
+        return 0
+    ic = ET.Element("signalmasticon")
+    ic.set("signalmast", uname)
+    ic.set("x", str(x))
+    ic.set("y", str(y))
+    ic.set("level", "9")
+    ic.set("forcecontroloff", "false")
+    ic.set("hidden", "yes")
+    ic.set("positionable", "true")
+    ic.set("showtooltip", "true")
+    ic.set("editable", "false")
+    ic.set("degrees", str(deg))
+    ic.set("clickmode", "0")
+    ic.set("litmode", "false")
+    ic.set("scale", "1.0")
+    ic.set("imageset", "default")
+    ic.set("class", "jmri.jmrit.display.configurexml.SignalMastIconXml")
+    first_to = None
+    for child in list(le):
+        if child.tag == "layoutturnout":
+            first_to = child
+            break
+    if first_to is not None:
+        le.insert(list(le).index(first_to), ic)
+    else:
+        le.append(ic)
+    return 1
+
+
 def patch_stub_masts(root: ET.Element, le: ET.Element) -> int:
     n = 0
     masts = root.find("signalmasts")
@@ -157,54 +223,8 @@ def patch_stub_masts(root: ET.Element, le: ET.Element) -> int:
         if el.tag in ("signalmast", "virtualsignalmast")
     }
     for sysname, uname, _ident, _attr, x, y, deg in STUB_MASTS:
-        if sysname not in existing:
-            el = ET.SubElement(masts, "signalmast")
-            el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
-            sn = ET.SubElement(el, "systemName")
-            sn.text = sysname
-            un = ET.SubElement(el, "userName")
-            un.text = uname
-            unlit = ET.SubElement(el, "unlit")
-            unlit.set("allowed", "yes")
-            n += 1
-            existing.add(sysname)
-        icons = [
-            ic
-            for ic in le.findall("signalmasticon")
-            if ic.get("signalmast") == uname and ic.get("hidden") == "yes"
-        ]
-        if not icons:
-            ic = ET.Element("signalmasticon")
-            ic.set("signalmast", uname)
-            ic.set("x", str(x))
-            ic.set("y", str(y))
-            ic.set("level", "9")
-            ic.set("forcecontroloff", "false")
-            ic.set("hidden", "yes")
-            ic.set("positionable", "true")
-            ic.set("showtooltip", "true")
-            ic.set("editable", "false")
-            ic.set("degrees", str(deg))
-            ic.set("clickmode", "0")
-            ic.set("litmode", "false")
-            ic.set("scale", "1.0")
-            ic.set("imageset", "default")
-            ic.set(
-                "class",
-                "jmri.jmrit.display.configurexml.SignalMastIconXml",
-            )
-            # Park next to other LE mast icons.
-            first_to = None
-            for child in list(le):
-                if child.tag == "layoutturnout":
-                    first_to = child
-                    break
-            if first_to is not None:
-                idx = list(le).index(first_to)
-                le.insert(idx, ic)
-            else:
-                le.append(ic)
-            n += 1
+        n += _ensure_virtual_mast(masts, existing, sysname, uname)
+        n += _ensure_hidden_icon(le, uname, x, y, deg)
         for pt in le.findall("positionablepoint"):
             if pt.get("ident") != _ident:
                 continue
@@ -222,6 +242,45 @@ def patch_stub_masts(root: ET.Element, le: ET.Element) -> int:
     return n
 
 
+def patch_yard_turnout_masts(root: ET.Element, le: ET.Element) -> int:
+    n = 0
+    masts = root.find("signalmasts")
+    if masts is None:
+        return 0
+    existing = {
+        (el.findtext("systemName") or "").strip()
+        for el in list(masts)
+        if el.tag in ("signalmast", "virtualsignalmast")
+    }
+    turnouts = {el.get("ident"): el for el in le.findall("layoutturnout")}
+    for ident, child, sysname, uname, x, y, deg in YARD_TURNOUT_MASTS:
+        n += _ensure_virtual_mast(masts, existing, sysname, uname)
+        n += _ensure_hidden_icon(le, uname, x, y, deg)
+        to = turnouts.get(ident)
+        if to is None:
+            continue
+        found = None
+        for el in list(to):
+            if el.tag == child:
+                found = el
+                break
+        if found is None:
+            found = ET.SubElement(to, child)
+            found.text = uname
+            n += 1
+        elif (found.text or "").strip() != uname:
+            found.text = uname
+            n += 1
+    for pt in le.findall("positionablepoint"):
+        if pt.get("ident") not in YARD_CLEAR_ANCHORS:
+            continue
+        for attr in ("westboundsignalmast", "eastboundsignalmast"):
+            if pt.get(attr):
+                del pt.attrib[attr]
+                n += 1
+    return n
+
+
 def apply(path: Path) -> int:
     tree = ET.parse(path)
     root = tree.getroot()
@@ -231,6 +290,7 @@ def apply(path: Path) -> int:
         n += patch_kink(le)
         n += patch_zero_length_k2(le)
         n += patch_stub_masts(root, le)
+        n += patch_yard_turnout_masts(root, le)
     tree.write(path, encoding="UTF-8", xml_declaration=True)
     return n
 

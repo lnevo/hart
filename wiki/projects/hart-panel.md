@@ -32,14 +32,14 @@ Best geometry and live wiring lived in an ad-hoc folder without a named layout p
 
 ## What landed after phase 2
 
-Native SML (36 dests, `hart-aar` / `SL-2-digicon`), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (41 sections / 175 transits). Load `jmri/layouts/hart/output/hart_prod.xml`; writable source `tables/new_tables.xml`.
+Native SML (77 dests: 75 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (82 sections / 534 transits / 1252 traininfo; all 22 stations are origins). Load `jmri/layouts/hart/output/hart_prod.xml`; writable source `tables/new_tables.xml`.
 
 ## Remaining (railroad)
 
 | Item | Notes |
 |------|--------|
 | Measured speed profiles | Synthetic 10-step / 400 mm/s on every roster loco — [`speedmatching.md`](speedmatching.md) |
-| Dispatcher stub stations | EH, W-1/W-2, K, S-2…S-5 have occupancy icons; CreateTransits still cannot treat them as start/stop |
+| Dispatcher S-2/S-4/S-5 inbound | Those three are origins only; CreateTransits skipped a looping 117RA–104L edge |
 | Node 13 occupancy walk-down | Hardware: 1301=118, 1304–1306=house, 1307=119 — freeze the CSV |
 
 ## Decisions (locked 2026-08-07)

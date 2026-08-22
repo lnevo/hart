@@ -57,10 +57,9 @@ CTC panel and `<ctcdata>`.
 Dispatcher stations are the original mainline eight (Main West, West Main Ext,
 McKees Rocks, McKeesport, East Lead, Main East, East Main Ext,
 Brick-Plane) plus EH-1–3, S-1–5, Scale (T1),
-Barn (T6), W-1–2, and K-1 / K-2. The generated graph covers the
-original eight plus Scale, Barn, and S-1
-(41 sections / 175 transits / 394 HEAD_AND_TAIL traininfo). The remaining
-new stations have occupancy/MoveTo icons but are not in CreateTransits yet.
+Barn (T6), W-1–2, and K-1 / K-2. The generated graph covers all 22
+as origins (82 sections / 534 transits / 1252 HEAD_AND_TAIL traininfo).
+S-2, S-4, and S-5 are not destinations yet.
 
 Operator guide (click destinations or named station lists):
 [`dispatcher/DISPATCHER_GUIDE.md`](dispatcher/DISPATCHER_GUIDE.md).

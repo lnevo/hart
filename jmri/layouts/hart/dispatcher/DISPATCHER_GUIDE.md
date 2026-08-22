@@ -47,16 +47,14 @@ Stations, west → east around the plant, then the yard and house:
 | **K-1 / K-2** | Princess stubs east of 115 / 114; destination labels **K-1** / **K-2** |
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
-buttons are in place. **Stage 1 was re-run 2026-08-21** for Scale, Barn,
-and S-1 (graph is now 41 sections / 175 transits / 394 traininfo).
-EH-1…EH-3, W-1/W-2, K-1/K-2, and S-2…S-5 still have
-occupancy/MoveTo icons, but CreateTransits cannot cover them yet: bumper
-`IF$vsm` virtuals get no Layout Editor facing, so Discover cannot build
-`mast:mast` sections through those stubs. Hidden virtuals stay in tables
-for a later SHSM/throat-mast pass. Manual Princess pairs (`113RA→115LA`,
+buttons are in place. **Stage 1 was re-run 2026-08-22** for all 22 stations
+(graph is **82 sections / 534 transits / 1252 traininfo**). Every listed
+station is a valid **start**. **S-2, S-4, and S-5 cannot be destinations
+yet** (no inbound transits). Manual Princess pairs (`113RA→115LA`,
 `113RB→114LA`) were re-added after Discover. After any future Stage 1:
 `python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py` then
-`reconcile_dispatcher_stations.py`.
+`reconcile_dispatcher_stations.py`. Never run Stage 1 or store tables from
+CATS.
 
 ---
 
