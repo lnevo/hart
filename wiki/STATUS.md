@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Dispatcher Stage 1 re-run on Pi PanelPro. Graph is **41 sections / 175 transits / 394 HEAD_AND_TAIL traininfo** covering the original eight plus **Scale, Barn, South Yard 1**. Bumper `IF$vsm` virtuals do not get Layout Editor facing, so Engine House / West Yard / K / South Yard 2–5 stay occupancy-only until SHSM or throat masts. Manual pairs `113RA→115LA` and `113RB→114LA` restored. Stage 2 options already correct (`autoturnouts`, turnout delay). EH buffer masts flipped westbound to face the plant.
+
 Updated: 2026-08-21 — LE cleanup: MTT100/113/114/115 are TWOSENSOR on the same FB as Switch 100/113–115 (M2T); 114→McKeesport bezier tangent at A62 now matches the frog (0° kink); zero-length K-2 F5-S-0 merged. Hidden stub-end virtual masts added for new dispatcher stations — **Stage 1/2 not re-run yet** (traininfo still 220 / original 8). Run Stage 1 in PanelPro (not CATS), then `fix_traininfo_detection.py` + `reconcile_dispatcher_stations.py`.
 
 Updated: 2026-08-21 — ADR-005 public names applied and deployed `--pi --win`. Discover 36 dests; PanelPro smoke 23/41/102/220; CTC Logic starts (12 columns). Hardware MQTT / `Block n-n` / `Switch n` unchanged. Optional later: node 13 occupancy walk-down.
@@ -18,10 +20,12 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   logic remain intact. Mast names, IH heads, turnout/anchor bindings, and the
   36 native SML destinations are unchanged. Reapply/check with
   `jmri/layouts/hart/scripts/polish_hart_layout_editor.py`.
-- Dispatcher station contract is exactly eight blocks: **Main West, West Main
-  Ext, McKees Rocks, McKeesport, South Yard East, Main East, East Main Ext, Main West
-  Brick–Plane**. The deployment graph remains 41 sections / 102 transits / 220
-  HEAD_AND_TAIL traininfo files.
+- Dispatcher graph stations (CreateTransits): **Main West, West Main Ext,
+  McKees Rocks, McKeesport, South Yard East, Main East, East Main Ext,
+  Brick-Plane, Scale, Barn, South Yard 1**. Deployment is **41 sections /
+  175 transits / 394 HEAD_AND_TAIL traininfo**. Occupancy/MoveTo icons remain
+  for Engine House 1–3, South Yard 2–5, West Yard 1–2, and K-1/K-2; those
+  stubs need SHSM or throat masts before they can join the graph.
 - **Dispatcher compatibility fixed (2026-08-20):** HART now launches the stock
   Dispatcher System through `hart_dispatcher_startup.py`, so its classes are
   patched in the same Jython namespace. Missing registration speed factors
@@ -29,7 +33,7 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   only the requested start/destination subsection and fail closed on invalid
   mappings. The A48
   change left 40 stale TrainInfo files; all were repaired against the live
-  graph and the smoke gate verifies 220/220 ordered routes. Deployed to Pi,
+  graph and the smoke gate verifies 394/394 ordered routes. Deployed to Pi,
   Mac, and Windows profiles.
 - Regression gate:
   `python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict`.
@@ -96,7 +100,7 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
 
 ## Dispatcher System (2026-08-18) — set up, awaiting live test
 
-- JMRI **Dispatcher System** (`jython/DispatcherSystem`, [help](https://www.jmri.org/help/en/html/scripthelp/DispatcherSystem/DispatcherSystem.shtml)) Stage 1+2 run on the Pi against `tables.xml` (replaces last session's hand-built transit). Stations = blocks with `stop` in the comment: **West Main Ext, Main West, Main East, McKees Rocks, McKeesport, East Main Ext, Main West Brick-Plane, East Lead** (8) — covers the full mainline circuit with intermediate stops, so a complete loop can be chained. Generated: station buttons/icons on My Layout, a "Dispatcher System" command panel, 41 sections, 102 transits, 220 traininfo files (fwd+rvs per pair), and a `Run Dispatcher` Logix (`IX:DSLX:1`) that starts the run threads from the panel button.
+- **2026-08-22 graph:** Stage 1 added Scale, Barn, and South Yard 1 — now 41 sections / 175 transits / 394 traininfo. Stub stations still have icons but are not in CreateTransits (`IF$vsm` bumper masts have no LE facing).
 - **Stub tracks cannot be stations**: K-1, K-2, West Yard 1/2 ("Track 1/2"), and the Yard Tracks fail Stage 1 transit generation ("missing signal mast in block X") because CreateTransits requires each station block to be covered by a `mastA:mastB` section — stubs have no mast at the buffer end. Making them stations would require adding (virtual) stub-end masts and re-discovering SML.
 - **Never run Stage 1 or store panels from inside CATS.** CATS embeds JMRI on the same profile, so a store from a CATS session persists CATS runtime beans into `tables.xml` — 25 `IF$vsm:CATS1/CATS2` virtual masts (which then fail to load in plain JMRI: "Signal definition not found: CATS1") plus `IMDECODER_*` memories. Happened 2026-08-18; file was surgically cleaned and verified under PanelPro. Configure JMRI from PanelPro only.
 - **SML survived regeneration**: Stage 1 deletes + re-discovers; result matched our 34 discovered pairs, and the 2 manual K-stub pairs (`113a→K-2`, `113b→K-1`) were re-added — 36 total, verified after restart.

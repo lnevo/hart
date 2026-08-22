@@ -198,7 +198,7 @@ class HartTrainInfoRepair(jmri.jmrit.automat.AbstractAutomaton):
             while time.time() < deadline:
                 transits = list(manager.getNamedBeanSet())
                 if (
-                    len(transits) == 102
+                    len(transits) == 175
                     and transits
                     and all(
                         len(transit.getInternalBlocksList()) > 0

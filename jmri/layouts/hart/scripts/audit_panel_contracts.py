@@ -201,9 +201,9 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    if (len(destinations), auto, manual, unknown) != (36, 34, 2, 0):
+    if (len(destinations), auto, manual, unknown) != (41, 39, 2, 0):
         message = (
-            "stored SML destinations expected total=36, useLayoutEditor=yes=34, "
+            "stored SML destinations expected total=41, useLayoutEditor=yes=39, "
             f"manual=2; found total={len(destinations)}, yes={auto}, "
             f"manual={manual}, unspecified/other={unknown}"
         )
@@ -352,9 +352,9 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         )
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
-    if (sections, transits) != (41, 102):
+    if (sections, transits) != (41, 175):
         audit.error(
-            f"generated Dispatcher graph expected 41 sections / 102 transits, "
+            f"generated Dispatcher graph expected 41 sections / 175 transits, "
             f"found {sections} / {transits}"
         )
     files = sorted(TRAININFO.glob("*.xml"))
@@ -372,8 +372,8 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         ]
         if values != ["TRAINDETECTION_HEADANDTAIL"]:
             bad_detection.append(path.name)
-    if len(files) != 220:
-        audit.error(f"expected 220 generated traininfo files, found {len(files)}")
+    if len(files) != 394:
+        audit.error(f"expected 394 generated traininfo files, found {len(files)}")
     if bad_detection:
         audit.error(
             "traininfo not HEAD_AND_TAIL: "

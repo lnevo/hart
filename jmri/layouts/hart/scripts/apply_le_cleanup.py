@@ -23,9 +23,9 @@ STUB_MASTS = [
     ("IF$vsm:AAR-1946:SL-1-low($1002)", "101LB", "EB73", "eastboundsignalmast", 40, 299, 90),
     ("IF$vsm:AAR-1946:SL-1-low($1003)", "115RA", "EB71", "westboundsignalmast", 1740, 236, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1004)", "114RA", "EB72", "westboundsignalmast", 1740, 299, 270),
-    ("IF$vsm:AAR-1946:SL-1-low($1005)", "118L", "EB1", "eastboundsignalmast", 548, 250, 90),
-    ("IF$vsm:AAR-1946:SL-1-low($1006)", "119LA", "EB2", "eastboundsignalmast", 548, 261, 90),
-    ("IF$vsm:AAR-1946:SL-1-low($1007)", "119LB", "EB3", "eastboundsignalmast", 548, 273, 90),
+    ("IF$vsm:AAR-1946:SL-1-low($1005)", "118L", "EB1", "westboundsignalmast", 548, 250, 270),
+    ("IF$vsm:AAR-1946:SL-1-low($1006)", "119LA", "EB2", "westboundsignalmast", 548, 261, 270),
+    ("IF$vsm:AAR-1946:SL-1-low($1007)", "119LB", "EB3", "westboundsignalmast", 548, 273, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1008)", "104L", "A53", "westboundsignalmast", 768, 350, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1009)", "105L", "A46", "westboundsignalmast", 843, 397, 270),
     ("IF$vsm:AAR-1946:SL-1-low($1010)", "106L", "A41", "westboundsignalmast", 910, 444, 270),
@@ -148,21 +148,21 @@ def patch_stub_masts(root: ET.Element, le: ET.Element) -> int:
         return 0
     existing = {
         (el.findtext("systemName") or "").strip()
-        for el in masts.findall("signalmast")
+        for el in list(masts)
+        if el.tag in ("signalmast", "virtualsignalmast")
     }
     for sysname, uname, _ident, _attr, x, y, deg in STUB_MASTS:
-        if sysname in existing:
-            continue
-        el = ET.SubElement(masts, "signalmast")
-        el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
-        sn = ET.SubElement(el, "systemName")
-        sn.text = sysname
-        un = ET.SubElement(el, "userName")
-        un.text = uname
-        unlit = ET.SubElement(el, "unlit")
-        unlit.set("allowed", "yes")
-        n += 1
-        existing.add(sysname)
+        if sysname not in existing:
+            el = ET.SubElement(masts, "signalmast")
+            el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
+            sn = ET.SubElement(el, "systemName")
+            sn.text = sysname
+            un = ET.SubElement(el, "userName")
+            un.text = uname
+            unlit = ET.SubElement(el, "unlit")
+            unlit.set("allowed", "yes")
+            n += 1
+            existing.add(sysname)
         icons = [
             ic
             for ic in le.findall("signalmasticon")
@@ -205,6 +205,14 @@ def patch_stub_masts(root: ET.Element, le: ET.Element) -> int:
                 continue
             if pt.get(_attr) != uname:
                 pt.set(_attr, uname)
+                n += 1
+            other = (
+                "westboundsignalmast"
+                if _attr == "eastboundsignalmast"
+                else "eastboundsignalmast"
+            )
+            if pt.get(other):
+                del pt.attrib[other]
                 n += 1
     return n
 

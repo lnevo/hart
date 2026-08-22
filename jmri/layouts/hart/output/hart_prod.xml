@@ -2316,9 +2316,9 @@
     <positionablepoint ident="A7" type="ANCHOR" x="1245.0" y="252.0" connect1name="F41-S-0" connect2name="T-EL-TOR31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A10" type="ANCHOR" x="843" y="429" connect1name="F20-S-0" connect2name="T-ER-TOL17" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A12" type="ANCHOR" x="1065.0" y="474.0" connect1name="F13-S-0" connect2name="T-EL-TOR11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="107L" />
-    <positionablepoint ident="EB1" type="END_BUMPER" x="573" y="266" connect1name="T9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="118L" />
-    <positionablepoint ident="EB2" type="END_BUMPER" x="573" y="277" connect1name="T10" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="119LA" />
-    <positionablepoint ident="EB3" type="END_BUMPER" x="573" y="289" connect1name="T11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="119LB" />
+    <positionablepoint ident="EB1" type="END_BUMPER" x="573" y="266" connect1name="T9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="118L" />
+    <positionablepoint ident="EB2" type="END_BUMPER" x="573" y="277" connect1name="T10" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="119LA" />
+    <positionablepoint ident="EB3" type="END_BUMPER" x="573" y="289" connect1name="T11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="119LB" />
     <positionablepoint ident="A2" type="ANCHOR" x="622" y="266" connect1name="T9" connect2name="T2" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
 
 

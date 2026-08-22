@@ -54,10 +54,13 @@ Visual scripts patch each output independently; they never copy
 `tables/new_tables.xml` over `output/tables.xml`, because that would remove the
 CTC panel and `<ctcdata>`.
 
-Dispatcher stations are exactly: Main West, West Main Ext, McKees Rocks,
-McKeesport, South Yard East, Main East, East Main Ext, and Brick-Plane.
-The deployment bundle retains 41 generated sections, 102 transits, and 220
-HEAD_AND_TAIL traininfo files for this station graph.
+Dispatcher stations are the original mainline eight (Main West, West Main Ext,
+McKees Rocks, McKeesport, South Yard East, Main East, East Main Ext,
+Brick-Plane) plus Engine House 1–3, South Yard 1–5, Scale (T1),
+Barn (T6), West Yard 1–2, and K-1 / K-2. The generated graph covers the
+original eight plus Scale, Barn, and South Yard 1
+(41 sections / 175 transits / 394 HEAD_AND_TAIL traininfo). The remaining
+new stations have occupancy/MoveTo icons but are not in CreateTransits yet.
 
 Operator guide (click destinations or named station lists):
 [`dispatcher/DISPATCHER_GUIDE.md`](dispatcher/DISPATCHER_GUIDE.md).
