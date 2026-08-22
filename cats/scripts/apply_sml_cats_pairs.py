@@ -105,13 +105,13 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "112R",
         "113RB",
-        ["South Yard East"],
+        ["East Lead"],
         [("Switch 112", "thrown")],
     ),
     (
         "110R",
         "113RB",
-        ["OS 110", "South Yard East"],
+        ["OS 110", "East Lead"],
         [("Switch 110", "thrown"), ("Switch 112", "closed")],
     ),
     (
@@ -123,7 +123,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "111RB",
         "113RB",
-        ["S-1", "South Yard East"],
+        ["S-1", "East Lead"],
         [("Switch 111", "closed"), ("Switch 112", "closed")],
     ),
     (
@@ -138,7 +138,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
         ["Barn", "Scale"],
         [("Switch 117", "thrown")],
     ),
-    # 114/115 C homes face west. Dest 111a (113 closed) or South Yard East (113 thrown).
+    # 114/115 C homes face west. Dest 111a (113 closed) or East Lead (113 thrown).
     (
         "115LB",
         "111L",
@@ -148,7 +148,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "115LB",
         "112L",
-        ["OS 115", "South Yard East"],
+        ["OS 115", "East Lead"],
         [("Switch 115", "thrown"), ("Switch 113", "thrown")],
     ),
     (
@@ -160,7 +160,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "114LB",
         "112L",
-        ["OS 114", "South Yard East"],
+        ["OS 114", "East Lead"],
         [("Switch 114", "thrown"), ("Switch 113", "thrown")],
     ),
     (
@@ -172,7 +172,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "115LA",
         "112L",
-        ["OS 115", "South Yard East"],
+        ["OS 115", "East Lead"],
         [("Switch 115", "closed"), ("Switch 113", "thrown")],
     ),
     (
@@ -184,7 +184,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "114LA",
         "112L",
-        ["OS 114", "South Yard East"],
+        ["OS 114", "East Lead"],
         [("Switch 114", "closed"), ("Switch 113", "thrown")],
     ),
     (
@@ -228,13 +228,13 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "101RA",
         "111RA",
-        ["West Yard 1", "OS 101", "Main West"],
+        ["W-1", "OS 101", "Main West"],
         [("Switch 101", "closed")],
     ),
     (
         "101RB",
         "111RA",
-        ["West Yard 2", "OS 101", "Main West"],
+        ["W-2", "OS 101", "Main West"],
         [("Switch 101", "thrown")],
     ),
 ]

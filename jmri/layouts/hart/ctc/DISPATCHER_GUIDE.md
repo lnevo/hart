@@ -49,8 +49,8 @@ railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 | 7–8 | East End | 13 / 14, 15 / 16 | Switches 107, 108 (ladder, switch-only) |
 | 9 | East End | 17 / 18 | Switch 111 crossover (OS 111a / 111b) |
 | 10 | East End | 19 / 20 | Switch 109 (ladder, switch-only) |
-| 11 | East End | 21 / 22 | Switch 110 (ladder → South Yard East; defaults Local) |
-| 12 | East End | 23 / 24 | Switch 112 (South Yard East vs Main East) |
+| 11 | East End | 21 / 22 | Switch 110 (ladder → East Lead; defaults Local) |
+| 12 | East End | 23 / 24 | Switch 112 (East Lead vs Main East) |
 | 13 | Princess | 25 / 26 | Switch 113 crossover (OS 113b / 113a) |
 | 14 | Princess | 27 / 28 | Switch 114 (McKeesport vs K-2) |
 | 15 | Princess | 29 / 30 | Switch 115 (McKees Rocks vs K-1) |

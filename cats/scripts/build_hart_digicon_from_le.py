@@ -16,7 +16,7 @@ Writes the **operational Digicon** (full railroad). Does not overwrite Designer 
 
 Gate 1 spine SoR (must stay honest):
 
-    Main West ═══[ OS 100 ]═══ Block 100-102 (HORIZONTAL) ═══[ OS 102 ]═══ East Main Ext
+    Main West ═══[ OS 100 ]═══ Brick-Plane (HORIZONTAL) ═══[ OS 102 ]═══ East Main Ext
                       ╲
                        OS 101
 
@@ -100,14 +100,14 @@ def build_board(*, shift: bool = True) -> None:
     the grid before the mandatory CATS 1-based shift.
 
     Tip blocks from hart_prod (segment TURNOUT_A/B/C/D):
-      TOL3  A=Main West  B=OS100     C=Block 100-102
-      TOL38 A=OS101      B=West Yard 1 C=West Yard 2
-      TOL42 A=100-102    B=East Main Ext C=Yard T1
-      TO117 A=Yard T1    B=Yard T6   C=Main East  D=East Main Ext
-      TO111 A=Main West  B=West Main Ext C=OS110  D=Yard Track 1
+      TOL3  A=Main West  B=OS100     C=Brick-Plane
+      TOL38 A=OS101      B=W-1 C=W-2
+      TOL42 A=100-102    B=East Main Ext C=Scale
+      TO117 A=Scale    B=Barn   C=Main East  D=East Main Ext
+      TO111 A=Main West  B=West Main Ext C=OS110  D=S-1
       TO113 A=West Main Ext B=OS113b C=OS113a D=East Lead
       TOL23 A=East Lead  B=OS110     C=Main East
-      … South Yard 103–106 / East End 107–110 / Princess 114–115
+      … S-103–106 / East End 107–110 / Princess 114–115
     """
     GRID.clear()
     PLANTS.clear()
@@ -120,11 +120,11 @@ def build_board(*, shift: bool = True) -> None:
     # (Main West lives on the Gate‑1 spine below — not duplicated here.)
     # =====================================================================
     H((7, 1))
-    nm((7, 1), "LEFT", "OS 111a (East End)")
-    plant((8, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 111a (East End)", "RIGHT", "TO111")
-    nm((8, 1), "RIGHT", "OS 111a (East End)")
+    nm((7, 1), "LEFT", "OS 111a")
+    plant((8, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 111a", "RIGHT", "TO111")
+    nm((8, 1), "RIGHT", "OS 111a")
     H((8, 0))
-    nm((8, 0), "LEFT", "OS 111b (East End)")
+    nm((8, 0), "LEFT", "OS 111b")
     cut((8, 1), "TOP", (8, 0), "BOTTOM")
     for x in range(9, 13):
         H((x, 1))
@@ -132,16 +132,16 @@ def build_board(*, shift: bool = True) -> None:
     cut((12, 1), "RIGHT", (13, 1), "LEFT")
     for x in range(13, 16):
         H((x, 1))
-    nm((13, 1), "LEFT", "OS 113b (Princess)")
+    nm((13, 1), "LEFT", "OS 113b")
     GRID[(16, 1)] = ["LOWERBACKSLASH"]
     cut((15, 1), "RIGHT", (16, 1), "LEFT")
     H((17, 1))
-    plant((18, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 115 (Princess)", "RIGHT", "TOL29")
+    plant((18, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 115", "RIGHT", "TOL29")
     an((18, 1), "RIGHT")
 
     # =====================================================================
     # Y=2 MAIN SPINE (Gate 1 SoR):
-    #   Main West ═══[ OS 100 ]═══ Block 100-102 ═══[ OS 102 ]═══ East Main Ext
+    #   Main West ═══[ OS 100 ]═══ Brick-Plane ═══[ OS 102 ]═══ East Main Ext
     #                     ╲
     #                      OS 101 (yard diverge)
     # =====================================================================
@@ -153,51 +153,51 @@ def build_board(*, shift: bool = True) -> None:
 
     # OS 100 — H+LOWERBACKSLASH: points LEFT, normal RIGHT (100-102), diverge BOTTOM (OS 101)
     H((2, 2))
-    nm((2, 2), "LEFT", "OS 100 (Brick)")
-    plant((3, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 100 (Brick)", "RIGHT", "TOL3")
+    nm((2, 2), "LEFT", "OS 100")
+    plant((3, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 100", "RIGHT", "TOL3")
     cut((3, 2), "RIGHT", (4, 2), "LEFT")
 
     # Long continuing mid-spine (must stay HORIZONTAL — not a plant approach slash)
     for x in range(4, 7):
         H((x, 2))
-    nm((4, 2), "LEFT", "Block 100-102")
+    nm((4, 2), "LEFT", "Brick-Plane")
     cut((6, 2), "RIGHT", (7, 2), "LEFT")
 
-    # OS 102 Plane — continuing east to EME; diverge down to Yard T1
+    # OS 102 Plane — continuing east to EME; diverge down to Scale
     H((7, 2))
-    nm((7, 2), "LEFT", "OS 102 (Plane)")
-    plant((8, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 102 (Plane)", "RIGHT", "TOL42")
+    nm((7, 2), "LEFT", "OS 102")
+    plant((8, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 102", "RIGHT", "TOL42")
     cut((8, 2), "RIGHT", (9, 2), "LEFT")
     H((8, 3))
-    nm((8, 3), "LEFT", "Yard T1")
+    nm((8, 3), "LEFT", "Scale")
     cut((8, 2), "BOTTOM", (8, 3), "TOP")
 
     for x in range(9, 11):
         H((x, 2))
     nm((9, 2), "LEFT", "East Main Ext")
 
-    # OS 101 diverge under Brick + West Yard 1/2 bodies (TOL38)
+    # OS 101 diverge under Brick + W-1/2 bodies (TOL38)
     H((3, 3))
-    nm((3, 3), "LEFT", "OS 101 (Brick)")
+    nm((3, 3), "LEFT", "OS 101")
     cut((3, 2), "BOTTOM", (3, 3), "TOP")
     H((2, 3))
-    nm((2, 3), "LEFT", "West Yard 2")
+    nm((2, 3), "LEFT", "W-2")
     cut((2, 3), "RIGHT", (3, 3), "LEFT")
     H((4, 3))
-    nm((4, 3), "LEFT", "West Yard 1")
+    nm((4, 3), "LEFT", "W-1")
     cut((3, 3), "RIGHT", (4, 3), "LEFT")
 
     # TO117: spine uses D=EME / C=Main East as 117b; AB = T1/T6 as 117
-    plant((11, 2), ["HORIZONTAL", "UPPERBACKSLASH"], "OS 117b (West Yard)", "LEFT", "TO117")
+    plant((11, 2), ["HORIZONTAL", "UPPERBACKSLASH"], "OS 117b", "LEFT", "TO117")
     cut((10, 2), "RIGHT", (11, 2), "LEFT")
-    nm((11, 2), "LEFT", "OS 117b (West Yard)")
+    nm((11, 2), "LEFT", "OS 117b")
     H((11, 3))
-    nm((11, 3), "LEFT", "OS 117 (West Yard)")
+    nm((11, 3), "LEFT", "OS 117")
     cut((11, 2), "TOP", (11, 3), "BOTTOM")
     H((10, 3))
-    nm((10, 3), "LEFT", "Yard T6")
+    nm((10, 3), "LEFT", "Barn")
     cut((10, 3), "RIGHT", (11, 3), "LEFT")
-    # Gap between Yard T1 (8,3) and T6 (10,3) — separate named regions
+    # Gap between Scale (8,3) and T6 (10,3) — separate named regions
 
     H((12, 2))
     H((13, 2))
@@ -207,25 +207,25 @@ def build_board(*, shift: bool = True) -> None:
 
     # OS 112
     H((14, 2))
-    nm((14, 2), "LEFT", "OS 112 (East End)")
-    plant((15, 2), ["HORIZONTAL", "UPPERSLASH"], "OS 112 (East End)", "RIGHT", "TOL23")
-    nm((15, 2), "RIGHT", "OS 112 (East End)")
+    nm((14, 2), "LEFT", "OS 112")
+    plant((15, 2), ["HORIZONTAL", "UPPERSLASH"], "OS 112", "RIGHT", "TOL23")
+    nm((15, 2), "RIGHT", "OS 112")
 
     H((16, 2))
     nm((16, 2), "LEFT", "East Lead")
 
     # TO113 lower plants
-    plant((18, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 113a (Princess)", "RIGHT", "TO113")
-    plant((19, 2), ["HORIZONTAL", "UPPERBACKSLASH"], "OS 113a (Princess)", "LEFT", "TO113")
-    plant((20, 2), ["HORIZONTAL", "LOWERSLASH"], "OS 113a (Princess)", "LEFT", "TO113")
-    nm((20, 2), "BOTTOM", "OS 113a (Princess)")
+    plant((18, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 113a", "RIGHT", "TO113")
+    plant((19, 2), ["HORIZONTAL", "UPPERBACKSLASH"], "OS 113a", "LEFT", "TO113")
+    plant((20, 2), ["HORIZONTAL", "LOWERSLASH"], "OS 113a", "LEFT", "TO113")
+    nm((20, 2), "BOTTOM", "OS 113a")
     cut((16, 1), "BOTTOM", (19, 2), "TOP")
 
     # OS 114 + loops
     H((22, 2))
-    nm((22, 2), "LEFT", "OS 114 (Princess)")
-    plant((23, 2), ["HORIZONTAL", "UPPERSLASH"], "OS 114 (Princess)", "RIGHT", "TOR36")
-    nm((23, 2), "RIGHT", "OS 114 (Princess)")
+    nm((22, 2), "LEFT", "OS 114")
+    plant((23, 2), ["HORIZONTAL", "UPPERSLASH"], "OS 114", "RIGHT", "TOR36")
+    nm((23, 2), "RIGHT", "OS 114")
     H((24, 2))
     H((25, 2))
     nm((24, 2), "LEFT", "McKeesport")
@@ -239,94 +239,94 @@ def build_board(*, shift: bool = True) -> None:
     # Y=4 West Yard ladder — contiguous approach+plant pairs (SP never faces BLK)
     # =====================================================================
     H((5, 4))
-    nm((5, 4), "LEFT", "OS 119 (West Yard)")
-    plant((6, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 119 (West Yard)", "RIGHT", "TO10")
+    nm((5, 4), "LEFT", "OS 119")
+    plant((6, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 119", "RIGHT", "TO10")
     cut((6, 4), "RIGHT", (7, 4), "LEFT")
     H((6, 5))
-    nm((6, 5), "LEFT", "Yard T11")
+    nm((6, 5), "LEFT", "EH-3")
     cut((6, 4), "BOTTOM", (6, 5), "TOP")
 
     H((7, 4))
-    nm((7, 4), "LEFT", "OS 118 (West Yard)")
-    plant((8, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 118 (West Yard)", "RIGHT", "TO11")
+    nm((7, 4), "LEFT", "OS 118")
+    plant((8, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 118", "RIGHT", "TO11")
     cut((8, 4), "RIGHT", (9, 4), "LEFT")
     H((8, 5))
-    nm((8, 5), "LEFT", "Yard T10")
+    nm((8, 5), "LEFT", "EH-2")
     cut((8, 4), "BOTTOM", (8, 5), "TOP")
 
     H((9, 4))
-    nm((9, 4), "LEFT", "OS 116 (West Yard)")
-    plant((10, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 116 (West Yard)", "RIGHT", "TO1")
+    nm((9, 4), "LEFT", "OS 116")
+    plant((10, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 116", "RIGHT", "TO1")
     an((10, 4), "RIGHT")
     H((10, 5))
-    nm((10, 5), "LEFT", "Yard T9")
+    nm((10, 5), "LEFT", "EH-1")
     cut((10, 4), "BOTTOM", (10, 5), "TOP")
 
     # =====================================================================
     # South Yard ladder 103–106 — contiguous approach+plant
     # =====================================================================
     H((14, 3))
-    nm((14, 3), "LEFT", "OS 103 (South Yard)")
-    plant((15, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 103 (South Yard)", "RIGHT", "TOR14")
+    nm((14, 3), "LEFT", "OS 103")
+    plant((15, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 103", "RIGHT", "TOR14")
     cut((15, 3), "RIGHT", (16, 3), "LEFT")
     H((15, 4))
-    nm((15, 4), "LEFT", "Yard Track 1")
+    nm((15, 4), "LEFT", "S-1")
     cut((15, 3), "BOTTOM", (15, 4), "TOP")
 
     H((16, 3))
-    nm((16, 3), "LEFT", "OS 104 (South Yard)")
-    plant((17, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 104 (South Yard)", "RIGHT", "TOL15")
+    nm((16, 3), "LEFT", "OS 104")
+    plant((17, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 104", "RIGHT", "TOL15")
     cut((17, 3), "RIGHT", (18, 3), "LEFT")
     H((17, 4))
-    nm((17, 4), "LEFT", "Yard Track 2")
+    nm((17, 4), "LEFT", "S-2")
     cut((17, 3), "BOTTOM", (17, 4), "TOP")
 
     H((18, 3))
-    nm((18, 3), "LEFT", "OS 105 (South Yard)")
-    plant((19, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 105 (South Yard)", "RIGHT", "TOL17")
+    nm((18, 3), "LEFT", "OS 105")
+    plant((19, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 105", "RIGHT", "TOL17")
     cut((19, 3), "RIGHT", (20, 3), "LEFT")
     H((19, 4))
-    nm((19, 4), "LEFT", "Yard Track 3")
+    nm((19, 4), "LEFT", "S-3")
     cut((19, 3), "BOTTOM", (19, 4), "TOP")
 
     H((20, 3))
-    nm((20, 3), "LEFT", "OS 106 (South Yard)")
-    plant((21, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 106 (South Yard)", "RIGHT", "TOL19")
+    nm((20, 3), "LEFT", "OS 106")
+    plant((21, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 106", "RIGHT", "TOL19")
     an((21, 3), "RIGHT")
     H((21, 4))
-    nm((21, 4), "LEFT", "Yard Track 4")
+    nm((21, 4), "LEFT", "S-4")
     cut((21, 3), "BOTTOM", (21, 4), "TOP")
     H((22, 4))
-    nm((22, 4), "LEFT", "Yard Track 5")
+    nm((22, 4), "LEFT", "S-5")
     cut((21, 4), "RIGHT", (22, 4), "LEFT")
 
     # =====================================================================
     # East End ladder 107–110 — contiguous approach+plant
     # =====================================================================
     H((24, 3))
-    nm((24, 3), "LEFT", "OS 107 (East End)")
-    plant((25, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 107 (East End)", "RIGHT", "TOR11")
+    nm((24, 3), "LEFT", "OS 107")
+    plant((25, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 107", "RIGHT", "TOR11")
     cut((25, 3), "RIGHT", (26, 3), "LEFT")
 
     H((26, 3))
-    nm((26, 3), "LEFT", "OS 108 (East End)")
-    plant((27, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 108 (East End)", "RIGHT", "TOR9")
+    nm((26, 3), "LEFT", "OS 108")
+    plant((27, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 108", "RIGHT", "TOR9")
     cut((27, 3), "RIGHT", (28, 3), "LEFT")
 
     H((28, 3))
-    nm((28, 3), "LEFT", "OS 109 (East End)")
-    plant((29, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 109 (East End)", "RIGHT", "TOR7")
+    nm((28, 3), "LEFT", "OS 109")
+    plant((29, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 109", "RIGHT", "TOR7")
     cut((29, 3), "RIGHT", (30, 3), "LEFT")
 
     H((30, 3))
-    nm((30, 3), "LEFT", "OS 110 (East End)")
-    plant((31, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 110 (East End)", "RIGHT", "TOL6")
+    nm((30, 3), "LEFT", "OS 110")
+    plant((31, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 110", "RIGHT", "TOL6")
     an((31, 3), "RIGHT")
 
     # --- rim / join fixes ---
     ANON.discard(((15, 1), "RIGHT"))
     ANON.discard(((16, 1), "LEFT"))
-    nm((17, 1), "LEFT", "OS 115 (Princess)")
+    nm((17, 1), "LEFT", "OS 115")
     for xy in list(GRID):
         if xy[1] not in (3, 4, 5):
             continue

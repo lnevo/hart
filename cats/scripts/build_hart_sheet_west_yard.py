@@ -5,7 +5,7 @@ SoR: cats/docs/station_maps/Neville_Island_Station_Map_West_Yard_0.png
 
 Rotated Digicon (Brick-friendly):
   Main West enters from the LEFT into Brick 100; diverge goes straight
-  down into Block 100-102 → Plane (no lead turn-around under the main).
+  down into Brick-Plane → Plane (no lead turn-around under the main).
   W-1 / W-2 merge at 101 on that same west approach (yard legs, not the
   main continuum past Brick).
 
@@ -33,19 +33,19 @@ SHOT = ROOT / "cats/screenshots/sheets/HART_sheet_West_Yard.png"
 WIDTH, HEIGHT = "1600", "560"
 
 STATION = {
-    "West Yard 1": "W-1",
-    "West Yard 2": "W-2",
-    "OS 101 (Brick)": "101",
-    "OS 100 (Brick)": "100",
-    "Block 100-102": "100-102",
-    "OS 102 (Plane)": "102",
-    "Yard T1": "West Lead",
-    "Yard T6": "West Lead",
+    "W-1": "W-1",
+    "W-2": "W-2",
+    "OS 101": "101",
+    "OS 100": "100",
+    "Brick-Plane": "100-102",
+    "OS 102": "102",
+    "Scale": "West Lead",
+    "Barn": "West Lead",
     "East Main Ext": "Main East",
     "Main East": "Main East",
     "Main West": "Main West",
-    "OS 117 (West Yard)": "117",
-    "OS 117b (West Yard)": "117",
+    "OS 117": "117",
+    "OS 117b": "117",
 }
 
 
@@ -90,17 +90,17 @@ def build_west_yard_sheet() -> None:
     # =====================================================================
 
     # --- W-1 / W-2 → 101 (yard merge onto the west approach; keep "/" look) ---
-    _run(2, 3, 1, "West Yard 1")
+    _run(2, 3, 1, "W-1")
     cut((3, 1), "RIGHT", (4, 1), "LEFT")
     H((4, 1))
-    nm((4, 1), "LEFT", "OS 101 (Brick)")
-    plant((5, 1), ["HORIZONTAL", "LOWERSLASH"], "OS 101 (Brick)", "LEFT", "TOL38")
+    nm((4, 1), "LEFT", "OS 101")
+    plant((5, 1), ["HORIZONTAL", "LOWERSLASH"], "OS 101", "LEFT", "TOL38")
     H((6, 1))  # plain into SP RIGHT
 
-    _run(2, 4, 2, "West Yard 2")
+    _run(2, 4, 2, "W-2")
     cut((4, 2), "RIGHT", (5, 2), "LEFT")
     le.GRID[(5, 2)] = ["UPPERSLASH"]
-    nm((5, 2), "LEFT", "West Yard 2")
+    nm((5, 2), "LEFT", "W-2")
     cut((5, 1), "BOTTOM", (5, 2), "TOP")
 
     # --- Brick 100 ("/" = H+LOWERSLASH) ---
@@ -108,8 +108,8 @@ def build_west_yard_sheet() -> None:
     # Main West starts EAST of Brick only.
     # (6,1) already plain into 101 SP; BLK boundary straight into Brick plant
     cut((6, 1), "RIGHT", (7, 1), "LEFT")
-    plant((7, 1), ["HORIZONTAL", "LOWERSLASH"], "OS 100 (Brick)", "LEFT", "TOL3")
-    nm((7, 1), "LEFT", "OS 100 (Brick)")
+    plant((7, 1), ["HORIZONTAL", "LOWERSLASH"], "OS 100", "LEFT", "TOL3")
+    nm((7, 1), "LEFT", "OS 100")
     H((8, 1))  # plain into SP RIGHT
     cut((8, 1), "RIGHT", (9, 1), "LEFT")
     nm((9, 1), "LEFT", "Main West")
@@ -118,19 +118,19 @@ def build_west_yard_sheet() -> None:
         H((x, 1))
     an((25, 1), "RIGHT")
 
-    # Diverging leg → Block 100-102 → Plane (direct; one UB elbow TOP→RIGHT)
+    # Diverging leg → Brick-Plane → Plane (direct; one UB elbow TOP→RIGHT)
     le.GRID[(7, 2)] = ["UPPERBACKSLASH"]
     cut((7, 1), "BOTTOM", (7, 2), "TOP")
-    nm((7, 2), "RIGHT", "Block 100-102")
-    _run(8, 10, 2, "Block 100-102")
+    nm((7, 2), "RIGHT", "Brick-Plane")
+    _run(8, 10, 2, "Brick-Plane")
     cut((10, 2), "RIGHT", (11, 2), "LEFT")
 
     # --- Plane 102 (unchanged — signed off) ---
     H((11, 2))
-    nm((11, 2), "LEFT", "OS 102 (Plane)")
-    plant((12, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 102 (Plane)", "RIGHT", "TOL42")
+    nm((11, 2), "LEFT", "OS 102")
+    plant((12, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 102", "RIGHT", "TOL42")
     cut((12, 2), "RIGHT", (13, 2), "LEFT")
-    nm((13, 2), "LEFT", "Yard T1")
+    nm((13, 2), "LEFT", "Scale")
     for x in range(13, 17):
         H((x, 2))
 
@@ -142,19 +142,19 @@ def build_west_yard_sheet() -> None:
     # --- Barn 117 (unchanged — signed off) ---
     cut((16, 2), "RIGHT", (17, 2), "LEFT")
     H((17, 2))
-    nm((17, 2), "LEFT", "OS 117 (West Yard)")
-    plant((18, 2), ["HORIZONTAL", "LOWERSLASH"], "OS 117 (West Yard)", "LEFT", "TO117")
+    nm((17, 2), "LEFT", "OS 117")
+    plant((18, 2), ["HORIZONTAL", "LOWERSLASH"], "OS 117", "LEFT", "TO117")
     H((19, 2))
     cut((19, 2), "RIGHT", (20, 2), "LEFT")
-    nm((20, 2), "LEFT", "Yard T6")
+    nm((20, 2), "LEFT", "Barn")
     for x in range(20, 26):
         H((x, 2))
     an((25, 2), "RIGHT")
 
     cut((18, 2), "BOTTOM", (18, 3), "TOP")
     H((17, 3))
-    nm((17, 3), "LEFT", "OS 117b (West Yard)")
-    plant((18, 3), ["HORIZONTAL", "UPPERSLASH"], "OS 117b (West Yard)", "RIGHT", "TO117")
+    nm((17, 3), "LEFT", "OS 117b")
+    plant((18, 3), ["HORIZONTAL", "UPPERSLASH"], "OS 117b", "RIGHT", "TO117")
     cut((16, 3), "RIGHT", (17, 3), "LEFT")
     cut((18, 3), "RIGHT", (19, 3), "LEFT")
     _run(19, 25, 3, "Main East")

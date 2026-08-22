@@ -49,8 +49,8 @@ _MOSQUITTO = (
 
 SWITCH_TIPS = {
     100: "THROWN = 100–102 / Plane (BOTTOM); CLOSED = LEFT",
-    102: "THROWN = South Yard Scale (RIGHT); CLOSED = East Main Ext (BOTTOM)",
-    112: "THROWN = Barn (BOTTOM); CLOSED = OS110 / South Yard East (LEFT)",
+    102: "THROWN = Scale (RIGHT); CLOSED = East Main Ext (BOTTOM)",
+    112: "THROWN = Barn (BOTTOM); CLOSED = OS110 / East Lead (LEFT)",
     114: "THROWN = McKeesport (BOTTOM); CLOSED = K-2 (RIGHT)",
     115: "THROWN = Rocks (TOP); CLOSED = K-1 (RIGHT)",
 }

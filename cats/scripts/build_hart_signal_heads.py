@@ -3,7 +3,7 @@
 
 Allocation (MQTT display node = radio addr octal-digits-as-decimal):
   node 4  — Plane faces + Brick W-1/W-2 + 100L (IH438/IH439 on C4-OU3)
-  node 13 — Barn / West Yard 117–117b  (radio 013 → display 13)
+  node 13 — Barn / W-117–117b  (radio 013 → display 13)
   node 12 — East End                 (radio 012 → display 12)
   node 1  — Princess                 (radio 1   → display 1)
 

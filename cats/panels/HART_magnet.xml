@@ -142,7 +142,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="Yard T9" STATION="Yard T9" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="EH-1" STATION="EH-1" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="5" Y="2">
@@ -151,7 +151,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="Yard T6" STATION="Yard T6" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="Barn" STATION="Barn" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="6" Y="2">
@@ -176,7 +176,7 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 117 (West Yard)" STATION="OS 117 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 117" STATION="OS 117" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
@@ -230,7 +230,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 102 (Plane)" STATION="OS 102 (Plane)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 102" STATION="OS 102" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="5" Y="3">
@@ -267,7 +267,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 116 (West Yard)" STATION="OS 116 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 116" STATION="OS 116" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -294,7 +294,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T1" STATION="Yard T1" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="Scale" STATION="Scale" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
@@ -306,7 +306,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="Block 100-102" STATION="Block 100-102" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="Brick-Plane" STATION="Brick-Plane" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="4" Y="4">
@@ -324,7 +324,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="West Yard 1" STATION="West Yard 1" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="W-1" STATION="W-1" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="6" Y="4">
@@ -359,7 +359,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 100 (Brick)" STATION="OS 100 (Brick)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 100" STATION="OS 100" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -386,7 +386,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 101 (Brick)" STATION="OS 101 (Brick)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 101" STATION="OS 101" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -413,7 +413,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Yard 2" STATION="West Yard 2" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="W-2" STATION="W-2" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>

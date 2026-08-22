@@ -150,7 +150,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 105 (South Yard)" STATION="OS 105 (South Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 105" STATION="OS 105" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>

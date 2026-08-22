@@ -120,28 +120,28 @@ EXTRA_CELLS: dict[Cell, list[str]] = {
 
 # cell -> (block name, normal route edge) — Designer Gate 1 only
 PLANTS: dict[Cell, tuple[str, str]] = {
-    (3, 5): ("OS 100 (Brick)", "TOP"),
-    (5, 5): ("OS 101 (Brick)", "RIGHT"),
-    (5, 3): ("OS 102 (Plane)", "RIGHT"),
-    (8, 3): ("OS 116 (West Yard)", "RIGHT"),
-    (8, 2): ("OS 117 (West Yard)", "LEFT"),
-    (9, 2): ("OS 117b (West Yard)", "LEFT"),
+    (3, 5): ("OS 100", "TOP"),
+    (5, 5): ("OS 101", "RIGHT"),
+    (5, 3): ("OS 102", "RIGHT"),
+    (8, 3): ("OS 116", "RIGHT"),
+    (8, 2): ("OS 117", "LEFT"),
+    (9, 2): ("OS 117b", "LEFT"),
 }
 
 BLOCK_ANCHORS: dict[tuple[Cell, str], str] = {
     ((1, 5), "LEFT"): "Main West",
-    ((2, 5), "LEFT"): "OS 100 (Brick)",
-    ((4, 5), "LEFT"): "OS 101 (Brick)",
-    ((6, 5), "LEFT"): "West Yard 2",
-    ((5, 4), "BOTTOM"): "West Yard 1",
-    ((3, 4), "BOTTOM"): "Block 100-102",
-    ((4, 3), "BOTTOM"): "OS 102 (Plane)",
+    ((2, 5), "LEFT"): "OS 100",
+    ((4, 5), "LEFT"): "OS 101",
+    ((6, 5), "LEFT"): "W-2",
+    ((5, 4), "BOTTOM"): "W-1",
+    ((3, 4), "BOTTOM"): "Brick-Plane",
+    ((4, 3), "BOTTOM"): "OS 102",
     ((6, 3), "LEFT"): "East Main Ext",
-    ((7, 3), "LEFT"): "OS 116 (West Yard)",
-    ((9, 3), "LEFT"): "Yard T1",
-    ((5, 2), "BOTTOM"): "Yard T6",
-    ((8, 2), "LEFT"): "OS 117 (West Yard)",
-    ((9, 1), "BOTTOM"): "Yard T9",
+    ((7, 3), "LEFT"): "OS 116",
+    ((9, 3), "LEFT"): "Scale",
+    ((5, 2), "BOTTOM"): "Barn",
+    ((8, 2), "LEFT"): "OS 117",
+    ((9, 1), "BOTTOM"): "EH-1",
     ((11, 2), "LEFT"): "Main East",
 }
 
@@ -170,10 +170,10 @@ ANON_BLOCKS: set[tuple[Cell, str]] = {
 
 MERGED_NOTES = {
     "cell (4,5)": (
-        "is inside OS 101 (Brick) — only one cell between SW100 and SW101."
+        "is inside OS 101 — only one cell between SW100 and SW101."
     ),
     "OS 117b at (9,2)": (
-        "is inside OS 117 (West Yard) — crossover throats are adjacent."
+        "is inside OS 117 — crossover throats are adjacent."
     ),
 }
 

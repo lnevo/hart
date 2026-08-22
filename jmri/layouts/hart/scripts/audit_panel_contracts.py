@@ -23,7 +23,7 @@ BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
 PANEL_NAMES = {"HART", "HART Railroad"}
 STATION_COMMENTS = {
-    "South Yard East": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
+    "East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
     "East Main Ext": "Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop",
     "Main East": "Main east of East End; occupancy Block 2-3 / M2S202; stop",
     "Main West": "Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop",
@@ -31,9 +31,9 @@ STATION_COMMENTS = {
     "McKees Rocks": "Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop",
     "McKeesport": "Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop",
     "West Main Ext": "Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
-    "Engine House 1": "Top house track; occupancy Block 13-5 / M2S1304; stop",
-    "Engine House 2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
-    "Engine House 3": "Bottom house track; occupancy Block 13-7 / M2S1306; stop",
+    "EH-1": "Top house track; occupancy Block 13-5 / M2S1304; stop",
+    "EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
+    "EH-3": "Bottom house track; occupancy Block 13-7 / M2S1306; stop",
     "S-1": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
     "S-2": "South Yard body; occupancy Block 2-7 / M2S206; stop",
     "S-3": "South Yard body; occupancy Block 2-6 / M2S205; stop",
@@ -41,8 +41,8 @@ STATION_COMMENTS = {
     "S-5": "South Yard body; occupancy Block 2-4 / M2S203; stop",
     "Scale": "Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop",
     "Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
-    "West Yard 1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
-    "West Yard 2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
+    "W-1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
+    "W-2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
     "K-1": "Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop",
     "K-2": "Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop",
 }

@@ -24,7 +24,7 @@ Plan: `cats/data/signal_mast_plan.csv`
 
 ## How to attach Digicon to an **existing** JMRI mast
 
-Brick East Main West used to be this MQTT-mast case (`track/signalmast/432`). It is now Virtual heads + SHSM like the others (`IH438`/`IH439`). Keep the notes below only if you attach another leftover MQTT mast.
+100L used to be this MQTT-mast case (`track/signalmast/432`). It is now Virtual heads + SHSM like the others (`IH438`/`IH439`). Keep the notes below only if you attach another leftover MQTT mast.
 
 Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT topic alone.
 
@@ -32,7 +32,7 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 
 - MQTT Signal Mast exists, e.g.  
   `IF$mqm:AAR-1946:SL-2-high-abs($432)`  
-  userName `Brick East Main West`  
+  userName `100L`  
   topic `track/signalmast/432` (from `($432)`)
 - Mast aspects are AAR names: **Clear**, **Approach**, **Stop** (Restricting optional/disabled)
 
@@ -56,7 +56,7 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 </SIGNALTEMPLATE>
 
 <SECSIGNAL>
-  Brick East Main West
+  100L
   <PANELSIGNAL SIGLOCATION="…" SIGORIENT="…" SIGPANTYPE="LAMP2" />
   <PHYSIGNAL>aar-single</PHYSIGNAL>
 </SECSIGNAL>
@@ -78,9 +78,9 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 
 Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code aspects. His `cats-virtual` mast is one way to make JMRI speak those codes. For an **existing AAR mast**, keep the mast and remap Digicon → AAR names instead.
 
-### Brick East Main West
+### 100L
 
-- Digicon name `Brick East Main West` @ Brick east main face  
+- Digicon name `100L` @ Brick east main face  
 - `LAMP2` + `double` — same Virtual-head + AAR-1946 SHSM path as the other homes  
 - Packed heads `IH438` / `IH439` on C4-OU3-1 / C4-OU3-2 (`track/signalhead/IH438`, `track/signalhead/IH439`)  
 - JMRI does **not** publish `track/signalmast/432` (old MQTT mast retired; that topic collided with LCOS status for Plane `IH432`)
@@ -100,11 +100,11 @@ All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts: tw
 | Area | Radio → MQTT node | Parent board | Packed heads |
 |------|-------------------|--------------|--------------|
 | Plane + W-1 / W-2 + Brick east | `4` | C4 | `IH432`–`IH439` |
-| Barn / West Yard 117 | `013` → **13** | C1 | `IH1332`–`IH1338` |
+| Barn / W-117 | `013` → **13** | C1 | `IH1332`–`IH1338` |
 | East End | `012` → **12** | C7 | `IH1232`–`IH1241` |
 | Princess | `1` | D1 | `IH132`–`IH143` |
 
-Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon connectors `Princess East McKeesport` / `Princess East McKees Rocks` stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, Yard Track 1, OS 110, W-1/W-2, K-1/K-2). Packed IDs: connector `IH134` / `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
+Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon connectors `114R` / `115R` stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, S-1, OS 110, W-1/W-2, K-1/K-2). Packed IDs: connector `IH134` / `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: custom `hart-aar` `SL-2-digicon` two-head / stock `AAR-1946` `SL-1-low` dwarfs (not `cats-masts`)
@@ -121,4 +121,4 @@ Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon connec
   appearances reach LCOS.
 - LE `signalmasticon`s use AAR schematic GIFs (stock JMRI). Deploy via `sync_hart_package.sh` (full `tables.xml`).
 
-**Plane East East Main Ext** @ `(9,8) RIGHT` is now `IH432`/`IH433` (was POC `IH465`/`IH466`).
+**102LB** @ `(9,8) RIGHT` is now `IH432`/`IH433` (was POC `IH465`/`IH466`).

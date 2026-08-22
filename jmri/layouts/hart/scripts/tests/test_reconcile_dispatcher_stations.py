@@ -154,9 +154,18 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             for icon in editor.findall("sensoricon")
             if (icon.get("sensor") or "").startswith(("MoveTo", "MoveInProgress"))
         ]
-        self.assertEqual(len(managed), 16)
-        self.assertEqual(len({reconciler.xy(icon) for icon in managed}), 16)
-        self.assertGreaterEqual(reconciler.PAIR_DX, 26)
+        self.assertEqual(len(managed), 2 * len(reconciler.STATIONS))
+        self.assertEqual(
+            len({reconciler.xy(icon) for icon in managed}),
+            2 * len(reconciler.STATIONS),
+        )
+        self.assertEqual(reconciler.PAIR_DX, 10)
+        occupancy = [
+            icon
+            for icon in editor.findall("sensoricon")
+            if (icon.get("sensor") or "") in reconciler.STATION_OCCUPANCY.values()
+        ]
+        self.assertEqual(len(occupancy), len(reconciler.STATIONS))
         progress = next(
             icon
             for icon in managed
@@ -167,9 +176,29 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             for icon in managed
             if icon.get("sensor") == "MoveToMain_West_stored"
         )
+        self.assertEqual(move_to.get("text"), reconciler.STATION_DISPLAY_NAMES["Main West"])
         px, py = reconciler.xy(progress)
         mx, my = reconciler.xy(move_to)
         self.assertEqual((mx - px, my - py), (reconciler.PAIR_DX, 0))
+        occ = next(
+            icon
+            for icon in occupancy
+            if icon.get("sensor") == reconciler.STATION_OCCUPANCY["Main West"]
+        )
+        ox, oy = reconciler.xy(occ)
+        self.assertEqual(
+            (ox - mx, oy - my),
+            reconciler.OCCUPANCY_OFFSET,
+        )
+        eh_progress, eh_move, eh_occ = reconciler.cluster_positions(
+            "EH-1"
+        )
+        self.assertEqual(eh_move[0] - eh_progress[0], reconciler.PAIR_DX)
+        self.assertEqual(eh_progress[1], eh_occ[1])
+        self.assertEqual(
+            eh_occ[0],
+            eh_move[0] - reconciler.PAIR_DX - reconciler.CIRCUIT_ICON_SIZE,
+        )
 
         second = reconciler.reconcile(tree)
         self.assertEqual(second.total, 0)

@@ -59,7 +59,7 @@ UNUSED_OCC = {
 
 # 2091 circuit. Tuple: (block, enter-from along lap, enter-from opposite).
 # FORWARD = lap direction (WME west → Brick → Plane → Barn → Main East →
-# 112 → South Yard East → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME).
+# 112 → East Lead → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME).
 LAP_SECTIONS = [
     ("West Main Ext", "OS 113b", "OS 111a"),
     ("OS 111a", "West Main Ext", "Main West"),
@@ -70,9 +70,9 @@ LAP_SECTIONS = [
     ("East Main Ext", "OS 102", "OS 117b"),
     ("OS 117b", "East Main Ext", "Main East"),
     ("Main East", "OS 117b", "OS 112"),
-    ("OS 112", "Main East", "South Yard East"),
-    ("South Yard East", "OS 112", "OS 113a"),
-    ("OS 113a", "South Yard East", "OS 114"),
+    ("OS 112", "Main East", "East Lead"),
+    ("East Lead", "OS 112", "OS 113a"),
+    ("OS 113a", "East Lead", "OS 114"),
     ("OS 114", "OS 113a", "McKeesport"),
     ("McKeesport", "OS 114", "McKees Rocks"),
     ("McKees Rocks", "McKeesport", "OS 115"),
@@ -92,7 +92,7 @@ TRANSIT_SEQ = [
     ("OS 117b", FORWARD),
     ("Main East", FORWARD),
     ("OS 112", FORWARD),
-    ("South Yard East", FORWARD),
+    ("East Lead", FORWARD),
     ("OS 113a", FORWARD),
     ("OS 114", FORWARD),
     ("McKeesport", FORWARD),
@@ -274,7 +274,7 @@ def build_transits_xml() -> str:
         '    <transit systemName="IZ:HART:2091" userName="2091 West Main Ext lap">',
         "      <systemName>IZ:HART:2091</systemName>",
         "      <userName>2091 West Main Ext lap</userName>",
-        "      <comment>WME → 111 → Brick → Plane → Barn 117 → Main East → 112 → South Yard East → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
+        "      <comment>WME → 111 → Brick → Plane → Barn 117 → Main East → 112 → East Lead → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
     ]
     for seq, (name, direction) in enumerate(TRANSIT_SEQ, start=1):
         iy = sys_by_user[name]

@@ -41,48 +41,48 @@ AD_EAST = 30
 # On-track labels (STATION) — NAME stays JMRI/occupancy identity for MQTT.
 # Language matches Neville station-map sheets.
 STATION_LABEL = {
-    "West Yard 1": "W-1",
-    "West Yard 2": "W-2",
+    "W-1": "W-1",
+    "W-2": "W-2",
     "Main West": "Main West",
     "Main East": "Main East",
     "East Main Ext": "Main East",
     "West Main Ext": "Main West",
-    "Yard T1": "West Lead",
-    "Yard T6": "West Lead",
-    "Yard Track 1": "S-1",
-    "Yard Track 2": "S-2",
-    "Yard Track 3": "S-3",
-    "Yard Track 4": "S-4",
-    "Yard Track 5": "S-5",
-    "Yard T11": "ET-1",
-    "Yard T10": "ET-2",
-    "Yard T9": "ET-3",
+    "Scale": "West Lead",
+    "Barn": "West Lead",
+    "S-1": "S-1",
+    "S-2": "S-2",
+    "S-3": "S-3",
+    "S-4": "S-4",
+    "S-5": "S-5",
+    "EH-3": "EH-3",
+    "EH-2": "EH-2",
+    "EH-1": "EH-1",
     "East Lead": "East Lead",
     # K-1 / K-2 = OS 115 / OS 114 bodies (Block 1-4 / 1-3). Loops keep their names.
-    "Block 100-102": "100–102",
-    "OS 100 (Brick)": "100",
-    "OS 101 (Brick)": "101",
-    "OS 102 (Plane)": "102",
-    "OS 103 (South Yard)": "103",
-    "OS 104 (South Yard)": "104",
-    "OS 105 (South Yard)": "105",
-    "OS 106 (South Yard)": "106",
-    "OS 107 (East End)": "107",
-    "OS 108 (East End)": "108",
-    "OS 109 (East End)": "109",
-    "OS 110 (East End)": "110",
-    "OS 111a (East End)": "111",
-    "OS 111b (East End)": "111",
-    "OS 112 (East End)": "112",
-    "OS 113a (Princess)": "113",
-    "OS 113b (Princess)": "113",
-    "OS 114 (Princess)": "K-2",
-    "OS 115 (Princess)": "K-1",
-    "OS 116 (West Yard)": "116",
-    "OS 117 (West Yard)": "117",
-    "OS 117b (West Yard)": "117",
-    "OS 118 (West Yard)": "118",
-    "OS 119 (West Yard)": "119",
+    "Brick-Plane": "100–102",
+    "OS 100": "100",
+    "OS 101": "101",
+    "OS 102": "102",
+    "OS 103": "103",
+    "OS 104": "104",
+    "OS 105": "105",
+    "OS 106": "106",
+    "OS 107": "107",
+    "OS 108": "108",
+    "OS 109": "109",
+    "OS 110": "110",
+    "OS 111a": "111",
+    "OS 111b": "111",
+    "OS 112": "112",
+    "OS 113a": "113",
+    "OS 113b": "113",
+    "OS 114": "K-2",
+    "OS 115": "K-1",
+    "OS 116": "116",
+    "OS 117": "117",
+    "OS 117b": "117",
+    "OS 118": "118",
+    "OS 119": "119",
 }
 
 
@@ -138,56 +138,56 @@ def _reshape_south_yard_ad() -> None:
         if y >= 3 and x >= 14:
             _clear_cell(xy)
 
-    # West Lead continues from Yard T6 @ (10,3) / OS117 @ (11,3) into SY
-    # (LE leaves a gap; fill as Yard T6 into TO1-on-lead then 103)
+    # West Lead continues from Barn @ (10,3) / OS117 @ (11,3) into SY
+    # (LE leaves a gap; fill as Barn into TO1-on-lead then 103)
     cut((11, 3), "RIGHT", (12, 3), "LEFT")
     H((12, 3))
-    nm((12, 3), "LEFT", "Yard T6")
+    nm((12, 3), "LEFT", "Barn")
     cut((12, 3), "RIGHT", (13, 3), "LEFT")
     H((13, 3))
-    nm((13, 3), "LEFT", "OS 103 (South Yard)")
-    plant((14, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 103 (South Yard)", "RIGHT", "TOR14")
+    nm((13, 3), "LEFT", "OS 103")
+    plant((14, 3), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 103", "RIGHT", "TOR14")
     cut((14, 3), "RIGHT", (15, 3), "LEFT")
-    _body(15, 3, "Yard Track 1")
+    _body(15, 3, "S-1")
 
     # 104 / S-2 — step down-right (same-row body)
     le.GRID[(14, 4)] = ["UPPERBACKSLASH"]
     cut((14, 3), "BOTTOM", (14, 4), "TOP")
-    nm((14, 4), "RIGHT", "OS 104 (South Yard)")
+    nm((14, 4), "RIGHT", "OS 104")
     H((15, 4))
-    nm((15, 4), "LEFT", "OS 104 (South Yard)")
-    plant((16, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 104 (South Yard)", "RIGHT", "TOL15")
+    nm((15, 4), "LEFT", "OS 104")
+    plant((16, 4), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 104", "RIGHT", "TOL15")
     cut((16, 4), "RIGHT", (17, 4), "LEFT")
-    _body(17, 4, "Yard Track 2")
+    _body(17, 4, "S-2")
 
     # 105 / S-3
     le.GRID[(16, 5)] = ["UPPERBACKSLASH"]
     cut((16, 4), "BOTTOM", (16, 5), "TOP")
-    nm((16, 5), "RIGHT", "OS 105 (South Yard)")
+    nm((16, 5), "RIGHT", "OS 105")
     H((17, 5))
-    nm((17, 5), "LEFT", "OS 105 (South Yard)")
-    plant((18, 5), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 105 (South Yard)", "RIGHT", "TOL17")
+    nm((17, 5), "LEFT", "OS 105")
+    plant((18, 5), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 105", "RIGHT", "TOL17")
     cut((18, 5), "RIGHT", (19, 5), "LEFT")
-    _body(19, 5, "Yard Track 3")
+    _body(19, 5, "S-3")
 
     # 106 / S-4
     le.GRID[(18, 6)] = ["UPPERBACKSLASH"]
     cut((18, 5), "BOTTOM", (18, 6), "TOP")
-    nm((18, 6), "RIGHT", "OS 106 (South Yard)")
+    nm((18, 6), "RIGHT", "OS 106")
     H((19, 6))
-    nm((19, 6), "LEFT", "OS 106 (South Yard)")
-    plant((20, 6), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 106 (South Yard)", "RIGHT", "TOL19")
+    nm((19, 6), "LEFT", "OS 106")
+    plant((20, 6), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 106", "RIGHT", "TOL19")
     cut((20, 6), "RIGHT", (21, 6), "LEFT")
-    _body(21, 6, "Yard Track 4")
+    _body(21, 6, "S-4")
 
     # S-5 continues off 106 diverge (South Yard map)
     le.GRID[(20, 7)] = ["UPPERBACKSLASH"]
     cut((20, 6), "BOTTOM", (20, 7), "TOP")
-    nm((20, 7), "RIGHT", "Yard Track 5")
+    nm((20, 7), "RIGHT", "S-5")
     # plain-join slash into body (no BLK on (21,7) LEFT — would R4 vs slash RIGHT)
     for x in range(21, AD_EAST + 1):
         H((x, 7))
-    nm((21, 7), "LEFT", "Yard Track 5")
+    nm((21, 7), "LEFT", "S-5")
     an((AD_EAST, 7), "RIGHT")
 
 
@@ -201,10 +201,10 @@ def _reshape_east_end() -> None:
     # Contiguous approach+plant pairs on y=3 (LE recipe — SP never faces BLK)
     ee0 = AD_EAST + 1  # 31
     specs = [
-        (ee0, "OS 107 (East End)", "TOR11", 7, "Yard Track 5"),
-        (ee0 + 2, "OS 108 (East End)", "TOR9", 6, "Yard Track 4"),
-        (ee0 + 4, "OS 109 (East End)", "TOR7", 5, "Yard Track 3"),
-        (ee0 + 6, "OS 110 (East End)", "TOL6", 4, "Yard Track 2"),
+        (ee0, "OS 107", "TOR11", 7, "S-5"),
+        (ee0 + 2, "OS 108", "TOR9", 6, "S-4"),
+        (ee0 + 4, "OS 109", "TOR7", 5, "S-3"),
+        (ee0 + 6, "OS 110", "TOL6", 4, "S-2"),
     ]
     for i, (px, os_name, ident, drop_y, ytrk) in enumerate(specs):
         H((px, 3))
@@ -226,7 +226,7 @@ def _reshape_east_end() -> None:
     for x in range(AD_EAST + 1, ee0 + 7):
         if (x, 3) in le.PLANTS or (x, 3) in le.GRID:
             continue
-    # Yard Track 1: extend to under 110 approach and cut from a free cell
+    # S-1: extend to under 110 approach and cut from a free cell
     # Use column ee0+6 approach BOTTOM? approach is OS110. Drop YT2 already on y=4.
     # Attach YT1 via 110 plant — extra drop on y=3 is the OS spine itself.
     # Extend YT1 east under the spine with its own cells on… it's on y=3 west.
@@ -272,26 +272,26 @@ def _princess_east_of_ee() -> None:
     px = land_x + 1
     cut((land_x, 2), "RIGHT", (px, 2), "LEFT")
     H((px, 2))
-    nm((px, 2), "LEFT", "OS 113a (Princess)")
-    plant((px + 1, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 113a (Princess)", "RIGHT", "TO113")
+    nm((px, 2), "LEFT", "OS 113a")
+    plant((px + 1, 2), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 113a", "RIGHT", "TO113")
     cut((px + 1, 2), "RIGHT", (px + 2, 2), "LEFT")
     H((px + 2, 2))
-    nm((px + 2, 2), "LEFT", "OS 114 (Princess)")
-    plant((px + 3, 2), ["HORIZONTAL", "UPPERSLASH"], "OS 114 (Princess)", "RIGHT", "TOR36")
-    nm((px + 3, 2), "RIGHT", "OS 114 (Princess)")
+    nm((px + 2, 2), "LEFT", "OS 114")
+    plant((px + 3, 2), ["HORIZONTAL", "UPPERSLASH"], "OS 114", "RIGHT", "TOR36")
+    nm((px + 3, 2), "RIGHT", "OS 114")
     H((px + 4, 2))
     H((px + 5, 2))
     nm((px + 4, 2), "LEFT", "McKeesport")
 
     cut((land_x, 1), "RIGHT", (px, 1), "LEFT")
     H((px, 1))
-    nm((px, 1), "LEFT", "OS 113b (Princess)")
-    plant((px + 1, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 113b (Princess)", "RIGHT", "TO113")
+    nm((px, 1), "LEFT", "OS 113b")
+    plant((px + 1, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 113b", "RIGHT", "TO113")
     cut((px + 1, 2), "TOP", (px + 1, 1), "BOTTOM")
     cut((px + 1, 1), "RIGHT", (px + 2, 1), "LEFT")
     H((px + 2, 1))
-    nm((px + 2, 1), "LEFT", "OS 115 (Princess)")
-    plant((px + 3, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 115 (Princess)", "RIGHT", "TOL29")
+    nm((px + 2, 1), "LEFT", "OS 115")
+    plant((px + 3, 1), ["HORIZONTAL", "UPPERSLASH"], "OS 115", "RIGHT", "TOL29")
     cut((px + 3, 1), "RIGHT", (px + 4, 1), "LEFT")
     H((px + 4, 1))
     H((px + 5, 1))
@@ -338,9 +338,9 @@ def build_ctc_board() -> None:
         # --- Side callouts (known free pockets) ---
         (0, 1, "W-1"),
         (0, 4, "W-2"),
-        (6, 6, "ET-1"),
-        (8, 6, "ET-2"),
-        (10, 6, "ET-3"),
+        (6, 6, "EH-3"),
+        (8, 6, "EH-2"),
+        (10, 6, "EH-1"),
         (12, 5, "West Lead"),
         (6, 3, "100↓Plane"),
         (9, 5, "102→Lead"),

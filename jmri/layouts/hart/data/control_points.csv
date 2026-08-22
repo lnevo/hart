@@ -1,6 +1,6 @@
 cp_id,cp_name,switches,notes
-brick,Brick,"100,101",Switch 101 is the only access to West Yard 1/2
-plane,Plane,102,West diverge; west limit of South Yard Scale
+brick,Brick,"100,101",Switch 101 is the only access to W-1/2
+plane,Plane,102,West diverge; west limit of Scale
 barn,Barn,"117,117b",Crossover only
 south_yard,South Yard,"103,104,105,106",South Yard ladder
 east_end,East End,"107,108,109,110,111a,111b,112",Includes 111 crossover legs

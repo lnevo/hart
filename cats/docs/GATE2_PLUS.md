@@ -30,7 +30,7 @@ Accept: occupy East Main Ext and OS 117b; Digicon red matches JMRI path (not 117
 | Digicon role | Block |
 |--------------|-------|
 | West ladder | OS 103–106 |
-| Body (optional) | Yard Track 1–5 |
+| Body (optional) | S-1–5 |
 
 Accept: diverge from Plane / main into 103 chain without lighting unrelated spine cells.
 

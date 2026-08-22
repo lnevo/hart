@@ -1,7 +1,7 @@
 kind,ident,slot,mast_user_name,notes
 turnout,TOL3,A,100L,A=Main West; east face of Brick
-turnout,TOL38,B,101RA,B=West Yard 1 continuing
-turnout,TOL38,C,101RB,C=West Yard 2 diverge
+turnout,TOL38,B,101RA,B=W-1 continuing
+turnout,TOL38,C,101RB,C=W-2 diverge
 turnout,TOL42,B,102LB,B=East Main Ext continuing
 turnout,TOL42,C,102LA,C=Scale / east upper face
 turnout,TO117,A,117RA,A=Scale west upper
@@ -12,10 +12,10 @@ turnout,TO111,A,111RA,A=Main West west upper
 turnout,TO111,B,111L,B=West Main Ext east upper
 turnout,TO111,D,111RB,D=S-1 west lower
 turnout,TOL6,C,110R,C=OS 109 ladder leg; governs ladder move into OS 110
-turnout,TOL23,A,112L,A=South Yard East east of 112
+turnout,TOL23,A,112L,A=East Lead east of 112
 turnout,TOL23,C,112R,C=Main East diverge
 turnout,TO113,A,113RA,A=West Main Ext west upper
-turnout,TO113,D,113RB,D=South Yard East west lower
+turnout,TO113,D,113RB,D=East Lead west lower
 turnout,TOL29,B,115LA,B=K-1 stub block (detector Block 1-4 shared with OS 115)
 turnout,TOL29,C,115LB,C=McKees Rocks (boundary at turnout); icon deg 270 faces west
 turnout,TOR36,B,114LA,B=K-2 stub block (detector Block 1-3 shared with OS 114)

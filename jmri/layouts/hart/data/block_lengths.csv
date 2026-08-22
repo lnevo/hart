@@ -1,8 +1,8 @@
 user_name,occupancy_sensor,inches,flag,old_source
-West Yard 1,Block 4-4,105,assigned,Spur 1
-West Yard 2,Block 4-3,93,assigned,Spur 2
+W-1,Block 4-4,105,assigned,Spur 1
+W-2,Block 4-3,93,assigned,Spur 2
 Brick-Plane,Block 4-6,72,assigned,West Loop
-South Yard East,Block 1-7,172,assigned,Yard Lead W
+East Lead,Block 1-7,172,assigned,Yard Lead W
 Main West,Block 2-1,220,assigned,West Bypass
 West Main Ext,Block 1-8,160,assigned,Outer Passing
 Main East,Block 2-3,185,cut,East Bypass 195 minus OS 117
@@ -16,9 +16,9 @@ McKees Rocks,Block 1-1,122.5,split,East Loop / 2
 McKeesport,Block 1-2,122.5,split,East Loop / 2
 Scale,Block 4-8,24,estimate,new with 116/117
 Barn,Block 13-1,24,estimate,new with 116/117
-Engine House 1,Block 13-7,24,estimate,
-Engine House 2,Block 13-6,24,estimate,
-Engine House 3,Block 13-5,24,estimate,
+EH-1,Block 13-7,24,estimate,
+EH-2,Block 13-6,24,estimate,
+EH-3,Block 13-5,24,estimate,
 OS 100,Block 4-2,10,estimate,switch
 OS 101,Block 4-1,10,estimate,switch
 OS 102,Block 4-5,10,estimate,switch

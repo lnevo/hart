@@ -27,7 +27,7 @@ Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
   S  111-115  yard run-through: SW102's up-east leg -> Scale (`Block
               4-8`, lamp centered in blank slot 4) -> SW117 -> Barn ->
               SW116 -> SW103 -> S-1 (`Block 2-8`, lamp centered
-              in blank slot 8) -> SW110 -> SW112 -> South Yard East (`Block
+              in blank slot 8) -> SW110 -> SW112 -> East Lead (`Block
               1-7`, lamp centered in blank slot 12) -> SW113 -> SW114 ->
               K-2.
   M  134-138  SW102's bar: Brick-Plane (west, from the hairpin)
@@ -157,9 +157,9 @@ TURNOUTS = [
     ("Switch 103", 482, 105, "thin:os-r-e-thin"),        # yard row; 6px gap after SW116 (no block)
     ("Switch 111", 606, 82,  X + "right/os-r-sc"),       # scissor: Main West (88-92) <-> yard (111-115)
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # yard row; South Yard ladder down-west
-    ("Switch 112", 736, 105, T + "left/west/os-l-w"),  # Closed = South Yard East ↔ 110; Thrown = Main East
-    ("Switch 113", 866, 82,  X + "left/os-l-sc"),        # scissor: Main West (88-92) <-> South Yard East (111-115)
-    ("Switch 114", 931, 105, T + "right/east/os-r-e"),   # South Yard East row; McKeesport branch down-east
+    ("Switch 112", 736, 105, T + "left/west/os-l-w"),  # Closed = East Lead ↔ 110; Thrown = Main East
+    ("Switch 113", 866, 82,  X + "left/os-l-sc"),        # scissor: Main West (88-92) <-> East Lead (111-115)
+    ("Switch 114", 931, 105, T + "right/east/os-r-e"),   # East Lead row; McKeesport branch down-east
     ("Switch 115", 996, 59,  T + "left/east/os-l-e"),    # Main West row (bar 88-92); McKees Rocks up-east
 ]
 
@@ -170,8 +170,8 @@ TURNOUTS = [
 # switch number labelled underneath; crossover columns get their two OS
 # lamps side by side, centered on the column, UPPER track's lamp on the left.
 LAMPS = [
-    ("Block 4-4",  48,  80,  "W-1 (West Yard 1)"),
-    ("Block 4-3",  48,  103, "W-2 (West Yard 2)"),
+    ("Block 4-4",  48,  80,  "W-1"),
+    ("Block 4-3",  48,  103, "W-2 (W-2)"),
     ("Block 4-1",  99,  200, "OS 101"),
     ("Block 4-2",  164, 200, "OS 100"),
     ("Block 4-6",  150, 103, "100-102 (Brick-Plane)"),  # on the hairpin "\" , T1 plane
@@ -191,10 +191,10 @@ LAMPS = [
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
     ("Block 12-7", 684, 200, "OS 110"),
     ("Block 12-8", 749, 200, "OS 112"),
-    ("Block 1-7",  806, 103, "South Yard East"),
+    ("Block 1-7",  806, 103, "East Lead"),
     ("Block 1-8",  806, 80,  "West Main Ext (111-113 siding)"),
     ("Block 1-5",  867, 200, "OS 113b (Main West side)"),
-    ("Block 1-6",  891, 200, "OS 113a (South Yard East side)"),
+    ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
     ("Block 1-1",  1060, 57, "McKees Rocks branch"),
@@ -235,7 +235,7 @@ TRACKS = [
     (407, 155, "line25.gif",  0),   # Main East bottom straight (drawn 419-597)
     (524, 155, "line25.gif",  0),   # overlapped: one block, no joint (to 714)
     (715, 136, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (745,138)
-    # row S (yard run-through / South Yard East, bar 111-115)
+    # row S (yard run-through / East Lead, bar 111-115)
     (252, 107, "line1.gif",   0),   # Scale (drawn 259-343): gap to 102's leg
     (321, 109, "line025.gif", 0),   #  tip (255) and gap to SW117's icon (346)
     (392, 109, "line025.gif", 0),   # 117-116: Barn, gapped off SW117 (ends 386)
@@ -243,7 +243,7 @@ TRACKS = [
     (522, 107, "line1.gif",   0),   # 103 -> 111 (S-1, blank slot 8)
     (648, 109, "line025.gif", 0),   # 111 lower -> 110
     (713, 109, "line025.gif", 0),   # 110 -> 112
-    (778, 107, "line1.gif",   0),   # 112 -> 113 (South Yard East, blank slot 12)
+    (778, 107, "line1.gif",   0),   # 112 -> 113 (East Lead, blank slot 12)
     (908, 109, "line025.gif", 0),   # 113 bottom -> 114
     (973, 107, "line1.gif",   0),   # 114 -> K-2 stub...
     (1020, 107, "line1.gif",  0),

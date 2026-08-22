@@ -3,7 +3,7 @@
 - **Status:** Accepted (rename executed 2026-08-21; Discover 36 dests; deployed `--pi --win`)
 - **Date:** 2026-08-20
 - **Deciders:** lnevo
-- **Amends:** [ADR-002](ADR-002-naming-contract.md) — **Barn** is Switch 117 / 117b; **West Yard** is the yard at Brick; signal names are numbers; T1/T6/T9 are retired; Engine House 1/2/3 top-to-bottom
+- **Amends:** [ADR-002](ADR-002-naming-contract.md) — **Barn** is Switch 117 / 117b; **West Yard** is the yard at Brick; signal names are numbers; T1/T6/T9 are retired; plates **W-1 / W-2**, **S-1…S-5**, **EH-1 / EH-2 / EH-3**
 
 ## Context
 
@@ -17,7 +17,7 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 | OS block | `OS <n>[a\|b]` (CP in the bean comment) | `OS 117b` |
 | Track body | `<Name>` | `Scale`, `Barn` |
 | Main between CPs | `<west>–<east>` | `Brick-Plane` |
-| Yard track | `<Yard> <n>` or plate | `West Yard 1`, `S-3` |
+| Yard track | plate | `W-1`, `S-3`, `EH-1` |
 | Stub | letter-number | `K-1`, `K-2` |
 | Signal mast | `<n><L\|R>[A\|B]` | `117LA`, `100L` |
 | Signal head | mast, or mast + ` Top` / ` Bottom` | `100L Top` |
@@ -37,7 +37,7 @@ One mast on that lever: no letter (`100L`, `111L`, `110R`).
 | East End | 107, 108, 109, 110, 111, 112 |
 | Princess | 113, 114, 115 |
 
-**West Yard** is the yard at Brick: **West Yard 1** and **West Yard 2** (plates W-1 / W-2), access via **Switch 101**.
+**West Yard** is the yard at Brick: **W-1** and **W-2** (was West Yard 1 / 2), access via **Switch 101**.
 
 **South Yard** body tracks are plates **S-1…S-5** (JMRI block userNames match the plates). **S-1** is the run-through east of 103 to 110/112.
 
@@ -52,7 +52,7 @@ T1 / T6 / East Lead were scaffold names. The three lead bodies belong to South Y
 | **Scale** | Plane (102, diverging) to 117 | `Scale` |
 | **Barn** | 117 to 116 (west of 103) | `Barn` |
 | **Run-through** | **East of 103** to **110 / 112** | `S-1` |
-| **South Yard East** | **East of 110 / 112** toward Princess | `South Yard East` (dest button **East** = East Lead) |
+| **East Lead** | **East of 110 / 112** toward Princess | `East Lead` (was South Yard East) |
 
 | Circuit | Today | Public |
 |---------|-------|--------|
@@ -64,11 +64,11 @@ T1 / T6 / East Lead were scaffold names. The three lead bodies belong to South Y
 | Block 13-8 | OS 119 (West Yard) | `OS 119` (MQTT 1307) |
 | Block 3-2 | OS 103 (South Yard) | `OS 103` |
 | Block 2-8 | Yard Track 1 | `S-1` (run-through to 110/112; was South Yard 1) |
-| Block 1-7 | East Lead | `South Yard East` |
+| Block 1-7 | East Lead / South Yard East | `East Lead` |
 
-### Engine House — 1 / 2 / 3 top to bottom
+### Engine House — EH-1 / EH-2 / EH-3 top to bottom
 
-Public names stay **Engine House 1 / 2 / 3** = **Yard T9 / T10 / T11**. CATS `ET-*` is not used to number the house.
+Public names are plates **EH-1 / EH-2 / EH-3** (was Engine House 1 / 2 / 3) = **Yard T9 / T10 / T11**. CATS `ET-*` is not used to number the house.
 
 Occupancy ids are MQTT (`1300` = Block 13-1). House tracks are **1304 / 1305 / 1306**. Switch 118 is **1301**; Switch 119 is **1307**. LE already points those blocks at those sensors. Walk-down before convert.
 
@@ -78,9 +78,9 @@ Occupancy ids are MQTT (`1300` = Block 13-1). House tracks are **1304 / 1305 / 1
 | Switch 118 | Block 13-2 | M2S1301 |
 | OS 117 | Block 13-3 | M2S1302 |
 | OS 117b | Block 13-4 | M2S1303 |
-| Engine House 1 | Block 13-5 | M2S1304 |
-| Engine House 2 | Block 13-6 | M2S1305 |
-| Engine House 3 | Block 13-7 | M2S1306 |
+| EH-1 | Block 13-5 | M2S1304 |
+| EH-2 | Block 13-6 | M2S1305 |
+| EH-3 | Block 13-7 | M2S1306 |
 | Switch 119 | Block 13-8 | M2S1307 |
 
 ### Frozen (never rename)

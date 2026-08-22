@@ -43,7 +43,7 @@ RENAMES = [
 RENAMES.sort(key=lambda item: len(item.current), reverse=True)
 
 BEAN_RE = re.compile(
-    r"(<(sensor|turnout|block)\b[^>]*>)(.*?)(</\2>)",
+    r"(<(sensor|turnout|block|layoutblock|memory|signalhead|signalmast|virtualsignalmast|route|LogixNG|ConditionalNG)\b[^>]*>)(.*?)(</\2>)",
     re.S,
 )
 
@@ -90,13 +90,63 @@ CTC_SUFFIX = {
     "UNLOCKEDINDICATOR": "unlocked indicator",
 }
 
+CTC_SUFFIX_SHORT = {
+    "LEVER": "lever",
+    "LOCKTOGGLE": "local",
+    "CB": "code",
+    "LDGK": "L lamp",
+    "NGK": "N lamp",
+    "RDGK": "R lamp",
+    "LDGL": "L lever",
+    "NGL": "N lever",
+    "RDGL": "R lever",
+    "SWNI": "N ind",
+    "SWRI": "R ind",
+    "CALLON": "call-on",
+    "UNLOCKEDINDICATOR": "unlocked",
+}
+
+SPECIAL_SENSOR_USERNAMES = {
+    "M2S201": "unused Block 2-2",
+    "M2S307": "unused Block 3-8",
+    "IS:DEBUGCTC": "CTC debug",
+    "IS:FLEETING": "CTC fleeting",
+    "IS:RELOADCTC": "CTC reload",
+    "IS:PRECONDITIONING_ENABLED": "Dispatcher preconditioning",
+    "ISCLOCKRUNNING": "Clock running",
+    "MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB": "OLCB leftover 114",
+    "MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED": "OLCB leftover 115",
+}
+
+MTT_USERNAMES = {
+    "MTT100": "Switch 100 alias",
+    "MTT111": "Switch 111 alias",
+    "MTT113": "Switch 113 alias",
+    "MTT114": "Switch 114 alias",
+    "MTT115": "Switch 115 alias",
+}
+
+MEMORY_USERNAMES = {
+    "IMCURRENTTIME": "Current time",
+    "IMIS:ISMEM:versionNo": "Dispatcher version",
+    "IMRATEFACTOR": "Clock rate",
+}
+
+LOGIXNG_USERNAMES = {
+    "IQ:AUTO:0001": "Hide windows on start",
+    "IQC:AUTO:0001": "Hide USS CTC Editor",
+    "IQC:AUTO:0002": "Hide Dispatcher System",
+    "IQC:AUTO:0003": "Hide WiThrottle",
+    "IQC:AUTO:0004": "Keep HART Railroad",
+}
+
 BLOCK_COMMENTS = {
     "Brick-Plane": "Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop",
     "Main West": "Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop",
     "Main East": "Main east of East End; occupancy Block 2-3 / M2S202; stop",
     "West Main Ext": "Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
     "East Main Ext": "Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop",
-    "South Yard East": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
+    "East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
     "McKees Rocks": "Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop",
     "McKeesport": "Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop",
     "OS 100": "Brick CP, Switch 100; occupancy Block 4-2 / M2S401",
@@ -129,11 +179,11 @@ BLOCK_COMMENTS = {
     "S-3": "South Yard body; occupancy Block 2-6 / M2S205; stop",
     "S-4": "South Yard body; occupancy Block 2-5 / M2S204; stop",
     "S-5": "South Yard body; occupancy Block 2-4 / M2S203; stop",
-    "West Yard 1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
-    "West Yard 2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
-    "Engine House 1": "Top house track; occupancy Block 13-5 / M2S1304; stop",
-    "Engine House 2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
-    "Engine House 3": "Bottom house track; occupancy Block 13-7 / M2S1306; stop",
+    "W-1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
+    "W-2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
+    "EH-1": "Top house track; occupancy Block 13-5 / M2S1304; stop",
+    "EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
+    "EH-3": "Bottom house track; occupancy Block 13-7 / M2S1306; stop",
     "K-1": "Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop",
     "K-2": "Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop",
 }
@@ -168,7 +218,7 @@ OCC_SENSOR = {
     "Block 1-4": "Occupancy OS 115 / K-1; MQTT M2S103",
     "Block 1-5": "Occupancy OS 113b; MQTT M2S104",
     "Block 1-6": "Occupancy OS 113a; MQTT M2S105",
-    "Block 1-7": "Occupancy South Yard East; MQTT M2S106",
+    "Block 1-7": "Occupancy East Lead; MQTT M2S106",
     "Block 1-8": "Occupancy West Main Ext; MQTT M2S107",
     "Block 2-1": "Occupancy Main West; MQTT M2S200",
     "Block 2-3": "Occupancy Main East; MQTT M2S202",
@@ -184,8 +234,8 @@ OCC_SENSOR = {
     "Block 3-7": "Occupancy OS 106; MQTT M2S306",
     "Block 4-1": "Occupancy OS 101; MQTT M2S400",
     "Block 4-2": "Occupancy OS 100; MQTT M2S401",
-    "Block 4-3": "Occupancy West Yard 2; MQTT M2S402",
-    "Block 4-4": "Occupancy West Yard 1; MQTT M2S403",
+    "Block 4-3": "Occupancy W-2; MQTT M2S402",
+    "Block 4-4": "Occupancy W-1; MQTT M2S403",
     "Block 4-5": "Occupancy OS 102; MQTT M2S404",
     "Block 4-6": "Occupancy Brick-Plane; MQTT M2S405",
     "Block 4-7": "Occupancy East Main Ext; MQTT M2S406",
@@ -201,9 +251,9 @@ OCC_SENSOR = {
     "Block 13-2": "Occupancy OS 118; MQTT M2S1301",
     "Block 13-3": "Occupancy OS 117; MQTT M2S1302",
     "Block 13-4": "Occupancy OS 117b; MQTT M2S1303",
-    "Block 13-5": "Occupancy Engine House 1; MQTT M2S1304",
-    "Block 13-6": "Occupancy Engine House 2; MQTT M2S1305",
-    "Block 13-7": "Occupancy Engine House 3; MQTT M2S1306",
+    "Block 13-5": "Occupancy EH-1; MQTT M2S1304",
+    "Block 13-6": "Occupancy EH-2; MQTT M2S1305",
+    "Block 13-7": "Occupancy EH-3; MQTT M2S1306",
     "Block 13-8": "Occupancy OS 119; MQTT M2S1307",
 }
 
@@ -256,6 +306,73 @@ def set_comment(body: str, comment: str) -> str:
     return body.rstrip() + insert + "\n    "
 
 
+def set_user_name(body: str, user_name: str) -> str:
+    if re.search(r"<userName>.*?</userName>", body, re.S):
+        return body
+    escaped = (
+        user_name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    )
+    insert = f"\n      <userName>{escaped}</userName>"
+    match = re.search(r"</systemName>", body)
+    if match:
+        return body[: match.end()] + insert + body[match.end() :]
+    return insert + body
+
+
+def ctc_user_name(system_name: str) -> str | None:
+    match = re.fullmatch(r"IS(\d+):([A-Z]+)", system_name)
+    if not match:
+        return None
+    number, suffix = match.group(1), match.group(2)
+    plant = CTC_SWITCH.get(number)
+    role = CTC_SUFFIX_SHORT.get(suffix, suffix.lower())
+    if not plant:
+        return f"CTC leftover {number} {role}"
+    if plant.endswith(" signals"):
+        num = plant.removeprefix("Switch ").removesuffix(" signals")
+        return f"CTC {num} sig {role}"
+    if plant.endswith(" lock"):
+        num = plant.removeprefix("Switch ").removesuffix(" lock")
+        return f"CTC {num} lock {role}"
+    num = plant.removeprefix("Switch ")
+    return f"CTC {num} {role}"
+
+
+def allocate_user_name(candidate: str, used: set[str], system_name: str) -> str:
+    if candidate and candidate not in used:
+        return candidate
+    fallback = system_name
+    if fallback not in used:
+        return fallback
+    n = 2
+    while f"{candidate} {n}" in used:
+        n += 1
+    return f"{candidate} {n}"
+
+
+def user_name_for(kind: str, system_name: str) -> str | None:
+    if kind == "sensor":
+        if system_name in SPECIAL_SENSOR_USERNAMES:
+            return SPECIAL_SENSOR_USERNAMES[system_name]
+        return ctc_user_name(system_name) or system_name
+    if kind == "turnout":
+        return MTT_USERNAMES.get(system_name)
+    if kind == "memory":
+        return MEMORY_USERNAMES.get(system_name, system_name)
+    if kind in {"LogixNG", "ConditionalNG"}:
+        return LOGIXNG_USERNAMES.get(system_name, system_name)
+    if kind in {
+        "block",
+        "layoutblock",
+        "signalhead",
+        "signalmast",
+        "virtualsignalmast",
+        "route",
+    }:
+        return system_name
+    return system_name
+
+
 def ctc_comment(system_name: str) -> str | None:
     match = re.fullmatch(r"IS(\d+):([A-Z]+)", system_name)
     if not match:
@@ -267,7 +384,7 @@ def ctc_comment(system_name: str) -> str | None:
 
 
 def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> str | None:
-    if kind == "block":
+    if kind in {"block", "layoutblock"}:
         return BLOCK_COMMENTS.get(user_name)
     if kind == "turnout":
         if user_name in TURNOUT_COMMENTS:
@@ -307,6 +424,10 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
             return "JMRI fast-clock running"
         if system_name == "IS:PRECONDITIONING_ENABLED":
             return "Dispatcher preconditioning enable"
+        if system_name == "IS:DEBUGCTC":
+            return existing or "USS CTC debug"
+        if system_name == "IS:FLEETING":
+            return existing or "USS CTC fleeting"
         if system_name.startswith("IS:IY:AUTO:"):
             return f"Auto warrant direction {user_name or system_name}"
         if system_name.startswith("ISNX:"):
@@ -319,12 +440,33 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
             return existing or f"Dispatcher System {user_name or system_name}"
         if "unused LCOS" in existing:
             return existing
+        if user_name.startswith("unused ") or user_name.startswith("OLCB leftover"):
+            return existing or user_name
         return None
+    if existing:
+        return None
+    if kind in {"signalmast", "virtualsignalmast"}:
+        return f"Mast {user_name}" if user_name else None
+    if kind == "signalhead":
+        return f"Head {user_name}" if user_name else None
+    if kind == "memory":
+        return {
+            "IMCURRENTTIME": "JMRI fast-clock time",
+            "IMIS:ISMEM:versionNo": "Dispatcher System version",
+            "IMRATEFACTOR": "JMRI fast-clock rate",
+        }.get(system_name)
+    if kind == "route":
+        return f"Route {user_name}" if user_name else None
     return None
 
 
 def refresh_comments(text: str) -> tuple[str, int]:
     changed = 0
+    used = {
+        match.group(1).strip()
+        for match in re.finditer(r"<userName>(.*?)</userName>", text, re.S)
+        if match.group(1).strip()
+    }
 
     def repl(match: re.Match[str]) -> str:
         nonlocal changed
@@ -332,11 +474,18 @@ def refresh_comments(text: str) -> tuple[str, int]:
         system_name = child_text(body, "systemName")
         user_name = child_text(body, "userName")
         existing = child_text(body, "comment")
+        if not user_name:
+            candidate = user_name_for(kind, system_name)
+            if candidate:
+                user_name = allocate_user_name(candidate, used, system_name)
+                used.add(user_name)
+                body = set_user_name(body, user_name)
+                changed += 1
         comment = comment_for(kind, system_name, user_name, existing)
-        if not comment or comment == existing:
-            return match.group(0)
-        changed += 1
-        return open_tag + set_comment(body, comment) + close_tag
+        if comment and comment != existing:
+            changed += 1
+            body = set_comment(body, comment)
+        return open_tag + body + close_tag
 
     return BEAN_RE.sub(repl, text), changed
 

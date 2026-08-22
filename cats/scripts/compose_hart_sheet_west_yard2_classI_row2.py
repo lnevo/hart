@@ -83,43 +83,43 @@ def _build_panel_a() -> None:
     # --- Main West: W-1 → 101 → 100 → east ---
     # Match row-1 Brick: H+LOWERSLASH (points RIGHT, NORMAL LEFT).
     _H(AX0, AX0 + 1, y_mw)
-    nm((AX0, y_mw), "LEFT", "West Yard 1")
+    nm((AX0, y_mw), "LEFT", "W-1")
     cut((AX0 + 1, y_mw), "RIGHT", (AX0 + 2, y_mw), "LEFT")
     H((AX0 + 2, y_mw))
-    nm((AX0 + 2, y_mw), "LEFT", "OS 101 (Brick)")
-    plant((AX0 + 3, y_mw), ["HORIZONTAL", "LOWERSLASH"], "OS 101 (Brick)", "LEFT", "TOL38")
+    nm((AX0 + 2, y_mw), "LEFT", "OS 101")
+    plant((AX0 + 3, y_mw), ["HORIZONTAL", "LOWERSLASH"], "OS 101", "LEFT", "TOL38")
     H((AX0 + 4, y_mw))
-    nm((AX0 + 4, y_mw), "RIGHT", "OS 101 (Brick)")
+    nm((AX0 + 4, y_mw), "RIGHT", "OS 101")
     cut((AX0 + 4, y_mw), "RIGHT", (AX0 + 5, y_mw), "LEFT")
     H((AX0 + 5, y_mw))
-    nm((AX0 + 5, y_mw), "LEFT", "OS 100 (Brick)")
-    plant((AX0 + 6, y_mw), ["HORIZONTAL", "LOWERSLASH"], "OS 100 (Brick)", "LEFT", "TOL3")
+    nm((AX0 + 5, y_mw), "LEFT", "OS 100")
+    plant((AX0 + 6, y_mw), ["HORIZONTAL", "LOWERSLASH"], "OS 100", "LEFT", "TOL3")
     H((AX0 + 7, y_mw))
-    nm((AX0 + 7, y_mw), "RIGHT", "OS 100 (Brick)")
+    nm((AX0 + 7, y_mw), "RIGHT", "OS 100")
     cut((AX0 + 7, y_mw), "RIGHT", (AX0 + 8, y_mw), "LEFT")
     _H(AX0 + 8, AX1, y_mw)
     nm((AX0 + 8, y_mw), "LEFT", "Main West")
     an((AX1, y_mw), "RIGHT")
-    _sig(AX0 + 2, y_mw, "LEFT", "Brick West West Yard 1", "LAMP1", "LOWLEFT", "RIGHT")
+    _sig(AX0 + 2, y_mw, "LEFT", "Brick West W-1", "LAMP1", "LOWLEFT", "RIGHT")
     _sig(AX0 + 7, y_mw, "RIGHT", "100L", "LAMP2", "LOWLEFT", "LEFT")
 
     # W-2 merges into 101 BOTTOM (LS frog) via UPPERSLASH stub.
     _H(AX0, AX0 + 2, y_wl)
-    nm((AX0, y_wl), "LEFT", "West Yard 2")
+    nm((AX0, y_wl), "LEFT", "W-2")
     cut((AX0 + 2, y_wl), "RIGHT", (AX0 + 3, y_wl), "LEFT")
     le.GRID[(AX0 + 3, y_wl)] = ["UPPERSLASH"]
-    nm((AX0 + 3, y_wl), "LEFT", "OS 101 (Brick)")
-    _sig(AX0 + 3, y_wl, "LEFT", "Brick West West Yard 2", "LAMP1", "LOWLEFT", "RIGHT")
+    nm((AX0 + 3, y_wl), "LEFT", "OS 101")
+    _sig(AX0 + 3, y_wl, "LEFT", "Brick West W-2", "LAMP1", "LOWLEFT", "RIGHT")
 
     # Brick diverge → Plane: 100 BOTTOM → UB elbow → Plane tip (H+LB, NORMAL BOTTOM).
     le.GRID[(AX0 + 6, y_wl)] = ["UPPERBACKSLASH"]
     nm((AX0 + 6, y_wl), "RIGHT", "Main West Brick–Plane")
     cut((AX0 + 6, y_wl), "RIGHT", (AX0 + 7, y_wl), "LEFT")
     H((AX0 + 7, y_wl))
-    nm((AX0 + 7, y_wl), "LEFT", "OS 102 (Plane)")
-    plant((AX0 + 8, y_wl), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 102 (Plane)", "BOTTOM", "TOL42")
+    nm((AX0 + 7, y_wl), "LEFT", "OS 102")
+    plant((AX0 + 8, y_wl), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 102", "BOTTOM", "TOL42")
     H((AX0 + 9, y_wl))
-    nm((AX0 + 9, y_wl), "RIGHT", "OS 102 (Plane)")
+    nm((AX0 + 9, y_wl), "RIGHT", "OS 102")
     cut((AX0 + 9, y_wl), "RIGHT", (AX0 + 10, y_wl), "LEFT")
     _H(AX0 + 10, AX0 + 12, y_wl)
     nm((AX0 + 10, y_wl), "LEFT", "Scale")
@@ -191,17 +191,17 @@ def _build_panel_b() -> None:
     s_end = BX0 + 8  # S-body east (gap before EE)
     ee_app = s_end + 2  # EE west approach
     ee = ee_app + 1  # EE plant column (vertical ladder)
-    ee_tip = ee + 1  # tip / South Yard East start
+    ee_tip = ee + 1  # tip / East Lead start
 
     # --- Main West → 111a → West Main Ext ---
     _H(BX0, ee_app - 1, y_mw)
     nm((BX0, y_mw), "LEFT", "Main West")
     cut((ee_app - 1, y_mw), "RIGHT", (ee_app, y_mw), "LEFT")
     H((ee_app, y_mw))
-    nm((ee_app, y_mw), "LEFT", "OS 111a (East End)")
-    plant((ee, y_mw), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 111a (East End)", "RIGHT", "TO111")
+    nm((ee_app, y_mw), "LEFT", "OS 111a")
+    plant((ee, y_mw), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 111a", "RIGHT", "TO111")
     H((ee_tip, y_mw))
-    nm((ee_tip, y_mw), "RIGHT", "OS 111a (East End)")
+    nm((ee_tip, y_mw), "RIGHT", "OS 111a")
     cut((ee_tip, y_mw), "RIGHT", (ee_tip + 1, y_mw), "LEFT")
     _H(ee_tip + 1, BX1, y_mw)
     nm((ee_tip + 1, y_mw), "LEFT", "West Main Ext")
@@ -214,8 +214,8 @@ def _build_panel_b() -> None:
     nm((BX0, y_s1), "LEFT", "Barn")
     cut((lx - 2, y_s1), "RIGHT", (lx - 1, y_s1), "LEFT")
     H((lx - 1, y_s1))
-    nm((lx - 1, y_s1), "LEFT", "OS 103 (South Yard)")
-    plant((lx, y_s1), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 103 (South Yard)", "RIGHT", "TOR14")
+    nm((lx - 1, y_s1), "LEFT", "OS 103")
+    plant((lx, y_s1), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 103", "RIGHT", "TOR14")
     cut((lx, y_s1), "RIGHT", (sx, y_s1), "LEFT")
     # S-1 continuous into 111b approach (no dead-end gap at s_end).
     _H(sx, ee_app - 1, y_s1)
@@ -225,33 +225,33 @@ def _build_panel_b() -> None:
     # --- 111b under 111a (same column) + S-1 into EE ---
     cut((ee, y_mw), "BOTTOM", (ee, y_s1), "TOP")
     H((ee_app, y_s1))
-    nm((ee_app, y_s1), "LEFT", "OS 111b (East End)")
-    plant((ee, y_s1), ["HORIZONTAL", "UPPERBACKSLASH"], "OS 111b (East End)", "LEFT", "TO111")
+    nm((ee_app, y_s1), "LEFT", "OS 111b")
+    plant((ee, y_s1), ["HORIZONTAL", "UPPERBACKSLASH"], "OS 111b", "LEFT", "TO111")
     H((ee_tip, y_s1))
-    nm((ee_tip, y_s1), "RIGHT", "OS 111b (East End)")
+    nm((ee_tip, y_s1), "RIGHT", "OS 111b")
     cut((ee_tip, y_s1), "RIGHT", (ee_tip + 1, y_s1), "LEFT")
     # 110 / 112 sit on S-1 row east of 111b tip — keep horizontal throat
     H((ee_tip + 1, y_s1))
-    nm((ee_tip + 1, y_s1), "LEFT", "OS 110 (East End)")
-    plant((ee_tip + 2, y_s1), ["HORIZONTAL", "LOWERSLASH"], "OS 110 (East End)", "LEFT", "TOL6")
+    nm((ee_tip + 1, y_s1), "LEFT", "OS 110")
+    plant((ee_tip + 2, y_s1), ["HORIZONTAL", "LOWERSLASH"], "OS 110", "LEFT", "TOL6")
     H((ee_tip + 3, y_s1))
-    nm((ee_tip + 3, y_s1), "RIGHT", "OS 110 (East End)")
+    nm((ee_tip + 3, y_s1), "RIGHT", "OS 110")
     cut((ee_tip + 3, y_s1), "RIGHT", (ee_tip + 4, y_s1), "LEFT")
     H((ee_tip + 4, y_s1))
-    nm((ee_tip + 4, y_s1), "LEFT", "OS 112 (East End)")
-    plant((ee_tip + 5, y_s1), ["HORIZONTAL", "LOWERSLASH"], "OS 112 (East End)", "LEFT", "TOL23")
+    nm((ee_tip + 4, y_s1), "LEFT", "OS 112")
+    plant((ee_tip + 5, y_s1), ["HORIZONTAL", "LOWERSLASH"], "OS 112", "LEFT", "TOL23")
     H((ee_tip + 6, y_s1))
-    nm((ee_tip + 6, y_s1), "RIGHT", "OS 112 (East End)")
+    nm((ee_tip + 6, y_s1), "RIGHT", "OS 112")
     cut((ee_tip + 6, y_s1), "RIGHT", (ee_tip + 7, y_s1), "LEFT")
     _H(ee_tip + 7, BX1, y_s1)
-    nm((ee_tip + 7, y_s1), "LEFT", "South Yard East")
+    nm((ee_tip + 7, y_s1), "LEFT", "East Lead")
     an((BX1, y_s1), "RIGHT")
     _sig(ee_app, y_s1, "LEFT", "111RB", "LAMP1", "LOWLEFT", "RIGHT")
     _sig(ee_tip + 3, y_s1, "RIGHT", "110R", "LAMP1", "UPLEFT", "RIGHT")
-    _sig(ee_tip + 6, y_s1, "RIGHT", "East End East South Yard East", "LAMP2", "LOWRIGHT", "LEFT")
+    _sig(ee_tip + 6, y_s1, "RIGHT", "East End East East Lead", "LAMP2", "LOWRIGHT", "LEFT")
     # 112 south lamp on slash face below plant
     le.GRID[(ee_tip + 5, y_s2)] = ["UPPERSLASH"]
-    nm((ee_tip + 5, y_s2), "LEFT", "OS 112 (East End)")
+    nm((ee_tip + 5, y_s2), "LEFT", "OS 112")
     _sig(ee_tip + 5, y_s2, "LEFT", "112R", "LAMP2", "RIGHTLOW", "RIGHT")
 
     # --- SY + EE ladders ---
@@ -260,9 +260,9 @@ def _build_panel_b() -> None:
     ee_lad = ee_tip + 2  # under 110 column
 
     for yb, sy_os, sy_tip, body, ee_os, ee_tip_id in (
-        (y_s2, "OS 104 (South Yard)", "TOL15", "S-2", "OS 109 (East End)", "TOR7"),
-        (y_s3, "OS 105 (South Yard)", "TOL17", "S-3", "OS 108 (East End)", "TOR9"),
-        (y_s4, "OS 106 (South Yard)", "TOL19", "S-4", "OS 107 (East End)", "TOR11"),
+        (y_s2, "OS 104", "TOL15", "S-2", "OS 109", "TOR7"),
+        (y_s3, "OS 105", "TOL17", "S-3", "OS 108", "TOR9"),
+        (y_s4, "OS 106", "TOL19", "S-4", "OS 107", "TOR11"),
     ):
         # SY: V+LS — SP BOTTOM, NORMAL RIGHT into yard body; TOP from plant above.
         plant((lx, yb), ["VERTICAL", "LOWERSLASH"], sy_os, "RIGHT", sy_tip)
@@ -313,16 +313,16 @@ def _build_panel_c() -> None:
     nm((CX0, y_mw), "LEFT", "West Main Ext")
     cut((xo - 1, y_mw), "RIGHT", (xo, y_mw), "LEFT")
     # approach cell west of plant kept short — name on plant LEFT via ensure
-    plant((xo, y_mw), ["HORIZONTAL", "LOWERSLASH"], "OS 113b (Princess)", "LEFT", "TO113")
-    nm((xo, y_mw), "LEFT", "OS 113b (Princess)")
+    plant((xo, y_mw), ["HORIZONTAL", "LOWERSLASH"], "OS 113b", "LEFT", "TO113")
+    nm((xo, y_mw), "LEFT", "OS 113b")
     H((xo + 1, y_mw))
-    nm((xo + 1, y_mw), "RIGHT", "OS 113b (Princess)")
+    nm((xo + 1, y_mw), "RIGHT", "OS 113b")
     cut((xo + 1, y_mw), "RIGHT", (xo + 2, y_mw), "LEFT")
     _H(xo + 2, kx - 1, y_mw)
-    nm((xo + 2, y_mw), "LEFT", "OS 115 (Princess)")
-    plant((kx, y_mw), ["HORIZONTAL", "UPPERSLASH"], "OS 115 (Princess)", "RIGHT", "TOL29")
+    nm((xo + 2, y_mw), "LEFT", "OS 115")
+    plant((kx, y_mw), ["HORIZONTAL", "UPPERSLASH"], "OS 115", "RIGHT", "TOL29")
     H((kx + 1, y_mw))
-    nm((kx + 1, y_mw), "RIGHT", "OS 115 (Princess)")
+    nm((kx + 1, y_mw), "RIGHT", "OS 115")
     cut((kx + 1, y_mw), "RIGHT", (kx + 2, y_mw), "LEFT")
     _H(kx + 2, CX1, y_mw)
     nm((kx + 2, y_mw), "LEFT", "McKees Rocks")
@@ -330,22 +330,22 @@ def _build_panel_c() -> None:
     _sig(xo, y_mw, "LEFT", "113RA", "LAMP2", "LOWLEFT", "RIGHT")
     _sig(kx + 1, y_mw, "RIGHT", "115LB", "LAMP3", "LOWLEFT", "LEFT")
 
-    # South: South Yard East → 113a → 114 → K-2 / McKeesport
+    # South: East Lead → 113a → 114 → K-2 / McKeesport
     _H(CX0, xo - 2, y_me)
-    nm((CX0, y_me), "LEFT", "South Yard East")
+    nm((CX0, y_me), "LEFT", "East Lead")
     cut((xo - 2, y_me), "RIGHT", (xo - 1, y_me), "LEFT")
     H((xo - 1, y_me))
-    nm((xo - 1, y_me), "LEFT", "OS 113a (Princess)")
-    plant((xo, y_me), ["HORIZONTAL", "UPPERSLASH"], "OS 113a (Princess)", "RIGHT", "TO113")
+    nm((xo - 1, y_me), "LEFT", "OS 113a")
+    plant((xo, y_me), ["HORIZONTAL", "UPPERSLASH"], "OS 113a", "RIGHT", "TO113")
     cut((xo, y_mw), "BOTTOM", (xo, y_me), "TOP")
     H((xo + 1, y_me))
-    nm((xo + 1, y_me), "RIGHT", "OS 113a (Princess)")
+    nm((xo + 1, y_me), "RIGHT", "OS 113a")
     cut((xo + 1, y_me), "RIGHT", (xo + 2, y_me), "LEFT")
     _H(xo + 2, kx - 1, y_me)
-    nm((xo + 2, y_me), "LEFT", "OS 114 (Princess)")
-    plant((kx, y_me), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 114 (Princess)", "RIGHT", "TOR36")
+    nm((xo + 2, y_me), "LEFT", "OS 114")
+    plant((kx, y_me), ["HORIZONTAL", "LOWERBACKSLASH"], "OS 114", "RIGHT", "TOR36")
     H((kx + 1, y_me))
-    nm((kx + 1, y_me), "RIGHT", "OS 114 (Princess)")
+    nm((kx + 1, y_me), "RIGHT", "OS 114")
     cut((kx + 1, y_me), "RIGHT", (kx + 2, y_me), "LEFT")
     _H(kx + 2, CX1, y_me)
     nm((kx + 2, y_me), "LEFT", "McKeesport")

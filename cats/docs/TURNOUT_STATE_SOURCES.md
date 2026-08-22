@@ -48,7 +48,7 @@ python3 cats/scripts/seed_default_thrown_turnouts.py --diagnose
 | Switch | Digicon close (NORMAL) | Digicon throw | Notes |
 |--------|------------------------|---------------|-------|
 | 100 | LEFT | BOTTOM (100–102) | continuing = THROWN |
-| 102 | BOTTOM (East Main Ext) | RIGHT (Yard T1) | |
+| 102 | BOTTOM (East Main Ext) | RIGHT (Scale) | |
 | 112 | LEFT (OS110 ↔ East Lead) | BOTTOM (Barn) | THROWN = Barn |
 | 114 | RIGHT (K-2) | BOTTOM (McKeesport) | THROWN default = McKeesport |
 | 115 | RIGHT (K-1) | TOP (McKees Rocks) | confirmed good |

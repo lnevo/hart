@@ -40,7 +40,7 @@
     <sensor inverted="false">
       <systemName>M2S106</systemName>
       <userName>Block 1-7</userName>
-      <comment>Occupancy South Yard East; MQTT M2S106</comment>
+      <comment>Occupancy East Lead; MQTT M2S106</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S107</systemName>
@@ -190,12 +190,12 @@
     <sensor inverted="false">
       <systemName>M2S402</systemName>
       <userName>Block 4-3</userName>
-      <comment>Occupancy West Yard 2; MQTT M2S402</comment>
+      <comment>Occupancy W-2; MQTT M2S402</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S403</systemName>
       <userName>Block 4-4</userName>
-      <comment>Occupancy West Yard 1; MQTT M2S403</comment>
+      <comment>Occupancy W-1; MQTT M2S403</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S404</systemName>
@@ -375,17 +375,17 @@
     <sensor inverted="false">
       <systemName>M2S1304</systemName>
       <userName>Block 13-5</userName>
-      <comment>Occupancy Engine House 1; MQTT M2S1304</comment>
+      <comment>Occupancy EH-1; MQTT M2S1304</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1305</systemName>
       <userName>Block 13-6</userName>
-      <comment>Occupancy Engine House 2; MQTT M2S1305</comment>
+      <comment>Occupancy EH-2; MQTT M2S1305</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1306</systemName>
       <userName>Block 13-7</userName>
-      <comment>Occupancy Engine House 3; MQTT M2S1306</comment>
+      <comment>Occupancy EH-3; MQTT M2S1306</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1307</systemName>
@@ -426,15 +426,20 @@
   <sensors class="jmri.jmrix.openlcb.configurexml.OlcbSensorManagerXml">
     <sensor inverted="false">
       <systemName>MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB</systemName>
+      <userName>OLCB leftover 114</userName>
+      <comment>OLCB leftover 114</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED</systemName>
+      <userName>OLCB leftover 115</userName>
+      <comment>OLCB leftover 115</comment>
     </sensor>
   </sensors>
   <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
     <defaultInitialState>unknown</defaultInitialState>
     <sensor inverted="false">
       <systemName>ISCLOCKRUNNING</systemName>
+      <userName>Clock running</userName>
       <comment>JMRI fast-clock running</comment>
     </sensor>
     </sensors>
@@ -557,352 +562,432 @@
     <defaultthrownspeed>Restricted</defaultthrownspeed>
     <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N">
       <systemName>MTT100</systemName>
+      <userName>Switch 100 alias</userName>
       <comment>OpenLCB alias of Switch 100; same FB as MQTT hardware (Switch 4-1)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 12-5 FB R" sensor2="Switch 12-5 FB N" inverted="false" automate="Off">
       <systemName>MTT111</systemName>
+      <userName>Switch 111 alias</userName>
       <comment>OpenLCB alias of Switch 111; same FB as MQTT hardware (Switch 12-5)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="Switch 1-1 FB R" sensor2="Switch 1-1 FB N">
       <systemName>MTT113</systemName>
+      <userName>Switch 113 alias</userName>
       <comment>OpenLCB alias of Switch 113; same FB as MQTT hardware (Switch 1-1)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 1-2 FB R" sensor2="Switch 1-2 FB N" inverted="false" automate="Off">
       <systemName>MTT114</systemName>
+      <userName>Switch 114 alias</userName>
       <comment>OpenLCB alias of Switch 114; same FB as MQTT hardware (Switch 1-2)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 1-3 FB R" sensor2="Switch 1-3 FB N" inverted="false" automate="Off">
       <systemName>MTT115</systemName>
+      <userName>Switch 115 alias</userName>
       <comment>OpenLCB alias of Switch 115; same FB as MQTT hardware (Switch 1-3)</comment>
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
     <memory value="12:39 PM">
       <systemName>IMCURRENTTIME</systemName>
+      <userName>Current time</userName>
+      <comment>JMRI fast-clock time</comment>
     </memory>
     <memory value="1.0">
       <systemName>IMRATEFACTOR</systemName>
+      <userName>Clock rate</userName>
+      <comment>JMRI fast-clock rate</comment>
     </memory>
   </memories>
   <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>102LB Top</userName>
+      <comment>Head 102LB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH433</systemName>
       <userName>102LB Bottom</userName>
+      <comment>Head 102LB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH434</systemName>
       <userName>102LA Top</userName>
+      <comment>Head 102LA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH435</systemName>
       <userName>102LA Bottom</userName>
+      <comment>Head 102LA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
       <userName>101RA</userName>
+      <comment>Head 101RA</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH437</systemName>
       <userName>101RB</userName>
+      <comment>Head 101RB</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH438</systemName>
       <userName>100L Top</userName>
+      <comment>Head 100L Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH439</systemName>
       <userName>100L Bottom</userName>
+      <comment>Head 100L Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1332</systemName>
       <userName>117RA Top</userName>
+      <comment>Head 117RA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1333</systemName>
       <userName>117RA Bottom</userName>
+      <comment>Head 117RA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1334</systemName>
       <userName>117LB</userName>
+      <comment>Head 117LB</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1335</systemName>
       <userName>117RB Top</userName>
+      <comment>Head 117RB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1336</systemName>
       <userName>117RB Bottom</userName>
+      <comment>Head 117RB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1337</systemName>
       <userName>117LA Top</userName>
+      <comment>Head 117LA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1338</systemName>
       <userName>117LA Bottom</userName>
+      <comment>Head 117LA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1232</systemName>
       <userName>111RA Top</userName>
+      <comment>Head 111RA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1233</systemName>
       <userName>111RA Bottom</userName>
+      <comment>Head 111RA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1234</systemName>
       <userName>111L Top</userName>
+      <comment>Head 111L Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1235</systemName>
       <userName>111L Bottom</userName>
+      <comment>Head 111L Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1236</systemName>
       <userName>111RB</userName>
+      <comment>Head 111RB</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1237</systemName>
       <userName>112L Top</userName>
+      <comment>Head 112L Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1238</systemName>
       <userName>112L Bottom</userName>
+      <comment>Head 112L Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1239</systemName>
       <userName>110R</userName>
+      <comment>Head 110R</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1240</systemName>
       <userName>112R Top</userName>
+      <comment>Head 112R Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1241</systemName>
       <userName>112R Bottom</userName>
+      <comment>Head 112R Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH132</systemName>
       <userName>115LB Top</userName>
+      <comment>Head 115LB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH133</systemName>
       <userName>115LB Bottom</userName>
+      <comment>Head 115LB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
       <userName>114R</userName>
+      <comment>Head 114R</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
       <userName>113RA Top</userName>
+      <comment>Head 113RA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH136</systemName>
       <userName>113RA Bottom</userName>
+      <comment>Head 113RA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH137</systemName>
       <userName>113RB Top</userName>
+      <comment>Head 113RB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH138</systemName>
       <userName>113RB Bottom</userName>
+      <comment>Head 113RB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH139</systemName>
       <userName>114LB Top</userName>
+      <comment>Head 114LB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH140</systemName>
       <userName>114LB Bottom</userName>
+      <comment>Head 114LB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
       <userName>115R</userName>
+      <comment>Head 115R</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH142</systemName>
       <userName>115LA</userName>
+      <comment>Head 115LA</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH143</systemName>
       <userName>114LA</userName>
+      <comment>Head 114LA</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433)</systemName>
       <userName>102LB</userName>
+      <comment>Mast 102LB</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH434)(IH435)</systemName>
       <userName>102LA</userName>
+      <comment>Mast 102LA</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH436)</systemName>
       <userName>101RA</userName>
+      <comment>Mast 101RA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH437)</systemName>
       <userName>101RB</userName>
+      <comment>Mast 101RB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439)</systemName>
       <userName>100L</userName>
+      <comment>Mast 100L</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333)</systemName>
       <userName>117RA</userName>
+      <comment>Mast 117RA</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1334)</systemName>
       <userName>117LB</userName>
+      <comment>Mast 117LB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336)</systemName>
       <userName>117RB</userName>
+      <comment>Mast 117RB</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338)</systemName>
       <userName>117LA</userName>
+      <comment>Mast 117LA</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233)</systemName>
       <userName>111RA</userName>
+      <comment>Mast 111RA</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235)</systemName>
       <userName>111L</userName>
+      <comment>Mast 111L</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1236)</systemName>
       <userName>111RB</userName>
+      <comment>Mast 111RB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238)</systemName>
       <userName>112L</userName>
+      <comment>Mast 112L</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1239)</systemName>
       <userName>110R</userName>
+      <comment>Mast 110R</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)</systemName>
       <userName>112R</userName>
+      <comment>Mast 112R</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133)</systemName>
       <userName>115LB</userName>
+      <comment>Mast 115LB</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH134)</systemName>
       <userName>114R</userName>
+      <comment>Mast 114R</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136)</systemName>
       <userName>113RA</userName>
+      <comment>Mast 113RA</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138)</systemName>
       <userName>113RB</userName>
+      <comment>Mast 113RB</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140)</systemName>
       <userName>114LB</userName>
+      <comment>Mast 114LB</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH141)</systemName>
       <userName>115R</userName>
+      <comment>Mast 115R</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH142)</systemName>
       <userName>115LA</userName>
+      <comment>Mast 115LA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH143)</systemName>
       <userName>114LA</userName>
+      <comment>Mast 114LA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
       <userName>101LA</userName>
+      <comment>Mast 101LA</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
       <userName>101LB</userName>
+      <comment>Mast 101LB</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1003)</systemName>
       <userName>115RA</userName>
+      <comment>Mast 115RA</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1004)</systemName>
       <userName>114RA</userName>
+      <comment>Mast 114RA</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1005)</systemName>
       <userName>118L</userName>
+      <comment>Mast 118L</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1006)</systemName>
       <userName>119LA</userName>
+      <comment>Mast 119LA</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1007)</systemName>
       <userName>119LB</userName>
+      <comment>Mast 119LB</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1008)</systemName>
       <userName>104L</userName>
+      <comment>Mast 104L</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1009)</systemName>
       <userName>105L</userName>
+      <comment>Mast 105L</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1010)</systemName>
       <userName>106L</userName>
+      <comment>Mast 106L</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1011)</systemName>
       <userName>107L</userName>
+      <comment>Mast 107L</comment>
       <unlit allowed="yes" />
     </signalmast>
   </signalmasts>
@@ -911,7 +996,7 @@
     <block systemName="IB1" length="0.0" curve="0">
       <systemName>IB1</systemName>
       <userName>OS 116</userName>
-      <comment>Hand-throw west of S-103; occupancy Block 3-1 / M2S300</comment>
+      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 3-1</occupancysensor>
       <path todir="128" fromdir="64" block="IB15">
@@ -1038,7 +1123,7 @@
     </block>
     <block systemName="IB20" length="0.0" curve="0">
       <systemName>IB20</systemName>
-      <userName>Engine House 1</userName>
+      <userName>EH-1</userName>
       <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-5</occupancysensor>
@@ -1050,7 +1135,7 @@
     </block>
     <block systemName="IB21" length="0.0" curve="0">
       <systemName>IB21</systemName>
-      <userName>Engine House 2</userName>
+      <userName>EH-2</userName>
       <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-6</occupancysensor>
@@ -1062,7 +1147,7 @@
     </block>
     <block systemName="IB22" length="0.0" curve="0">
       <systemName>IB22</systemName>
-      <userName>Engine House 3</userName>
+      <userName>EH-3</userName>
       <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-7</occupancysensor>
@@ -1194,7 +1279,7 @@
     </block>
     <block systemName="IB:AUTO:0017" length="0.0" curve="0">
       <systemName>IB:AUTO:0017</systemName>
-      <userName>South Yard East</userName>
+      <userName>East Lead</userName>
       <comment>South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 1-7</occupancysensor>
@@ -1203,7 +1288,7 @@
     </block>
     <block systemName="IB:AUTO:0020" length="0.0" curve="0">
       <systemName>IB:AUTO:0020</systemName>
-      <userName>West Yard 1</userName>
+      <userName>W-1</userName>
       <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-4</occupancysensor>
@@ -1215,7 +1300,7 @@
     </block>
     <block systemName="IB:AUTO:0022" length="0.0" curve="0">
       <systemName>IB:AUTO:0022</systemName>
-      <userName>West Yard 2</userName>
+      <userName>W-2</userName>
       <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-3</occupancysensor>
@@ -1630,206 +1715,255 @@
     <layoutblock systemName="ILB1" occupancysensor="Block 2-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1</systemName>
       <userName>Main East</userName>
+      <comment>Main east of East End; occupancy Block 2-3 / M2S202; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB3" occupancysensor="Block 2-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB3</systemName>
       <userName>Main West</userName>
+      <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB5" occupancysensor="Block 4-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB5</systemName>
       <userName>Brick-Plane</userName>
+      <comment>Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB7" occupancysensor="Block 2-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB7</systemName>
       <userName>S-5</userName>
+      <comment>South Yard body; occupancy Block 2-4 / M2S203; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB8" occupancysensor="Block 2-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB8</systemName>
       <userName>S-4</userName>
+      <comment>South Yard body; occupancy Block 2-5 / M2S204; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB10" occupancysensor="Block 1-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB10</systemName>
       <userName>McKees Rocks</userName>
+      <comment>Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB12" occupancysensor="Block 2-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB12</systemName>
       <userName>S-1</userName>
+      <comment>Run-through east of 103; occupancy Block 2-8 / M2S207; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB16" occupancysensor="Block 2-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB16</systemName>
       <userName>S-2</userName>
+      <comment>South Yard body; occupancy Block 2-7 / M2S206; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB17" occupancysensor="Block 1-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB17</systemName>
-      <userName>South Yard East</userName>
+      <userName>East Lead</userName>
+      <comment>South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB20" occupancysensor="Block 4-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB20</systemName>
-      <userName>West Yard 1</userName>
+      <userName>W-1</userName>
+      <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB22" occupancysensor="Block 4-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB22</systemName>
-      <userName>West Yard 2</userName>
+      <userName>W-2</userName>
+      <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB26" occupancysensor="Block 2-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB26</systemName>
       <userName>S-3</userName>
+      <comment>South Yard body; occupancy Block 2-6 / M2S205; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB30" occupancysensor="Block 12-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB30</systemName>
       <userName>OS 112</userName>
+      <comment>East End, Switch 112; occupancy Block 12-8 / M2S1207</comment>
     </layoutblock>
     <layoutblock systemName="ILB31" occupancysensor="Block 4-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB31</systemName>
       <userName>OS 102</userName>
+      <comment>Plane CP, Switch 102; occupancy Block 4-5 / M2S404</comment>
     </layoutblock>
     <layoutblock systemName="ILB32" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB32</systemName>
       <userName>OS 114</userName>
+      <comment>Princess, Switch 114 (same detector as K-2); occupancy Block 1-3 / M2S102</comment>
     </layoutblock>
     <layoutblock systemName="ILB33" occupancysensor="Block 4-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB33</systemName>
       <userName>OS 100</userName>
+      <comment>Brick CP, Switch 100; occupancy Block 4-2 / M2S401</comment>
     </layoutblock>
     <layoutblock systemName="ILB34" occupancysensor="Block 12-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB34</systemName>
       <userName>OS 111a</userName>
+      <comment>East End crossover 111 north/west leg; occupancy Block 12-4 / M2S1203</comment>
     </layoutblock>
     <layoutblock systemName="ILB35" occupancysensor="Block 4-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB35</systemName>
       <userName>OS 101</userName>
+      <comment>Brick CP, Switch 101; occupancy Block 4-1 / M2S400</comment>
     </layoutblock>
     <layoutblock systemName="ILB36" occupancysensor="Block 12-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB36</systemName>
       <userName>OS 107</userName>
+      <comment>East End, Switch 107; occupancy Block 12-1 / M2S1200</comment>
     </layoutblock>
     <layoutblock systemName="ILB37" occupancysensor="Block 12-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB37</systemName>
       <userName>OS 108</userName>
+      <comment>East End, Switch 108; occupancy Block 12-3 / M2S1202</comment>
     </layoutblock>
     <layoutblock systemName="ILB38" occupancysensor="Block 3-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB38</systemName>
       <userName>OS 106</userName>
+      <comment>South Yard, Switch 106; occupancy Block 3-7 / M2S306</comment>
     </layoutblock>
     <layoutblock systemName="ILB39" occupancysensor="Block 12-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB39</systemName>
       <userName>OS 111b</userName>
+      <comment>East End crossover 111 south/east leg; occupancy Block 12-6 / M2S1205</comment>
     </layoutblock>
     <layoutblock systemName="ILB40" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB40</systemName>
       <userName>OS 115</userName>
+      <comment>Princess, Switch 115 (same detector as K-1); occupancy Block 1-4 / M2S103</comment>
     </layoutblock>
     <layoutblock systemName="ILB41" occupancysensor="Block 3-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB41</systemName>
       <userName>OS 103</userName>
+      <comment>South Yard, Switch 103; occupancy Block 3-2 / M2S301</comment>
     </layoutblock>
     <layoutblock systemName="ILB42" occupancysensor="Block 12-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB42</systemName>
       <userName>OS 110</userName>
+      <comment>East End, Switch 110; occupancy Block 12-7 / M2S1206</comment>
     </layoutblock>
     <layoutblock systemName="ILB43" occupancysensor="Block 12-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB43</systemName>
       <userName>OS 109</userName>
+      <comment>East End, Switch 109; occupancy Block 12-5 / M2S1204</comment>
     </layoutblock>
     <layoutblock systemName="ILB44" occupancysensor="Block 3-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB44</systemName>
       <userName>OS 104</userName>
+      <comment>South Yard, Switch 104; occupancy Block 3-3 / M2S302</comment>
     </layoutblock>
     <layoutblock systemName="ILB45" occupancysensor="Block 3-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB45</systemName>
       <userName>OS 105</userName>
+      <comment>South Yard, Switch 105; occupancy Block 3-5 / M2S304</comment>
     </layoutblock>
     <layoutblock systemName="ILB46" occupancysensor="Block 1-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB46</systemName>
       <userName>OS 113a</userName>
+      <comment>Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105</comment>
     </layoutblock>
     <layoutblock systemName="ILB47" occupancysensor="Block 1-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB47</systemName>
       <userName>OS 113b</userName>
+      <comment>Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104</comment>
     </layoutblock>
     <layoutblock systemName="ILB48" occupancysensor="Block 3-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB48</systemName>
       <userName>OS 116</userName>
+      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
     </layoutblock>
     <layoutblock systemName="ILB50" occupancysensor="Block 4-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB50</systemName>
       <userName>Scale</userName>
+      <comment>Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB53" occupancysensor="Block 13-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB53</systemName>
       <userName>OS 117b</userName>
+      <comment>Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
     </layoutblock>
     <layoutblock systemName="ILB55" occupancysensor="Block 13-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB55</systemName>
       <userName>OS 117</userName>
+      <comment>Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
     </layoutblock>
     <layoutblock systemName="ILB62" occupancysensor="Block 13-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB62</systemName>
       <userName>Barn</userName>
+      <comment>Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB65" occupancysensor="Block 13-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB65</systemName>
       <userName>OS 119</userName>
+      <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
     </layoutblock>
     <layoutblock systemName="ILB66" occupancysensor="Block 13-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB66</systemName>
       <userName>OS 118</userName>
+      <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
     </layoutblock>
     <layoutblock systemName="ILB67" occupancysensor="Block 13-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB67</systemName>
-      <userName>Engine House 1</userName>
+      <userName>EH-1</userName>
+      <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB68" occupancysensor="Block 13-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB68</systemName>
-      <userName>Engine House 2</userName>
+      <userName>EH-2</userName>
+      <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB69" occupancysensor="Block 13-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB69</systemName>
-      <userName>Engine House 3</userName>
+      <userName>EH-3</userName>
+      <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB72" occupancysensor="Block 1-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB72</systemName>
       <userName>McKeesport</userName>
+      <comment>Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB74" occupancysensor="Block 1-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB74</systemName>
       <userName>West Main Ext</userName>
+      <comment>Main West stub west of 111; occupancy Block 1-8 / M2S107; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB75" occupancysensor="Block 4-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB75</systemName>
       <userName>East Main Ext</userName>
+      <comment>Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB76" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB76</systemName>
       <userName>K-1</userName>
+      <comment>Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB77" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB77</systemName>
       <userName>K-2</userName>
+      <comment>Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop</comment>
     </layoutblock>
   </layoutblocks>
   <routes class="jmri.managers.configurexml.DefaultRouteManagerXml">
     <route userName="Switch 114 Closed">
       <systemName>IO:AUTO:0001</systemName>
       <userName>Switch 114 Closed</userName>
+      <comment>Route Switch 114 Closed</comment>
       <routeOutputTurnout systemName="Switch 114" state="CLOSED" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onInactive" />
     </route>
     <route userName="Switch 114 Thrown">
       <systemName>IO:AUTO:0002</systemName>
       <userName>Switch 114 Thrown</userName>
+      <comment>Route Switch 114 Thrown</comment>
       <routeOutputTurnout systemName="Switch 114" state="THROWN" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onActive" />
     </route>
     <route userName="Switch 115 Closed">
       <systemName>IO:AUTO:0003</systemName>
       <userName>Switch 115 Closed</userName>
+      <comment>Route Switch 115 Closed</comment>
       <routeOutputTurnout systemName="Switch 115" state="CLOSED" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onInactive" />
     </route>
     <route userName="Switch 115 Thrown">
       <systemName>IO:AUTO:0004</systemName>
       <userName>Switch 115 Thrown</userName>
+      <comment>Route Switch 115 Thrown</comment>
       <routeOutputTurnout systemName="Switch 115" state="THROWN" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onActive" />
     </route>
@@ -1845,6 +1979,7 @@
     </Thread>
     <LogixNG enabled="yes" inline="no">
       <systemName>IQ:AUTO:0001</systemName>
+      <userName>Hide windows on start</userName>
       <ConditionalNGs>
         <systemName>IQC:AUTO:0001</systemName>
         <systemName>IQC:AUTO:0002</systemName>
@@ -1863,6 +1998,7 @@
   <LogixNGConditionalNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultConditionalNGManagerXml">
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0001</systemName>
+      <userName>Hide USS CTC Editor</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -1871,6 +2007,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0002</systemName>
+      <userName>Hide Dispatcher System</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -1879,6 +2016,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0003</systemName>
+      <userName>Hide WiThrottle</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -2045,21 +2183,21 @@
     <BlockContentsIcon blockcontents="McKees Rocks" x="1755" y="191" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Main West" x="948" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="West Main Ext" x="1360" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="West Yard 1" x="170" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="W-1" x="170" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 111a" x="1190" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 113b" x="1530" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 115" x="1655" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 1" x="585" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 3" x="585" y="269" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="EH-1" x="585" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="EH-3" x="585" y="269" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 101" x="255" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 100" x="335" y="250" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="West Yard 2" x="170" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 2" x="585" y="257" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="W-2" x="170" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="EH-2" x="585" y="257" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 119" x="504" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 118" x="580" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 116" x="640" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 110" x="1313" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard East" x="1460" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="East Lead" x="1460" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 103" x="700" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="S-1" x="948" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 111b" x="1235" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -2162,18 +2300,18 @@
     <tracksegment ident="T-ER-TOL15" blockname="OS 104" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL15" blockname="S-2" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F56-S-0" blockname="McKees Rocks" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F22-S-0" blockname="South Yard East" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F22-S-0" blockname="East Lead" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F41-S-0" blockname="West Main Ext" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL23" blockname="South Yard East" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL23" blockname="East Lead" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL23" blockname="OS 110" connect1name="TOL23" type1="TURNOUT_B" connect2name="A35" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL23" blockname="Main East" connect1name="TOL23" type1="TURNOUT_C" connect2name="A47" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F53-S-0" blockname="West Yard 1" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F53-S-0" blockname="W-1" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F20-S-0" blockname="OS 105" connect1name="A10" type1="POS_POINT" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F21-S-0" blockname="S-5" connect1name="A15" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F61-S-0" blockname="Main West" connect1name="A59" type1="POS_POINT" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL38" blockname="OS 101" connect1name="TOL38" type1="TURNOUT_A" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL38" blockname="West Yard 1" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOL38" blockname="West Yard 2" connect1name="TOL38" type1="TURNOUT_C" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL38" blockname="W-1" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL38" blockname="W-2" connect1name="TOL38" type1="TURNOUT_C" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL42" blockname="Brick-Plane" connect1name="TOL42" type1="TURNOUT_A" connect2name="A65" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR7" blockname="OS 109" connect1name="TOR7" type1="TURNOUT_A" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR7" blockname="OS 108" connect1name="TOR7" type1="TURNOUT_B" connect2name="A22" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2212,7 +2350,7 @@
     <tracksegment ident="F62-S-0" blockname="Brick-Plane" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F40-S-0" blockname="OS 100" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F13-S-0" blockname="S-5" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F54-S-0" blockname="West Yard 2" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F54-S-0" blockname="W-2" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL6" blockname="OS 110" connect1name="TOL6" type1="TURNOUT_A" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL6" blockname="OS 110" connect1name="TOL6" type1="TURNOUT_B" connect2name="A24" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL6" blockname="OS 109" connect1name="TOL6" type1="TURNOUT_C" connect2name="A16" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2229,7 +2367,7 @@
     <tracksegment ident="F24-S-0" blockname="Main East" connect1name="A47" type1="POS_POINT" connect2name="A13" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR32" blockname="OS 110" connect1name="TO111" type1="TURNOUT_C" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR32" blockname="S-1" connect1name="TO111" type1="TURNOUT_D" connect2name="A37" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL2" blockname="South Yard East" connect1name="TO113" type1="TURNOUT_D" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL2" blockname="East Lead" connect1name="TO113" type1="TURNOUT_D" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL2" blockname="OS 113a" connect1name="TO113" type1="TURNOUT_C" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F10-S-0" blockname="OS 108" connect1name="A22" type1="POS_POINT" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F37-S-0" blockname="OS 113a" connect1name="A50" type1="POS_POINT" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2240,9 +2378,9 @@
     <tracksegment ident="T5" blockname="Main East" connect1name="A3" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_C" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F103-S-0" blockname="OS 103" connect1name="A9" type1="POS_POINT" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TO1" blockname="OS 103" connect1name="TO1" type1="TURNOUT_A" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T9" blockname="Engine House 1" connect1name="EB1" type1="POS_POINT" connect2name="A2" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T10" blockname="Engine House 2" connect1name="EB2" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T11" blockname="Engine House 3" connect1name="EB3" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T9" blockname="EH-1" connect1name="EB1" type1="POS_POINT" connect2name="A2" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T10" blockname="EH-2" connect1name="EB2" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T11" blockname="EH-3" connect1name="EB3" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-A-TO10" blockname="OS 119" connect1name="TO10" type1="TURNOUT_A" connect2name="A76" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F-T12-S-0" blockname="OS 119" connect1name="A76" type1="POS_POINT" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-C-TO11" blockname="OS 119" connect1name="TO11" type1="TURNOUT_C" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2250,7 +2388,7 @@
     <tracksegment ident="F-T13-S-0" blockname="OS 118" connect1name="A78" type1="POS_POINT" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-C-TO1" blockname="OS 118" connect1name="TO1" type1="TURNOUT_C" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T1" blockname="Scale" connect1name="TOL42" type1="TURNOUT_C" connect2name="A45" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T2" blockname="Engine House 1" connect1name="A2" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T2" blockname="EH-1" connect1name="A2" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <positionablepoint ident="A80" type="ANCHOR" x="655" y="315" connect1name="F103-S-0" connect2name="T-I-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A76" type="ANCHOR" x="620" y="289" connect1name="T-A-TO10" connect2name="F-T12-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A77" type="ANCHOR" x="623" y="289" connect1name="F-T12-S-0" connect2name="T-C-TO11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />

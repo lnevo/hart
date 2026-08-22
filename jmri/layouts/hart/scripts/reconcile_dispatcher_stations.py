@@ -34,13 +34,13 @@ STATIONS = (
     "West Main Ext",
     "McKees Rocks",
     "McKeesport",
-    "South Yard East",
+    "East Lead",
     "Main East",
     "East Main Ext",
     "Brick-Plane",
-    "Engine House 1",
-    "Engine House 2",
-    "Engine House 3",
+    "EH-1",
+    "EH-2",
+    "EH-3",
     "S-1",
     "S-2",
     "S-3",
@@ -48,8 +48,8 @@ STATIONS = (
     "S-5",
     "Scale",
     "Barn",
-    "West Yard 1",
-    "West Yard 2",
+    "W-1",
+    "W-2",
     "K-1",
     "K-2",
 )
@@ -61,9 +61,7 @@ STOP_TOKEN = "stop"
 PAIR_DX = 10
 OCCUPANCY_OFFSET = (-10, 10)
 CIRCUIT_ICON_SIZE = 10
-EH_ROW_STATIONS = frozenset(
-    {"Engine House 1", "Engine House 2", "Engine House 3"}
-)
+EH_ROW_STATIONS = frozenset({"EH-1", "EH-2", "EH-3"})
 
 # Progress icon position; the clickable MoveTo icon sits PAIR_DX to its right.
 # Main West / Main East / Brick-Plane keep the progress lamp and pull MoveTo in.
@@ -74,13 +72,13 @@ STATION_ICON_POSITIONS = {
     "Main West": (943, 230),
     "Main East": (943, 520),
     "West Main Ext": (1416, 210),
-    "South Yard East": (1416, 345),
+    "East Lead": (1416, 345),
     "McKees Rocks": (1706, 185),
     "McKeesport": (1706, 345),
     # Engine house: east/right of the 116 ladder.
-    "Engine House 1": (668, 256),
-    "Engine House 2": (668, 270),
-    "Engine House 3": (668, 284),
+    "EH-1": (668, 256),
+    "EH-2": (668, 270),
+    "EH-3": (668, 284),
     # South Yard body: replace the old Track 1–5 text labels.
     "S-1": (943, 293),
     "S-2": (943, 344),
@@ -91,8 +89,8 @@ STATION_ICON_POSITIONS = {
     "Scale": (410, 266),
     "Barn": (490, 266),
     # West Yard body: replace Track 1 / Track 2 text at the west end.
-    "West Yard 1": (103, 230),
-    "West Yard 2": (105, 293),
+    "W-1": (103, 230),
+    "W-2": (105, 293),
     # Princess stubs: replace Track 1 / Track 2 east of 114 / 115.
     "K-1": (1730, 230),
     "K-2": (1730, 293),
@@ -104,12 +102,12 @@ STATION_OCCUPANCY = {
     "Main West": "Block 2-1",
     "Main East": "Block 2-3",
     "West Main Ext": "Block 1-8",
-    "South Yard East": "Block 1-7",
+    "East Lead": "Block 1-7",
     "McKees Rocks": "Block 1-1",
     "McKeesport": "Block 1-2",
-    "Engine House 1": "Block 13-5",
-    "Engine House 2": "Block 13-6",
-    "Engine House 3": "Block 13-7",
+    "EH-1": "Block 13-5",
+    "EH-2": "Block 13-6",
+    "EH-3": "Block 13-7",
     "S-1": "Block 2-8",
     "S-2": "Block 2-7",
     "S-3": "Block 2-6",
@@ -117,8 +115,8 @@ STATION_OCCUPANCY = {
     "S-5": "Block 2-4",
     "Scale": "Block 4-8",
     "Barn": "Block 13-1",
-    "West Yard 1": "Block 4-4",
-    "West Yard 2": "Block 4-3",
+    "W-1": "Block 4-4",
+    "W-2": "Block 4-3",
     "K-1": "Block 1-4",
     "K-2": "Block 1-3",
 }
@@ -130,12 +128,12 @@ STATION_DISPLAY_NAMES = {
     "Main West": "Main W",
     "Main East": "Main E",
     "West Main Ext": "W Main",
-    "South Yard East": "East",
+    "East Lead": "E Lead",
     "McKees Rocks": "McK Rks",
     "McKeesport": "McKport",
-    "Engine House 1": "EH 1",
-    "Engine House 2": "EH 2",
-    "Engine House 3": "EH 3",
+    "EH-1": "EH-1",
+    "EH-2": "EH-2",
+    "EH-3": "EH-3",
     "S-1": "S-1",
     "S-2": "S-2",
     "S-3": "S-3",
@@ -143,8 +141,8 @@ STATION_DISPLAY_NAMES = {
     "S-5": "S-5",
     "Scale": "Scale",
     "Barn": "Barn",
-    "West Yard 1": "W-1",
-    "West Yard 2": "W-2",
+    "W-1": "W-1",
+    "W-2": "W-2",
     "K-1": "K-1",
     "K-2": "K-2",
 }

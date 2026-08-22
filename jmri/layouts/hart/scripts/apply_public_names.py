@@ -24,7 +24,53 @@ DEFAULT_MAP = Path(__file__).resolve().parents[1] / "data" / "public_name_map.cs
 DEFAULT_TABLES = Path(__file__).resolve().parents[1] / "output" / "tables.xml"
 
 RENAME_LAYERS = frozenset({"block", "mast", "head"})
-OPTIONAL_MISSING = frozenset({"ET-1", "ET-2", "ET-3", "Block 100-102"})
+OPTIONAL_MISSING = frozenset(
+    {
+        "ET-1",
+        "ET-2",
+        "ET-3",
+        "Block 100-102",
+        "Yard T1",
+        "Yard T6",
+        "South Yard Scale",
+        "South Yard West",
+        "West Yard 1",
+        "West Yard 2",
+        "South Yard East",
+        "Engine House 1",
+        "Engine House 2",
+        "Engine House 3",
+        "MoveToWest_Yard_1_stored",
+        "MoveToWest_Yard_2_stored",
+        "MoveToSouth_Yard_East_stored",
+        "MoveToEngine_House_1_stored",
+        "MoveToEngine_House_2_stored",
+        "MoveToEngine_House_3_stored",
+        "MoveInProgressWest_Yard_1",
+        "MoveInProgressWest_Yard_2",
+        "MoveInProgressSouth_Yard_East",
+        "MoveInProgressEngine_House_1",
+        "MoveInProgressEngine_House_2",
+        "MoveInProgressEngine_House_3",
+    }
+)
+
+# Dispatcher MoveTo / MoveInProgress userNames are station.replace(" ","_").
+# Plate names (W-1, EH-1) keep the hyphen; spaces become underscores.
+DISPATCHER_SENSOR_RENAMES = (
+    ("MoveToWest_Yard_1_stored", "MoveToW-1_stored"),
+    ("MoveInProgressWest_Yard_1", "MoveInProgressW-1"),
+    ("MoveToWest_Yard_2_stored", "MoveToW-2_stored"),
+    ("MoveInProgressWest_Yard_2", "MoveInProgressW-2"),
+    ("MoveToSouth_Yard_East_stored", "MoveToEast_Lead_stored"),
+    ("MoveInProgressSouth_Yard_East", "MoveInProgressEast_Lead"),
+    ("MoveToEngine_House_1_stored", "MoveToEH-1_stored"),
+    ("MoveInProgressEngine_House_1", "MoveInProgressEH-1"),
+    ("MoveToEngine_House_2_stored", "MoveToEH-2_stored"),
+    ("MoveInProgressEngine_House_2", "MoveInProgressEH-2"),
+    ("MoveToEngine_House_3_stored", "MoveToEH-3_stored"),
+    ("MoveInProgressEngine_House_3", "MoveInProgressEH-3"),
+)
 
 PUBLIC_NAME_ATTRS = frozenset(
     {
@@ -81,6 +127,9 @@ def load_rename_map(csv_path: Path | str) -> list[RenameEntry]:
             if layer not in RENAME_LAYERS or not current or current == proposed:
                 continue
             entries.append(RenameEntry(layer=layer, current=current, proposed=proposed))
+    for current, proposed in DISPATCHER_SENSOR_RENAMES:
+        if current != proposed:
+            entries.append(RenameEntry(layer="sensor", current=current, proposed=proposed))
     entries.sort(key=lambda item: len(item.current), reverse=True)
     return entries
 

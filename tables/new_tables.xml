@@ -40,7 +40,7 @@
     <sensor inverted="false">
       <systemName>M2S106</systemName>
       <userName>Block 1-7</userName>
-      <comment>Occupancy South Yard East; MQTT M2S106</comment>
+      <comment>Occupancy East Lead; MQTT M2S106</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S107</systemName>
@@ -84,6 +84,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>M2S201</systemName>
+      <userName>unused Block 2-2</userName>
       <comment>unused LCOS node 2 occupancy ch 1 (would be Block 2-2; no track circuit)</comment>
     </sensor>
     <sensor inverted="false">
@@ -143,6 +144,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>M2S307</systemName>
+      <userName>unused Block 3-8</userName>
       <comment>unused LCOS node 3 occupancy ch 7 (would be Block 3-8; no track circuit)</comment>
     </sensor>
     <sensor inverted="false">
@@ -198,12 +200,12 @@
     <sensor inverted="false">
       <systemName>M2S402</systemName>
       <userName>Block 4-3</userName>
-      <comment>Occupancy West Yard 2; MQTT M2S402</comment>
+      <comment>Occupancy W-2; MQTT M2S402</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S403</systemName>
       <userName>Block 4-4</userName>
-      <comment>Occupancy West Yard 1; MQTT M2S403</comment>
+      <comment>Occupancy W-1; MQTT M2S403</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S404</systemName>
@@ -383,17 +385,17 @@
     <sensor inverted="false">
       <systemName>M2S1304</systemName>
       <userName>Block 13-5</userName>
-      <comment>Occupancy Engine House 1; MQTT M2S1304</comment>
+      <comment>Occupancy EH-1; MQTT M2S1304</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1305</systemName>
       <userName>Block 13-6</userName>
-      <comment>Occupancy Engine House 2; MQTT M2S1305</comment>
+      <comment>Occupancy EH-2; MQTT M2S1305</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1306</systemName>
       <userName>Block 13-7</userName>
-      <comment>Occupancy Engine House 3; MQTT M2S1306</comment>
+      <comment>Occupancy EH-3; MQTT M2S1306</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1307</systemName>
@@ -434,795 +436,996 @@
   <sensors class="jmri.jmrix.openlcb.configurexml.OlcbSensorManagerXml">
     <sensor inverted="false">
       <systemName>MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB</systemName>
+      <userName>OLCB leftover 114</userName>
+      <comment>OLCB leftover 114</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED</systemName>
+      <userName>OLCB leftover 115</userName>
+      <comment>OLCB leftover 115</comment>
     </sensor>
   </sensors>
   <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
     <defaultInitialState>unknown</defaultInitialState>
     <sensor inverted="false">
       <systemName>IS1:LEVER</systemName>
+      <userName>CTC 101 lever</userName>
       <comment>USS CTC Switch 101: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS1:SWNI</systemName>
+      <userName>CTC 101 N ind</userName>
       <comment>USS CTC Switch 101: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS1:SWRI</systemName>
+      <userName>CTC 101 R ind</userName>
       <comment>USS CTC Switch 101: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:CALLON</systemName>
+      <userName>CTC 101 sig call-on</userName>
       <comment>USS CTC Switch 101 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:CB</systemName>
+      <userName>CTC 101 sig code</userName>
       <comment>USS CTC Switch 101 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LDGK</systemName>
+      <userName>CTC 101 sig L lamp</userName>
       <comment>USS CTC Switch 101 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LDGL</systemName>
+      <userName>CTC 101 sig L lever</userName>
       <comment>USS CTC Switch 101 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LOCKTOGGLE</systemName>
+      <userName>CTC 101 sig local</userName>
       <comment>USS CTC Switch 101 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:NGK</systemName>
+      <userName>CTC 101 sig N lamp</userName>
       <comment>USS CTC Switch 101 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:NGL</systemName>
+      <userName>CTC 101 sig N lever</userName>
       <comment>USS CTC Switch 101 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:RDGK</systemName>
+      <userName>CTC 101 sig R lamp</userName>
       <comment>USS CTC Switch 101 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:RDGL</systemName>
+      <userName>CTC 101 sig R lever</userName>
       <comment>USS CTC Switch 101 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 101 sig unlocked</userName>
       <comment>USS CTC Switch 101 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:LEVER</systemName>
-      <comment>USS CTC Switch 100: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 100: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 100 rests Thrown</comment>
+      <userName>CTC 100 lever</userName>
+      <comment>USS CTC Switch 100: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 100: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 100: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 100 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:SWNI</systemName>
+      <userName>CTC 100 N ind</userName>
       <comment>USS CTC Switch 100: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:SWRI</systemName>
+      <userName>CTC 100 R ind</userName>
       <comment>USS CTC Switch 100: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:CALLON</systemName>
+      <userName>CTC 100 sig call-on</userName>
       <comment>USS CTC Switch 100 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:CB</systemName>
+      <userName>CTC 100 sig code</userName>
       <comment>USS CTC Switch 100 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LDGK</systemName>
+      <userName>CTC 100 sig L lamp</userName>
       <comment>USS CTC Switch 100 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LDGL</systemName>
+      <userName>CTC 100 sig L lever</userName>
       <comment>USS CTC Switch 100 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LOCKTOGGLE</systemName>
+      <userName>CTC 100 sig local</userName>
       <comment>USS CTC Switch 100 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:NGK</systemName>
+      <userName>CTC 100 sig N lamp</userName>
       <comment>USS CTC Switch 100 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:NGL</systemName>
+      <userName>CTC 100 sig N lever</userName>
       <comment>USS CTC Switch 100 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:RDGK</systemName>
+      <userName>CTC 100 sig R lamp</userName>
       <comment>USS CTC Switch 100 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:RDGL</systemName>
+      <userName>CTC 100 sig R lever</userName>
       <comment>USS CTC Switch 100 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 100 sig unlocked</userName>
       <comment>USS CTC Switch 100 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS5:LEVER</systemName>
+      <userName>CTC 102 lever</userName>
       <comment>USS CTC Switch 102: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS5:SWNI</systemName>
+      <userName>CTC 102 N ind</userName>
       <comment>USS CTC Switch 102: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS5:SWRI</systemName>
+      <userName>CTC 102 R ind</userName>
       <comment>USS CTC Switch 102: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:CALLON</systemName>
+      <userName>CTC 102 sig call-on</userName>
       <comment>USS CTC Switch 102 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:CB</systemName>
+      <userName>CTC 102 sig code</userName>
       <comment>USS CTC Switch 102 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LDGK</systemName>
+      <userName>CTC 102 sig L lamp</userName>
       <comment>USS CTC Switch 102 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LDGL</systemName>
+      <userName>CTC 102 sig L lever</userName>
       <comment>USS CTC Switch 102 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LOCKTOGGLE</systemName>
+      <userName>CTC 102 sig local</userName>
       <comment>USS CTC Switch 102 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:NGK</systemName>
+      <userName>CTC 102 sig N lamp</userName>
       <comment>USS CTC Switch 102 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:NGL</systemName>
+      <userName>CTC 102 sig N lever</userName>
       <comment>USS CTC Switch 102 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:RDGK</systemName>
+      <userName>CTC 102 sig R lamp</userName>
       <comment>USS CTC Switch 102 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:RDGL</systemName>
+      <userName>CTC 102 sig R lever</userName>
       <comment>USS CTC Switch 102 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 102 sig unlocked</userName>
       <comment>USS CTC Switch 102 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS7:LEVER</systemName>
+      <userName>CTC 117 lever</userName>
       <comment>USS CTC Switch 117: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS7:SWNI</systemName>
+      <userName>CTC 117 N ind</userName>
       <comment>USS CTC Switch 117: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS7:SWRI</systemName>
+      <userName>CTC 117 R ind</userName>
       <comment>USS CTC Switch 117: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:CALLON</systemName>
+      <userName>CTC 117 sig call-on</userName>
       <comment>USS CTC Switch 117 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:CB</systemName>
+      <userName>CTC 117 sig code</userName>
       <comment>USS CTC Switch 117 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LDGK</systemName>
+      <userName>CTC 117 sig L lamp</userName>
       <comment>USS CTC Switch 117 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LDGL</systemName>
+      <userName>CTC 117 sig L lever</userName>
       <comment>USS CTC Switch 117 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LOCKTOGGLE</systemName>
+      <userName>CTC 117 sig local</userName>
       <comment>USS CTC Switch 117 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:NGK</systemName>
+      <userName>CTC 117 sig N lamp</userName>
       <comment>USS CTC Switch 117 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:NGL</systemName>
+      <userName>CTC 117 sig N lever</userName>
       <comment>USS CTC Switch 117 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:RDGK</systemName>
+      <userName>CTC 117 sig R lamp</userName>
       <comment>USS CTC Switch 117 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:RDGL</systemName>
+      <userName>CTC 117 sig R lever</userName>
       <comment>USS CTC Switch 117 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 117 sig unlocked</userName>
       <comment>USS CTC Switch 117 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS9:LEVER</systemName>
+      <userName>CTC 116 lever</userName>
       <comment>USS CTC Switch 116: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS9:SWNI</systemName>
+      <userName>CTC 116 N ind</userName>
       <comment>USS CTC Switch 116: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS9:SWRI</systemName>
+      <userName>CTC 116 R ind</userName>
       <comment>USS CTC Switch 116: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:CALLON</systemName>
+      <userName>CTC 116 lock call-on</userName>
       <comment>USS CTC Switch 116 lock: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:CB</systemName>
+      <userName>CTC 116 lock code</userName>
       <comment>USS CTC Switch 116 lock: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LDGK</systemName>
+      <userName>CTC 116 lock L lamp</userName>
       <comment>USS CTC Switch 116 lock: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LDGL</systemName>
+      <userName>CTC 116 lock L lever</userName>
       <comment>USS CTC Switch 116 lock: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LOCKTOGGLE</systemName>
+      <userName>CTC 116 lock local</userName>
       <comment>USS CTC Switch 116 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:NGK</systemName>
+      <userName>CTC 116 lock N lamp</userName>
       <comment>USS CTC Switch 116 lock: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:NGL</systemName>
+      <userName>CTC 116 lock N lever</userName>
       <comment>USS CTC Switch 116 lock: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:RDGK</systemName>
+      <userName>CTC 116 lock R lamp</userName>
       <comment>USS CTC Switch 116 lock: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:RDGL</systemName>
+      <userName>CTC 116 lock R lever</userName>
       <comment>USS CTC Switch 116 lock: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 116 lock unlocked</userName>
       <comment>USS CTC Switch 116 lock: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS11:LEVER</systemName>
+      <userName>CTC 103 lever</userName>
       <comment>USS CTC Switch 103: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS11:SWNI</systemName>
+      <userName>CTC 103 N ind</userName>
       <comment>USS CTC Switch 103: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS11:SWRI</systemName>
+      <userName>CTC 103 R ind</userName>
       <comment>USS CTC Switch 103: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:CALLON</systemName>
+      <userName>CTC 103 lock call-on</userName>
       <comment>USS CTC Switch 103 lock: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:CB</systemName>
+      <userName>CTC 103 lock code</userName>
       <comment>USS CTC Switch 103 lock: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LDGK</systemName>
+      <userName>CTC 103 lock L lamp</userName>
       <comment>USS CTC Switch 103 lock: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LDGL</systemName>
+      <userName>CTC 103 lock L lever</userName>
       <comment>USS CTC Switch 103 lock: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LOCKTOGGLE</systemName>
+      <userName>CTC 103 lock local</userName>
       <comment>USS CTC Switch 103 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:NGK</systemName>
+      <userName>CTC 103 lock N lamp</userName>
       <comment>USS CTC Switch 103 lock: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:NGL</systemName>
+      <userName>CTC 103 lock N lever</userName>
       <comment>USS CTC Switch 103 lock: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:RDGK</systemName>
+      <userName>CTC 103 lock R lamp</userName>
       <comment>USS CTC Switch 103 lock: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:RDGL</systemName>
+      <userName>CTC 103 lock R lever</userName>
       <comment>USS CTC Switch 103 lock: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 103 lock unlocked</userName>
       <comment>USS CTC Switch 103 lock: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS13:LEVER</systemName>
+      <userName>CTC leftover 13 lever</userName>
       <comment>USS CTC CTC column 13: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS13:SWNI</systemName>
+      <userName>CTC leftover 13 N ind</userName>
       <comment>USS CTC CTC column 13: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS13:SWRI</systemName>
+      <userName>CTC leftover 13 R ind</userName>
       <comment>USS CTC CTC column 13: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:CALLON</systemName>
+      <userName>CTC leftover 14 call-on</userName>
       <comment>USS CTC CTC column 14: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:CB</systemName>
+      <userName>CTC leftover 14 code</userName>
       <comment>USS CTC CTC column 14: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:LDGK</systemName>
+      <userName>CTC leftover 14 L lamp</userName>
       <comment>USS CTC CTC column 14: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:LDGL</systemName>
+      <userName>CTC leftover 14 L lever</userName>
       <comment>USS CTC CTC column 14: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:LOCKTOGGLE</systemName>
+      <userName>CTC leftover 14 local</userName>
       <comment>USS CTC CTC column 14: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:NGK</systemName>
+      <userName>CTC leftover 14 N lamp</userName>
       <comment>USS CTC CTC column 14: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:NGL</systemName>
+      <userName>CTC leftover 14 N lever</userName>
       <comment>USS CTC CTC column 14: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:RDGK</systemName>
+      <userName>CTC leftover 14 R lamp</userName>
       <comment>USS CTC CTC column 14: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:RDGL</systemName>
+      <userName>CTC leftover 14 R lever</userName>
       <comment>USS CTC CTC column 14: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC leftover 14 unlocked</userName>
       <comment>USS CTC CTC column 14: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS15:LEVER</systemName>
+      <userName>CTC leftover 15 lever</userName>
       <comment>USS CTC CTC column 15: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS15:SWNI</systemName>
+      <userName>CTC leftover 15 N ind</userName>
       <comment>USS CTC CTC column 15: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS15:SWRI</systemName>
+      <userName>CTC leftover 15 R ind</userName>
       <comment>USS CTC CTC column 15: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:CALLON</systemName>
+      <userName>CTC leftover 16 call-on</userName>
       <comment>USS CTC CTC column 16: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:CB</systemName>
+      <userName>CTC leftover 16 code</userName>
       <comment>USS CTC CTC column 16: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:LDGK</systemName>
+      <userName>CTC leftover 16 L lamp</userName>
       <comment>USS CTC CTC column 16: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:LDGL</systemName>
+      <userName>CTC leftover 16 L lever</userName>
       <comment>USS CTC CTC column 16: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:LOCKTOGGLE</systemName>
+      <userName>CTC leftover 16 local</userName>
       <comment>USS CTC CTC column 16: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:NGK</systemName>
+      <userName>CTC leftover 16 N lamp</userName>
       <comment>USS CTC CTC column 16: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:NGL</systemName>
+      <userName>CTC leftover 16 N lever</userName>
       <comment>USS CTC CTC column 16: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:RDGK</systemName>
+      <userName>CTC leftover 16 R lamp</userName>
       <comment>USS CTC CTC column 16: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:RDGL</systemName>
+      <userName>CTC leftover 16 R lever</userName>
       <comment>USS CTC CTC column 16: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC leftover 16 unlocked</userName>
       <comment>USS CTC CTC column 16: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS17:LEVER</systemName>
+      <userName>CTC 111 lever</userName>
       <comment>USS CTC Switch 111: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS17:SWNI</systemName>
+      <userName>CTC 111 N ind</userName>
       <comment>USS CTC Switch 111: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS17:SWRI</systemName>
+      <userName>CTC 111 R ind</userName>
       <comment>USS CTC Switch 111: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:CALLON</systemName>
+      <userName>CTC 111 sig call-on</userName>
       <comment>USS CTC Switch 111 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:CB</systemName>
+      <userName>CTC 111 sig code</userName>
       <comment>USS CTC Switch 111 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LDGK</systemName>
+      <userName>CTC 111 sig L lamp</userName>
       <comment>USS CTC Switch 111 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LDGL</systemName>
+      <userName>CTC 111 sig L lever</userName>
       <comment>USS CTC Switch 111 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LOCKTOGGLE</systemName>
+      <userName>CTC 111 sig local</userName>
       <comment>USS CTC Switch 111 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:NGK</systemName>
+      <userName>CTC 111 sig N lamp</userName>
       <comment>USS CTC Switch 111 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:NGL</systemName>
+      <userName>CTC 111 sig N lever</userName>
       <comment>USS CTC Switch 111 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:RDGK</systemName>
+      <userName>CTC 111 sig R lamp</userName>
       <comment>USS CTC Switch 111 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:RDGL</systemName>
+      <userName>CTC 111 sig R lever</userName>
       <comment>USS CTC Switch 111 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 111 sig unlocked</userName>
       <comment>USS CTC Switch 111 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS19:LEVER</systemName>
+      <userName>CTC leftover 19 lever</userName>
       <comment>USS CTC CTC column 19: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS19:SWNI</systemName>
+      <userName>CTC leftover 19 N ind</userName>
       <comment>USS CTC CTC column 19: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS19:SWRI</systemName>
+      <userName>CTC leftover 19 R ind</userName>
       <comment>USS CTC CTC column 19: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:CALLON</systemName>
+      <userName>CTC leftover 20 call-on</userName>
       <comment>USS CTC CTC column 20: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:CB</systemName>
+      <userName>CTC leftover 20 code</userName>
       <comment>USS CTC CTC column 20: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:LDGK</systemName>
+      <userName>CTC leftover 20 L lamp</userName>
       <comment>USS CTC CTC column 20: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:LDGL</systemName>
+      <userName>CTC leftover 20 L lever</userName>
       <comment>USS CTC CTC column 20: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:LOCKTOGGLE</systemName>
+      <userName>CTC leftover 20 local</userName>
       <comment>USS CTC CTC column 20: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:NGK</systemName>
+      <userName>CTC leftover 20 N lamp</userName>
       <comment>USS CTC CTC column 20: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:NGL</systemName>
+      <userName>CTC leftover 20 N lever</userName>
       <comment>USS CTC CTC column 20: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:RDGK</systemName>
+      <userName>CTC leftover 20 R lamp</userName>
       <comment>USS CTC CTC column 20: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:RDGL</systemName>
+      <userName>CTC leftover 20 R lever</userName>
       <comment>USS CTC CTC column 20: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC leftover 20 unlocked</userName>
       <comment>USS CTC CTC column 20: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS21:LEVER</systemName>
+      <userName>CTC 110 lever</userName>
       <comment>USS CTC Switch 110: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS21:SWNI</systemName>
+      <userName>CTC 110 N ind</userName>
       <comment>USS CTC Switch 110: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS21:SWRI</systemName>
+      <userName>CTC 110 R ind</userName>
       <comment>USS CTC Switch 110: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:CALLON</systemName>
+      <userName>CTC 110 lock call-on</userName>
       <comment>USS CTC Switch 110 lock: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:CB</systemName>
+      <userName>CTC 110 lock code</userName>
       <comment>USS CTC Switch 110 lock: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LDGK</systemName>
+      <userName>CTC 110 lock L lamp</userName>
       <comment>USS CTC Switch 110 lock: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LDGL</systemName>
+      <userName>CTC 110 lock L lever</userName>
       <comment>USS CTC Switch 110 lock: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LOCKTOGGLE</systemName>
+      <userName>CTC 110 lock local</userName>
       <comment>USS CTC Switch 110 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:NGK</systemName>
+      <userName>CTC 110 lock N lamp</userName>
       <comment>USS CTC Switch 110 lock: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:NGL</systemName>
+      <userName>CTC 110 lock N lever</userName>
       <comment>USS CTC Switch 110 lock: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:RDGK</systemName>
+      <userName>CTC 110 lock R lamp</userName>
       <comment>USS CTC Switch 110 lock: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:RDGL</systemName>
+      <userName>CTC 110 lock R lever</userName>
       <comment>USS CTC Switch 110 lock: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 110 lock unlocked</userName>
       <comment>USS CTC Switch 110 lock: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:LEVER</systemName>
-      <comment>USS CTC Switch 112: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 112: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 112 rests Thrown</comment>
+      <userName>CTC 112 lever</userName>
+      <comment>USS CTC Switch 112: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 112: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 112: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 112 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:SWNI</systemName>
+      <userName>CTC 112 N ind</userName>
       <comment>USS CTC Switch 112: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:SWRI</systemName>
+      <userName>CTC 112 R ind</userName>
       <comment>USS CTC Switch 112: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:CALLON</systemName>
+      <userName>CTC 112 sig call-on</userName>
       <comment>USS CTC Switch 112 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:CB</systemName>
+      <userName>CTC 112 sig code</userName>
       <comment>USS CTC Switch 112 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LDGK</systemName>
+      <userName>CTC 112 sig L lamp</userName>
       <comment>USS CTC Switch 112 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LDGL</systemName>
+      <userName>CTC 112 sig L lever</userName>
       <comment>USS CTC Switch 112 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LOCKTOGGLE</systemName>
+      <userName>CTC 112 sig local</userName>
       <comment>USS CTC Switch 112 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:NGK</systemName>
+      <userName>CTC 112 sig N lamp</userName>
       <comment>USS CTC Switch 112 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:NGL</systemName>
+      <userName>CTC 112 sig N lever</userName>
       <comment>USS CTC Switch 112 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:RDGK</systemName>
+      <userName>CTC 112 sig R lamp</userName>
       <comment>USS CTC Switch 112 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:RDGL</systemName>
+      <userName>CTC 112 sig R lever</userName>
       <comment>USS CTC Switch 112 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 112 sig unlocked</userName>
       <comment>USS CTC Switch 112 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS25:LEVER</systemName>
+      <userName>CTC 113 lever</userName>
       <comment>USS CTC Switch 113: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS25:SWNI</systemName>
+      <userName>CTC 113 N ind</userName>
       <comment>USS CTC Switch 113: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS25:SWRI</systemName>
+      <userName>CTC 113 R ind</userName>
       <comment>USS CTC Switch 113: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:CALLON</systemName>
+      <userName>CTC 113 sig call-on</userName>
       <comment>USS CTC Switch 113 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:CB</systemName>
+      <userName>CTC 113 sig code</userName>
       <comment>USS CTC Switch 113 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LDGK</systemName>
+      <userName>CTC 113 sig L lamp</userName>
       <comment>USS CTC Switch 113 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LDGL</systemName>
+      <userName>CTC 113 sig L lever</userName>
       <comment>USS CTC Switch 113 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LOCKTOGGLE</systemName>
+      <userName>CTC 113 sig local</userName>
       <comment>USS CTC Switch 113 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:NGK</systemName>
+      <userName>CTC 113 sig N lamp</userName>
       <comment>USS CTC Switch 113 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:NGL</systemName>
+      <userName>CTC 113 sig N lever</userName>
       <comment>USS CTC Switch 113 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:RDGK</systemName>
+      <userName>CTC 113 sig R lamp</userName>
       <comment>USS CTC Switch 113 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:RDGL</systemName>
+      <userName>CTC 113 sig R lever</userName>
       <comment>USS CTC Switch 113 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 113 sig unlocked</userName>
       <comment>USS CTC Switch 113 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:LEVER</systemName>
-      <comment>USS CTC Switch 114: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 114: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 114 rests Thrown</comment>
+      <userName>CTC 114 lever</userName>
+      <comment>USS CTC Switch 114: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 114: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 114: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 114 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:SWNI</systemName>
+      <userName>CTC 114 N ind</userName>
       <comment>USS CTC Switch 114: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:SWRI</systemName>
+      <userName>CTC 114 R ind</userName>
       <comment>USS CTC Switch 114: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:CALLON</systemName>
+      <userName>CTC 114 sig call-on</userName>
       <comment>USS CTC Switch 114 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:CB</systemName>
+      <userName>CTC 114 sig code</userName>
       <comment>USS CTC Switch 114 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LDGK</systemName>
+      <userName>CTC 114 sig L lamp</userName>
       <comment>USS CTC Switch 114 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LDGL</systemName>
+      <userName>CTC 114 sig L lever</userName>
       <comment>USS CTC Switch 114 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LOCKTOGGLE</systemName>
+      <userName>CTC 114 sig local</userName>
       <comment>USS CTC Switch 114 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:NGK</systemName>
+      <userName>CTC 114 sig N lamp</userName>
       <comment>USS CTC Switch 114 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:NGL</systemName>
+      <userName>CTC 114 sig N lever</userName>
       <comment>USS CTC Switch 114 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:RDGK</systemName>
+      <userName>CTC 114 sig R lamp</userName>
       <comment>USS CTC Switch 114 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:RDGL</systemName>
+      <userName>CTC 114 sig R lever</userName>
       <comment>USS CTC Switch 114 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 114 sig unlocked</userName>
       <comment>USS CTC Switch 114 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:LEVER</systemName>
-      <comment>USS CTC Switch 115: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 115: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 115 rests Thrown</comment>
+      <userName>CTC 115 lever</userName>
+      <comment>USS CTC Switch 115: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 115: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 115: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 115 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:SWNI</systemName>
+      <userName>CTC 115 N ind</userName>
       <comment>USS CTC Switch 115: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:SWRI</systemName>
+      <userName>CTC 115 R ind</userName>
       <comment>USS CTC Switch 115: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:CALLON</systemName>
+      <userName>CTC 115 sig call-on</userName>
       <comment>USS CTC Switch 115 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:CB</systemName>
+      <userName>CTC 115 sig code</userName>
       <comment>USS CTC Switch 115 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LDGK</systemName>
+      <userName>CTC 115 sig L lamp</userName>
       <comment>USS CTC Switch 115 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LDGL</systemName>
+      <userName>CTC 115 sig L lever</userName>
       <comment>USS CTC Switch 115 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LOCKTOGGLE</systemName>
+      <userName>CTC 115 sig local</userName>
       <comment>USS CTC Switch 115 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:NGK</systemName>
+      <userName>CTC 115 sig N lamp</userName>
       <comment>USS CTC Switch 115 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:NGL</systemName>
+      <userName>CTC 115 sig N lever</userName>
       <comment>USS CTC Switch 115 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:RDGK</systemName>
+      <userName>CTC 115 sig R lamp</userName>
       <comment>USS CTC Switch 115 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:RDGL</systemName>
+      <userName>CTC 115 sig R lever</userName>
       <comment>USS CTC Switch 115 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:UNLOCKEDINDICATOR</systemName>
+      <userName>CTC 115 sig unlocked</userName>
       <comment>USS CTC Switch 115 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DEBUGCTC</systemName>
+      <userName>CTC debug</userName>
+      <comment>USS CTC debug</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:0</systemName>
@@ -1232,98 +1435,122 @@
     <sensor inverted="false">
       <systemName>IS:DSCT:1</systemName>
       <userName>startDispatcherSensor</userName>
+      <comment>Dispatcher System startDispatcherSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:2</systemName>
       <userName>stopMasterSensor</userName>
+      <comment>Dispatcher System stopMasterSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:3</systemName>
       <userName>modifyMasterSensor</userName>
+      <comment>Dispatcher System modifyMasterSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:4</systemName>
       <userName>Express</userName>
+      <comment>Dispatcher System Express</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:5</systemName>
       <userName>newTrainSensor</userName>
+      <comment>Dispatcher System newTrainSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:6</systemName>
       <userName>soundSensor</userName>
+      <comment>Dispatcher System soundSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:7</systemName>
       <userName>simulateSensor</userName>
+      <comment>Dispatcher System simulateSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:8</systemName>
       <userName>checkRouteSensor</userName>
+      <comment>Dispatcher System checkRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:9</systemName>
       <userName>stopAtStopSensor</userName>
+      <comment>Dispatcher System stopAtStopSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:10</systemName>
       <userName>setDispatchSensor</userName>
+      <comment>Dispatcher System setDispatchSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:11</systemName>
       <userName>setRouteSensor</userName>
+      <comment>Dispatcher System setRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:12</systemName>
       <userName>setStoppingDistanceSensor</userName>
+      <comment>Dispatcher System setStoppingDistanceSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:13</systemName>
       <userName>setStopSensor</userName>
+      <comment>Dispatcher System setStopSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:14</systemName>
       <userName>setStationWaitTimeSensor</userName>
+      <comment>Dispatcher System setStationWaitTimeSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:15</systemName>
       <userName>setStationDirectionSensor</userName>
+      <comment>Dispatcher System setStationDirectionSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:16</systemName>
       <userName>setTransitBlockRestrictionSensor</userName>
+      <comment>Dispatcher System setTransitBlockRestrictionSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:17</systemName>
       <userName>runRouteSensor</userName>
+      <comment>Dispatcher System runRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:18</systemName>
       <userName>editRoutesSensor</userName>
+      <comment>Dispatcher System editRoutesSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:19</systemName>
       <userName>viewScheduledSensor</userName>
+      <comment>Dispatcher System viewScheduledSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:20</systemName>
       <userName>showClockSensor</userName>
+      <comment>Dispatcher System showClockSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:21</systemName>
       <userName>startSchedulerSensor</userName>
+      <comment>Dispatcher System startSchedulerSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:22</systemName>
       <userName>timetableSensor</userName>
+      <comment>Dispatcher System timetableSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:23</systemName>
       <userName>departureTimeSensor</userName>
+      <comment>Dispatcher System departureTimeSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:24</systemName>
       <userName>helpSensor</userName>
+      <comment>Dispatcher System helpSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCTA:0</systemName>
@@ -1333,464 +1560,581 @@
     <sensor inverted="false">
       <systemName>IS:DSMP:1</systemName>
       <userName>MoveInProgressBarn</userName>
+      <comment>Dispatcher System move-in-progress for Barn</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:2</systemName>
       <userName>MoveInProgressBrick-Plane</userName>
+      <comment>Dispatcher System move-in-progress for Brick-Plane</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:3</systemName>
       <userName>MoveInProgressEast_Main_Ext</userName>
+      <comment>Dispatcher System move-in-progress for East Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:4</systemName>
-      <userName>MoveInProgressEngine_House_1</userName>
+      <userName>MoveInProgressEH-1</userName>
+      <comment>Dispatcher System move-in-progress for EH-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:5</systemName>
-      <userName>MoveInProgressEngine_House_2</userName>
+      <userName>MoveInProgressEH-2</userName>
+      <comment>Dispatcher System move-in-progress for EH-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:6</systemName>
-      <userName>MoveInProgressEngine_House_3</userName>
+      <userName>MoveInProgressEH-3</userName>
+      <comment>Dispatcher System move-in-progress for EH-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:7</systemName>
       <userName>MoveInProgressK-1</userName>
+      <comment>Dispatcher System move-in-progress for K-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:8</systemName>
       <userName>MoveInProgressK-2</userName>
+      <comment>Dispatcher System move-in-progress for K-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:9</systemName>
       <userName>MoveInProgressMain_East</userName>
+      <comment>Dispatcher System move-in-progress for Main East</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:10</systemName>
       <userName>MoveInProgressMain_West</userName>
+      <comment>Dispatcher System move-in-progress for Main West</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:11</systemName>
       <userName>MoveInProgressMcKees_Rocks</userName>
+      <comment>Dispatcher System move-in-progress for McKees Rocks</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:12</systemName>
       <userName>MoveInProgressMcKeesport</userName>
+      <comment>Dispatcher System move-in-progress for McKeesport</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:13</systemName>
       <userName>MoveInProgressScale</userName>
+      <comment>Dispatcher System move-in-progress for Scale</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:14</systemName>
       <userName>MoveInProgressS-1</userName>
+      <comment>Dispatcher System move-in-progress for S-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:15</systemName>
       <userName>MoveInProgressS-2</userName>
+      <comment>Dispatcher System move-in-progress for S-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:16</systemName>
       <userName>MoveInProgressS-3</userName>
+      <comment>Dispatcher System move-in-progress for S-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:17</systemName>
       <userName>MoveInProgressS-4</userName>
+      <comment>Dispatcher System move-in-progress for S-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:18</systemName>
       <userName>MoveInProgressS-5</userName>
+      <comment>Dispatcher System move-in-progress for S-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:19</systemName>
-      <userName>MoveInProgressSouth_Yard_East</userName>
+      <userName>MoveInProgressEast_Lead</userName>
+      <comment>Dispatcher System move-in-progress for East Lead</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:20</systemName>
       <userName>MoveInProgressWest_Main_Ext</userName>
+      <comment>Dispatcher System move-in-progress for West Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:21</systemName>
-      <userName>MoveInProgressWest_Yard_1</userName>
+      <userName>MoveInProgressW-1</userName>
+      <comment>Dispatcher System move-in-progress for W-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:22</systemName>
-      <userName>MoveInProgressWest_Yard_2</userName>
+      <userName>MoveInProgressW-2</userName>
+      <comment>Dispatcher System move-in-progress for W-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:1</systemName>
       <userName>MoveToBarn_stored</userName>
+      <comment>Dispatcher System MoveTo for Barn</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:2</systemName>
       <userName>MoveToBrick-Plane_stored</userName>
+      <comment>Dispatcher System MoveTo for Brick-Plane</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:3</systemName>
       <userName>MoveToEast_Main_Ext_stored</userName>
+      <comment>Dispatcher System MoveTo for East Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:4</systemName>
-      <userName>MoveToEngine_House_1_stored</userName>
+      <userName>MoveToEH-1_stored</userName>
+      <comment>Dispatcher System MoveTo for EH-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:5</systemName>
-      <userName>MoveToEngine_House_2_stored</userName>
+      <userName>MoveToEH-2_stored</userName>
+      <comment>Dispatcher System MoveTo for EH-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:6</systemName>
-      <userName>MoveToEngine_House_3_stored</userName>
+      <userName>MoveToEH-3_stored</userName>
+      <comment>Dispatcher System MoveTo for EH-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:7</systemName>
       <userName>MoveToK-1_stored</userName>
+      <comment>Dispatcher System MoveTo for K-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:8</systemName>
       <userName>MoveToK-2_stored</userName>
+      <comment>Dispatcher System MoveTo for K-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:9</systemName>
       <userName>MoveToMain_East_stored</userName>
+      <comment>Dispatcher System MoveTo for Main East</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:10</systemName>
       <userName>MoveToMain_West_stored</userName>
+      <comment>Dispatcher System MoveTo for Main West</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:11</systemName>
       <userName>MoveToMcKees_Rocks_stored</userName>
+      <comment>Dispatcher System MoveTo for McKees Rocks</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:12</systemName>
       <userName>MoveToMcKeesport_stored</userName>
+      <comment>Dispatcher System MoveTo for McKeesport</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:13</systemName>
       <userName>MoveToScale_stored</userName>
+      <comment>Dispatcher System MoveTo for Scale</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:14</systemName>
       <userName>MoveToS-1_stored</userName>
+      <comment>Dispatcher System MoveTo for S-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:15</systemName>
       <userName>MoveToS-2_stored</userName>
+      <comment>Dispatcher System MoveTo for S-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:16</systemName>
       <userName>MoveToS-3_stored</userName>
+      <comment>Dispatcher System MoveTo for S-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:17</systemName>
       <userName>MoveToS-4_stored</userName>
+      <comment>Dispatcher System MoveTo for S-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:18</systemName>
       <userName>MoveToS-5_stored</userName>
+      <comment>Dispatcher System MoveTo for S-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:19</systemName>
-      <userName>MoveToSouth_Yard_East_stored</userName>
+      <userName>MoveToEast_Lead_stored</userName>
+      <comment>Dispatcher System MoveTo for East Lead</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:20</systemName>
       <userName>MoveToWest_Main_Ext_stored</userName>
+      <comment>Dispatcher System MoveTo for West Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:21</systemName>
-      <userName>MoveToWest_Yard_1_stored</userName>
+      <userName>MoveToW-1_stored</userName>
+      <comment>Dispatcher System MoveTo for W-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:22</systemName>
-      <userName>MoveToWest_Yard_2_stored</userName>
+      <userName>MoveToW-2_stored</userName>
+      <comment>Dispatcher System MoveTo for W-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:FLEETING</systemName>
+      <userName>CTC fleeting</userName>
+      <comment>USS CTC fleeting</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0247:forward</systemName>
       <userName>IY:AUTO:0247:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0247:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0247:reverse</systemName>
       <userName>IY:AUTO:0247:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0247:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0248:forward</systemName>
       <userName>IY:AUTO:0248:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0248:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0248:reverse</systemName>
       <userName>IY:AUTO:0248:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0248:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0249:forward</systemName>
       <userName>IY:AUTO:0249:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0249:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0249:reverse</systemName>
       <userName>IY:AUTO:0249:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0249:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0250:forward</systemName>
       <userName>IY:AUTO:0250:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0250:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0250:reverse</systemName>
       <userName>IY:AUTO:0250:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0250:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0251:forward</systemName>
       <userName>IY:AUTO:0251:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0251:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0251:reverse</systemName>
       <userName>IY:AUTO:0251:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0251:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0252:forward</systemName>
       <userName>IY:AUTO:0252:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0252:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0252:reverse</systemName>
       <userName>IY:AUTO:0252:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0252:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0253:forward</systemName>
       <userName>IY:AUTO:0253:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0253:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0253:reverse</systemName>
       <userName>IY:AUTO:0253:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0253:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0254:forward</systemName>
       <userName>IY:AUTO:0254:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0254:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0254:reverse</systemName>
       <userName>IY:AUTO:0254:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0254:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0255:forward</systemName>
       <userName>IY:AUTO:0255:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0255:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0255:reverse</systemName>
       <userName>IY:AUTO:0255:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0255:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0256:forward</systemName>
       <userName>IY:AUTO:0256:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0256:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0256:reverse</systemName>
       <userName>IY:AUTO:0256:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0256:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0257:forward</systemName>
       <userName>IY:AUTO:0257:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0257:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0257:reverse</systemName>
       <userName>IY:AUTO:0257:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0257:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0258:forward</systemName>
       <userName>IY:AUTO:0258:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0258:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0258:reverse</systemName>
       <userName>IY:AUTO:0258:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0258:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0259:forward</systemName>
       <userName>IY:AUTO:0259:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0259:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0259:reverse</systemName>
       <userName>IY:AUTO:0259:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0259:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0260:forward</systemName>
       <userName>IY:AUTO:0260:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0260:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0260:reverse</systemName>
       <userName>IY:AUTO:0260:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0260:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0261:forward</systemName>
       <userName>IY:AUTO:0261:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0261:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0261:reverse</systemName>
       <userName>IY:AUTO:0261:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0261:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0262:forward</systemName>
       <userName>IY:AUTO:0262:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0262:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0262:reverse</systemName>
       <userName>IY:AUTO:0262:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0262:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0263:forward</systemName>
       <userName>IY:AUTO:0263:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0263:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0263:reverse</systemName>
       <userName>IY:AUTO:0263:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0263:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0264:forward</systemName>
       <userName>IY:AUTO:0264:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0264:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0264:reverse</systemName>
       <userName>IY:AUTO:0264:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0264:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0265:forward</systemName>
       <userName>IY:AUTO:0265:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0265:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0265:reverse</systemName>
       <userName>IY:AUTO:0265:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0265:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0266:forward</systemName>
       <userName>IY:AUTO:0266:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0266:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0266:reverse</systemName>
       <userName>IY:AUTO:0266:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0266:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0267:forward</systemName>
       <userName>IY:AUTO:0267:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0267:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0267:reverse</systemName>
       <userName>IY:AUTO:0267:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0267:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0268:forward</systemName>
       <userName>IY:AUTO:0268:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0268:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0268:reverse</systemName>
       <userName>IY:AUTO:0268:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0268:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0269:forward</systemName>
       <userName>IY:AUTO:0269:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0269:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0269:reverse</systemName>
       <userName>IY:AUTO:0269:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0269:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0270:forward</systemName>
       <userName>IY:AUTO:0270:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0270:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0270:reverse</systemName>
       <userName>IY:AUTO:0270:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0270:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0271:forward</systemName>
       <userName>IY:AUTO:0271:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0271:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0271:reverse</systemName>
       <userName>IY:AUTO:0271:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0271:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0272:forward</systemName>
       <userName>IY:AUTO:0272:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0272:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0272:reverse</systemName>
       <userName>IY:AUTO:0272:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0272:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0273:forward</systemName>
       <userName>IY:AUTO:0273:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0273:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0273:reverse</systemName>
       <userName>IY:AUTO:0273:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0273:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0274:forward</systemName>
       <userName>IY:AUTO:0274:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0274:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0274:reverse</systemName>
       <userName>IY:AUTO:0274:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0274:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0275:forward</systemName>
       <userName>IY:AUTO:0275:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0275:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0275:reverse</systemName>
       <userName>IY:AUTO:0275:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0275:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0276:forward</systemName>
       <userName>IY:AUTO:0276:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0276:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0276:reverse</systemName>
       <userName>IY:AUTO:0276:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0276:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0277:forward</systemName>
       <userName>IY:AUTO:0277:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0277:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0277:reverse</systemName>
       <userName>IY:AUTO:0277:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0277:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0278:forward</systemName>
       <userName>IY:AUTO:0278:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0278:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0278:reverse</systemName>
       <userName>IY:AUTO:0278:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0278:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0279:forward</systemName>
       <userName>IY:AUTO:0279:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0279:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0279:reverse</systemName>
       <userName>IY:AUTO:0279:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0279:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0280:forward</systemName>
       <userName>IY:AUTO:0280:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0280:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0280:reverse</systemName>
       <userName>IY:AUTO:0280:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0280:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:PRECONDITIONING_ENABLED</systemName>
+      <userName>Dispatcher preconditioning</userName>
       <comment>Dispatcher preconditioning enable</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:RELOADCTC</systemName>
+      <userName>CTC reload</userName>
       <comment>Reload USS CTC configuration in place</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISCLOCKRUNNING</systemName>
+      <userName>Clock running</userName>
       <comment>JMRI fast-clock running</comment>
     </sensor>
     <sensor inverted="false">
@@ -1856,7 +2200,7 @@
     <sensor inverted="false">
       <systemName>ISNX:113RB</systemName>
       <userName>NX 113RB</userName>
-      <comment>Entry/Exit at mast 113RB; Princess, South Yard East eastbound; lever 26 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast 113RB; Princess, East Lead eastbound; lever 26 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:114LA</systemName>
@@ -2087,190 +2431,239 @@
     <defaultthrownspeed>Restricted</defaultthrownspeed>
     <turnout feedback="TWOSENSOR" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N" inverted="false" automate="Off">
       <systemName>MTT100</systemName>
+      <userName>Switch 100 alias</userName>
       <comment>OpenLCB alias of Switch 100; same FB as MQTT hardware (Switch 4-1)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 12-5 FB R" sensor2="Switch 12-5 FB N" inverted="false" automate="Off">
       <systemName>MTT111</systemName>
+      <userName>Switch 111 alias</userName>
       <comment>OpenLCB alias of Switch 111; same FB as MQTT hardware (Switch 12-5)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 1-1 FB R" sensor2="Switch 1-1 FB N" inverted="false" automate="Off">
       <systemName>MTT113</systemName>
+      <userName>Switch 113 alias</userName>
       <comment>OpenLCB alias of Switch 113; same FB as MQTT hardware (Switch 1-1)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 1-2 FB R" sensor2="Switch 1-2 FB N" inverted="false" automate="Off">
       <systemName>MTT114</systemName>
+      <userName>Switch 114 alias</userName>
       <comment>OpenLCB alias of Switch 114; same FB as MQTT hardware (Switch 1-2)</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="Switch 1-3 FB R" sensor2="Switch 1-3 FB N" inverted="false" automate="Off">
       <systemName>MTT115</systemName>
+      <userName>Switch 115 alias</userName>
       <comment>OpenLCB alias of Switch 115; same FB as MQTT hardware (Switch 1-3)</comment>
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
     <memory value="12:12 AM">
       <systemName>IMCURRENTTIME</systemName>
+      <userName>Current time</userName>
+      <comment>JMRI fast-clock time</comment>
     </memory>
     <memory value="0.2">
       <systemName>IMIS:ISMEM:versionNo</systemName>
+      <userName>Dispatcher version</userName>
+      <comment>Dispatcher System version</comment>
     </memory>
     <memory value="1.0">
       <systemName>IMRATEFACTOR</systemName>
+      <userName>Clock rate</userName>
+      <comment>JMRI fast-clock rate</comment>
     </memory>
   </memories>
   <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH132</systemName>
       <userName>115LB Top</userName>
+      <comment>Head 115LB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH133</systemName>
       <userName>115LB Bottom</userName>
+      <comment>Head 115LB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
       <userName>114R</userName>
+      <comment>Head 114R</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
       <userName>113RA Top</userName>
+      <comment>Head 113RA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH136</systemName>
       <userName>113RA Bottom</userName>
+      <comment>Head 113RA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH137</systemName>
       <userName>113RB Top</userName>
+      <comment>Head 113RB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH138</systemName>
       <userName>113RB Bottom</userName>
+      <comment>Head 113RB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH139</systemName>
       <userName>114LB Top</userName>
+      <comment>Head 114LB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH140</systemName>
       <userName>114LB Bottom</userName>
+      <comment>Head 114LB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
       <userName>115R</userName>
+      <comment>Head 115R</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH142</systemName>
       <userName>115LA</userName>
+      <comment>Head 115LA</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH143</systemName>
       <userName>114LA</userName>
+      <comment>Head 114LA</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>102LB Top</userName>
+      <comment>Head 102LB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH433</systemName>
       <userName>102LB Bottom</userName>
+      <comment>Head 102LB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH434</systemName>
       <userName>102LA Top</userName>
+      <comment>Head 102LA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH435</systemName>
       <userName>102LA Bottom</userName>
+      <comment>Head 102LA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
       <userName>101RA</userName>
+      <comment>Head 101RA</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH437</systemName>
       <userName>101RB</userName>
+      <comment>Head 101RB</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH438</systemName>
       <userName>100L Top</userName>
+      <comment>Head 100L Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH439</systemName>
       <userName>100L Bottom</userName>
+      <comment>Head 100L Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1232</systemName>
       <userName>111RA Top</userName>
+      <comment>Head 111RA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1233</systemName>
       <userName>111RA Bottom</userName>
+      <comment>Head 111RA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1234</systemName>
       <userName>111L Top</userName>
+      <comment>Head 111L Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1235</systemName>
       <userName>111L Bottom</userName>
+      <comment>Head 111L Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1236</systemName>
       <userName>111RB</userName>
+      <comment>Head 111RB</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1237</systemName>
       <userName>112L Top</userName>
+      <comment>Head 112L Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1238</systemName>
       <userName>112L Bottom</userName>
+      <comment>Head 112L Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1239</systemName>
       <userName>110R</userName>
+      <comment>Head 110R</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1240</systemName>
       <userName>112R Top</userName>
+      <comment>Head 112R Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1241</systemName>
       <userName>112R Bottom</userName>
+      <comment>Head 112R Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1332</systemName>
       <userName>117RA Top</userName>
+      <comment>Head 117RA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1333</systemName>
       <userName>117RA Bottom</userName>
+      <comment>Head 117RA Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1334</systemName>
       <userName>117LB</userName>
+      <comment>Head 117LB</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1335</systemName>
       <userName>117RB Top</userName>
+      <comment>Head 117RB Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1336</systemName>
       <userName>117RB Bottom</userName>
+      <comment>Head 117RB Bottom</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1337</systemName>
       <userName>117LA Top</userName>
+      <comment>Head 117LA Top</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1338</systemName>
       <userName>117LA Bottom</userName>
+      <comment>Head 117LA Bottom</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH134)</systemName>
       <userName>114R</userName>
+      <comment>Mast 114R</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2282,6 +2675,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH141)</systemName>
       <userName>115R</userName>
+      <comment>Mast 115R</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2293,161 +2687,193 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH142)</systemName>
       <userName>115LA</userName>
+      <comment>Mast 115LA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH143)</systemName>
       <userName>114LA</userName>
+      <comment>Mast 114LA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH436)</systemName>
       <userName>101RA</userName>
+      <comment>Mast 101RA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH437)</systemName>
       <userName>101RB</userName>
+      <comment>Mast 101RB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1236)</systemName>
       <userName>111RB</userName>
+      <comment>Mast 111RB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1239)</systemName>
       <userName>110R</userName>
+      <comment>Mast 110R</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1334)</systemName>
       <userName>117LB</userName>
+      <comment>Mast 117LB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133)</systemName>
       <userName>115LB</userName>
+      <comment>Mast 115LB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136)</systemName>
       <userName>113RA</userName>
+      <comment>Mast 113RA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138)</systemName>
       <userName>113RB</userName>
+      <comment>Mast 113RB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140)</systemName>
       <userName>114LB</userName>
+      <comment>Mast 114LB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433)</systemName>
       <userName>102LB</userName>
+      <comment>Mast 102LB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH434)(IH435)</systemName>
       <userName>102LA</userName>
+      <comment>Mast 102LA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439)</systemName>
       <userName>100L</userName>
+      <comment>Mast 100L</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233)</systemName>
       <userName>111RA</userName>
+      <comment>Mast 111RA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235)</systemName>
       <userName>111L</userName>
+      <comment>Mast 111L</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238)</systemName>
       <userName>112L</userName>
+      <comment>Mast 112L</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)</systemName>
       <userName>112R</userName>
+      <comment>Mast 112R</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333)</systemName>
       <userName>117RA</userName>
+      <comment>Mast 117RA</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336)</systemName>
       <userName>117RB</userName>
+      <comment>Mast 117RB</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338)</systemName>
       <userName>117LA</userName>
+      <comment>Mast 117LA</comment>
       <unlit allowed="no" />
     </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
       <userName>101LA</userName>
+      <comment>Mast 101LA</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
       <userName>101LB</userName>
+      <comment>Mast 101LB</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1003)</systemName>
       <userName>115RA</userName>
+      <comment>Mast 115RA</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1004)</systemName>
       <userName>114RA</userName>
+      <comment>Mast 114RA</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1005)</systemName>
       <userName>118L</userName>
+      <comment>Mast 118L</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1006)</systemName>
       <userName>119LA</userName>
+      <comment>Mast 119LA</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1007)</systemName>
       <userName>119LB</userName>
+      <comment>Mast 119LB</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1008)</systemName>
       <userName>104L</userName>
+      <comment>Mast 104L</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1009)</systemName>
       <userName>105L</userName>
+      <comment>Mast 105L</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1010)</systemName>
       <userName>106L</userName>
+      <comment>Mast 106L</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1011)</systemName>
       <userName>107L</userName>
+      <comment>Mast 107L</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
   </signalmasts>
@@ -2456,187 +2882,232 @@
     <block systemName="IB1">
       <systemName>IB1</systemName>
       <userName>OS 116</userName>
+      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
     </block>
     <block systemName="IB3">
       <systemName>IB3</systemName>
       <userName>Scale</userName>
+      <comment>Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop</comment>
     </block>
     <block systemName="IB6">
       <systemName>IB6</systemName>
       <userName>OS 117b</userName>
+      <comment>Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
     </block>
     <block systemName="IB8">
       <systemName>IB8</systemName>
       <userName>OS 117</userName>
+      <comment>Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
     </block>
     <block systemName="IB15">
       <systemName>IB15</systemName>
       <userName>Barn</userName>
+      <comment>Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop</comment>
     </block>
     <block systemName="IB18">
       <systemName>IB18</systemName>
       <userName>OS 119</userName>
+      <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
     </block>
     <block systemName="IB19">
       <systemName>IB19</systemName>
       <userName>OS 118</userName>
+      <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
     </block>
     <block systemName="IB20">
       <systemName>IB20</systemName>
-      <userName>Engine House 1</userName>
+      <userName>EH-1</userName>
+      <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
     </block>
     <block systemName="IB21">
       <systemName>IB21</systemName>
-      <userName>Engine House 2</userName>
+      <userName>EH-2</userName>
+      <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
     </block>
     <block systemName="IB22">
       <systemName>IB22</systemName>
-      <userName>Engine House 3</userName>
+      <userName>EH-3</userName>
+      <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
     </block>
     <block systemName="IB23">
       <systemName>IB23</systemName>
       <userName>K-1</userName>
+      <comment>Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop</comment>
     </block>
     <block systemName="IB24">
       <systemName>IB24</systemName>
       <userName>K-2</userName>
+      <comment>Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop</comment>
     </block>
     <block systemName="IB:AUTO:0001">
       <systemName>IB:AUTO:0001</systemName>
       <userName>Main East</userName>
+      <comment>Main east of East End; occupancy Block 2-3 / M2S202; stop</comment>
     </block>
     <block systemName="IB:AUTO:0003">
       <systemName>IB:AUTO:0003</systemName>
       <userName>Main West</userName>
+      <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop</comment>
     </block>
     <block systemName="IB:AUTO:0005">
       <systemName>IB:AUTO:0005</systemName>
       <userName>Brick-Plane</userName>
+      <comment>Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop</comment>
     </block>
     <block systemName="IB:AUTO:0007">
       <systemName>IB:AUTO:0007</systemName>
       <userName>S-5</userName>
+      <comment>South Yard body; occupancy Block 2-4 / M2S203; stop</comment>
     </block>
     <block systemName="IB:AUTO:0008">
       <systemName>IB:AUTO:0008</systemName>
       <userName>S-4</userName>
+      <comment>South Yard body; occupancy Block 2-5 / M2S204; stop</comment>
     </block>
     <block systemName="IB:AUTO:0010">
       <systemName>IB:AUTO:0010</systemName>
       <userName>McKees Rocks</userName>
+      <comment>Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop</comment>
     </block>
     <block systemName="IB:AUTO:0012">
       <systemName>IB:AUTO:0012</systemName>
       <userName>S-1</userName>
+      <comment>Run-through east of 103; occupancy Block 2-8 / M2S207; stop</comment>
     </block>
     <block systemName="IB:AUTO:0016">
       <systemName>IB:AUTO:0016</systemName>
       <userName>S-2</userName>
+      <comment>South Yard body; occupancy Block 2-7 / M2S206; stop</comment>
     </block>
     <block systemName="IB:AUTO:0017">
       <systemName>IB:AUTO:0017</systemName>
-      <userName>South Yard East</userName>
+      <userName>East Lead</userName>
+      <comment>South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
     </block>
     <block systemName="IB:AUTO:0020">
       <systemName>IB:AUTO:0020</systemName>
-      <userName>West Yard 1</userName>
+      <userName>W-1</userName>
+      <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop</comment>
     </block>
     <block systemName="IB:AUTO:0022">
       <systemName>IB:AUTO:0022</systemName>
-      <userName>West Yard 2</userName>
+      <userName>W-2</userName>
+      <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop</comment>
     </block>
     <block systemName="IB:AUTO:0026">
       <systemName>IB:AUTO:0026</systemName>
       <userName>S-3</userName>
+      <comment>South Yard body; occupancy Block 2-6 / M2S205; stop</comment>
     </block>
     <block systemName="IB:AUTO:0030">
       <systemName>IB:AUTO:0030</systemName>
       <userName>OS 112</userName>
+      <comment>East End, Switch 112; occupancy Block 12-8 / M2S1207</comment>
     </block>
     <block systemName="IB:AUTO:0031">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS 102</userName>
+      <comment>Plane CP, Switch 102; occupancy Block 4-5 / M2S404</comment>
     </block>
     <block systemName="IB:AUTO:0032">
       <systemName>IB:AUTO:0032</systemName>
       <userName>OS 114</userName>
+      <comment>Princess, Switch 114 (same detector as K-2); occupancy Block 1-3 / M2S102</comment>
     </block>
     <block systemName="IB:AUTO:0033">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS 100</userName>
+      <comment>Brick CP, Switch 100; occupancy Block 4-2 / M2S401</comment>
     </block>
     <block systemName="IB:AUTO:0034">
       <systemName>IB:AUTO:0034</systemName>
       <userName>OS 111a</userName>
+      <comment>East End crossover 111 north/west leg; occupancy Block 12-4 / M2S1203</comment>
     </block>
     <block systemName="IB:AUTO:0035">
       <systemName>IB:AUTO:0035</systemName>
       <userName>OS 101</userName>
+      <comment>Brick CP, Switch 101; occupancy Block 4-1 / M2S400</comment>
     </block>
     <block systemName="IB:AUTO:0036">
       <systemName>IB:AUTO:0036</systemName>
       <userName>OS 107</userName>
+      <comment>East End, Switch 107; occupancy Block 12-1 / M2S1200</comment>
     </block>
     <block systemName="IB:AUTO:0037">
       <systemName>IB:AUTO:0037</systemName>
       <userName>OS 108</userName>
+      <comment>East End, Switch 108; occupancy Block 12-3 / M2S1202</comment>
     </block>
     <block systemName="IB:AUTO:0038">
       <systemName>IB:AUTO:0038</systemName>
       <userName>OS 106</userName>
+      <comment>South Yard, Switch 106; occupancy Block 3-7 / M2S306</comment>
     </block>
     <block systemName="IB:AUTO:0039">
       <systemName>IB:AUTO:0039</systemName>
       <userName>OS 111b</userName>
+      <comment>East End crossover 111 south/east leg; occupancy Block 12-6 / M2S1205</comment>
     </block>
     <block systemName="IB:AUTO:0040">
       <systemName>IB:AUTO:0040</systemName>
       <userName>OS 115</userName>
+      <comment>Princess, Switch 115 (same detector as K-1); occupancy Block 1-4 / M2S103</comment>
     </block>
     <block systemName="IB:AUTO:0041">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS 103</userName>
+      <comment>South Yard, Switch 103; occupancy Block 3-2 / M2S301</comment>
     </block>
     <block systemName="IB:AUTO:0042">
       <systemName>IB:AUTO:0042</systemName>
       <userName>OS 110</userName>
+      <comment>East End, Switch 110; occupancy Block 12-7 / M2S1206</comment>
     </block>
     <block systemName="IB:AUTO:0043">
       <systemName>IB:AUTO:0043</systemName>
       <userName>OS 109</userName>
+      <comment>East End, Switch 109; occupancy Block 12-5 / M2S1204</comment>
     </block>
     <block systemName="IB:AUTO:0044">
       <systemName>IB:AUTO:0044</systemName>
       <userName>OS 104</userName>
+      <comment>South Yard, Switch 104; occupancy Block 3-3 / M2S302</comment>
     </block>
     <block systemName="IB:AUTO:0045">
       <systemName>IB:AUTO:0045</systemName>
       <userName>OS 105</userName>
+      <comment>South Yard, Switch 105; occupancy Block 3-5 / M2S304</comment>
     </block>
     <block systemName="IB:AUTO:0046">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS 113a</userName>
+      <comment>Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105</comment>
     </block>
     <block systemName="IB:AUTO:0047">
       <systemName>IB:AUTO:0047</systemName>
       <userName>OS 113b</userName>
+      <comment>Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104</comment>
     </block>
     <block systemName="IB:AUTO:0048">
       <systemName>IB:AUTO:0048</systemName>
       <userName>McKeesport</userName>
+      <comment>Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop</comment>
     </block>
     <block systemName="IB:AUTO:0050">
       <systemName>IB:AUTO:0050</systemName>
       <userName>West Main Ext</userName>
+      <comment>Main West stub west of 111; occupancy Block 1-8 / M2S107; stop</comment>
     </block>
     <block systemName="IB:AUTO:0051">
       <systemName>IB:AUTO:0051</systemName>
       <userName>East Main Ext</userName>
+      <comment>Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop</comment>
     </block>
     <block systemName="IB1" length="254.0" curve="0">
       <systemName>IB1</systemName>
       <userName>OS 116</userName>
-      <comment>Hand-throw west of S-103; occupancy Block 3-1 / M2S300</comment>
+      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 3-1</occupancysensor>
       <path todir="128" fromdir="64" block="IB15">
@@ -2763,7 +3234,7 @@
     </block>
     <block systemName="IB20" length="609.6" curve="0">
       <systemName>IB20</systemName>
-      <userName>Engine House 1</userName>
+      <userName>EH-1</userName>
       <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-5</occupancysensor>
@@ -2775,7 +3246,7 @@
     </block>
     <block systemName="IB21" length="609.6" curve="0">
       <systemName>IB21</systemName>
-      <userName>Engine House 2</userName>
+      <userName>EH-2</userName>
       <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-6</occupancysensor>
@@ -2787,7 +3258,7 @@
     </block>
     <block systemName="IB22" length="609.6" curve="0">
       <systemName>IB22</systemName>
-      <userName>Engine House 3</userName>
+      <userName>EH-3</userName>
       <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 13-7</occupancysensor>
@@ -2943,7 +3414,7 @@
     </block>
     <block systemName="IB:AUTO:0017" length="4368.8" curve="0">
       <systemName>IB:AUTO:0017</systemName>
-      <userName>South Yard East</userName>
+      <userName>East Lead</userName>
       <comment>South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 1-7</occupancysensor>
@@ -2952,7 +3423,7 @@
     </block>
     <block systemName="IB:AUTO:0020" length="2667.0" curve="0">
       <systemName>IB:AUTO:0020</systemName>
-      <userName>West Yard 1</userName>
+      <userName>W-1</userName>
       <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-4</occupancysensor>
@@ -2964,7 +3435,7 @@
     </block>
     <block systemName="IB:AUTO:0022" length="2362.2" curve="0">
       <systemName>IB:AUTO:0022</systemName>
-      <userName>West Yard 2</userName>
+      <userName>W-2</userName>
       <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 4-3</occupancysensor>
@@ -3375,182 +3846,227 @@
     <layoutblock systemName="ILB1" occupancysensor="Block 2-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1</systemName>
       <userName>Main East</userName>
+      <comment>Main east of East End; occupancy Block 2-3 / M2S202; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB3" occupancysensor="Block 2-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB3</systemName>
       <userName>Main West</userName>
+      <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB5" occupancysensor="Block 4-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB5</systemName>
       <userName>Brick-Plane</userName>
+      <comment>Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB7" occupancysensor="Block 2-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB7</systemName>
       <userName>S-5</userName>
+      <comment>South Yard body; occupancy Block 2-4 / M2S203; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB8" occupancysensor="Block 2-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB8</systemName>
       <userName>S-4</userName>
+      <comment>South Yard body; occupancy Block 2-5 / M2S204; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB10" occupancysensor="Block 1-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB10</systemName>
       <userName>McKees Rocks</userName>
+      <comment>Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB12" occupancysensor="Block 2-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB12</systemName>
       <userName>S-1</userName>
+      <comment>Run-through east of 103; occupancy Block 2-8 / M2S207; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB16" occupancysensor="Block 2-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB16</systemName>
       <userName>S-2</userName>
+      <comment>South Yard body; occupancy Block 2-7 / M2S206; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB17" occupancysensor="Block 1-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB17</systemName>
-      <userName>South Yard East</userName>
+      <userName>East Lead</userName>
+      <comment>South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB20" occupancysensor="Block 4-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB20</systemName>
-      <userName>West Yard 1</userName>
+      <userName>W-1</userName>
+      <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB22" occupancysensor="Block 4-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB22</systemName>
-      <userName>West Yard 2</userName>
+      <userName>W-2</userName>
+      <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB26" occupancysensor="Block 2-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB26</systemName>
       <userName>S-3</userName>
+      <comment>South Yard body; occupancy Block 2-6 / M2S205; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB30" occupancysensor="Block 12-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB30</systemName>
       <userName>OS 112</userName>
+      <comment>East End, Switch 112; occupancy Block 12-8 / M2S1207</comment>
     </layoutblock>
     <layoutblock systemName="ILB31" occupancysensor="Block 4-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB31</systemName>
       <userName>OS 102</userName>
+      <comment>Plane CP, Switch 102; occupancy Block 4-5 / M2S404</comment>
     </layoutblock>
     <layoutblock systemName="ILB32" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB32</systemName>
       <userName>OS 114</userName>
+      <comment>Princess, Switch 114 (same detector as K-2); occupancy Block 1-3 / M2S102</comment>
     </layoutblock>
     <layoutblock systemName="ILB33" occupancysensor="Block 4-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB33</systemName>
       <userName>OS 100</userName>
+      <comment>Brick CP, Switch 100; occupancy Block 4-2 / M2S401</comment>
     </layoutblock>
     <layoutblock systemName="ILB34" occupancysensor="Block 12-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB34</systemName>
       <userName>OS 111a</userName>
+      <comment>East End crossover 111 north/west leg; occupancy Block 12-4 / M2S1203</comment>
     </layoutblock>
     <layoutblock systemName="ILB35" occupancysensor="Block 4-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB35</systemName>
       <userName>OS 101</userName>
+      <comment>Brick CP, Switch 101; occupancy Block 4-1 / M2S400</comment>
     </layoutblock>
     <layoutblock systemName="ILB36" occupancysensor="Block 12-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB36</systemName>
       <userName>OS 107</userName>
+      <comment>East End, Switch 107; occupancy Block 12-1 / M2S1200</comment>
     </layoutblock>
     <layoutblock systemName="ILB37" occupancysensor="Block 12-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB37</systemName>
       <userName>OS 108</userName>
+      <comment>East End, Switch 108; occupancy Block 12-3 / M2S1202</comment>
     </layoutblock>
     <layoutblock systemName="ILB38" occupancysensor="Block 3-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB38</systemName>
       <userName>OS 106</userName>
+      <comment>South Yard, Switch 106; occupancy Block 3-7 / M2S306</comment>
     </layoutblock>
     <layoutblock systemName="ILB39" occupancysensor="Block 12-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB39</systemName>
       <userName>OS 111b</userName>
+      <comment>East End crossover 111 south/east leg; occupancy Block 12-6 / M2S1205</comment>
     </layoutblock>
     <layoutblock systemName="ILB40" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB40</systemName>
       <userName>OS 115</userName>
+      <comment>Princess, Switch 115 (same detector as K-1); occupancy Block 1-4 / M2S103</comment>
     </layoutblock>
     <layoutblock systemName="ILB41" occupancysensor="Block 3-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB41</systemName>
       <userName>OS 103</userName>
+      <comment>South Yard, Switch 103; occupancy Block 3-2 / M2S301</comment>
     </layoutblock>
     <layoutblock systemName="ILB42" occupancysensor="Block 12-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB42</systemName>
       <userName>OS 110</userName>
+      <comment>East End, Switch 110; occupancy Block 12-7 / M2S1206</comment>
     </layoutblock>
     <layoutblock systemName="ILB43" occupancysensor="Block 12-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB43</systemName>
       <userName>OS 109</userName>
+      <comment>East End, Switch 109; occupancy Block 12-5 / M2S1204</comment>
     </layoutblock>
     <layoutblock systemName="ILB44" occupancysensor="Block 3-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB44</systemName>
       <userName>OS 104</userName>
+      <comment>South Yard, Switch 104; occupancy Block 3-3 / M2S302</comment>
     </layoutblock>
     <layoutblock systemName="ILB45" occupancysensor="Block 3-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB45</systemName>
       <userName>OS 105</userName>
+      <comment>South Yard, Switch 105; occupancy Block 3-5 / M2S304</comment>
     </layoutblock>
     <layoutblock systemName="ILB46" occupancysensor="Block 1-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB46</systemName>
       <userName>OS 113a</userName>
+      <comment>Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105</comment>
     </layoutblock>
     <layoutblock systemName="ILB47" occupancysensor="Block 1-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB47</systemName>
       <userName>OS 113b</userName>
+      <comment>Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104</comment>
     </layoutblock>
     <layoutblock systemName="ILB48" occupancysensor="Block 3-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB48</systemName>
       <userName>OS 116</userName>
+      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
     </layoutblock>
     <layoutblock systemName="ILB50" occupancysensor="Block 4-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB50</systemName>
       <userName>Scale</userName>
+      <comment>Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB53" occupancysensor="Block 13-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB53</systemName>
       <userName>OS 117b</userName>
+      <comment>Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
     </layoutblock>
     <layoutblock systemName="ILB55" occupancysensor="Block 13-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB55</systemName>
       <userName>OS 117</userName>
+      <comment>Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
     </layoutblock>
     <layoutblock systemName="ILB62" occupancysensor="Block 13-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB62</systemName>
       <userName>Barn</userName>
+      <comment>Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB65" occupancysensor="Block 13-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB65</systemName>
       <userName>OS 119</userName>
+      <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
     </layoutblock>
     <layoutblock systemName="ILB66" occupancysensor="Block 13-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB66</systemName>
       <userName>OS 118</userName>
+      <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
     </layoutblock>
     <layoutblock systemName="ILB67" occupancysensor="Block 13-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB67</systemName>
-      <userName>Engine House 1</userName>
+      <userName>EH-1</userName>
+      <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB68" occupancysensor="Block 13-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB68</systemName>
-      <userName>Engine House 2</userName>
+      <userName>EH-2</userName>
+      <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB69" occupancysensor="Block 13-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB69</systemName>
-      <userName>Engine House 3</userName>
+      <userName>EH-3</userName>
+      <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB72" occupancysensor="Block 1-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB72</systemName>
       <userName>McKeesport</userName>
+      <comment>Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB74" occupancysensor="Block 1-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB74</systemName>
       <userName>West Main Ext</userName>
+      <comment>Main West stub west of 111; occupancy Block 1-8 / M2S107; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB75" occupancysensor="Block 4-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB75</systemName>
       <userName>East Main Ext</userName>
+      <comment>Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB76" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB76</systemName>
       <userName>K-1</userName>
+      <comment>Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB77" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB77</systemName>
       <userName>K-2</userName>
+      <comment>Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop</comment>
     </layoutblock>
   </layoutblocks>
   <sections class="jmri.configurexml.SectionManagerXml">
@@ -4030,30 +4546,30 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0281" userName="West Yard 1" creationtype="userdefined">
+    <section systemName="IY:AUTO:0281" userName="W-1" creationtype="userdefined">
       <systemName>IY:AUTO:0281</systemName>
-      <userName>West Yard 1</userName>
+      <userName>W-1</userName>
       <blockentry sName="IB:AUTO:0020" order="0" />
       <entrypoint fromblock="IB:AUTO:0035" toblock="IB:AUTO:0020" direction="8" fixed="no" fromblockdirection="West" />
     </section>
-    <section systemName="IY:AUTO:0282" userName="West Yard 2" creationtype="userdefined">
+    <section systemName="IY:AUTO:0282" userName="W-2" creationtype="userdefined">
       <systemName>IY:AUTO:0282</systemName>
-      <userName>West Yard 2</userName>
+      <userName>W-2</userName>
       <blockentry sName="IB:AUTO:0022" order="0" />
       <entrypoint fromblock="IB:AUTO:0035" toblock="IB:AUTO:0022" direction="8" fixed="no" fromblockdirection="Southwest" />
     </section>
-    <section systemName="IY:AUTO:0283" userName="Engine House 1:::Barn" creationtype="userdefined">
+    <section systemName="IY:AUTO:0283" userName="EH-1:::Barn" creationtype="userdefined">
       <systemName>IY:AUTO:0283</systemName>
-      <userName>Engine House 1:::Barn</userName>
+      <userName>EH-1:::Barn</userName>
       <blockentry sName="IB20" order="0" />
       <blockentry sName="IB19" order="1" />
       <blockentry sName="IB1" order="2" />
       <blockentry sName="IB15" order="3" />
       <entrypoint fromblock="IB8" toblock="IB15" direction="8" fixed="no" fromblockdirection="East" />
     </section>
-    <section systemName="IY:AUTO:0284" userName="Engine House 2:::Barn" creationtype="userdefined">
+    <section systemName="IY:AUTO:0284" userName="EH-2:::Barn" creationtype="userdefined">
       <systemName>IY:AUTO:0284</systemName>
-      <userName>Engine House 2:::Barn</userName>
+      <userName>EH-2:::Barn</userName>
       <blockentry sName="IB21" order="0" />
       <blockentry sName="IB18" order="1" />
       <blockentry sName="IB19" order="2" />
@@ -4061,9 +4577,9 @@
       <blockentry sName="IB15" order="4" />
       <entrypoint fromblock="IB8" toblock="IB15" direction="8" fixed="no" fromblockdirection="East" />
     </section>
-    <section systemName="IY:AUTO:0285" userName="Engine House 3:::Barn" creationtype="userdefined">
+    <section systemName="IY:AUTO:0285" userName="EH-3:::Barn" creationtype="userdefined">
       <systemName>IY:AUTO:0285</systemName>
-      <userName>Engine House 3:::Barn</userName>
+      <userName>EH-3:::Barn</userName>
       <blockentry sName="IB22" order="0" />
       <blockentry sName="IB18" order="1" />
       <blockentry sName="IB19" order="2" />
@@ -4149,7 +4665,7 @@
       <transitsection sectionname="IY:AUTO:0267" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0275" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0254" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0170" userName="From 100L to 114R via OS 117">
@@ -4224,7 +4740,7 @@
       <transitsection sectionname="IY:AUTO:0257" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0265" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0269" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0179" userName="From 117LB to 114LB via OS 102">
@@ -4325,7 +4841,7 @@
       <userName>From 117RA to 113RB via OS 116</userName>
       <transitsection sectionname="IY:AUTO:0275" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0254" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0188" userName="From 117RA to 114R via OS 116">
@@ -4397,7 +4913,7 @@
       <transitsection sectionname="IY:AUTO:0256" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0264" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0269" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0197" userName="From 112L to 114LB via OS 117">
@@ -4486,7 +5002,7 @@
       <transitsection sectionname="IY:AUTO:0280" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0264" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0269" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0206" userName="From 112L to 114LB via OS 117b">
@@ -4585,7 +5101,7 @@
       <userName>From 117RB to 113RB via OS 112</userName>
       <transitsection sectionname="IY:AUTO:0279" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0274" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0215" userName="From 117RB to 114R via OS 112">
@@ -4660,7 +5176,7 @@
       <transitsection sectionname="IY:AUTO:0266" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0279" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0274" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0224" userName="From 111L to 114R via OS 100">
@@ -4758,7 +5274,7 @@
       <transitsection sectionname="IY:AUTO:0281" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0252" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0269" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0233" userName="From 101RA to 114LB via OS 111a">
@@ -4840,7 +5356,7 @@
       <transitsection sectionname="IY:AUTO:0266" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0279" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0274" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0241" userName="From 100L to 114R via OS 102">
@@ -4916,7 +5432,7 @@
       <userName>From 102LB to 113RB via OS 100</userName>
       <transitsection sectionname="IY:AUTO:0264" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0269" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0248" userName="From 102LB to 114LB via OS 100">
@@ -5004,7 +5520,7 @@
       <userName>From 114R to 112L via OS 115</userName>
       <transitsection sectionname="IY:AUTO:0247" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0258" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0257" userName="From 114R to 114R via OS 115">
@@ -5087,7 +5603,7 @@
       <transitsection sectionname="IY:AUTO:0260" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0248" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0263" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0266" userName="From 113RA to 114LB via McKeesport">
@@ -5200,7 +5716,7 @@
       <userName>From 117RA to 113RB via OS 111b</userName>
       <transitsection sectionname="IY:AUTO:0275" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0254" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0276" userName="From 117RA to 114R via OS 111b">
@@ -5272,7 +5788,7 @@
       <transitsection sectionname="IY:AUTO:0256" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0264" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0269" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0285" userName="From 112L to 114LB via OS 103">
@@ -5555,7 +6071,7 @@
       <transitsection sectionname="IY:AUTO:0261" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0247" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0258" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0313" userName="From 113RB to 111L via McKees Rocks">
@@ -5633,7 +6149,7 @@
       <userName>From 115R to 112L via OS 114</userName>
       <transitsection sectionname="IY:AUTO:0248" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0263" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0322" userName="From 115R to 113RA via OS 114">
@@ -5731,7 +6247,7 @@
       <transitsection sectionname="IY:AUTO:0266" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0279" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0274" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0331" userName="From 115LA to 114R via OS 111a">
@@ -5820,7 +6336,7 @@
       <transitsection sectionname="IY:AUTO:0260" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0248" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0263" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0340" userName="From 111RA to 114LB via OS 113b">
@@ -5917,7 +6433,7 @@
       <transitsection sectionname="IY:AUTO:0266" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0279" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
       <transitsection sectionname="IY:AUTO:0274" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressSouth_Yard_East" whatstring2="" />
+        <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressEast_Lead" whatstring2="" />
       </transitsection>
     </transit>
     <transit systemName="IZ:AUTO:0349" userName="From 100L to 114R via OS 117b">
@@ -5961,30 +6477,35 @@
     <route userName="Switch 114 Closed">
       <systemName>IO:AUTO:0001</systemName>
       <userName>Switch 114 Closed</userName>
+      <comment>Route Switch 114 Closed</comment>
       <routeOutputTurnout systemName="Switch 114" state="CLOSED" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onInactive" />
     </route>
     <route userName="Switch 114 Thrown">
       <systemName>IO:AUTO:0002</systemName>
       <userName>Switch 114 Thrown</userName>
+      <comment>Route Switch 114 Thrown</comment>
       <routeOutputTurnout systemName="Switch 114" state="THROWN" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onActive" />
     </route>
     <route userName="Switch 115 Closed">
       <systemName>IO:AUTO:0003</systemName>
       <userName>Switch 115 Closed</userName>
+      <comment>Route Switch 115 Closed</comment>
       <routeOutputTurnout systemName="Switch 115" state="CLOSED" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onInactive" />
     </route>
     <route userName="Switch 115 Thrown">
       <systemName>IO:AUTO:0004</systemName>
       <userName>Switch 115 Thrown</userName>
+      <comment>Route Switch 115 Thrown</comment>
       <routeOutputTurnout systemName="Switch 115" state="THROWN" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onActive" />
     </route>
     <route userName="Left S-1 ladder" controlTurnout="IT:HART:YL:L1" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0201</systemName>
       <userName>Left S-1 ladder</userName>
+      <comment>Route Left S-1 ladder</comment>
       <routeOutputTurnout systemName="M2T411" state="CLOSED" />
       <routeOutputTurnout systemName="M2T308" state="CLOSED" />
       <routeOutputTurnout systemName="M2T309" state="CLOSED" />
@@ -5999,6 +6520,7 @@
     <route userName="Left S-2 ladder" controlTurnout="IT:HART:YL:L2" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0202</systemName>
       <userName>Left S-2 ladder</userName>
+      <comment>Route Left S-2 ladder</comment>
       <routeOutputTurnout systemName="M2T411" state="CLOSED" />
       <routeOutputTurnout systemName="M2T308" state="THROWN" />
       <routeOutputTurnout systemName="M2T309" state="THROWN" />
@@ -6013,6 +6535,7 @@
     <route userName="Left S-3 ladder" controlTurnout="IT:HART:YL:L3" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0203</systemName>
       <userName>Left S-3 ladder</userName>
+      <comment>Route Left S-3 ladder</comment>
       <routeOutputTurnout systemName="M2T411" state="CLOSED" />
       <routeOutputTurnout systemName="M2T308" state="THROWN" />
       <routeOutputTurnout systemName="M2T309" state="CLOSED" />
@@ -6027,6 +6550,7 @@
     <route userName="Left S-4 ladder" controlTurnout="IT:HART:YL:L4" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0204</systemName>
       <userName>Left S-4 ladder</userName>
+      <comment>Route Left S-4 ladder</comment>
       <routeOutputTurnout systemName="M2T411" state="CLOSED" />
       <routeOutputTurnout systemName="M2T308" state="THROWN" />
       <routeOutputTurnout systemName="M2T309" state="CLOSED" />
@@ -6041,6 +6565,7 @@
     <route userName="Left S-5 ladder" controlTurnout="IT:HART:YL:L5" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0205</systemName>
       <userName>Left S-5 ladder</userName>
+      <comment>Route Left S-5 ladder</comment>
       <routeOutputTurnout systemName="M2T411" state="CLOSED" />
       <routeOutputTurnout systemName="M2T308" state="THROWN" />
       <routeOutputTurnout systemName="M2T309" state="CLOSED" />
@@ -6055,6 +6580,7 @@
     <route userName="Right S-1 ladder" controlTurnout="IT:HART:YL:R1" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0206</systemName>
       <userName>Right S-1 ladder</userName>
+      <comment>Route Right S-1 ladder</comment>
       <routeOutputTurnout systemName="M2T1213" state="CLOSED" />
       <routeOutputTurnout systemName="M2T1212" state="CLOSED" />
       <routeOutputTurnout systemName="M2T1211" state="CLOSED" />
@@ -6070,6 +6596,7 @@
     <route userName="Right S-2 ladder" controlTurnout="IT:HART:YL:R2" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0207</systemName>
       <userName>Right S-2 ladder</userName>
+      <comment>Route Right S-2 ladder</comment>
       <routeOutputTurnout systemName="M2T1213" state="CLOSED" />
       <routeOutputTurnout systemName="M2T1211" state="THROWN" />
       <routeOutputTurnout systemName="M2T1210" state="THROWN" />
@@ -6084,6 +6611,7 @@
     <route userName="Right S-3 ladder" controlTurnout="IT:HART:YL:R3" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0208</systemName>
       <userName>Right S-3 ladder</userName>
+      <comment>Route Right S-3 ladder</comment>
       <routeOutputTurnout systemName="M2T1213" state="CLOSED" />
       <routeOutputTurnout systemName="M2T1211" state="THROWN" />
       <routeOutputTurnout systemName="M2T1210" state="CLOSED" />
@@ -6098,6 +6626,7 @@
     <route userName="Right S-4 ladder" controlTurnout="IT:HART:YL:R4" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0209</systemName>
       <userName>Right S-4 ladder</userName>
+      <comment>Route Right S-4 ladder</comment>
       <routeOutputTurnout systemName="M2T1213" state="CLOSED" />
       <routeOutputTurnout systemName="M2T1211" state="THROWN" />
       <routeOutputTurnout systemName="M2T1210" state="CLOSED" />
@@ -6112,6 +6641,7 @@
     <route userName="Right S-5 ladder" controlTurnout="IT:HART:YL:R5" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0210</systemName>
       <userName>Right S-5 ladder</userName>
+      <comment>Route Right S-5 ladder</comment>
       <routeOutputTurnout systemName="M2T1213" state="CLOSED" />
       <routeOutputTurnout systemName="M2T1211" state="THROWN" />
       <routeOutputTurnout systemName="M2T1210" state="CLOSED" />
@@ -6680,6 +7210,7 @@
     </Thread>
     <LogixNG enabled="yes" inline="no">
       <systemName>IQ:AUTO:0001</systemName>
+      <userName>Hide windows on start</userName>
       <ConditionalNGs>
         <systemName>IQC:AUTO:0001</systemName>
         <systemName>IQC:AUTO:0002</systemName>
@@ -6701,6 +7232,7 @@
   <LogixNGConditionalNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultConditionalNGManagerXml">
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0001</systemName>
+      <userName>Hide USS CTC Editor</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -6709,6 +7241,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0002</systemName>
+      <userName>Hide Dispatcher System</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -6717,6 +7250,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0003</systemName>
+      <userName>Hide WiThrottle</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -6725,6 +7259,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="no">
       <systemName>IQC:AUTO:0004</systemName>
+      <userName>Keep HART Railroad</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -10664,7 +11199,7 @@
       <iconmaps />
     </turnouticon>
     <sensoricon sensor="Block 4-4" x="48" y="80" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>W-1 (West Yard 1)</tooltip>
+      <tooltip>W-1 (W-1)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -10680,7 +11215,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 4-3" x="48" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>W-2 (West Yard 2)</tooltip>
+      <tooltip>W-2 (W-2)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -11000,7 +11535,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 1-7" x="806" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>South Yard East</tooltip>
+      <tooltip>East Lead</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -11048,7 +11583,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 1-6" x="891" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 113a (South Yard East side)</tooltip>
+      <tooltip>OS 113a (East Lead side)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12641,7 +13176,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToSouth_Yard_East_stored" x="1426" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="East" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+    <sensoricon sensor="MoveToEast_Lead_stored" x="1426" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="E Lead" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12655,12 +13190,12 @@
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
-      <activeText text="East" red="255" green="0" blue="0" />
-      <inactiveText text="East" red="255" green="255" blue="0" />
-      <unknownText text="East" red="0" green="0" blue="255" />
-      <inconsistentText text="East" red="0" green="0" blue="0" />
+      <activeText text="E Lead" red="255" green="0" blue="0" />
+      <inactiveText text="E Lead" red="255" green="255" blue="0" />
+      <unknownText text="E Lead" red="0" green="0" blue="255" />
+      <inconsistentText text="E Lead" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressSouth_Yard_East" x="1416" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressEast_Lead" x="1416" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12837,7 +13372,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToEngine_House_1_stored" x="678" y="256" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="EH 1" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+    <sensoricon sensor="MoveToEH-1_stored" x="678" y="256" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="EH-1" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12851,12 +13386,12 @@
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
-      <activeText text="EH 1" red="255" green="0" blue="0" />
-      <inactiveText text="EH 1" red="255" green="255" blue="0" />
-      <unknownText text="EH 1" red="0" green="0" blue="255" />
-      <inconsistentText text="EH 1" red="0" green="0" blue="0" />
+      <activeText text="EH-1" red="255" green="0" blue="0" />
+      <inactiveText text="EH-1" red="255" green="255" blue="0" />
+      <unknownText text="EH-1" red="0" green="0" blue="255" />
+      <inconsistentText text="EH-1" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressEngine_House_1" x="668" y="256" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressEH-1" x="668" y="256" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12886,7 +13421,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToEngine_House_2_stored" x="678" y="270" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="EH 2" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+    <sensoricon sensor="MoveToEH-2_stored" x="678" y="270" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="EH-2" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12900,12 +13435,12 @@
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
-      <activeText text="EH 2" red="255" green="0" blue="0" />
-      <inactiveText text="EH 2" red="255" green="255" blue="0" />
-      <unknownText text="EH 2" red="0" green="0" blue="255" />
-      <inconsistentText text="EH 2" red="0" green="0" blue="0" />
+      <activeText text="EH-2" red="255" green="0" blue="0" />
+      <inactiveText text="EH-2" red="255" green="255" blue="0" />
+      <unknownText text="EH-2" red="0" green="0" blue="255" />
+      <inconsistentText text="EH-2" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressEngine_House_2" x="668" y="270" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressEH-2" x="668" y="270" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12935,7 +13470,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToEngine_House_3_stored" x="678" y="284" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="EH 3" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+    <sensoricon sensor="MoveToEH-3_stored" x="678" y="284" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="EH-3" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -12949,12 +13484,12 @@
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
-      <activeText text="EH 3" red="255" green="0" blue="0" />
-      <inactiveText text="EH 3" red="255" green="255" blue="0" />
-      <unknownText text="EH 3" red="0" green="0" blue="255" />
-      <inconsistentText text="EH 3" red="0" green="0" blue="0" />
+      <activeText text="EH-3" red="255" green="0" blue="0" />
+      <inactiveText text="EH-3" red="255" green="255" blue="0" />
+      <unknownText text="EH-3" red="0" green="0" blue="255" />
+      <inconsistentText text="EH-3" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressEngine_House_3" x="668" y="284" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressEH-3" x="668" y="284" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -13327,7 +13862,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToWest_Yard_1_stored" x="113" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="W-1" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+    <sensoricon sensor="MoveToW-1_stored" x="113" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="W-1" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -13346,7 +13881,7 @@
       <unknownText text="W-1" red="0" green="0" blue="255" />
       <inconsistentText text="W-1" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressWest_Yard_1" x="103" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressW-1" x="103" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -13376,7 +13911,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToWest_Yard_2_stored" x="115" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="W-2" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
+    <sensoricon sensor="MoveToW-2_stored" x="115" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" text="W-2" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -13395,7 +13930,7 @@
       <unknownText text="W-2" red="0" green="0" blue="255" />
       <inconsistentText text="W-2" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressWest_Yard_2" x="105" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressW-2" x="105" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -13525,7 +14060,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="Main West" x="780" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="S-5" x="1013" y="483" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard East" x="1442" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="East Lead" x="1442" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="S-3" x="1011" y="393" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="S-4" x="929" y="440" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Barn" x="600" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -13760,7 +14295,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS 119" x="600" y="269" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 1" x="612" y="246" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="EH-1" x="612" y="246" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <sensoricon sensor="Block 13-2" x="622" y="299" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -13777,7 +14312,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS 118" x="622" y="269" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 2" x="604" y="257" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="EH-2" x="604" y="257" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <sensoricon sensor="Block 13-3" x="495" y="349" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -13795,7 +14330,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="OS 117" x="495" y="319" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="McKees Rocks" x="1649" y="196" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Engine House 3" x="603" y="269" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="EH-3" x="603" y="269" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <sensoricon sensor="Block 3-1" x="635" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -13812,9 +14347,9 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS 116" x="635" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="West Yard 2" x="142" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="W-2" x="142" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 115" x="1592" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="West Yard 1" x="140" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="W-1" x="140" y="232" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 114" x="1592" y="295" level="0" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="1" red="51" green="51" blue="51" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <sensoricon sensor="Block 12-8" x="1361" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
@@ -13946,18 +14481,18 @@
     <tracksegment ident="T-ER-TOL15" blockname="OS 104" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL15" blockname="S-2" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F56-S-0" blockname="McKees Rocks" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F22-S-0" blockname="South Yard East" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F22-S-0" blockname="East Lead" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F41-S-0" blockname="West Main Ext" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL23" blockname="South Yard East" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL23" blockname="East Lead" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL23" blockname="OS 110" connect1name="TOL23" type1="TURNOUT_B" connect2name="A35" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL23" blockname="Main East" connect1name="TOL23" type1="TURNOUT_C" connect2name="A47" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F53-S-0" blockname="West Yard 1" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F53-S-0" blockname="W-1" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F20-S-0" blockname="OS 105" connect1name="A10" type1="POS_POINT" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F21-S-0" blockname="S-5" connect1name="A15" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F61-S-0" blockname="Main West" connect1name="A59" type1="POS_POINT" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL38" blockname="OS 101" connect1name="TOL38" type1="TURNOUT_A" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL38" blockname="West Yard 1" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOL38" blockname="West Yard 2" connect1name="TOL38" type1="TURNOUT_C" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL38" blockname="W-1" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL38" blockname="W-2" connect1name="TOL38" type1="TURNOUT_C" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL42" blockname="Brick-Plane" connect1name="TOL42" type1="TURNOUT_A" connect2name="A65" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR7" blockname="OS 109" connect1name="TOR7" type1="TURNOUT_A" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR7" blockname="OS 108" connect1name="TOR7" type1="TURNOUT_B" connect2name="A22" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -13996,7 +14531,7 @@
     <tracksegment ident="F62-S-0" blockname="Brick-Plane" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F40-S-0" blockname="OS 100" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F13-S-0" blockname="S-5" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F54-S-0" blockname="West Yard 2" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F54-S-0" blockname="W-2" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL6" blockname="OS 110" connect1name="TOL6" type1="TURNOUT_A" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL6" blockname="OS 110" connect1name="TOL6" type1="TURNOUT_B" connect2name="A24" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL6" blockname="OS 109" connect1name="TOL6" type1="TURNOUT_C" connect2name="A16" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -14013,7 +14548,7 @@
     <tracksegment ident="F24-S-0" blockname="Main East" connect1name="A47" type1="POS_POINT" connect2name="A13" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR32" blockname="OS 110" connect1name="TO111" type1="TURNOUT_C" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR32" blockname="S-1" connect1name="TO111" type1="TURNOUT_D" connect2name="A37" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL2" blockname="South Yard East" connect1name="TO113" type1="TURNOUT_D" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL2" blockname="East Lead" connect1name="TO113" type1="TURNOUT_D" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL2" blockname="OS 113a" connect1name="TO113" type1="TURNOUT_C" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F10-S-0" blockname="OS 108" connect1name="A22" type1="POS_POINT" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F37-S-0" blockname="OS 113a" connect1name="A50" type1="POS_POINT" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -14024,9 +14559,9 @@
     <tracksegment ident="T5" blockname="Main East" connect1name="A3" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_C" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F103-S-0" blockname="OS 103" connect1name="A9" type1="POS_POINT" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TO1" blockname="OS 103" connect1name="TO1" type1="TURNOUT_A" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T9" blockname="Engine House 1" connect1name="EB1" type1="POS_POINT" connect2name="A2" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T10" blockname="Engine House 2" connect1name="EB2" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T11" blockname="Engine House 3" connect1name="EB3" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T9" blockname="EH-1" connect1name="EB1" type1="POS_POINT" connect2name="A2" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T10" blockname="EH-2" connect1name="EB2" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T11" blockname="EH-3" connect1name="EB3" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-A-TO10" blockname="OS 119" connect1name="TO10" type1="TURNOUT_A" connect2name="A76" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F-T12-S-0" blockname="OS 119" connect1name="A76" type1="POS_POINT" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-C-TO11" blockname="OS 119" connect1name="TO11" type1="TURNOUT_C" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -14034,7 +14569,7 @@
     <tracksegment ident="F-T13-S-0" blockname="OS 118" connect1name="A78" type1="POS_POINT" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-C-TO1" blockname="OS 118" connect1name="TO1" type1="TURNOUT_C" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T1" blockname="Scale" connect1name="TOL42" type1="TURNOUT_C" connect2name="A45" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T2" blockname="Engine House 1" connect1name="A2" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T2" blockname="EH-1" connect1name="A2" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <positionablepoint ident="A80" type="ANCHOR" x="655.0" y="315.0" connect1name="F103-S-0" connect2name="T-I-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A76" type="ANCHOR" x="620.0" y="289.0" connect1name="T-A-TO10" connect2name="F-T12-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A77" type="ANCHOR" x="623.0" y="289.0" connect1name="F-T12-S-0" connect2name="T-C-TO11" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />

@@ -132,7 +132,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 118 (West Yard)" STATION="OS 118 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 118" STATION="OS 118" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -157,7 +157,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="ET-1" STATION="ET-1" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="EH-3" STATION="EH-3" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK STATION="" />
@@ -168,7 +168,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 119 (West Yard)" STATION="OS 119 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 119" STATION="OS 119" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -193,7 +193,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="ET-2" STATION="ET-2" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="EH-2" STATION="EH-2" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK STATION="" />
@@ -204,7 +204,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="ET-3" STATION="ET-3" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="EH-1" STATION="EH-1" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK STATION="" />
@@ -240,7 +240,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 116 (West Yard)" STATION="OS 116 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 116" STATION="OS 116" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -304,7 +304,7 @@
       <SEC_NAME LOC_NAME="CENT" NAME="West Lead -&gt; 103 / S-1" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="7" Y="4">
-      <SEC_NAME LOC_NAME="CENT" NAME="ET-1 ET-2 ET-3 (above lead)" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="CENT" NAME="EH-3 EH-2 EH-1 (above lead)" FONT_NAME="FONT_LABEL" />
     </SECTION>
   </TRACKPLAN>
 </DOCUMENT>

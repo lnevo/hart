@@ -101,15 +101,15 @@ PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
 ANCHORS: list[tuple[int, int, str, str]] = [
     # Brick / WY — W-1/W-2 dead-end spurs (Joins unchecked on west faces).
     # Digicon gaps: spur tip | mid-spur cut | anon lamp mate | OS101 lamp | plant.
-    # Same block name both sides of spur-end cut (like Engine House 1 mid-spur).
-    (2, 3, "LEFT", "West Yard 1"),
-    (2, 3, "RIGHT", "West Yard 1"),
-    (3, 3, "LEFT", "West Yard 1"),
+    # Same block name both sides of spur-end cut (like EH-1 mid-spur).
+    (2, 3, "LEFT", "W-1"),
+    (2, 3, "RIGHT", "W-1"),
+    (3, 3, "LEFT", "W-1"),
     (4, 3, "LEFT", "OS 101"),
     (6, 3, "RIGHT", "OS 101"),
-    (2, 4, "LEFT", "West Yard 2"),
-    (2, 4, "RIGHT", "West Yard 2"),
-    (3, 4, "LEFT", "West Yard 2"),
+    (2, 4, "LEFT", "W-2"),
+    (2, 4, "RIGHT", "W-2"),
+    (3, 4, "LEFT", "W-2"),
     (4, 4, "LEFT", "OS 101"),
     (7, 3, "LEFT", "OS 100"),
     (7, 3, "BOTTOM", "OS 100"),
@@ -139,17 +139,17 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (14, 8, "RIGHT", "OS 117b"),
     (15, 8, "LEFT", "Main East"),
     # ET: Designer mid-spur cuts (not at plant throat — OS floods into 118/119)
-    (12, 6, "LEFT", "Engine House 1"),
-    (13, 6, "RIGHT", "Engine House 1"),
+    (12, 6, "LEFT", "EH-1"),
+    (13, 6, "RIGHT", "EH-1"),
     (14, 6, "LEFT", "OS 119"),
     # OS119 plant: approach names flood through SP — no plant-edge names (avoids
     # throat Digicon seams + R4 vs plain ET stubs).
     (16, 6, "RIGHT", "OS 119"),
-    (12, 5, "LEFT", "Engine House 2"),
-    (13, 5, "RIGHT", "Engine House 2"),
+    (12, 5, "LEFT", "EH-2"),
+    (13, 5, "RIGHT", "EH-2"),
     (14, 5, "LEFT", "OS 119"),
-    (12, 4, "LEFT", "Engine House 3"),
-    (14, 4, "RIGHT", "Engine House 3"),
+    (12, 4, "LEFT", "EH-3"),
+    (14, 4, "RIGHT", "EH-3"),
     (15, 4, "LEFT", "OS 118"),
     (16, 6, "LEFT", "OS 118"),
     (17, 6, "LEFT", "OS 118"),
@@ -190,8 +190,8 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     # 112 south lamp on slash face (34,9) LEFT — continuous (33,9)↔(33,10) Main East
     (33, 8, "LEFT", "OS 112"),
     (32, 8, "RIGHT", "Main East"),
-    (35, 7, "LEFT", "South Yard East"),
-    (36, 7, "RIGHT", "South Yard East"),
+    (35, 7, "LEFT", "East Lead"),
+    (36, 7, "RIGHT", "East Lead"),
     (37, 7, "LEFT", "OS 113a"),
     (37, 7, "RIGHT", "OS 113a"),
     (29, 8, "RIGHT", "S-2"),
@@ -238,9 +238,9 @@ CUTS: list[tuple[tuple[int, int], str, tuple[int, int], str, str]] = [
     ((13, 7), "BOTTOM", (13, 8), "TOP", "OS117 | OS117b diamond"),
     ((14, 8), "RIGHT", (15, 8), "LEFT", "OS117b | Main East"),
     # ET mid-spur (Designer) — continuous into OS118/119 throats
-    ((13, 6), "RIGHT", (14, 6), "LEFT", "Engine House 1 mid"),
-    ((13, 5), "RIGHT", (14, 5), "LEFT", "Engine House 2 mid"),
-    ((14, 4), "RIGHT", (15, 4), "LEFT", "Engine House 3 mid"),
+    ((13, 6), "RIGHT", (14, 6), "LEFT", "EH-1 mid"),
+    ((13, 5), "RIGHT", (14, 5), "LEFT", "EH-2 mid"),
+    ((14, 4), "RIGHT", (15, 4), "LEFT", "EH-3 mid"),
     ((16, 6), "RIGHT", (17, 6), "LEFT", "OS119 tip | OS118"),
     ((18, 6), "BOTTOM", (18, 7), "TOP", "OS118 | OS116"),
     ((17, 7), "RIGHT", (18, 7), "LEFT", "Barn | OS116"),
@@ -266,8 +266,8 @@ CUTS: list[tuple[tuple[int, int], str, tuple[int, int], str, str]] = [
     ((27, 10), "RIGHT", (28, 10), "LEFT", "OS107 approach"),
     ((28, 10), "BOTTOM", (28, 11), "TOP", "OS107 spine"),
     ((32, 7), "RIGHT", (33, 7), "LEFT", "OS110 tip | OS112"),
-    ((34, 7), "RIGHT", (35, 7), "LEFT", "OS112 tip | South Yard East"),
-    ((36, 7), "RIGHT", (37, 7), "LEFT", "South Yard East | OS113a tip"),
+    ((34, 7), "RIGHT", (35, 7), "LEFT", "OS112 tip | East Lead"),
+    ((36, 7), "RIGHT", (37, 7), "LEFT", "East Lead | OS113a tip"),
     ((32, 8), "RIGHT", (33, 8), "LEFT", "OS112 south lamp"),
     ((36, 6), "RIGHT", (37, 6), "LEFT", "WME | OS113b"),
     ((38, 6), "BOTTOM", (38, 7), "TOP", "OS113b | OS113a diamond"),
@@ -428,7 +428,7 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     # Brick main — virtual heads IH438/IH439 (C4-OU3), same SHSM path as other homes
     (8, 3, "RIGHT"): ("100L", "LAMP2", "LOWLEFT", "LEFT"),
     # 114/115 diverging homes face west (SIGORIENT LEFT): trains from McKees*
-    # into the plant. Dest WME (113 normal) or South Yard East (113 reverse).
+    # into the plant. Dest WME (113 normal) or East Lead (113 reverse).
     (43, 5, "RIGHT"): ("115LB", "LAMP2", "LOWCENT", "LEFT"),
     (28, 6, "LEFT"): ("111RA", "LAMP2", "LOWLEFT", "RIGHT"),
     (30, 6, "RIGHT"): ("111L", "LAMP2", "LOWLEFT", "LEFT"),

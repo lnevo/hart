@@ -18,9 +18,9 @@ REQUIRED_COLUMNS = ("layer", "current", "proposed", "cp", "hardware")
 BLOCK_ALIAS_CURRENT_SETS = frozenset(
     {
         frozenset({"Main West Brick-Plane", "Block 100-102"}),
-        frozenset({"Yard T9", "ET-3"}),
-        frozenset({"Yard T10", "ET-2"}),
-        frozenset({"Yard T11", "ET-1"}),
+        frozenset({"Yard T9", "ET-3", "Engine House 1"}),
+        frozenset({"Yard T10", "ET-2", "Engine House 2"}),
+        frozenset({"Yard T11", "ET-1", "Engine House 3"}),
         frozenset({"Yard T1", "South Yard Scale"}),
         frozenset({"Yard T6", "South Yard West"}),
         frozenset({"Yard Track 1", "South Yard 1"}),
@@ -28,6 +28,7 @@ BLOCK_ALIAS_CURRENT_SETS = frozenset(
         frozenset({"Yard Track 3", "South Yard 3"}),
         frozenset({"Yard Track 4", "South Yard 4"}),
         frozenset({"Yard Track 5", "South Yard 5"}),
+        frozenset({"East Lead", "South Yard East"}),
     }
 )
 
@@ -42,15 +43,19 @@ BARN_TURNOUT_BLOCK = frozenset(
 )
 
 ENGINE_HOUSE_MAP = {
-    "Yard T9": "Engine House 1",
-    "Yard T10": "Engine House 2",
-    "Yard T11": "Engine House 3",
+    "Yard T9": "EH-1",
+    "Yard T10": "EH-2",
+    "Yard T11": "EH-3",
+    "Engine House 1": "EH-1",
+    "Engine House 2": "EH-2",
+    "Engine House 3": "EH-3",
 }
 
 SOUTH_YARD_RENAME_MAP = {
     "Yard T1": "Scale",
     "Yard T6": "Barn",
-    "East Lead": "South Yard East",
+    "East Lead": "East Lead",
+    "South Yard East": "East Lead",
     "Yard Track 1": "S-1",
     "Yard Track 2": "S-2",
     "Yard Track 3": "S-3",

@@ -34,8 +34,8 @@ CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_le.xml
 | 1 | Labels |
 | 2 | Upper parallel: Main West → OS 111a/b → West Main Ext → OS 113b → OS 115 → McKees Rocks |
 | 3 | Main spine: Brick → 100-102 (HORIZONTAL) → Plane → EME → 117b → Main East → 112 → East Lead → 113 → 114 → McKeesport |
-| 4 | West Yard 116–119 + South Yard 103–106 + East End 107–110 |
-| 5 | Yard T1/T6 + Yard Tracks 1–5 |
+| 4 | W-116–119 + S-103–106 + East End 107–110 |
+| 5 | Scale/T6 + Yard Tracks 1–5 |
 
 ## Coverage
 
@@ -44,4 +44,4 @@ CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_le.xml
 | Designer `HART.xml` | 14 | Gate 1 + partial West Yard (116/117); 117b merged into 117 |
 | LE `HART_le.xml` | 43 | All names from `occupancy_bindings.csv`; 22 SWITCHPOINTS plants |
 
-Gate-1 Designer draw remains authoritative for Neville LH100 geography until Mac accept promotes a fuller board. LE keeps Block 100-102 on the **continuing HORIZONTAL** (not a diverge into Plane).
+Gate-1 Designer draw remains authoritative for Neville LH100 geography until Mac accept promotes a fuller board. LE keeps Brick-Plane on the **continuing HORIZONTAL** (not a diverge into Plane).

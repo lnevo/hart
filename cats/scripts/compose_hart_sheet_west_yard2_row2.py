@@ -50,20 +50,20 @@ P112 = (25, 13)
 
 PLANTS: dict[tuple[int, int], tuple[list[str], str, str, str]] = {
     # SY — 103 entry normal RIGHT; 104-106 ladder normal BOTTOM (mirror of EE)
-    P103: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 103 (South Yard)", "RIGHT", "TOR14"),
-    P104: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 104 (South Yard)", "BOTTOM", "TOL15"),
-    P105: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 105 (South Yard)", "BOTTOM", "TOL17"),
-    P106: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 106 (South Yard)", "BOTTOM", "TOL19"),
+    P103: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 103", "RIGHT", "TOR14"),
+    P104: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 104", "BOTTOM", "TOL15"),
+    P105: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 105", "BOTTOM", "TOL17"),
+    P106: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 106", "BOTTOM", "TOL19"),
     # EE — Designer geometry; ladder via normal BOTTOM
     # 110 sits on Main East: LEFT = through to 112 (CLOSED); BOTTOM = ladder.
-    P110: (["HORIZONTAL", "LOWERSLASH"], "OS 110 (East End)", "LEFT", "TOL6"),
-    P109: (["HORIZONTAL", "LOWERSLASH"], "OS 109 (East End)", "BOTTOM", "TOR7"),
-    P108: (["HORIZONTAL", "LOWERSLASH"], "OS 108 (East End)", "BOTTOM", "TOR9"),
-    P107: (["HORIZONTAL", "LOWERSLASH"], "OS 107 (East End)", "BOTTOM", "TOR11"),
-    P111: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 111a (East End)", "RIGHT", "TO111"),
-    # Normal BOTTOM = Barn spine (CLOSED); throw LEFT = Main East → South Yard East
+    P110: (["HORIZONTAL", "LOWERSLASH"], "OS 110", "LEFT", "TOL6"),
+    P109: (["HORIZONTAL", "LOWERSLASH"], "OS 109", "BOTTOM", "TOR7"),
+    P108: (["HORIZONTAL", "LOWERSLASH"], "OS 108", "BOTTOM", "TOR9"),
+    P107: (["HORIZONTAL", "LOWERSLASH"], "OS 107", "BOTTOM", "TOR11"),
+    P111: (["HORIZONTAL", "LOWERBACKSLASH"], "OS 111a", "RIGHT", "TO111"),
+    # Normal BOTTOM = Barn spine (CLOSED); throw LEFT = Main East → East Lead
     # (Brick 100 pattern: throw = continuing main).
-    P112: (["HORIZONTAL", "LOWERSLASH"], "OS 112 (East End)", "BOTTOM", "TOL23"),
+    P112: (["HORIZONTAL", "LOWERSLASH"], "OS 112", "BOTTOM", "TOL23"),
 }
 
 
@@ -105,7 +105,7 @@ def _build_row2_grid() -> dict[tuple[int, int], list[str]]:
     put(P111, ["HORIZONTAL", "LOWERBACKSLASH"])
     put((P111[0], y_s1), ["HORIZONTAL", "UPPERBACKSLASH"])
 
-    # --- West Lead / S-1 / South Yard East ---
+    # --- West Lead / S-1 / East Lead ---
     for x in range(X0, X1 + 1):
         put((x, y_s1), ["HORIZONTAL"])
     put(P103, ["HORIZONTAL", "LOWERBACKSLASH"])
@@ -164,26 +164,26 @@ _Y_S5 = _Y_S4 + 1
 
 ANCHORS: list[tuple[int, int, str, str]] = [
     (X0, _Y_MW, "LEFT", "Main West"),
-    (P111[0] - 1, _Y_MW, "LEFT", "OS 111a (East End)"),
-    (P111[0], _Y_S1, "LEFT", "OS 111a (East End)"),
+    (P111[0] - 1, _Y_MW, "LEFT", "OS 111a"),
+    (P111[0], _Y_S1, "LEFT", "OS 111a"),
     (P111[0] + 1, _Y_S1, "LEFT", "S-1"),
     (X0, _Y_S1, "LEFT", "West Lead"),
-    (P103[0] - 1, _Y_S1, "LEFT", "OS 103 (South Yard)"),
+    (P103[0] - 1, _Y_S1, "LEFT", "OS 103"),
     (P103[0] + 1, _Y_S1, "LEFT", "S-1"),
-    (P104[0], _Y_S2, "RIGHT", "OS 104 (South Yard)"),
+    (P104[0], _Y_S2, "RIGHT", "OS 104"),
     (P104[0] + 1, _Y_S2, "LEFT", "S-2"),
-    (P105[0], _Y_S3, "RIGHT", "OS 105 (South Yard)"),
+    (P105[0], _Y_S3, "RIGHT", "OS 105"),
     (P105[0] + 1, _Y_S3, "LEFT", "S-3"),
-    (P106[0], _Y_S4, "RIGHT", "OS 106 (South Yard)"),
+    (P106[0], _Y_S4, "RIGHT", "OS 106"),
     (P106[0] + 1, _Y_S4, "LEFT", "S-4"),
     (P106[0], _Y_S5, "RIGHT", "S-5"),
     (P106[0] + 1, _Y_S5, "LEFT", "S-5"),
-    (P110[0], _Y_S1, "LEFT", "OS 110 (East End)"),
-    (P109[0], _Y_S2, "LEFT", "OS 109 (East End)"),
-    (P108[0], _Y_S3, "LEFT", "OS 108 (East End)"),
-    (P107[0], _Y_S4, "LEFT", "OS 107 (East End)"),
-    (P112[0], _Y_S1, "LEFT", "OS 112 (East End)"),
-    (X1, _Y_S1, "LEFT", "South Yard East"),
+    (P110[0], _Y_S1, "LEFT", "OS 110"),
+    (P109[0], _Y_S2, "LEFT", "OS 109"),
+    (P108[0], _Y_S3, "LEFT", "OS 108"),
+    (P107[0], _Y_S4, "LEFT", "OS 107"),
+    (P112[0], _Y_S1, "LEFT", "OS 112"),
+    (X1, _Y_S1, "LEFT", "East Lead"),
     (X0, _Y_S2, "LEFT", "Main East"),
 ]
 
@@ -229,7 +229,7 @@ LABELS: list[tuple] = [
     (_S_MID, _Y_S4, "S-4", "LOWCENT"),
     (_S_MID, _Y_S5, "S-5", "LOWCENT"),
     (X1, _Y_MW - 1, "to Princess"),
-    (X1, _Y_S2, "South Yard East"),
+    (X1, _Y_S2, "East Lead"),
     (P112[0], _Y_S4, "EAST END"),
     (X0, _Y_S3, "To Barn"),
     (_S_MID, _Y_LAB, "Main East"),

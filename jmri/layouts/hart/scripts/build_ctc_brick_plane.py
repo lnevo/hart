@@ -6,9 +6,9 @@
 # topology / SML (same code path as the editor's "Auto-Generate" button).
 #
 # Columns (levers odd switch / even signal), panel left-to-right:
-#   col 1  SW 1/SIG 2   Switch 101, OS 101 (Brick)  - yard tracks converge
-#   col 2  SW 3/SIG 4   Switch 100, OS 100 (Brick)  - Main West / Brick-Plane
-#   col 3  SW 5/SIG 6   Switch 102, OS 102 (Plane)  - East Main Ext / South Yard Scale
+#   col 1  SW 1/SIG 2   Switch 101, OS 101  - yard tracks converge
+#   col 2  SW 3/SIG 4   Switch 100, OS 100  - Main West / Brick-Plane
+#   col 3  SW 5/SIG 6   Switch 102, OS 102  - East Main Ext / Scale
 #
 # Traffic direction sense: JMRI CTC "left" = west. Signals here are
 # directional (sparse Digicon ABS), so sections are uni-directional.

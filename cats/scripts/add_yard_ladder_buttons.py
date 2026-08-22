@@ -365,7 +365,7 @@ def apply_panel(panel: Path) -> None:
     parent = {c: p for p in root.iter() for c in p}
     for ss in root.iter("SECSIGNAL"):
         name = (ss.text or "").strip().split("\n")[0].strip()
-        if name != "West Yard East OS 117b":
+        if name != "117LA":
             continue
         ps = ss.find("PANELSIGNAL")
         if ps is not None:

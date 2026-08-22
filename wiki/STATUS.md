@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Yard plates: **W-1 / W-2** (was West Yard 1/2), **East Lead** (was South Yard East), **EH-1 / EH-2 / EH-3** (was Engine House 1–3). Every tables.xml bean has a User Name; missing comments filled.
+
 Updated: 2026-08-22 — USS CTC machine window is **USS CTC**; LogixNG hides the Panel Editor toolbox (**USS CTC Editor**), **Dispatcher System**, and **WiThrottle** at start. Ignore-if-not-found stays checked. **HART Railroad** stays visible.
 
 Updated: 2026-08-22 — Panel window titles: Layout Editor is **HART Railroad** (was My Layout / HART); Panel Editor USS machine is **USS CTC** (was `Panel `). Entry/Exit `layoutPanel` and Dispatcher `lename` match.
@@ -31,10 +33,10 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   because track coloring already shows occupancy. Reapply/check with
   `jmri/layouts/hart/scripts/polish_hart_layout_editor.py`.
 - Dispatcher graph stations (CreateTransits): **Main West, West Main Ext,
-  McKees Rocks, McKeesport, South Yard East, Main East, East Main Ext,
+  McKees Rocks, McKeesport, East Lead, Main East, East Main Ext,
   Brick-Plane, Scale, Barn, S-1**. Deployment is **41 sections /
   175 transits / 394 HEAD_AND_TAIL traininfo**. Occupancy/MoveTo icons remain
-  for Engine House 1–3, S-2…S-5, West Yard 1–2, and K-1/K-2; those
+  for EH-1…EH-3, S-2…S-5, W-1/W-2, and K-1/K-2; those
   stubs need SHSM or throat masts before they can join the graph.
 - **Dispatcher compatibility fixed (2026-08-20):** HART now launches the stock
   Dispatcher System through `hart_dispatcher_startup.py`, so its classes are

@@ -159,7 +159,7 @@ Payload = appearance name      # Red / Yellow / Green / Dark / …
 | Area | MQTT node (radio) | Parent board | Packed heads | Example ports |
 |------|-------------------|--------------|--------------|---------------|
 | Plane + W-1 / W-2 + Brick east | **4** | C4 | `IH432`–`IH439` | C4-OU2-1 … OU2-6, C4-OU3-1/2 |
-| Barn / West Yard 117 | **13** (`013`) | C1 | `IH1332`–`IH1338` | C1-OU2-1 … OU3-1 |
+| Barn / W-117 | **13** (`013`) | C1 | `IH1332`–`IH1338` | C1-OU2-1 … OU3-1 |
 | East End | **12** (`012`) | C7 | `IH1232`–`IH1241` | C7-OU2-1 … OU3-4 |
 | Princess | **1** | D1 | `IH132`–`IH143` | D1-OU2-1 … OU3-4 |
 
@@ -183,18 +183,18 @@ Examples:
 
 | Digicon mast userName | Heads | System name (abbrev) | Binding |
 |-----------------------|-------|----------------------|---------|
-| Brick East Main West | 2 | `…(IH438)(IH439)` | LCOS C4-OU3 |
-| Plane East East Main Ext | 2 | `…cats-virtual-2(IH432)(IH433)` | LCOS C4 |
-| Plane East OS 102 | 2 | `…(IH434)(IH435)` | LCOS C4 |
-| Brick West Yard 1 / 2 | 1 | `IH436` / `IH437` | LCOS C4 |
-| West Yard West OS 117 | 2 | `IH1332`/`IH1333` | LCOS C1 |
-| East End East Lead | 2 | `IH1237`/`IH1238` | LCOS C7 |
-| Princess North McKees Rocks | 2 | `…cats-virtual-2(IH132)(IH133)` | LCOS D1 |
-| Princess East McKeesport | 1 | `IH134` | LCOS D1 (was North middle) |
-| Princess West OS 113b / 113a | 2 | `IH135`–`IH138` | LCOS D1 |
-| Princess South McKeesport | 2 | `IH139`/`IH140` | LCOS D1 |
-| Princess East McKees Rocks | 1 | `IH141` | LCOS D1 (was South bottom) |
-| Princess East K-1 / K-2 | 1 | `IH142` / `IH143` | LCOS D1 dwarfs |
+| 100L | 2 | `…(IH438)(IH439)` | LCOS C4-OU3 |
+| 102LB | 2 | `…cats-virtual-2(IH432)(IH433)` | LCOS C4 |
+| 102LA | 2 | `…(IH434)(IH435)` | LCOS C4 |
+| 101RA / 2 | 1 | `IH436` / `IH437` | LCOS C4 |
+| 117RA | 2 | `IH1332`/`IH1333` | LCOS C1 |
+| 112L | 2 | `IH1237`/`IH1238` | LCOS C7 |
+| 115LB | 2 | `…cats-virtual-2(IH132)(IH133)` | LCOS D1 |
+| 114R | 1 | `IH134` | LCOS D1 (was North middle) |
+| 113RA / 113a | 2 | `IH135`–`IH138` | LCOS D1 |
+| 114LB | 2 | `IH139`/`IH140` | LCOS D1 |
+| 115R | 1 | `IH141` | LCOS D1 (was South bottom) |
+| 115LA / K-2 | 1 | `IH142` / `IH143` | LCOS D1 dwarfs |
 
 ### JMRI ↔ MQTT for Virtual heads
 
@@ -208,7 +208,7 @@ Examples:
 - **Send (Digicon → field):** subscribe `track/signalhead/IH###` → `EVENT_SIGNAL_CMD` (Red→Stop, Yellow→Approach, Green→Clear).
 - **Receive (field → JMRI masts):** LCOS `EVENT_SIGNAL` → retained `track/signalmast/<packed>` (`Stop; Lit; Unheld`, …) so traditional MQTT Signal Masts still get aspect reports. Status is **not** published on `signalhead` (avoids looping Digicon).
 
-Brick East Main West is the same packed-head path (`IH438`/`IH439` on C4-OU3). JMRI no longer publishes `track/signalmast/432`.
+100L is the same packed-head path (`IH438`/`IH439` on C4-OU3). JMRI no longer publishes `track/signalmast/432`.
 
 Rebuild heads + tables + publisher:
 
@@ -281,7 +281,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 1. **CATS CTC** and **CATS ABS** both `HOLD_ONLY`: SML sets aspects; Digicon paints JMRI appearances. CTC also Held/Unhold on coded routes. ABS Hold/Unhold follows Digicon ABS vital logic. Layout Editor is always SML.
 2. Never publish turnout “fix” commands at launch; retain paint is read-only.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
-4. All Digicon lamps are packed `IH*` SHSM — two-head homes on custom **hart-aar** (`SL-2-digicon`), dwarfs on stock **AAR-1946** (`SL-1-low`). Brick East Main West is `IH438`/`IH439`.
+4. All Digicon lamps are packed `IH*` SHSM — two-head homes on custom **hart-aar** (`SL-2-digicon`), dwarfs on stock **AAR-1946** (`SL-1-low`). 100L is `IH438`/`IH439`.
 5. After Master / ABS geometry edits, rebuild both hold copies (`build_hart_master_ctc_hold.py`, `build_hart_master_abs_hold.py`) so `HOLD_ONLY` and mast bindings stay in sync. ABS live panel is `HART_Master_ABS_hold.xml`.
 6. Without CATS: Unhold + SML = ABS. Do not launch CTC geometry-source `HART_Master.xml` against live SML.
 

@@ -139,7 +139,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 100 (Brick)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 100" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           a246
           <PHYSIGNAL>Single</PHYSIGNAL>
@@ -161,7 +161,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Block 100-102" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="Brick-Plane" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           a4R
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
@@ -202,7 +202,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 102 (Plane)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 102" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="10" Y="4">
@@ -277,7 +277,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 117b (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 117b" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="17" Y="4">
@@ -316,7 +316,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 112 (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 112" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -403,7 +403,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 103 (South Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 103" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="12" Y="5">
@@ -421,7 +421,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 104 (South Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 104" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           a8RB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
@@ -465,7 +465,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 105 (South Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 105" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="12" Y="6">
@@ -495,7 +495,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 106 (South Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 106" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           a276
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
@@ -518,7 +518,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 107 (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 107" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -539,7 +539,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 108 (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 108" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -564,7 +564,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 101 (Brick)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 101" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           d2R
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
@@ -590,7 +590,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 116 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 116" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           d246
           <PHYSIGNAL>Single</PHYSIGNAL>
@@ -612,7 +612,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 118 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 118" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           d4R
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
@@ -653,7 +653,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 119 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 119" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="10" Y="9">
@@ -685,7 +685,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T6" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="Barn" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           d8R
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
@@ -728,7 +728,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 117 (West Yard)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 117" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="17" Y="9">
@@ -746,7 +746,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Yard 1" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="W-1" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -767,7 +767,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Yard 2" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="W-2" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -788,7 +788,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T9" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="EH-1" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -854,7 +854,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 1" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="S-1" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       </SECTION>
     <SECTION X="12" Y="10">
@@ -872,7 +872,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 2" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="S-2" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           d10R
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
@@ -915,7 +915,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 3" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="S-3" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       </SECTION>
     <SECTION X="17" Y="10">
@@ -933,7 +933,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 4" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="S-4" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -954,7 +954,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 5" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="S-5" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -975,7 +975,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 111a (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 111a" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1021,7 +1021,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 109 (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 109" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="12" Y="11">
@@ -1051,7 +1051,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 110 (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 110" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           d276
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
@@ -1074,7 +1074,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 111b (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 111b" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1095,7 +1095,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T10" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="EH-2" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1146,7 +1146,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113b (Princess)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 113b" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           f246
           <PHYSIGNAL>Single</PHYSIGNAL>
@@ -1168,7 +1168,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113a (Princess)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 113a" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           f4L
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
@@ -1208,7 +1208,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 114 (Princess)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 114" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="10" Y="14">
@@ -1283,7 +1283,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 115 (Princess)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 115" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="17" Y="14">
@@ -1322,7 +1322,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T11" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="EH-3" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           <PHYSIGNAL>Single</PHYSIGNAL>
         </SECSIGNAL>

@@ -21,7 +21,7 @@ Launch one: `CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/
 | **100** | West Yard | CP 100 — Brick (Main West / to Plane) | [`HART_cp_100.xml`](../panels/cp/HART_cp_100.xml) | — | PASS |
 | **102** | West Yard | CP 102 — Plane (West Lead / Main East) | [`HART_cp_102.xml`](../panels/cp/HART_cp_102.xml) | — | PASS |
 | **117** | West Yard | CP 117 — Barn crossover | [`HART_cp_117.xml`](../panels/cp/HART_cp_117.xml) | — | PASS |
-| **116** | South Yard | CP 116 — West Lead / ET-1...3 | [`HART_cp_116.xml`](../panels/cp/HART_cp_116.xml) | — | PASS |
+| **116** | South Yard | CP 116 — West Lead / EH-3...3 | [`HART_cp_116.xml`](../panels/cp/HART_cp_116.xml) | — | PASS |
 | **103** | South Yard | CP 103 — West Lead -> S-1 + ladder | [`HART_cp_103.xml`](../panels/cp/HART_cp_103.xml) | — | PASS |
 | **104** | South Yard | CP 104 — ladder -> S-2 | [`HART_cp_104.xml`](../panels/cp/HART_cp_104.xml) | — | PASS |
 | **105** | South Yard | CP 105 — ladder -> S-3 | [`HART_cp_105.xml`](../panels/cp/HART_cp_105.xml) | — | PASS |

@@ -6,7 +6,7 @@ Hand-authored incomplete `TRACKPLAN` XML crashes CATS (`MyBlock` null, SecEdge m
 
 **Redraw Neville in CATS Designer** plant-by-plant. Layout Editor `hart_prod.xml` stays the MQTT hardware panel.
 
-1. Gate 1: [`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md) — Brick → Block 100-102 → Plane  
+1. Gate 1: [`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md) — Brick → Brick-Plane → Plane  
 2. Gates 2–5: [`GATE2_PLUS.md`](GATE2_PLUS.md)  
 3. After Designer save: wire I/O without touching geometry:
 
@@ -23,7 +23,7 @@ Launch Designer: `./cats/scripts/launch_designer.sh`
 python3 cats/scripts/jmri_to_cats_digicon.py --only gate1
 ```
 
-Abuts Armstrong **fragments** so Gate 1 has a long HORIZONTAL Block 100-102 between Brick and Plane. Use for MQTT smoke tests only. **Designer Gate 1 replaces it** for a representative panel.
+Abuts Armstrong **fragments** so Gate 1 has a long HORIZONTAL Brick-Plane between Brick and Plane. Use for MQTT smoke tests only. **Designer Gate 1 replaces it** for a representative panel.
 
 Armstrong/Chubb full-chassis renames (`--only armstrong|chubb`) are demos/alts — not the HART primary.
 

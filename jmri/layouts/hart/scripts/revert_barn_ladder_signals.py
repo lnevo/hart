@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Take the West Yard ladder out of CTC signal control.
 
-  * Remove virtual masts West Yard North OS 116 and South Yard East OS 104
+  * Remove virtual masts West Yard North OS 116 and East Lead OS 104
     (LE icons, layoutturnout attachments, SML, CTC SIDI/TRL).
-  * Move West Yard East Yard T6 back onto TO117.B (yard lead into Barn).
+  * Move 117LB back onto TO117.B (yard lead into Barn).
   * 116 / 103 become switch-only CTC columns (no signal levers).
   * T6 is a 117 westbound home again.
   * Default lock toggles for 116, 103, and 110 to Local (ACTIVE).
@@ -28,8 +28,8 @@ GUI = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 CATS_CTC = ROOT / "cats/panels/HART_Master.xml"
 CATS_ABS = ROOT / "cats/panels/HART_Master_ABS.xml"
 
-DROP_MASTS = ("South Yard East OS 104", "West Yard North OS 116")
-T6 = "West Yard East Yard T6"
+DROP_MASTS = ("East Lead OS 104", "West Yard North OS 116")
+T6 = "117LB"
 
 SIG_T6 = """        <SECSIGNAL>
           {name}
@@ -40,7 +40,7 @@ SIG_T6 = """        <SECSIGNAL>
 TRL_T6_WEST = """        <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Plane East OS 102</DestinationSignalOrComment>
+          <DestinationSignalOrComment>102LA</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>7/8</UserText>
@@ -115,7 +115,7 @@ def rebind_layout_turnouts(text: str) -> str:
             print(f"  WARN: {ident} block not found")
         return out
 
-    text = drop_child("TOL15", "signalCMast", "South Yard East OS 104", text)
+    text = drop_child("TOL15", "signalCMast", "East Lead OS 104", text)
     text = drop_child("TO1", "signalCMast", "West Yard North OS 116", text)
     text = drop_child("TOR14", "signalBMast", T6, text)
 
@@ -232,12 +232,12 @@ def patch_117_homes(text: str) -> str:
     # Add T6 as 117 westbound home
     old = (
         "<SIDI_RightLeftTrafficSignals>\n"
-        "        <signal>West Yard East OS 117b</signal>\n"
+        "        <signal>117LA</signal>\n"
         "      </SIDI_RightLeftTrafficSignals>"
     )
     new = (
         "<SIDI_RightLeftTrafficSignals>\n"
-        "        <signal>West Yard East OS 117b</signal>\n"
+        "        <signal>117LA</signal>\n"
         f"        <signal>{T6}</signal>\n"
         "      </SIDI_RightLeftTrafficSignals>"
     )
@@ -256,7 +256,7 @@ def patch_117_homes(text: str) -> str:
         text,
         re.S,
     )
-    if uid16 and "Plane East OS 102" in uid16.group(0).split("<TRL_RightRules>")[0]:
+    if uid16 and "102LA" in uid16.group(0).split("<TRL_RightRules>")[0]:
         print("  CTC 117 left TRL: Plane OS 102 already present")
         return text
     text, n = re.subn(
@@ -376,11 +376,11 @@ def strip_signal_levers(text: str) -> str:
 
 def restore_cats_t6(path: Path) -> None:
     txt = path.read_text()
-    prefix = "CATS " if "CATS West Yard East Yard T6" in txt else ""
+    prefix = "CATS " if "CATS 117LB" in txt else ""
     names = {
         "t6": prefix + T6,
         "n116": prefix + "West Yard North OS 116",
-        "n104": prefix + "South Yard East OS 104",
+        "n104": prefix + "East Lead OS 104",
     }
 
     def drop_sig(name: str, blob: str) -> str:
@@ -435,7 +435,7 @@ def patch_le_file(path: Path, ctc: bool) -> None:
         text = disable_column_signals(text, "17", "SW116")
         text = disable_column_signals(text, "18", "SW103")
         text = patch_117_homes(text)
-        text = strip_trl_dest(text, "South Yard East OS 104")
+        text = strip_trl_dest(text, "East Lead OS 104")
         text = strip_trl_dest(text, "West Yard North OS 116")
         text = add_local_defaults_logix(text)
         text = strip_signal_levers(text)

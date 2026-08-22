@@ -157,7 +157,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113b (Princess)" STATION="OS 113b (Princess)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 113b" STATION="OS 113b" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -246,7 +246,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113a (Princess)" STATION="OS 113a (Princess)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 113a" STATION="OS 113a" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>

@@ -30,7 +30,7 @@ FIXTURE_XML = """<?xml version='1.0' encoding='UTF-8'?>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <block systemName="IB:TEST1">
       <systemName>IB:TEST1</systemName>
-      <userName>East Lead</userName>
+      <userName>South Yard East</userName>
     </block>
   </blocks>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -68,7 +68,8 @@ class ApplyPublicNamesTest(unittest.TestCase):
         renames = apply_public_names.load_rename_map(MAP)
         self.assertTrue(all(entry.current != entry.proposed for entry in renames))
         currents = {entry.current for entry in renames}
-        self.assertIn("East Lead", currents)
+        self.assertIn("South Yard East", currents)
+        self.assertIn("West Yard 1", currents)
         self.assertNotIn("Switch 100", currents)
 
     def test_apply_renames_preserves_system_names_and_sensor_usernames(self):
@@ -80,7 +81,7 @@ class ApplyPublicNamesTest(unittest.TestCase):
                 target, renames, apply=True
             )
             self.assertTrue(system_names_ok)
-            self.assertGreater(counts[("East Lead", "South Yard East")], 0)
+            self.assertGreater(counts[("South Yard East", "East Lead")], 0)
             self.assertGreater(counts[("East End East Lead", "112L")], 0)
 
             root = ET.parse(target).getroot()
@@ -100,7 +101,7 @@ class ApplyPublicNamesTest(unittest.TestCase):
             self.assertIsNotNone(sml_source)
             self.assertIsNotNone(sidi_signal)
 
-            self.assertEqual("South Yard East", block_user.text)
+            self.assertEqual("East Lead", block_user.text)
             self.assertEqual("112L", mast_user.text)
             self.assertEqual("Block 13-5", sensor_user.text)
             self.assertEqual("M2S1304", sensor_system.text)

@@ -2049,7 +2049,7 @@
       <iconmaps />
     </turnouticon>
     <sensoricon sensor="Block 4-4" x="48" y="80" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>W-1 (West Yard 1)</tooltip>
+      <tooltip>W-1 (W-1)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2065,7 +2065,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 4-3" x="48" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>W-2 (West Yard 2)</tooltip>
+      <tooltip>W-2 (W-2)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2385,7 +2385,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 1-7" x="806" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>South Yard East</tooltip>
+      <tooltip>East Lead</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2433,7 +2433,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 1-6" x="891" y="200" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 113a (South Yard East side)</tooltip>
+      <tooltip>OS 113a (East Lead side)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>

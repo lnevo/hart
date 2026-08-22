@@ -24,7 +24,7 @@ The panel mixes `Switch 10x`, MQTT system names, geography, and station labels. 
 | Switch / plant OS | `OS <n> (<CP>)` | `OS 100 (Brick)` |
 | Crossover leg | `OS <n><a\|b> (<CP>)` | `OS 111a (East End)` |
 | Main track limit | `<Track> <CP west>–<CP east>` where helpful | `Main East Brick–East End` |
-| Yard body | `<Yard> <track>` or plate | `West Yard 1`, `S-3` |
+| Yard body | plate | `W-1`, `S-3`, `EH-1` |
 | Interchange | Geographic name | `McKees Rocks`, `McKeesport`, `PIR` deferred |
 
 Switch / MQTT / DCC IDs remain in turnout table comments and mapping CSVs — not as the only block name.

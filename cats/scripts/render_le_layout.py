@@ -47,7 +47,7 @@ VIEWS = {
     "01_overview": ("HART CTC — Full Railroad", "all 20 control points", None, None),
     "02_brick_plane": ("West End — Brick & Plane", "OS 100 / 101 / 102", 210, 430),
     "03_west_yard_engine": ("West Yard Ladder & Engine Terminal",
-                            "OS 116-119 (Switch 116/117/118/119) + Yard T1-T13", 435, 640),
+                            "OS 116-119 (Switch 116/117/118/119) + Scale-T13", 435, 640),
     "04_south_yard": ("South Yard Ladder", "OS 103-106 + Yard Tracks 1-5", 600, 900),
     "05_east_end": ("East End Ladder", "OS 107-112 + 111 crossover / East Lead", 1050, 1410),
     "06_princess_loops": ("Princess & East Loops",

@@ -26,7 +26,7 @@ That is the PR #4 PNG *intent*, implemented as loadable Digicon cells.
 
 | CP | Area | Digicon role |
 |----|------|--------------|
-| 100 | Brick | Main plant; continuing = Block 100-102 |
+| 100 | Brick | Main plant; continuing = Brick-Plane |
 | 101 | Brick | Yard / Main West side of Brick |
 | 102 | Plane | Main plant; east = East Main Ext |
 | 117 / 117b | West Yard | Entry / crossover on main ↔ EME |

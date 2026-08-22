@@ -2,7 +2,7 @@
 
 ## Goal (phase 1)
 
-Magnet-board / dark CTC schematic of Neville Island west→east. **Gate 1 first:** Brick + Block 100-102 + Plane ([`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md)), then Gates 2–5 ([`GATE2_PLUS.md`](GATE2_PLUS.md)).
+Magnet-board / dark CTC schematic of Neville Island west→east. **Gate 1 first:** Brick + Brick-Plane + Plane ([`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md)), then Gates 2–5 ([`GATE2_PLUS.md`](GATE2_PLUS.md)).
 
 Layout Editor `hart_prod.xml` stays the MQTT hardware panel. Designer XML is a **second** definition that references the same JMRI user names.
 
@@ -35,8 +35,8 @@ After save: `python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panel
 
 ## Acceptance (Brick)
 
-- [ ] Designer block `OS 100 (Brick)` occupancy follows live `Block 4-2`
-- [ ] Designer block `OS 101 (Brick)` occupancy follows live sensor
+- [ ] Designer block `OS 100` occupancy follows live `Block 4-2`
+- [ ] Designer block `OS 101` occupancy follows live sensor
 - [ ] Throwing Switch 100/101 from CATS moves MQTT motors
 - [ ] Layout Editor still shows alignment; no double-command from NextTrain
 

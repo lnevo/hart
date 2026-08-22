@@ -157,7 +157,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 112 (East End)" STATION="OS 112 (East End)" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="OS 112" STATION="OS 112" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>

@@ -18,7 +18,7 @@ TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 RULE_111_EAST_WME = """        <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Princess West OS 113b</DestinationSignalOrComment>
+          <DestinationSignalOrComment>113RA</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>17/18</UserText>
@@ -38,7 +38,7 @@ RULES_114_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:1</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Princess East K-2</DestinationSignalOrComment>
+          <DestinationSignalOrComment>114LA</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>27/28</UserText>
@@ -54,7 +54,7 @@ RULES_114_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Princess South McKeesport</DestinationSignalOrComment>
+          <DestinationSignalOrComment>114LB</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>27/28</UserText>
@@ -75,7 +75,7 @@ RULES_115_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:1</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Princess East K-1</DestinationSignalOrComment>
+          <DestinationSignalOrComment>115LA</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>29/30</UserText>
@@ -91,7 +91,7 @@ RULES_115_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Princess North McKees Rocks</DestinationSignalOrComment>
+          <DestinationSignalOrComment>115LB</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>29/30</UserText>
@@ -152,11 +152,11 @@ def main():
 
     # --- SW111: missing eastbound Main West → West Main Ext ---
     s, e, col = slice_column(text, "21")
-    if "Princess West OS 113b" in col.split("<TRL_RightRules>")[-1]:
+    if "113RA" in col.split("<TRL_RightRules>")[-1]:
         notes.append("111 eastbound 113b rule already present")
     else:
         col = col.replace("</TRL_RightRules>", RULE_111_EAST_WME + "      </TRL_RightRules>", 1)
-        notes.append("111 added RIGHT dest Princess West OS 113b (Main West → WME)")
+        notes.append("111 added RIGHT dest 113RA (Main West → WME)")
         text = text[:s] + col + text[e:]
 
     # --- Balloon: 114 / 115 BOTH (113 stays RIGHT — no unused westbound mast) ---
@@ -178,10 +178,10 @@ def main():
     if "<SIDI_LeftRightTrafficSignals />" in col:
         col = col.replace(
             "<SIDI_LeftRightTrafficSignals />",
-            "<SIDI_LeftRightTrafficSignals>\n        <signal>Princess East McKees Rocks</signal>\n      </SIDI_LeftRightTrafficSignals>",
+            "<SIDI_LeftRightTrafficSignals>\n        <signal>115R</signal>\n      </SIDI_LeftRightTrafficSignals>",
             1,
         )
-        notes.append("114 LTR += Princess East McKees Rocks")
+        notes.append("114 LTR += 115R")
     if "<TRL_RightRules />" in col:
         col = col.replace("<TRL_RightRules />", RULES_114_RIGHT.rstrip(), 1)
         notes.append("114 BOTH + eastbound TRL rules")
@@ -198,10 +198,10 @@ def main():
     if "<SIDI_LeftRightTrafficSignals />" in col:
         col = col.replace(
             "<SIDI_LeftRightTrafficSignals />",
-            "<SIDI_LeftRightTrafficSignals>\n        <signal>Princess East McKeesport</signal>\n      </SIDI_LeftRightTrafficSignals>",
+            "<SIDI_LeftRightTrafficSignals>\n        <signal>114R</signal>\n      </SIDI_LeftRightTrafficSignals>",
             1,
         )
-        notes.append("115 LTR += Princess East McKeesport")
+        notes.append("115 LTR += 114R")
     if "<TRL_RightRules />" in col:
         col = col.replace("<TRL_RightRules />", RULES_115_RIGHT.rstrip(), 1)
         notes.append("115 BOTH + eastbound TRL rules")

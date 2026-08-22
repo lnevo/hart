@@ -164,7 +164,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Yard 1" STATION="W-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="W-1" STATION="W-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -194,7 +194,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 101 (Brick)" STATION="101" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 101" STATION="101" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="400" JMRIPREFIX="M2S" USER_NAME="Block 4-1">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -203,7 +203,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Brick West Yard 1
+          101RA
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -253,7 +253,7 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 100 (Brick)" STATION="100" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 100" STATION="100" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="401" JMRIPREFIX="M2S" USER_NAME="Block 4-2">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -294,7 +294,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Brick East Main West
+          100L
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>aar-single</PHYSIGNAL>
         </SECSIGNAL>
@@ -378,7 +378,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Yard 2" STATION="W-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="W-2" STATION="W-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -410,7 +410,7 @@
       <SEC_EDGE EDGE="LEFT">
         <BLOCK />
         <SECSIGNAL>
-          Brick West Yard 2
+          101RB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -445,7 +445,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T11" STATION="ET-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="EH-3" STATION="EH-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -460,7 +460,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="Yard T11" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="EH-3" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -478,7 +478,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 118 (West Yard)" STATION="118" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 118" STATION="118" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1301" JMRIPREFIX="M2S" USER_NAME="Block 13-2">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -525,7 +525,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T10" STATION="ET-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="EH-2" STATION="EH-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="Block 13-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -540,7 +540,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="Yard T10" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="EH-2" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
@@ -551,7 +551,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 119 (West Yard)" STATION="119" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 119" STATION="119" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1307" JMRIPREFIX="M2S" USER_NAME="Block 13-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -619,7 +619,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="OS 115 (Princess)" STATION="K-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 115" STATION="K-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="Block 1-4">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -628,7 +628,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess North McKees Rocks
+          115LB
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -671,7 +671,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T9" STATION="ET-3" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="EH-1" STATION="EH-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -686,7 +686,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="Yard T9" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="EH-1" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
@@ -848,7 +848,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 111a (East End)" STATION="111" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 111a" STATION="111" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1203" JMRIPREFIX="M2S" USER_NAME="Block 12-4">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -857,7 +857,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          East End West Main West
+          111RA
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -902,7 +902,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          East End East OS 111a
+          111L
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -967,7 +967,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113b (Princess)" STATION="113" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 113b" STATION="113" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="104" JMRIPREFIX="M2S" USER_NAME="Block 1-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -976,7 +976,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess West OS 113b
+          113RA
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1074,7 +1074,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Princess East K-1
+          115LA
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1110,7 +1110,7 @@
       <SEC_EDGE EDGE="BOTTOM">
         <BLOCK />
         <SECSIGNAL>
-          Princess East McKeesport
+          114R
           <PANELSIGNAL SIGLOCATION="RIGHTUP" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1122,7 +1122,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 102 (Plane)" STATION="102" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 102" STATION="102" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="404" JMRIPREFIX="M2S" USER_NAME="Block 4-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1168,7 +1168,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Plane East OS 102
+          102LA
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1179,7 +1179,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T1" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Scale" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="407" JMRIPREFIX="M2S" USER_NAME="Block 4-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1204,7 +1204,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 117 (West Yard)" STATION="117" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 117" STATION="117" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1302" JMRIPREFIX="M2S" USER_NAME="Block 13-3">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1213,7 +1213,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          West Yard West OS 117
+          117RA
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1258,7 +1258,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          West Yard East Yard T6
+          117LB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1269,7 +1269,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard T6" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Barn" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1300" JMRIPREFIX="M2S" USER_NAME="Block 13-1">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1303,7 +1303,7 @@
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 116 (West Yard)" STATION="116" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 116" STATION="116" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="300" JMRIPREFIX="M2S" USER_NAME="Block 3-1">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1354,7 +1354,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 103 (South Yard)" STATION="103" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 103" STATION="103" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="301" JMRIPREFIX="M2S" USER_NAME="Block 3-2">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1410,7 +1410,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 1" STATION="S-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-1" STATION="S-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="207" JMRIPREFIX="M2S" USER_NAME="Block 2-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1474,7 +1474,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 111b (East End)" STATION="111" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 111b" STATION="111" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1205" JMRIPREFIX="M2S" USER_NAME="Block 12-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1483,7 +1483,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          East End West Yard Track 1
+          111RB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1535,7 +1535,7 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 110 (East End)" STATION="110" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 110" STATION="110" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1206" JMRIPREFIX="M2S" USER_NAME="Block 12-7">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1567,7 +1567,7 @@
       <SEC_EDGE EDGE="BOTTOM">
         <BLOCK />
         <SECSIGNAL>
-          East End South OS 110
+          110R
           <PANELSIGNAL SIGLOCATION="LEFTUP" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1588,7 +1588,7 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 112 (East End)" STATION="112" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 112" STATION="112" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1207" JMRIPREFIX="M2S" USER_NAME="Block 12-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1627,7 +1627,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          East End East Lead
+          112L
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1664,7 +1664,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113a (Princess)" STATION="113" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 113a" STATION="113" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="105" JMRIPREFIX="M2S" USER_NAME="Block 1-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1673,7 +1673,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess West OS 113a
+          113RB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1724,7 +1724,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 114 (Princess)" STATION="K-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 114" STATION="K-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="Block 1-3">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1778,7 +1778,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Princess East K-2
+          114LA
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1820,7 +1820,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          Princess East McKees Rocks
+          115R
           <PANELSIGNAL SIGLOCATION="RIGHTLOW" SIGORIENT="BOTTOM" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1842,7 +1842,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Plane East East Main Ext
+          102LB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1878,7 +1878,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 117b (West Yard)" STATION="117" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 117b" STATION="117" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1303" JMRIPREFIX="M2S" USER_NAME="Block 13-4">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1887,7 +1887,7 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          West Yard West East Main Ext
+          117RB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1932,7 +1932,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          West Yard East OS 117b
+          117LA
           <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1995,7 +1995,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 104 (South Yard)" STATION="104" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 104" STATION="104" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="302" JMRIPREFIX="M2S" USER_NAME="Block 3-3">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2042,7 +2042,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 2" STATION="S-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-2" STATION="S-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="206" JMRIPREFIX="M2S" USER_NAME="Block 2-7">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2114,7 +2114,7 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 109 (East End)" STATION="109" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 109" STATION="109" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1204" JMRIPREFIX="M2S" USER_NAME="Block 12-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2172,7 +2172,7 @@
       <SEC_EDGE EDGE="LEFT">
         <BLOCK />
         <SECSIGNAL>
-          East End South OS 112
+          112R
           <PANELSIGNAL SIGLOCATION="RIGHTLOW" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -2194,7 +2194,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          Princess South McKeesport
+          114LB
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -2242,7 +2242,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 105 (South Yard)" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 105" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="304" JMRIPREFIX="M2S" USER_NAME="Block 3-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2289,7 +2289,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 3" STATION="S-3" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-3" STATION="S-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="205" JMRIPREFIX="M2S" USER_NAME="Block 2-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2347,7 +2347,7 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 108 (East End)" STATION="108" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 108" STATION="108" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1202" JMRIPREFIX="M2S" USER_NAME="Block 12-3">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2426,7 +2426,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 106 (South Yard)" STATION="106" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 106" STATION="106" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="306" JMRIPREFIX="M2S" USER_NAME="Block 3-7">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2478,7 +2478,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Yard Track 4" STATION="S-4" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-4" STATION="S-4" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="204" JMRIPREFIX="M2S" USER_NAME="Block 2-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2517,7 +2517,7 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 107 (East End)" STATION="107" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 107" STATION="107" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1200" JMRIPREFIX="M2S" USER_NAME="Block 12-1">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2593,7 +2593,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="Yard Track 5" STATION="S-5" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-5" STATION="S-5" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="203" JMRIPREFIX="M2S" USER_NAME="Block 2-4">close</IOSPEC>
           </OCCUPIEDSPEC>

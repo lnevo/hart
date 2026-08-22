@@ -25,7 +25,7 @@ Two windows:
 | Window | What it is |
 |--------|------------|
 | **Dispatcher System** | Command panel: start/stop, register trains, Run Dispatch vs Setup Route vs Run Route |
-| **HART Railroad** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House 1–3 where occupancy sits further left on the same row |
+| **HART Railroad** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House **EH-1…EH-3** where occupancy sits further left on the same row |
 
 Stations, west → east around the plant, then the yard and house:
 
@@ -34,22 +34,22 @@ Stations, west → east around the plant, then the yard and house:
 | **Brick-Plane** | Hairpin between Brick and Plane |
 | **East Main Ext** | Main between Plane (102) and Barn (117) |
 | **Main East** | Main south of the yard, approaching East End |
-| **South Yard East** | East End lead off 112; destination label **East** |
+| **East Lead** | East End lead off 112; destination label **E Lead** |
 | **Main West** | Main West at East End (around-the-room from Brick) |
 | **West Main Ext** | Main West between East End and Princess |
 | **McKees Rocks** | Princess, north branch |
 | **McKeesport** | Princess, south branch |
 | **Scale** | Left of the engine house, Plane–117 lead; destination label **Scale** |
 | **Barn** | Immediately to the right of Scale (Barn lead); destination label **Barn** |
-| **Engine House 1 / 2 / 3** | Right of the 116 ladder |
+| **EH-1 / EH-2 / EH-3** | Right of the 116 ladder |
 | **S-1…S-5** | South Yard body; destination labels **S-1…S-5**, aligned with Main W / Main E |
-| **West Yard 1 / 2** | Brick yard body; destination labels **W-1** / **W-2** |
+| **W-1 / W-2** | Brick yard body |
 | **K-1 / K-2** | Princess stubs east of 115 / 114; destination labels **K-1** / **K-2** |
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
 buttons are in place. **Stage 1 was re-run 2026-08-21** for Scale, Barn,
 and S-1 (graph is now 41 sections / 175 transits / 394 traininfo).
-Engine House 1–3, West Yard 1–2, K-1/K-2, and S-2…S-5 still have
+EH-1…EH-3, W-1/W-2, K-1/K-2, and S-2…S-5 still have
 occupancy/MoveTo icons, but CreateTransits cannot cover them yet: bumper
 `IF$vsm` virtuals get no Layout Editor facing, so Discover cannot build
 `mast:mast` sections through those stubs. Hidden virtuals stay in tables
@@ -146,7 +146,7 @@ is in place.
 Train on **East Main Ext**, facing east, want Barn then East End without
 going the long way around Plane:
 
-**East Main Ext** → **Main East** → **South Yard East**
+**East Main Ext** → **Main East** → **East Lead**
 
 To send it the long way on purpose, put **Brick-Plane** (and
 whatever else you need) in the list so shortest-path cannot skip it.
