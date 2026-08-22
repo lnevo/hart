@@ -12192,7 +12192,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="NX 117RB" x="445" y="348" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="NX 117RB" x="445" y="353" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/USS/sensor/green-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>

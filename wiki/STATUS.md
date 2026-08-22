@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — NX 117RB lamp moved to y=353, even with NX 102LB on East Main Ext.
+
 Updated: 2026-08-22 — Restored Dispatcher System OS occupancy circuit icons on My Layout (19 plant/OS `Block n-n` dots at Stage 1 positions). Station occupancy dots unchanged.
 
 Updated: 2026-08-22 — Dispatcher Stage 1 re-run on Pi PanelPro. Graph is **41 sections / 175 transits / 394 HEAD_AND_TAIL traininfo** covering the original eight plus **Scale, Barn, South Yard 1**. Bumper `IF$vsm` virtuals do not get Layout Editor facing, so Engine House / West Yard / K / South Yard 2–5 stay occupancy-only until SHSM or throat masts. Manual pairs `113RA→115LA` and `113RB→114LA` restored. Stage 2 options already correct (`autoturnouts`, turnout delay). EH buffer masts flipped westbound to face the plant.
