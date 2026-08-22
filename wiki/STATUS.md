@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-22 — LogixNG window hide is on at PanelPro start: **USS CTC**, **Dispatcher System**, and **WiThrottle**. Ignore-if-not-found stays checked. **HART Railroad** stays visible.
+Updated: 2026-08-22 — USS CTC machine window is **USS CTC**; LogixNG hides the Panel Editor toolbox (**USS CTC Editor**), **Dispatcher System**, and **WiThrottle** at start. Ignore-if-not-found stays checked. **HART Railroad** stays visible.
 
 Updated: 2026-08-22 — Panel window titles: Layout Editor is **HART Railroad** (was My Layout / HART); Panel Editor USS machine is **USS CTC** (was `Panel `). Entry/Exit `layoutPanel` and Dispatcher `lename` match.
 
