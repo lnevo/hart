@@ -10,8 +10,7 @@ from __future__ import print_function
 from java.awt import Frame, Window
 from java.lang import System
 
-from jmri.util import ThreadingUtil
-from jmri.util.swing import JmriJFrame
+from jmri.util import JmriJFrame, ThreadingUtil
 
 HART_RAILROAD = "HART Railroad"
 
