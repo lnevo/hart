@@ -53,11 +53,16 @@ block,Yard T1,Scale,Plane,Block 4-8,Plane diverging to 117; was South Yard Scale
 block,Yard T6,Barn,Barn,Block 13-1,MQTT 1300; 117 to 116; was South Yard West
 block,South Yard Scale,Scale,Plane,Block 4-8,alias after Scale/West public names
 block,South Yard West,Barn,Barn,Block 13-1,alias after Scale/West public names
-block,Yard Track 1,South Yard 1,South Yard,Block 2-8,run-through east of 103 to 110/112
-block,Yard Track 2,South Yard 2,South Yard,Block 2-7,
-block,Yard Track 3,South Yard 3,South Yard,Block 2-6,
-block,Yard Track 4,South Yard 4,South Yard,Block 2-5,
-block,Yard Track 5,South Yard 5,South Yard,Block 2-4,
+block,Yard Track 1,S-1,South Yard,Block 2-8,run-through east of 103 to 110/112; plate S-1
+block,Yard Track 2,S-2,South Yard,Block 2-7,plate S-2
+block,Yard Track 3,S-3,South Yard,Block 2-6,plate S-3
+block,Yard Track 4,S-4,South Yard,Block 2-5,plate S-4
+block,Yard Track 5,S-5,South Yard,Block 2-4,plate S-5
+block,South Yard 1,S-1,South Yard,Block 2-8,was South Yard 1; plate S-1
+block,South Yard 2,S-2,South Yard,Block 2-7,was South Yard 2; plate S-2
+block,South Yard 3,S-3,South Yard,Block 2-6,was South Yard 3; plate S-3
+block,South Yard 4,S-4,South Yard,Block 2-5,was South Yard 4; plate S-4
+block,South Yard 5,S-5,South Yard,Block 2-4,was South Yard 5; plate S-5
 block,West Yard 1,West Yard 1,Brick,Block 4-4,yard body; access Switch 101 only; plate W-1
 block,West Yard 2,West Yard 2,Brick,Block 4-3,yard body; access Switch 101 only; plate W-2
 block,K-1,K-1,Princess,Block 1-4,keep; same sensor as OS 115

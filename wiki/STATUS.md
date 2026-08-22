@@ -1,10 +1,12 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — South Yard body tracks renamed **S-1…S-5** (was South Yard 1–5 / SY-1…SY-5). JMRI block userNames, dispatcher stations/MoveTo, and CATS `BLOCK NAME` match the Digicon plates. Occupancy sensors stay `Block 2-4`…`Block 2-8`.
+
 Updated: 2026-08-22 — NX 117RB lamp moved to y=353, even with NX 102LB on East Main Ext.
 
 Updated: 2026-08-22 — Restored Dispatcher System OS occupancy circuit icons on My Layout (19 plant/OS `Block n-n` dots at Stage 1 positions). Station occupancy dots unchanged.
 
-Updated: 2026-08-22 — Dispatcher Stage 1 re-run on Pi PanelPro. Graph is **41 sections / 175 transits / 394 HEAD_AND_TAIL traininfo** covering the original eight plus **Scale, Barn, South Yard 1**. Bumper `IF$vsm` virtuals do not get Layout Editor facing, so Engine House / West Yard / K / South Yard 2–5 stay occupancy-only until SHSM or throat masts. Manual pairs `113RA→115LA` and `113RB→114LA` restored. Stage 2 options already correct (`autoturnouts`, turnout delay). EH buffer masts flipped westbound to face the plant.
+Updated: 2026-08-22 — Dispatcher Stage 1 re-run on Pi PanelPro. Graph is **41 sections / 175 transits / 394 HEAD_AND_TAIL traininfo** covering the original eight plus **Scale, Barn, S-1**. Bumper `IF$vsm` virtuals do not get Layout Editor facing, so Engine House / West Yard / K / S-2…S-5 stay occupancy-only until SHSM or throat masts. Manual pairs `113RA→115LA` and `113RB→114LA` restored. Stage 2 options already correct (`autoturnouts`, turnout delay). EH buffer masts flipped westbound to face the plant.
 
 Updated: 2026-08-21 — LE cleanup: MTT100/113/114/115 are TWOSENSOR on the same FB as Switch 100/113–115 (M2T); 114→McKeesport bezier tangent at A62 now matches the frog (0° kink); zero-length K-2 F5-S-0 merged. Hidden stub-end virtual masts added for new dispatcher stations — **Stage 1/2 not re-run yet** (traininfo still 220 / original 8). Run Stage 1 in PanelPro (not CATS), then `fix_traininfo_detection.py` + `reconcile_dispatcher_stations.py`.
 
@@ -26,9 +28,9 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   `jmri/layouts/hart/scripts/polish_hart_layout_editor.py`.
 - Dispatcher graph stations (CreateTransits): **Main West, West Main Ext,
   McKees Rocks, McKeesport, South Yard East, Main East, East Main Ext,
-  Brick-Plane, Scale, Barn, South Yard 1**. Deployment is **41 sections /
+  Brick-Plane, Scale, Barn, S-1**. Deployment is **41 sections /
   175 transits / 394 HEAD_AND_TAIL traininfo**. Occupancy/MoveTo icons remain
-  for Engine House 1–3, South Yard 2–5, West Yard 1–2, and K-1/K-2; those
+  for Engine House 1–3, S-2…S-5, West Yard 1–2, and K-1/K-2; those
   stubs need SHSM or throat masts before they can join the graph.
 - **Dispatcher compatibility fixed (2026-08-20):** HART now launches the stock
   Dispatcher System through `hart_dispatcher_startup.py`, so its classes are
@@ -104,7 +106,7 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
 
 ## Dispatcher System (2026-08-18) — set up, awaiting live test
 
-- **2026-08-22 graph:** Stage 1 added Scale, Barn, and South Yard 1 — now 41 sections / 175 transits / 394 traininfo. Stub stations still have icons but are not in CreateTransits (`IF$vsm` bumper masts have no LE facing).
+- **2026-08-22 graph:** Stage 1 added Scale, Barn, and S-1 — now 41 sections / 175 transits / 394 traininfo. Stub stations still have icons but are not in CreateTransits (`IF$vsm` bumper masts have no LE facing).
 - **Stub tracks cannot be stations**: K-1, K-2, West Yard 1/2 ("Track 1/2"), and the Yard Tracks fail Stage 1 transit generation ("missing signal mast in block X") because CreateTransits requires each station block to be covered by a `mastA:mastB` section — stubs have no mast at the buffer end. Making them stations would require adding (virtual) stub-end masts and re-discovering SML.
 - **Never run Stage 1 or store panels from inside CATS.** CATS embeds JMRI on the same profile, so a store from a CATS session persists CATS runtime beans into `tables.xml` — 25 `IF$vsm:CATS1/CATS2` virtual masts (which then fail to load in plain JMRI: "Signal definition not found: CATS1") plus `IMDECODER_*` memories. Happened 2026-08-18; file was surgically cleaned and verified under PanelPro. Configure JMRI from PanelPro only.
 - **SML survived regeneration**: Stage 1 deletes + re-discovers; result matched our 34 discovered pairs, and the 2 manual K-stub pairs (`113a→K-2`, `113b→K-1`) were re-added — 36 total, verified after restart.

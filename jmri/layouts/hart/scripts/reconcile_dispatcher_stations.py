@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconcile the eight HART JMRI Dispatcher stations and their panel icons.
+"""Reconcile the HART JMRI Dispatcher stations and their panel icons.
 
 The working target defaults to ``tables/new_tables.xml``.  ``tables/tables.xml``
 is a read-only snapshot and is explicitly rejected.  A normal run applies the
@@ -38,31 +38,115 @@ STATIONS = (
     "Main East",
     "East Main Ext",
     "Brick-Plane",
+    "Engine House 1",
+    "Engine House 2",
+    "Engine House 3",
+    "S-1",
+    "S-2",
+    "S-3",
+    "S-4",
+    "S-5",
+    "Scale",
+    "Barn",
+    "West Yard 1",
+    "West Yard 2",
+    "K-1",
+    "K-2",
 )
 
 INTERNAL_SENSOR_CLASS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
 STOP_TOKEN = "stop"
-# Stock Dispatcher System places the 10x10 progress circuit 10px left of the
-# MoveTo loco (60x20). That abuts the two icons into one blob. Leave a gap so
-# both indicators stay readable beside the station.
-PAIR_DX = 26
+# Progress is x-10 from MoveTo. Occupancy is MoveTo + (-10, +10) unless
+# the station uses a left-right circuit row (engine house).
+PAIR_DX = 10
+OCCUPANCY_OFFSET = (-10, 10)
+CIRCUIT_ICON_SIZE = 10
+EH_ROW_STATIONS = frozenset(
+    {"Engine House 1", "Engine House 2", "Engine House 3"}
+)
 
 # Progress icon position; the clickable MoveTo icon sits PAIR_DX to its right.
-# Keep each compact status/command pair near its station block while offsetting
-# it from rails, mast icons, turnout numbers, and the future NX layer.
+# Main West / Main East / Brick-Plane keep the progress lamp and pull MoveTo in.
+# The other original five pull progress right to meet the existing MoveTo.
 STATION_ICON_POSITIONS = {
-    "Brick-Plane": (250, 293),
-    "East Main Ext": (360, 390),
+    "Brick-Plane": (240, 293),
+    "East Main Ext": (376, 390),
     "Main West": (943, 230),
     "Main East": (943, 520),
-    "West Main Ext": (1400, 210),
-    "South Yard East": (1400, 345),
-    "McKees Rocks": (1690, 185),
-    "McKeesport": (1690, 345),
+    "West Main Ext": (1416, 210),
+    "South Yard East": (1416, 345),
+    "McKees Rocks": (1706, 185),
+    "McKeesport": (1706, 345),
+    # Engine house: east/right of the 116 ladder.
+    "Engine House 1": (668, 256),
+    "Engine House 2": (668, 270),
+    "Engine House 3": (668, 284),
+    # South Yard body: replace the old Track 1–5 text labels.
+    "S-1": (943, 293),
+    "S-2": (943, 344),
+    "S-3": (943, 391),
+    "S-4": (943, 438),
+    "S-5": (943, 480),
+    # Scale (old T1) / Barn (old T6) left of the shortened house stubs.
+    "Scale": (410, 266),
+    "Barn": (490, 266),
+    # West Yard body: replace Track 1 / Track 2 text at the west end.
+    "West Yard 1": (103, 230),
+    "West Yard 2": (105, 293),
+    # Princess stubs: replace Track 1 / Track 2 east of 114 / 115.
+    "K-1": (1730, 230),
+    "K-2": (1730, 293),
 }
 
+STATION_OCCUPANCY = {
+    "Brick-Plane": "Block 4-6",
+    "East Main Ext": "Block 4-7",
+    "Main West": "Block 2-1",
+    "Main East": "Block 2-3",
+    "West Main Ext": "Block 1-8",
+    "South Yard East": "Block 1-7",
+    "McKees Rocks": "Block 1-1",
+    "McKeesport": "Block 1-2",
+    "Engine House 1": "Block 13-5",
+    "Engine House 2": "Block 13-6",
+    "Engine House 3": "Block 13-7",
+    "S-1": "Block 2-8",
+    "S-2": "Block 2-7",
+    "S-3": "Block 2-6",
+    "S-4": "Block 2-5",
+    "S-5": "Block 2-4",
+    "Scale": "Block 4-8",
+    "Barn": "Block 13-1",
+    "West Yard 1": "Block 4-4",
+    "West Yard 2": "Block 4-3",
+    "K-1": "Block 1-4",
+    "K-2": "Block 1-3",
+}
+
+# Loco marker is ~60px; size-10 bold fits about 8 characters.
 STATION_DISPLAY_NAMES = {
-    "Brick-Plane": "Brick-Plane",
+    "Brick-Plane": "Brk-Pln",
+    "East Main Ext": "E Main",
+    "Main West": "Main W",
+    "Main East": "Main E",
+    "West Main Ext": "W Main",
+    "South Yard East": "East",
+    "McKees Rocks": "McK Rks",
+    "McKeesport": "McKport",
+    "Engine House 1": "EH 1",
+    "Engine House 2": "EH 2",
+    "Engine House 3": "EH 3",
+    "S-1": "S-1",
+    "S-2": "S-2",
+    "S-3": "S-3",
+    "S-4": "S-4",
+    "S-5": "S-5",
+    "Scale": "Scale",
+    "Barn": "Barn",
+    "West Yard 1": "W-1",
+    "West Yard 2": "W-2",
+    "K-1": "K-1",
+    "K-2": "K-2",
 }
 
 
@@ -91,6 +175,25 @@ def station_key(station: str) -> str:
 def sensor_names(station: str) -> tuple[str, str]:
     key = station_key(station)
     return f"MoveTo{key}_stored", f"MoveInProgress{key}"
+
+
+def cluster_positions(
+    station: str,
+) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
+    """Return progress, MoveTo, occupancy coordinates."""
+    progress_pos = STATION_ICON_POSITIONS[station]
+    move_to_pos = (progress_pos[0] + PAIR_DX, progress_pos[1])
+    if station in EH_ROW_STATIONS:
+        occ_pos = (
+            move_to_pos[0] - PAIR_DX - CIRCUIT_ICON_SIZE,
+            move_to_pos[1],
+        )
+    else:
+        occ_pos = (
+            move_to_pos[0] + OCCUPANCY_OFFSET[0],
+            move_to_pos[1] + OCCUPANCY_OFFSET[1],
+        )
+    return progress_pos, move_to_pos, occ_pos
 
 
 def parse_xml(path: Path) -> ET.ElementTree:
@@ -251,7 +354,11 @@ def main_layout_editor(root: ET.Element) -> ET.Element:
 
 
 def icon_element(
-    sensor_name: str, station: str, x: int, y: int, move_to: bool
+    sensor_name: str,
+    station: str,
+    x: int,
+    y: int,
+    kind: str,
 ) -> ET.Element:
     attributes = {
         "sensor": sensor_name,
@@ -267,10 +374,11 @@ def icon_element(
         "icon": "yes",
         "class": "jmri.jmrit.display.configurexml.SensorIconXml",
     }
-    if move_to:
+    display = STATION_DISPLAY_NAMES.get(station, station)
+    if kind == "move_to":
         attributes.update(
             {
-                "text": STATION_DISPLAY_NAMES.get(station, station),
+                "text": display,
                 "size": "10",
                 "style": "1",
                 "red": "51",
@@ -288,7 +396,7 @@ def icon_element(
             "unknown": "program:resources/icons/markers/loco-gray.gif",
             "inconsistent": "program:resources/icons/markers/loco-yellow.gif",
         }
-        if move_to
+        if kind == "move_to"
         else {
             "active": "program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif",
             "inactive": "program:resources/icons/smallschematics/tracksegments/circuit-empty.gif",
@@ -302,7 +410,7 @@ def icon_element(
         )
         ET.SubElement(state_element, "rotation").text = "0"
     ET.SubElement(icon, "iconmaps")
-    if move_to:
+    if kind == "move_to":
         for tag, color in (
             ("activeText", ("255", "0", "0")),
             ("inactiveText", ("255", "255", "0")),
@@ -313,7 +421,7 @@ def icon_element(
                 icon,
                 tag,
                 {
-                    "text": sensor_name,
+                    "text": display,
                     "red": color[0],
                     "green": color[1],
                     "blue": color[2],
@@ -334,7 +442,7 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
     expected_names = {
         sensor_name
         for station in STATIONS
-        for sensor_name in sensor_names(station)
+        for sensor_name in (*sensor_names(station), STATION_OCCUPANCY[station])
     }
     existing: dict[str, list[ET.Element]] = {name: [] for name in expected_names}
     for element in editor.findall("sensoricon"):
@@ -347,20 +455,11 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
         name = element.get("blockcontents") or ""
         if name in anchors:
             anchors[name].append(element)
-    bad_anchors = [
-        name
-        for name, rows in anchors.items()
-        if not rows or len({xy(row) for row in rows}) != 1
-    ]
+    bad_anchors = [name for name, rows in anchors.items() if not rows]
     if bad_anchors:
-        counts = ", ".join(
-            f"{name}={len(anchors[name])} at "
-            f"{sorted((xy(row) for row in anchors[name]), key=str)}"
-            for name in bad_anchors
-        )
         raise ValueError(
-            "expected at least one identically positioned BlockContentsIcon "
-            f"per station ({counts})"
+            "expected at least one BlockContentsIcon per station "
+            f"({', '.join(bad_anchors)})"
         )
 
     children = list(editor)
@@ -385,30 +484,26 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
         anchor = xy(anchors[station][0])
         if anchor is None:
             raise ValueError(f"BlockContentsIcon for {station!r} has invalid x/y")
-        progress_pos = STATION_ICON_POSITIONS[station]
-        move_to_pos = (progress_pos[0] + PAIR_DX, progress_pos[1])
+        progress_pos, move_to_pos, occ_pos = cluster_positions(station)
         move_to_name, progress_name = sensor_names(station)
+        occ_name = STATION_OCCUPANCY[station]
         expected_positions = {
             move_to_name: move_to_pos,
             progress_name: progress_pos,
+            occ_name: occ_pos,
         }
         expected_icons = {
             move_to_name: icon_element(
-                move_to_name,
-                station,
-                move_to_pos[0],
-                move_to_pos[1],
-                move_to=True,
+                move_to_name, station, move_to_pos[0], move_to_pos[1], "move_to"
             ),
             progress_name: icon_element(
-                progress_name,
-                station,
-                progress_pos[0],
-                progress_pos[1],
-                move_to=False,
+                progress_name, station, progress_pos[0], progress_pos[1], "progress"
+            ),
+            occ_name: icon_element(
+                occ_name, station, occ_pos[0], occ_pos[1], "occupancy"
             ),
         }
-        for name in (move_to_name, progress_name):
+        for name in (move_to_name, progress_name, occ_name):
             rows = existing[name]
             if not rows:
                 changes.icons_created += 1
@@ -423,6 +518,7 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
                 changes.details.append(f"reconciled icon {name}")
         new_icons.append(expected_icons[move_to_name])
         new_icons.append(expected_icons[progress_name])
+        new_icons.append(expected_icons[occ_name])
 
     for element in children:
         if id(element) in managed_elements:
@@ -482,6 +578,9 @@ def validate(root: ET.Element) -> None:
     expected_sensors = [
         name for station in STATIONS for name in sensor_names(station)
     ]
+    expected_icons = expected_sensors + [
+        STATION_OCCUPANCY[station] for station in STATIONS
+    ]
     bad_sensors = [
         name for name in expected_sensors if internal_users.count(name) != 1
     ]
@@ -492,14 +591,14 @@ def validate(root: ET.Element) -> None:
     icon_names = [
         icon.get("sensor") or "" for icon in editor.findall("sensoricon")
     ]
-    bad_icons = [name for name in expected_sensors if icon_names.count(name) != 1]
+    bad_icons = [name for name in expected_icons if icon_names.count(name) != 1]
     if bad_icons:
         raise ValueError(f"missing or duplicate station icons: {bad_icons}")
 
     positions = [
         xy(icon)
         for icon in editor.findall("sensoricon")
-        if (icon.get("sensor") or "") in expected_sensors
+        if (icon.get("sensor") or "") in expected_icons
     ]
     if len(positions) != len(set(positions)):
         raise ValueError("station icon coordinate collision")
@@ -537,7 +636,7 @@ def safe_panel_path(path: Path) -> Path:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Reconcile the eight HART Dispatcher station comments, internal "
+            "Reconcile HART Dispatcher station comments, internal "
             "sensors, and paired LayoutEditor icons."
         ),
         epilog=(

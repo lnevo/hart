@@ -42,14 +42,14 @@ Stations, west → east around the plant, then the yard and house:
 | **Scale** | Left of the engine house, Plane–117 lead; destination label **Scale** |
 | **Barn** | Immediately to the right of Scale (Barn lead); destination label **Barn** |
 | **Engine House 1 / 2 / 3** | Right of the 116 ladder |
-| **South Yard 1–5** | South Yard body; destination labels **Track 1–5**, aligned with Main W / Main E |
+| **S-1…S-5** | South Yard body; destination labels **S-1…S-5**, aligned with Main W / Main E |
 | **West Yard 1 / 2** | Brick yard body; destination labels **W-1** / **W-2** |
 | **K-1 / K-2** | Princess stubs east of 115 / 114; destination labels **K-1** / **K-2** |
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
 buttons are in place. **Stage 1 was re-run 2026-08-21** for Scale, Barn,
-and South Yard 1 (graph is now 41 sections / 175 transits / 394 traininfo).
-Engine House 1–3, West Yard 1–2, K-1/K-2, and South Yard 2–5 still have
+and S-1 (graph is now 41 sections / 175 transits / 394 traininfo).
+Engine House 1–3, West Yard 1–2, K-1/K-2, and S-2…S-5 still have
 occupancy/MoveTo icons, but CreateTransits cannot cover them yet: bumper
 `IF$vsm` virtuals get no Layout Editor facing, so Discover cannot build
 `mast:mast` sections through those stubs. Hidden virtuals stay in tables

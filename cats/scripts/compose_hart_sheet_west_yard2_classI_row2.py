@@ -122,7 +122,7 @@ def _build_panel_a() -> None:
     nm((AX0 + 9, y_wl), "RIGHT", "OS 102 (Plane)")
     cut((AX0 + 9, y_wl), "RIGHT", (AX0 + 10, y_wl), "LEFT")
     _H(AX0 + 10, AX0 + 12, y_wl)
-    nm((AX0 + 10, y_wl), "LEFT", "South Yard Scale")
+    nm((AX0 + 10, y_wl), "LEFT", "Scale")
     _sig(AX0 + 9, y_wl, "RIGHT", "102LA", "LAMP2", "LOWLEFT", "LEFT")
     # Main East peel under Plane — UB stub so Plane BOTTOM meets a TOP edge.
     le.GRID[(AX0 + 8, y_me)] = ["UPPERBACKSLASH"]
@@ -135,7 +135,7 @@ def _build_panel_a() -> None:
     # Barn 117/117b — row-1 `\` XO only (H+LOWERSLASH over H+UPPERSLASH).
     # Never cut on SWITCHPOINTS (plain→SP only).
     bx = AX0 + 14
-    # South Yard Scale → 117 approach → plant (SP=RIGHT) → tip → South Yard West
+    # Scale → 117 approach → plant (SP=RIGHT) → tip → Barn
     cut((AX0 + 12, y_wl), "RIGHT", (bx - 1, y_wl), "LEFT")
     H((bx - 1, y_wl))
     nm((bx - 1, y_wl), "LEFT", "OS 117 (Barn)")
@@ -144,7 +144,7 @@ def _build_panel_a() -> None:
     nm((bx + 1, y_wl), "RIGHT", "OS 117 (Barn)")
     cut((bx + 1, y_wl), "RIGHT", (bx + 2, y_wl), "LEFT")
     _H(bx + 2, AX1, y_wl)
-    nm((bx + 2, y_wl), "LEFT", "South Yard West")
+    nm((bx + 2, y_wl), "LEFT", "Barn")
     an((AX1, y_wl), "RIGHT")
     # EME → 117b approach → plant (SP=LEFT) → tip → Main East
     cut((AX0 + 12, y_me), "RIGHT", (bx - 1, y_me), "LEFT")
@@ -209,9 +209,9 @@ def _build_panel_b() -> None:
     _sig(ee_app, y_mw, "LEFT", "111RA", "LAMP2", "LOWLEFT", "RIGHT")
     _sig(ee_tip, y_mw, "RIGHT", "111L", "LAMP2", "LOWLEFT", "LEFT")
 
-    # --- South Yard West → 103 → S-1 ---
+    # --- Barn → 103 → S-1 ---
     _H(BX0, lx - 2, y_s1)
-    nm((BX0, y_s1), "LEFT", "South Yard West")
+    nm((BX0, y_s1), "LEFT", "Barn")
     cut((lx - 2, y_s1), "RIGHT", (lx - 1, y_s1), "LEFT")
     H((lx - 1, y_s1))
     nm((lx - 1, y_s1), "LEFT", "OS 103 (South Yard)")
@@ -219,7 +219,7 @@ def _build_panel_b() -> None:
     cut((lx, y_s1), "RIGHT", (sx, y_s1), "LEFT")
     # S-1 continuous into 111b approach (no dead-end gap at s_end).
     _H(sx, ee_app - 1, y_s1)
-    nm((sx, y_s1), "LEFT", "South Yard 1")
+    nm((sx, y_s1), "LEFT", "S-1")
     cut((ee_app - 1, y_s1), "RIGHT", (ee_app, y_s1), "LEFT")
 
     # --- 111b under 111a (same column) + S-1 into EE ---
@@ -260,9 +260,9 @@ def _build_panel_b() -> None:
     ee_lad = ee_tip + 2  # under 110 column
 
     for yb, sy_os, sy_tip, body, ee_os, ee_tip_id in (
-        (y_s2, "OS 104 (South Yard)", "TOL15", "South Yard 2", "OS 109 (East End)", "TOR7"),
-        (y_s3, "OS 105 (South Yard)", "TOL17", "South Yard 3", "OS 108 (East End)", "TOR9"),
-        (y_s4, "OS 106 (South Yard)", "TOL19", "South Yard 4", "OS 107 (East End)", "TOR11"),
+        (y_s2, "OS 104 (South Yard)", "TOL15", "S-2", "OS 109 (East End)", "TOR7"),
+        (y_s3, "OS 105 (South Yard)", "TOL17", "S-3", "OS 108 (East End)", "TOR9"),
+        (y_s4, "OS 106 (South Yard)", "TOL19", "S-4", "OS 107 (East End)", "TOR11"),
     ):
         # SY: V+LS — SP BOTTOM, NORMAL RIGHT into yard body; TOP from plant above.
         plant((lx, yb), ["VERTICAL", "LOWERSLASH"], sy_os, "RIGHT", sy_tip)
@@ -277,12 +277,12 @@ def _build_panel_b() -> None:
 
     # S-5 into 106 BOTTOM and across into 107 BOTTOM.
     le.GRID[(lx, y_s5)] = ["UPPERBACKSLASH"]  # TOP↔RIGHT into body
-    nm((lx, y_s5), "RIGHT", "South Yard 5")
+    nm((lx, y_s5), "RIGHT", "S-5")
     cut((lx, y_s5), "RIGHT", (sx, y_s5), "LEFT")
     _H(sx, ee_lad - 1, y_s5)
-    nm((sx, y_s5), "LEFT", "South Yard 5")
+    nm((sx, y_s5), "LEFT", "S-5")
     le.GRID[(ee_lad, y_s5)] = ["UPPERSLASH"]  # TOP↔LEFT under 107
-    nm((ee_lad, y_s5), "LEFT", "South Yard 5")
+    nm((ee_lad, y_s5), "LEFT", "S-5")
     cut((ee_lad - 1, y_s5), "RIGHT", (ee_lad, y_s5), "LEFT")
 
     _label((sx + ee_lad) // 2, Y_BANNER, "SOUTH YARD", loc="LOWCENT", font="FONT_CP")

@@ -1328,7 +1328,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="South Yard Scale" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Scale" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="407" JMRIPREFIX="M2S" USER_NAME="Block 4-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1345,7 +1345,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="South Yard Scale" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Scale" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="407" JMRIPREFIX="M2S" USER_NAME="Block 4-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1439,7 +1439,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="South Yard West" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Barn" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1300" JMRIPREFIX="M2S" USER_NAME="Block 13-1">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1464,7 +1464,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="South Yard West" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Barn" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1300" JMRIPREFIX="M2S" USER_NAME="Block 13-1">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1596,7 +1596,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="South Yard 1" STATION="S-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-1" STATION="S-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="207" JMRIPREFIX="M2S" USER_NAME="Block 2-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -1642,7 +1642,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="South Yard 1" STATION="S-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-1" STATION="S-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="207" JMRIPREFIX="M2S" USER_NAME="Block 2-8">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2311,7 +2311,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="South Yard 2" STATION="S-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-2" STATION="S-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="206" JMRIPREFIX="M2S" USER_NAME="Block 2-7">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2364,7 +2364,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="South Yard 2" STATION="S-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-2" STATION="S-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="206" JMRIPREFIX="M2S" USER_NAME="Block 2-7">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2577,7 +2577,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="South Yard 3" STATION="S-3" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-3" STATION="S-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="205" JMRIPREFIX="M2S" USER_NAME="Block 2-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2616,7 +2616,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="South Yard 3" STATION="S-3" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-3" STATION="S-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="205" JMRIPREFIX="M2S" USER_NAME="Block 2-6">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2762,7 +2762,7 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="South Yard 4" STATION="S-4" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-4" STATION="S-4" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="204" JMRIPREFIX="M2S" USER_NAME="Block 2-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2787,7 +2787,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="South Yard 4" STATION="S-4" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-4" STATION="S-4" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="204" JMRIPREFIX="M2S" USER_NAME="Block 2-5">close</IOSPEC>
           </OCCUPIEDSPEC>
@@ -2879,7 +2879,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="South Yard 5" STATION="S-5" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="S-5" STATION="S-5" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="203" JMRIPREFIX="M2S" USER_NAME="Block 2-4">close</IOSPEC>
           </OCCUPIEDSPEC>

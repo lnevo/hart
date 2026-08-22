@@ -90,27 +90,27 @@
     <sensor inverted="false">
       <systemName>M2S203</systemName>
       <userName>Block 2-4</userName>
-      <comment>Occupancy South Yard 5; MQTT M2S203</comment>
+      <comment>Occupancy S-5; MQTT M2S203</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S204</systemName>
       <userName>Block 2-5</userName>
-      <comment>Occupancy South Yard 4; MQTT M2S204</comment>
+      <comment>Occupancy S-4; MQTT M2S204</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S205</systemName>
       <userName>Block 2-6</userName>
-      <comment>Occupancy South Yard 3; MQTT M2S205</comment>
+      <comment>Occupancy S-3; MQTT M2S205</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S206</systemName>
       <userName>Block 2-7</userName>
-      <comment>Occupancy South Yard 2; MQTT M2S206</comment>
+      <comment>Occupancy S-2; MQTT M2S206</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S207</systemName>
       <userName>Block 2-8</userName>
-      <comment>Occupancy South Yard 1; MQTT M2S207</comment>
+      <comment>Occupancy S-1; MQTT M2S207</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S300</systemName>
@@ -911,7 +911,7 @@
     <block systemName="IB1" length="0.0" curve="0">
       <systemName>IB1</systemName>
       <userName>OS 116</userName>
-      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
+      <comment>Hand-throw west of S-103; occupancy Block 3-1 / M2S300</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 3-1</occupancysensor>
       <path todir="128" fromdir="64" block="IB15">
@@ -1113,7 +1113,7 @@
     </block>
     <block systemName="IB:AUTO:0007" length="0.0" curve="0">
       <systemName>IB:AUTO:0007</systemName>
-      <userName>South Yard 5</userName>
+      <userName>S-5</userName>
       <comment>South Yard body; occupancy Block 2-4 / M2S203; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-4</occupancysensor>
@@ -1130,7 +1130,7 @@
     </block>
     <block systemName="IB:AUTO:0008" length="0.0" curve="0">
       <systemName>IB:AUTO:0008</systemName>
-      <userName>South Yard 4</userName>
+      <userName>S-4</userName>
       <comment>South Yard body; occupancy Block 2-5 / M2S204; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-5</occupancysensor>
@@ -1160,7 +1160,7 @@
     </block>
     <block systemName="IB:AUTO:0012" length="0.0" curve="0">
       <systemName>IB:AUTO:0012</systemName>
-      <userName>South Yard 1</userName>
+      <userName>S-1</userName>
       <comment>Run-through east of 103; occupancy Block 2-8 / M2S207; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-8</occupancysensor>
@@ -1177,7 +1177,7 @@
     </block>
     <block systemName="IB:AUTO:0016" length="0.0" curve="0">
       <systemName>IB:AUTO:0016</systemName>
-      <userName>South Yard 2</userName>
+      <userName>S-2</userName>
       <comment>South Yard body; occupancy Block 2-7 / M2S206; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-7</occupancysensor>
@@ -1227,7 +1227,7 @@
     </block>
     <block systemName="IB:AUTO:0026" length="0.0" curve="0">
       <systemName>IB:AUTO:0026</systemName>
-      <userName>South Yard 3</userName>
+      <userName>S-3</userName>
       <comment>South Yard body; occupancy Block 2-6 / M2S205; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>Block 2-6</occupancysensor>
@@ -1641,11 +1641,11 @@
     </layoutblock>
     <layoutblock systemName="ILB7" occupancysensor="Block 2-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB7</systemName>
-      <userName>South Yard 5</userName>
+      <userName>S-5</userName>
     </layoutblock>
     <layoutblock systemName="ILB8" occupancysensor="Block 2-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB8</systemName>
-      <userName>South Yard 4</userName>
+      <userName>S-4</userName>
     </layoutblock>
     <layoutblock systemName="ILB10" occupancysensor="Block 1-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB10</systemName>
@@ -1653,11 +1653,11 @@
     </layoutblock>
     <layoutblock systemName="ILB12" occupancysensor="Block 2-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB12</systemName>
-      <userName>South Yard 1</userName>
+      <userName>S-1</userName>
     </layoutblock>
     <layoutblock systemName="ILB16" occupancysensor="Block 2-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB16</systemName>
-      <userName>South Yard 2</userName>
+      <userName>S-2</userName>
     </layoutblock>
     <layoutblock systemName="ILB17" occupancysensor="Block 1-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB17</systemName>
@@ -1673,7 +1673,7 @@
     </layoutblock>
     <layoutblock systemName="ILB26" occupancysensor="Block 2-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB26</systemName>
-      <userName>South Yard 3</userName>
+      <userName>S-3</userName>
     </layoutblock>
     <layoutblock systemName="ILB30" occupancysensor="Block 12-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB30</systemName>
@@ -2061,7 +2061,7 @@
     <BlockContentsIcon blockcontents="OS 110" x="1313" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="South Yard East" x="1460" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 103" x="700" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard 1" x="948" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="S-1" x="948" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 111b" x="1235" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 112" x="1384" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 113a" x="1530" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -2071,14 +2071,14 @@
     <BlockContentsIcon blockcontents="Scale" x="420" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 102" x="345" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 104" x="771" y="375" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard 2" x="948" y="374" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="S-2" x="948" y="374" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 109" x="1244" y="372" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 108" x="1171" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 105" x="842" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard 3" x="948" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="S-3" x="948" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 107" x="1103" y="470" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard 5" x="948" y="510" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="South Yard 4" x="948" y="468" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="S-5" x="948" y="510" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="S-4" x="948" y="468" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS 106" x="912" y="467" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Main East" x="948" y="558" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="East Main Ext" x="405" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -2151,16 +2151,16 @@
       </controlpoints>
     </tracksegment>
     <tracksegment ident="T-I-TOR11" blockname="OS 107" connect1name="TOR11" type1="TURNOUT_A" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOR11" blockname="South Yard 5" connect1name="TOR11" type1="TURNOUT_B" connect2name="A12" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOR11" blockname="South Yard 4" connect1name="TOR11" type1="TURNOUT_C" connect2name="A39" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR11" blockname="S-5" connect1name="TOR11" type1="TURNOUT_B" connect2name="A12" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR11" blockname="S-4" connect1name="TOR11" type1="TURNOUT_C" connect2name="A39" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F55-S-0" blockname="McKeesport" connect1name="A67" type1="POS_POINT" connect2name="A48" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F46-S-0" blockname="South Yard 1" connect1name="A37" type1="POS_POINT" connect2name="TOR14" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F46-S-0" blockname="S-1" connect1name="A37" type1="POS_POINT" connect2name="TOR14" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F12-S-0" blockname="OS 107" connect1name="A5" type1="POS_POINT" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F49-S-0" blockname="South Yard 4" connect1name="A39" type1="POS_POINT" connect2name="A41" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F49-S-0" blockname="S-4" connect1name="A39" type1="POS_POINT" connect2name="A41" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F8-S-0" blockname="OS 109" connect1name="A16" type1="POS_POINT" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL15" blockname="OS 103" connect1name="TOL15" type1="TURNOUT_A" connect2name="A6" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL15" blockname="OS 104" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOL15" blockname="South Yard 2" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL15" blockname="S-2" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F56-S-0" blockname="McKees Rocks" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F22-S-0" blockname="South Yard East" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F41-S-0" blockname="West Main Ext" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2169,7 +2169,7 @@
     <tracksegment ident="T-EL-TOL23" blockname="Main East" connect1name="TOL23" type1="TURNOUT_C" connect2name="A47" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F53-S-0" blockname="West Yard 1" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F20-S-0" blockname="OS 105" connect1name="A10" type1="POS_POINT" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F21-S-0" blockname="South Yard 5" connect1name="A15" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F21-S-0" blockname="S-5" connect1name="A15" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F61-S-0" blockname="Main West" connect1name="A59" type1="POS_POINT" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL38" blockname="OS 101" connect1name="TOL38" type1="TURNOUT_A" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL38" blockname="West Yard 1" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2177,27 +2177,27 @@
     <tracksegment ident="T-I-TOL42" blockname="Brick-Plane" connect1name="TOL42" type1="TURNOUT_A" connect2name="A65" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR7" blockname="OS 109" connect1name="TOR7" type1="TURNOUT_A" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR7" blockname="OS 108" connect1name="TOR7" type1="TURNOUT_B" connect2name="A22" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOR7" blockname="South Yard 2" connect1name="TOR7" type1="TURNOUT_C" connect2name="A61" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR7" blockname="S-2" connect1name="TOR7" type1="TURNOUT_C" connect2name="A61" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL19" blockname="OS 105" connect1name="TOL19" type1="TURNOUT_A" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL19" blockname="South Yard 5" connect1name="TOL19" type1="TURNOUT_B" connect2name="A15" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOL19" blockname="South Yard 4" connect1name="TOL19" type1="TURNOUT_C" connect2name="A41" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL19" blockname="S-5" connect1name="TOL19" type1="TURNOUT_B" connect2name="A15" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL19" blockname="S-4" connect1name="TOL19" type1="TURNOUT_C" connect2name="A41" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F26-S-0" blockname="Main East" connect1name="A3" type1="POS_POINT" connect2name="A23" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F28-S-0" blockname="OS 110" connect1name="A35" type1="POS_POINT" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL1" blockname="OS 113b" connect1name="TO113" type1="TURNOUT_B" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL1" blockname="West Main Ext" connect1name="TO113" type1="TURNOUT_A" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR9" blockname="OS 108" connect1name="TOR9" type1="TURNOUT_A" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR9" blockname="OS 107" connect1name="TOR9" type1="TURNOUT_B" connect2name="A5" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOR9" blockname="South Yard 3" connect1name="TOR9" type1="TURNOUT_C" connect2name="A36" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOR9" blockname="S-3" connect1name="TOR9" type1="TURNOUT_C" connect2name="A36" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F18-S-0" blockname="OS 104" connect1name="A42" type1="POS_POINT" connect2name="A31" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F48-S-0" blockname="South Yard 3" connect1name="A36" type1="POS_POINT" connect2name="A46" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F48-S-0" blockname="S-3" connect1name="A36" type1="POS_POINT" connect2name="A46" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F59-S-0" blockname="McKees Rocks" connect1name="A58" type1="POS_POINT" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
       <controlpoints>
         <controlpoint index="0" x="1680.5" y="168.0" />
         <controlpoint index="1" x="1644.5" y="208.5" />
       </controlpoints>
     </tracksegment>
-    <tracksegment ident="F47-S-0" blockname="South Yard 2" connect1name="A61" type1="POS_POINT" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F50-S-0" blockname="South Yard 5" connect1name="A32" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F47-S-0" blockname="S-2" connect1name="A61" type1="POS_POINT" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F50-S-0" blockname="S-5" connect1name="A32" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F58-S-0" blockname="K-1" connect1name="EB71" type1="POS_POINT" connect2name="A66" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F16-S-0" blockname="OS 103" connect1name="TOR14" type1="TURNOUT_C" connect2name="A6" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F60-S-0" blockname="McKeesport" connect1name="A67" type1="POS_POINT" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
@@ -2211,7 +2211,7 @@
     <tracksegment ident="F57-S-0" blockname="K-2" connect1name="EB72" type1="POS_POINT" connect2name="A55" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F62-S-0" blockname="Brick-Plane" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F40-S-0" blockname="OS 100" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F13-S-0" blockname="South Yard 5" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F13-S-0" blockname="S-5" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F54-S-0" blockname="West Yard 2" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL6" blockname="OS 110" connect1name="TOL6" type1="TURNOUT_A" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL6" blockname="OS 110" connect1name="TOL6" type1="TURNOUT_B" connect2name="A24" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -2222,13 +2222,13 @@
     <tracksegment ident="T-EL-TOL29" blockname="McKees Rocks" connect1name="TOL29" type1="TURNOUT_C" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL17" blockname="OS 104" connect1name="TOL17" type1="TURNOUT_A" connect2name="A31" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL17" blockname="OS 105" connect1name="TOL17" type1="TURNOUT_B" connect2name="A10" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOL17" blockname="South Yard 3" connect1name="TOL17" type1="TURNOUT_C" connect2name="A46" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL17" blockname="S-3" connect1name="TOL17" type1="TURNOUT_C" connect2name="A46" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR36" blockname="OS 114" connect1name="TOR36" type1="TURNOUT_A" connect2name="A50" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR36" blockname="K-2" connect1name="TOR36" type1="TURNOUT_B" connect2name="A55" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOR36" blockname="McKeesport" connect1name="TOR36" type1="TURNOUT_C" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F24-S-0" blockname="Main East" connect1name="A47" type1="POS_POINT" connect2name="A13" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR32" blockname="OS 110" connect1name="TO111" type1="TURNOUT_C" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOR32" blockname="South Yard 1" connect1name="TO111" type1="TURNOUT_D" connect2name="A37" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR32" blockname="S-1" connect1name="TO111" type1="TURNOUT_D" connect2name="A37" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL2" blockname="South Yard East" connect1name="TO113" type1="TURNOUT_D" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL2" blockname="OS 113a" connect1name="TO113" type1="TURNOUT_C" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F10-S-0" blockname="OS 108" connect1name="A22" type1="POS_POINT" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />

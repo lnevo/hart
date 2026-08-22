@@ -15,9 +15,9 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 |------|---------|---------|
 | Switch | `Switch <n>` | `Switch 100` |
 | OS block | `OS <n>[a\|b]` (CP in the bean comment) | `OS 117b` |
-| Track body | `<Name>` | `South Yard Scale`, `South Yard West` |
+| Track body | `<Name>` | `Scale`, `Barn` |
 | Main between CPs | `<west>–<east>` | `Brick-Plane` |
-| Yard track | `<Yard> <n>` | `West Yard 1`, `South Yard 3` |
+| Yard track | `<Yard> <n>` or plate | `West Yard 1`, `S-3` |
 | Stub | letter-number | `K-1`, `K-2` |
 | Signal mast | `<n><L\|R>[A\|B]` | `117LA`, `100L` |
 | Signal head | mast, or mast + ` Top` / ` Bottom` | `100L Top` |
@@ -39,29 +39,31 @@ One mast on that lever: no letter (`100L`, `111L`, `110R`).
 
 **West Yard** is the yard at Brick: **West Yard 1** and **West Yard 2** (plates W-1 / W-2), access via **Switch 101**.
 
+**South Yard** body tracks are plates **S-1…S-5** (JMRI block userNames match the plates). **S-1** is the run-through east of 103 to 110/112.
+
 Hand-throw in the field today: **116, 117, 118, 119**. **107–109 are not hand-throw.**
 
-### South Yard Scale / West / run-through / East
+### Scale / Barn / run-through / East Lead
 
 T1 / T6 / East Lead were scaffold names. The three lead bodies belong to South Yard.
 
 | Territory | Limits | Public name |
 |-----------|--------|-------------|
-| **Scale** | Plane (102, diverging) to 117 | `South Yard Scale` |
-| **South Yard West** | 117 to 116 (west of 103) | `South Yard West` |
-| **Run-through** | **East of 103** to **110 / 112** | `South Yard 1` |
-| **South Yard East** | **East of 110 / 112** toward Princess | `South Yard East` |
+| **Scale** | Plane (102, diverging) to 117 | `Scale` |
+| **Barn** | 117 to 116 (west of 103) | `Barn` |
+| **Run-through** | **East of 103** to **110 / 112** | `S-1` |
+| **South Yard East** | **East of 110 / 112** toward Princess | `South Yard East` (dest button **East** = East Lead) |
 
 | Circuit | Today | Public |
 |---------|-------|--------|
-| Block 4-8 | Yard T1 | `South Yard Scale` |
+| Block 4-8 | Yard T1 | `Scale` |
 | Block 13-3 | OS 117 (West Yard) | `OS 117` |
-| Block 13-1 | Yard T6 | `South Yard West` |
+| Block 13-1 | Yard T6 | `Barn` |
 | Block 3-1 | OS 116 (West Yard) | `OS 116` |
 | Block 13-2 | OS 118 (West Yard) | `OS 118` (MQTT 1301) |
 | Block 13-8 | OS 119 (West Yard) | `OS 119` (MQTT 1307) |
 | Block 3-2 | OS 103 (South Yard) | `OS 103` |
-| Block 2-8 | Yard Track 1 | `South Yard 1` (run-through to 110/112) |
+| Block 2-8 | Yard Track 1 | `S-1` (run-through to 110/112; was South Yard 1) |
 | Block 1-7 | East Lead | `South Yard East` |
 
 ### Engine House — 1 / 2 / 3 top to bottom
@@ -72,7 +74,7 @@ Occupancy ids are MQTT (`1300` = Block 13-1). House tracks are **1304 / 1305 / 1
 
 | Circuit | Sensor | MQTT |
 |---------|--------|------|
-| South Yard West (T6) | Block 13-1 | M2S1300 |
+| Barn (T6) | Block 13-1 | M2S1300 |
 | Switch 118 | Block 13-2 | M2S1301 |
 | OS 117 | Block 13-3 | M2S1302 |
 | OS 117b | Block 13-4 | M2S1303 |

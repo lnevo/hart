@@ -24,9 +24,9 @@ Rows (bar pixel ranges; scissor icons span exactly 23px between bars):
               lamp centered in blank slot 12), SW113 -> SW115 DIRECT (no
               block, no lamp), SW115 / McKees Rocks / K-1. W-2 stub is on
               the 111-115 level off SW101's leg.
-  S  111-115  yard run-through: SW102's up-east leg -> South Yard Scale (`Block
-              4-8`, lamp centered in blank slot 4) -> SW117 -> South Yard West ->
-              SW116 -> SW103 -> South Yard 1 (`Block 2-8`, lamp centered
+  S  111-115  yard run-through: SW102's up-east leg -> Scale (`Block
+              4-8`, lamp centered in blank slot 4) -> SW117 -> Barn ->
+              SW116 -> SW103 -> S-1 (`Block 2-8`, lamp centered
               in blank slot 8) -> SW110 -> SW112 -> South Yard East (`Block
               1-7`, lamp centered in blank slot 12) -> SW113 -> SW114 ->
               K-2.
@@ -44,7 +44,7 @@ pitch) connecting the two ladders (SW104-109 are hand-throw, not drawn).
 Engine House: the same ladder rotated 180deg, up-west off SW116
 (split = hand-throw SW118, treated like 104-109), two stub tracks
 ending flush at x=365, tucked close to the yard row. SW116 abuts SW103
-directly (no block between them); South Yard West is the 117-116 stretch.
+directly (no block between them); Barn is the 117-116 stretch.
 
 All east branch stubs (K-1, K-2, McKees Rocks, McKeesport) end flush at
 x=1105 with their lamps aligned at x=1060 and labels centered on the
@@ -151,7 +151,7 @@ SWITCH_ONLY_SLOTS = {6, 7}
 TURNOUTS = [
     ("Switch 101", 86,  82,  T + "left/west/os-l-w"),    # Main West row; W-2 leg down-west
     ("Switch 100", 151, 82,  T + "left/west/os-l-w"),  # agree with JMRI Closed/Thrown (rests Thrown)
-    ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = South Yard Scale
+    ("Switch 102", 216, 105, T + "left/east/os-l-e"),    # bar row M = Brick-Plane<->East Main Ext (continuing); leg up-east = Scale
     ("Switch 117", 346, 105, X + "left/os-l-sc"),        # scissor: yard (111-115) <-> main (134-138)
     ("Switch 116", 436, 82,  "thin:os-r-w-thin"),        # yard row, abuts SW103 (direct, no block); Engine House ladder up-west
     ("Switch 103", 482, 105, "thin:os-r-e-thin"),        # yard row; 6px gap after SW116 (no block)
@@ -178,13 +178,13 @@ LAMPS = [
     ("Block 4-5",  229, 200, "OS 102"),
     ("Block 2-1",  260, 80,  "Main West (east of Brick throat)"),
     ("Block 4-7",  286, 126, "East Main Ext"),
-    ("Block 4-8",  286, 103, "South Yard Scale (Plane-Barn diverging)"),
+    ("Block 4-8",  286, 103, "Scale (Plane-Barn diverging)"),
     ("Block 13-3", 347, 200, "OS 117 (yard side)"),
     ("Block 13-4", 371, 200, "OS 117b (main side)"),
-    ("Block 13-1", 404, 103, "South Yard West"),
+    ("Block 13-1", 404, 103, "Barn"),
     ("Block 3-1",  424, 200, "OS 116 (Barn)"),
     ("Block 3-2",  489, 200, "OS 103"),
-    ("Block 2-8",  546, 103, "South Yard 1"),
+    ("Block 2-8",  546, 103, "S-1"),
     ("Block 2-1",  546, 80,  "Main West (approach to 111)"),
     ("Block 2-3",  546, 156, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
@@ -236,11 +236,11 @@ TRACKS = [
     (524, 155, "line25.gif",  0),   # overlapped: one block, no joint (to 714)
     (715, 136, "b-45.gif",    1),   # up: bottom -> SW112 leg tip (745,138)
     # row S (yard run-through / South Yard East, bar 111-115)
-    (252, 107, "line1.gif",   0),   # South Yard Scale (drawn 259-343): gap to 102's leg
+    (252, 107, "line1.gif",   0),   # Scale (drawn 259-343): gap to 102's leg
     (321, 109, "line025.gif", 0),   #  tip (255) and gap to SW117's icon (346)
-    (392, 109, "line025.gif", 0),   # 117-116: South Yard West, gapped off SW117 (ends 386)
+    (392, 109, "line025.gif", 0),   # 117-116: Barn, gapped off SW117 (ends 386)
     (394, 108, "line050.gif", 0),   # ...to SW116 (436); 6px empty to SW103
-    (522, 107, "line1.gif",   0),   # 103 -> 111 (South Yard 1, blank slot 8)
+    (522, 107, "line1.gif",   0),   # 103 -> 111 (S-1, blank slot 8)
     (648, 109, "line025.gif", 0),   # 111 lower -> 110
     (713, 109, "line025.gif", 0),   # 110 -> 112
     (778, 107, "line1.gif",   0),   # 112 -> 113 (South Yard East, blank slot 12)
@@ -251,7 +251,7 @@ TRACKS = [
     # South Yard: the 45deg icon legs continue as straight 45deg ladders
     # (east ladder line x = y + 379, west ladder x = 807 - y); the three
     # run-through yard tracks (9px pitch) branch off the icon legs
-    # themselves, tucked up close under South Yard 1
+    # themselves, tucked up close under S-1
     (522, 137, "thin4512.gif", 0),  # east ladder tail (SW103 moved +6)
     (660, 137, "thin4512.gif", 1),  # west ladder tail, ends at track 4 (660,148)
     (514, 128, "thin085.gif", 0),   # yard track 2

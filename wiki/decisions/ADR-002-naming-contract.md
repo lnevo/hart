@@ -14,7 +14,7 @@ The panel mixes `Switch 10x`, MQTT system names, geography, and station labels. 
 
 1. **Area** — Neville Island, West Yard, South Yard, Industries, directions  
 2. **Control point** — Brick, Plane, Barn, East End, Princess
-3. **Track** — Main West, Main East, South Yard 1…5, South Yard Scale / West / East
+3. **Track** — Main West, Main East, S-1…S-5, Scale / Barn / East Lead
 4. **Equipment** — DCC / switch numbers (100–119) as small labels only  
 
 ### Block user names (public)
@@ -24,7 +24,7 @@ The panel mixes `Switch 10x`, MQTT system names, geography, and station labels. 
 | Switch / plant OS | `OS <n> (<CP>)` | `OS 100 (Brick)` |
 | Crossover leg | `OS <n><a\|b> (<CP>)` | `OS 111a (East End)` |
 | Main track limit | `<Track> <CP west>–<CP east>` where helpful | `Main East Brick–East End` |
-| Yard body | `<Yard> <track>` | `West Yard 1`, `Yard Track 3` |
+| Yard body | `<Yard> <track>` or plate | `West Yard 1`, `S-3` |
 | Interchange | Geographic name | `McKees Rocks`, `McKeesport`, `PIR` deferred |
 
 Switch / MQTT / DCC IDs remain in turnout table comments and mapping CSVs — not as the only block name.

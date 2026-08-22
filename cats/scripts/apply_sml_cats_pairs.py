@@ -69,13 +69,13 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "102LA",
         "117RA",
-        ["South Yard Scale"],
+        ["Scale"],
         [("Switch 102", "thrown")],
     ),
     (
         "117RA",
         "117LB",
-        ["OS 117", "South Yard West"],
+        ["OS 117", "Barn"],
         [("Switch 117", "closed")],
     ),
     (
@@ -87,7 +87,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "100L",
         "117RA",
-        ["OS 102", "South Yard Scale"],
+        ["OS 102", "Scale"],
         [("Switch 100", "thrown"), ("Switch 102", "thrown")],
     ),
     (
@@ -123,19 +123,19 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "111RB",
         "113RB",
-        ["South Yard 1", "South Yard East"],
+        ["S-1", "South Yard East"],
         [("Switch 111", "closed"), ("Switch 112", "closed")],
     ),
     (
         "117LB",
         "117RA",
-        ["South Yard West", "OS 117"],
+        ["Barn", "OS 117"],
         [("Switch 117", "closed")],
     ),
     (
         "117LB",
         "102LA",
-        ["South Yard West", "South Yard Scale"],
+        ["Barn", "Scale"],
         [("Switch 117", "thrown")],
     ),
     # 114/115 C homes face west. Dest 111a (113 closed) or South Yard East (113 thrown).

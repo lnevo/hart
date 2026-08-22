@@ -5,15 +5,15 @@ Same internal turnouts Digicon buttons use — click THROWN fires IO:AUTO:020x r
 
 Target is tables.xml (Layout Editor lives in preference:tables.xml), not hart_prod.
 
-Place lamps on the same Y as the center-yard positionablelabels
-"Track 1"…"Track 5" (those sit *above* each rail). Do not use BlockContentsIcon
-"Yard Track N" — those sit in the gap *below* the rail and shift every row down.
+Place triangles on the same Y as the S-1–5 Dispatcher stations
+(those sit *above* each rail, where the old "Track N" labels were). Do not
+use BlockContentsIcon "Yard Track N" — those sit in the gap *below* the rail
+and shift every row down.
 """
 
 from __future__ import annotations
 
 import argparse
-import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -25,20 +25,95 @@ SYNC_COPIES = [
 ]
 MARKER = "hart-yard-ladder-le"
 
-# Horizontal offset from "Track N" label (center-yard labels ≈ x=943)
-LEFT_DX = -43
+# Horizontal offset from the S-1–5 station cluster (x=943).
+# Left X comes from the live L1 placement in Pi tables2.xml (x=921).
+ICON_SIZE = 16
 RIGHT_DX = 77
+LEFT_DX = -22
+SOUTH_YARD_STATION_ANCHORS = {
+    "1": (943, 293),
+    "2": (943, 344),
+    "3": (943, 391),
+    "4": (943, 438),
+    "5": (943, 480),
+}
 
-# Match Digicon: CLOSED/idle = red, THROWN/active = white
-CLOSED_URL = "program:resources/icons/USSpanels/Lamps/lamp-r.gif"
-THROWN_URL = "program:resources/icons/USSpanels/Lamps/lamp-w.gif"
-UNK_URL = "program:resources/icons/USSpanels/Lamps/lamp-dr.gif"
+# One equilateral pair, pointing east. West buttons use the same files at 180°.
+# Idle grey, lined warm white. Install copies them to preference:hart/icons/.
+ICON_SCALE = "1.0"
+PREF = "preference:hart/icons"
+IDLE_URL = f"{PREF}/triangle_idle.png"
+ACTIVE_URL = f"{PREF}/triangle_active.png"
+FACE_URLS = {
+    "closed": IDLE_URL,
+    "thrown": ACTIVE_URL,
+    "unknown": IDLE_URL,
+    "inconsistent": IDLE_URL,
+}
+# JMRI NamedIcon degrees. Keep <rotation> at 0 so we do not double-spin.
+SIDE_DEGREES = {"L": "180", "R": "0"}
+ICON_FILES = (
+    "triangle_idle.png",
+    "triangle_active.png",
+)
+STALE_ICON_FILES = (
+    "triangle_left_idle.png",
+    "triangle_left_active.png",
+    "triangle_right_idle.png",
+    "triangle_right_active.png",
+)
 
 
-def _icon_el(tag: str, url: str) -> ET.Element:
-    el = ET.Element(tag, {"url": url, "degrees": "0", "scale": "1.0"})
+def install_preference_icons() -> list[Path]:
+    """Copy triangle PNGs into JMRI user-files / profile hart/icons dirs."""
+    src = ROOT / "cats/resources/buttons"
+    missing = [n for n in ICON_FILES if not (src / n).is_file()]
+    if missing:
+        raise SystemExit(f"Missing yard-ladder triangles: {missing}")
+
+    dests: list[Path] = []
+    candidates = [
+        Path.home() / "JMRI_UserFiles",
+        Path.home() / "Library/Preferences/JMRI",
+        Path.home() / ".jmri",
+    ]
+    for base in candidates:
+        if not base.is_dir():
+            continue
+        if base.name == "JMRI_UserFiles":
+            dests.append(base / "hart/icons")
+            continue
+        dests.extend(p / "hart/icons" for p in base.glob("*.jmri") if p.is_dir())
+
+    written: list[Path] = []
+    for dest in dests:
+        dest.mkdir(parents=True, exist_ok=True)
+        for name in ICON_FILES:
+            target = dest / name
+            target.write_bytes((src / name).read_bytes())
+            written.append(target)
+        for name in STALE_ICON_FILES:
+            stale = dest / name
+            if stale.exists():
+                stale.unlink()
+    return written
+
+
+def _icon_el(tag: str, url: str, degrees: str) -> ET.Element:
+    el = ET.Element(tag, {"url": url, "degrees": degrees, "scale": ICON_SCALE})
     ET.SubElement(el, "rotation").text = "0"
     return el
+
+
+def _side_for(sysname: str) -> str:
+    return "L" if ":YL:L" in sysname else "R"
+
+
+def _xy_for(sysname: str) -> tuple[int, int]:
+    n = sysname.rsplit(":", 1)[-1][-1]
+    ax, ay = SOUTH_YARD_STATION_ANCHORS[n]
+    dx = LEFT_DX if _side_for(sysname) == "L" else RIGHT_DX
+    return ax + dx, ay
 
 
 def _turnouticon(sysname: str, uname: str, x: int, y: int) -> ET.Element:
@@ -63,12 +138,43 @@ def _turnouticon(sysname: str, uname: str, x: int, y: int) -> ET.Element:
     tip = ET.SubElement(ti, "tooltip")
     tip.text = f"{uname} [{MARKER}]"
     icons = ET.SubElement(ti, "icons")
-    icons.append(_icon_el("closed", CLOSED_URL))
-    icons.append(_icon_el("thrown", THROWN_URL))
-    icons.append(_icon_el("unknown", UNK_URL))
-    icons.append(_icon_el("inconsistent", UNK_URL))
+    degrees = SIDE_DEGREES[_side_for(sysname)]
+    for tag, url in FACE_URLS.items():
+        icons.append(_icon_el(tag, url, degrees))
     ET.SubElement(ti, "iconmaps")
     return ti
+
+
+def restyle_existing(le: ET.Element) -> int:
+    """Swap artwork, rotation, and x so left/right stay symmetric."""
+    changed = 0
+    for el in le.findall("turnouticon"):
+        to = el.get("turnout") or ""
+        if not to.startswith("IT:HART:YL:"):
+            continue
+        x, y = _xy_for(to)
+        if el.get("x") != str(x) or el.get("y") != str(y):
+            el.set("x", str(x))
+            el.set("y", str(y))
+            changed += 1
+        degrees = SIDE_DEGREES[_side_for(to)]
+        icons = el.find("icons")
+        if icons is None:
+            continue
+        for child in icons:
+            url = FACE_URLS.get(child.tag)
+            if url is None:
+                continue
+            if (
+                child.get("url") != url
+                or child.get("scale") != ICON_SCALE
+                or child.get("degrees") != degrees
+            ):
+                child.set("url", url)
+                child.set("scale", ICON_SCALE)
+                child.set("degrees", degrees)
+                changed += 1
+    return changed
 
 
 def strip_previous(le: ET.Element) -> None:
@@ -82,9 +188,10 @@ def strip_previous(le: ET.Element) -> None:
 
 
 def track_text_labels(le: ET.Element) -> dict[str, tuple[int, int]]:
-    """Map '1'..'5' -> (x, y) from center-yard positionablelabel "Track N".
+    """Map '1'..'5' -> (x, y) for the South Yard body.
 
-    Prefer labels near x≈940 (south yard body). Edge labels at x≈100/1650 are ignored.
+    Prefer live "Track N" labels near x≈940 if they are still on the panel;
+    otherwise use the Dispatcher station anchors that replaced them.
     """
     candidates: dict[str, list[tuple[int, int]]] = {n: [] for n in "12345"}
     for el in le:
@@ -102,27 +209,46 @@ def track_text_labels(le: ET.Element) -> dict[str, tuple[int, int]]:
 
     out: dict[str, tuple[int, int]] = {}
     for n, pts in candidates.items():
-        if not pts:
-            continue
-        # Center-yard labels (~943); fall back to closest to 943
         center = [p for p in pts if 800 <= p[0] <= 1100]
-        pick = center[0] if center else sorted(pts, key=lambda p: abs(p[0] - 943))[0]
-        out[n] = pick
+        if center:
+            out[n] = center[0]
+        elif pts:
+            out[n] = sorted(pts, key=lambda p: abs(p[0] - 943))[0]
+        else:
+            out[n] = SOUTH_YARD_STATION_ANCHORS[n]
     return out
+
+
+def find_layout_editor(root: ET.Element) -> ET.Element | None:
+    named = [le for le in root.findall("LayoutEditor") if le.get("name") == "My Layout"]
+    if named:
+        return named[0]
+    return root.find("LayoutEditor")
 
 
 def apply(panel: Path) -> None:
     tree = ET.parse(panel)
     root = tree.getroot()
-    le = root.find("LayoutEditor")
+    le = find_layout_editor(root)
     if le is None:
         raise SystemExit(f"No LayoutEditor in {panel}")
+
+    existing = [
+        el
+        for el in le.findall("turnouticon")
+        if (el.get("turnout") or "").startswith("IT:HART:YL:")
+    ]
+    if existing:
+        changed = restyle_existing(le)
+        tree.write(panel, encoding="UTF-8", xml_declaration=True)
+        print(f"Restyled {changed} yard-ladder icon faces → {panel}")
+        return
 
     strip_previous(le)
     labels = track_text_labels(le)
     if len(labels) < 5:
         raise SystemExit(
-            f"Expected positionablelabel Track 1–5 in {panel}, found {sorted(labels)}"
+            f"Expected S-1–5 anchors in {panel}, found {sorted(labels)}"
         )
 
     # Insert near the Track N labels
@@ -169,15 +295,18 @@ def main() -> None:
     ap.add_argument(
         "--no-sync",
         action="store_true",
-        help="Do not copy result to jmri/layouts/hart/output/tables.xml",
+        help="Do not also restyle jmri/layouts/hart/output/tables.xml",
     )
     args = ap.parse_args()
+    installed = install_preference_icons()
+    if installed:
+        roots = sorted({p.parent for p in installed})
+        print(f"Installed {len(ICON_FILES)} triangles → {len(roots)} preference dirs")
     panel = args.panel.resolve()
     apply(panel)
     if not args.no_sync and panel == DEFAULT_PANEL.resolve():
         for dest in SYNC_COPIES:
-            shutil.copy2(panel, dest)
-            print(f"Synced → {dest}")
+            apply(dest)
 
 
 if __name__ == "__main__":

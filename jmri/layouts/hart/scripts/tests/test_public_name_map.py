@@ -21,6 +21,13 @@ BLOCK_ALIAS_CURRENT_SETS = frozenset(
         frozenset({"Yard T9", "ET-3"}),
         frozenset({"Yard T10", "ET-2"}),
         frozenset({"Yard T11", "ET-1"}),
+        frozenset({"Yard T1", "South Yard Scale"}),
+        frozenset({"Yard T6", "South Yard West"}),
+        frozenset({"Yard Track 1", "South Yard 1"}),
+        frozenset({"Yard Track 2", "South Yard 2"}),
+        frozenset({"Yard Track 3", "South Yard 3"}),
+        frozenset({"Yard Track 4", "South Yard 4"}),
+        frozenset({"Yard Track 5", "South Yard 5"}),
     }
 )
 
@@ -29,6 +36,8 @@ BARN_TURNOUT_BLOCK = frozenset(
         ("turnout", "Switch 117"),
         ("block", "OS 117 (West Yard)"),
         ("block", "OS 117b (West Yard)"),
+        ("block", "Yard T6"),
+        ("block", "South Yard West"),
     }
 )
 
@@ -39,10 +48,19 @@ ENGINE_HOUSE_MAP = {
 }
 
 SOUTH_YARD_RENAME_MAP = {
-    "Yard T1": "South Yard Scale",
-    "Yard T6": "South Yard West",
+    "Yard T1": "Scale",
+    "Yard T6": "Barn",
     "East Lead": "South Yard East",
-    "Yard Track 1": "South Yard 1",
+    "Yard Track 1": "S-1",
+    "Yard Track 2": "S-2",
+    "Yard Track 3": "S-3",
+    "Yard Track 4": "S-4",
+    "Yard Track 5": "S-5",
+    "South Yard 1": "S-1",
+    "South Yard 2": "S-2",
+    "South Yard 3": "S-3",
+    "South Yard 4": "S-4",
+    "South Yard 5": "S-5",
 }
 
 EAST_END_SWITCHES = ("Switch 107", "Switch 108", "Switch 109")

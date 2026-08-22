@@ -2177,7 +2177,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 4-8" x="286" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>South Yard Scale (Plane-Barn diverging)</tooltip>
+      <tooltip>Scale (Plane-Barn diverging)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2225,7 +2225,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 13-1" x="404" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>South Yard West</tooltip>
+      <tooltip>Barn</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2273,7 +2273,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="Block 2-8" x="546" y="103" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>South Yard 1</tooltip>
+      <tooltip>S-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
