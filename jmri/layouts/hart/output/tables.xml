@@ -3846,227 +3846,182 @@
     <layoutblock systemName="ILB1" occupancysensor="Block 2-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1</systemName>
       <userName>Main East</userName>
-      <comment>Main east of East End; occupancy Block 2-3 / M2S202; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB3" occupancysensor="Block 2-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB3</systemName>
       <userName>Main West</userName>
-      <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB5" occupancysensor="Block 4-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB5</systemName>
       <userName>Brick-Plane</userName>
-      <comment>Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB7" occupancysensor="Block 2-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB7</systemName>
       <userName>S-5</userName>
-      <comment>South Yard body; occupancy Block 2-4 / M2S203; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB8" occupancysensor="Block 2-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB8</systemName>
       <userName>S-4</userName>
-      <comment>South Yard body; occupancy Block 2-5 / M2S204; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB10" occupancysensor="Block 1-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB10</systemName>
       <userName>McKees Rocks</userName>
-      <comment>Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB12" occupancysensor="Block 2-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB12</systemName>
       <userName>S-1</userName>
-      <comment>Run-through east of 103; occupancy Block 2-8 / M2S207; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB16" occupancysensor="Block 2-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB16</systemName>
       <userName>S-2</userName>
-      <comment>South Yard body; occupancy Block 2-7 / M2S206; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB17" occupancysensor="Block 1-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB17</systemName>
       <userName>East Lead</userName>
-      <comment>South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB20" occupancysensor="Block 4-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB20</systemName>
       <userName>W-1</userName>
-      <comment>Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB22" occupancysensor="Block 4-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB22</systemName>
       <userName>W-2</userName>
-      <comment>Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB26" occupancysensor="Block 2-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB26</systemName>
       <userName>S-3</userName>
-      <comment>South Yard body; occupancy Block 2-6 / M2S205; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB30" occupancysensor="Block 12-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB30</systemName>
       <userName>OS 112</userName>
-      <comment>East End, Switch 112; occupancy Block 12-8 / M2S1207</comment>
     </layoutblock>
     <layoutblock systemName="ILB31" occupancysensor="Block 4-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB31</systemName>
       <userName>OS 102</userName>
-      <comment>Plane CP, Switch 102; occupancy Block 4-5 / M2S404</comment>
     </layoutblock>
     <layoutblock systemName="ILB32" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB32</systemName>
       <userName>OS 114</userName>
-      <comment>Princess, Switch 114 (same detector as K-2); occupancy Block 1-3 / M2S102</comment>
     </layoutblock>
     <layoutblock systemName="ILB33" occupancysensor="Block 4-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB33</systemName>
       <userName>OS 100</userName>
-      <comment>Brick CP, Switch 100; occupancy Block 4-2 / M2S401</comment>
     </layoutblock>
     <layoutblock systemName="ILB34" occupancysensor="Block 12-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB34</systemName>
       <userName>OS 111a</userName>
-      <comment>East End crossover 111 north/west leg; occupancy Block 12-4 / M2S1203</comment>
     </layoutblock>
     <layoutblock systemName="ILB35" occupancysensor="Block 4-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB35</systemName>
       <userName>OS 101</userName>
-      <comment>Brick CP, Switch 101; occupancy Block 4-1 / M2S400</comment>
     </layoutblock>
     <layoutblock systemName="ILB36" occupancysensor="Block 12-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB36</systemName>
       <userName>OS 107</userName>
-      <comment>East End, Switch 107; occupancy Block 12-1 / M2S1200</comment>
     </layoutblock>
     <layoutblock systemName="ILB37" occupancysensor="Block 12-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB37</systemName>
       <userName>OS 108</userName>
-      <comment>East End, Switch 108; occupancy Block 12-3 / M2S1202</comment>
     </layoutblock>
     <layoutblock systemName="ILB38" occupancysensor="Block 3-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB38</systemName>
       <userName>OS 106</userName>
-      <comment>South Yard, Switch 106; occupancy Block 3-7 / M2S306</comment>
     </layoutblock>
     <layoutblock systemName="ILB39" occupancysensor="Block 12-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB39</systemName>
       <userName>OS 111b</userName>
-      <comment>East End crossover 111 south/east leg; occupancy Block 12-6 / M2S1205</comment>
     </layoutblock>
     <layoutblock systemName="ILB40" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB40</systemName>
       <userName>OS 115</userName>
-      <comment>Princess, Switch 115 (same detector as K-1); occupancy Block 1-4 / M2S103</comment>
     </layoutblock>
     <layoutblock systemName="ILB41" occupancysensor="Block 3-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB41</systemName>
       <userName>OS 103</userName>
-      <comment>South Yard, Switch 103; occupancy Block 3-2 / M2S301</comment>
     </layoutblock>
     <layoutblock systemName="ILB42" occupancysensor="Block 12-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB42</systemName>
       <userName>OS 110</userName>
-      <comment>East End, Switch 110; occupancy Block 12-7 / M2S1206</comment>
     </layoutblock>
     <layoutblock systemName="ILB43" occupancysensor="Block 12-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB43</systemName>
       <userName>OS 109</userName>
-      <comment>East End, Switch 109; occupancy Block 12-5 / M2S1204</comment>
     </layoutblock>
     <layoutblock systemName="ILB44" occupancysensor="Block 3-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB44</systemName>
       <userName>OS 104</userName>
-      <comment>South Yard, Switch 104; occupancy Block 3-3 / M2S302</comment>
     </layoutblock>
     <layoutblock systemName="ILB45" occupancysensor="Block 3-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB45</systemName>
       <userName>OS 105</userName>
-      <comment>South Yard, Switch 105; occupancy Block 3-5 / M2S304</comment>
     </layoutblock>
     <layoutblock systemName="ILB46" occupancysensor="Block 1-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB46</systemName>
       <userName>OS 113a</userName>
-      <comment>Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105</comment>
     </layoutblock>
     <layoutblock systemName="ILB47" occupancysensor="Block 1-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB47</systemName>
       <userName>OS 113b</userName>
-      <comment>Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104</comment>
     </layoutblock>
     <layoutblock systemName="ILB48" occupancysensor="Block 3-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB48</systemName>
       <userName>OS 116</userName>
-      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
     </layoutblock>
     <layoutblock systemName="ILB50" occupancysensor="Block 4-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB50</systemName>
       <userName>Scale</userName>
-      <comment>Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB53" occupancysensor="Block 13-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB53</systemName>
       <userName>OS 117b</userName>
-      <comment>Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
     </layoutblock>
     <layoutblock systemName="ILB55" occupancysensor="Block 13-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB55</systemName>
       <userName>OS 117</userName>
-      <comment>Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
     </layoutblock>
     <layoutblock systemName="ILB62" occupancysensor="Block 13-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB62</systemName>
       <userName>Barn</userName>
-      <comment>Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB65" occupancysensor="Block 13-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB65</systemName>
       <userName>OS 119</userName>
-      <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
     </layoutblock>
     <layoutblock systemName="ILB66" occupancysensor="Block 13-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB66</systemName>
       <userName>OS 118</userName>
-      <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
     </layoutblock>
     <layoutblock systemName="ILB67" occupancysensor="Block 13-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB67</systemName>
       <userName>EH-1</userName>
-      <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB68" occupancysensor="Block 13-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB68</systemName>
       <userName>EH-2</userName>
-      <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB69" occupancysensor="Block 13-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB69</systemName>
       <userName>EH-3</userName>
-      <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB72" occupancysensor="Block 1-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB72</systemName>
       <userName>McKeesport</userName>
-      <comment>Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB74" occupancysensor="Block 1-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB74</systemName>
       <userName>West Main Ext</userName>
-      <comment>Main West stub west of 111; occupancy Block 1-8 / M2S107; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB75" occupancysensor="Block 4-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB75</systemName>
       <userName>East Main Ext</userName>
-      <comment>Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB76" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB76</systemName>
       <userName>K-1</userName>
-      <comment>Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop</comment>
     </layoutblock>
     <layoutblock systemName="ILB77" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB77</systemName>
       <userName>K-2</userName>
-      <comment>Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop</comment>
     </layoutblock>
   </layoutblocks>
   <sections class="jmri.configurexml.SectionManagerXml">

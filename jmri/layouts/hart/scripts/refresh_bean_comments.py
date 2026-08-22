@@ -385,8 +385,12 @@ def ctc_comment(system_name: str) -> str | None:
 
 
 def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> str | None:
-    if kind in {"block", "layoutblock"}:
+    if kind == "block":
         return BLOCK_COMMENTS.get(user_name)
+    # LayoutBlock XSD requires <metric> before <comment>; JMRI omits metric
+    # when it is the default, so a comment here fails schema validation.
+    if kind == "layoutblock":
+        return None
     if kind == "turnout":
         if user_name in TURNOUT_COMMENTS:
             return TURNOUT_COMMENTS[user_name]

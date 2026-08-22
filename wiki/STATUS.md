@@ -1,6 +1,10 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — LCOS wiring docs in git at [`docs/wiring/`](../docs/wiring/README.md): inventory **v85**, `Wiring_Schematic.pptx`, Digicon as-built **v2**, frozen `signals_split_v8`. Public names + new 114LA/115LA/117* searchlights synced; Desktop `HART/Wiring Documentation` still the bench copy.
+
 Updated: 2026-08-22 — Yard plates: **W-1 / W-2** (was West Yard 1/2), **East Lead** (was South Yard East), **EH-1 / EH-2 / EH-3** (was Engine House 1–3). Every tables.xml bean has a User Name; missing comments filled.
+
+Updated: 2026-08-22 — Stripped LayoutBlock `<comment>`s (schema wants `<metric>` first; default metric is omitted). Block comments stay on the Block beans. Pi `tables.xml` can load again.
 
 Updated: 2026-08-22 — LE **119** plate moved left (x 586→548) so it no longer sits on **118**. LogixNG still hides **USS CTC Editor**, **Dispatcher System**, and **WiThrottle** at every start. Under **CATS** (`cats.apps.Crandic` / `CatsConfig.xml`) it also hides the **USS CTC** machine and **HART Railroad**; PanelPro leaves those two up. Script: `preference:jython/hide_cats_desk_windows.py`.
 
