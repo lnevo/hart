@@ -315,17 +315,15 @@ if (Test-Path (Join-Path $webSrc 'servlet\home\Home.html')) {
     $homeDir = Join-Path $root 'web\servlet\home'
     New-Item -ItemType Directory -Force -Path $homeDir | Out-Null
     Copy-Item (Join-Path $webSrc 'servlet\home\Home.html') (Join-Path $homeDir 'Home.html') -Force
-    if (Test-Path (Join-Path $webSrc 'sts.html')) {
-      New-Item -ItemType Directory -Force -Path (Join-Path $root 'web') | Out-Null
-      Copy-Item (Join-Path $webSrc 'sts.html') (Join-Path $root 'web\sts.html') -Force
-    }
-    Write-Host ("JMRI web STS override -> {0}\web" -f $root)
+    $stale = Join-Path $root 'web\sts.html'
+    if (Test-Path $stale) { Remove-Item $stale -Force }
+    Write-Host ("JMRI web home override -> {0}\web" -f $root)
   }
 } else {
   Write-Host 'Skip JMRI web override (jmri-web/ not in pack)'
 }
 
-# JMRI Start Up Python → %USERPROFILE%\hart\jmri\... (profile uses home:hart/jmri/...)
+# JMRI Start Up Python → preference:jython/ (copied into each profile + JMRI_UserFiles)
 $hartJmri = Join-Path $env:USERPROFILE 'hart\jmri'
 $layoutDst = Join-Path $hartJmri 'layouts\hart\scripts'
 $pubDst = Join-Path $hartJmri 'scripts'

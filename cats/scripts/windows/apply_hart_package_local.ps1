@@ -24,7 +24,6 @@ if (Test-Path $src) {
 }
 
 $homeHtml = Join-Path $hart 'cats\resources\jmri-web\servlet\home\Home.html'
-$stsHtml = Join-Path $hart 'cats\resources\jmri-web\sts.html'
 if (Test-Path $homeHtml) {
   $roots = New-Object System.Collections.Generic.List[string]
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
@@ -39,11 +38,9 @@ if (Test-Path $homeHtml) {
     $hd = Join-Path $r 'web\servlet\home'
     New-Item -ItemType Directory -Force -Path $hd | Out-Null
     Copy-Item $homeHtml (Join-Path $hd 'Home.html') -Force
-    if (Test-Path $stsHtml) {
-      New-Item -ItemType Directory -Force -Path (Join-Path $r 'web') | Out-Null
-      Copy-Item $stsHtml (Join-Path $r 'web\sts.html') -Force
-    }
-    Write-Host ("web STS -> {0}\web" -f $r)
+    $stale = Join-Path $r 'web\sts.html'
+    if (Test-Path $stale) { Remove-Item $stale -Force }
+    Write-Host ("web home -> {0}\web" -f $r)
   }
 } else {
   Write-Host 'No jmri-web Home.html (skip web)'
@@ -86,40 +83,48 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
   Write-Host 'No hart\ctc\icons (skip CTC icons)'
 }
 
-$facingSrc = Join-Path $hart 'jmri\layouts\hart\scripts\patch_dispatcher_facing.py'
-$startupSrc = Join-Path $hart 'jmri\layouts\hart\scripts\hart_dispatcher_startup.py'
-$hideCatsSrc = Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'
+$jythonSrc = @(
+  (Join-Path $hart 'jmri\layouts\hart\scripts\patch_dispatcher_facing.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\hart_dispatcher_startup.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_yard_ladder_buttons.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
+  (Join-Path $hart 'jmri\scripts\mqtt_signalhead_publisher.py')
+)
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
-if ((Test-Path $facingSrc) -and (Test-Path $startupSrc)) {
-  $roots = New-Object System.Collections.Generic.List[string]
-  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
-  $jmri = Join-Path $env:USERPROFILE 'JMRI'
-  if (Test-Path $jmri) {
-    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-      [void]$roots.Add($_.FullName)
+$roots = New-Object System.Collections.Generic.List[string]
+[void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+$jmri = Join-Path $env:USERPROFILE 'JMRI'
+if (Test-Path $jmri) {
+  Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+    [void]$roots.Add($_.FullName)
+  }
+}
+foreach ($r in ($roots | Select-Object -Unique)) {
+  if (-not (Test-Path $r)) { continue }
+  $dest = Join-Path $r 'jython'
+  New-Item -ItemType Directory -Force -Path $dest | Out-Null
+  foreach ($src in $jythonSrc) {
+    if (Test-Path $src) {
+      Copy-Item $src (Join-Path $dest (Split-Path $src -Leaf)) -Force
     }
   }
-  foreach ($r in ($roots | Select-Object -Unique)) {
-    $dest = Join-Path $r 'jython'
-    New-Item -ItemType Directory -Force -Path $dest | Out-Null
-    Copy-Item $facingSrc (Join-Path $dest 'patch_dispatcher_facing.py') -Force
-    Copy-Item $startupSrc (Join-Path $dest 'hart_dispatcher_startup.py') -Force
-    if (Test-Path $hideCatsSrc) {
-      Copy-Item $hideCatsSrc (Join-Path $dest 'hide_cats_desk_windows.py') -Force
-    }
-    Write-Host ("Dispatcher compatibility scripts -> {0}\jython" -f $r)
-    if (Test-Path $trainInfoSrc) {
-      $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
-      New-Item -ItemType Directory -Force -Path $trainInfoDest | Out-Null
-      Copy-Item (Join-Path $trainInfoSrc '*.xml') $trainInfoDest -Force
-      Write-Host ("Dispatcher traininfo -> {0}\dispatcher\traininfo" -f $r)
-    }
+  Write-Host ("preference:jython scripts -> {0}\jython" -f $r)
+  if (Test-Path $trainInfoSrc) {
+    $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
+    New-Item -ItemType Directory -Force -Path $trainInfoDest | Out-Null
+    Copy-Item (Join-Path $trainInfoSrc '*.xml') $trainInfoDest -Force
+    Write-Host ("Dispatcher traininfo -> {0}\dispatcher\traininfo" -f $r)
   }
-} else {
-  Write-Host 'No Dispatcher compatibility scripts (skip)'
 }
 
 $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py')
+$retargetNames = @(
+  'sync_yard_ladder_buttons.py',
+  'mqtt_signalhead_publisher.py',
+  'jmri_cmd_watcher.py'
+)
+$patchPy = Join-Path $hart 'cats\scripts\patch_jmri_startup.py'
 $profileRoots = New-Object System.Collections.Generic.List[string]
 foreach ($p in @(
   (Join-Path $env:USERPROFILE 'JMRI'),
@@ -143,6 +148,14 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
   if ($txt -ne $orig) {
     Set-Content -Path $prof -Value $txt -Encoding UTF8 -NoNewline
     Write-Host ("startup: removed MQTT retain scripts -> {0}" -f $prof)
+  }
+  if (Test-Path $patchPy) {
+    $pyArgs = @($patchPy, 'retarget-jython', '--profile', $prof)
+    foreach ($name in $retargetNames) {
+      $pyArgs += @('--script', $name)
+    }
+    & python @pyArgs
+    Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
   }
 }
 

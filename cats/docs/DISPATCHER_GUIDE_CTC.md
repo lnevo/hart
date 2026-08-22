@@ -28,6 +28,13 @@ then hides **HART Railroad** only — CATS is detected from the running app
 the classpath. PanelPro leaves **HART Railroad** visible so the geographic desk
 still works. Reopen **USS CTC** from the Panels menu when you want the lever machine.
 
+**Help** and **Quit** on the CATS windows are added by that same script, only under
+CATS (PanelPro already has them and is left alone). They sit in a toolbar at the
+top of **CTC Panel** (and the Digicon **Dispatcher Panel**) so they stay visible
+on macOS, which does not show extra buttons on the screen menu bar. Quit uses
+JMRI `Apps.handleQuit()` (store prompt, clean shutdown). CATS `File -> Exit`
+is unchanged.
+
 ---
 
 ## 1. Reading the Digicon panel

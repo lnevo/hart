@@ -61,19 +61,63 @@ def remove_script(profile: Path, script_path: str) -> str:
     return "removed"
 
 
+def retarget_to_preference_jython(profile: Path, scripts: list[str]) -> list[str]:
+    """Rewrite PerformScript name= to preference:jython/<basename>.
+
+    Leaves ScriptButton / XmlFile / Action tags alone. Idempotent when the
+    name is already preference:jython/.
+    """
+    txt = profile.read_text(encoding="utf-8")
+    orig = txt
+    notes: list[str] = []
+    wanted = {_script_basename(s) for s in scripts}
+
+    def repl(match: re.Match[str]) -> str:
+        tag = match.group(0)
+        if "PerformScriptModelXml" not in tag:
+            return tag
+        name_m = re.search(r'\bname="([^"]*)"', tag)
+        if name_m is None:
+            return tag
+        old = name_m.group(1)
+        base = _script_basename(old)
+        if base not in wanted:
+            return tag
+        target = f"preference:jython/{base}"
+        if old == target:
+            return tag
+        notes.append(f"{old} -> {target}")
+        return tag[: name_m.start()] + f'name="{target}"' + tag[name_m.end() :]
+
+    txt = re.sub(r"<perform\b[^>]*/>", repl, txt)
+    if txt != orig:
+        profile.write_text(txt, encoding="utf-8")
+    return notes
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("action", choices=("insert", "remove"))
+    ap.add_argument("action", choices=("insert", "remove", "retarget-jython"))
     ap.add_argument("--profile", type=Path, required=True)
-    ap.add_argument("--script", required=True, help="Absolute path stored in the perform name")
+    ap.add_argument(
+        "--script",
+        action="append",
+        default=[],
+        help="Script path or basename (repeatable for retarget-jython)",
+    )
     ap.add_argument("--after", help="Existing perform filename to insert after (insert only)")
     args = ap.parse_args()
+    if not args.script:
+        raise SystemExit("--script is required")
     if args.action == "insert":
         if not args.after:
             raise SystemExit("insert requires --after")
-        print(insert_after(args.profile, args.script, args.after))
+        print(insert_after(args.profile, args.script[0], args.after))
+    elif args.action == "remove":
+        print(remove_script(args.profile, args.script[0]))
     else:
-        print(remove_script(args.profile, args.script))
+        notes = retarget_to_preference_jython(args.profile, args.script)
+        print("\n".join(notes) if notes else "already")
 
 
 if __name__ == "__main__":

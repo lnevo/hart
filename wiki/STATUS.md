@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — CTC Panel Help/Quit is only the in-window toolbar (Restart RPi / Shutdown RPi stay on Apps.buttonSpace()). Same toolbar on Dispatcher Panel. ASCII-only `hide_cats_desk_windows.py`. Cleared 20 retained MQTT junk topics (`_discard/cmd/sensor/#` and leftovers). STS is the Home.html link only; `web/sts.html` is gone.
+
+Updated: 2026-08-22 — Mac and Windows now match the Pi for Start Up scripts: copies live in `preference:jython/` (profile `jython/` on Mac/Windows; `JMRI_UserFiles/jython/` on the Pi). PerformScript no longer points at `home:hart/...` or `/Users/lnevo/hart/...`.
+
 Updated: 2026-08-22 — LogixNG window hide is the same on every host: **IQC:AUTO:0002** targets **USS CTC** (not USS CTC Editor). **IQC:AUTO:0004** only hides **HART Railroad**, and only under CATS. WiThrottle / USS CTC / Dispatcher System stay IQC:0001–0003. `hide_cats_desk_windows.py` imports `JmriJFrame` from `jmri.util` (LogixNG ActionScript was failing on `jmri.util.swing`).
 
 Updated: 2026-08-22 — Dispatcher System registration now has the full DecoderPro roster. Setup Train in Section only lists locos with a speed profile; the same synthetic 10-step / 400 mm/s profile 2091 already had is now on every live roster entry. Reopen **Setup Train in Section** (restart Dispatcher System if the list is still only 2091). Measured profiles still belong in [`projects/speedmatching.md`](projects/speedmatching.md).

@@ -38,7 +38,7 @@ JMRI tables (routes, internal turnouts, etc.):
   Do not patch only ~/.jmri/TCS_MQTT.jmri/tables.xml — CATS will ignore it.
 
 JMRI web home (STS link):
-  SoR: cats/resources/jmri-web/  (Home.html + sts.html)
+  SoR: cats/resources/jmri-web/servlet/home/Home.html
   Live: /home/pi/JMRI_UserFiles/web/servlet/home/Home.html
   STS = Shipper-driven Traffic Simulator → http://10.0.0.53:8980/sts/
   Install/refresh: /home/pi/hart/cats/scripts/install_jmri_web_override.sh
@@ -46,9 +46,11 @@ JMRI web home (STS link):
   Windows: ./cats/scripts/sync_hart_package.sh --win  (SSH :2222; do not use Dropbox)
 
 JMRI Start Up scripts (profile PerformScript):
-  /home/pi/hart/jmri/layouts/hart/scripts/apply_maintain_mqtt.py
-  /home/pi/hart/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py
-  /home/pi/hart/jmri/scripts/mqtt_signalhead_publisher.py
+  preference:jython/sync_yard_ladder_buttons.py
+  preference:jython/mqtt_signalhead_publisher.py
+  (copies live in /home/pi/JMRI_UserFiles/jython/; sync also writes
+   /home/pi/hart/jmri/... for the repo tree)
+  LogixNG IQC:AUTO:0004 → preference:jython/hide_cats_desk_windows.py
   (unhold_signal_masts.py retired: Held belongs to CATS CTC — hold at
    load, unhold when a route is lined; masts boot Unheld anyway)
   (refreshed by sync_hart_package.sh --pi)

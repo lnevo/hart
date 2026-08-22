@@ -46,22 +46,40 @@ fi
 
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
 
+JYTHON_STARTUP_SCRIPTS=(
+  "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
+  "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
+  "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
+  "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py"
+  "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
+  "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py"
+)
+
 install_dispatcher_facing_patch() {
-  local patch="$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
-  local startup="$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
-  local hide_cats="$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
-  [[ -f "$patch" && -f "$startup" && -f "$hide_cats" ]] || return 0
+  local patch_startup="$ROOT/cats/scripts/patch_jmri_startup.py"
   _install_facing_into() {
     local profile="$1"
     local dest="$profile/jython"
     mkdir -p "$dest"
-    cp -f "$patch" "$startup" "$hide_cats" "$dest/"
-    echo "Dispatcher compatibility scripts -> $dest"
+    local f
+    for f in "${JYTHON_STARTUP_SCRIPTS[@]}"; do
+      [[ -f "$f" ]] && cp -f "$f" "$dest/"
+    done
+    echo "preference:jython scripts -> $dest"
     if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
       cp -f "$traininfo/"*.xml "$profile/dispatcher/traininfo/"
       echo "Dispatcher traininfo -> $profile/dispatcher/traininfo"
+    fi
+    local profxml="$profile/profile/profile.xml"
+    if [[ -f "$profxml" && -f "$patch_startup" ]]; then
+      python3 "$patch_startup" retarget-jython \
+        --profile "$profxml" \
+        --script sync_yard_ladder_buttons.py \
+        --script mqtt_signalhead_publisher.py \
+        --script jmri_cmd_watcher.py
+      echo "Start Up retargeted -> preference:jython ($profxml)"
     fi
   }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
@@ -165,7 +183,10 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/cats/scripts/pi/JMRI_CATS" \
     "$ROOT/cats/scripts/pi/README_CATS.txt" \
     "$PI_HOST:/home/pi/hart/"
-  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/hart/cats/scripts/pi'
+  ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/hart/cats/docs /home/pi/hart/cats/scripts/pi'
+  scp -o BatchMode=yes \
+    "$ROOT/cats/docs/DISPATCHER_GUIDE_CTC.md" \
+    "$PI_HOST:/home/pi/hart/cats/docs/"
   scp -o BatchMode=yes \
     "$ROOT/cats/scripts/pi/CATS_CTC.desktop" \
     "$ROOT/cats/scripts/pi/CATS_ABS.desktop" \
@@ -235,8 +256,17 @@ if [[ "$DO_PI" -eq 1 ]]; then
     "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py" \
     "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py" \
     "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py" \
+    "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
+    "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py" \
+    "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py" \
     "$PI_HOST:/home/pi/JMRI_UserFiles/jython/"
-  echo "Pi Dispatcher compatibility scripts updated"
+  ssh -o BatchMode=yes "$PI_HOST" \
+    'python3 /home/pi/hart/cats/scripts/patch_jmri_startup.py retarget-jython \
+       --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+       --script sync_yard_ladder_buttons.py \
+       --script mqtt_signalhead_publisher.py \
+       --script jmri_cmd_watcher.py'
+  echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
   # Digicon SHSM appearances (incl. dwarf) for LE + mast load
   ssh -o BatchMode=yes "$PI_HOST" 'mkdir -p /home/pi/JMRI_UserFiles/resources/signals/cats-masts /home/pi/hart/cats/resources/signals/cats-masts'
   scp -o BatchMode=yes \
@@ -302,8 +332,6 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   fi
   scp_win "$ROOT/cats/resources/jmri-web/servlet/home/Home.html" \
     "${WIN_HOST}:hart/cats/resources/jmri-web/servlet/home/Home.html"
-  scp_win "$ROOT/cats/resources/jmri-web/sts.html" \
-    "${WIN_HOST}:hart/cats/resources/jmri-web/sts.html"
 
   scp_win \
     "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py" \
@@ -360,6 +388,11 @@ if [[ "$DO_WIN" -eq 1 ]]; then
 
   scp_win "$ROOT/cats/scripts/windows/apply_hart_package_local.ps1" \
     "${WIN_HOST}:hart/cats/scripts/windows/apply_hart_package_local.ps1"
+  scp_win "$ROOT/cats/scripts/patch_jmri_startup.py" \
+    "${WIN_HOST}:hart/cats/scripts/patch_jmri_startup.py"
+  ssh_win 'mkdir hart\cats\docs 2>nul & echo ok'
+  scp_win "$ROOT/cats/docs/DISPATCHER_GUIDE_CTC.md" \
+    "${WIN_HOST}:hart/cats/docs/DISPATCHER_GUIDE_CTC.md"
   ssh_win 'powershell -NoProfile -ExecutionPolicy Bypass -File hart\cats\scripts\windows\apply_hart_package_local.ps1'
   # Install cats-masts into Windows JMRI profiles (incl. dwarf)
   scp_win "$ROOT/cats/scripts/windows/install_cats_masts.ps1" \
