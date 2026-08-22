@@ -21,11 +21,12 @@ To **run a train automatically** between stations (PanelPro, not CATS):
 Run **either** CATS CTC **or** the JMRI USS panel — never both. Both drive Hold on the
 same masts. CATS ABS is a view-only mimic and is fine alongside either.
 
-At CATS start, LogixNG hides the leftover PanelPro desks: **USS CTC** (the lever
-machine), **HART Railroad**, the **USS CTC Editor** toolbox, **Dispatcher System**,
-and **WiThrottle**. CATS is detected from the running app (`cats.apps.Crandic` or
-Windows `CatsConfig.xml`), not merely from `cats.jar` on the classpath. PanelPro
-leaves **USS CTC** and **HART Railroad** visible so those desks still work.
+At CATS start, LogixNG hides the leftover PanelPro desks: **USS CTC** (IQC:AUTO:0002,
+same title on every host), **Dispatcher System**, and **WiThrottle**. IQC:AUTO:0004
+then hides **HART Railroad** only — CATS is detected from the running app
+(`cats.apps.Crandic` or Windows `CatsConfig.xml`), not merely from `cats.jar` on
+the classpath. PanelPro leaves **HART Railroad** visible so the geographic desk
+still works. Reopen **USS CTC** from the Panels menu when you want the lever machine.
 
 ---
 

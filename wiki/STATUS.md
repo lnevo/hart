@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — LogixNG window hide is the same on every host: **IQC:AUTO:0002** targets **USS CTC** (not USS CTC Editor). **IQC:AUTO:0004** only hides **HART Railroad**, and only under CATS. WiThrottle / USS CTC / Dispatcher System stay IQC:0001–0003.
+
 Updated: 2026-08-22 — Dispatcher System registration now has the full DecoderPro roster. Setup Train in Section only lists locos with a speed profile; the same synthetic 10-step / 400 mm/s profile 2091 already had is now on every live roster entry. Reopen **Setup Train in Section** (restart Dispatcher System if the list is still only 2091). Measured profiles still belong in [`projects/speedmatching.md`](projects/speedmatching.md).
 
 Updated: 2026-08-22 — LCOS wiring docs in git at [`docs/wiring/`](../docs/wiring/README.md): inventory **v85**, `Wiring_Schematic.pptx`, Digicon as-built **v2**, frozen `signals_split_v8`. Public names + new 114LA/115LA/117* searchlights synced; Desktop `HART/Wiring Documentation` still the bench copy.
@@ -8,7 +10,7 @@ Updated: 2026-08-22 — Yard plates: **W-1 / W-2** (was West Yard 1/2), **East L
 
 Updated: 2026-08-22 — Stub bumper virtuals **101LA/101LB** (west end) and **115RA/114RA** (east end) use the EH-style bound slot so JMRI can resolve a facing block on END_BUMPER (connect1 only). Stops CATS SML `No facing block found for destination mast`.
 
-Updated: 2026-08-22 — LE **119** plate moved left (x 586→548) so it no longer sits on **118**. LogixNG still hides **USS CTC Editor**, **Dispatcher System**, and **WiThrottle** at every start. Under **CATS** (`cats.apps.Crandic` / `CatsConfig.xml`) it also hides the **USS CTC** machine and **HART Railroad**; PanelPro leaves those two up. Script: `preference:jython/hide_cats_desk_windows.py`.
+Updated: 2026-08-22 — LE **119** plate moved left (x 586→548) so it no longer sits on **118**. LogixNG hides **WiThrottle**, **USS CTC**, and **Dispatcher System** at every start (IQC:AUTO:0001–0003). Under **CATS**, IQC:AUTO:0004 also hides **HART Railroad**. Script: `preference:jython/hide_cats_desk_windows.py`.
 
 Updated: 2026-08-22 — Panel window titles: Layout Editor is **HART Railroad** (was My Layout / HART); Panel Editor USS machine is **USS CTC** (was `Panel `). Entry/Exit `layoutPanel` and Dispatcher `lename` match.
 

@@ -1,8 +1,9 @@
-# JMRI Jython: under CATS, hide the PanelPro desks that duplicate the Digicon.
+# JMRI Jython: under CATS, hide HART Railroad (the PanelPro layout).
 #
-# LogixNG IQ:AUTO:0001 runs this at init (tables.xml). PanelPro leaves USS CTC
-# and HART Railroad visible. CATS is a separate JVM (cats.apps.Crandic); the
-# same Start Up still loads those panels, so hide them here.
+# LogixNG IQ:AUTO:0001 runs this at init as IQC:AUTO:0004. IQC:0001–0003 already
+# hide WiThrottle, USS CTC, and Dispatcher System on every host. PanelPro leaves
+# HART Railroad up; CATS is a separate JVM (cats.apps.Crandic) and should not
+# keep that geographic panel.
 
 from __future__ import print_function
 
@@ -12,7 +13,7 @@ from java.lang import System
 from jmri.util import ThreadingUtil
 from jmri.util.swing import JmriJFrame
 
-CATS_HIDE_TITLES = ("USS CTC", "HART Railroad")
+HART_RAILROAD = "HART Railroad"
 
 
 def under_cats():
@@ -50,9 +51,8 @@ def hide_cats_desk_windows():
     hidden = []
 
     def _hide():
-        for title in CATS_HIDE_TITLES:
-            if hide_title(title):
-                hidden.append(title)
+        if hide_title(HART_RAILROAD):
+            hidden.append(HART_RAILROAD)
 
     ThreadingUtil.runOnGUI(_hide)
     if hidden:

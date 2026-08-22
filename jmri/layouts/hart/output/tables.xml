@@ -7196,7 +7196,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0002</systemName>
-      <userName>Hide USS CTC Editor</userName>
+      <userName>Hide USS CTC</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -7214,7 +7214,7 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0004</systemName>
-      <userName>Hide USS CTC and HART Railroad under CATS</userName>
+      <userName>Hide HART Railroad under CATS</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
@@ -7255,7 +7255,7 @@
     </DisplayActionWindowManagement>
     <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
       <systemName>IQDA:AUTO:0002</systemName>
-      <jmriJFrameTitle>USS CTC Editor</jmriJFrameTitle>
+      <jmriJFrameTitle>USS CTC</jmriJFrameTitle>
       <addressing>Direct</addressing>
       <reference />
       <localVariable />
@@ -7315,7 +7315,7 @@
     </DisplayActionWindowManagement>
     <ActionScript class="jmri.jmrit.logixng.actions.configurexml.ActionScriptXml">
       <systemName>IQDA:AUTO:0004</systemName>
-      <userName>Hide USS CTC and HART Railroad under CATS</userName>
+      <userName>Hide HART Railroad under CATS</userName>
       <operationAddressing>Direct</operationAddressing>
       <operationType>RunScript</operationType>
       <operationReference></operationReference>
