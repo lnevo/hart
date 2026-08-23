@@ -1,6 +1,8 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-22 — Facing overlay vs stock: invert still in JMRI 5.16 / master; [JMRI#14365](https://github.com/JMRI/JMRI/issues/14365) shipped it as “store last moved.” Not a GitHub bug report. HART 5.15.5 / Pi 5.15.4plus. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
+Updated: 2026-08-22 — Asked JMRI about first-registration facing invert: [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407), PR [JMRI#15408](https://github.com/JMRI/JMRI/pull/15408). HART overlay stays until that lands. CATS Digicon still names body tracks **S-1…S-5** on occupancy `Block 2-4`…`Block 2-8`; throats share those sensors and are not on the Masters. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
+
+Updated: 2026-08-22 — Facing overlay vs stock: invert still in JMRI 5.16 / master; [JMRI#14365](https://github.com/JMRI/JMRI/issues/14365) shipped it as “store last moved.” Filed as [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407). HART 5.15.5 / Pi 5.15.4plus. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
 
 Updated: 2026-08-22 — Documented `patch_dispatcher_facing.py` as an overlay, not a root fix: stock `MoveTrain.set_train_direction` inverts the facing dialog (leftover siding branch). HART stops the invert at runtime. Real fix is stock Dispatcher System. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
 
