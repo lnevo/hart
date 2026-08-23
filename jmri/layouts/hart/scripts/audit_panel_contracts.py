@@ -21,6 +21,7 @@ DEFAULT_SOURCES = (
 )
 BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
+DISPATCHER_START_SCRIPT = "preference:jython/hart_dispatcher_startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
 STATION_COMMENTS = {
     "East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
@@ -364,6 +365,26 @@ def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
     )
 
 
+def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
+    """Run Dispatcher System must load the HART wrapper, not stock Startup.py."""
+    actions: list[str] = []
+    for conditional in root.findall("./conditionals/conditional"):
+        user_name = conditional.get("userName") or text(conditional, "userName")
+        if user_name != "Run Dispatcher":
+            continue
+        for action in conditional.findall("conditionalAction"):
+            if action.get("type") == "16":
+                actions.append((action.get("string") or "").strip())
+    if not actions:
+        audit.error("missing Logix Run Dispatcher script action (IX:DSLX:1C1)")
+    elif DISPATCHER_START_SCRIPT not in actions:
+        audit.error(
+            "Run Dispatcher Logix must run "
+            f"{DISPATCHER_START_SCRIPT}; found {actions}"
+        )
+    audit.facts["dispatcher_startup_script"] = tuple(actions)
+
+
 def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
     ctc_bundle = (
         len(root.findall("ctcdata")),
@@ -429,6 +450,7 @@ def audit_source(
     if full_config:
         audit_sml(root, audit, required=True)
         audit_stations(root, panel, audit, required=True)
+        audit_dispatcher_startup(root, audit)
         if label == "deployment":
             audit_generated_dispatcher(root, audit)
     else:
@@ -472,6 +494,7 @@ def report_drift(audits: list[Audit]) -> list[str]:
         "stations",
         "station_sensors",
         "station_icons",
+        "dispatcher_startup_script",
         "cats_virtual",
         "sig_placeholders",
     )

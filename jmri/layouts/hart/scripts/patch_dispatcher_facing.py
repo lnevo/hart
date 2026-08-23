@@ -12,9 +12,9 @@
 #
 # This script may run before DispatcherSystem.py has loaded its classes.  A
 # daemon retries and re-applies the patch after any Dispatcher System reload.
-# Python-2 compatible for JMRI's embedded Jython.
-
-from __future__ import print_function
+# Python-2 compatible for JMRI's embedded Jython. Do not add print_function:
+# JMRI's shared engine would then reject stock Dispatcher System print
+# statements.
 
 import __main__
 import threading

@@ -1,11 +1,13 @@
 # JMRI Jython: start Dispatcher System with HART compatibility fixes.
 #
-# JMRI runs each startup script in a separate interpreter namespace.  A second
-# script therefore cannot monkey-patch classes loaded by stock Startup.py.
-# This wrapper loads the stock Dispatcher sources into its own namespace,
-# applies the HART patch there, and only then starts Dispatcher automata.
-
-from __future__ import print_function
+# JMRI runs each script eval with its own globals, so a second script cannot
+# monkey-patch classes loaded by stock Startup.py. This wrapper loads the stock
+# Dispatcher sources into its own namespace, applies the HART patch there, and
+# only then starts Dispatcher automata.
+#
+# Do not add "from __future__ import print_function". JMRI's Jython engine
+# keeps that compiler flag, and stock Dispatcher System still uses Python-2
+# print statements (Startup.py: print "closed Option").
 
 import jmri
 
@@ -16,7 +18,10 @@ def _exec_file(path):
         source = handle.read()
     finally:
         handle.close()
-    exec(source, globals())
+    # flags=0, dont_inherit=True: stock Dispatcher System is Python-2 print
+    # statements. A prior HART script must not leak print_function onto them.
+    code = compile(source, path, "exec", 0, True)
+    exec(code, globals())
 
 
 def start_hart_dispatcher():

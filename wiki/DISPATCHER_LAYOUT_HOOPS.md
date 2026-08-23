@@ -62,7 +62,7 @@ This is the pattern the South Yard throats use. Stage 1 will ask **same sensor?*
 
 ## `patch_dispatcher_facing.py` — overlay, **not a root fix** — **revisit later**
 
-This is a HART monkey-patch of Bill Fitch’s Dispatcher System. It does **not** change `/Applications/JMRI/jython/DispatcherSystem/MoveTrain.py`. `hart_dispatcher_startup.py` loads stock Startup + RunDispatchMaster into **one** Jython namespace, then applies `preference:jython/patch_dispatcher_facing.py` there (a second startup script cannot patch classes loaded in another interpreter). A daemon thread re-applies if Dispatcher System is reloaded.
+This is a HART monkey-patch of Bill Fitch’s Dispatcher System. It does **not** change `/Applications/JMRI/jython/DispatcherSystem/MoveTrain.py`. Logix **IX:DSLX:1C1** (**Run Dispatcher**) must run `preference:jython/hart_dispatcher_startup.py`, not stock `program:jython/DispatcherSystem/Startup.py`. The wrapper loads stock Startup + RunDispatchMaster into **one** Jython namespace, then applies `preference:jython/patch_dispatcher_facing.py` there (a second script eval cannot patch classes loaded in another globals dict). A daemon thread re-applies if Dispatcher System is reloaded.
 
 ### Symptom
 
@@ -110,6 +110,7 @@ JMRI allows **one throttle per DCC address**. `AutoActiveTrain` sets the directi
 
 ## CreateTransits / Jython landmines
 
+- Do **not** `from __future__ import print_function` in `preference:jython/` scripts. JMRI’s shared Jython engine keeps that compiler flag. Stock `DispatcherSystem/Startup.py` still has Python-2 `print "closed Option"` (line 41); clicking **Run Dispatcher System** then SyntaxErrors. `hart_dispatcher_startup.py` compiles stock files with `dont_inherit=True`.
 - Python `except Exception` does **not** catch Java `JmriException`. Stage 1 / SML helpers that only catch Python `Exception` will hang or look idle after a Java failure.
 - CreateTransits talks through **modal `JOptionPane`**. A hidden dialog (behind PanelPro, or on a headless/automation thread) freezes Stage 1. Look for a buried confirm before killing the session.
 - Stage 1 deletes and re-discovers SML. Re-add the two manual Princess pairs (`113RA→115LA`, `113RB→114LA`) after every run. Then `fix_traininfo_detection.py` (HEAD_AND_TAIL) and `reconcile_dispatcher_stations.py`.

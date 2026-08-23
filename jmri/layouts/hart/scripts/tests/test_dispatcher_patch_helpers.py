@@ -67,5 +67,34 @@ class DispatcherPatchHelperTest(unittest.TestCase):
         self.assertIsNone(select(blocks, "East Main Ext", "McKeesport"))
 
 
+JYTHON_RUNTIME_SCRIPTS = (
+    Path(__file__).resolve().parents[1] / "hart_dispatcher_startup.py",
+    Path(__file__).resolve().parents[1] / "hide_cats_desk_windows.py",
+    Path(__file__).resolve().parents[1] / "patch_dispatcher_facing.py",
+)
+
+
+class DispatcherJythonRuntimeGuardTest(unittest.TestCase):
+    def test_jmri_scripts_do_not_enable_print_function(self):
+        for path in JYTHON_RUNTIME_SCRIPTS:
+            for line in path.read_text(encoding="utf-8").splitlines():
+                stripped = line.strip()
+                if stripped.startswith("#"):
+                    continue
+                self.assertNotEqual(
+                    stripped,
+                    "from __future__ import print_function",
+                    msg=(
+                        "%s would leak print_function into JMRI's shared Jython "
+                        "engine and break stock DispatcherSystem/Startup.py"
+                        % path.name
+                    ),
+                )
+
+    def test_wrapper_compiles_stock_files_without_inherited_flags(self):
+        text = JYTHON_RUNTIME_SCRIPTS[0].read_text(encoding="utf-8")
+        self.assertIn('compile(source, path, "exec", 0, True)', text)
+
+
 if __name__ == "__main__":
     unittest.main()

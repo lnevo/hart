@@ -7,13 +7,14 @@
 #
 # MUST stay ASCII. Jython 2.7 LogixNG ActionScript crashes the whole file on a
 # UnicodeDecodeError (em-dash in a print previously aborted before chrome).
+# Do not add "from __future__ import print_function": JMRI's shared Jython
+# engine keeps that flag and then stock Dispatcher System Startup.py fails
+# on `print "closed Option"`.
 #
 # CTC Panel: Help/Quit go on Apps.buttonSpace() (bottom, with Restart RPi).
 # Do not wrap a second toolbar at the top. Dispatcher Panel has no button
 # strip, so it keeps the in-window toolbar. File already has Exit; do not
 # add a second Quit.
-
-from __future__ import print_function
 
 from java.awt import BorderLayout, FlowLayout, Frame, Window
 from java.awt.event import ActionListener
