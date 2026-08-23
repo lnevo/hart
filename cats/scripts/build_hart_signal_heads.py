@@ -70,7 +70,7 @@ ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
 APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}
 SYSTEM_BY_HEADS = {1: "AAR-1946", 2: "hart-aar", 3: "AAR-1946"}
 
-# DNOU8 Parent Node ID + board for each MQTT display node (LCOS inventory v48).
+# DNOU8 Parent Node ID + board for each MQTT display node (LCOS inventory v85).
 # mqtt 13 ← RF24/LCOS 11 (%o → "13"); hardware Parent Node C1 (Helix Lower).
 # mqtt 12 ← radio "012" (East End); hardware Parent Node C7 (North Upper, sheet addr 12).
 # mqtt 4  ← C4 West Lower; mqtt 1 ← D1 (Princess — OU boards added for Digicon).
@@ -252,8 +252,8 @@ def write_csvs(rows: list[dict]) -> None:
 
 
 def update_lcos_inventory(rows: list[dict]) -> None:
-    """Rewrite Digicon signal ports on LCOS_Layout_Inventory_v48 DNOU8 sheet."""
-    inv = Path.home() / "Downloads" / "LCOS_Layout_Inventory_v48.xlsx"
+    """Rewrite Digicon signal ports on docs/wiring LCOS inventory DNOU8 sheet."""
+    inv = ROOT / "docs/wiring/LCOS_Layout_Inventory_v85.xlsx"
     if not inv.exists():
         print(f"skip inventory update (missing {inv})")
         return
@@ -294,9 +294,9 @@ def update_lcos_inventory(rows: list[dict]) -> None:
                 ws.cell(rr, col, v)
         else:
             ws.append(vals)
-    out = DATA / "LCOS_Layout_Inventory_v48_signal_ports.xlsx"
+    out = DATA / "LCOS_Layout_Inventory_v85_signal_ports.xlsx"
     wb.save(out)
-    wb.save(inv)  # update Downloads copy too
+    wb.save(inv)
     print(f"updated inventory DNOU8 → {inv} and {out}")
 
 

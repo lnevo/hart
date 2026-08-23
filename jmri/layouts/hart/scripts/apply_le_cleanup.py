@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """LE cleanup: MTT FB share, 114-McKeesport kink, zero-length K-2, hidden stub
-and South Yard turnout-leg virtual masts.
+and South Yard throat-boundary virtual masts.
 
 Writable source is tables/new_tables.xml. --sync-output also patches
 jmri/layouts/hart/output/tables.xml and hart_prod.xml independently.
+
+Yard body tracks use hidden throat blocks (apply_yard_throat_blocks.py) so
+A53/A46/… are real block boundaries. Do not bind 104L–107L onto turnout
+legs or mid-block anchors that share one block on both sides.
 """
 
 from __future__ import annotations
@@ -34,21 +38,22 @@ STUB_MASTS = [
     ("IF$vsm:AAR-1946:SL-1-low($1007)", "119LB", "EB3", "westboundsignalmast", 548, 273, 270),
 ]
 
-# South Yard body tracks are run-through (not bumpers). Discover only sees
-# masts at block boundaries, so these sit on the ladder turnout legs, not
-# on mid-block anchors A53/A46/A41/A12.
-YARD_TURNOUT_MASTS = [
-    # turnout ident, child tag, systemName, userName, icon x, y, degrees
-    ("TOL15", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1008)", "104L", 768, 350, 270),
-    ("TOL17", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1009)", "105L", 843, 397, 270),
-    ("TOL19", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1010)", "106L", 910, 444, 270),
-    ("TOL19", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1011)", "107L", 910, 474, 270),
-    ("TOR7", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1012)", "104R", 1148, 350, 90),
-    ("TOR9", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1013)", "105R", 1148, 397, 90),
-    ("TOR11", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1014)", "106R", 1148, 444, 90),
-    ("TOR11", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1015)", "107R", 1148, 474, 90),
+# South Yard throats (apply_yard_throat_blocks.py) make A53/A46/… real
+# block boundaries. Virtuals sit on those anchors, not on turnout legs.
+YARD_BOUNDARY_MASTS = [
+    # ident, attr, systemName, userName, icon x, y, degrees
+    ("A53", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1008)", "104L", 768, 350, 270),
+    ("A61", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1012)", "104R", 1148, 350, 90),
+    ("A46", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1009)", "105L", 843, 397, 270),
+    ("A36", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1013)", "105R", 1148, 397, 90),
+    ("A41", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1010)", "106L", 910, 444, 270),
+    ("A39", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1014)", "106R", 1148, 444, 90),
+    ("A15", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1011)", "107L", 910, 474, 270),
+    ("A12", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1015)", "107R", 1148, 474, 90),
+    ("A81", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1016)", "103L", 720, 300, 270),
+    ("A37", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1017)", "110L", 1145, 300, 90),
 ]
-YARD_CLEAR_ANCHORS = ("A53", "A46", "A41", "A12")
+YARD_VIRTUAL_UNAMES = {row[3] for row in YARD_BOUNDARY_MASTS}
 
 MTT_FB = {
     "MTT100": ("Switch 4-1 FB R", "Switch 4-1 FB N", "Switch 100"),
@@ -252,31 +257,30 @@ def patch_yard_turnout_masts(root: ET.Element, le: ET.Element) -> int:
         for el in list(masts)
         if el.tag in ("signalmast", "virtualsignalmast")
     }
-    turnouts = {el.get("ident"): el for el in le.findall("layoutturnout")}
-    for ident, child, sysname, uname, x, y, deg in YARD_TURNOUT_MASTS:
+    for ident, attr, sysname, uname, x, y, deg in YARD_BOUNDARY_MASTS:
         n += _ensure_virtual_mast(masts, existing, sysname, uname)
         n += _ensure_hidden_icon(le, uname, x, y, deg)
-        to = turnouts.get(ident)
-        if to is None:
-            continue
-        found = None
-        for el in list(to):
-            if el.tag == child:
-                found = el
-                break
-        if found is None:
-            found = ET.SubElement(to, child)
-            found.text = uname
-            n += 1
-        elif (found.text or "").strip() != uname:
-            found.text = uname
-            n += 1
-    for pt in le.findall("positionablepoint"):
-        if pt.get("ident") not in YARD_CLEAR_ANCHORS:
-            continue
-        for attr in ("westboundsignalmast", "eastboundsignalmast"):
-            if pt.get(attr):
-                del pt.attrib[attr]
+        for pt in le.findall("positionablepoint"):
+            if pt.get("ident") != ident:
+                continue
+            if pt.get(attr) != uname:
+                pt.set(attr, uname)
+                n += 1
+            other = (
+                "eastboundsignalmast"
+                if attr == "westboundsignalmast"
+                else "westboundsignalmast"
+            )
+            if pt.get(other):
+                del pt.attrib[other]
+                n += 1
+    for to in le.findall("layoutturnout"):
+        for child in list(to):
+            if (
+                "Mast" in child.tag
+                and (child.text or "").strip() in YARD_VIRTUAL_UNAMES
+            ):
+                to.remove(child)
                 n += 1
     return n
 

@@ -1,6 +1,10 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-22 — Dispatcher Stage 1 re-run on Pi PanelPro for all 22 stations. Graph is **82 sections / 534 transits / 1252 HEAD_AND_TAIL traininfo**. Every station is a CreateTransits origin (EH, W-1/W-2, K-1/K-2, S-1…S-5, Scale, Barn, plus the original eight). **S-2 / S-4 / S-5 cannot be destinations yet** (one looping `[117RA, 104L, 117RA]` edge skipped). South Yard virtuals sit on ladder turnout legs (TOL15/17/19 C, TOL19 B, TOR7/9/11 C, TOR11 B), not mid-block anchors. SML is **77 dests (75 yes / 2 manual Princess)**. Restart PanelPro (or quit it before CATS) to pick up deployed traininfo.
+Updated: 2026-08-22 — Stage 1 re-run after South Yard throats: **91 sections / 688 transits / 1508 HEAD_AND_TAIL traininfo**. S-1…S-5 are arrival/departure stations (62 inbound traininfo each) via **103** or **East Lead**. Throat comments are “not a station” — CreateGraph matches the substring `stop`. Native SML **86 dests** (84 LE + 2 Princess). Hoops: [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
+
+Updated: 2026-08-22 — South Yard S-1…S-5 hidden throat blocks landed (`S-2 West`/`S-2 East`, … sharing body occupancy). Virtuals on the new boundaries (`103L`/`110L`, `104L`–`107R`). Stage 1 after this geometry is the 91/688/1508 graph at the top of this file.
+
+Updated: 2026-08-22 — Earlier all-stations Stage 1 (82/534/1252, S-2/S-4/S-5 origin-only) superseded by the throat Stage 1 at the top of this file. Manual Princess pairs and Stage 2 options from that pass still apply.
 
 Updated: 2026-08-22 — Digicon BUTTON icons on Pi/Windows are absolute files under `JMRI_UserFiles/resources/buttons/` (CATS uses `java.io.File`, not `preference:`). PNGs already deploy there. No CATS jar patch.
 
@@ -55,9 +59,9 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
 - Dispatcher graph stations (CreateTransits origins): all **22** — Main West,
   West Main Ext, McKees Rocks, McKeesport, East Lead, Main East,
   East Main Ext, Brick-Plane, Scale, Barn, EH-1…EH-3, S-1…S-5,
-  W-1/W-2, K-1/K-2. Deployment is **82 sections / 534 transits /
-  1252 HEAD_AND_TAIL traininfo**. S-2, S-4, and S-5 are origins only
-  (no inbound transits). The change left the A48 stale-file repair in
+  W-1/W-2, K-1/K-2. Deployment is **91 sections / 688 transits /
+  1508 HEAD_AND_TAIL traininfo**. S-1…S-5 are arrival/departure
+  stations (enter/leave via 103 or East Lead). The change left the A48 stale-file repair in
   place; smoke still verifies every TrainInfo against the live graph.
 - **Dispatcher compatibility fixed (2026-08-20):** HART now launches the stock
   Dispatcher System through `hart_dispatcher_startup.py`, so its classes are
@@ -66,7 +70,7 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
   only the requested start/destination subsection and fail closed on invalid
   mappings. The A48
   change left 40 stale TrainInfo files; all were repaired against the live
-  graph and the smoke gate verifies ordered routes (now 1252). Deployed to Pi,
+  graph and the smoke gate verifies ordered routes (now 1508). Deployed to Pi,
   Mac, and Windows profiles.
 - Regression gate:
   `python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict`.
@@ -133,7 +137,8 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
 
 ## Dispatcher System (2026-08-18) — set up, awaiting live test
 
-- **2026-08-22 graph (all stations):** Stage 1 on Pi PanelPro after bumper facing + South Yard turnout-leg virtuals — **82 sections / 534 transits / 1252 traininfo**. All 22 stations are origins. S-2/S-4/S-5 have in-degree 0 (CreateTransits skipped a looping 117RA–104L edge). Bumper `IF$vsm` virtuals use the EH-style far slot so Discover can see W-1/W-2, K-1/K-2, and EH-1…EH-3. South Yard S-2…S-5 use turnout-leg masts (`104L`–`107L` west, `104R`–`107R` east), not A53/A46/A41/A12.
+- **2026-08-22 graph (yard platforms):** Stage 1 on Pi PanelPro after hidden S-1…S-5 throat blocks — **91 sections / 688 transits / 1508 traininfo**. All 22 stations are origins **and** destinations. Inbound to each S-n is 62 traininfo files (Main West, East Lead, Scale, Princess, …). Throat comments must not contain `stop`. Bumper `IF$vsm` virtuals still use the EH-style far slot. Yard virtuals sit on throat-boundary anchors, not turnout legs. Hoops: [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
+- **2026-08-22 graph (all stations, superseded):** earlier Stage 1 after bumper facing + turnout-leg virtuals — 82/534/1252. S-2/S-4/S-5 were origins only until the throat re-run above.
 - **Stub tracks as stations**: bumper virtuals (`101LA`/`101LB`, `115RA`/`114RA`, `118L`/`119LA`/`119LB`) plus yard turnout-leg virtuals are now in the graph. Do not re-bind 104L–107L onto mid-block anchors — Discover cannot see those.
 - **Never run Stage 1 or store panels from inside CATS.** CATS embeds JMRI on the same profile, so a store from a CATS session persists CATS runtime beans into `tables.xml` — 25 `IF$vsm:CATS1/CATS2` virtual masts (which then fail to load in plain JMRI: "Signal definition not found: CATS1") plus `IMDECODER_*` memories. Happened 2026-08-18; file was surgically cleaned and verified under PanelPro. Configure JMRI from PanelPro only.
 - **SML survived regeneration**: Stage 1 deletes + re-discovers; result matched our 34 discovered pairs, and the 2 manual K-stub pairs (`113a→K-2`, `113b→K-1`) were re-added — 36 total, verified after restart.

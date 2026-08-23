@@ -58,8 +58,8 @@ Dispatcher stations are the original mainline eight (Main West, West Main Ext,
 McKees Rocks, McKeesport, East Lead, Main East, East Main Ext,
 Brick-Plane) plus EH-1–3, S-1–5, Scale (T1),
 Barn (T6), W-1–2, and K-1 / K-2. The generated graph covers all 22
-as origins (82 sections / 534 transits / 1252 HEAD_AND_TAIL traininfo).
-S-2, S-4, and S-5 are not destinations yet.
+as origins and destinations (91 sections / 688 transits / 1508 HEAD_AND_TAIL traininfo).
+S-1…S-5 are arrival/departure tracks; trains enter and leave via 103 or East Lead.
 
 Operator guide (click destinations or named station lists):
 [`dispatcher/DISPATCHER_GUIDE.md`](dispatcher/DISPATCHER_GUIDE.md).

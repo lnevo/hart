@@ -47,10 +47,10 @@ Stations, west → east around the plant, then the yard and house:
 | **K-1 / K-2** | Princess stubs east of 115 / 114; destination labels **K-1** / **K-2** |
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
-buttons are in place. **Stage 1 was re-run 2026-08-22** for all 22 stations
-(graph is **82 sections / 534 transits / 1252 traininfo**). Every listed
-station is a valid **start**. **S-2, S-4, and S-5 cannot be destinations
-yet** (no inbound transits). Manual Princess pairs (`113RA→115LA`,
+buttons are in place. **Stage 1 was re-run 2026-08-22** after hidden yard
+throats (graph is **91 sections / 688 transits / 1508 traininfo**). Every listed
+station is a valid **start and destination**, including **S-1…S-5**
+(enter/leave via 103 or East Lead). Manual Princess pairs (`113RA→115LA`,
 `113RB→114LA`) were re-added after Discover. After any future Stage 1:
 `python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py` then
 `reconcile_dispatcher_stations.py`. Never run Stage 1 or store tables from

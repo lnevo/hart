@@ -9,7 +9,7 @@ TABLES = HOME / "JMRI/My_JMRI_Railroad.jmri/tables.xml"
 PROF = HOME / "JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
 FRAG = HOME / "hart/jmri/layouts/hart/scripts/yl_tables_fragment.xml"
 SYNC = HOME / "hart/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py"
-SYNC_HOME = "home:hart/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py"
+SYNC_HOME = "preference:jython/sync_yard_ladder_buttons.py"
 
 
 def merge_tables() -> None:
