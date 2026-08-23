@@ -66,6 +66,12 @@ class DispatcherPatchHelperTest(unittest.TestCase):
         blocks = [FakeBlock("East Main Ext"), FakeBlock("Main East")]
         self.assertIsNone(select(blocks, "East Main Ext", "McKeesport"))
 
+    def test_first_move_keeps_registered_facing(self):
+        skip = self.namespace["_hart_should_skip_uturn_flip"]
+        self.assertTrue(skip({"hart_honor_facing": True, "direction": "forward"}))
+        self.assertFalse(skip({"hart_honor_facing": False, "direction": "forward"}))
+        self.assertFalse(skip({"direction": "forward"}))
+
 
 JYTHON_RUNTIME_SCRIPTS = (
     Path(__file__).resolve().parents[1] / "hart_dispatcher_startup.py",

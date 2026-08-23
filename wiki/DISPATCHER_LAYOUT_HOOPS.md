@@ -96,6 +96,19 @@ Filed as a question, not a silent revert of 14365: [JMRI#15407](https://github.c
 
 `NewTrainMaster.set_train_direction` returns `[result, result]` — dialog **forward** stays stored **forward**. `save_action` and `populate_existing` no longer swap. Same file also null-safes Operations speed-factor cells (`""` / `-1` → 100%) and limits route-clear / allocation paint to the TrainInfo start→destination **subsection** (stock scans the whole shared transit).
 
+### First dispatch after Setup Train (HART overlay, 2026-08-22)
+
+This is **not** a balloon / hairpin wiring bug. McKees Rocks really has two neighbors (McKeesport and OS 115). The allocated transit McKees Rocks → West Main Ext via OS 115 is the short plant move.
+
+Stock Dispatcher System does **two** inverts that cancel when you leave toward the highlighted neighbor:
+
+1. Facing dialog: click **forward** → store `"reverse"` (JMRI#14365).
+2. First `set_direction`: registration borrowed an incoming graph edge whose penultimate block **is** that highlight. Leaving toward it looks like a U-turn (`previous_block == next_block`), so it flips storage back to `"forward"` and loads `*_fwd.xml`.
+
+HART’s overlay removed (1) so the click matches storage. (2) still ran. Net: the desk showed **forward**, allocated Via OS 115, then loaded `*_rvs.xml`. DCC reverse with the loco facing OS 115 is McKeesport — the next balloon block.
+
+The overlay now keeps registered facing for that **first** move (`hart_honor_facing`). After the hop succeeds, stock U-turn logic is left alone for later true reversals. No Layout Editor or transit change; this is the rest of the HART overlay we already owned. Do not “fix” A48 / Brick to stop the layout being a loop.
+
 ### Why this is still a hack
 
 We compensate at runtime instead of deleting the invert in stock `MoveTrain.py`. A JMRI update that rewrites those methods can silently restore the swap. The overlay is not a JMRI contribution and is not covered by Dispatcher System’s own tests.

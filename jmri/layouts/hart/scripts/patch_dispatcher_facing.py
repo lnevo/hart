@@ -6,6 +6,10 @@
 # and only set runInReverse=yes, so the loco backs even when the dispatcher
 # graph is forward.
 #
+# Stopping that invert without also skipping stock's first-move U-turn left
+# the travel bit flipped: allocated path stayed correct, loco ran the other
+# way. First dispatch after Setup Train keeps the registered facing.
+#
 # It also assumes every Operations engine comment and table speed-factor cell
 # is non-null, and its optional route-clear gate scans an entire shared transit
 # instead of only the requested start/destination subsection.
@@ -261,6 +265,70 @@ def _hart_set_route_allocated(self, traininfoFileName, startBlockName):
         print("allocated route", traininfoFileName)
 
 
+def _hart_should_skip_uturn_flip(train):
+    # After Setup Train, stock still treats the highlighted neighbor as
+    # "where the train arrived from." Leaving that way is the first move,
+    # not a U-turn. Skip only while that registration flag is set.
+    return bool(train.get("hart_honor_facing"))
+
+
+def _hart_mark_honor_facing(train_name):
+    if train_name in trains and trains[train_name].get("direction") is not None:
+        trains[train_name]["hart_honor_facing"] = True
+
+
+def _hart_clear_honor_facing(train_name):
+    if train_name in trains:
+        trains[train_name]["hart_honor_facing"] = False
+
+
+def _hart_set_direction(
+    self, train, previous_block, current_block, next_block,
+    previous_direction_from, index=0
+):
+    if _hart_should_skip_uturn_flip(train):
+        train["direction"] = previous_direction_from
+        if self.logLevel > 0:
+            print("HART Dispatcher: first move uses registered facing")
+        return [previous_direction_from, "same"]
+    return MoveTrain._hart_orig_set_direction(
+        self, train, previous_block, current_block, next_block,
+        previous_direction_from, index
+    )
+
+
+def _hart_move(
+    self, e, direction, instruction, train_name,
+    mode="not_scheduling", index=0
+):
+    result = MoveTrain._hart_orig_move(
+        self, e, direction, instruction, train_name, mode, index
+    )
+    if result:
+        _hart_clear_honor_facing(train_name)
+    return result
+
+
+def _hart_add_to_train_list_and_set_new_train_location(
+    self, train_name, station_block_name
+):
+    NewTrainMaster._hart_orig_add_to_train_list_and_set_new_train_location(
+        self, train_name, station_block_name
+    )
+    _hart_mark_honor_facing(train_name)
+
+
+def _hart_add_to_train_list_and_set_new_train_location0(
+    self, train_name, station_block_name, train_direction,
+    train_length, train_speed_factor
+):
+    NewTrainMaster._hart_orig_add_to_train_list_and_set_new_train_location0(
+        self, train_name, station_block_name, train_direction,
+        train_length, train_speed_factor
+    )
+    _hart_mark_honor_facing(train_name)
+
+
 def _hart_populate_existing(self, blocks_to_put_in_dropdown):
     for row in reversed(range(len(self.data))):
         self.data.pop(row)
@@ -285,6 +353,13 @@ def _hart_populate_existing(self, blocks_to_put_in_dropdown):
 '''
 
 
+def _bind_original(cls, attr, orig_attr, replacement):
+    current = getattr(cls, attr)
+    if getattr(current, "__name__", "") != getattr(replacement, "__name__", ""):
+        setattr(cls, orig_attr, current)
+    setattr(cls, attr, replacement)
+
+
 def apply_to_namespace(namespace):
     required = ("MoveTrain", "NewTrainMaster", "createandshowGUI", "MyTableModel")
     if not all(name in namespace for name in required):
@@ -298,8 +373,32 @@ def apply_to_namespace(namespace):
     namespace["MoveTrain"].set_route_allocated = namespace[
         "_hart_set_route_allocated"
     ]
+    _bind_original(
+        namespace["MoveTrain"],
+        "set_direction",
+        "_hart_orig_set_direction",
+        namespace["_hart_set_direction"],
+    )
+    _bind_original(
+        namespace["MoveTrain"],
+        "move",
+        "_hart_orig_move",
+        namespace["_hart_move"],
+    )
     namespace["NewTrainMaster"].set_train_direction = (
         namespace["_hart_set_train_direction"]
+    )
+    _bind_original(
+        namespace["NewTrainMaster"],
+        "add_to_train_list_and_set_new_train_location",
+        "_hart_orig_add_to_train_list_and_set_new_train_location",
+        namespace["_hart_add_to_train_list_and_set_new_train_location"],
+    )
+    _bind_original(
+        namespace["NewTrainMaster"],
+        "add_to_train_list_and_set_new_train_location0",
+        "_hart_orig_add_to_train_list_and_set_new_train_location0",
+        namespace["_hart_add_to_train_list_and_set_new_train_location0"],
     )
     namespace["NewTrainMaster"].get_train_speed_factor = (
         namespace["_hart_get_train_speed_factor"]
@@ -330,7 +429,7 @@ def _patch_loop():
                 last_signature = signature
                 print(
                     "HART Dispatcher compatibility patch applied: "
-                    "facing, speed factor, route subsection"
+                    "facing, first-move polarity, speed factor, route subsection"
                 )
         except Exception as exc:
             print("HART Dispatcher compatibility patch retry: " + str(exc))
