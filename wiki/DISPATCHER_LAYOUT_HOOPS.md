@@ -90,7 +90,7 @@ Dispatcher then picks traininfo from the **stored** direction. Stage 1 writes tw
 
 Stored `"reverse"` → `*_rvs.xml` → throttle direction bit reverse, while the transit section list is still Forward. On HART that made the engine back along a forward route — which is why we overlay. That is **Dispatcher System (jython)**, not Java Dispatcher, and not a HART panel / mast / throat problem. Layout Editor facing slots are a **different** issue (END_BUMPER section above).
 
-Filed as a question, not a silent revert of 14365: [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407), patch [JMRI#15408](https://github.com/JMRI/JMRI/pull/15408). Keep the HART overlay until that lands (or Bill says last-moved is still the rule). Dispatcher System has a small user base compared with Java Dispatcher; people who see a loco back often hit the other dialog button or blame decoder polarity.
+Filed as a question, not a silent revert of 14365: [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407). Patch [JMRI#15408](https://github.com/JMRI/JMRI/pull/15408) was **closed 2026-08-22** pending more live testing. Keep the HART overlay. Dispatcher System has a small user base compared with Java Dispatcher; people who see a loco back often hit the other dialog button or blame decoder polarity.
 
 ### What the overlay does
 
@@ -100,7 +100,7 @@ Filed as a question, not a silent revert of 14365: [JMRI#15407](https://github.c
 
 We compensate at runtime instead of deleting the invert in stock `MoveTrain.py`. A JMRI update that rewrites those methods can silently restore the swap. The overlay is not a JMRI contribution and is not covered by Dispatcher System’s own tests.
 
-**If we revisit:** [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) / [JMRI#15408](https://github.com/JMRI/JMRI/pull/15408) ask Bill Fitch whether first-setup polarity should be separate from last-moved. Do not drop the overlay until that is merged (or rejected with a different rule). For HART, first dispatch needs stored direction to mean **throttle polarity for this move**.
+**If we revisit:** [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) is the question to Bill. Do not reopen [JMRI#15408](https://github.com/JMRI/JMRI/pull/15408) until first-registration polarity is proven on more than one station pair. Do not drop the overlay. For HART, first dispatch needs stored direction to mean **throttle polarity for this move**.
 
 ### Not this patch: phone throttle
 

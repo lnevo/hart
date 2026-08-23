@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Closed [JMRI#15408](https://github.com/JMRI/JMRI/pull/15408) (more live testing required). Overlay stays. One McKeesport → West Main Ext via McKees Rocks dispatch reached the dest (stop nosed into 111 / mast `111L`). [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) still open. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
+
 Updated: 2026-08-22 — Run Dispatcher System SyntaxError (`print "closed Option"`) was HART `print_function` leaking in JMRI’s shared Jython engine, plus Pi Logix still pointing at stock `Startup.py`. Wrapper compiles stock files with `dont_inherit`; IX:DSLX:1C1 now runs `preference:jython/hart_dispatcher_startup.py`. Restart PanelPro on the Pi to pick it up. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
 
 Updated: 2026-08-22 — Asked JMRI about first-registration facing invert: [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407), PR [JMRI#15408](https://github.com/JMRI/JMRI/pull/15408). HART overlay stays until that lands. CATS Digicon still names body tracks **S-1…S-5** on occupancy `Block 2-4`…`Block 2-8`; throats share those sensors and are not on the Masters. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
