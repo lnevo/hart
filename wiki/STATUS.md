@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-22 — Documented `patch_dispatcher_facing.py` as an overlay, not a root fix: stock `MoveTrain.set_train_direction` inverts the facing dialog (leftover siding branch). HART stops the invert at runtime. Real fix is stock Dispatcher System. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
+
 Updated: 2026-08-22 — Stage 1 re-run after South Yard throats: **91 sections / 688 transits / 1508 HEAD_AND_TAIL traininfo**. S-1…S-5 are arrival/departure stations (62 inbound traininfo each) via **103** or **East Lead**. Throat comments are “not a station” — CreateGraph matches the substring `stop`. Native SML **86 dests** (84 LE + 2 Princess). Hoops: [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
 
 Updated: 2026-08-22 — South Yard S-1…S-5 hidden throat blocks landed (`S-2 West`/`S-2 East`, … sharing body occupancy). Virtuals on the new boundaries (`103L`/`110L`, `104L`–`107R`). Stage 1 after this geometry is the 91/688/1508 graph at the top of this file.

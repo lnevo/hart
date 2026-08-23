@@ -60,19 +60,49 @@ This is the pattern the South Yard throats use. Stage 1 will ask **same sensor?*
 
 ---
 
-## `patch_dispatcher_facing.py` — **revisit later**
+## `patch_dispatcher_facing.py` — overlay, **not a root fix** — **revisit later**
 
-Loaded by `jmri/layouts/hart/scripts/hart_dispatcher_startup.py` into the same Jython namespace as Dispatcher System (stock Startup.py cannot be patched from a second interpreter).
+This is a HART monkey-patch of Bill Fitch’s Dispatcher System. It does **not** change `/Applications/JMRI/jython/DispatcherSystem/MoveTrain.py`. `hart_dispatcher_startup.py` loads stock Startup + RunDispatchMaster into **one** Jython namespace, then applies `preference:jython/patch_dispatcher_facing.py` there (a second startup script cannot patch classes loaded in another interpreter). A daemon thread re-applies if Dispatcher System is reloaded.
 
-What the patch does today:
+### Symptom
 
-- Facing dialog: stock `MoveTrain` maps “forward” to train_direction `reverse` (and the reverse), so a through-station registration loads `*_rvs.xml` and the loco backs while the transit stays Forward.
-- Null-safe Operations speed-factor cells (empty / `-1` → 100%).
-- Route-clear and allocation highlight only the requested start→destination subsection, not the whole shared transit.
+Register a through-station train, answer **forward** (facing the highlighted neighbor), dispatch. The allocated transit stays **Forward**, but the loco **backs**. Traininfo `*_rvs.xml` was loaded instead of `*_fwd.xml`.
 
-Related, not the same file: **hands off the phone throttle**. JMRI shares one throttle per address. `AutoActiveTrain` sets the direction bit once at dispatch start. A WiThrottle press (or re-acquire) flips that bit; the next speed command runs the train the wrong way. Release the phone before dispatch; terminate and re-dispatch instead of nudging.
+### Root cause (stock)
 
-**Revisit the patch.** It is a compatibility overlay, not a JMRI fix.
+`MoveTrain.set_train_direction` asks “What way is train facing towards highlighted block?” then **inverts** the answer:
+
+```
+click "forward"  →  train["direction"] = "reverse"
+click "reverse"  →  train["direction"] = "forward"
+```
+
+That invert used to live only in an `if in_siding:` branch (stub: one neighbor). The siding test is **commented out**; the invert still runs for **every** station. `createandshowGUI.save_action` and `MyTableModel.populate_existing` invert **again** so the Setup Train table shows what you clicked while storage holds the opposite.
+
+Dispatcher then picks traininfo from the **stored** direction. Stage 1 writes two files per graph edge, same transit:
+
+| File | `runInReverse` |
+|------|----------------|
+| `*_fwd.xml` | no |
+| `*_rvs.xml` | yes |
+
+Stored `"reverse"` → `*_rvs.xml` → throttle direction bit reverse, while the transit section list is still Forward. The engine backs along a forward route.
+
+That is a Dispatcher System bug (leftover siding polarity), not a HART panel / mast / throat problem. Layout Editor facing slots are a **different** issue (END_BUMPER section above).
+
+### What the overlay does
+
+`NewTrainMaster.set_train_direction` returns `[result, result]` — dialog **forward** stays stored **forward**. `save_action` and `populate_existing` no longer swap. Same file also null-safes Operations speed-factor cells (`""` / `-1` → 100%) and limits route-clear / allocation paint to the TrainInfo start→destination **subsection** (stock scans the whole shared transit).
+
+### Why this is still a hack
+
+We compensate at runtime instead of deleting the invert in stock `MoveTrain.py`. A JMRI update that rewrites those methods can silently restore the swap. The overlay is not a JMRI contribution and is not covered by Dispatcher System’s own tests.
+
+**Real fix (when we revisit):** change stock `set_train_direction` / `save_action` / `populate_existing` so stored direction **is** the dialog answer (keep an invert only if a true one-neighbor stub still needs it), then drop the HART method replacements. Prefer an upstream JMRI/DispatcherSystem patch, or a HART-local copy of those three methods we own — not a second invert piled on the first.
+
+### Not this patch: phone throttle
+
+JMRI allows **one throttle per DCC address**. `AutoActiveTrain` sets the direction bit at dispatch start. A WiThrottle press (or re-acquire) flips that bit; the next speed command runs the wrong way. Release the phone before dispatch; terminate and re-dispatch instead of nudging. That is JMRI throttle ownership, not the facing dialog.
 
 ---
 
@@ -96,5 +126,5 @@ S-1…S-5 are a yard with many platforms: enter/leave via **103** or **East Lead
 - Dual-run CATS CTC and the USS machine, or start Dispatcher System from inside CATS.
 - Store tables or panels from a CATS session.
 - Put `104L`–`107L` back on turnout C/B legs. Bind them on the throat-boundary anchors.
-- Remove the END_BUMPER far-slot bindings or the facing patch without a replacement.
+- Remove the END_BUMPER far-slot bindings or the facing overlay without a replacement (the overlay only undoes stock `MoveTrain`’s invert).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.

@@ -84,6 +84,10 @@ CATS.
    writes the same synthetic 10-step / 400 mm/s profile 2091 already had.
 4. A neighbor block highlights. Answer **which way the train is facing** —
    toward that highlight, or the other way. That is polarity, not the route.
+   Stock Dispatcher System used to invert that answer (see
+   [`DISPATCHER_LAYOUT_HOOPS.md`](../../../wiki/DISPATCHER_LAYOUT_HOOPS.md));
+   HART’s overlay stores what you clicked. If the loco still backs, release
+   WiThrottle and re-register — do not “fix facing” by editing mast slots.
 5. Accept length and speed factor if they look right.
 
 The station label on **HART Railroad** should show the train name. If you lift the
