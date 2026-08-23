@@ -77,7 +77,9 @@ click "forward"  →  train["direction"] = "reverse"
 click "reverse"  →  train["direction"] = "forward"
 ```
 
-That invert used to live only in an `if in_siding:` branch (stub: one neighbor). The siding test is **commented out**; the invert still runs for **every** station. `createandshowGUI.save_action` and `MyTableModel.populate_existing` invert **again** so the Setup Train table shows what you clicked while storage holds the opposite.
+That invert is **not** a leftover we invented. Before 2025-08, `in_siding` was hardcoded `False`, so the through-station **else** already inverted; [JMRI#14365](https://github.com/JMRI/JMRI/issues/14365) (`b0b1627`, 2025-08-13) flattened that to always invert and described it as *store direction last moved, instead of the direction to move next*. The same invert is still in **v5.16**, **v5.17.2**, and `master` `MoveTrain.py` (checked 2026-08-22). HART is on **5.15.5** (Mac) / **5.15.4plus** (Pi). Upgrading JMRI will not remove it.
+
+`createandshowGUI.save_action` and `MyTableModel.populate_existing` invert **again** so the Setup Train table shows what you clicked while storage holds the opposite.
 
 Dispatcher then picks traininfo from the **stored** direction. Stage 1 writes two files per graph edge, same transit:
 
@@ -86,9 +88,9 @@ Dispatcher then picks traininfo from the **stored** direction. Stage 1 writes tw
 | `*_fwd.xml` | no |
 | `*_rvs.xml` | yes |
 
-Stored `"reverse"` → `*_rvs.xml` → throttle direction bit reverse, while the transit section list is still Forward. The engine backs along a forward route.
+Stored `"reverse"` → `*_rvs.xml` → throttle direction bit reverse, while the transit section list is still Forward. On HART that made the engine back along a forward route — which is why we overlay. That is **Dispatcher System (jython)**, not Java Dispatcher, and not a HART panel / mast / throat problem. Layout Editor facing slots are a **different** issue (END_BUMPER section above).
 
-That is a Dispatcher System bug (leftover siding polarity), not a HART panel / mast / throat problem. Layout Editor facing slots are a **different** issue (END_BUMPER section above).
+No GitHub issue treats the invert as a defect. The author shipped it. Dispatcher System has a small user base compared with Java Dispatcher; people who see a loco back often hit the other dialog button or blame decoder polarity.
 
 ### What the overlay does
 
@@ -98,7 +100,7 @@ That is a Dispatcher System bug (leftover siding polarity), not a HART panel / m
 
 We compensate at runtime instead of deleting the invert in stock `MoveTrain.py`. A JMRI update that rewrites those methods can silently restore the swap. The overlay is not a JMRI contribution and is not covered by Dispatcher System’s own tests.
 
-**Real fix (when we revisit):** change stock `set_train_direction` / `save_action` / `populate_existing` so stored direction **is** the dialog answer (keep an invert only if a true one-neighbor stub still needs it), then drop the HART method replacements. Prefer an upstream JMRI/DispatcherSystem patch, or a HART-local copy of those three methods we own — not a second invert piled on the first.
+**If we revisit:** do not silently revert [JMRI#14365](https://github.com/JMRI/JMRI/issues/14365) upstream without asking Bill Fitch — he changed storage on purpose. For HART, first dispatch needs stored direction to mean **throttle polarity for this move**, which is what the overlay does. A durable HART fix is still an owned copy of those three methods, or a Dispatcher System option, not hoping a JMRI upgrade deletes the invert.
 
 ### Not this patch: phone throttle
 
