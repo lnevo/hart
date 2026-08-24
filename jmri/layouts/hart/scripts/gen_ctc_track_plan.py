@@ -194,10 +194,11 @@ LAMPS = [
     ("Block 3-1",  424, 200, "OS 116 (Barn)"),
     ("Block 3-2",  489, 200, "OS 103"),
     ("Block 2-8",  546, 123, "S-1"),
-    ("Block 2-1",  590, 146, "Main West (approach to 111)"),
+    ("Block 2-1",  546, 146, "Main West (approach to 111)"),
     ("Block 2-3",  546, 100, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
+    ("Block 12-7", 610, 187, "South Yd to 110"),
     ("Block 12-7", 684, 200, "OS 110"),
     ("Block 12-8", 749, 200, "OS 112"),
     ("Block 1-7",  800, 100, "East Lead (112L–113RB)"),
@@ -206,8 +207,8 @@ LAMPS = [
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
-    ("Block 1-4",  1060, 146, "K-1 (diverging 115 / 115LB)"),
-    ("Block 1-1",  1060, 177, "McKees Rocks (through 115 / 115LA)"),
+    ("Block 1-1",  1060, 146, "McKees Rocks (through 115 / 115LA)"),
+    ("Block 1-4",  1060, 169, "K-1 (diverging 115 / 115LB)"),
     ("Block 1-2",  1060, 100, "McKeesport (through 114 / 114LA)"),
     ("Block 1-3",  1060, 123, "K-2 (diverging 114 / 114LB)"),
 ]
@@ -217,16 +218,16 @@ LAMPS = [
 # from preference:ctc/icons/ (thin044 44px, thin085 85px, thin-45 15x15 "\",
 # rotation 1 -> "/").
 TRACKS = [
-    # 101 sits on 100's `/`. Thin W-1 (top) and W-2 (mid) spurs run east
-    # past the occupancy lamps at x=196, bumper just beyond.
-    (145, 56,  "thin044.gif", 0),   # W-1
-    (189, 56,  "thin044.gif", 0),
-    (233, 56,  "thin035.gif", 0),
-    (264, 51,  "thin-end.gif", 0),
-    (152, 80,  "thin044.gif", 0),   # W-2
-    (196, 80,  "thin044.gif", 0),
-    (240, 80,  "thin035.gif", 0),
-    (271, 75,  "thin-end.gif", 0),
+    # W-1 / W-2: USS-weight bars so occupancy lamps read in-track (thin
+    # 2px rails hid the 21px red-off housing). Bumper at the east end.
+    (145, 51,  "line050.gif", 0),   # W-1
+    (189, 51,  "line050.gif", 0),
+    (233, 53,  "line025.gif", 0),
+    (253, 48,  "thin-end.gif", 0),
+    (152, 75,  "line050.gif", 0),   # W-2
+    (196, 75,  "line050.gif", 0),
+    (240, 77,  "line025.gif", 0),
+    (260, 72,  "thin-end.gif", 0),
     # N main cols 1–3 through 100 into 102 (col 4 / slot 3), then east
     (21,  105, "line050.gif", 0),   # col 1 approach
     (58,  106, "line025.gif", 0),
@@ -254,7 +255,9 @@ TRACKS = [
     (956, 127, "line1.gif",   0),
     (1020, 127, "line1.gif",  0),
     (1084, 129, "line025.gif", 0),
-    # M: GAP under 103, MW from 111. 113b at x896.
+    # M: GAP under 103, then MW extended west so its lamp stacks with
+    # Main East / S-1 at x=546. 113b at x896.
+    (546, 150, "line050.gif", 0),
     (584, 150, "line1.gif",   0),
     (645, 152, "line025.gif", 0),
     (648, 145, "line25.gif",  0),
@@ -346,14 +349,14 @@ TEXTS = [
     (249, 71,  "W-2", 8, CREAM),
     (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
-    (750, 136, "MAIN WEST", 8, CREAM),
+    (640, 174, "MAIN WEST", 8, CREAM),
     (348, 194, "ENGINE HOUSE", 8, CREAM),
     (572, 186, "SOUTH YD", 8, CREAM),
     # Princess east stubs: cream 8pt, right-aligned to EAST_RAIL.
     (EAST_RAIL, 88,  "McKeesport", 8, CREAM, "right"),
     (EAST_RAIL, 114, "K-2", 8, CREAM, "right"),
-    (EAST_RAIL, 137, "K-1", 8, CREAM, "right"),
-    (EAST_RAIL, 168, "McKees Rocks", 8, CREAM, "right"),
+    (EAST_RAIL, 137, "McKees Rocks", 8, CREAM, "right"),
+    (EAST_RAIL, 168, "K-1", 8, CREAM, "right"),
     (102, 223, "100", 8, WHITE),
     (167, 223, "101", 8, WHITE),
     (232, 223, "102", 8, WHITE),
@@ -394,13 +397,12 @@ SIGNALS = [
     ("112L",      780,  N,  "W", "h2", None),
     ("113RA",      848,  M,  "E", "h2", None),  # MW / 113b
     ("113RB",      848,  N,  "E", "h2", None),  # main / 113a
-    # Princess east intermediates: McKeesport (N) and McKees Rocks (bottom).
+    # Princess: 2-head homes on McKeesport and McKees Rocks (not K-2).
+    # East intermediates on those two mains. K-2 / K-1 occupancy only.
     ("114R",  1088,  N,  "E", "d1", "IH134"),
-    ("114LA", 1050,  N,  "W", "d1", "IH143"),
-    ("114LB", 1050,  S,  "W", "h2", None),
-    ("115R",  1088, MK,  "E", "d1", "IH141"),
+    ("114LB", 1050,  N,  "W", "h2", None),
+    ("115R",  1088,  M,  "E", "d1", "IH141"),
     ("115LA", 1050,  M,  "W", "h2", None),
-    ("115LB", 1050, MK, "W", "d1", "IH142"),
 ]
 
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
@@ -562,6 +564,9 @@ def write_preview(path):
         # swap: kinds: preview the mainline (Thrown) artwork
         state = "thrown" if kind.startswith("swap:") else "closed"
         blit(_gif(kind, state), x, map_y(y), rot)
+    lamp_gif = "/Applications/JMRI/resources/icons/USS/sensor/red-off.gif"
+    for _s, x, y, _tip in LAMPS:
+        blit(lamp_gif, x, map_y(y), 0)
     draw = ImageDraw.Draw(im)
     # Column guides (blank = 1) so Brick placement can be reviewed before XML.
     try:
@@ -632,7 +637,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v39_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v40_preview.png")
 
 
 if __name__ == "__main__":
