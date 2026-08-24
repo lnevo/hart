@@ -1,5 +1,15 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-23 — USS CTC track diagram **v23** matches Master 4 row order: focused main on the top operating row, W-1/W-2 above 101, Scale/Barn/S-1/K-2 in the middle, Main West gapped on the bottom. Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml` only. Preview `cats/screenshots/master4/uss_ctc_v23_preview.png`. Not deployed (not the live PanelPro board).
+
+Updated: 2026-08-23 — Master 4 had a rail gap at almost every cell because Designer `BLOCK`s plus the wire script’s heal pass named both sides of every frog. CATS paints a gap at every `BlkEdge`. Occupancy now named only at block boundaries (plus unavoidable mid-block lamp joints). Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-23 — Master 4 paint crash was 112R / 111L on unnamed BLOCK edges (SecEdge ClassCast in discoverAdvanceVitalLogic). Wired occupancy now names those signal joints (OS 112 west of 112, West Main Ext through 111L). Dispatcher Panel Help/Quit chrome removed (CTC Panel bottom strip only). Reload **CATS Master4**. Not deployed.
+
+
+
+Updated: 2026-08-23 — Master 4 Digicon loads locally again. Crash was named BLOCK facing a plain SecEdge (`discoverAdvanceVitalLogic` ClassCast), then anonymous BLOCK (`MyBlock` null). Wired copy now names the mate occupancy. Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-22 — Live: McKees Rocks → West Main Ext went **forward** after the first-hop facing overlay. Confirms leftover U-turn (not balloon/hairpin wiring). [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
 
 Updated: 2026-08-22 — McKees Rocks → West Main Ext allocated Via OS 115 but ran reverse into McKeesport: HART facing overlay had dropped stock’s dialog invert, so the leftover first-move U-turn loaded `*_rvs.xml`. Overlay now keeps registered facing on that first hop. Not a balloon/hairpin wiring bug. [`DISPATCHER_LAYOUT_HOOPS.md`](DISPATCHER_LAYOUT_HOOPS.md).
