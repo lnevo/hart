@@ -147,19 +147,22 @@ SWITCH_ONLY_SLOTS = {6, 7}
 # 113b is 30px east of 113a so the two `\\` continue (same-x put 113b's
 # `\\` west of 113a's, the wrong way).
 TURNOUTS = [
-    # 100: Brick OS on the main only. Slot 1 (first lever column).
-    ("Switch 100", 86,  102, "swap:thin:os-n-bar"),
-    # 101: W-yard. Bar N; Thrown = up to horizontal W-1/W-2 (west of Plane).
-    ("Switch 101", 118, 79,  T + "left/east/os-l-e"),
+    # Blank = col 1. 100 centered in col 2 (slot 1). os-l-e: through on N,
+    # `/` up-east is the diverging lead into 101's throat.
+    ("Switch 100", 86,  79,  T + "left/east/os-l-e"),
+    # 101 slid west onto 100's `/`. os-ne-r throat (SW) continues that `/`;
+    # NE `/` flattens to W-1 (top); east bar is W-2 (between W-1 and main).
+    ("Switch 101", 114, 55,  T + "right/ne/os-ne-r"),
+    # 102 Plane, back in the 102 column (slot 3).
     ("Switch 102", 216, 102, T + "right/east/os-r-e"),
     ("Switch 117", 346, 102, X + "left/os-l-sc"),
     ("Switch 116", 436, 125, "thin:os-l-w-thin"),
-    ("Switch 103", 482, 125, "thin:os-r-e-thin-short"),
+    ("Switch 103", 482, 125, "thin:os-r-e-thin"),
     ("Switch 111", 606, 125, X + "right/os-r-sc"),
     ("Switch 110", 671, 125, "thin:os-l-w-thin"),
     ("Switch 112", 736, 102, "swap:" + T + "left/west/os-l-w"),
     ("Switch 113", 866, 102, T + "right/east/os-r-e"),
-    ("Switch 113", 896, 125, "thin:os-r-w-thin"),  # east so `\\` lines up
+    ("Switch 113", 888, 125, T + "right/west/os-r-w"),  # stock `\\`; 8px west so it meets 113a
     ("Switch 114", 931, 102, "swap:" + T + "right/east/os-r-e"),
     ("Switch 115", 996, 148, "swap:" + T + "right/east/os-r-e"),
 ]
@@ -177,8 +180,8 @@ def unpack_turnout(t):
 # switch number labelled underneath; crossover columns get their two OS
 # lamps side by side, centered on the column, UPPER track's lamp on the left.
 LAMPS = [
-    ("Block 4-4",  130, 56,  "W-1"),
-    ("Block 4-3",  130, 42,  "W-2"),
+    ("Block 4-4",  175, 47,  "W-1"),
+    ("Block 4-3",  175, 71,  "W-2"),
     ("Block 4-2",  99,  200, "OS 100"),
     ("Block 4-1",  164, 200, "OS 101"),
     ("Block 4-6",  200, 100, "Brick-Plane (100–117b)"),
@@ -213,19 +216,19 @@ LAMPS = [
 # from preference:ctc/icons/ (thin044 44px, thin085 85px, thin-45 15x15 "\",
 # rotation 1 -> "/").
 TRACKS = [
-    # W-1 / W-2: horizontal spurs over columns 1–2 (not a diagonal, not over Plane).
-    (72,  50,  "line050.gif", 0),   # W-2
-    (116, 50,  "line050.gif", 0),
-    (160, 51,  "line025.gif", 0),
-    (72,  64,  "line050.gif", 0),   # W-1
-    (116, 64,  "line050.gif", 0),
-    (160, 65,  "line025.gif", 0),
-    # N focused main (bar 108-112)
-    (21,  105, "line050.gif", 0),
-    (60,  106, "line025.gif", 0),
-    (117, 105, "line050.gif", 0),
-    (161, 106, "line025.gif", 0),
-    (194, 104, "line1.gif",   0),
+    # 101 sits on 100's `/`. Thin W-1 (top) and W-2 (mid) spurs.
+    (145, 56,  "thin044.gif", 0),   # W-1
+    (189, 56,  "thin035.gif", 0),
+    (220, 51,  "thin-end.gif", 0),
+    (152, 80,  "thin044.gif", 0),   # W-2
+    (196, 80,  "thin035.gif", 0),
+    (227, 75,  "thin-end.gif", 0),
+    # N main cols 1–3 through 100 into 102 (col 4 / slot 3), then east
+    (21,  105, "line050.gif", 0),   # col 1 approach
+    (58,  106, "line025.gif", 0),
+    (118, 105, "line050.gif", 0),
+    (155, 105, "line050.gif", 0),   # col 3 into 102
+    (188, 104, "line1.gif",   0),   # into 102 (line1 ink starts +7)
     (258, 104, "line1.gif",   0),
     (392, 104, "line1.gif",   0),
     (477, 104, "line1.gif",   0),
@@ -237,7 +240,7 @@ TRACKS = [
     (1020, 104, "line1.gif",  0),
     (1084, 106, "line025.gif", 0),
     # S Scale off 102 then Barn / S-1 / K-2
-    (248, 127, "line1.gif",   0),
+    (248, 127, "line1.gif",   0),   # Scale off 102 (icon at x216)
     (321, 129, "line025.gif", 0),
     (392, 129, "line025.gif", 0),
     (394, 128, "line050.gif", 0),
@@ -261,17 +264,23 @@ TRACKS = [
     (1037, 177, "line050.gif", 0),
     (1065, 177, "line050.gif", 0),
     (1084, 178, "line025.gif", 0),
-    # EH spur
+    # Engine House: two thin stalls off 116
     (422, 156, "thin-45.gif", 1),
-    (378, 167, "line050.gif", 0),
-    (374, 165, "thin-end.gif", 0),
-    # 103 SOUTH YD stub in the S–MW gap
-    (512, 145, "line050.gif", 0),
-    (554, 143, "thin-end.gif", 0),
-    # 110 SOUTH YD stub below MW
-    (657, 156, "thin-45.gif", 1),
-    (614, 167, "line050.gif", 0),
-    (610, 165, "thin-end.gif", 0),
+    (378, 169, "thin044.gif", 0),
+    (374, 164, "thin-end.gif", 0),
+    (410, 168, "thin-45.gif", 1),
+    (366, 181, "thin044.gif", 0),
+    (362, 176, "thin-end.gif", 0),
+    # 103 `\\` and 110 `/` are colinear 15px tiles into one SOUTH YD
+    # that ends at the east ladder (no overshoot).
+    (520, 155, "thin-45.gif", 0),   # 103 `\\`
+    (534, 169, "thin-45.gif", 0),
+    (548, 183, "thin-45.gif", 0),
+    (562, 195, "thin044.gif", 0),   # SY bar 562–630
+    (595, 195, "thin035.gif", 0),
+    (658, 155, "thin-45.gif", 1),   # 110 `/` (straight)
+    (644, 169, "thin-45.gif", 1),
+    (630, 183, "thin-45.gif", 1),
 ]
 
 WHITE = dict(red=255, green=255, blue=255)
@@ -281,23 +290,24 @@ BLACK = dict(red=0, green=0, blue=0)
 TEXTS = [
     # banner engraved in the gold band (tile rows 0-33)
     (415, 8, "HART RAILROAD - NEVILLE ISLAND", 16, BLACK),
-    (40,  36, "BRICK",     12, WHITE),
+    (78,  36, "BRICK",     12, WHITE),
     (205, 36, "PLANE",     12, WHITE),
     (347, 36, "BARN",      12, WHITE),
     (645, 36, "EAST END",  12, WHITE),
     (905, 36, "PRINCESS",  12, WHITE),
-    (80,  42,  "W-2", 8, CREAM),
-    (80,  56,  "W-1", 8, CREAM),
-    (90,  88,  "MAIN", 8, CREAM),
+    (160, 47,  "W-1", 8, CREAM),
+    (160, 71,  "W-2", 8, CREAM),
+    (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
-    (584, 160, "MAIN WEST", 8, CREAM),
-    (355, 183, "ENGINE HOUSE", 8, CREAM),
-    (512, 158, "SOUTH YD", 8, CREAM),
-    (618, 183, "SOUTH YD", 8, CREAM),
-    (1035, 88,  "McKEESPORT", 8, CREAM),
-    (1030, 160, "McKEES ROCKS", 8, CREAM),
-    (1090, 138, "K-2", 8, CREAM),
-    (1090, 194, "K-1", 8, CREAM),
+    (750, 136, "MAIN WEST", 8, CREAM),
+    (348, 194, "ENGINE HOUSE", 8, CREAM),
+    (572, 186, "SOUTH YD", 8, CREAM),
+    # Princess east stubs: same cream 8pt, left-aligned on the rail above
+    # each block lamp (W-1/W-2 grammar). Public names McKeesport / McKees Rocks.
+    (1008, 88,  "McKeesport", 8, CREAM),
+    (1008, 114, "K-2", 8, CREAM),
+    (1008, 137, "McKees Rocks", 8, CREAM),
+    (1008, 168, "K-1", 8, CREAM),
     (102, 223, "100", 8, WHITE),
     (167, 223, "101", 8, WHITE),
     (232, 223, "102", 8, WHITE),
@@ -443,7 +453,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|McKeesport|McKees Rocks|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
     # stock CTC Unlocked indicators + labels, replaced by the OS lamp row
     # (GUI only -- the IS*:UNLOCKEDINDICATOR sensors still exist; delete
     # these two patterns to bring the buttons back)
@@ -504,11 +514,17 @@ def write_preview(path):
         state = "thrown" if kind.startswith("swap:") else "closed"
         blit(_gif(kind, state), x, y, rot)
     draw = ImageDraw.Draw(im)
+    # Column guides (blank = 1) so Brick placement can be reviewed before XML.
     try:
         font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 12)
         font_s = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 9)
     except OSError:
         font = font_s = ImageFont.load_default()
+    for i in range(5):
+        x = 12 + 65 * i
+        draw.line([(x, 34), (x, 198)], fill=(50, 50, 50, 255))
+        if i < 4:
+            draw.text((x + 22, 22), str(i + 1), fill=(90, 90, 90, 255), font=font_s)
     for x, y, text, size, col in TEXTS:
         f = font if size >= 12 else font_s
         rgb = (col["red"], col["green"], col["blue"])
@@ -565,7 +581,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v28_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v34_preview.png")
 
 
 if __name__ == "__main__":

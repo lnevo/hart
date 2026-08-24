@@ -1,5 +1,13 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC track diagram **v34**: Brick/Plane 100–102 as previewed (101 on 100’s `/`, W-1/W-2 thin stubs); 103/110 one SOUTH YD U below Main West (east `/` straight, bar stops at the ladder); 113b stock `os-r-w`; Engine House two thin stalls. Princess stubs labeled **McKeesport / K-2 / McKees Rocks / K-1** (cream 8pt, left-aligned above each rail). Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v34_preview.png`. Reload **USS CTC**. Not deployed to Pi.
+
+Updated: 2026-08-24 — Master 4 paint crash was empty SPUR SWITCHPOINTS at `(6,5)` / `(18,8)` (CATS 3.1 `PtsVitalLogic.setPoints` AIOOB, no NORMAL). Wire pass now writes ROUTENAME NORMAL on those drawing splits (no MQTT). Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-24 — Master 4 rewired from Designer save 00:06. Geometry/labels/lamps/SWITCHPOINTS kept as drawn (`(6,5)` and `(18,8)` SPUR splits stay). `(33,8)`/`(34,8)` are Main West through HORIZONTAL (no diamond). **110 Thrown BOTTOM has no neighbor** — 109 is not rail-connected. Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-23 — Master 4 rewired from the cleaned Designer save (23:34). Ladders are staggered H+slash (104–109 each have their own OS; no inserted spacers). 110×Main West is a crossing (occupancy H=OS 111a, slash=OS 110→109, no SWITCHPOINTS). 103 does not share a cell with Main West. Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-23 — USS CTC track diagram **v28**: thin icons installed into local JMRI profiles (`preference:ctc/icons/`, including `os-n-bar-*.gif`). Brick 100 stays on the first lever column; 101 and W-1/W-2 shift west as horizontal spurs; the whole plant drops 20px so those spurs have room. 113b moves east so the two `\\` continue. Regen: `gen_ctc_track_plan.py` (copies icons into `*.jmri/ctc/icons/`). Preview `cats/screenshots/master4/uss_ctc_v28_preview.png`. Reload the USS CTC panel. Not deployed to Pi.
 
 Updated: 2026-08-23 — USS CTC track diagram **v27**: 103 and 110 are SOUTH YD stubs (frog → horizontal → bumper + label), same grammar as Engine House / W-1. 103 stub sits in the Main West gap and stops; 110 stub is below MW after the diamond. No 104–109 frogs, no hanging slashes. Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v27_preview.png`. Not deployed.
