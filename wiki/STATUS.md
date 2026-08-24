@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v45**: Main West occupancy (`Block 2-1`) repeats at the west end of the focused main (Brick), so a westbound through 111 shows on the west side of the board. Reload **USS CTC**. Not deployed.
+
+Updated: 2026-08-24 — Master 4 Princess balloon: 114R/115R moved to LEFT of the east cells so CATS N/X walks through the SHARED wrap (eastbound McKeesport → westbound McKees Rocks, and vice versa). Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v44**: Princess McKees Rocks gets eastbound 115R (`IH141`, 1-lamp) stacked with McKeesport 114R. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v43**: Princess westbounds match CATS (McKeesport, K-2, McKees Rocks, K-1): 2-lamp 114LB/115LB on the mains, 1-lamp 114LA/115LA on K-2/K-1. 114 shifted west for signal room; east occupancy at x=1072. Reload **USS CTC**. Not deployed.

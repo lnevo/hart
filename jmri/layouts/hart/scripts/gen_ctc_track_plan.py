@@ -181,6 +181,9 @@ def unpack_turnout(t):
 # switch number labelled underneath; crossover columns get their two OS
 # lamps side by side, centered on the column, UPPER track's lamp on the left.
 LAMPS = [
+    # Brick west stub: same Main West circuit as the lamp west of 111
+    # (CATS fold SHARED to (1,6)). Westbound through 111 lights here too.
+    ("Block 2-1",  24,  100, "Main West (Brick west / westbound of 111)"),
     ("Block 4-4",  196, 47,  "W-1"),
     ("Block 4-3",  196, 71,  "W-2"),
     ("Block 4-2",  99,  200, "OS 100"),
@@ -648,7 +651,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v44_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v45_preview.png")
 
 
 if __name__ == "__main__":
