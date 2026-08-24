@@ -288,6 +288,19 @@ CREAM = dict(red=220, green=220, blue=180)
 BLACK = dict(red=0, green=0, blue=0)
 # East stub rails finish at x=1105. Princess labels are right-justified there.
 EAST_RAIL = 1105
+# Drop the plant below the gold header / CP names, and leave a gap
+# between SOUTH YD and the OS lamp row (was ~5px).
+Y_PLANT = 40
+Y_OS = 84  # plant drop + extra air under the schematic
+
+
+def map_y(y):
+    """Header/CP names stay; plant drops; OS lamps + numbers drop further."""
+    if y <= 36:
+        return y
+    if y >= 200:
+        return y + Y_OS
+    return y + Y_PLANT
 
 
 def unpack_text(t):
@@ -454,19 +467,19 @@ def build_block():
     for t in TURNOUTS:
         name, x, y, kind, rot = unpack_turnout(t)
         parts.append(TURNOUT.format(
-            name=name, x=x, y=y, rot=rot, **turnout_urls(kind)))
+            name=name, x=x, y=map_y(y), rot=rot, **turnout_urls(kind)))
     for sensor, x, y, tip in LAMPS:
-        parts.append(LAMP.format(sensor=sensor, x=x, y=y, tip=tip, u=U))
+        parts.append(LAMP.format(sensor=sensor, x=x, y=map_y(y), tip=tip, u=U))
     for x, y, gif, rot in TRACKS:
         url = THIN if gif.startswith(("thin", "thick", "os-")) else U + "track/block/"
-        parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, url=url))
+        parts.append(TRACK.format(x=x, y=map_y(y), gif=gif, rot=rot, url=url))
     for t in TEXTS:
         x, y, text, size, col, just = unpack_text(t)
         parts.append(TEXT.format(
-            x=label_origin(x, text, size, just), y=y, text=text,
+            x=label_origin(x, text, size, just), y=map_y(y), text=text,
             size=size, just=just, **col))
     for name, stem_x, bar_c, facing, kind, head in SIGNALS:
-        x, y = signal_xy(stem_x, bar_c, facing, kind)
+        x, y = signal_xy(stem_x, map_y(bar_c), facing, kind)
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,
@@ -525,7 +538,7 @@ def write_preview(path):
     from PIL import Image, ImageDraw, ImageFont
     uss = "/Applications/JMRI/resources/icons/USS/track/block/"
     thin = "jmri/layouts/hart/ctc/icons/"
-    im = Image.new("RGBA", (1190, 250), (0, 0, 0, 255))
+    im = Image.new("RGBA", (1190, 360), (0, 0, 0, 255))
 
     def blit(src, x, y, rot=0):
         try:
@@ -539,12 +552,12 @@ def write_preview(path):
 
     for x, y, gif, rot in TRACKS:
         src = (thin if gif.startswith(("thin", "thick", "os-")) else uss) + gif
-        blit(src, x, y, rot)
+        blit(src, x, map_y(y), rot)
     for t in TURNOUTS:
         _name, x, y, kind, rot = unpack_turnout(t)
         # swap: kinds: preview the mainline (Thrown) artwork
         state = "thrown" if kind.startswith("swap:") else "closed"
-        blit(_gif(kind, state), x, y, rot)
+        blit(_gif(kind, state), x, map_y(y), rot)
     draw = ImageDraw.Draw(im)
     # Column guides (blank = 1) so Brick placement can be reviewed before XML.
     try:
@@ -554,7 +567,7 @@ def write_preview(path):
         font = font_s = ImageFont.load_default()
     for i in range(5):
         x = 12 + 65 * i
-        draw.line([(x, 34), (x, 198)], fill=(50, 50, 50, 255))
+        draw.line([(x, 34), (x, 310)], fill=(50, 50, 50, 255))
         if i < 4:
             draw.text((x + 22, 22), str(i + 1), fill=(90, 90, 90, 255), font=font_s)
     for t in TEXTS:
@@ -562,7 +575,7 @@ def write_preview(path):
         f = font if size >= 12 else font_s
         rgb = (col["red"], col["green"], col["blue"])
         ox = label_origin(x, text, size, just)
-        draw.text((ox, y), text, fill=rgb + (255,), font=f)
+        draw.text((ox, map_y(y)), text, fill=rgb + (255,), font=f)
     im.convert("RGB").save(path)
     print("%s: preview written" % path)
 
@@ -615,7 +628,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v35_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v36_preview.png")
 
 
 if __name__ == "__main__":
