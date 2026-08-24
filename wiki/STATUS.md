@@ -1,10 +1,14 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — Master 4 Main West west stub is CATS `SHARED` to Brick west `(1,6)` LEFT so N/X continues around the schematic fold (occupancy cut Main West | OS 101). 110×Main West diamond stays a real `XEdge` (no SHARED skip). Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-24 — USS CTC **v37**: 100 over col 2, 101 over col 3, 102 over col 4; Brick–Plane occupancy lamp stacked on the same x as W-1/W-2. Reload **USS CTC**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v36**: schematic dropped 40px below the gold header / CP names; OS lamp row dropped 84px so SOUTH YD and the lamps have air between them. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v35**: Princess stub labels (McKeesport, K-2, McKees Rocks, K-1) right-aligned to the east rail (x=1105). Regen `gen_ctc_track_plan.py`. Reload **USS CTC**. Not deployed.
 
-Updated: 2026-08-24 — USS CTC track diagram **v34**: Brick/Plane 100–102 as previewed (101 on 100’s `/`, W-1/W-2 thin stubs); 103/110 one SOUTH YD U below Main West (east `/` straight, bar stops at the ladder); 113b stock `os-r-w`; Engine House two thin stalls. Princess stubs labeled **McKeesport / K-2 / McKees Rocks / K-1** (cream 8pt, left-aligned above each rail). Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v34_preview.png`. Reload **USS CTC**. Not deployed to Pi.
+Updated: 2026-08-24 — Master 4 110R eastbound: lamp was on OS 109 `(33,9)` TOP facing RIGHT (wrong side of the 110|109 cut). Moved to OS 110 frog BOTTOM like live Master (`SIGORIENT` TOP). MQTT: `track/sensor/1206` (OS 110 / Block 12-7) is **ACTIVE**; 109/111a/111b/112 and Main West are INACTIVE; Switch 110 is THROWN, 109/111/112 CLOSED. Reload **CATS Master4**. Not deployed.
 
 Updated: 2026-08-24 — Master 4 paint crash was empty SPUR SWITCHPOINTS at `(6,5)` / `(18,8)` (CATS 3.1 `PtsVitalLogic.setPoints` AIOOB, no NORMAL). Wire pass now writes ROUTENAME NORMAL on those drawing splits (no MQTT). Reload **CATS Master4**. Not deployed.
 

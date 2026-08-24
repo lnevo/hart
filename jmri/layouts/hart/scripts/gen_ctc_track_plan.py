@@ -6,7 +6,7 @@ on the TOP operating row, W-1/W-2 above it, Scale/Barn/S-1/K-2 on the middle
 row, Main West gapped on the bottom row.
 
 Diagram columns (west → east) follow the new schematic, not the live lever
-map: col 1 = Brick / 100, col 2 (levers 3/4) = 101 W-yard, col 3 = 102 Plane.
+map: blank col 1, col 2 = Brick / 100, col 3 = 101 W-yard, col 4 = 102 Plane.
 Live CTC UniqueIDs are unchanged (lever 1 still codes Switch 101).
 
   N  88-92   focused main: Brick 100 → 101 (W-yard above) → 102 → 117b →
@@ -142,18 +142,18 @@ SWITCH_ONLY_SLOTS = {6, 7}
 # used where the drawn BAR is the mainline but JMRI Thrown (100/112/114/115
 # are Thrown when set for the main). Lit route then matches field state.
 # N/S/M sit 20px below v27 so W-1/W-2 are true horizontals under the
-# station names (not a cramped `/` in the banner). 100 stays on slot 1
-# (x=86). 101 + W stubs shift west so they sit over columns 1–2, not Plane.
+# station names (not a cramped `/` in the banner). 100 on slot 1 / col 2
+# (x=86), 101 on slot 2 / col 3 (x=151), 102 on slot 3 / col 4 (x=216).
 # 113b is 30px east of 113a so the two `\\` continue (same-x put 113b's
 # `\\` west of 113a's, the wrong way).
 TURNOUTS = [
     # Blank = col 1. 100 centered in col 2 (slot 1). os-l-e: through on N,
-    # `/` up-east is the diverging lead into 101's throat.
+    # `/` up-east is the diverging lead into 101.
     ("Switch 100", 86,  79,  T + "left/east/os-l-e"),
-    # 101 slid west onto 100's `/`. os-ne-r throat (SW) continues that `/`;
+    # 101 in col 3 (slot 2). os-ne-r: throat SW takes 100's flattened `/`;
     # NE `/` flattens to W-1 (top); east bar is W-2 (between W-1 and main).
-    ("Switch 101", 114, 55,  T + "right/ne/os-ne-r"),
-    # 102 Plane, back in the 102 column (slot 3).
+    ("Switch 101", 151, 55,  T + "right/ne/os-ne-r"),
+    # 102 Plane, col 4 (slot 3).
     ("Switch 102", 216, 102, T + "right/east/os-r-e"),
     ("Switch 117", 346, 102, X + "left/os-l-sc"),
     ("Switch 116", 436, 125, "thin:os-l-w-thin"),
@@ -180,11 +180,11 @@ def unpack_turnout(t):
 # switch number labelled underneath; crossover columns get their two OS
 # lamps side by side, centered on the column, UPPER track's lamp on the left.
 LAMPS = [
-    ("Block 4-4",  175, 47,  "W-1"),
-    ("Block 4-3",  175, 71,  "W-2"),
+    ("Block 4-4",  196, 47,  "W-1"),
+    ("Block 4-3",  196, 71,  "W-2"),
     ("Block 4-2",  99,  200, "OS 100"),
     ("Block 4-1",  164, 200, "OS 101"),
-    ("Block 4-6",  200, 100, "Brick-Plane (100–117b)"),
+    ("Block 4-6",  196, 100, "Brick-Plane (100–117b)"),
     ("Block 4-5",  229, 200, "OS 102"),
     ("Block 4-8",  286, 123, "Scale"),
     ("Block 13-3", 347, 200, "OS 117 (yard side)"),
@@ -216,13 +216,16 @@ LAMPS = [
 # from preference:ctc/icons/ (thin044 44px, thin085 85px, thin-45 15x15 "\",
 # rotation 1 -> "/").
 TRACKS = [
-    # 101 sits on 100's `/`. Thin W-1 (top) and W-2 (mid) spurs.
-    (145, 56,  "thin044.gif", 0),   # W-1
-    (189, 56,  "thin035.gif", 0),
-    (220, 51,  "thin-end.gif", 0),
-    (152, 80,  "thin044.gif", 0),   # W-2
-    (196, 80,  "thin035.gif", 0),
-    (227, 75,  "thin-end.gif", 0),
+    # 100 `/` flattens east into 101's throat in col 3 (USS-weight bar).
+    (116, 83, "line025.gif", 0),
+    (138, 83, "line025.gif", 0),
+    # 101 in col 3. Thin W-1 (top) and W-2 (mid) spurs east of the frog.
+    (182, 56,  "thin044.gif", 0),   # W-1
+    (226, 56,  "thin035.gif", 0),
+    (257, 51,  "thin-end.gif", 0),
+    (189, 80,  "thin044.gif", 0),   # W-2
+    (233, 80,  "thin035.gif", 0),
+    (264, 75,  "thin-end.gif", 0),
     # N main cols 1–3 through 100 into 102 (col 4 / slot 3), then east
     (21,  105, "line050.gif", 0),   # col 1 approach
     (58,  106, "line025.gif", 0),
@@ -338,8 +341,8 @@ TEXTS = [
     (347, 36, "BARN",      12, WHITE),
     (645, 36, "EAST END",  12, WHITE),
     (905, 36, "PRINCESS",  12, WHITE),
-    (160, 47,  "W-1", 8, CREAM),
-    (160, 71,  "W-2", 8, CREAM),
+    (181, 47,  "W-1", 8, CREAM),
+    (181, 71,  "W-2", 8, CREAM),
     (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
     (750, 136, "MAIN WEST", 8, CREAM),
@@ -374,8 +377,8 @@ N, S, M, MR, MK, W1, W2 = 110, 133, 156, 156, 183, 68, 54
 # (mast, stem_x, bar_center, facing, kind, head_or_None)
 SIGNALS = [
     # Brick 101: yard exits on the stubs east of 101, facing west toward the plant
-    ("101RA",           140, W1, "W", "d1", "IH436"),
-    ("101RB",           140, W2, "W", "d1", "IH437"),
+    ("101RA",           177, W1, "W", "d1", "IH436"),
+    ("101RB",           177, W2, "W", "d1", "IH437"),
     ("100L",       130,  N,  "W", "h2", None),
     ("102LA",          265,  S,  "W", "h2", None),
     ("102LB",          265,  N,  "W", "h2", None),
@@ -628,7 +631,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v36_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v37_preview.png")
 
 
 if __name__ == "__main__":
