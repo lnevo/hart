@@ -259,14 +259,21 @@ TRACKS = [
     (1020, 127, "line1.gif",  0),
     (1084, 129, "line025.gif", 0),
     (1105, 127, "line1.gif",   0),   # K-2 to east frame
-    # M: GAP under 103, then MW extended west so its lamp stacks with
-    # Main East / S-1 at x=546. 113b at x896.
+    # M: Main West from the west frame through the South Yard OS lamp
+    # into 111. OS cut after 111L (same grammar as Main East after 112L),
+    # then West Main Ext into 113b.
+    (0,   150, "line1.gif",   0),
+    (85,  150, "line1.gif",   0),
+    (170, 150, "line1.gif",   0),
+    (255, 150, "line1.gif",   0),
+    (340, 150, "line1.gif",   0),
+    (425, 150, "line1.gif",   0),
+    (510, 150, "line1.gif",   0),   # through MW OS lamp at 546
     (546, 151, "line050.gif", 0),
-    (562, 151, "line050.gif", 0),   # short stub west of 111 (Brick-style)
-    (584, 150, "line1.gif",   0),
-    (645, 152, "line025.gif", 0),
-    (646, 150, "line1.gif",   0),   # 111 east → West Main Ext
-    (715, 150, "line1.gif",   0),
+    (562, 151, "line050.gif", 0),   # into 111 (icon 606–646)
+    (655, 151, "line050.gif", 0),   # WME just east of 111L
+    (699, 150, "line1.gif",   0),
+    (784, 150, "line1.gif",   0),
     (820, 151, "line050.gif", 0),
     (872, 152, "line025.gif", 0),   # into 113b
     (936, 152, "line025.gif", 0),
@@ -663,7 +670,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v47_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v48_preview.png")
 
 
 if __name__ == "__main__":

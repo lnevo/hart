@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v48**: OS cut after 111L (east of 111), matching Main East after 112; Main West runs from the South Yard OS lamp to the west frame. Reload **USS CTC**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v47**: 111–West Main Ext rail filled; Brick west and Princess east stubs run to the frame; short Main West stub west of 111. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — Master 4 turnout MQTT left→right: 100 Brick `(5,6)`, 101 West Yard `(6,5)`, 102 Plane `(9,6)`, then 117…116…103…111…109…110…112…113, with 114/115 stacked. Reload **CATS Master4**. Not deployed.
