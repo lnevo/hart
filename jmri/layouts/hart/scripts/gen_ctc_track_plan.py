@@ -203,7 +203,7 @@ LAMPS = [
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
     ("Block 12-7", 684, 200, "OS 110"),
     ("Block 12-8", 749, 200, "OS 112"),
-    ("Block 1-7",  800, 100, "East Lead (112L–113RB)"),
+    ("Block 1-7",  806, 100, "East Lead (112L–113RB)"),
     ("Block 1-8",  806, 146, "West Main Ext (111-113)"),
     ("Block 1-5",  867, 200, "OS 113b (Main West side)"),
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
@@ -330,9 +330,13 @@ def _text_width(text, size):
 
 
 def label_origin(x, text, size, just):
-    """JMRI x is the left of the label. 'right' x is the east rail edge."""
+    """JMRI x is the left of the label. 'right' x is the east rail edge;
+    'center' x is the midpoint (e.g. occupancy lamp center)."""
+    w = _text_width(text, size)
     if just == "right":
-        return x - _text_width(text, size)
+        return x - w
+    if just == "center":
+        return x - w // 2
     return x
 
 
@@ -350,7 +354,8 @@ TEXTS = [
     (275, 71,  "W-2", 8, CREAM),
     (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
-    (640, 174, "MAIN WEST", 8, CREAM),
+    (816, 174, "MAIN WEST", 8, CREAM, "center"),  # under West Main Ext lamp (x=806)
+    (816, 88,  "EAST LEAD", 8, CREAM, "center"),  # above East Lead lamp (x=806)
     (348, 194, "ENGINE HOUSE", 8, CREAM),
     (572, 186, "SOUTH YD", 8, CREAM),
     # Princess east stubs: cream 8pt, right-aligned to EAST_RAIL.
@@ -513,7 +518,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|McKeesport|McKees Rocks|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|EAST LEAD|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|McKeesport|McKees Rocks|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
     # stock CTC Unlocked indicators + labels, replaced by the OS lamp row
     # (GUI only -- the IS*:UNLOCKEDINDICATOR sensors still exist; delete
     # these two patterns to bring the buttons back)
@@ -651,7 +656,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v45_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v46_preview.png")
 
 
 if __name__ == "__main__":

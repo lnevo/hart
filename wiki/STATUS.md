@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v46**: East Lead occupancy stacked on West Main Ext (x=806); MAIN WEST centered under its lamp; EAST LEAD label added. Reload **USS CTC**. Not deployed.
+
+Updated: 2026-08-24 — Princess McKeesport (`Block 1-2`) and McKees Rocks (`Block 1-1`) occupancy fire independently. Balloon SHARED is N/X wrap only; occupancy does not merge. Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v45**: Main West occupancy (`Block 2-1`) repeats at the west end of the focused main (Brick), so a westbound through 111 shows on the west side of the board. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — Master 4 Princess balloon: 114R/115R moved to LEFT of the east cells so CATS N/X walks through the SHARED wrap (eastbound McKeesport → westbound McKees Rocks, and vice versa). Reload **CATS Master4**. Not deployed.
