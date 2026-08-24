@@ -2,6 +2,8 @@
 
 Updated: 2026-08-24 — Master 4 Main West west stub is CATS `SHARED` to Brick west `(1,6)` LEFT so N/X continues around the schematic fold (occupancy cut Main West | OS 101). 110×Main West diamond stays a real `XEdge` (no SHARED skip). Reload **CATS Master4**. Not deployed.
 
+Updated: 2026-08-24 — USS CTC **v38**: 101 back in the 2/3 gap on 100’s `/` (centering in col 3 read as 3/4). W-1/W-2 labels on the east end of the spurs; occupancy lamps stay at x=196. Reload **USS CTC**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v37**: 100 over col 2, 101 over col 3, 102 over col 4; Brick–Plane occupancy lamp stacked on the same x as W-1/W-2. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v36**: schematic dropped 40px below the gold header / CP names; OS lamp row dropped 84px so SOUTH YD and the lamps have air between them. Reload **USS CTC**. Not deployed.
