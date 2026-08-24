@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-23 — USS CTC track diagram **v26**: no Scale siding between Brick and Plane (100 is main OS only; 102 is a single turnout, both routes to 117). 113a/113b stacked in the same column, both `\\`. Yard leads at 103/110 unchanged (USS-board study in progress). Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v26_preview.png`. Not deployed.
+
+Updated: 2026-08-23 — Master 4: OS 104–109 each get their own occupancy region (plain VERTICAL spacers between stacked ladder frogs; same pattern as live Master’s staggered H+slash plants and the CP 104–109 panels). 111L gap restored to Designer center `(37,8)` RIGHT. 110R moved up onto the 110 frog `(33,7)` BOTTOM UPCENT. McKeesport / McKees Rocks UPCENT above the track. Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-23 — USS CTC track diagram **v25**: 113 is one continuous `\\` (113b thin os-r-w shifted east); first plant column is Brick/100 with 101 in the 3/4 column and 102 on the main (`\\` to Scale); Engine House is a single spur under levers 7/9; 103 drops through the Main West gap into a 104 frog (does not join MW); 110 diamond plus a 109 yard frog, no yard body. Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v25_preview.png`. Live CTC UniqueIDs unchanged (lever 1 still codes Switch 101). Not deployed.
 
 Updated: 2026-08-23 — Master 4: McKeesport/McKees Rocks one cell east of K-2/K-1, LOWCET. 102LB/LA cells are OS 100 (gap only on the right, vs Brick-Plane / Scale). West Main Ext caption centered at (38,8). Reload **CATS Master4**. Not deployed.

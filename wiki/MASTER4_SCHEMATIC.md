@@ -7,7 +7,7 @@ Master 4 draws **one straight focused main on Y=6** (Brick → 100 → 117b → 
 
 **Trust lamp type + block cuts + switch geometry.** Several Designer `SEC_NAME` labels were wrong; `wire_hart_master4.py` fixes captions.
 
-Do **not** add extra rails. Occupancy cuts use named `BLOCK` on existing cells only. 116 / 103 / 110 look like they cross Main West; they are **not** switch points. Only **110** shares a cell with Main West (diamond at `(33,8)`).
+Do **not** add extra rails in Designer. Occupancy cuts use named `BLOCK` on existing cells, except the south-yard ladder: `wire_hart_master4.py` inserts plain VERTICAL approach cells between stacked frogs so each OS can bind (CATS R3). 116 / 103 / 110 look like they cross Main West; they are **not** switch points. Only **110** shares a cell with Main West (diamond at `(33,8)`).
 
 ## Rows (west → east)
 
@@ -18,8 +18,8 @@ Do **not** add extra rails. Occupancy cuts use named `BLOCK` on existing cells o
 | 5 | W-1 |
 | **6** | **Focused main:** Brick → OS 101 → OS 100 → Brick-Plane → OS 117b → Main East → OS 112 → East Lead → OS 113a → OS 114 → McKeesport |
 | 7 | Scale / OS 117 / Barn / OS 116 / S-1 / OS 103 / OS 111b / OS 110 / K-2 |
-| **8** | EH-1 + OS 119 + 116 drop; **gap** at x=21–26; Main West x=27–30; OS 111a through 110 diamond to **111L at x=35** (even with 112R); West Main Ext x=35–40; OS 113b; OS 115; McKees Rocks |
-| 9–12 | S-2 … S-5 (west ladder x=23, east x=33) |
+| **8** | EH-1 + OS 119 + 116 drop; **gap** at x=21–26; Main West x=27–30; OS 111a through 110 diamond to **111L at x=37** (Designer center of the 111–113 stretch); West Main Ext x=38–40; OS 113b; OS 115; McKees Rocks |
+| 9–15 | S-2 … S-5 with one-cell VERTICAL spacers between ladder frogs (west x=23, east x=33) |
 
 ## 116 / 103 / 110 vs Main West
 
@@ -31,20 +31,22 @@ Do **not** add extra rails. Occupancy cuts use named `BLOCK` on existing cells o
 
 ## South yard ladders (104–109)
 
-Designer could not separate frogs well. Each peel is its own OS with the field sensors:
+Stacked V+slash frogs cannot host occupancy cuts on the points throat: `PtsEdge.propagateBlock` floods through the plant, and R3 forbids `BLOCK` on the edge facing `SWITCHPOINTS`. Live Master and the CP 104–109 panels **stagger** H+slash frogs so the spine faces a plain approach cell. Master 4 keeps the vertical stack and inserts that approach cell:
 
-| OS | Sensor | Frog | Thrown into |
-|----|--------|------|-------------|
-| 104 | `Block 3-3` | `(23,9)` V+UB | S-2 |
-| 105 | `Block 3-5` | `(23,10)` V+UB | S-3 |
-| 106 | `Block 3-7` | `(23,11)` V+UB | S-4; Closed continues to S-5 |
-| 109 | `Block 12-5` | `(33,9)` V+US | S-2 |
-| 108 | `Block 12-3` | `(33,10)` V+US | S-3 |
-| 107 | `Block 12-1` | `(33,11)` V+US | S-4; Closed continues to S-5 |
+| OS | Sensor | Frog (after spacers) | Thrown into |
+|----|--------|----------------------|-------------|
+| 104 | `Block 3-3` | `(23,10)` V+UB | S-2 |
+| 105 | `Block 3-5` | `(23,12)` V+UB | S-3 |
+| 106 | `Block 3-7` | `(23,14)` V+UB | S-4; Closed continues to S-5 |
+| 109 | `Block 12-5` | `(33,10)` V+US | S-2 |
+| 108 | `Block 12-3` | `(33,12)` V+US | S-3 |
+| 107 | `Block 12-1` | `(33,14)` V+US | S-4; Closed continues to S-5 |
+
+Spacers at Y=9, 11, 13 (columns 23 and 33). Y=9 also separates OS 109 from the 110 diamond (west extra cell is the same OS 104 approach, left plain so it does not paint a second gap). Visible occupancy cuts: 103\|104, 104\|105, 105\|106\|S-5, 110\|109, 109\|108, 108\|107\|S-5, plus each peel vs S-2…S-4.
 
 NORMAL = BOTTOM (continue the spine). THROWN = into the body (RIGHT west / LEFT east). 106/107 Closed = S-5.
 
-CATS will not put two occupancy names on one Track, and will not name the edge that faces SWITCHPOINTS. So each OS occupies the **first body cell** (x=24 west, x=32 east); S-2…S-5 start one cell inboard. No extra rails.
+Each OS occupies the frog plus the spacer above it and the **first body cell** (x=24 west, x=32 east); S-2…S-5 start one cell inboard.
 
 ## Plants (`wire_hart_master4.py`)
 
@@ -57,10 +59,10 @@ CATS will not put two occupancy names on one Track, and will not name the edge t
 | (14,6) / (14,7) | **117b / 117** | Crossover |
 | (20,7) H+LS | **116** | NORMAL=LEFT |
 | (23,7) H+LB | **103** | NORMAL=RIGHT |
-| (23,9–11) V+UB | **104 / 105 / 106** | Shared TOP = points |
+| (23,10 / 12 / 14) V+UB | **104 / 105 / 106** | Shared TOP = points; plain V spacers at Y=9,11,13 |
 | (31,7) / (31,8) | **111b / 111a** | Crossover |
 | (33,7) H+LS | **110** | NORMAL=LEFT |
-| (33,9–11) V+US | **109 / 108 / 107** | Shared TOP = points |
+| (33,10 / 12 / 14) V+US | **109 / 108 / 107** | Shared TOP = points; plain V spacers at Y=9,11,13 |
 | (36,6) H+LS | **112** | NORMAL=BOTTOM (Closed = OS 110; Thrown = East Lead) |
 | (42,6) / (43,8) | **113a / 113b** | Crossover |
 | (46,6) H+LB | **114** | NORMAL=BOTTOM (Closed = K-2; Thrown = McKeesport) |
@@ -92,18 +94,18 @@ Do not invert 101–103 / 110 / 116–119 to match these.
 
 ## Signals
 
-Designer `SECSIGNAL` text is empty. `wire_hart_master4.py` binds 22 lamps by cell/edge (101RA/RB, 102LA/LB, 117*, 112*, 113*, 114*, 115*, 111*, 110R). **100L is not on this board.** `(4,6)` LEFT 2-head has no field mast — leave unbound. **111L** is moved from `(37,8)` RIGHT onto `(35,8)` LEFT so it lines up with **112R** (`(35,6)` LEFT). OS 111a has no gap at the frog; the occupancy cut is that lamp (West Main Ext runs 111L → 113RA). **102LB/102LA** sit on OS 100’s east cuts — no gap between the 100 frog and those lamps.
+Designer `SECSIGNAL` text is empty. `wire_hart_master4.py` binds 22 lamps by cell/edge (101RA/RB, 102LA/LB, 117*, 112*, 113*, 114*, 115*, 111*, 110R). **100L is not on this board.** `(4,6)` LEFT 2-head has no field mast — leave unbound. **111L** stays at Designer `(37,8)` RIGHT (center of the 111–113 stretch; occupancy cut OS 111a \| West Main Ext). **110R** is moved from the diamond `(33,8)` TOP up one cell onto the 110 frog `(33,7)` BOTTOM, `SIGLOCATION=UPCENT` / `SIGORIENT=TOP`. **102LB/102LA** sit on OS 100’s east cuts — no gap between the 100 frog and those lamps.
 
 ## Label fixes
 
 | Drawn | Use |
 |-------|-----|
 | EH-3 on Y=8, EH-1 on Y=10 | EH-1 nearest the 119 lead (Y=8), EH-3 farthest (Y=10) |
-| McKees Rocks at (49,5) | `(50,8)` LOWCET on the 115 through track, above K-1, one cell east of K |
-| McKeesport at (49,10) | `(50,6)` LOWCET on the 114 through track, one cell east of K-2 |
+| McKees Rocks at (49,5) | `(50,8)` UPCENT above the 115 through track, one cell east of K-1 |
+| McKeesport at (49,10) | `(50,6)` UPCENT above the 114 through track, one cell east of K-2 |
 | W-1 / W-2 / K-1 / K-2 LEFTUP | LOWCET, same cell alignment as S-1…S-5 |
 | Main East LEFTUP at (28,6) | LOWCET, same cell as the S-n stack |
-| West Main Ext at (36,8) | `(38,8)` LOWCET, center of 111L–113RA |
+| West Main Ext at (36,8) | `(39,8)` LOWCENT, center of 38–40 (111L–113RA) |
 
 ## Test launch
 
@@ -125,4 +127,4 @@ CATS Master4 is the Digicon. The USS lever machine is a **separate** JMRI Panel 
 
 The regenerated Master 4 board is `jmri/layouts/hart/ctc/GUIObjects.xml` (also embedded in `tables/new_tables.xml` only). It is **not** what CATS/PanelPro currently load.
 
-Static preview: `cats/screenshots/master4/uss_ctc_v25_preview.png` (v25: Brick/100 first, 101 in the 3/4 column, 102 on the main with `\\` to Scale, 113 one `\\`, EH spur under 7/9, 103/110 yard frogs only). `uss_ctc_v23_preview.png` is the first Master 4 row-order draft; `uss_ctc_v22_preview.png` is the earlier main-on-M draft.
+Static preview: `cats/screenshots/master4/uss_ctc_v26_preview.png` (v26: no Brick–Plane Scale siding; 102 turnout both ways to 117; 113 stacked in-column, both `\\`). `uss_ctc_v25_preview.png` had 100’s `\\` onto Scale and 113b shifted east.

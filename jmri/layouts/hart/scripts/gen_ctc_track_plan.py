@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the CTC panel track diagram (v25 — Master 4 row order).
+"""Generate the CTC panel track diagram (v26 — Master 4 row order).
 
 Match CATS Master 4 (`wiki/MASTER4_SCHEMATIC.md`): one straight focused main
 on the TOP operating row, W-1/W-2 above it, Scale/Barn/S-1/K-2 on the middle
@@ -11,21 +11,20 @@ Live CTC UniqueIDs are unchanged (lever 1 still codes Switch 101).
 
   N  88-92   focused main: Brick 100 → 101 (W-yard above) → 102 → 117b →
              Main East → 112 → East Lead → 113a → 114 → McKeesport.
-  S 111-115  Scale (off 100 and 102) → 117 → Barn → 116 → S-1 → 103 →
+  S 111-115  Scale (off 102 only → 117) → Barn → 116 → S-1 → 103 →
              111b → 110 → K-2.
   M 134-138  GAP under 103 (vertical `\\` through empty M, not a MW frog);
              Main West → 111a → West Main Ext (110 diamond) → 113b → 115
              → McKees Rocks. Engine House is a single spur BELOW M under
              levers 7/9.
 
-102 sits on the focused main: Closed = through to Main East Ext → 113;
-Thrown = `\\` Scale → 117 → 113. 113 skips S: 113a os-r-e on N plus 113b
-os-r-w-thin ~30px east on M so the two `\\` form one line, not a `>` chevron.
-103 uses a shortened thin icon so its `\\` stops above M; a static 104
-turnout sits below. 110 diamond on MW; a static 109 turnout is the yard
-entry. No south-yard body tracks.
+102 is a single turnout on the focused main (not a crossover): Closed =
+through to 117b; Thrown = `\\` Scale → 117. There is no 100→102 Scale
+siding — 100 is Brick OS on the main only (bar, no down-east spur).
+113 skips S: 113a os-r-e and 113b os-r-w-thin stacked in the same column,
+both `\\`. Yard leads at 103/110 are unchanged pending a USS-board study.
 
-Previous (v24 — 113 same-x os-r-w still read as `>`). v22 focused main on M. Original v8:
+Previous (v25 — 100 still had a `\\` onto Scale, 113b shifted east). v22 focused main on M. Original v8:
 
 Machine slots are 65px wide (slot = x//65). Blank slots 0, 4, 8, 12 and 16
 — four interlockings of three lever columns each: Brick/Plane slots 1-3
@@ -142,13 +141,14 @@ SWITCH_ONLY_SLOTS = {6, 7}
 # used where the drawn BAR is the mainline but JMRI Thrown (100/112/114/115
 # are Thrown when set for the main). Lit route then matches field state.
 TURNOUTS = [
-    # 100: Brick, first plant column. Bar N; swap so Thrown = through main.
-    ("Switch 100", 86,  82,  "swap:" + T + "right/east/os-r-e"),
+    # 100: Brick OS on the main only. No Scale spur (that hairpin is omitted
+    # on Master 4). Bar-only icon; swap so Thrown = through main.
+    ("Switch 100", 86,  82,  "swap:thin:os-n-bar"),
     # 101: W-yard in sw 3 / sig 4 column. Bar N (bottom of os-l-e);
     # Thrown = up-east to W-1/W-2; Closed = through
     ("Switch 101", 151, 59,  T + "left/east/os-l-e"),
-    # 102: Plane on the main. Closed = through to Main East Ext → 113;
-    # Thrown = down-east `\\` onto Scale → 117 → 113
+    # 102: Plane. Single turnout, both routes to 117 (through = 117b,
+    # `\\` = Scale → 117). Not a crossover and not fed by a 100 spur.
     ("Switch 102", 216, 82,  T + "right/east/os-r-e"),
     ("Switch 117", 346, 82,  X + "left/os-l-sc"),        # N ↔ S (main ↔ Scale/Barn)
     ("Switch 116", 436, 105, "thin:os-l-w-thin"),        # S; down-west drop to EH spur
@@ -157,10 +157,9 @@ TURNOUTS = [
     ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # S; diamond with MW; yard is below
     # 112: bar N; swap Thrown = East Lead through, Closed = down-west OS 110
     ("Switch 112", 736, 82,  "swap:" + T + "left/west/os-l-w"),
-    # 113 skips S: 113a `\\` on N; 113b thin os-r-w ~30px east so the `\\`
-    # continues onto M (same-x stock os-r-w reads as a `>` chevron).
+    # 113 skips S: both `\\`, stacked in the 113 column (not a `>` chevron).
     ("Switch 113", 866, 82,  T + "right/east/os-r-e"),
-    ("Switch 113", 896, 105, "thin:os-r-w-thin"),
+    ("Switch 113", 866, 105, "thin:os-r-w-thin"),
     # 114: bar N; swap Thrown = McKeesport, Closed = K-2 on S
     ("Switch 114", 931, 82,  "swap:" + T + "right/east/os-r-e"),
     # 115: bar M; swap Thrown = McKees Rocks, Closed = K-1 below M
@@ -238,10 +237,8 @@ TRACKS = [
     (973, 84,  "line1.gif",   0),   # 114 -> McKeesport
     (1020, 84, "line1.gif",   0),
     (1084, 86, "line025.gif", 0),
-    # S Scale off 100's `\` (~x117) then 102's `\` (~x248), Barn / S-1 / K-2
-    (117, 107, "line1.gif",   0),   # Scale off 100
-    (202, 107, "line050.gif", 0),
-    (248, 107, "line1.gif",   0),   # 102's `\` joins
+    # S Scale starts at 102's `\` (~x248) then Barn / S-1 / K-2
+    (248, 107, "line1.gif",   0),   # Scale off 102 → 117
     (321, 109, "line025.gif", 0),
     (392, 109, "line025.gif", 0),   # Barn 117-116
     (394, 108, "line050.gif", 0),
@@ -251,13 +248,12 @@ TRACKS = [
     (956, 107, "line1.gif",   0),   # K-2 off 114
     (1020, 107, "line1.gif",  0),
     (1084, 109, "line025.gif", 0),
-    # M: GAP under 103 (no rail), MW starts at 111. 113b bar is at x896.
+    # M: GAP under 103 (no rail), MW starts at 111. 113b stacked at x866.
     (584, 130, "line1.gif",   0),   # Main West approach to 111
     (645, 132, "line025.gif", 0),   # 111a-113 WME (diamond through 110)
     (648, 125, "line25.gif",  0),
-    (820, 131, "line050.gif", 0),
-    (872, 132, "line025.gif", 0),   # into 113b (icon at 896)
-    (936, 132, "line025.gif", 0),   # 113b-115
+    (820, 131, "line050.gif", 0),   # into 113b (icon at 866)
+    (908, 132, "line025.gif", 0),   # 113b-115
     (908, 130, "line1.gif",   0),
     (1037, 131, "line050.gif", 0),  # 115 -> McKees Rocks
     (1065, 131, "line050.gif", 0),
@@ -502,7 +498,9 @@ def write_preview(path):
         blit(src, x, y, rot)
     for t in TURNOUTS:
         _name, x, y, kind, rot = unpack_turnout(t)
-        blit(_gif(kind, "closed"), x, y, rot)
+        # swap: kinds: preview the mainline (Thrown) artwork
+        state = "thrown" if kind.startswith("swap:") else "closed"
+        blit(_gif(kind, state), x, y, rot)
     draw = ImageDraw.Draw(im)
     try:
         font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 12)
@@ -533,7 +531,7 @@ def main():
         open(tables, "w").write(txt)
         print("%s: embedded paneleditor regenerated" % tables)
 
-    write_preview("cats/screenshots/master4/uss_ctc_v25_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v26_preview.png")
 
 
 if __name__ == "__main__":
