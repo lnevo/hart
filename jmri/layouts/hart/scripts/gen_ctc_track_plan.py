@@ -230,6 +230,7 @@ TRACKS = [
     (240, 77,  "line025.gif", 0),
     (264, 74,  "thin-end.gif", 0),
     # N main cols 1–3 through 100 into 102 (col 4 / slot 3), then east
+    (0,   105, "line050.gif", 0),   # west stub to the frame
     (21,  105, "line050.gif", 0),   # col 1 approach
     (58,  106, "line025.gif", 0),
     (118, 105, "line050.gif", 0),
@@ -245,6 +246,7 @@ TRACKS = [
     (962, 104, "line1.gif",   0),
     (1020, 104, "line1.gif",  0),
     (1084, 106, "line025.gif", 0),
+    (1105, 104, "line1.gif",   0),   # McKeesport to east frame
     # S Scale off 102 then Barn / S-1 / K-2
     (248, 127, "line1.gif",   0),   # Scale off 102 (icon at x216)
     (321, 129, "line025.gif", 0),
@@ -256,22 +258,27 @@ TRACKS = [
     (945, 127, "line1.gif",   0),
     (1020, 127, "line1.gif",  0),
     (1084, 129, "line025.gif", 0),
+    (1105, 127, "line1.gif",   0),   # K-2 to east frame
     # M: GAP under 103, then MW extended west so its lamp stacks with
     # Main East / S-1 at x=546. 113b at x896.
     (546, 151, "line050.gif", 0),
+    (562, 151, "line050.gif", 0),   # short stub west of 111 (Brick-style)
     (584, 150, "line1.gif",   0),
     (645, 152, "line025.gif", 0),
-    (648, 145, "line25.gif",  0),
+    (646, 150, "line1.gif",   0),   # 111 east → West Main Ext
+    (715, 150, "line1.gif",   0),
     (820, 151, "line050.gif", 0),
     (872, 152, "line025.gif", 0),   # into 113b
     (936, 152, "line025.gif", 0),
     (908, 150, "line1.gif",   0),
     (1037, 151, "line050.gif", 0),
     (1065, 151, "line050.gif", 0),
+    (1105, 150, "line1.gif",   0),   # McKees Rocks to east frame
     # K-1 below M
     (1037, 177, "line050.gif", 0),
     (1065, 177, "line050.gif", 0),
     (1084, 178, "line025.gif", 0),
+    (1105, 177, "line1.gif",   0),   # K-1 to east frame
     # Engine House: two thin stalls off 116
     (422, 156, "thin-45.gif", 1),
     (378, 169, "thin044.gif", 0),
@@ -656,7 +663,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v46_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v47_preview.png")
 
 
 if __name__ == "__main__":
