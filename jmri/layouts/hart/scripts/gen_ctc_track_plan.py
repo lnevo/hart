@@ -401,8 +401,10 @@ SIGNALS = [
     # McKeesport / McKees Rocks = 2-head mains (114LB / 115LB);
     # K-2 / K-1 = 1-head dwarfs (114LA / IH143, 115LA / IH142).
     # 114 sits a bit west of slot 14 so the 2-lamp fits on McKeesport;
-    # 115's 2-lamp sits east of that frog. 114R is the east balloon intermediate.
+    # 115's 2-lamp sits east of that frog. 114R / 115R are the east
+    # balloon intermediates (CATS LAMP1, SIGORIENT RIGHT on McKeesport / Rocks).
     ("114R",  1096,  N,  "E", "d1", "IH134"),
+    ("115R",  1096,  M,  "E", "d1", "IH141"),
     ("114LB",  982,  N,  "W", "h2", None),   # McKeesport 2-lamp
     ("114LA",  982,  S,  "W", "d1", "IH143"),  # K-2 1-lamp
     ("115LB", 1058,  M,  "W", "h2", None),   # McKees Rocks 2-lamp
@@ -646,7 +648,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v43_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v44_preview.png")
 
 
 if __name__ == "__main__":

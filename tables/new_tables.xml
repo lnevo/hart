@@ -19927,6 +19927,42 @@
       </icons>
       <iconmaps />
     </signalheadicon>
+    <signalheadicon signalhead="IH141" x="1096" y="193" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>115R</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
     <signalmasticon signalmast="114LB" x="962" y="147" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>114LB</tooltip>
     </signalmasticon>
