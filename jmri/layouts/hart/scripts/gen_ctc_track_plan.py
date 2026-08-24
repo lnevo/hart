@@ -164,7 +164,7 @@ TURNOUTS = [
     ("Switch 112", 736, 102, "swap:" + T + "left/west/os-l-w"),
     ("Switch 113", 866, 102, T + "right/east/os-r-e"),
     ("Switch 113", 888, 125, T + "right/west/os-r-w"),  # stock `\\`; 8px west so it meets 113a
-    ("Switch 114", 931, 102, "swap:" + T + "right/east/os-r-e"),
+    ("Switch 114", 920, 102, "swap:" + T + "right/east/os-r-e"),
     ("Switch 115", 996, 148, "swap:" + T + "right/east/os-r-e"),
 ]
 
@@ -206,10 +206,10 @@ LAMPS = [
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
-    ("Block 1-1",  1044, 146, "McKees Rocks (through 115 / 115LA)"),
-    ("Block 1-4",  1044, 172, "K-1 (diverging 115 / 115LB)"),
-    ("Block 1-2",  1044, 100, "McKeesport (through 114 / 114LA)"),
-    ("Block 1-3",  1044, 123, "K-2 (diverging 114 / 114LB)"),
+    ("Block 1-1",  1072, 146, "McKees Rocks (through 115 / 115LB)"),
+    ("Block 1-4",  1072, 172, "K-1 (diverging 115 / 115LA)"),
+    ("Block 1-2",  1072, 100, "McKeesport (through 114 / 114LB)"),
+    ("Block 1-3",  1072, 123, "K-2 (diverging 114 / 114LA)"),
 ]
 
 # (x, y, gif, rotation) -- line bar rows: line025 2-6, line050 3-7, line1 4-8,
@@ -239,7 +239,7 @@ TRACKS = [
     (778, 104, "line1.gif",   0),
     (820, 105, "line050.gif", 0),
     (908, 106, "line025.gif", 0),
-    (973, 104, "line1.gif",   0),
+    (962, 104, "line1.gif",   0),
     (1020, 104, "line1.gif",  0),
     (1084, 106, "line025.gif", 0),
     # S Scale off 102 then Barn / S-1 / K-2
@@ -250,7 +250,7 @@ TRACKS = [
     (522, 127, "line1.gif",   0),
     (648, 129, "line025.gif", 0),
     (713, 129, "line025.gif", 0),
-    (956, 127, "line1.gif",   0),
+    (945, 127, "line1.gif",   0),
     (1020, 127, "line1.gif",  0),
     (1084, 129, "line025.gif", 0),
     # M: GAP under 103, then MW extended west so its lamp stacks with
@@ -397,12 +397,16 @@ SIGNALS = [
     ("112L",      780,  N,  "W", "h2", None),
     ("113RA",      848,  M,  "E", "h2", None),  # MW / 113b
     ("113RB",      848,  N,  "E", "h2", None),  # main / 113a
-    # Princess: CTC 2-lamp homes (SL-2 / ctc-w). 115R was a 1-head dwarf on
-    # McKees Rocks — 115LB is the 2-head. 114LA on K-2. 114R east intermediate.
-    ("114R",  1088,  N,  "E", "d1", "IH134"),
-    ("114LB", 1030,  N,  "W", "h2", None),  # McKeesport 2-lamp
-    ("114LB", 1030,  S,  "W", "h2", None),  # K-2 2-lamp (same SL-2 mast)
-    ("115LB", 1030,  M,  "W", "h2", None),  # McKees Rocks 2-lamp
+    # Princess westbounds match CATS Master 4 + live masts (NX comments):
+    # McKeesport / McKees Rocks = 2-head mains (114LB / 115LB);
+    # K-2 / K-1 = 1-head dwarfs (114LA / IH143, 115LA / IH142).
+    # 114 sits a bit west of slot 14 so the 2-lamp fits on McKeesport;
+    # 115's 2-lamp sits east of that frog. 114R is the east balloon intermediate.
+    ("114R",  1096,  N,  "E", "d1", "IH134"),
+    ("114LB",  982,  N,  "W", "h2", None),   # McKeesport 2-lamp
+    ("114LA",  982,  S,  "W", "d1", "IH143"),  # K-2 1-lamp
+    ("115LB", 1058,  M,  "W", "h2", None),   # McKees Rocks 2-lamp
+    ("115LA", 1058, MK,  "W", "d1", "IH142"),  # K-1 1-lamp
 ]
 
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
@@ -567,6 +571,11 @@ def write_preview(path):
     lamp_gif = "/Applications/JMRI/resources/icons/USS/sensor/red-off.gif"
     for _s, x, y, _tip in LAMPS:
         blit(lamp_gif, x, map_y(y), 0)
+    sig_dir = "jmri/layouts/hart/ctc/icons/"
+    for _name, stem_x, bar_c, facing, kind, _head in SIGNALS:
+        x, y = signal_xy(stem_x, map_y(bar_c), facing, kind)
+        suf = "-w" if facing == "W" else ""
+        blit(sig_dir + "sig-%s-stop%s.gif" % (kind, suf), x, y)
     draw = ImageDraw.Draw(im)
     # Column guides (blank = 1) so Brick placement can be reviewed before XML.
     try:
@@ -637,7 +646,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v42_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v43_preview.png")
 
 
 if __name__ == "__main__":

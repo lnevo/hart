@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v43**: Princess westbounds match CATS (McKeesport, K-2, McKees Rocks, K-1): 2-lamp 114LB/115LB on the mains, 1-lamp 114LA/115LA on K-2/K-1. 114 shifted west for signal room; east occupancy at x=1072. Reload **USS CTC**. Not deployed.
+
+Updated: 2026-08-24 — Master 4 Princess balloon: McKeesport `(55,6)` RIGHT `SHARED` to McKees Rocks `(55,8)` RIGHT so 114R/115R wrap eastbound into the other stub westbound. Occupancy stays separate (Block 1-2 / 1-1). Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-24 — Master 4 Main West west stub is CATS `SHARED` to Brick west `(1,6)` LEFT so N/X continues around the schematic fold (occupancy cut Main West | OS 101). 110×Main West diamond stays a real `XEdge` (no SHARED skip). Reload **CATS Master4**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v42**: Princess McKees Rocks uses 115LB CTC 2-lamp (115R dwarf gone); K-2 gets the same 2-lamp; east occupancy lamps share x=1044. Reload **USS CTC**. Not deployed.
