@@ -206,10 +206,10 @@ LAMPS = [
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
-    ("Block 1-1",  1072, 146, "McKees Rocks (through 115 / 115LA)"),
-    ("Block 1-4",  1072, 169, "K-1 (diverging 115 / 115LB)"),
-    ("Block 1-2",  1072, 100, "McKeesport (through 114 / 114LA)"),
-    ("Block 1-3",  1072, 123, "K-2 (diverging 114 / 114LB)"),
+    ("Block 1-1",  1044, 146, "McKees Rocks (through 115 / 115LA)"),
+    ("Block 1-4",  1044, 172, "K-1 (diverging 115 / 115LB)"),
+    ("Block 1-2",  1044, 100, "McKeesport (through 114 / 114LA)"),
+    ("Block 1-3",  1044, 123, "K-2 (diverging 114 / 114LB)"),
 ]
 
 # (x, y, gif, rotation) -- line bar rows: line025 2-6, line050 3-7, line1 4-8,
@@ -397,13 +397,12 @@ SIGNALS = [
     ("112L",      780,  N,  "W", "h2", None),
     ("113RA",      848,  M,  "E", "h2", None),  # MW / 113b
     ("113RB",      848,  N,  "E", "h2", None),  # main / 113a
-    # Princess: 2-head homes on McKeesport (114LB) and McKees Rocks (115LA).
-    # East intermediates on those mains. 115LB dwarf on K-1.
+    # Princess: CTC 2-lamp homes (SL-2 / ctc-w). 115R was a 1-head dwarf on
+    # McKees Rocks — 115LB is the 2-head. 114LA on K-2. 114R east intermediate.
     ("114R",  1088,  N,  "E", "d1", "IH134"),
-    ("114LB", 1030,  N,  "W", "h2", None),
-    ("115R",  1088,  M,  "E", "d1", "IH141"),
-    ("115LA", 1030,  M,  "W", "h2", None),
-    ("115LB", 1050, MK, "W", "d1", "IH142"),
+    ("114LB", 1030,  N,  "W", "h2", None),  # McKeesport 2-lamp
+    ("114LB", 1030,  S,  "W", "h2", None),  # K-2 2-lamp (same SL-2 mast)
+    ("115LB", 1030,  M,  "W", "h2", None),  # McKees Rocks 2-lamp
 ]
 
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
@@ -638,7 +637,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v41_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v42_preview.png")
 
 
 if __name__ == "__main__":
