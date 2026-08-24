@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v35**: Princess stub labels (McKeesport, K-2, McKees Rocks, K-1) right-aligned to the east rail (x=1105). Regen `gen_ctc_track_plan.py`. Reload **USS CTC**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC track diagram **v34**: Brick/Plane 100–102 as previewed (101 on 100’s `/`, W-1/W-2 thin stubs); 103/110 one SOUTH YD U below Main West (east `/` straight, bar stops at the ladder); 113b stock `os-r-w`; Engine House two thin stalls. Princess stubs labeled **McKeesport / K-2 / McKees Rocks / K-1** (cream 8pt, left-aligned above each rail). Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v34_preview.png`. Reload **USS CTC**. Not deployed to Pi.
 
 Updated: 2026-08-24 — Master 4 paint crash was empty SPUR SWITCHPOINTS at `(6,5)` / `(18,8)` (CATS 3.1 `PtsVitalLogic.setPoints` AIOOB, no NORMAL). Wire pass now writes ROUTENAME NORMAL on those drawing splits (no MQTT). Reload **CATS Master4**. Not deployed.

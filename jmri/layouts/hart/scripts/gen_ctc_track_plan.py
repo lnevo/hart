@@ -124,7 +124,7 @@ TRACK = """<positionablelabel x="{x}" y="{y}" level="3" forcecontroloff="false" 
       </icon>
     </positionablelabel>"""
 
-TEXT = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="{text}" fontname="Dialog.plain" size="{size}" style="1" red="{red}" green="{green}" blue="{blue}" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+TEXT = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="{text}" fontname="Dialog.plain" size="{size}" style="1" red="{red}" green="{green}" blue="{blue}" hasBackground="no" justification="{just}" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>"""
 
@@ -286,7 +286,37 @@ TRACKS = [
 WHITE = dict(red=255, green=255, blue=255)
 CREAM = dict(red=220, green=220, blue=180)
 BLACK = dict(red=0, green=0, blue=0)
-# (x, y, text, size, color)
+# East stub rails finish at x=1105. Princess labels are right-justified there.
+EAST_RAIL = 1105
+
+
+def unpack_text(t):
+    x, y, text, size, col = t[:5]
+    just = t[5] if len(t) > 5 else "left"
+    return x, y, text, size, col, just
+
+
+def _text_width(text, size):
+    from PIL import ImageFont
+    try:
+        pt = 12 if size >= 12 else 9
+        font = ImageFont.truetype(
+            "/System/Library/Fonts/Supplemental/Arial Bold.ttf", pt)
+    except OSError:
+        return int(round(size * 0.62 * len(text)))
+    box = font.getbbox(text)
+    return box[2] - box[0]
+
+
+def label_origin(x, text, size, just):
+    """JMRI x is the left of the label. 'right' x is the east rail edge."""
+    if just == "right":
+        return x - _text_width(text, size)
+    return x
+
+
+# (x, y, text, size, color[, justification])
+# Princess stubs: x is the RIGHT edge (just="right"); others are left origin.
 TEXTS = [
     # banner engraved in the gold band (tile rows 0-33)
     (415, 8, "HART RAILROAD - NEVILLE ISLAND", 16, BLACK),
@@ -302,12 +332,11 @@ TEXTS = [
     (750, 136, "MAIN WEST", 8, CREAM),
     (348, 194, "ENGINE HOUSE", 8, CREAM),
     (572, 186, "SOUTH YD", 8, CREAM),
-    # Princess east stubs: same cream 8pt, left-aligned on the rail above
-    # each block lamp (W-1/W-2 grammar). Public names McKeesport / McKees Rocks.
-    (1008, 88,  "McKeesport", 8, CREAM),
-    (1008, 114, "K-2", 8, CREAM),
-    (1008, 137, "McKees Rocks", 8, CREAM),
-    (1008, 168, "K-1", 8, CREAM),
+    # Princess east stubs: cream 8pt, right-aligned to EAST_RAIL.
+    (EAST_RAIL, 88,  "McKeesport", 8, CREAM, "right"),
+    (EAST_RAIL, 114, "K-2", 8, CREAM, "right"),
+    (EAST_RAIL, 137, "McKees Rocks", 8, CREAM, "right"),
+    (EAST_RAIL, 168, "K-1", 8, CREAM, "right"),
     (102, 223, "100", 8, WHITE),
     (167, 223, "101", 8, WHITE),
     (232, 223, "102", 8, WHITE),
@@ -431,8 +460,11 @@ def build_block():
     for x, y, gif, rot in TRACKS:
         url = THIN if gif.startswith(("thin", "thick", "os-")) else U + "track/block/"
         parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, url=url))
-    for x, y, text, size, col in TEXTS:
-        parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
+    for t in TEXTS:
+        x, y, text, size, col, just = unpack_text(t)
+        parts.append(TEXT.format(
+            x=label_origin(x, text, size, just), y=y, text=text,
+            size=size, just=just, **col))
     for name, stem_x, bar_c, facing, kind, head in SIGNALS:
         x, y = signal_xy(stem_x, bar_c, facing, kind)
         if kind == "h2":
@@ -525,10 +557,12 @@ def write_preview(path):
         draw.line([(x, 34), (x, 198)], fill=(50, 50, 50, 255))
         if i < 4:
             draw.text((x + 22, 22), str(i + 1), fill=(90, 90, 90, 255), font=font_s)
-    for x, y, text, size, col in TEXTS:
+    for t in TEXTS:
+        x, y, text, size, col, just = unpack_text(t)
         f = font if size >= 12 else font_s
         rgb = (col["red"], col["green"], col["blue"])
-        draw.text((x, y), text, fill=rgb + (255,), font=f)
+        ox = label_origin(x, text, size, just)
+        draw.text((ox, y), text, fill=rgb + (255,), font=f)
     im.convert("RGB").save(path)
     print("%s: preview written" % path)
 
@@ -581,7 +615,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v34_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v35_preview.png")
 
 
 if __name__ == "__main__":
