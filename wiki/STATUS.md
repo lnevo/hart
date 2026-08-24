@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-23 — USS CTC track diagram **v27**: 103 and 110 are SOUTH YD stubs (frog → horizontal → bumper + label), same grammar as Engine House / W-1. 103 stub sits in the Main West gap and stops; 110 stub is below MW after the diamond. No 104–109 frogs, no hanging slashes. Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v27_preview.png`. Not deployed.
+
 Updated: 2026-08-23 — USS CTC track diagram **v26**: no Scale siding between Brick and Plane (100 is main OS only; 102 is a single turnout, both routes to 117). 113a/113b stacked in the same column, both `\\`. Yard leads at 103/110 unchanged (USS-board study in progress). Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v26_preview.png`. Not deployed.
 
 Updated: 2026-08-23 — Master 4: OS 104–109 each get their own occupancy region (plain VERTICAL spacers between stacked ladder frogs; same pattern as live Master’s staggered H+slash plants and the CP 104–109 panels). 111L gap restored to Designer center `(37,8)` RIGHT. 110R moved up onto the 110 frog `(33,7)` BOTTOM UPCENT. McKeesport / McKees Rocks UPCENT above the track. Reload **CATS Master4**. Not deployed.

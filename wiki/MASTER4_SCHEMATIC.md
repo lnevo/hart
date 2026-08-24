@@ -127,4 +127,4 @@ CATS Master4 is the Digicon. The USS lever machine is a **separate** JMRI Panel 
 
 The regenerated Master 4 board is `jmri/layouts/hart/ctc/GUIObjects.xml` (also embedded in `tables/new_tables.xml` only). It is **not** what CATS/PanelPro currently load.
 
-Static preview: `cats/screenshots/master4/uss_ctc_v26_preview.png` (v26: no Brick–Plane Scale siding; 102 turnout both ways to 117; 113 stacked in-column, both `\\`). `uss_ctc_v25_preview.png` had 100’s `\\` onto Scale and 113b shifted east.
+Static preview: `cats/screenshots/master4/uss_ctc_v27_preview.png` (v27: 103/110 are SOUTH YD stubs with bumpers). `uss_ctc_v26_preview.png` dropped the Brick–Plane Scale siding and stacked 113.

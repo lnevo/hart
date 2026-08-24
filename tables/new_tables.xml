@@ -19498,18 +19498,18 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="513" y="128" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:ctc/icons/thin-45.gif" degrees="0" scale="1.0">
+    <positionablelabel x="374" y="145" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="preference:ctc/icons/thin-end.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="526" y="142" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:ctc/icons/thin035.gif" degrees="0" scale="1.0">
+    <positionablelabel x="512" y="125" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="538" y="142" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:ctc/icons/thin-45.gif" degrees="0" scale="1.0">
+    <positionablelabel x="554" y="123" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="preference:ctc/icons/thin-end.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
@@ -19518,14 +19518,14 @@
         <rotation>1</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="640" y="151" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:ctc/icons/thin035.gif" degrees="0" scale="1.0">
+    <positionablelabel x="614" y="147" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="640" y="151" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:ctc/icons/thin-45.gif" degrees="0" scale="1.0">
-        <rotation>1</rotation>
+    <positionablelabel x="610" y="145" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="preference:ctc/icons/thin-end.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
       </icon>
     </positionablelabel>
     <positionablelabel x="415" y="8" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="HART RAILROAD - NEVILLE ISLAND" fontname="Dialog.plain" size="16" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -19562,6 +19562,12 @@
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="355" y="163" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="ENGINE HOUSE" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="512" y="138" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="SOUTH YD" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="618" y="163" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="SOUTH YD" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="1035" y="68" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKEESPORT" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">

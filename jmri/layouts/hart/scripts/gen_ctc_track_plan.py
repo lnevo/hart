@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the CTC panel track diagram (v26 — Master 4 row order).
+"""Generate the CTC panel track diagram (v27 — Master 4 row order).
 
 Match CATS Master 4 (`wiki/MASTER4_SCHEMATIC.md`): one straight focused main
 on the TOP operating row, W-1/W-2 above it, Scale/Barn/S-1/K-2 on the middle
@@ -22,9 +22,10 @@ Live CTC UniqueIDs are unchanged (lever 1 still codes Switch 101).
 through to 117b; Thrown = `\\` Scale → 117. There is no 100→102 Scale
 siding — 100 is Brick OS on the main only (bar, no down-east spur).
 113 skips S: 113a os-r-e and 113b os-r-w-thin stacked in the same column,
-both `\\`. Yard leads at 103/110 are unchanged pending a USS-board study.
+both `\\`. 103 and 110 are labeled SOUTH YD stubs (frog → horizontal →
+bumper), not hanging slashes and not 104–109 frogs.
 
-Previous (v25 — 100 still had a `\\` onto Scale, 113b shifted east). v22 focused main on M. Original v8:
+Previous (v26 — 100 Scale spur gone, 113 stacked; yard still thin slashes). v22 focused main on M. Original v8:
 
 Machine slots are 65px wide (slot = x//65). Blank slots 0, 4, 8, 12 and 16
 — four interlockings of three lever columns each: Brick/Plane slots 1-3
@@ -37,8 +38,8 @@ per slot at x=12+65*slot (Panel-blank-7 for blank slots,
 Panel-switch-7 for 116/103 switch-only, Panel-sw-sig-7 for the rest),
 right cap at x=1117.
 
-South Yard body tracks are omitted; 103 and 110 keep short leads that are
-the yard turnouts. Engine House is a single spur under columns 7/9.
+South Yard body tracks are omitted. 103 and 110 are SOUTH YD stubs
+(bumper + label), same grammar as Engine House / W-1.
 East stubs (K-1, K-2, McKees Rocks, McKeesport) still end flush at x=1105
 with lamps at x=1060. W-1/W-2 lamps sit on the stubs east of 101.
 
@@ -152,9 +153,9 @@ TURNOUTS = [
     ("Switch 102", 216, 82,  T + "right/east/os-r-e"),
     ("Switch 117", 346, 82,  X + "left/os-l-sc"),        # N ↔ S (main ↔ Scale/Barn)
     ("Switch 116", 436, 105, "thin:os-l-w-thin"),        # S; down-west drop to EH spur
-    ("Switch 103", 482, 105, "thin:os-r-e-thin-short"),  # S; `\\` stops above M (not MW)
+    ("Switch 103", 482, 105, "thin:os-r-e-thin-short"),  # S; SOUTH YD stub, not MW
     ("Switch 111", 606, 105, X + "right/os-r-sc"),       # S ↔ M (111b ↔ 111a)
-    ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # S; diamond with MW; yard is below
+    ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # S; diamond with MW; SOUTH YD stub below
     # 112: bar N; swap Thrown = East Lead through, Closed = down-west OS 110
     ("Switch 112", 736, 82,  "swap:" + T + "left/west/os-l-w"),
     # 113 skips S: both `\\`, stacked in the 113 column (not a `>` chevron).
@@ -264,14 +265,14 @@ TRACKS = [
     # 116 `/` continues below empty M to a single EH spur under levers 7/9
     (422, 136, "thin-45.gif", 1),
     (378, 147, "line050.gif", 0),
-    # 103 `\\` through the MW-row gap (no MW rail) into a compact 104 frog
-    (513, 128, "thin-45.gif", 0),
-    (526, 142, "thin035.gif", 0),   # 104 bar (yard turnout, no body tracks)
-    (538, 142, "thin-45.gif", 0),   # 104 `\\` into south yard
-    # 110 diamond: `/` continues below MW into a compact 109 frog
+    (374, 145, "thin-end.gif", 0),  # EH bumper
+    # 103: frog → horizontal stub in the S–MW gap → bumper. No 45° toward MW.
+    (512, 125, "line050.gif", 0),   # SOUTH YD west (bar 128–132, above MW)
+    (554, 123, "thin-end.gif", 0),
+    # 110 diamond: `/` turns horizontal below MW → bumper. Independent of 103.
     (657, 136, "thin-45.gif", 1),
-    (640, 151, "thin035.gif", 0),   # 109 bar (yard turnout, no body tracks)
-    (640, 151, "thin-45.gif", 1),   # 109 `/` into south yard
+    (614, 147, "line050.gif", 0),   # SOUTH YD east (below MW, west of 110)
+    (610, 145, "thin-end.gif", 0),
 ]
 
 WHITE = dict(red=255, green=255, blue=255)
@@ -292,6 +293,8 @@ TEXTS = [
     (525, 68,  "MAIN EAST", 8, CREAM),
     (584, 140, "MAIN WEST", 8, CREAM),
     (355, 163, "ENGINE HOUSE", 8, CREAM),
+    (512, 138, "SOUTH YD", 8, CREAM),
+    (618, 163, "SOUTH YD", 8, CREAM),
     (1035, 68,  "McKEESPORT", 8, CREAM),
     (1030, 140, "McKEES ROCKS", 8, CREAM),
     (1090, 118, "K-2", 8, CREAM),
@@ -441,7 +444,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|MAIN|SOUTH YARD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
     # stock CTC Unlocked indicators + labels, replaced by the OS lamp row
     # (GUI only -- the IS*:UNLOCKEDINDICATOR sensors still exist; delete
     # these two patterns to bring the buttons back)
@@ -531,7 +534,7 @@ def main():
         open(tables, "w").write(txt)
         print("%s: embedded paneleditor regenerated" % tables)
 
-    write_preview("cats/screenshots/master4/uss_ctc_v26_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v27_preview.png")
 
 
 if __name__ == "__main__":
