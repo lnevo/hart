@@ -2,6 +2,8 @@
 
 Updated: 2026-08-24 — Master 4 Main West west stub is CATS `SHARED` to Brick west `(1,6)` LEFT so N/X continues around the schematic fold (occupancy cut Main West | OS 101). 110×Main West diamond stays a real `XEdge` (no SHARED skip). Reload **CATS Master4**. Not deployed.
 
+Updated: 2026-08-24 — USS CTC **v41**: W-1/W-2 dwarfs restored and rails/labels cleared of the bumpers; 110R on the South Yd lead (extra OS 110 occupancy removed); 115LA 2-head on McKees Rocks and 115LB on K-1; MW ink lined into 111. Reload **USS CTC**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v40**: W-1/W-2 in-track lamps on USS bars; MAIN WEST below the rails and extended so its lamp stacks with Main East / S-1; South Yd→110 lamp on the U; 111 unobstructed; Princess McKeesport / K-2 / McKees Rocks / K-1 with 2-head homes on McKeesport and McKees Rocks. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v39**: W-1/W-2 use in-track occupancy (no dwarf heads); 100L west of Brick facing east; Princess labels K-1 / McKees Rocks swapped and 115R on McKees Rocks (east intermediate with McKeesport). Reload **USS CTC**. Not deployed.

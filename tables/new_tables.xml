@@ -19096,22 +19096,6 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 12-7" x="610" y="227" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>South Yd to 110</tooltip>
-      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="Block 12-7" x="684" y="284" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS 110</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
@@ -19240,7 +19224,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 1-1" x="1060" y="186" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 1-1" x="1072" y="186" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>McKees Rocks (through 115 / 115LA)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -19256,7 +19240,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 1-4" x="1060" y="209" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 1-4" x="1072" y="209" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>K-1 (diverging 115 / 115LB)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -19272,7 +19256,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 1-2" x="1060" y="140" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 1-2" x="1072" y="140" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>McKeesport (through 114 / 114LA)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -19288,7 +19272,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 1-3" x="1060" y="163" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 1-3" x="1072" y="163" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>K-2 (diverging 114 / 114LB)</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -19304,12 +19288,12 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <positionablelabel x="145" y="91" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="145" y="92" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="189" y="91" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="189" y="92" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -19319,17 +19303,17 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="253" y="88" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="257" y="90" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/thin-end.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="152" y="115" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="152" y="116" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="196" y="115" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="196" y="116" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -19339,7 +19323,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="260" y="112" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="264" y="114" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/thin-end.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -19469,7 +19453,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="546" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="546" y="191" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -19622,10 +19606,10 @@
     <positionablelabel x="905" y="36" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="PRINCESS" fontname="Dialog.plain" size="12" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="242" y="87" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="268" y="87" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="249" y="111" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="275" y="111" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="24" y="128" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="MAIN" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -19691,6 +19675,78 @@
     <positionablelabel x="1012" y="307" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="115" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <signalheadicon signalhead="IH436" x="157" y="94" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>101RA</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
+    <signalheadicon signalhead="IH437" x="157" y="118" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>101RB</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
     <signalmasticon signalmast="100L" x="52" y="147" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>100L</tooltip>
     </signalmasticon>
@@ -19787,7 +19843,7 @@
     <signalmasticon signalmast="111L" x="630" y="193" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>111L</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1239" x="658" y="170" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1239" x="618" y="236" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>110R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -19871,7 +19927,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="114LB" x="1030" y="147" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="114LB" x="1010" y="147" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>114LB</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH141" x="1088" y="193" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
@@ -19910,9 +19966,45 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="115LA" x="1030" y="193" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="115LA" x="1010" y="193" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>115LA</tooltip>
     </signalmasticon>
+    <signalheadicon signalhead="IH142" x="1039" y="220" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>115LB</tooltip>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
   </paneleditor>
   <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="HART Railroad" x="14" y="32" windowheight="721" windowwidth="1885" panelheight="650" panelwidth="1959" sliders="no" scrollable="none" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30.0" turnoutcx="30.0" turnoutwid="15.0" xoverlong="45.0" xoverhwid="15.0" xovershort="15.0" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="10" gridSize2nd="10" openDispatcher="no" useDirectTurnoutControl="no">
     <layoutTrackDrawingOptions name="HART Railroad" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTrackDrawingOptionsXml">

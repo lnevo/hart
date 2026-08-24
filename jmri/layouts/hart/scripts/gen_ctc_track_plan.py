@@ -198,7 +198,6 @@ LAMPS = [
     ("Block 2-3",  546, 100, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
-    ("Block 12-7", 610, 187, "South Yd to 110"),
     ("Block 12-7", 684, 200, "OS 110"),
     ("Block 12-8", 749, 200, "OS 112"),
     ("Block 1-7",  800, 100, "East Lead (112L–113RB)"),
@@ -207,10 +206,10 @@ LAMPS = [
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
-    ("Block 1-1",  1060, 146, "McKees Rocks (through 115 / 115LA)"),
-    ("Block 1-4",  1060, 169, "K-1 (diverging 115 / 115LB)"),
-    ("Block 1-2",  1060, 100, "McKeesport (through 114 / 114LA)"),
-    ("Block 1-3",  1060, 123, "K-2 (diverging 114 / 114LB)"),
+    ("Block 1-1",  1072, 146, "McKees Rocks (through 115 / 115LA)"),
+    ("Block 1-4",  1072, 169, "K-1 (diverging 115 / 115LB)"),
+    ("Block 1-2",  1072, 100, "McKeesport (through 114 / 114LA)"),
+    ("Block 1-3",  1072, 123, "K-2 (diverging 114 / 114LB)"),
 ]
 
 # (x, y, gif, rotation) -- line bar rows: line025 2-6, line050 3-7, line1 4-8,
@@ -218,16 +217,15 @@ LAMPS = [
 # from preference:ctc/icons/ (thin044 44px, thin085 85px, thin-45 15x15 "\",
 # rotation 1 -> "/").
 TRACKS = [
-    # W-1 / W-2: USS-weight bars so occupancy lamps read in-track (thin
-    # 2px rails hid the 21px red-off housing). Bumper at the east end.
-    (145, 51,  "line050.gif", 0),   # W-1
-    (189, 51,  "line050.gif", 0),
+    # W-1 / W-2: one ink row (55–59 / 79–83) matching 101's heels, then bumper.
+    (145, 52,  "line050.gif", 0),   # W-1
+    (189, 52,  "line050.gif", 0),
     (233, 53,  "line025.gif", 0),
-    (253, 48,  "thin-end.gif", 0),
-    (152, 75,  "line050.gif", 0),   # W-2
-    (196, 75,  "line050.gif", 0),
+    (257, 50,  "thin-end.gif", 0),
+    (152, 76,  "line050.gif", 0),   # W-2
+    (196, 76,  "line050.gif", 0),
     (240, 77,  "line025.gif", 0),
-    (260, 72,  "thin-end.gif", 0),
+    (264, 74,  "thin-end.gif", 0),
     # N main cols 1–3 through 100 into 102 (col 4 / slot 3), then east
     (21,  105, "line050.gif", 0),   # col 1 approach
     (58,  106, "line025.gif", 0),
@@ -257,7 +255,7 @@ TRACKS = [
     (1084, 129, "line025.gif", 0),
     # M: GAP under 103, then MW extended west so its lamp stacks with
     # Main East / S-1 at x=546. 113b at x896.
-    (546, 150, "line050.gif", 0),
+    (546, 151, "line050.gif", 0),
     (584, 150, "line1.gif",   0),
     (645, 152, "line025.gif", 0),
     (648, 145, "line25.gif",  0),
@@ -345,8 +343,8 @@ TEXTS = [
     (347, 36, "BARN",      12, WHITE),
     (645, 36, "EAST END",  12, WHITE),
     (905, 36, "PRINCESS",  12, WHITE),
-    (242, 47,  "W-1", 8, CREAM),
-    (249, 71,  "W-2", 8, CREAM),
+    (268, 47,  "W-1", 8, CREAM),
+    (275, 71,  "W-2", 8, CREAM),
     (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
     (640, 174, "MAIN WEST", 8, CREAM),
@@ -377,10 +375,12 @@ TEXTS = [
 # home (signalmasticon, hart-aar ctc imageset); d1 = dwarf (signalheadicon
 # on the IH* head). Bar centers: N 90, S 113, M 136; W-1/W-2 above N;
 # K-1 below M. 116/103 are switch-only — no icons.
-N, S, M, MR, MK, W1, W2 = 110, 133, 156, 156, 183, 68, 54
+N, S, M, MR, MK, W1, W2, SY = 110, 133, 156, 156, 183, 57, 81, 199
 # (mast, stem_x, bar_center, facing, kind, head_or_None)
 SIGNALS = [
-    # W-1/W-2 occupancy is the in-track Block 4-4 / 4-3 lamps (no dwarf heads).
+    # W-1/W-2: occupancy in-track at x=196; dwarfs on the stubs facing the plant.
+    ("101RA",       168, W1, "W", "d1", "IH436"),
+    ("101RB",       168, W2, "W", "d1", "IH437"),
     # Brick 100L: west of 100, facing east into the plant (eastbound home).
     ("100L",        52,  N,  "E", "h2", None),
     ("102LA",          265,  S,  "W", "h2", None),
@@ -392,17 +392,18 @@ SIGNALS = [
     ("111RA",    588,  M,  "E", "h2", None),
     ("111RB",    588,  S,  "E", "d1", "IH1236"),
     ("111L",      650,  M,  "W", "h2", None),
-    ("110R",      658,  S,  "E", "d1", "IH1239"),
+    ("110R",      618, SY, "E", "d1", "IH1239"),  # SY lead, eastbound into 110
     ("112R",      708,  N,  "E", "h2", None),
     ("112L",      780,  N,  "W", "h2", None),
     ("113RA",      848,  M,  "E", "h2", None),  # MW / 113b
     ("113RB",      848,  N,  "E", "h2", None),  # main / 113a
-    # Princess: 2-head homes on McKeesport and McKees Rocks (not K-2).
-    # East intermediates on those two mains. K-2 / K-1 occupancy only.
+    # Princess: 2-head homes on McKeesport (114LB) and McKees Rocks (115LA).
+    # East intermediates on those mains. 115LB dwarf on K-1.
     ("114R",  1088,  N,  "E", "d1", "IH134"),
-    ("114LB", 1050,  N,  "W", "h2", None),
+    ("114LB", 1030,  N,  "W", "h2", None),
     ("115R",  1088,  M,  "E", "d1", "IH141"),
-    ("115LA", 1050,  M,  "W", "h2", None),
+    ("115LA", 1030,  M,  "W", "h2", None),
+    ("115LB", 1050, MK, "W", "d1", "IH142"),
 ]
 
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
@@ -637,7 +638,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v40_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v41_preview.png")
 
 
 if __name__ == "__main__":
