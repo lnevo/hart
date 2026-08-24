@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-23 — USS CTC track diagram **v25**: 113 is one continuous `\\` (113b thin os-r-w shifted east); first plant column is Brick/100 with 101 in the 3/4 column and 102 on the main (`\\` to Scale); Engine House is a single spur under levers 7/9; 103 drops through the Main West gap into a 104 frog (does not join MW); 110 diamond plus a 109 yard frog, no yard body. Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v25_preview.png`. Live CTC UniqueIDs unchanged (lever 1 still codes Switch 101). Not deployed.
+
+Updated: 2026-08-23 — Master 4: McKeesport/McKees Rocks one cell east of K-2/K-1, LOWCET. 102LB/LA cells are OS 100 (gap only on the right, vs Brick-Plane / Scale). West Main Ext caption centered at (38,8). Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-23 — USS CTC track diagram **v23** matches Master 4 row order: focused main on the top operating row, W-1/W-2 above 101, Scale/Barn/S-1/K-2 in the middle, Main West gapped on the bottom. Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml` only. Preview `cats/screenshots/master4/uss_ctc_v23_preview.png`. Not deployed (not the live PanelPro board).
 
 Updated: 2026-08-23 — Master 4 had a rail gap at almost every cell because Designer `BLOCK`s plus the wire script’s heal pass named both sides of every frog. CATS paints a gap at every `BlkEdge`. Occupancy now named only at block boundaries (plus unavoidable mid-block lamp joints). Reload **CATS Master4**. Not deployed.

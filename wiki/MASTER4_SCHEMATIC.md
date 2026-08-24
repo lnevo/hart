@@ -18,7 +18,7 @@ Do **not** add extra rails. Occupancy cuts use named `BLOCK` on existing cells o
 | 5 | W-1 |
 | **6** | **Focused main:** Brick → OS 101 → OS 100 → Brick-Plane → OS 117b → Main East → OS 112 → East Lead → OS 113a → OS 114 → McKeesport |
 | 7 | Scale / OS 117 / Barn / OS 116 / S-1 / OS 103 / OS 111b / OS 110 / K-2 |
-| **8** | EH-1 + OS 119 + 116 drop; **gap** at x=21–26; Main West x=27–30; OS 111a; West Main Ext; **110 diamond (33,8)**; OS 113b; OS 115; McKees Rocks |
+| **8** | EH-1 + OS 119 + 116 drop; **gap** at x=21–26; Main West x=27–30; OS 111a through 110 diamond to **111L at x=35** (even with 112R); West Main Ext x=35–40; OS 113b; OS 115; McKees Rocks |
 | 9–12 | S-2 … S-5 (west ladder x=23, east x=33) |
 
 ## 116 / 103 / 110 vs Main West
@@ -27,7 +27,7 @@ Do **not** add extra rails. Occupancy cuts use named `BLOCK` on existing cells o
 |-------|------|------------|-----------|
 | **116** | `(20,7)` H+LS | Lead drops onto Y=8 **west of** Main West (x=19–20). Not a + with MW rails. | OS 116 N–S |
 | **103** | `(23,7)` H+LB | `(23,8)` is **VERTICAL only** in the MW-row gap. | OS 103 N–S, **not** Main West |
-| **110** | `(33,7)` H+LS | `(33,8)` is VERTICAL+HORIZONTAL **diamond**. H = West Main Ext (E–W); V = OS 110 (N–S). | No SWITCHPOINTS on the diamond |
+| **110** | `(33,7)` H+LS | `(33,8)` is VERTICAL+HORIZONTAL **diamond**. H = OS 111a through to 111L (E–W); V = OS 110 (N–S). | No SWITCHPOINTS on the diamond |
 
 ## South yard ladders (104–109)
 
@@ -53,7 +53,7 @@ CATS will not put two occupancy names on one Track, and will not name the edge t
 | Cell | Identity | Notes |
 |------|----------|--------|
 | (5,6) H+US | **101** | NORMAL=RIGHT (Closed = through to 100) |
-| (9,6) H+LB | **100** | NORMAL=BOTTOM (Closed = Scale; Thrown = Y=6 main) |
+| (9,6) H+LB | **100** | NORMAL=BOTTOM (Closed = Scale; Thrown = Y=6 main). Spur cells `(10,6)` / `(10,7)` are OS 100 (102LB/LA sit on the **right** cuts vs Brick-Plane / Scale). |
 | (14,6) / (14,7) | **117b / 117** | Crossover |
 | (20,7) H+LS | **116** | NORMAL=LEFT |
 | (23,7) H+LB | **103** | NORMAL=RIGHT |
@@ -92,14 +92,18 @@ Do not invert 101–103 / 110 / 116–119 to match these.
 
 ## Signals
 
-Designer `SECSIGNAL` text is empty. `wire_hart_master4.py` binds 22 lamps by cell/edge (101RA/RB, 102LA/LB, 117*, 112*, 113*, 114*, 115*, 111*, 110R). **100L is not on this board.** `(4,6)` LEFT 2-head has no field mast — leave unbound.
+Designer `SECSIGNAL` text is empty. `wire_hart_master4.py` binds 22 lamps by cell/edge (101RA/RB, 102LA/LB, 117*, 112*, 113*, 114*, 115*, 111*, 110R). **100L is not on this board.** `(4,6)` LEFT 2-head has no field mast — leave unbound. **111L** is moved from `(37,8)` RIGHT onto `(35,8)` LEFT so it lines up with **112R** (`(35,6)` LEFT). OS 111a has no gap at the frog; the occupancy cut is that lamp (West Main Ext runs 111L → 113RA). **102LB/102LA** sit on OS 100’s east cuts — no gap between the 100 frog and those lamps.
 
 ## Label fixes
 
 | Drawn | Use |
 |-------|-----|
 | EH-3 on Y=8, EH-1 on Y=10 | EH-1 nearest the 119 lead (Y=8), EH-3 farthest (Y=10) |
-| City captions | (49,6) = McKeesport, PA; K-2 stays on Y=7 |
+| McKees Rocks at (49,5) | `(50,8)` LOWCET on the 115 through track, above K-1, one cell east of K |
+| McKeesport at (49,10) | `(50,6)` LOWCET on the 114 through track, one cell east of K-2 |
+| W-1 / W-2 / K-1 / K-2 LEFTUP | LOWCET, same cell alignment as S-1…S-5 |
+| Main East LEFTUP at (28,6) | LOWCET, same cell as the S-n stack |
+| West Main Ext at (36,8) | `(38,8)` LOWCET, center of 111L–113RA |
 
 ## Test launch
 
@@ -121,4 +125,4 @@ CATS Master4 is the Digicon. The USS lever machine is a **separate** JMRI Panel 
 
 The regenerated Master 4 board is `jmri/layouts/hart/ctc/GUIObjects.xml` (also embedded in `tables/new_tables.xml` only). It is **not** what CATS/PanelPro currently load.
 
-Static preview: `cats/screenshots/master4/uss_ctc_v23_preview.png` (v23: focused main on the top USS row, W-1/W-2 above 101, Main West gapped on the bottom row). `uss_ctc_v22_preview.png` is the earlier main-on-M draft.
+Static preview: `cats/screenshots/master4/uss_ctc_v25_preview.png` (v25: Brick/100 first, 101 in the 3/4 column, 102 on the main with `\\` to Scale, 113 one `\\`, EH spur under 7/9, 103/110 yard frogs only). `uss_ctc_v23_preview.png` is the first Master 4 row-order draft; `uss_ctc_v22_preview.png` is the earlier main-on-M draft.
