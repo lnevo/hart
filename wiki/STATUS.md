@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-23 — USS CTC track diagram **v28**: thin icons installed into local JMRI profiles (`preference:ctc/icons/`, including `os-n-bar-*.gif`). Brick 100 stays on the first lever column; 101 and W-1/W-2 shift west as horizontal spurs; the whole plant drops 20px so those spurs have room. 113b moves east so the two `\\` continue. Regen: `gen_ctc_track_plan.py` (copies icons into `*.jmri/ctc/icons/`). Preview `cats/screenshots/master4/uss_ctc_v28_preview.png`. Reload the USS CTC panel. Not deployed to Pi.
+
 Updated: 2026-08-23 — USS CTC track diagram **v27**: 103 and 110 are SOUTH YD stubs (frog → horizontal → bumper + label), same grammar as Engine House / W-1. 103 stub sits in the Main West gap and stops; 110 stub is below MW after the diamond. No 104–109 frogs, no hanging slashes. Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v27_preview.png`. Not deployed.
 
 Updated: 2026-08-23 — USS CTC track diagram **v26**: no Scale siding between Brick and Plane (100 is main OS only; 102 is a single turnout, both routes to 117). 113a/113b stacked in the same column, both `\\`. Yard leads at 103/110 unchanged (USS-board study in progress). Regen: `gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + `tables/new_tables.xml`. Preview `cats/screenshots/master4/uss_ctc_v26_preview.png`. Not deployed.

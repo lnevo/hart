@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the CTC panel track diagram (v27 — Master 4 row order).
+"""Generate the CTC panel track diagram (v28 — Master 4 row order).
 
 Match CATS Master 4 (`wiki/MASTER4_SCHEMATIC.md`): one straight focused main
 on the TOP operating row, W-1/W-2 above it, Scale/Barn/S-1/K-2 on the middle
@@ -141,30 +141,27 @@ SWITCH_ONLY_SLOTS = {6, 7}
 # icons from preference:ctc/icons/. "swap:" swaps the closed/thrown gifs:
 # used where the drawn BAR is the mainline but JMRI Thrown (100/112/114/115
 # are Thrown when set for the main). Lit route then matches field state.
+# N/S/M sit 20px below v27 so W-1/W-2 are true horizontals under the
+# station names (not a cramped `/` in the banner). 100 stays on slot 1
+# (x=86). 101 + W stubs shift west so they sit over columns 1–2, not Plane.
+# 113b is 30px east of 113a so the two `\\` continue (same-x put 113b's
+# `\\` west of 113a's, the wrong way).
 TURNOUTS = [
-    # 100: Brick OS on the main only. No Scale spur (that hairpin is omitted
-    # on Master 4). Bar-only icon; swap so Thrown = through main.
-    ("Switch 100", 86,  82,  "swap:thin:os-n-bar"),
-    # 101: W-yard in sw 3 / sig 4 column. Bar N (bottom of os-l-e);
-    # Thrown = up-east to W-1/W-2; Closed = through
-    ("Switch 101", 151, 59,  T + "left/east/os-l-e"),
-    # 102: Plane. Single turnout, both routes to 117 (through = 117b,
-    # `\\` = Scale → 117). Not a crossover and not fed by a 100 spur.
-    ("Switch 102", 216, 82,  T + "right/east/os-r-e"),
-    ("Switch 117", 346, 82,  X + "left/os-l-sc"),        # N ↔ S (main ↔ Scale/Barn)
-    ("Switch 116", 436, 105, "thin:os-l-w-thin"),        # S; down-west drop to EH spur
-    ("Switch 103", 482, 105, "thin:os-r-e-thin-short"),  # S; SOUTH YD stub, not MW
-    ("Switch 111", 606, 105, X + "right/os-r-sc"),       # S ↔ M (111b ↔ 111a)
-    ("Switch 110", 671, 105, "thin:os-l-w-thin"),        # S; diamond with MW; SOUTH YD stub below
-    # 112: bar N; swap Thrown = East Lead through, Closed = down-west OS 110
-    ("Switch 112", 736, 82,  "swap:" + T + "left/west/os-l-w"),
-    # 113 skips S: both `\\`, stacked in the 113 column (not a `>` chevron).
-    ("Switch 113", 866, 82,  T + "right/east/os-r-e"),
-    ("Switch 113", 866, 105, "thin:os-r-w-thin"),
-    # 114: bar N; swap Thrown = McKeesport, Closed = K-2 on S
-    ("Switch 114", 931, 82,  "swap:" + T + "right/east/os-r-e"),
-    # 115: bar M; swap Thrown = McKees Rocks, Closed = K-1 below M
-    ("Switch 115", 996, 128, "swap:" + T + "right/east/os-r-e"),
+    # 100: Brick OS on the main only. Slot 1 (first lever column).
+    ("Switch 100", 86,  102, "swap:thin:os-n-bar"),
+    # 101: W-yard. Bar N; Thrown = up to horizontal W-1/W-2 (west of Plane).
+    ("Switch 101", 118, 79,  T + "left/east/os-l-e"),
+    ("Switch 102", 216, 102, T + "right/east/os-r-e"),
+    ("Switch 117", 346, 102, X + "left/os-l-sc"),
+    ("Switch 116", 436, 125, "thin:os-l-w-thin"),
+    ("Switch 103", 482, 125, "thin:os-r-e-thin-short"),
+    ("Switch 111", 606, 125, X + "right/os-r-sc"),
+    ("Switch 110", 671, 125, "thin:os-l-w-thin"),
+    ("Switch 112", 736, 102, "swap:" + T + "left/west/os-l-w"),
+    ("Switch 113", 866, 102, T + "right/east/os-r-e"),
+    ("Switch 113", 896, 125, "thin:os-r-w-thin"),  # east so `\\` lines up
+    ("Switch 114", 931, 102, "swap:" + T + "right/east/os-r-e"),
+    ("Switch 115", 996, 148, "swap:" + T + "right/east/os-r-e"),
 ]
 
 
@@ -180,36 +177,35 @@ def unpack_turnout(t):
 # switch number labelled underneath; crossover columns get their two OS
 # lamps side by side, centered on the column, UPPER track's lamp on the left.
 LAMPS = [
-    ("Block 4-4",  185, 53,  "W-1"),
-    ("Block 4-3",  185, 44,  "W-2"),
+    ("Block 4-4",  130, 56,  "W-1"),
+    ("Block 4-3",  130, 42,  "W-2"),
     ("Block 4-2",  99,  200, "OS 100"),
     ("Block 4-1",  164, 200, "OS 101"),
-    ("Block 4-6",  200, 80,  "Brick-Plane (100–117b)"),  # focused main
+    ("Block 4-6",  200, 100, "Brick-Plane (100–117b)"),
     ("Block 4-5",  229, 200, "OS 102"),
-    # East Main Ext (4-7) omitted on Master 4
-    ("Block 4-8",  286, 103, "Scale"),
+    ("Block 4-8",  286, 123, "Scale"),
     ("Block 13-3", 347, 200, "OS 117 (yard side)"),
     ("Block 13-4", 371, 200, "OS 117b (main side)"),
-    ("Block 13-1", 404, 103, "Barn"),
+    ("Block 13-1", 404, 123, "Barn"),
     ("Block 3-1",  424, 200, "OS 116 (Barn)"),
     ("Block 3-2",  489, 200, "OS 103"),
-    ("Block 2-8",  546, 103, "S-1"),
-    ("Block 2-1",  590, 126, "Main West (approach to 111)"),
-    ("Block 2-3",  546, 80,  "Main East"),
+    ("Block 2-8",  546, 123, "S-1"),
+    ("Block 2-1",  590, 146, "Main West (approach to 111)"),
+    ("Block 2-3",  546, 100, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
     ("Block 12-7", 684, 200, "OS 110"),
     ("Block 12-8", 749, 200, "OS 112"),
-    ("Block 1-7",  800, 80,  "East Lead (112L–113RB)"),
-    ("Block 1-8",  806, 126, "West Main Ext (111-113)"),
+    ("Block 1-7",  800, 100, "East Lead (112L–113RB)"),
+    ("Block 1-8",  806, 146, "West Main Ext (111-113)"),
     ("Block 1-5",  867, 200, "OS 113b (Main West side)"),
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
-    ("Block 1-1",  1060, 126, "McKees Rocks (through 115 / 115LA)"),
-    ("Block 1-4",  1060, 157, "K-1 (diverging 115 / 115LB)"),
-    ("Block 1-2",  1060, 80,  "McKeesport (through 114 / 114LA)"),
-    ("Block 1-3",  1060, 103, "K-2 (diverging 114 / 114LB)"),
+    ("Block 1-1",  1060, 146, "McKees Rocks (through 115 / 115LA)"),
+    ("Block 1-4",  1060, 177, "K-1 (diverging 115 / 115LB)"),
+    ("Block 1-2",  1060, 100, "McKeesport (through 114 / 114LA)"),
+    ("Block 1-3",  1060, 123, "K-2 (diverging 114 / 114LB)"),
 ]
 
 # (x, y, gif, rotation) -- line bar rows: line025 2-6, line050 3-7, line1 4-8,
@@ -217,62 +213,65 @@ LAMPS = [
 # from preference:ctc/icons/ (thin044 44px, thin085 85px, thin-45 15x15 "\",
 # rotation 1 -> "/").
 TRACKS = [
-    # W-1 / W-2 above N, east of 101 in the 3/4 column (Master 4 Y=4/5).
-    (182, 52,  "line050.gif", 0),   # W-2
-    (216, 52,  "line025.gif", 0),
-    (182, 61,  "line050.gif", 0),   # W-1
-    (216, 61,  "line025.gif", 0),
-    # N focused main (bar 88-92)
-    (21,  85,  "line050.gif", 0),   # Brick approach into 100
-    (60,  86,  "line025.gif", 0),
-    (117, 85,  "line050.gif", 0),   # 100-101
-    (183, 86,  "line025.gif", 0),   # 101-102
-    (194, 84,  "line1.gif",   0),
-    (258, 84,  "line1.gif",   0),   # through 102, into 117 (Main East Ext)
-    (392, 84,  "line1.gif",   0),   # Main East
-    (477, 84,  "line1.gif",   0),
-    (524, 79,  "line25.gif",  0),   # into 112
-    (778, 84,  "line1.gif",   0),   # East Lead 112-113
-    (820, 85,  "line050.gif", 0),
-    (908, 86,  "line025.gif", 0),   # 113a-114
-    (973, 84,  "line1.gif",   0),   # 114 -> McKeesport
-    (1020, 84, "line1.gif",   0),
-    (1084, 86, "line025.gif", 0),
-    # S Scale starts at 102's `\` (~x248) then Barn / S-1 / K-2
-    (248, 107, "line1.gif",   0),   # Scale off 102 → 117
-    (321, 109, "line025.gif", 0),
-    (392, 109, "line025.gif", 0),   # Barn 117-116
-    (394, 108, "line050.gif", 0),
-    (522, 107, "line1.gif",   0),   # S-1 103-111
-    (648, 109, "line025.gif", 0),   # 111b-110
-    (713, 109, "line025.gif", 0),   # 110 east stub
-    (956, 107, "line1.gif",   0),   # K-2 off 114
-    (1020, 107, "line1.gif",  0),
-    (1084, 109, "line025.gif", 0),
-    # M: GAP under 103 (no rail), MW starts at 111. 113b stacked at x866.
-    (584, 130, "line1.gif",   0),   # Main West approach to 111
-    (645, 132, "line025.gif", 0),   # 111a-113 WME (diamond through 110)
-    (648, 125, "line25.gif",  0),
-    (820, 131, "line050.gif", 0),   # into 113b (icon at 866)
-    (908, 132, "line025.gif", 0),   # 113b-115
-    (908, 130, "line1.gif",   0),
-    (1037, 131, "line050.gif", 0),  # 115 -> McKees Rocks
-    (1065, 131, "line050.gif", 0),
+    # W-1 / W-2: horizontal spurs over columns 1–2 (not a diagonal, not over Plane).
+    (72,  50,  "line050.gif", 0),   # W-2
+    (116, 50,  "line050.gif", 0),
+    (160, 51,  "line025.gif", 0),
+    (72,  64,  "line050.gif", 0),   # W-1
+    (116, 64,  "line050.gif", 0),
+    (160, 65,  "line025.gif", 0),
+    # N focused main (bar 108-112)
+    (21,  105, "line050.gif", 0),
+    (60,  106, "line025.gif", 0),
+    (117, 105, "line050.gif", 0),
+    (161, 106, "line025.gif", 0),
+    (194, 104, "line1.gif",   0),
+    (258, 104, "line1.gif",   0),
+    (392, 104, "line1.gif",   0),
+    (477, 104, "line1.gif",   0),
+    (524, 99,  "line25.gif",  0),
+    (778, 104, "line1.gif",   0),
+    (820, 105, "line050.gif", 0),
+    (908, 106, "line025.gif", 0),
+    (973, 104, "line1.gif",   0),
+    (1020, 104, "line1.gif",  0),
+    (1084, 106, "line025.gif", 0),
+    # S Scale off 102 then Barn / S-1 / K-2
+    (248, 127, "line1.gif",   0),
+    (321, 129, "line025.gif", 0),
+    (392, 129, "line025.gif", 0),
+    (394, 128, "line050.gif", 0),
+    (522, 127, "line1.gif",   0),
+    (648, 129, "line025.gif", 0),
+    (713, 129, "line025.gif", 0),
+    (956, 127, "line1.gif",   0),
+    (1020, 127, "line1.gif",  0),
+    (1084, 129, "line025.gif", 0),
+    # M: GAP under 103, MW from 111. 113b at x896.
+    (584, 150, "line1.gif",   0),
+    (645, 152, "line025.gif", 0),
+    (648, 145, "line25.gif",  0),
+    (820, 151, "line050.gif", 0),
+    (872, 152, "line025.gif", 0),   # into 113b
+    (936, 152, "line025.gif", 0),
+    (908, 150, "line1.gif",   0),
+    (1037, 151, "line050.gif", 0),
+    (1065, 151, "line050.gif", 0),
     # K-1 below M
-    (1037, 157, "line050.gif", 0),
-    (1065, 157, "line050.gif", 0),
-    (1084, 158, "line025.gif", 0),
-    # 116 `/` continues below empty M to a single EH spur under levers 7/9
-    (422, 136, "thin-45.gif", 1),
-    (378, 147, "line050.gif", 0),
-    (374, 145, "thin-end.gif", 0),  # EH bumper
-    # 103: frog → horizontal stub in the S–MW gap → bumper. No 45° toward MW.
-    (512, 125, "line050.gif", 0),   # SOUTH YD west (bar 128–132, above MW)
-    (554, 123, "thin-end.gif", 0),
-    # 110 diamond: `/` turns horizontal below MW → bumper. Independent of 103.
-    (657, 136, "thin-45.gif", 1),
-    (614, 147, "line050.gif", 0),   # SOUTH YD east (below MW, west of 110)
-    (610, 145, "thin-end.gif", 0),
+    (1037, 177, "line050.gif", 0),
+    (1065, 177, "line050.gif", 0),
+    (1084, 178, "line025.gif", 0),
+    # EH spur
+    (422, 156, "thin-45.gif", 1),
+    (378, 167, "line050.gif", 0),
+    (374, 165, "thin-end.gif", 0),
+    # 103 SOUTH YD stub in the S–MW gap
+    (512, 145, "line050.gif", 0),
+    (554, 143, "thin-end.gif", 0),
+    # 110 SOUTH YD stub below MW
+    (657, 156, "thin-45.gif", 1),
+    (614, 167, "line050.gif", 0),
+    (610, 165, "thin-end.gif", 0),
 ]
 
 WHITE = dict(red=255, green=255, blue=255)
@@ -287,18 +286,18 @@ TEXTS = [
     (347, 36, "BARN",      12, WHITE),
     (645, 36, "EAST END",  12, WHITE),
     (905, 36, "PRINCESS",  12, WHITE),
-    (182, 48,  "W-2", 8, CREAM),
-    (182, 58,  "W-1", 8, CREAM),
-    (200, 68,  "MAIN", 8, CREAM),
-    (525, 68,  "MAIN EAST", 8, CREAM),
-    (584, 140, "MAIN WEST", 8, CREAM),
-    (355, 163, "ENGINE HOUSE", 8, CREAM),
-    (512, 138, "SOUTH YD", 8, CREAM),
-    (618, 163, "SOUTH YD", 8, CREAM),
-    (1035, 68,  "McKEESPORT", 8, CREAM),
-    (1030, 140, "McKEES ROCKS", 8, CREAM),
-    (1090, 118, "K-2", 8, CREAM),
-    (1090, 174, "K-1", 8, CREAM),
+    (80,  42,  "W-2", 8, CREAM),
+    (80,  56,  "W-1", 8, CREAM),
+    (90,  88,  "MAIN", 8, CREAM),
+    (525, 88,  "MAIN EAST", 8, CREAM),
+    (584, 160, "MAIN WEST", 8, CREAM),
+    (355, 183, "ENGINE HOUSE", 8, CREAM),
+    (512, 158, "SOUTH YD", 8, CREAM),
+    (618, 183, "SOUTH YD", 8, CREAM),
+    (1035, 88,  "McKEESPORT", 8, CREAM),
+    (1030, 160, "McKEES ROCKS", 8, CREAM),
+    (1090, 138, "K-2", 8, CREAM),
+    (1090, 194, "K-1", 8, CREAM),
     (102, 223, "100", 8, WHITE),
     (167, 223, "101", 8, WHITE),
     (232, 223, "102", 8, WHITE),
@@ -319,12 +318,12 @@ TEXTS = [
 # home (signalmasticon, hart-aar ctc imageset); d1 = dwarf (signalheadicon
 # on the IH* head). Bar centers: N 90, S 113, M 136; W-1/W-2 above N;
 # K-1 below M. 116/103 are switch-only — no icons.
-N, S, M, MR, MK, W1, W2 = 90, 113, 136, 136, 163, 66, 57
+N, S, M, MR, MK, W1, W2 = 110, 133, 156, 156, 183, 68, 54
 # (mast, stem_x, bar_center, facing, kind, head_or_None)
 SIGNALS = [
     # Brick 101: yard exits on the stubs east of 101, facing west toward the plant
-    ("101RA",           185, W1, "W", "d1", "IH436"),
-    ("101RB",           185, W2, "W", "d1", "IH437"),
+    ("101RA",           140, W1, "W", "d1", "IH436"),
+    ("101RB",           140, W2, "W", "d1", "IH437"),
     ("100L",       130,  N,  "W", "h2", None),
     ("102LA",          265,  S,  "W", "h2", None),
     ("102LB",          265,  N,  "W", "h2", None),
@@ -518,6 +517,37 @@ def write_preview(path):
     print("%s: preview written" % path)
 
 
+def install_thin_icons():
+    """Copy ctc/icons into every local JMRI profile (preference:ctc/icons/)."""
+    import os
+    import shutil
+    src = os.path.join("jmri", "layouts", "hart", "ctc", "icons")
+    if not os.path.isdir(src):
+        return
+    dests = []
+    for root in (
+        os.path.expanduser("~/Library/Preferences/JMRI"),
+        os.path.expanduser("~/.jmri"),
+        os.path.expanduser("~/JMRI_UserFiles"),
+    ):
+        if not os.path.isdir(root):
+            continue
+        if root.endswith("JMRI_UserFiles"):
+            dests.append(os.path.join(root, "ctc", "icons"))
+            continue
+        for name in os.listdir(root):
+            if name.endswith(".jmri"):
+                dests.append(os.path.join(root, name, "ctc", "icons"))
+    for dest in dests:
+        os.makedirs(dest, exist_ok=True)
+        n = 0
+        for fn in os.listdir(src):
+            if fn.endswith(".gif"):
+                shutil.copy2(os.path.join(src, fn), os.path.join(dest, fn))
+                n += 1
+        print("CTC icons -> %s (%d gifs)" % (dest, n))
+
+
 def main():
     gui = sys.argv[1] if len(sys.argv) > 1 else "jmri/layouts/hart/ctc/GUIObjects.xml"
     txt = open(gui).read()
@@ -534,7 +564,8 @@ def main():
         open(tables, "w").write(txt)
         print("%s: embedded paneleditor regenerated" % tables)
 
-    write_preview("cats/screenshots/master4/uss_ctc_v27_preview.png")
+    install_thin_icons()
+    write_preview("cats/screenshots/master4/uss_ctc_v28_preview.png")
 
 
 if __name__ == "__main__":
