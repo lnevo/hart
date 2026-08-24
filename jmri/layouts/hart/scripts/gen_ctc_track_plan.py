@@ -206,8 +206,8 @@ LAMPS = [
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
-    ("Block 1-1",  1060, 146, "McKees Rocks (through 115 / 115LA)"),
-    ("Block 1-4",  1060, 177, "K-1 (diverging 115 / 115LB)"),
+    ("Block 1-4",  1060, 146, "K-1 (diverging 115 / 115LB)"),
+    ("Block 1-1",  1060, 177, "McKees Rocks (through 115 / 115LA)"),
     ("Block 1-2",  1060, 100, "McKeesport (through 114 / 114LA)"),
     ("Block 1-3",  1060, 123, "K-2 (diverging 114 / 114LB)"),
 ]
@@ -352,8 +352,8 @@ TEXTS = [
     # Princess east stubs: cream 8pt, right-aligned to EAST_RAIL.
     (EAST_RAIL, 88,  "McKeesport", 8, CREAM, "right"),
     (EAST_RAIL, 114, "K-2", 8, CREAM, "right"),
-    (EAST_RAIL, 137, "McKees Rocks", 8, CREAM, "right"),
-    (EAST_RAIL, 168, "K-1", 8, CREAM, "right"),
+    (EAST_RAIL, 137, "K-1", 8, CREAM, "right"),
+    (EAST_RAIL, 168, "McKees Rocks", 8, CREAM, "right"),
     (102, 223, "100", 8, WHITE),
     (167, 223, "101", 8, WHITE),
     (232, 223, "102", 8, WHITE),
@@ -377,10 +377,9 @@ TEXTS = [
 N, S, M, MR, MK, W1, W2 = 110, 133, 156, 156, 183, 68, 54
 # (mast, stem_x, bar_center, facing, kind, head_or_None)
 SIGNALS = [
-    # Brick 101: yard exits on the stubs east of 101, facing west toward the plant
-    ("101RA",           140, W1, "W", "d1", "IH436"),
-    ("101RB",           140, W2, "W", "d1", "IH437"),
-    ("100L",       130,  N,  "W", "h2", None),
+    # W-1/W-2 occupancy is the in-track Block 4-4 / 4-3 lamps (no dwarf heads).
+    # Brick 100L: west of 100, facing east into the plant (eastbound home).
+    ("100L",        52,  N,  "E", "h2", None),
     ("102LA",          265,  S,  "W", "h2", None),
     ("102LB",          265,  N,  "W", "h2", None),
     ("117RA",      328,  S,  "E", "h2", None),
@@ -395,11 +394,12 @@ SIGNALS = [
     ("112L",      780,  N,  "W", "h2", None),
     ("113RA",      848,  M,  "E", "h2", None),  # MW / 113b
     ("113RB",      848,  N,  "E", "h2", None),  # main / 113a
+    # Princess east intermediates: McKeesport (N) and McKees Rocks (bottom).
     ("114R",  1088,  N,  "E", "d1", "IH134"),
     ("114LA", 1050,  N,  "W", "d1", "IH143"),
     ("114LB", 1050,  S,  "W", "h2", None),
-    ("115R", 1088, M, "E", "d1", "IH141"),
-    ("115LA", 1050, M, "W", "h2", None),
+    ("115R",  1088, MK,  "E", "d1", "IH141"),
+    ("115LA", 1050,  M,  "W", "h2", None),
     ("115LB", 1050, MK, "W", "d1", "IH142"),
 ]
 
@@ -632,7 +632,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v38_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v39_preview.png")
 
 
 if __name__ == "__main__":
