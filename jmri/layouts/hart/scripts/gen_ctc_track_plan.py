@@ -150,7 +150,7 @@ SWITCH_ONLY_SLOTS = {6, 7}
 TURNOUTS = [
     # Blank = col 1. 100 centered in col 2 (slot 1). os-l-e: through on N,
     # `/` up-east is the diverging lead into 101.
-    ("Switch 100", 86,  79,  T + "left/east/os-l-e"),
+    ("Switch 100", 86,  79,  "swap:" + T + "left/east/os-l-e"),
     # 101 in the 2/3 gap, on 100's `/`. os-ne-r: throat SW continues that `/`;
     # NE `/` flattens to W-1 (top); east bar is W-2 (between W-1 and main).
     ("Switch 101", 114, 55,  T + "right/ne/os-ne-r"),
@@ -165,7 +165,7 @@ TURNOUTS = [
     ("Switch 113", 866, 102, T + "right/east/os-r-e"),
     ("Switch 113", 888, 125, T + "right/west/os-r-w"),  # stock `\\`; 8px west so it meets 113a
     ("Switch 114", 920, 102, "swap:" + T + "right/east/os-r-e"),
-    ("Switch 115", 996, 148, "swap:" + T + "right/east/os-r-e"),
+    ("Switch 115", 967, 148, "swap:" + T + "right/east/os-r-e"),  # 114|115 column gutter
 ]
 
 
@@ -211,9 +211,9 @@ LAMPS = [
     ("Block 1-6",  891, 200, "OS 113a (East Lead side)"),
     ("Block 1-3",  944, 200, "OS 114 + K-2 (one circuit)"),
     ("Block 1-4",  1009, 200, "OS 115 + K-1 (one circuit)"),
-    ("Block 1-1",  1072, 146, "McKees Rocks (through 115 / 115LB)"),
+    ("Block 1-1",  1043, 146, "McKees Rocks (through 115 / 115LB)"),
     ("Block 1-4",  1072, 172, "K-1 (diverging 115 / 115LA)"),
-    ("Block 1-2",  1072, 100, "McKeesport (through 114 / 114LB)"),
+    ("Block 1-2",  1043, 100, "McKeesport (through 114 / 114LB)"),
     ("Block 1-3",  1072, 123, "K-2 (diverging 114 / 114LA)"),
 ]
 
@@ -281,12 +281,14 @@ TRACKS = [
     (760, 150, "line1.gif",   0),
     (820, 151, "line050.gif", 0),
     (838, 151, "line050.gif", 0),   # WME up to OS 113b (888)
-    (922, 150, "line1.gif",   0),   # McKees Rocks after 113b, before 115
-    (1030, 150, "line1.gif",   0),   # McKees Rocks after OS 115
-    (1100, 150, "line1.gif",   0),
+    (927, 151, "line050.gif", 0),   # McKees Rocks after 113b, into 115 (967)
+    (1000, 150, "line1.gif",   0),   # McKees Rocks after OS 115
+    (1070, 150, "line1.gif",   0),
+    (1110, 150, "line1.gif",   0),
     # K-1 below M (diverging 115)
-    (1030, 177, "line1.gif",   0),
-    (1100, 177, "line1.gif",   0),
+    (1000, 177, "line1.gif",   0),
+    (1070, 177, "line1.gif",   0),
+    (1110, 177, "line1.gif",   0),
     # Engine House: two thin stalls off 116
     (422, 156, "thin-45.gif", 1),
     (378, 169, "thin044.gif", 0),
@@ -309,8 +311,10 @@ TRACKS = [
 WHITE = dict(red=255, green=255, blue=255)
 CREAM = dict(red=220, green=220, blue=180)
 BLACK = dict(red=0, green=0, blue=0)
-# East stub rails finish at x=1105. Princess labels are right-justified there.
+# East stub rails finish at x=1105. McKeesport / McKees Rocks are
+# right-justified there; K-1 / K-2 sit further east on their own stubs.
 EAST_RAIL = 1105
+K_RAIL = 1135
 # Drop the plant below the gold header / CP names, and leave a gap
 # between SOUTH YD and the OS lamp row (was ~5px).
 Y_PLANT = 40
@@ -375,11 +379,12 @@ TEXTS = [
     (816, 88,  "EAST LEAD", 8, CREAM, "center"),  # above East Lead lamp (x=806)
     (348, 194, "ENGINE HOUSE", 8, CREAM),
     (572, 186, "SOUTH YD", 8, CREAM),
-    # Princess east stubs: cream 8pt, right-aligned to EAST_RAIL.
-    (EAST_RAIL, 88,  "McKeesport", 8, CREAM, "right"),
-    (EAST_RAIL, 114, "K-2", 8, CREAM, "right"),
+    # Princess: McKeesport moves west with 115 / McKees Rocks occupancy;
+    # McKees Rocks keeps EAST_RAIL. K-1 / K-2 sit further east on their tracks.
+    (1076, 88,  "McKeesport", 8, CREAM, "right"),
+    (K_RAIL, 122, "K-2", 8, CREAM, "right"),  # 2nd track (S); K-1 offset below M
     (EAST_RAIL, 137, "McKees Rocks", 8, CREAM, "right"),
-    (EAST_RAIL, 168, "K-1", 8, CREAM, "right"),
+    (K_RAIL, 168, "K-1", 8, CREAM, "right"),
     (102, 223, "100", 8, WHITE),
     (167, 223, "101", 8, WHITE),
     (232, 223, "102", 8, WHITE),
@@ -432,8 +437,8 @@ SIGNALS = [
     ("115R",  1096,  M,  "E", "d1", "IH141"),
     ("114LB",  982,  N,  "W", "h2", None),   # McKeesport 2-lamp
     ("114LA",  982,  S,  "W", "d1", "IH143"),  # K-2 1-lamp
-    ("115LB", 1058,  M,  "W", "h2", None),   # McKees Rocks 2-lamp
-    ("115LA", 1058, MK,  "W", "d1", "IH142"),  # K-1 1-lamp
+    ("115LB", 1029,  M,  "W", "h2", None),   # McKees Rocks 2-lamp (moves with 115)
+    ("115LA", 1029, MK,  "W", "d1", "IH142"),  # K-1 1-lamp
 ]
 
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
@@ -673,7 +678,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v50_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v51_preview.png")
 
 
 if __name__ == "__main__":

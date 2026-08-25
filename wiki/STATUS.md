@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v51**: 115 in the 114/115 gutter; McKeesport / McKees Rocks lamps follow; K-2 on the second track; `swap:` on 100/112/114/115 like CATS. Reload **USS CTC**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v50**: Brick-Plane lamp on the 2/3 column line; East Main Ext stacked on Scale; Main West body lamp in column 5 (west of Scale); Barn 117 crossover is `\\`. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — Master 4: MW spine to the west edge, wrap `(1,8)`↔`(1,6)` (no gap at 2,6); 116 SHARED to `(18,9)` over MW; 118 at `(17,9)`; 111RB cell is OS (no gap at 31,7 RIGHT). Reload **CATS Master4**. Not deployed.
