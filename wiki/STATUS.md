@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-25 — USS CTC **v55**: Brick-Plane occupancy centered between 100 and 102; W-1/W-2 lamps stacked on that column. Reload **USS CTC**. Deploy `--all`.
+
 Updated: 2026-08-25 — USS CTC Panel Editor is now the `GUIObjects.xml` board (SOUTH YD). Old `Panel ` paneleditor removed from `tables/new_tables.xml`, deploy bundle `jmri/layouts/hart/output/tables.xml`, and the Mac profile. Deploy `--all`. Reload **USS CTC** (Panels menu). Do not run it with CATS CTC.
 
 Updated: 2026-08-25 — **Live cutover:** Master 4 schematic is CATS CTC / CATS ABS / USS CTC. CATS Master4 icon removed. Deploy `--all`. Reload **CATS CTC** or **CATS ABS** (not both with USS).
