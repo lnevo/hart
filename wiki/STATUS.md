@@ -1,5 +1,11 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v49**: Main West west of 111 is one continuous circuit (line1 tiles overlap so they don’t leave 14px holes); East Main Ext lamp (`Block 4-7`) between 102 and 117; rail cuts only at OS frogs. Reload **USS CTC**. Not deployed.
+
+Updated: 2026-08-24 — Master 4: 119 at `(16,8)`, 118 at `(18,8)`; OS cells through 117LA / 111L / 114LA / 115LA and S-5 body (no mid-block gaps). Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-24 — Master 4: EH-1/EH-3 frog `(16,8)` is Switch **118**; invert-vs-JMRI only on 100/112/114/115 (101/102 Closed = through). Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v48**: OS cut after 111L (east of 111), matching Main East after 112; Main West runs from the South Yard OS lamp to the west frame. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v47**: 111–West Main Ext rail filled; Brick west and Princess east stubs run to the frame; short Main West stub west of 111. Reload **USS CTC**. Not deployed.

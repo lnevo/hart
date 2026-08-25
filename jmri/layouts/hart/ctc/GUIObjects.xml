@@ -2161,6 +2161,22 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
+    <sensoricon sensor="Block 4-7" x="301" y="140" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>East Main Ext (102–117b)</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <sensoricon sensor="Block 4-5" x="229" y="284" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS 102</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
@@ -2600,7 +2616,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="118" y="145" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="126" y="145" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2610,8 +2626,8 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="188" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+    <positionablelabel x="168" y="145" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
@@ -2621,6 +2637,11 @@
       </icon>
     </positionablelabel>
     <positionablelabel x="392" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="462" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2635,6 +2656,11 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
+    <positionablelabel x="650" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
     <positionablelabel x="778" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -2645,27 +2671,17 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="908" y="146" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
     <positionablelabel x="962" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1020" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1032" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1084" y="146" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <positionablelabel x="1105" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1102" y="144" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2705,23 +2721,23 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="945" y="167" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="954" y="167" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1020" y="167" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1024" y="167" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1084" y="169" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
+    <positionablelabel x="1094" y="167" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1105" y="167" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+    <positionablelabel x="0" y="191" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
@@ -2730,32 +2746,37 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="85" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="70" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="170" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="140" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="255" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="210" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="340" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="280" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="425" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="350" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="510" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="420" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
+    <positionablelabel x="490" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2775,12 +2796,12 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="699" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="690" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="784" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="760" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2790,52 +2811,32 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="872" y="192" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
+    <positionablelabel x="838" y="191" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="936" y="192" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <positionablelabel x="908" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="922" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1037" y="191" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <positionablelabel x="1065" y="191" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <positionablelabel x="1105" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1030" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1037" y="217" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+    <positionablelabel x="1100" y="190" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1065" y="217" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line050.gif" degrees="0" scale="1.0">
+    <positionablelabel x="1030" y="217" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="1084" y="218" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USS/track/block/line025.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <positionablelabel x="1105" y="217" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1100" y="217" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/track/block/line1.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -2938,6 +2939,9 @@
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="525" y="128" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="MAIN EAST" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="276" y="128" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="EAST MAIN EXT" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="center" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="790" y="214" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="MAIN WEST" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="center" class="jmri.jmrit.display.configurexml.PositionableLabelXml">

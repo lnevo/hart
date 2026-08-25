@@ -189,6 +189,7 @@ LAMPS = [
     ("Block 4-2",  99,  200, "OS 100"),
     ("Block 4-1",  164, 200, "OS 101"),
     ("Block 4-6",  196, 100, "Brick-Plane (100–117b)"),
+    ("Block 4-7",  301, 100, "East Main Ext (102–117b)"),
     ("Block 4-5",  229, 200, "OS 102"),
     ("Block 4-8",  286, 123, "Scale"),
     ("Block 13-3", 347, 200, "OS 117 (yard side)"),
@@ -219,6 +220,8 @@ LAMPS = [
 # line25 9-13; b-45 30x30 "\" (rotation 1 -> "/"). thin* gifs are 2px lines
 # from preference:ctc/icons/ (thin044 44px, thin085 85px, thin-45 15x15 "\",
 # rotation 1 -> "/").
+# line1.gif is 85px wide but ink is only x+7..x+78 (71px). Adjacent tiles
+# placed 85px apart leave a ~14px hole — step 70 so ink overlaps.
 TRACKS = [
     # W-1 / W-2: one ink row (55–59 / 79–83) matching 101's heels, then bumper.
     (145, 52,  "line050.gif", 0),   # W-1
@@ -233,20 +236,20 @@ TRACKS = [
     (0,   105, "line050.gif", 0),   # west stub to the frame
     (21,  105, "line050.gif", 0),   # col 1 approach
     (58,  106, "line025.gif", 0),
-    (118, 105, "line050.gif", 0),
-    (155, 105, "line050.gif", 0),   # col 3 into 102
-    (188, 104, "line1.gif",   0),   # into 102 (line1 ink starts +7)
-    (258, 104, "line1.gif",   0),
-    (392, 104, "line1.gif",   0),
+    (126, 105, "line050.gif", 0),   # Brick-Plane after OS 100 (86–126)
+    (155, 105, "line050.gif", 0),   # stop before OS 102 (216)
+    (168, 105, "line050.gif", 0),
+    (258, 104, "line1.gif",   0),   # East Main Ext (after OS 102, before OS 117)
+    (392, 104, "line1.gif",   0),   # Main East after OS 117b
+    (462, 104, "line1.gif",   0),   # join — line1 ink is only 71 of 85px
     (477, 104, "line1.gif",   0),
     (524, 99,  "line25.gif",  0),
-    (778, 104, "line1.gif",   0),
-    (820, 105, "line050.gif", 0),
-    (908, 106, "line025.gif", 0),
-    (962, 104, "line1.gif",   0),
-    (1020, 104, "line1.gif",  0),
-    (1084, 106, "line025.gif", 0),
-    (1105, 104, "line1.gif",   0),   # McKeesport to east frame
+    (650, 104, "line1.gif",   0),   # Main East to OS 112 (736)
+    (778, 104, "line1.gif",   0),   # East Lead after OS 112
+    (820, 105, "line050.gif", 0),   # into 113a; OS 113a / 114 are adjacent
+    (962, 104, "line1.gif",   0),   # McKeesport after OS 114
+    (1032, 104, "line1.gif",  0),
+    (1102, 104, "line1.gif",   0),   # to east frame (overlap, no tile hole)
     # S Scale off 102 then Barn / S-1 / K-2
     (248, 127, "line1.gif",   0),   # Scale off 102 (icon at x216)
     (321, 129, "line025.gif", 0),
@@ -255,37 +258,34 @@ TRACKS = [
     (522, 127, "line1.gif",   0),
     (648, 129, "line025.gif", 0),
     (713, 129, "line025.gif", 0),
-    (945, 127, "line1.gif",   0),
-    (1020, 127, "line1.gif",  0),
-    (1084, 129, "line025.gif", 0),
-    (1105, 127, "line1.gif",   0),   # K-2 to east frame
-    # M: Main West from the west frame through the South Yard OS lamp
-    # into 111. OS cut after 111L (same grammar as Main East after 112L),
-    # then West Main Ext into 113b.
+    (954, 127, "line1.gif",   0),   # K-2 after OS 114
+    (1024, 127, "line1.gif",  0),
+    (1094, 127, "line1.gif",   0),   # to east frame
+    # M: Main West is one circuit (Block 2-1) from the west frame through
+    # the South Yard OS lamp into 111 — no mid-block gaps. line1 tiles
+    # step 70px so ink overlaps. OS cut after 111L, then West Main Ext.
+    (0,   151, "line050.gif", 0),
     (0,   150, "line1.gif",   0),
-    (85,  150, "line1.gif",   0),
-    (170, 150, "line1.gif",   0),
-    (255, 150, "line1.gif",   0),
-    (340, 150, "line1.gif",   0),
-    (425, 150, "line1.gif",   0),
-    (510, 150, "line1.gif",   0),   # through MW OS lamp at 546
+    (70,  150, "line1.gif",   0),
+    (140, 150, "line1.gif",   0),
+    (210, 150, "line1.gif",   0),
+    (280, 150, "line1.gif",   0),
+    (350, 150, "line1.gif",   0),
+    (420, 150, "line1.gif",   0),
+    (490, 150, "line1.gif",   0),
     (546, 151, "line050.gif", 0),
     (562, 151, "line050.gif", 0),   # into 111 (icon 606–646)
     (655, 151, "line050.gif", 0),   # WME just east of 111L
-    (699, 150, "line1.gif",   0),
-    (784, 150, "line1.gif",   0),
+    (690, 150, "line1.gif",   0),
+    (760, 150, "line1.gif",   0),
     (820, 151, "line050.gif", 0),
-    (872, 152, "line025.gif", 0),   # into 113b
-    (936, 152, "line025.gif", 0),
-    (908, 150, "line1.gif",   0),
-    (1037, 151, "line050.gif", 0),
-    (1065, 151, "line050.gif", 0),
-    (1105, 150, "line1.gif",   0),   # McKees Rocks to east frame
-    # K-1 below M
-    (1037, 177, "line050.gif", 0),
-    (1065, 177, "line050.gif", 0),
-    (1084, 178, "line025.gif", 0),
-    (1105, 177, "line1.gif",   0),   # K-1 to east frame
+    (838, 151, "line050.gif", 0),   # WME up to OS 113b (888)
+    (922, 150, "line1.gif",   0),   # McKees Rocks after 113b, before 115
+    (1030, 150, "line1.gif",   0),   # McKees Rocks after OS 115
+    (1100, 150, "line1.gif",   0),
+    # K-1 below M (diverging 115)
+    (1030, 177, "line1.gif",   0),
+    (1100, 177, "line1.gif",   0),
     # Engine House: two thin stalls off 116
     (422, 156, "thin-45.gif", 1),
     (378, 169, "thin044.gif", 0),
@@ -368,6 +368,7 @@ TEXTS = [
     (275, 71,  "W-2", 8, CREAM),
     (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
+    (311, 88,  "EAST MAIN EXT", 8, CREAM, "center"),
     (816, 174, "MAIN WEST", 8, CREAM, "center"),  # under West Main Ext lamp (x=806)
     (816, 88,  "EAST LEAD", 8, CREAM, "center"),  # above East Lead lamp (x=806)
     (348, 194, "ENGINE HOUSE", 8, CREAM),
@@ -532,7 +533,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|EAST LEAD|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|McKeesport|McKees Rocks|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|EAST MAIN EXT|EAST LEAD|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|McKeesport|McKees Rocks|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
     # stock CTC Unlocked indicators + labels, replaced by the OS lamp row
     # (GUI only -- the IS*:UNLOCKEDINDICATOR sensors still exist; delete
     # these two patterns to bring the buttons back)
@@ -670,7 +671,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v48_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v49_preview.png")
 
 
 if __name__ == "__main__":
