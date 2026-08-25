@@ -159,7 +159,7 @@ TURNOUTS = [
     ("Switch 117", 346, 102, X + "right/os-r-sc"),  # `\\` (os-l-sc is `/`)
     ("Switch 116", 436, 125, "thin:os-l-w-thin"),
     ("Switch 103", 482, 125, "thin:os-r-e-thin"),
-    ("Switch 111", 606, 125, X + "right/os-r-sc"),
+    ("Switch 111", 606, 125, X + "left/os-l-sc"),  # RH xover; os-r-sc is `\\` (117)
     ("Switch 110", 671, 125, "thin:os-l-w-thin"),
     ("Switch 112", 736, 102, "swap:" + T + "left/west/os-l-w"),
     ("Switch 113", 866, 102, T + "right/east/os-r-e"),
@@ -259,9 +259,11 @@ TRACKS = [
     (522, 127, "line1.gif",   0),
     (648, 129, "line025.gif", 0),
     (713, 129, "line025.gif", 0),
-    (954, 127, "line1.gif",   0),   # K-2 after OS 114
-    (1024, 127, "line1.gif",  0),
-    (1094, 127, "line1.gif",   0),   # to east frame
+    (954, 127, "line1.gif",   0),   # K-2 spur after OS 114
+    (1024, 128, "line050.gif", 0),
+    (1058, 128, "line050.gif", 0),  # through K-2 lamp
+    (1090, 129, "line025.gif", 0),
+    (1108, 125, "thin-end.gif", 0),
     # M: Main West is one circuit (Block 2-1) from the west frame through
     # the South Yard OS lamp into 111 — no mid-block gaps. line1 tiles
     # step 70px so ink overlaps. OS cut after 111L, then West Main Ext.
@@ -285,10 +287,11 @@ TRACKS = [
     (1000, 150, "line1.gif",   0),   # McKees Rocks after OS 115
     (1070, 150, "line1.gif",   0),
     (1110, 150, "line1.gif",   0),
-    # K-1 below M (diverging 115)
+    # K-1 spur below M (diverging 115); bumper before the frame
     (1000, 177, "line1.gif",   0),
-    (1070, 177, "line1.gif",   0),
-    (1110, 177, "line1.gif",   0),
+    (1058, 178, "line050.gif", 0),
+    (1090, 179, "line025.gif", 0),
+    (1108, 175, "thin-end.gif", 0),
     # Engine House: two thin stalls off 116
     (422, 156, "thin-45.gif", 1),
     (378, 169, "thin044.gif", 0),
@@ -311,10 +314,10 @@ TRACKS = [
 WHITE = dict(red=255, green=255, blue=255)
 CREAM = dict(red=220, green=220, blue=180)
 BLACK = dict(red=0, green=0, blue=0)
-# East stub rails finish at x=1105. McKeesport / McKees Rocks are
-# right-justified there; K-1 / K-2 sit further east on their own stubs.
-EAST_RAIL = 1105
-K_RAIL = 1135
+# McKeesport / McKees Rocks share a right edge over the stacked lamps.
+# K-1 / K-2 sit on the spur bumpers, inside the gold cap (x=1117).
+EAST_RAIL = 1076
+K_RAIL = 1108
 # Drop the plant below the gold header / CP names, and leave a gap
 # between SOUTH YD and the OS lamp row (was ~5px).
 Y_PLANT = 40
@@ -379,12 +382,12 @@ TEXTS = [
     (816, 88,  "EAST LEAD", 8, CREAM, "center"),  # above East Lead lamp (x=806)
     (348, 194, "ENGINE HOUSE", 8, CREAM),
     (572, 186, "SOUTH YD", 8, CREAM),
-    # Princess: McKeesport moves west with 115 / McKees Rocks occupancy;
-    # McKees Rocks keeps EAST_RAIL. K-1 / K-2 sit further east on their tracks.
-    (1076, 88,  "McKeesport", 8, CREAM, "right"),
-    (K_RAIL, 122, "K-2", 8, CREAM, "right"),  # 2nd track (S); K-1 offset below M
+    # Princess: McKeesport and McKees Rocks share a right edge over their
+    # stacked lamps. K-1 / K-2 sit on the spur bumpers.
+    (EAST_RAIL, 88,  "McKeesport", 8, CREAM, "right"),
+    (K_RAIL, 124, "K-2", 8, CREAM, "center"),
     (EAST_RAIL, 137, "McKees Rocks", 8, CREAM, "right"),
-    (K_RAIL, 168, "K-1", 8, CREAM, "right"),
+    (K_RAIL, 168, "K-1", 8, CREAM, "center"),
     (102, 223, "100", 8, WHITE),
     (167, 223, "101", 8, WHITE),
     (232, 223, "102", 8, WHITE),
@@ -678,7 +681,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v51_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v52_preview.png")
 
 
 if __name__ == "__main__":

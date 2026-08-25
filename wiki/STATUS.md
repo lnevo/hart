@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v52**: 111 crossover flipped to os-l-sc; McKees Rocks lined up with McKeesport; K-1/K-2 are short spurs with on-track labels. Reload **USS CTC**. Not deployed.
+
+Updated: 2026-08-24 — Master 4 Princess: east bumper of McKeesport is McKees Rocks occupancy (`Block 1-1`), and vice versa, so 114R/115R do not share the body to the west. Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v51**: 115 in the 114/115 gutter; McKeesport / McKees Rocks lamps follow; K-2 on the second track; `swap:` on 100/112/114/115 like CATS. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v50**: Brick-Plane lamp on the 2/3 column line; East Main Ext stacked on Scale; Main West body lamp in column 5 (west of Scale); Barn 117 crossover is `\\`. Reload **USS CTC**. Not deployed.
