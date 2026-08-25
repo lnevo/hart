@@ -156,7 +156,7 @@ TURNOUTS = [
     ("Switch 101", 114, 55,  T + "right/ne/os-ne-r"),
     # 102 Plane, col 4 (slot 3).
     ("Switch 102", 216, 102, T + "right/east/os-r-e"),
-    ("Switch 117", 346, 102, X + "left/os-l-sc"),
+    ("Switch 117", 346, 102, X + "right/os-r-sc"),  # `\\` (os-l-sc is `/`)
     ("Switch 116", 436, 125, "thin:os-l-w-thin"),
     ("Switch 103", 482, 125, "thin:os-r-e-thin"),
     ("Switch 111", 606, 125, X + "right/os-r-sc"),
@@ -188,8 +188,8 @@ LAMPS = [
     ("Block 4-3",  196, 71,  "W-2"),
     ("Block 4-2",  99,  200, "OS 100"),
     ("Block 4-1",  164, 200, "OS 101"),
-    ("Block 4-6",  196, 100, "Brick-Plane (100–117b)"),
-    ("Block 4-7",  301, 100, "East Main Ext (102–117b)"),
+    ("Block 4-6",  132, 100, "Brick-Plane (100–117b)"),  # centered on the 2/3 column line
+    ("Block 4-7",  286, 100, "East Main Ext (102–117b)"),  # stacked on Scale
     ("Block 4-5",  229, 200, "OS 102"),
     ("Block 4-8",  286, 123, "Scale"),
     ("Block 13-3", 347, 200, "OS 117 (yard side)"),
@@ -198,7 +198,8 @@ LAMPS = [
     ("Block 3-1",  424, 200, "OS 116 (Barn)"),
     ("Block 3-2",  489, 200, "OS 103"),
     ("Block 2-8",  546, 123, "S-1"),
-    ("Block 2-1",  546, 146, "Main West (approach to 111)"),
+    # Column 5 west edge: between W-1/W-2 (196) and Scale (286), east of 102.
+    ("Block 2-1",  272, 146, "Main West (approach to 111)"),
     ("Block 2-3",  546, 100, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
     ("Block 12-6", 631, 200, "OS 111b (yard side)"),
@@ -368,7 +369,8 @@ TEXTS = [
     (275, 71,  "W-2", 8, CREAM),
     (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
-    (311, 88,  "EAST MAIN EXT", 8, CREAM, "center"),
+    (296, 88,  "EAST MAIN EXT", 8, CREAM, "center"),  # over East Main Ext / Scale stack
+    (282, 174, "MAIN WEST", 8, CREAM, "center"),  # under Block 2-1 (column 5)
     (816, 174, "MAIN WEST", 8, CREAM, "center"),  # under West Main Ext lamp (x=806)
     (816, 88,  "EAST LEAD", 8, CREAM, "center"),  # above East Lead lamp (x=806)
     (348, 194, "ENGINE HOUSE", 8, CREAM),
@@ -608,10 +610,10 @@ def write_preview(path):
         font_s = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 9)
     except OSError:
         font = font_s = ImageFont.load_default()
-    for i in range(5):
+    for i in range(6):
         x = 12 + 65 * i
         draw.line([(x, 34), (x, 310)], fill=(50, 50, 50, 255))
-        if i < 4:
+        if i < 5:
             draw.text((x + 22, 22), str(i + 1), fill=(90, 90, 90, 255), font=font_s)
     for t in TEXTS:
         x, y, text, size, col, just = unpack_text(t)
@@ -671,7 +673,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v49_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v50_preview.png")
 
 
 if __name__ == "__main__":

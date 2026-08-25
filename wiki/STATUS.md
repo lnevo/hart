@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-24 — USS CTC **v50**: Brick-Plane lamp on the 2/3 column line; East Main Ext stacked on Scale; Main West body lamp in column 5 (west of Scale); Barn 117 crossover is `\\`. Reload **USS CTC**. Not deployed.
+
+Updated: 2026-08-24 — Master 4: MW spine to the west edge, wrap `(1,8)`↔`(1,6)` (no gap at 2,6); 116 SHARED to `(18,9)` over MW; 118 at `(17,9)`; 111RB cell is OS (no gap at 31,7 RIGHT). Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v49**: Main West west of 111 is one continuous circuit (line1 tiles overlap so they don’t leave 14px holes); East Main Ext lamp (`Block 4-7`) between 102 and 117; rail cuts only at OS frogs. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — Master 4: 119 at `(16,8)`, 118 at `(18,8)`; OS cells through 117LA / 111L / 114LA / 115LA and S-5 body (no mid-block gaps). Reload **CATS Master4**. Not deployed.
