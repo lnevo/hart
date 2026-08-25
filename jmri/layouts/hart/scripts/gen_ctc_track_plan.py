@@ -246,6 +246,7 @@ TRACKS = [
     (650, 104, "line1.gif",   0),   # Main East to OS 112 (736)
     (778, 104, "line1.gif",   0),   # East Lead after OS 112
     (820, 105, "line050.gif", 0),   # into 113a
+    (906, 105, "line050.gif", 0),   # East Lead 113a → 114 (was a 25px hole)
     (965, 104, "line1.gif",   0),   # McKeesport after OS 114 (931–971)
     (1032, 104, "line1.gif",  0),
     (1102, 104, "line1.gif",   0),   # to east frame (overlap, no tile hole)
@@ -421,7 +422,7 @@ SIGNALS = [
     ("111RA",    588,  M,  "E", "h2", None),
     ("111RB",    588,  S,  "E", "d1", "IH1236"),
     ("111L",      650,  M,  "W", "h2", None),
-    ("110R",      618, SY, "E", "d1", "IH1239"),  # SY lead, eastbound into 110
+    ("110R",      618, SY + 6, "E", "d1", "IH1239"),  # SY lead; a few px below SOUTH YD
     ("112R",      708,  N,  "E", "h2", None),
     ("112L",      780,  N,  "W", "h2", None),
     ("113RA",      848,  M,  "E", "h2", None),  # MW / 113b
@@ -677,7 +678,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v53_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v54_preview.png")
 
 
 if __name__ == "__main__":

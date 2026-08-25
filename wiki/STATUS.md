@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-25 — USS CTC **v54**: East Lead filled 113a→114; 110R dropped a few pixels under SOUTH YD. Reload **USS CTC**. Not deployed.
+
+Updated: 2026-08-24 — USS CTC **v53**: 114 in its column; K-1/K-2 bumpers off; W-1/W-2 shortened off East Main Ext; West Main Ext labeled. Reload **USS CTC**. Not deployed.
+
 Updated: 2026-08-24 — USS CTC **v52**: 111 crossover flipped to os-l-sc; McKees Rocks lined up with McKeesport; K-1/K-2 are short spurs with on-track labels. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — Master 4 Princess: east bumper of McKeesport is McKees Rocks occupancy (`Block 1-1`), and vice versa, so 114R/115R do not share the body to the west. Reload **CATS Master4**. Not deployed.
