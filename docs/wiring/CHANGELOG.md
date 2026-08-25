@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-08-25 — EH-1 / EH-3 occupancy
+
+C5-B3-1 (`Block 13-5` / M2S1304) is **EH-3** (track T11). C5-B4-1 (`Block 13-7` / M2S1306) is **EH-1** (track T9). MQTT ids in Notes are unchanged. Re-run `create_wiring_schematic_ppt.py` (python-pptx) to refresh the C5 slide.
+
 ## Changes vs v84
 - **BlockSensors (lower deck):** Public names — Scale (was Yard T1), Barn (was Yard T6), S-1…S-5, W-1/W-2, EH-1…EH-3 (by MQTT `Block n-n`, which also unswapped v84’s T9/T11 labels on C5-B3/B4), OS 100… without the turnout-as-block names. Occupancy sensors remain `Block n-n` in Notes.
 - **Signals (the v84 “pending revision”):** Overlay Digicon searchlight heads on the ports in `signal_wiring.csv` (C4 Plane/Brick, C1 Barn 117, C7 East End, D1 Princess including new 114LA/115LA). Previous RGB `Sx-y G/Y/R` labels kept in DNOU8 Notes.

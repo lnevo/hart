@@ -20,6 +20,7 @@ DEFAULT_SOURCES = (
     ("standalone", REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "hart_prod.xml"),
 )
 BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
+OCCUPANCY_BINDINGS = REPO_ROOT / "cats" / "data" / "occupancy_bindings.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "preference:jython/hart_dispatcher_startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
@@ -62,6 +63,17 @@ def attr_or_child(element: ET.Element, name: str) -> str:
 
 def sensor_key(block_name: str) -> str:
     return block_name.replace(" ", "_")
+
+
+def occupancy_binding_map() -> dict[str, str]:
+    out: dict[str, str] = {}
+    with OCCUPANCY_BINDINGS.open(newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            name = (row.get("block_user_name") or "").strip()
+            sensor = (row.get("occupancy_sensor_user_name") or "").strip()
+            if name and sensor:
+                out[name] = sensor
+    return out
 
 
 @dataclass(frozen=True)
@@ -219,6 +231,32 @@ def block_definitions(root: ET.Element) -> dict[str, list[str]]:
         if name:
             definitions.setdefault(name, []).append(text(block, "comment"))
     return definitions
+
+
+def audit_occupancy_bindings(root: ET.Element, audit: Audit, *, required: bool) -> None:
+    """Plate names in occupancy_bindings.csv must match block occupancysensor."""
+    problem = audit.error if required else audit.warn
+    expected = occupancy_binding_map()
+    found: dict[str, set[str]] = {}
+    for block in root.findall("./blocks/block"):
+        name = text(block, "userName")
+        occ = text(block, "occupancysensor")
+        if name and occ:
+            found.setdefault(name, set()).add(occ)
+    mismatches: list[str] = []
+    for name, sensor in sorted(expected.items()):
+        actual = found.get(name, set())
+        if not actual:
+            continue
+        if actual != {sensor}:
+            mismatches.append(f"{name}: csv {sensor!r}, xml {sorted(actual)}")
+    if mismatches:
+        problem(
+            "occupancy_bindings.csv disagrees with block occupancysensor: "
+            + "; ".join(mismatches[:8])
+            + (" ..." if len(mismatches) > 8 else "")
+        )
+    audit.facts["occupancy_bindings"] = tuple(sorted(expected.items()))
 
 
 def audit_stations(
@@ -450,6 +488,7 @@ def audit_source(
     if full_config:
         audit_sml(root, audit, required=True)
         audit_stations(root, panel, audit, required=True)
+        audit_occupancy_bindings(root, audit, required=True)
         audit_dispatcher_startup(root, audit)
         if label == "deployment":
             audit_generated_dispatcher(root, audit)
@@ -460,6 +499,7 @@ def audit_source(
         audit.facts["stations"] = ()
         audit.facts["station_sensors"] = ()
         audit.facts["station_icons"] = ()
+        audit_occupancy_bindings(root, audit, required=True)
     audit_placeholders(panel, audit)
     return audit
 

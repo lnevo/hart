@@ -72,9 +72,9 @@ sensor,M2S1300,Block 13-1,occupancy_or_feedback,
 sensor,M2S1301,Block 13-2,occupancy_or_feedback,
 sensor,M2S1302,Block 13-3,occupancy_or_feedback,
 sensor,M2S1303,Block 13-4,occupancy_or_feedback,
-sensor,M2S1304,Block 13-5,occupancy_or_feedback,
-sensor,M2S1305,Block 13-6,occupancy_or_feedback,
-sensor,M2S1306,Block 13-7,occupancy_or_feedback,
+sensor,M2S1304,Block 13-5,occupancy_or_feedback,occupancy EH-3
+sensor,M2S1305,Block 13-6,occupancy_or_feedback,occupancy EH-2
+sensor,M2S1306,Block 13-7,occupancy_or_feedback,occupancy EH-1
 sensor,M2S1307,Block 13-8,occupancy_or_feedback,
 sensor,M2S1367,Switch 13-1 FB N,occupancy_or_feedback,
 sensor,M2S1368,Switch 13-1 FB R,occupancy_or_feedback,

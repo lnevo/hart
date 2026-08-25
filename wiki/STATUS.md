@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-25 — LCOS BlockSensors C5-B3/B4 names match the EH-1/EH-3 occupancy swap (`Block 13-5` = EH-3, `Block 13-7` = EH-1). MQTT Notes unchanged. Docs-only.
+
 Updated: 2026-08-25 — EH-1 occupancy is `Block 13-7` / M2S1306; EH-3 is `Block 13-5` / M2S1304 (swapped). CATS CTC/ABS, sheets, and LE. Reload **CATS CTC** or **CATS ABS**. Deploy `--all`.
 
 Updated: 2026-08-25 — USS CTC **v55**: Brick-Plane occupancy centered between 100 and 102; W-1/W-2 lamps stacked on that column. Reload **USS CTC**. Deploy `--all`.
