@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Install /Applications icons:
-#   CATS CTC  → HART_Master_CTC_hold.xml (HOLD_ONLY)
-#   CATS ABS  → HART_Master_ABS_hold.xml (HOLD_ONLY; paint JMRI/SML)
+#   CATS CTC     → HART_Master_CTC_hold.xml (HOLD_ONLY)
+#   CATS ABS     → HART_Master_ABS_hold.xml (HOLD_ONLY; paint JMRI/SML)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 ICNS="$ROOT/cats/resources/CATS.icns"
@@ -14,10 +14,10 @@ if [[ ! -f "$ICNS" ]]; then
 fi
 
 if [[ ! -f "$ROOT/cats/panels/HART_Master_ABS_hold.xml" ]]; then
-  python3 "$ROOT/cats/scripts/build_hart_master_abs_hold.py"
+  python3 "$ROOT/cats/scripts/build_hart_master_abs_hold.py" --no-polish
 fi
 if [[ ! -f "$ROOT/cats/panels/HART_Master_CTC_hold.xml" ]]; then
-  python3 "$ROOT/cats/scripts/build_hart_master_ctc_hold.py"
+  python3 "$ROOT/cats/scripts/build_hart_master_ctc_hold.py" --no-polish
 fi
 
 make_app() {
@@ -74,11 +74,13 @@ rm -rf \
   "${APPS}/CATS.app" \
   "${APPS}/CATS CTC SML.app" \
   "${APPS}/CATS ABS-RO.app" \
+  "${APPS}/CATS Master4.app" \
   "${DESKTOP}/CATS.app" \
   "${DESKTOP}/CATS CTC.app" \
   "${DESKTOP}/CATS CTC SML.app" \
   "${DESKTOP}/CATS ABS.app" \
-  "${DESKTOP}/CATS ABS-RO.app"
+  "${DESKTOP}/CATS ABS-RO.app" \
+  "${DESKTOP}/CATS Master4.app"
 rm -f "${DESKTOP}/HART_Master.command" "${DESKTOP}/HART_Master_ABS.command"
 /usr/bin/osascript -e 'tell application "Finder" to update desktop' 2>/dev/null || true
 echo "DONE"

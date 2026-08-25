@@ -27,6 +27,7 @@ Gate 1 Designer files (`HART.xml`, `HART_Brick.xml`, `HART_le.xml`, `HART_ctc.xm
 
 - [ ] Designer as dual-primary: leave parked unless we redraw; do not treat `HART.xml` as live
 - [ ] Node 13 occupancy walk-down (hardware: 1301=118, 1304–1306=house, 1307=119)
+- [x] Master 4 schematic is the live desk (`HART_Master.xml` / HOLD copies); mapping in [`wiki/MASTER4_SCHEMATIC.md`](../wiki/MASTER4_SCHEMATIC.md)
 
 Gate 1 occupancy color checks (`Block 4-6` / `Block 4-2`) and Switch 100 throws from CATS were overtaken by the Master board + native SML QA (30/30). Re-open only if a plant mis-paints.
 

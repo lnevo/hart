@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """Build HART_Master_CTC_hold.xml — CTC Digicon, signals HOLD_ONLY (JMRI SML).
 
-Derived from HART_Master.xml:
+Derived from HART_Master.xml (Master 4 schematic):
 
 1. HOLD_ONLY=true — CATS only Held/Unheld; SML owns Clear/Approach/Stop.
 2. Keep DISCIPLINE=CTC and ROUTECOMMAND — left-click still codes routes / throws.
 3. AAR-1946 aspect name bridge so Digicon paints from JMRI appearances.
-
-Legacy aspect-driving CTC remains HART_Master.xml (rollback).
 """
 
 from __future__ import annotations
@@ -44,6 +42,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--src", type=Path, default=SRC)
     ap.add_argument("--dst", type=Path, default=DST)
+    ap.add_argument(
+        "--no-polish",
+        action="store_true",
+        help="Keep Designer title row and window size (Master 4 1920×540).",
+    )
     args = ap.parse_args()
     if not args.src.is_file():
         raise SystemExit(f"Missing source panel: {args.src}")
@@ -61,7 +64,7 @@ def main() -> None:
     tree.write(args.dst, encoding="UTF-8", xml_declaration=True)
     print(f"Wrote {args.dst}")
 
-    if args.dst.resolve() == DST.resolve():
+    if args.dst.resolve() == DST.resolve() and not args.no_polish:
         polish = _load_polish()
         meta = polish.PANELS["ctc_hold"]
         polish.polish(args.dst, meta["pub_id"], meta["mode"], rev="A", effective=None)

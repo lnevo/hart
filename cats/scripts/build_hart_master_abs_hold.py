@@ -51,6 +51,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--src", type=Path, default=SRC)
     ap.add_argument("--dst", type=Path, default=DST)
+    ap.add_argument(
+        "--no-polish",
+        action="store_true",
+        help="Keep Designer title row and window size (Master 4 1920×540).",
+    )
     args = ap.parse_args()
     if not args.src.is_file():
         raise SystemExit(f"Missing source panel: {args.src}")
@@ -73,7 +78,7 @@ def main() -> None:
     print(f"Wrote {args.dst}")
 
     # Re-stamp publication header (ABS-RO mode) after HOLD_ONLY transform.
-    if args.dst.resolve() == DST.resolve():
+    if args.dst.resolve() == DST.resolve() and not args.no_polish:
         import importlib.util
 
         polish_path = Path(__file__).with_name("polish_hart_master_header.py")

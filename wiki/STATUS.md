@@ -1,5 +1,21 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-25 — **Live cutover:** Master 4 schematic is CATS CTC / CATS ABS / USS CTC. CATS Master4 icon removed. Deploy `--all`. Reload **CATS CTC** or **CATS ABS** (not both with USS).
+
+Updated: 2026-08-25 — Master 4: 112R gap moved to `(32,6)|(33,6)` to stack with 111. Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-25 — Master 4: 110R alignment is LOWRIGHT (still faces TOP). Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-25 — Master 4: `(35,8)` rail removed; OS 111a skip is `(34,8)` RIGHT ↔ `(37,8)` LEFT. Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-25 — Master 4 default window is 1920×540. Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-25 — Master 4: 110 diverge is `(36,8)` with 110R; SHARED to 109. OS 111a skips that cell `(35,8)`↔`(37,8)`. Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-25 — Master 4: W-1 is 101 NORMAL (TOP, not inverted); W-2 is Thrown RIGHT. Brick-Plane is three cells between 100 and 102 (`Block 4-6`). Reload **CATS Master4**. Not deployed.
+
+Updated: 2026-08-25 — Master 4 Princess: wrap is `(62,6)`↔`(62,8)` McKeesport occupancy; 114R/115R are opposing intermediates on Y=8 at McKees Rocks \| McKeesport. Reload **CATS Master4**. Not deployed.
+
 Updated: 2026-08-25 — USS CTC **v54**: East Lead filled 113a→114; 110R dropped a few pixels under SOUTH YD. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v53**: 114 in its column; K-1/K-2 bumpers off; W-1/W-2 shortened off East Main Ext; West Main Ext labeled. Reload **USS CTC**. Not deployed.

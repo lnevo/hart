@@ -27,7 +27,7 @@ Two Digicon “Master” launchers for Neville Island ops, plus JMRI tables / sc
 | **CATS CTC** | `cats/panels/HART_Master_CTC_hold.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
 | **CATS ABS** | `cats/panels/HART_Master_ABS_hold.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. Geometry source `HART_Master_ABS.xml` stays unbound. |
 
-Geometry sources (no desktop icons): `HART_Master.xml` (CTC rebuild) and `HART_Master_ABS.xml` (ABS rebuild). Checkpoint **Masters only** (`cats/panels/checkpoints/`). Sheet WIP (`cats/panels/sheets/`, including West Yard2) is legacy — do not snapshot it.
+Geometry sources (no desktop icons): `HART_Master.xml` (CTC rebuild) and `HART_Master_ABS.xml` (ABS rebuild), wired from Designer `HART_Master4.xml` (`python3 cats/scripts/wire_hart_master4.py --live`). Checkpoint **Masters only** (`cats/panels/checkpoints/`). Sheet WIP (`cats/panels/sheets/`, including West Yard2) is legacy — do not snapshot it.
 
 Each Master carries a publication title row (Y=1):
 
@@ -35,12 +35,10 @@ Each Master carries a publication title row (Y=1):
 - Mode tag (`CTC DIGICON` / `ABS DIGICON`)
 - Pub id (`DS-CTC` / `DS-ABS`) · Rev · Effective date
 
-Rebuild hold panels after Master / ABS geometry edits:
+Rebuild hold panels after a Designer save:
 
 ```bash
-python3 cats/scripts/build_hart_master_ctc_hold.py   # CATS CTC (HOLD_ONLY + AAR bridge + header)
-python3 cats/scripts/build_hart_master_abs_hold.py   # CATS ABS (HOLD_ONLY + AAR bridge + header)
-python3 cats/scripts/polish_hart_master_header.py --panel all
+python3 cats/scripts/wire_hart_master4.py --live   # CTC + ABS geometry + HOLD copies
 ```
 
 ---
