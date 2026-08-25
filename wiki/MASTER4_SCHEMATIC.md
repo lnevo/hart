@@ -122,6 +122,6 @@ Mac icons **CATS CTC** / **CATS ABS** → `HART_Master_CTC_hold.xml` / `HART_Mas
 
 CATS is the Digicon. The USS lever machine is a **separate** JMRI Panel Editor panel, always titled **USS CTC**. LogixNG `IQC:AUTO:0002` **hides** that panel on CATS start.
 
-The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (also embedded in `tables/new_tables.xml`). Deploy copies it to `preference:ctc/GUIObjects.xml` and into the host `tables.xml` bundle.
+The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml`. That `<paneleditor name="USS CTC">` is also embedded in `tables/new_tables.xml` and the deploy bundle `jmri/layouts/hart/output/tables.xml` (PanelPro loads the host `tables.xml`, not `preference:ctc/GUIObjects.xml` alone). Deploy copies both.
 
 Static preview: `cats/screenshots/master4/uss_ctc_v28_preview.png` (v28: thin icons copied into JMRI `preference:ctc/icons/`; 100 over col 1; W-1/W-2 horizontal; plant dropped 20px; 113b east). `uss_ctc_v27_preview.png` introduced SOUTH YD stubs.
