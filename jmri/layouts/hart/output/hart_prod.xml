@@ -375,7 +375,7 @@
     <sensor inverted="false">
       <systemName>M2S1304</systemName>
       <userName>Block 13-5</userName>
-      <comment>Occupancy EH-1; MQTT M2S1304</comment>
+      <comment>Occupancy EH-3; MQTT M2S1304</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1305</systemName>
@@ -385,7 +385,7 @@
     <sensor inverted="false">
       <systemName>M2S1306</systemName>
       <userName>Block 13-7</userName>
-      <comment>Occupancy EH-3; MQTT M2S1306</comment>
+      <comment>Occupancy EH-1; MQTT M2S1306</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1307</systemName>
@@ -1124,9 +1124,9 @@
     <block systemName="IB20" length="0.0" curve="0">
       <systemName>IB20</systemName>
       <userName>EH-1</userName>
-      <comment>Top house track; occupancy Block 13-5 / M2S1304; stop</comment>
+      <comment>Top house track; occupancy Block 13-7 / M2S1306; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-5</occupancysensor>
+      <occupancysensor>Block 13-7</occupancysensor>
       <path todir="64" fromdir="128" block="IB19">
         <beansetting setting="2">
           <turnout systemName="Switch 118" />
@@ -1148,9 +1148,9 @@
     <block systemName="IB22" length="0.0" curve="0">
       <systemName>IB22</systemName>
       <userName>EH-3</userName>
-      <comment>Bottom house track; occupancy Block 13-7 / M2S1306; stop</comment>
+      <comment>Bottom house track; occupancy Block 13-5 / M2S1304; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-7</occupancysensor>
+      <occupancysensor>Block 13-5</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
         <beansetting setting="2">
           <turnout systemName="Switch 119" />
@@ -1860,7 +1860,7 @@
       <systemName>ILB66</systemName>
       <userName>OS 118</userName>
     </layoutblock>
-    <layoutblock systemName="ILB67" occupancysensor="Block 13-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB67" occupancysensor="Block 13-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB67</systemName>
       <userName>EH-1</userName>
     </layoutblock>
@@ -1868,7 +1868,7 @@
       <systemName>ILB68</systemName>
       <userName>EH-2</userName>
     </layoutblock>
-    <layoutblock systemName="ILB69" occupancysensor="Block 13-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB69" occupancysensor="Block 13-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB69</systemName>
       <userName>EH-3</userName>
     </layoutblock>

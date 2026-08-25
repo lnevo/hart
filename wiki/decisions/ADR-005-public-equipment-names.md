@@ -70,7 +70,7 @@ T1 / T6 / East Lead were scaffold names. The three lead bodies belong to South Y
 
 Public names are plates **EH-1 / EH-2 / EH-3** (was Engine House 1 / 2 / 3) = **Yard T9 / T10 / T11**. CATS `ET-*` is not used to number the house.
 
-Occupancy ids are MQTT (`1300` = Block 13-1). House tracks are **1304 / 1305 / 1306**. Switch 118 is **1301**; Switch 119 is **1307**. LE already points those blocks at those sensors. Walk-down before convert.
+Occupancy ids are MQTT (`1300` = Block 13-1). House tracks are **1304 / 1305 / 1306**. **EH-1 is M2S1306 (Block 13-7)** and **EH-3 is M2S1304 (Block 13-5)** — those two detectors are swapped vs plate order. Switch 118 is **1301**; Switch 119 is **1307**. MQTT sensor userNames stay `Block n-n`.
 
 | Circuit | Sensor | MQTT |
 |---------|--------|------|
@@ -78,9 +78,9 @@ Occupancy ids are MQTT (`1300` = Block 13-1). House tracks are **1304 / 1305 / 1
 | Switch 118 | Block 13-2 | M2S1301 |
 | OS 117 | Block 13-3 | M2S1302 |
 | OS 117b | Block 13-4 | M2S1303 |
-| EH-1 | Block 13-5 | M2S1304 |
+| EH-1 | Block 13-7 | M2S1306 |
 | EH-2 | Block 13-6 | M2S1305 |
-| EH-3 | Block 13-7 | M2S1306 |
+| EH-3 | Block 13-5 | M2S1304 |
 | Switch 119 | Block 13-8 | M2S1307 |
 
 ### Frozen (never rename)

@@ -192,9 +192,9 @@ BLOCK_COMMENTS = {
     "S-5 East": "Hidden S-5 throat (same detector as S-5); occupancy Block 2-4 / M2S203; not a station",
     "W-1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
     "W-2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
-    "EH-1": "Top house track; occupancy Block 13-5 / M2S1304; stop",
+    "EH-1": "Top house track; occupancy Block 13-7 / M2S1306; stop",
     "EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
-    "EH-3": "Bottom house track; occupancy Block 13-7 / M2S1306; stop",
+    "EH-3": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
     "K-1": "Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop",
     "K-2": "Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop",
 }
@@ -262,9 +262,9 @@ OCC_SENSOR = {
     "Block 13-2": "Occupancy OS 118; MQTT M2S1301",
     "Block 13-3": "Occupancy OS 117; MQTT M2S1302",
     "Block 13-4": "Occupancy OS 117b; MQTT M2S1303",
-    "Block 13-5": "Occupancy EH-1; MQTT M2S1304",
+    "Block 13-5": "Occupancy EH-3; MQTT M2S1304",
     "Block 13-6": "Occupancy EH-2; MQTT M2S1305",
-    "Block 13-7": "Occupancy EH-3; MQTT M2S1306",
+    "Block 13-7": "Occupancy EH-1; MQTT M2S1306",
     "Block 13-8": "Occupancy OS 119; MQTT M2S1307",
 }
 
