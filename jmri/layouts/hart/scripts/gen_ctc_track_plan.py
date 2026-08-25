@@ -164,7 +164,7 @@ TURNOUTS = [
     ("Switch 112", 736, 102, "swap:" + T + "left/west/os-l-w"),
     ("Switch 113", 866, 102, T + "right/east/os-r-e"),
     ("Switch 113", 888, 125, T + "right/west/os-r-w"),  # stock `\\`; 8px west so it meets 113a
-    ("Switch 114", 920, 102, "swap:" + T + "right/east/os-r-e"),
+    ("Switch 114", 931, 102, "swap:" + T + "right/east/os-r-e"),  # slot 14 / 114 column
     ("Switch 115", 967, 148, "swap:" + T + "right/east/os-r-e"),  # 114|115 column gutter
 ]
 
@@ -224,15 +224,13 @@ LAMPS = [
 # line1.gif is 85px wide but ink is only x+7..x+78 (71px). Adjacent tiles
 # placed 85px apart leave a ~14px hole — step 70 so ink overlaps.
 TRACKS = [
-    # W-1 / W-2: one ink row (55–59 / 79–83) matching 101's heels, then bumper.
+    # W-1 / W-2: stop west of East Main Ext (label left ~256).
     (145, 52,  "line050.gif", 0),   # W-1
-    (189, 52,  "line050.gif", 0),
-    (233, 53,  "line025.gif", 0),
-    (257, 50,  "thin-end.gif", 0),
+    (175, 52,  "line050.gif", 0),   # through lamp 196, ink ends 216
+    (214, 50,  "thin-end.gif", 0),
     (152, 76,  "line050.gif", 0),   # W-2
-    (196, 76,  "line050.gif", 0),
-    (240, 77,  "line025.gif", 0),
-    (264, 74,  "thin-end.gif", 0),
+    (182, 76,  "line050.gif", 0),
+    (221, 74,  "thin-end.gif", 0),
     # N main cols 1–3 through 100 into 102 (col 4 / slot 3), then east
     (0,   105, "line050.gif", 0),   # west stub to the frame
     (21,  105, "line050.gif", 0),   # col 1 approach
@@ -247,8 +245,8 @@ TRACKS = [
     (524, 99,  "line25.gif",  0),
     (650, 104, "line1.gif",   0),   # Main East to OS 112 (736)
     (778, 104, "line1.gif",   0),   # East Lead after OS 112
-    (820, 105, "line050.gif", 0),   # into 113a; OS 113a / 114 are adjacent
-    (962, 104, "line1.gif",   0),   # McKeesport after OS 114
+    (820, 105, "line050.gif", 0),   # into 113a
+    (965, 104, "line1.gif",   0),   # McKeesport after OS 114 (931–971)
     (1032, 104, "line1.gif",  0),
     (1102, 104, "line1.gif",   0),   # to east frame (overlap, no tile hole)
     # S Scale off 102 then Barn / S-1 / K-2
@@ -259,11 +257,10 @@ TRACKS = [
     (522, 127, "line1.gif",   0),
     (648, 129, "line025.gif", 0),
     (713, 129, "line025.gif", 0),
-    (954, 127, "line1.gif",   0),   # K-2 spur after OS 114
+    (965, 127, "line1.gif",   0),   # K-2 spur after OS 114 (no bumper)
     (1024, 128, "line050.gif", 0),
     (1058, 128, "line050.gif", 0),  # through K-2 lamp
     (1090, 129, "line025.gif", 0),
-    (1108, 125, "thin-end.gif", 0),
     # M: Main West is one circuit (Block 2-1) from the west frame through
     # the South Yard OS lamp into 111 — no mid-block gaps. line1 tiles
     # step 70px so ink overlaps. OS cut after 111L, then West Main Ext.
@@ -287,11 +284,10 @@ TRACKS = [
     (1000, 150, "line1.gif",   0),   # McKees Rocks after OS 115
     (1070, 150, "line1.gif",   0),
     (1110, 150, "line1.gif",   0),
-    # K-1 spur below M (diverging 115); bumper before the frame
+    # K-1 spur below M (diverging 115); no bumper
     (1000, 177, "line1.gif",   0),
     (1058, 178, "line050.gif", 0),
     (1090, 179, "line025.gif", 0),
-    (1108, 175, "thin-end.gif", 0),
     # Engine House: two thin stalls off 116
     (422, 156, "thin-45.gif", 1),
     (378, 169, "thin044.gif", 0),
@@ -372,20 +368,20 @@ TEXTS = [
     (347, 36, "BARN",      12, WHITE),
     (645, 36, "EAST END",  12, WHITE),
     (905, 36, "PRINCESS",  12, WHITE),
-    (268, 47,  "W-1", 8, CREAM),
-    (275, 71,  "W-2", 8, CREAM),
+    (218, 47,  "W-1", 8, CREAM),
+    (225, 71,  "W-2", 8, CREAM),
     (24,  88,  "MAIN", 8, CREAM),
     (525, 88,  "MAIN EAST", 8, CREAM),
     (296, 88,  "EAST MAIN EXT", 8, CREAM, "center"),  # over East Main Ext / Scale stack
     (282, 174, "MAIN WEST", 8, CREAM, "center"),  # under Block 2-1 (column 5)
-    (816, 174, "MAIN WEST", 8, CREAM, "center"),  # under West Main Ext lamp (x=806)
+    (816, 174, "MAIN WEST EXT", 8, CREAM, "center"),  # under West Main Ext lamp (x=806)
     (816, 88,  "EAST LEAD", 8, CREAM, "center"),  # above East Lead lamp (x=806)
     (348, 194, "ENGINE HOUSE", 8, CREAM),
     (572, 186, "SOUTH YD", 8, CREAM),
     # Princess: McKeesport and McKees Rocks share a right edge over their
     # stacked lamps. K-1 / K-2 sit on the spur bumpers.
     (EAST_RAIL, 88,  "McKeesport", 8, CREAM, "right"),
-    (K_RAIL, 124, "K-2", 8, CREAM, "center"),
+    (K_RAIL, 118, "K-2", 8, CREAM, "center"),  # 9px above S rail, same as K-1 vs MK
     (EAST_RAIL, 137, "McKees Rocks", 8, CREAM, "right"),
     (K_RAIL, 168, "K-1", 8, CREAM, "center"),
     (102, 223, "100", 8, WHITE),
@@ -438,8 +434,8 @@ SIGNALS = [
     # balloon intermediates (CATS LAMP1, SIGORIENT RIGHT on McKeesport / Rocks).
     ("114R",  1096,  N,  "E", "d1", "IH134"),
     ("115R",  1096,  M,  "E", "d1", "IH141"),
-    ("114LB",  982,  N,  "W", "h2", None),   # McKeesport 2-lamp
-    ("114LA",  982,  S,  "W", "d1", "IH143"),  # K-2 1-lamp
+    ("114LB",  993,  N,  "W", "h2", None),   # McKeesport 2-lamp (114 at 931)
+    ("114LA",  993,  S,  "W", "d1", "IH143"),  # K-2 1-lamp
     ("115LB", 1029,  M,  "W", "h2", None),   # McKees Rocks 2-lamp (moves with 115)
     ("115LA", 1029, MK,  "W", "d1", "IH142"),  # K-1 1-lamp
 ]
@@ -543,7 +539,7 @@ STRIP = [
     re.compile(r'\s*<turnouticon\b[^>]*>.*?</turnouticon>', re.S),
     re.compile(r'\s*<sensoricon\b[^>]*sensor="Block [^"]*".*?</sensoricon>', re.S),
     re.compile(r'\s*<positionablelabel\b[^>]*>\s*<icon url="(?:[^"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^"]*".*?</positionablelabel>', re.S),
-    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST|MAIN EAST|EAST MAIN EXT|EAST LEAD|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|McKeesport|McKees Rocks|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
+    re.compile(r'\s*<positionablelabel\b[^>]*text="(?:BRICK|PLANE|BARN|EAST END|PRINCESS|MAIN WEST EXT|MAIN WEST|MAIN EAST|EAST MAIN EXT|EAST LEAD|MAIN|SOUTH YARD|SOUTH YD|WEST YARD|ENGINE TERMINAL|ENGINE HOUSE|YARD|McKEESPORT|McKEES ROCKS|McKeesport|McKees Rocks|K-1|K-2|W-1|W-2|1[01][0-9]|HART RAILROAD[^"]*)".*?</positionablelabel>', re.S),
     # stock CTC Unlocked indicators + labels, replaced by the OS lamp row
     # (GUI only -- the IS*:UNLOCKEDINDICATOR sensors still exist; delete
     # these two patterns to bring the buttons back)
@@ -681,7 +677,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v52_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v53_preview.png")
 
 
 if __name__ == "__main__":
