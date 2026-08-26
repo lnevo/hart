@@ -169,7 +169,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     },
     "Switch 102": {
         "entry": "102LA",
-        "entry_ports": ("C4-OU2-3", "C4-OU2-4", None),
+        "entry_ports": ("C4-OU2-3", None, None),
         "normal": None,
         "reverse": "102LB",
         "reverse_ports": ("C4-OU2-1", "C4-OU2-2", None),

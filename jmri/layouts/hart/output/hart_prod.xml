@@ -611,13 +611,13 @@
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH434</systemName>
-      <userName>102LA Top</userName>
-      <comment>Head 102LA Top</comment>
+      <userName>102LA</userName>
+      <comment>Head 102LA (1-head; was Top of 2-head)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH435</systemName>
-      <userName>102LA Bottom</userName>
-      <comment>Head 102LA Bottom</comment>
+      <userName>spare C4-OU2-4</userName>
+      <comment>Spare; was 102LA Bottom. Packed slot held so 101RA stays IH436</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
@@ -793,9 +793,9 @@
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH434)(IH435)</systemName>
+      <systemName>IF$shsm:AAR-1946:SL-1-low(IH434)</systemName>
       <userName>102LA</userName>
-      <comment>Mast 102LA</comment>
+      <comment>Mast 102LA (1-head dwarf; was SL-2-digicon IH434+IH435)</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">

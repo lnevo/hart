@@ -1,8 +1,8 @@
 port_id,parent_node_id,mqtt_node,board_location,signal_index,uid,packed,system_name,user_name,mast_user_name,head_role,topic,device_type,voltage_rail,notes
 C4-OU2-1,C4,4,West - Lower,0,32,432,IH432,102LB Top,102LB,T,track/signalhead/IH432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; Digicon mast '102LB'
 C4-OU2-2,C4,4,West - Lower,1,33,433,IH433,102LB Bottom,102LB,B,track/signalhead/IH433,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; Digicon mast '102LB'
-C4-OU2-3,C4,4,West - Lower,2,34,434,IH434,102LA Top,102LA,T,track/signalhead/IH434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; Digicon mast '102LA'
-C4-OU2-4,C4,4,West - Lower,3,35,435,IH435,102LA Bottom,102LA,B,track/signalhead/IH435,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; Digicon mast '102LA'
+C4-OU2-3,C4,4,West - Lower,2,34,434,IH434,102LA,102LA,S,track/signalhead/IH434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; Digicon mast '102LA' (1-head; was Top of 2-head)
+C4-OU2-4,C4,4,West - Lower,3,35,435,IH435,spare C4-OU2-4,,SPARE,track/signalhead/IH435,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; spare (was 102LA Bottom); packed slot held so 101RA stays IH436
 C4-OU2-5,C4,4,West - Lower,4,36,436,IH436,101RA,101RA,S,track/signalhead/IH436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; Digicon mast '101RA'
 C4-OU2-6,C4,4,West - Lower,5,37,437,IH437,101RB,101RB,S,track/signalhead/IH437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; Digicon mast '101RB'
 C4-OU3-1,C4,4,West - Lower,6,38,438,IH438,100L Top,100L,T,track/signalhead/IH438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; Digicon mast '100L'

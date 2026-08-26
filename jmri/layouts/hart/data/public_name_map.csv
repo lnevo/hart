@@ -82,7 +82,7 @@ block,Engine House 3,EH-3,,Block 13-5,was Engine House 3; plate EH-3
 mast,Brick West Yard 1,101RA,Brick,IH436,lever 2 Right; W-1 dwarf
 mast,Brick West Yard 2,101RB,Brick,IH437,lever 2 Right; W-2 dwarf
 mast,Brick East Main West,100L,Brick,IH438 IH439,lever 4 Left
-mast,Plane East OS 102,102LA,Plane,IH434 IH435,lever 6 Left; Scale
+mast,Plane East OS 102,102LA,Plane,IH434,lever 6 Left; Scale; 1-head dwarf (was 2-head)
 mast,Plane East East Main Ext,102LB,Plane,IH432 IH433,lever 6 Left; main
 mast,West Yard West OS 117,117RA,Barn,IH1332 IH1333,lever 8 Right; yard
 mast,West Yard West East Main Ext,117RB,Barn,IH1335 IH1336,lever 8 Right; main
@@ -117,8 +117,8 @@ head,Brick West Yard 1,101RA,Brick,IH436,dwarf
 head,Brick West Yard 2,101RB,Brick,IH437,dwarf
 head,Brick East Main West Top,100L Top,Brick,IH438,
 head,Brick East Main West Bottom,100L Bottom,Brick,IH439,
-head,Plane East OS 102 Top,102LA Top,Plane,IH434,
-head,Plane East OS 102 Bottom,102LA Bottom,Plane,IH435,
+head,Plane East OS 102,102LA,Plane,IH434,dwarf; was Top of 2-head
+head,spare C4-OU2-4,spare C4-OU2-4,Plane,IH435,was 102LA Bottom; packed slot held
 head,Plane East East Main Ext Top,102LB Top,Plane,IH432,
 head,Plane East East Main Ext Bottom,102LB Bottom,Plane,IH433,
 head,West Yard West OS 117 Top,117RA Top,Barn,IH1332,

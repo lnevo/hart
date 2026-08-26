@@ -1,6 +1,6 @@
 mast_user_name,mqtt_node,parent_node_id,heads,appearance,physignal,mast_system_name,head_system_names,packed_ids,port_ids
 102LB,4,C4,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH432)(IH433),IH432 IH433,432 433,C4-OU2-1 C4-OU2-2
-102LA,4,C4,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH434)(IH435),IH434 IH435,434 435,C4-OU2-3 C4-OU2-4
+102LA,4,C4,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH434),IH434,434,C4-OU2-3
 101RA,4,C4,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH436),IH436,436,C4-OU2-5
 101RB,4,C4,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH437),IH437,437,C4-OU2-6
 100L,4,C4,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH438)(IH439),IH438 IH439,438 439,C4-OU3-1 C4-OU3-2

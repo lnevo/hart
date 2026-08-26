@@ -31,7 +31,10 @@ DATA = ROOT / "cats/data"
 MASTS: list[tuple[str, int, int, str]] = [
     # node 4 — Plane + W-Y stubs + Brick east main (OU3 after OU2-1..6)
     ("102LB", 2, 4, "double"),
-    ("102LA", 2, 4, "double"),
+    ("102LA", 1, 4, "single"),
+    # Occupies C4-OU2-4 / IH435 (was 102LA Bottom). Do not drop this slot or a
+    # rebuild shifts 101RA/101RB/100L packed IDs. Wiring-only: see SKIP_MAST.
+    ("SPARE-C4-OU2-4", 1, 4, "single"),
     ("101RA", 1, 4, "single"),
     ("101RB", 1, 4, "single"),
     ("100L", 2, 4, "double"),
@@ -57,6 +60,9 @@ MASTS: list[tuple[str, int, int, str]] = [
     ("115LA", 1, 1, "single"),
     ("114LA", 1, 1, "single"),
 ]
+
+# Wiring-only packed slots: occupy a DNOU8 port / IH* without a SHSM mast.
+SKIP_MAST = {"SPARE-C4-OU2-4"}
 
 ROLE = {1: ("",), 2: ("T", "B"), 3: ("T", "M", "B")}
 ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
@@ -186,7 +192,7 @@ def write_csvs(rows: list[dict]) -> None:
     seen = set()
     for r in rows:
         m = r["mast_user_name"]
-        if m in seen:
+        if m in SKIP_MAST or m in seen:
             continue
         seen.add(m)
         hs = [x for x in rows if x["mast_user_name"] == m]
@@ -441,7 +447,7 @@ def _masts_xml(rows: list[dict]) -> str:
     seen = set()
     for r in rows:
         m = r["mast_user_name"]
-        if m in seen:
+        if m in SKIP_MAST or m in seen:
             continue
         seen.add(m)
         sysname = mast_system_name(m, rows)

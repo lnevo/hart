@@ -339,7 +339,7 @@ SIGNALS = [
     # Brick 100 Left
     ("100L",       210,  N,  "W", "h2", None),
     # Plane 102 Left
-    ("102LA",          265,  S,  "W", "h2", None),
+    ("102LA",          265,  S,  "W", "d1", "IH434"),
     ("102LB",   265,  M,  "W", "h2", None),
     # Barn 117 both ways (T6 is the westbound yard-lead home)
     ("117RA",      328,  S,  "E", "h2", None),

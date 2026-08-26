@@ -158,8 +158,8 @@ signalhead,IH142,Princess East K-1
 signalhead,IH143,Princess East K-2
 signalhead,IH432,Plane East East Main Ext Top
 signalhead,IH433,Plane East East Main Ext Bottom
-signalhead,IH434,Plane East OS 102 Top
-signalhead,IH435,Plane East OS 102 Bottom
+signalhead,IH434,Plane East OS 102
+signalhead,IH435,spare C4-OU2-4
 signalhead,IH436,Brick West Yard 1
 signalhead,IH437,Brick West Yard 2
 signalhead,IH438,Brick East Main West Top
@@ -185,7 +185,7 @@ signalmast,IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136),Princess West OS 113b
 signalmast,IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138),Princess West OS 113a
 signalmast,IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140),Princess South McKeesport
 signalmast,IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433),Plane East East Main Ext
-signalmast,IF$shsm:hart-aar:SL-2-digicon(IH434)(IH435),Plane East OS 102
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH434),Plane East OS 102
 signalmast,IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439),Brick East Main West
 turnout,M2T108,Switch 113
 turnout,M2T109,Switch 114

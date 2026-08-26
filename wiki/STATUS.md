@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — **102LA** is a 1-head dwarf (`IH434` / C4-OU2-3, `SL-1-low`). `IH435` / C4-OU2-4 is a spare (packed slot held). CATS CTC/ABS + Master 4 paint `LAMP1`. USS CTC shows a west dwarf. Mast userName `102LA` unchanged — SML pairs `102LA:111RA` / `117LB:102LA` kept; re-Discover on the layout after reload (aspect family changed). Reload **CATS CTC** or **CATS ABS**, **USS CTC**, and **CATS Master4**. Deploy `--all`. Do not run CATS CTC with USS CTC.
+
 Updated: 2026-08-26 — Master 4: 110R is on OS 110 BOTTOM (`(42,7)`), the 110\|109 cut. Designer cosmetics kept. Reload **CATS Master4**.
 
 Updated: 2026-08-26 — **CATS Master4** icon in `/Applications` launches `HART_Master4_wired.xml`. Live CATS CTC/ABS unchanged. Do not run it with CATS CTC or USS CTC.
