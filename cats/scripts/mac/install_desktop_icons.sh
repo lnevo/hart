@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Install /Applications icons:
-#   CATS CTC  → HART_Master_CTC_hold.xml (HOLD_ONLY)
-#   CATS ABS  → HART_Master_ABS_hold.xml (HOLD_ONLY; paint JMRI/SML)
+#   CATS CTC      → HART_Master_CTC_hold.xml (HOLD_ONLY)
+#   CATS ABS      → HART_Master_ABS_hold.xml (HOLD_ONLY; paint JMRI/SML)
+#   CATS Master4  → HART_Master4_wired.xml (test schematic; not the live desk)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 ICNS="$ROOT/cats/resources/CATS.icns"
@@ -69,6 +70,11 @@ PLIST
 
 make_app "CATS CTC" "HART_Master_CTC_hold.xml"
 make_app "CATS ABS" "HART_Master_ABS_hold.xml"
+if [[ ! -f "$ROOT/cats/panels/HART_Master4_wired.xml" ]]; then
+  echo "Missing HART_Master4_wired.xml — run: python3 cats/scripts/wire_hart_master4.py" >&2
+  exit 1
+fi
+make_app "CATS Master4" "HART_Master4_wired.xml"
 
 rm -rf \
   "${APPS}/CATS.app" \

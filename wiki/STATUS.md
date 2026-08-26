@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — **CATS Master4** icon in `/Applications` launches `HART_Master4_wired.xml`. Live CATS CTC/ABS unchanged. Do not run it with CATS CTC or USS CTC.
+
 Updated: 2026-08-26 — Master 4 routing: SHARED `(1,6)`↔`(1,8)` Main West and `(63,6)`↔`(63,7)` McKeesport. Main East cut at `(43,8)|(44,8)` with CATS `112R`. Princess intermediates are **120L** `(60,6)` / **120R** `(61,6)`. Not live.
 
 Updated: 2026-08-25 — USS CTC restored to the **pre-Master 4** board (`a99b04f`, v8 yard ladders), not the Aug 23+ Master 4 redraw. CATS desks remain pre-Master 4. EH-1/EH-3 occupancy swap kept. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--all`.
