@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — USS CTC track diagram **v56** starts over from live CATS Master 4 (`HART_Master4.xml`): same row order (Main West / Scale-Barn-S-1 / Brick-Plane / W-1-W-2 / south yard / Main East), W-1/W-2 east of 101, EH-1/2/3, S-1…S-5, 104–109 frogs drawn. Regen `gen_ctc_track_plan.py`. `tables.xml` unchanged — PanelPro still loads the pre-Master 4 board. Preview `cats/screenshots/master4/uss_ctc_v56_preview.png`. Not deployed.
+
 Updated: 2026-08-26 — CATS ABS Screen.init crash: **115LA** was `PHYSIGNAL double` on a 1-head dwarf, so CATS `setAspect("Clear")` aborted load. Princess LA/LB now match field heads; wire forces PHYSIGNAL from `signal_wiring.csv`. Reload **CATS ABS** or **CATS CTC**. Deploy `--all`.
 
 Updated: 2026-08-26 — USS CTC `GUIObjects.xml` restored to the Master 4 schematic (**v55**, `human/master4` / `de8e727`). `tables.xml` unchanged — PanelPro still loads the pre-Master 4 board until that paneleditor is replaced. Not deployed.
