@@ -214,9 +214,9 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    if (len(destinations), auto, manual, unknown) != (86, 84, 2, 0):
+    if (len(destinations), auto, manual, unknown) != (93, 91, 2, 0):
         message = (
-            "stored SML destinations expected total=86, useLayoutEditor=yes=84, "
+            "stored SML destinations expected total=93, useLayoutEditor=yes=91, "
             f"manual=2; found total={len(destinations)}, yes={auto}, "
             f"manual={manual}, unspecified/other={unknown}"
         )

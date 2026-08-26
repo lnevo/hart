@@ -21,9 +21,9 @@ import traceback
 
 import jmri
 from java.beans import PropertyChangeListener
-from java.io import File
 from java.lang import Runnable, System, Thread
 from javax.swing import SwingUtilities
+from jmri.util import FileUtil
 
 STORE = os.environ.get("HART_SML_DISCOVER_STORE", "") == "1"
 EXIT = os.environ.get("HART_SML_DISCOVER_EXIT", "") == "1"
@@ -34,6 +34,11 @@ WAIT_S = int(os.environ.get("HART_SML_DISCOVER_WAIT", "180"))
 
 def _log(msg):
     print("discover_sml:", msg)
+    try:
+        import sys
+        sys.stdout.flush()
+    except Exception:
+        pass
 
 
 def _mark(status, detail=""):
@@ -82,21 +87,17 @@ class _CompleteListener(PropertyChangeListener):
             self.bucket.append(name)
 
 
-class _Call(Runnable):
-    def __init__(self, fn, holder):
-        self.fn = fn
-        self.holder = holder
-
-    def run(self):
-        try:
-            self.holder["result"] = self.fn()
-        except Exception as e:
-            self.holder["err"] = e
-
-
 def _on_edt(fn):
     holder = {"result": None, "err": None}
-    SwingUtilities.invokeAndWait(_Call(fn, holder))
+
+    class Go(Runnable):
+        def run(self):
+            try:
+                holder["result"] = fn()
+            except Exception as e:
+                holder["err"] = e
+
+    SwingUtilities.invokeAndWait(Go())
     if holder["err"] is not None:
         raise holder["err"]
     return holder["result"]
@@ -123,18 +124,17 @@ def _settle_unknown_turnouts():
 def _store_tables():
     path = STORE_PATH
     if not path:
-        from jmri.util import FileUtil
-
         path = FileUtil.getUserFilesPath() + "tables.xml"
+    abs_path = FileUtil.getAbsoluteFilename(path) or path
+    target = FileUtil.getFile(abs_path)
     cm = jmri.InstanceManager.getDefault(jmri.ConfigureManager)
-    target = File(path)
 
     def go():
         return bool(cm.storeUser(target))
 
     if not _on_edt(go):
-        raise RuntimeError("storeUser returned false for %s" % path)
-    _log("stored %s" % path)
+        raise RuntimeError("storeUser returned false for %s" % abs_path)
+    _log("stored %s" % abs_path)
 
 
 def _worker():

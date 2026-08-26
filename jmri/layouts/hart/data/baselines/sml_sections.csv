@@ -1,35 +1,85 @@
 sectionUserName
-Brick East Main West:West Yard West East Main Ext
-Brick East Main West:West Yard West OS 117
-Brick West Yard 1:East End West Main West
-Brick West Yard 2:East End West Main West
-East End East Lead:Brick East Main West
-East End East Lead:West Yard East OS 117b
-East End East Lead:West Yard East Yard T6
-East End East OS 111a:Brick East Main West
-East End South OS 110:Princess West OS 113a
-East End South OS 112:Princess West OS 113a
-East End West Main West:Princess West OS 113a
-East End West Main West:Princess West OS 113b
-East End West Yard Track 1:Princess West OS 113a
-Plane East East Main Ext:East End West Main West
-Plane East OS 102:East End West Main West
-Princess East K-1:East End East Lead
-Princess East K-1:East End East OS 111a
-Princess East K-2:East End East Lead
-Princess East McKees Rocks:Princess South McKeesport
-Princess East McKeesport:Princess North McKees Rocks
-Princess North McKees Rocks:East End East Lead
-Princess North McKees Rocks:East End East OS 111a
-Princess South McKeesport:East End East Lead
-Princess West OS 113a:Princess East McKees Rocks
-Princess West OS 113a:Princess East McKeesport
-Princess West OS 113b:Princess East McKees Rocks
-West Yard East OS 117b:Plane East East Main Ext
-West Yard East Yard T6:Plane East East Main Ext
-West Yard East Yard T6:Plane East OS 102
-West Yard West East Main Ext:East End South OS 110
-West Yard West East Main Ext:East End South OS 112
-West Yard West East Main Ext:East End West Yard Track 1
-West Yard West OS 117:East End South OS 110
-West Yard West OS 117:East End West Yard Track 1
+100L:101LA
+100L:101LB
+100L:117RA
+100L:117RB
+101RA:111RA
+101RB:111RA
+102LA:111RA
+102LB:111RA
+103L:117LB
+103L:118L
+103L:119LA
+103L:119LB
+104L:117LB
+104L:118L
+104L:119LA
+104L:119LB
+104R:110R
+105L:117LB
+105L:118L
+105L:119LA
+105L:119LB
+105R:110R
+106L:117LB
+106L:118L
+106L:119LA
+106L:119LB
+106R:110R
+107L:117LB
+107L:118L
+107L:119LA
+107L:119LB
+107R:110R
+110L:111RB
+110R:113RB
+111L:100L
+111RA:113RA
+111RA:113RB
+111RB:113RB
+112L:100L
+112L:103L
+112L:104L
+112L:105L
+112L:106L
+112L:107L
+112L:117LA
+112L:117LB
+112L:118L
+112L:119LA
+112L:119LB
+112R:113RB
+113RA:115RA
+113RA:120L
+113RB:114RA
+113RB:115RA
+113RB:120L
+113RB:120R
+114LA:112L
+114LB:112L
+115LA:111L
+115LA:112L
+115LB:111L
+115LB:112L
+117LA:102LB
+117LB:102LA
+117LB:102LB
+117RA:104L
+117RA:104R
+117RA:105R
+117RA:106R
+117RA:107R
+117RA:110L
+117RA:110R
+117RA:111RB
+117RB:104L
+117RB:104R
+117RB:105R
+117RB:106R
+117RB:107R
+117RB:110L
+117RB:110R
+117RB:111RB
+117RB:112R
+120L:114LB
+120R:115LB
