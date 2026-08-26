@@ -12,8 +12,8 @@ Never overwrites HART_sheet_West_Yard.xml / West_Yard2.xml (ops / Designer).
 
 Revert row-1: cats/panels/sheets/checkpoints/HART_sheet_West_Yard_good_row1.xml
 
-    python3 cats/scripts/wire_hart_sheet_west_yard2.py
-    python3 cats/scripts/compose_hart_sheet_west_yard2_classI_row2.py
+    python3 cats/scripts/archive/west_yard/wire_hart_sheet_west_yard2.py
+    python3 cats/scripts/archive/west_yard/compose_hart_sheet_west_yard2_classI_row2.py
     ./cats/scripts/launch_cats.sh cats/panels/sheets/HART_sheet_West_Yard2_classI.xml
 """
 
@@ -24,7 +24,9 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[4]
+SCRIPTS = ROOT / "cats/scripts"
+sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_hart_digicon_ctc as ctc  # noqa: E402
@@ -33,9 +35,9 @@ import jmri_to_cats_digicon as gen  # noqa: E402
 import wire_hart_sheet_west_yard2 as wy  # noqa: E402
 
 # Frozen good row-1 base (checkpoint). Fall back to live ops if missing.
-BASE = ROOT / "cats/panels/sheets/checkpoints/HART_sheet_West_Yard_good_row1.xml"
-BASE_FALLBACK = ROOT / "cats/panels/sheets/HART_sheet_West_Yard.xml"
-OUT = ROOT / "cats/panels/sheets/HART_sheet_West_Yard2_classI.xml"
+BASE = ROOT / "cats/panels/sheets/archive/west_yard/checkpoints/HART_sheet_West_Yard_good_row1.xml"
+BASE_FALLBACK = ROOT / "cats/panels/sheets/archive/west_yard/HART_sheet_West_Yard.xml"
+OUT = ROOT / "cats/panels/sheets/archive/west_yard/HART_sheet_West_Yard2_classI.xml"
 SHOT = ROOT / "cats/screenshots/sheets/HART_sheet_West_Yard2_classI.png"
 
 # Below live sheet (Designer y=2..12). Gap row 13 for breathing room.

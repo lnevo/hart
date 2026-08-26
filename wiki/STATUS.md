@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — Digicon turnout IO lives in `cats/scripts/cats_turnout_io.py`. Master 4 no longer imports the West Yard sheet wire. Docs-only.
+
 Updated: 2026-08-26 — USS CTC signal lamps match live CATS: **120L** west-facing (`IH141`), **117RA** / **117LA** 1-lamp dwarfs (top heads). Track schematic unchanged. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--all`.
 
 Updated: 2026-08-26 — Master 4 is **live CATS CTC / CATS ABS**. **114R→120R** (`IH134`) and **115R→120L** (`IH141`). Unused head **IH435** removed; MQTT `track/signalhead/IH435` cleared. West Yard sheets archived. Reload **CATS CTC** or **CATS ABS**. Do not run with USS CTC. Deploy `--all`. Re-Discover SML after reload.

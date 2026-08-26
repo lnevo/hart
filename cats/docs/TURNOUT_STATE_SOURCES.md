@@ -11,7 +11,7 @@
    - **114** THROWN = McKeesport (BOTTOM, default); CLOSED = K-2 (RIGHT)
    - **115** THROWN = Rocks (TOP); CLOSED = K-1 (RIGHT) — confirmed good
 4. If Digicon shows the **wrong direction**, flip **that one switch only** in
-   `cats/scripts/wire_hart_sheet_west_yard2.py` `PLANTS` (NORMAL leg), rewire,
+   `cats/scripts/wire_hart_master4.py` `PLANTS` (NORMAL leg), rewire,
    reload. Do **not** publish MQTT or command JMRI turnouts to “fix” paint.
 5. Agents / `launch_cats.sh` must **not** throw field points.
 6. **Appearance → Refresh Screen** = JMRI → Digicon (safe). **Refresh Layout** =

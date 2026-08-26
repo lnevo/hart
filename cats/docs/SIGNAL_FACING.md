@@ -17,7 +17,7 @@ Panel lamps (`SECSIGNAL` / `PANELSIGNAL`) tip **into** the named BLOCK on that e
 | `LAMP2` / double | 2 | Main / CP home — high vs medium or restricting (two speed classes) |
 | `LAMP3` / triple | 3 | High + medium + slow at one mast (none on HART Master today) |
 
-SoR wire: `cats/scripts/wire_hart_sheet_west_yard2.py` → `SIGNAL_DEFS`  
+SoR wire: `cats/scripts/wire_hart_master4.py` (`SIGNAL_DEFS` / occupancy ANCHORS)  
 Plan: `cats/data/signal_mast_plan.csv`
 
 ---
@@ -89,7 +89,7 @@ Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code 
 
 **CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting, not Clear.
 
-**W-1 / W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_sheet_west_yard2.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
+**W-1 / W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_master4.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
 
 ### Digicon → virtual heads + SHSM (hart-aar two-head, AAR-1946 dwarfs)
 

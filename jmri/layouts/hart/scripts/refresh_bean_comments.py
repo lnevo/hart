@@ -519,7 +519,7 @@ def main() -> int:
         ROOT / "cats/panels/sheets/HART_sheet_West_Yard.xml",
         ROOT / "cats/panels/sheets/HART_sheet_West_Yard_SOR.xml",
         ROOT / "cats/data",
-        ROOT / "cats/scripts/wire_hart_sheet_west_yard2.py",
+        ROOT / "cats/scripts/archive/west_yard/wire_hart_sheet_west_yard2.py",
         ROOT / "cats/scripts/validate_cats_panel.py",
         ROOT / "cats/scripts/apply_sml_cats_pairs.py",
         ROOT / "cats/docs/DISPATCHER_GUIDE_CTC.md",

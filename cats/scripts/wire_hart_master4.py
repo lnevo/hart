@@ -22,8 +22,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_hart_digicon_from_le as le  # noqa: E402
+import cats_turnout_io as tio  # noqa: E402
 import jmri_to_cats_digicon as gen  # noqa: E402
-import wire_hart_sheet_west_yard2 as sheet  # noqa: E402
 
 SRC = ROOT / "cats/panels/HART_Master4.xml"
 DST = ROOT / "cats/panels/HART_Master4_wired.xml"
@@ -315,7 +315,7 @@ def add_extra_tracks(tp: ET.Element) -> int:
         tg = sec.find("TRACKGROUP")
         if tg is None:
             continue
-        have = sheet._tracks(sec)
+        have = tio.section_tracks(sec)
         if kind not in have:
             ET.SubElement(tg, "TRACK").text = kind
             n += 1
@@ -496,7 +496,7 @@ def add_missing_plants(tp: ET.Element) -> int:
         if sec is None:
             print(f"PLANT SKIP missing cell {xy}", file=sys.stderr)
             continue
-        tracks = sheet._tracks(sec)
+        tracks = tio.section_tracks(sec)
         pts = le.points_edge(tracks)
         if pts is None:
             print(f"PLANT SKIP no points edge {xy} {tracks}", file=sys.stderr)
@@ -533,7 +533,7 @@ def finish_empty_spurs(tp: ET.Element) -> int:
         xy = (int(sec.get("X")), int(sec.get("Y")))
         if xy in plant_cells:
             continue
-        tracks = sheet._tracks(sec)
+        tracks = tio.section_tracks(sec)
         pts = le.points_edge(tracks)
         if pts is None:
             continue
@@ -616,7 +616,7 @@ def clear_points_facing_blocks(tp: ET.Element) -> int:
 
 def _track_ends(sec: ET.Element) -> set[str]:
     used: set[str] = set()
-    for kind in sheet._tracks(sec):
+    for kind in tio.section_tracks(sec):
         used |= TRACK_ENDS.get(kind, set())
     return used
 
@@ -687,7 +687,7 @@ def heal_blk_plain_seams(tp: ET.Element) -> int:
 
 
 def _other_end(sec: ET.Element, edge: str) -> str | None:
-    for kind in sheet._tracks(sec):
+    for kind in tio.section_tracks(sec):
         ends = TRACK_ENDS.get(kind)
         if ends and edge in ends:
             for e in ends:
@@ -705,7 +705,7 @@ def break_dual_named_tracks(tp: ET.Element) -> int:
     }
     n = 0
     for sec in secs.values():
-        for kind in sheet._tracks(sec):
+        for kind in tio.section_tracks(sec):
             ends = TRACK_ENDS.get(kind)
             if not ends or len(ends) != 2:
                 continue
@@ -771,7 +771,7 @@ def _faces_points(secs: dict, x: int, y: int, ed: str) -> bool:
 
 def _shared_edge(sec: ET.Element, edge: str) -> bool:
     n = 0
-    for kind in sheet._tracks(sec):
+    for kind in tio.section_tracks(sec):
         ends = TRACK_ENDS.get(kind)
         if ends and edge in ends:
             n += 1
@@ -787,7 +787,7 @@ def fill_same_track_names(tp: ET.Element) -> int:
     }
     n = 0
     for (x, y), sec in secs.items():
-        for kind in sheet._tracks(sec):
+        for kind in tio.section_tracks(sec):
             ends = TRACK_ENDS.get(kind)
             if not ends or len(ends) != 2:
                 continue
@@ -1128,8 +1128,8 @@ def main() -> None:
     drop_110_crossing(tp)
     n_share = add_shared_jumps(tp)
 
-    to_map = sheet.load_turnouts()
-    n_to = sheet.wire_turnouts(
+    to_map = tio.load_turnouts()
+    n_to = tio.wire_turnouts(
         tp, to_map, plants=PLANTS, invert_vs_jmri=INVERT_VS_JMRI
     )
 

@@ -114,7 +114,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 
 1. Walk-down node 13 (1301=118, 1304–1306=house, 1307=119). Freeze the CSV.  
 2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
-3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_hart_sheet_west_yard2.py` then `build_hart_master_abs_hold.py`.  
+3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_hart_master4.py` then `build_hart_master_abs_hold.py`.  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  
 5. Re-discover SML (dests are mast userNames).  
 6. `validate_le_signalling.py` + `check_hart_phase02.py` + `validate_cats_panel.py` + load PanelPro + Run CTC Logic.  
@@ -141,7 +141,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `panelpro_smoke_test.py` | Station list `East Lead` |
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS 117b (West Yard)` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
-| `wire_hart_sheet_west_yard2.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
+| `wire_hart_master4.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
 | `apply_sml_cats_pairs.py` | SML pair + block dests |
 | `validate_cats_panel.py` | Required `OS 116–119 (West Yard)` |
 | `build_hart_signal_heads.py` | Mast userNames |

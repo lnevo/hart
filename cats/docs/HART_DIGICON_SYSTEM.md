@@ -259,7 +259,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | Script | Purpose |
 |--------|---------|
 | `cats/scripts/wire_hart_master4.py` | Live Digicon geometry / plants / lamps (`--live` → CATS CTC / ABS) |
-| `cats/scripts/wire_hart_sheet_west_yard2.py` | Turnout helpers still imported by Master 4; West Yard sheets archived |
+| `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by Master 4) |
 | `cats/scripts/build_hart_master_ctc_hold.py` | CTC geometry → CATS CTC (`HOLD_ONLY` + AAR bridge) + header |
 | `cats/scripts/build_hart_master_abs_hold.py` | ABS geometry → CATS ABS (`HOLD_ONLY` + AAR bridge) + header |
 | `cats/scripts/aar_aspect_bridge.py` | Digicon R-codes ↔ AAR Clear/Approach/Stop |

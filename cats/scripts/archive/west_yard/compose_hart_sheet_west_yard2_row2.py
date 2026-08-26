@@ -8,8 +8,8 @@ South Yard left ladder = horizontal flip of Designer East End ladder:
 
 Row-2 left/right edges match West Yard (x=8..27).
 
-    python3 cats/scripts/wire_hart_sheet_west_yard2.py --with-row2
-    python3 cats/scripts/compose_hart_sheet_west_yard2_row2.py
+    python3 cats/scripts/archive/west_yard/wire_hart_sheet_west_yard2.py
+    python3 cats/scripts/archive/west_yard/compose_hart_sheet_west_yard2_row2.py
 """
 
 from __future__ import annotations
@@ -19,16 +19,18 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[4]
+SCRIPTS = ROOT / "cats/scripts"
+sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_hart_digicon_ctc as ctc  # noqa: E402
 import build_hart_digicon_from_le as le  # noqa: E402
 
-SRC = ROOT / "cats/panels/sheets/HART_sheet_West_Yard2.xml"
-ACTIVE = ROOT / "cats/panels/sheets/HART_sheet_West_Yard.xml"
+SRC = ROOT / "cats/panels/sheets/archive/west_yard/HART_sheet_West_Yard2.xml"
+ACTIVE = ROOT / "cats/panels/sheets/archive/west_yard/HART_sheet_West_Yard.xml"
 SHOT = ROOT / "cats/screenshots/sheets/HART_sheet_West_Yard2.png"
-DESIGNER_ROW2 = ROOT / "cats/panels/sheets/HART_sheet_West_Yard2_row2_designer.xml"
+DESIGNER_ROW2 = ROOT / "cats/panels/sheets/archive/west_yard/HART_sheet_West_Yard2_row2_designer.xml"
 
 ROW2_Y0 = 10
 # Match West Yard track bbox (xmin=8, xmax=27). Shift in Designer; preserve via sidecar.

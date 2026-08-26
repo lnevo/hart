@@ -23,12 +23,13 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+ROOT = Path(__file__).resolve().parents[4]
+SCRIPTS = ROOT / "cats/scripts"
+sys.path.insert(0, str(SCRIPTS))
 
 import build_hart_digicon_from_le as le  # noqa: E402
 
-OUT = ROOT / "cats/panels/sheets/HART_sheet_West_Yard.xml"
+OUT = ROOT / "cats/panels/sheets/archive/west_yard/HART_sheet_West_Yard.xml"
 SHOT = ROOT / "cats/screenshots/sheets/HART_sheet_West_Yard.png"
 WIDTH, HEIGHT = "1600", "560"
 
