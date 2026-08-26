@@ -4,7 +4,9 @@ Source: `cats/panels/HART_Master4.xml` (Designer save, 63×16, 1920×540).
 Wire: `python3 cats/scripts/wire_hart_master4.py` → `HART_Master4_wired.xml`.  
 `--live` copies that onto CATS CTC / CATS ABS. This redraw is **not** on the live desks until `--live`.
 
-The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. It does not relocate labels, move lamps, insert rails, or add/remove gaps. There are **no SHARED jumps**.
+The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. Recent geometry edits were saved into `HART_Master4_wired.xml`; copy that back to `HART_Master4.xml` before a wire pass. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. It does not relocate labels, move lamps, insert rails, or add/remove gaps.
+
+**SHARED wraps (N/X + occupancy):** `(1,6)` LEFT ↔ `(1,8)` LEFT both **Main West**; `(63,6)` RIGHT ↔ `(63,7)` RIGHT both **McKeesport**.
 
 ## Rows (west → east)
 
@@ -19,7 +21,7 @@ The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occ
 | 10 | W-1 / EH-3 / S-4 |
 | 11–12 | S-5; **Main East** under the south-yard ladders |
 
-West rims: `(1,6)` LEFT Main West and `(1,8)` LEFT Main West (same detector, no N/X wrap). East rims: `(63,7)` RIGHT McKeesport; W-1/W-2 east bumpers at x=9.
+West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Main West). East rims: `(63,6)` RIGHT SHARED to `(63,7)` RIGHT (McKeesport). W-1/W-2 east bumpers at x=9.
 
 ## Plants (`wire_hart_master4.py`)
 
@@ -48,16 +50,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Signals
 
-22 Designer lamps, named in place. **112R is not on this drawing** (no lamp to bind). **100L** is `(3,8)` LEFT. **110R** is `(42,7)` LEFT on OS 110 (`LOWRIGHT`/`TOP`) — not on OS 109. **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. **114R/115R** are `(61,6)` RIGHT / `(62,6)` LEFT at McKees Rocks \| McKeesport on Y=6.
-
-## Gap issues (not changed)
-
-Designer cuts were left as drawn. Two occupancy problems follow from that:
-
-1. **Main East is not a separate detector.** There is no `BLOCK` on 112 BOTTOM, so Y=12 Main East (and the slash east of 117b at `(17,8)`) is the same region as **OS 112** (`Block 12-8`). `Block 2-3` will not light on its own until there is a cut between OS 112 and Main East.
-2. **Princess east Y=6 stub** `(62,6)`–`(63,6)` is named McKeesport like Y=7, so occupancy merges by name. There is no SHARED wrap; N/X does not go around the east bumpers.
-
-West-of-Brick `(1,8)`–`(2,8)` is named Main West like Y=6 (occupancy merges, no N/X wrap). 116 Thrown does not join 118.
+23 Designer lamps, named in place. **112R** is `(44,8)` LEFT on OS 112 (CATS CP name; no field mast yet). Occupancy cut Main East \| OS 112 is `(43,8)` RIGHT \| `(44,8)` LEFT. **100L** is `(3,8)` LEFT. **110R** is `(42,7)` LEFT on OS 110 (`LOWRIGHT`/`TOP`). **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. Temporary Princess intermediates **120L** `(60,6)` RIGHT and **120R** `(61,6)` LEFT sit on McKees Rocks \| McKeesport.
 
 ## Label fixes
 
@@ -71,11 +64,11 @@ Designer captions are used as saved. The wire script does not relocate labels.
 python3 cats/scripts/wire_hart_master4.py --live   # after a Designer save
 ```
 
-Mac icons **CATS CTC** / **CATS ABS** → `HART_Master_CTC_hold.xml` / `HART_Master_ABS_hold.xml`. Designer saves belong in `HART_Master4.xml`. The wire script `--live` copies the wired board onto `HART_Master.xml` and rebuilds both HOLD copies. Do not save Designer over `_hold.xml`.
+Mac icons **CATS CTC** / **CATS ABS** → `HART_Master_CTC_hold.xml` / `HART_Master_ABS_hold.xml`. Designer saves belong in `HART_Master4.xml` (not `_wired.xml`). The wire script `--live` copies the wired board onto `HART_Master.xml` and rebuilds both HOLD copies. Do not save Designer over `_hold.xml`.
 
 **Load rule:** a named `BLOCK` edge must face another `BlkEdge`. Occupancy cuts use **different** names (that is the only intended rail gap). Interior cells stay plain — occupancy flows through turnouts (`PtsEdge.propagateBlock`). Same-name `BlkEdge` pairs still paint a gap; they exist only where a Designer lamp sits mid-block. A `BlkEdge` facing a plain `SecEdge` ClassCasts in `discoverAdvanceVitalLogic` and leaves the Dispatcher Panel blank. Anonymous `<BLOCK />` then NPEs (`MyBlock` is null). Do not put two names on one Track. Do not put BLOCK on the edge facing SWITCHPOINTS.
 
-This board has **no SHARED**. Occupancy can still merge when two disconnected rims share a BLOCK name (Main West west stubs; Princess McKeesport). N/X does not route through a name match alone.
+`<SHARED X="…" Y="…">EDGE</SHARED>` is the documented CATS non-adjacent joint. Both ends must point at each other. Paint stays gapped. N/X routes through. Occupancy merges when both ends share a BLOCK name (Main West wrap; Princess McKeesport wrap).
 
 `OperationsClient` to `127.0.0.1` is CATS looking for a network ops server that HART does not run. Wired XML sets `<OPERATIONS CONNECT="false" />`. Occupancy-cut WARNs (two names at a joint) are stock CATS — it keeps the first Block.
 

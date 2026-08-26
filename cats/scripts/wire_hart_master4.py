@@ -36,11 +36,12 @@ LIVE_ABS_HOLD = ROOT / "cats/panels/HART_Master_ABS_hold.xml"
 # NORMAL is the drawn through / main. invert_vs_jmri plants put throw on
 # that NORMAL route (JMRI Thrown = mainline): 100, 114, 115.
 #
-# Untwisted 63×16 board (Designer 2026-08-26). No SHARED jumps.
+# Untwisted 63×16 board (Designer 2026-08-26).
 # Y=6 Main West → West Main Ext → McKees Rocks (K-1 above).
 # Y=7 Scale / Barn / S-1 / East Lead / McKeesport (K-2 below).
 # Y=8 Brick 100 / Plane 102 / E Main Ext / EH / S-2.
 # Y=12 Main East under the south-yard ladders.
+# SHARED: (1,6) LEFT ↔ (1,8) LEFT Main West; (63,6) RIGHT ↔ (63,7) RIGHT McKeesport.
 PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
     (4, 8): ("OS 100", "RIGHT", "TOL3"),  # Brick. Thrown = through E Main Ext; Closed BOTTOM = yard
     (5, 9): ("OS 101", "BOTTOM", "TOL38"),  # Closed = W-1 (BOTTOM); Thrown RIGHT = W-2
@@ -80,8 +81,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     # K-1 | OS 115
     (56, 5, "RIGHT", "OS 115"),  # 115LB
     (57, 5, "LEFT", "K-1"),
-    # Main West west rim (Y=6) and west-of-Brick stub (Y=8): same detector,
-    # no SHARED (N/X does not wrap around the frame).
+    # Main West west rim (Y=6) SHARED-joins west-of-Brick (Y=8) for N/X.
     (1, 6, "LEFT", "Main West"),
     (1, 8, "LEFT", "Main West"),
     (2, 8, "RIGHT", "Main West"),
@@ -104,8 +104,9 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (54, 6, "LEFT", "OS 115"),
     (56, 6, "RIGHT", "OS 115"),  # 115LA
     (57, 6, "LEFT", "McKees Rocks"),
-    (61, 6, "RIGHT", "McKees Rocks"),  # 114R
-    (62, 6, "LEFT", "McKeesport"),  # 115R
+    (60, 6, "RIGHT", "McKees Rocks"),  # 120L
+    (61, 6, "LEFT", "McKeesport"),  # 120R
+    (63, 6, "RIGHT", "McKeesport"),  # SHARED wrap to (63,7)
     # Scale / 117 / Barn / 116 / 103 / S-1
     (10, 7, "RIGHT", "OS 102"),  # 102LA
     (11, 7, "LEFT", "Scale"),
@@ -134,6 +135,8 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (43, 7, "RIGHT", "OS 110"),
     (44, 7, "LEFT", "OS 112"),
     (45, 7, "RIGHT", "OS 112"),  # 112L
+    (43, 8, "RIGHT", "Main East"),
+    (44, 8, "LEFT", "OS 112"),  # 112R (CATS name only; no field mast yet)
     (46, 7, "LEFT", "East Lead"),
     (50, 7, "RIGHT", "East Lead"),
     (51, 7, "LEFT", "OS 113a"),  # 113RB
@@ -154,7 +157,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (13, 8, "RIGHT", "East Main Ext"),
     (14, 8, "LEFT", "OS 117b"),  # 117RB
     (16, 8, "RIGHT", "OS 117b"),  # 117LA
-    (17, 8, "LEFT", "OS 112"),  # 117b east connector is in the 112/Main East region
+    (17, 8, "LEFT", "Main East"),
     # Engine House
     (21, 8, "LEFT", "EH-1"),
     (23, 8, "RIGHT", "EH-1"),
@@ -220,11 +223,12 @@ SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
     (51, 7, "LEFT"): "113RB",
     (56, 6, "RIGHT"): "115LA",
     (56, 5, "RIGHT"): "115LB",
-    (61, 6, "RIGHT"): "114R",
-    (62, 6, "LEFT"): "115R",
+    (60, 6, "RIGHT"): "120L",
+    (61, 6, "LEFT"): "120R",
     (39, 7, "LEFT"): "111RB",
     (42, 7, "LEFT"): "110R",
     (45, 7, "RIGHT"): "112L",
+    (44, 8, "LEFT"): "112R",  # panel CP name; no JMRI mast yet
     (56, 7, "RIGHT"): "114LA",
     (56, 8, "RIGHT"): "114LB",
 }
@@ -239,10 +243,12 @@ SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {
     (42, 7, "LEFT"): ("LOWRIGHT", "TOP"),  # 110R
 }
 
-# No SHARED jumps — the redraw is geographic. Occupancy can still merge
-# across the frame when two rims share a BLOCK name (Main West west stubs;
-# Princess McKeesport stub on Y=6 with Y=7 McKeesport).
-SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = []
+# Panel-edge wraps. Paint stays gapped; N/X routes through. Same BLOCK
+# name so occupancy merges: Main West west stubs; Princess McKeesport.
+SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = [
+    ((1, 6, "LEFT"), (1, 8, "LEFT")),
+    ((63, 6, "RIGHT"), (63, 7, "RIGHT")),
+]
 
 STATIONS = {
     "W-1": "W-1",
@@ -405,8 +411,12 @@ def name_blocks(tp: ET.Element) -> int:
 
 
 def add_shared_jumps(tp: ET.Element) -> int:
-    """No SHARED jumps on this board. Still strip any leftover SHARED from
-    an older save so a stale wrap cannot come back."""
+    """Joint non-adjacent edges. CATS SecEdge.bind() uses SHARED instead of
+    the geographic neighbor (paint stays gapped; N/X routes).
+
+    Both ends must point at each other. Same-name jumps merge occupancy:
+    west-edge Main West wrap and Princess McKeesport wrap.
+    """
     keep_blk = {(x, y, e) for x, y, e, _ in ANCHORS}
     secs = {
         (int(s.get("X")), int(s.get("Y"))): s
@@ -1006,7 +1016,7 @@ def _expected_idents() -> set[str]:
     return idents
 
 
-OMITTED_BLOCKS: set[str] = {"Main East"}  # merged into OS 112 — no Designer cut on 112 BOTTOM
+OMITTED_BLOCKS: set[str] = set()
 OMITTED_IDENTS: set[str] = set()
 
 
