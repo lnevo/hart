@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — Master 4 redraw (63×16, no SHARED) is wired to Designer occupancy cuts. 23 plants + 22 lamps. **Not live** until `wire_hart_master4.py --live`. Gap: Main East is still inside OS 112 (no cut on 112 BOTTOM). **112R** lamp is not on the drawing.
+
 Updated: 2026-08-25 — USS CTC restored to the **pre-Master 4** board (`a99b04f`, v8 yard ladders), not the Aug 23+ Master 4 redraw. CATS desks remain pre-Master 4. EH-1/EH-3 occupancy swap kept. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--all`.
 
 Updated: 2026-08-25 — USS CTC restored to pre-Master 4 cutover (**v54**). CATS desks remain pre-Master 4. EH-1/EH-3 occupancy swap kept. Reload **USS CTC** and **CATS CTC** or **CATS ABS**. Deploy `--all`.

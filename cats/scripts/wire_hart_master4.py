@@ -34,304 +34,216 @@ LIVE_ABS_HOLD = ROOT / "cats/panels/HART_Master_ABS_hold.xml"
 
 # (x, y) → (OS name, NORMAL route among non-points legs, layout_ident)
 # NORMAL is the drawn through / main. invert_vs_jmri plants put throw on
-# that NORMAL route (JMRI Thrown = mainline): 100, 112, 114, 115.
+# that NORMAL route (JMRI Thrown = mainline): 100, 114, 115.
 #
-# Left → right on the focused main (BRICK @ x=5, PLANE @ x=9):
-#   100 Brick (5,6) → 101 West Yard (6,5, above) → 102 Plane (9,6) → 117…
-# 110 frog is (36,7). Thrown BOTTOM is geographic into (36,8) UPPERSLASH
-# (longer diverge + 110R). That LEFT SHARED-jumps to 109 (35,9) TOP.
-# (35,8) has no rail. OS 111a SHARED-skips (34,8) RIGHT ↔ (37,8) LEFT.
-# Wrap to Brick is SHARED (1,8) LEFT ↔ (1,6) LEFT.
-# 116 Thrown does not SHARED-jump over MW (that landed on 118).
-# 103 Thrown SHARED-jumps over MW to (25,9) TOP.
-# 119 at (17,9); 118 at (19,9); 118 throat is (20,9).
+# Untwisted 63×16 board (Designer 2026-08-26). No SHARED jumps.
+# Y=6 Main West → West Main Ext → McKees Rocks (K-1 above).
+# Y=7 Scale / Barn / S-1 / East Lead / McKeesport (K-2 below).
+# Y=8 Brick 100 / Plane 102 / E Main Ext / EH / S-2.
+# Y=12 Main East under the south-yard ladders.
 PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
-    (5, 6): ("OS 100", "RIGHT", "TOL3"),  # Brick. Thrown = through; Closed = W yard
-    (6, 5): ("OS 101", "TOP", "TOL38"),  # West Yard. Closed = W-1 (TOP); Thrown = W-2 (RIGHT)
-    (10, 6): ("OS 102", "RIGHT", "TOL42"),  # Plane. Closed = through to 117b; Thrown = Scale
-    (16, 6): ("OS 117b", "RIGHT", "TO117"),
-    (39, 6): ("OS 112", "LEFT", "TOL23"),  # Thrown = Y=6 East Lead; Closed = OS 110
-    (47, 6): ("OS 113a", "RIGHT", "TO113"),
-    (55, 6): ("OS 114", "RIGHT", "TOR36"),  # Thrown = McKeesport; Closed = K-2
-    (16, 7): ("OS 117", "LEFT", "TO117"),
-    (21, 7): ("OS 116", "LEFT", "TO1"),
-    (24, 7): ("OS 103", "RIGHT", "TOR14"),
-    (34, 7): ("OS 111b", "LEFT", "TO111"),
-    (36, 7): ("OS 110", "LEFT", "TOL6"),  # Closed = S-1/111; Thrown = (36,8) then SHARED to 109
-    (34, 8): ("OS 111a", "RIGHT", "TO111"),
-    (48, 8): ("OS 113b", "LEFT", "TO113"),
-    (51, 8): ("OS 115", "RIGHT", "TOL29"),  # Thrown = McKees Rocks; Closed = K-1
-    (17, 9): ("OS 119", "LEFT", "TO10"),  # EH-1 LEFT; Thrown BOTTOM = EH-2
-    (19, 9): ("OS 118", "LEFT", "TO11"),  # Closed LEFT = from 119; Thrown BOTTOM = EH-3
-    # Staggered H+slash ladders (Designer). Spine BOTTOM faces a plain slash
-    # cell, not the next SWITCHPOINTS — no spacer insert.
-    (26, 9): ("OS 104", "BOTTOM", "TOL15"),
-    (34, 9): ("OS 109", "BOTTOM", "TOR7"),
-    (27, 10): ("OS 105", "BOTTOM", "TOL17"),
-    (33, 10): ("OS 108", "BOTTOM", "TOR9"),
-    (28, 11): ("OS 106", "BOTTOM", "TOL19"),
-    (32, 11): ("OS 107", "BOTTOM", "TOR11"),
+    (4, 8): ("OS 100", "RIGHT", "TOL3"),  # Brick. Thrown = through E Main Ext; Closed BOTTOM = yard
+    (5, 9): ("OS 101", "BOTTOM", "TOL38"),  # Closed = W-1 (BOTTOM); Thrown RIGHT = W-2
+    (9, 8): ("OS 102", "RIGHT", "TOL42"),  # Closed = through E Main Ext; Thrown TOP = Scale
+    (15, 8): ("OS 117b", "RIGHT", "TO117"),
+    (15, 7): ("OS 117", "LEFT", "TO117"),
+    (24, 8): ("OS 119", "LEFT", "TO10"),  # Closed LEFT = EH-1; Thrown BOTTOM = EH-2
+    (26, 8): ("OS 118", "LEFT", "TO11"),  # Closed LEFT = from 119; Thrown BOTTOM = EH-3
+    (27, 7): ("OS 116", "LEFT", "TO1"),  # Thrown BOTTOM is a stub; does not join 118
+    (30, 7): ("OS 103", "RIGHT", "TOR14"),  # Thrown BOTTOM geographic into 104 approach
+    (31, 8): ("OS 104", "BOTTOM", "TOL15"),
+    (32, 9): ("OS 105", "BOTTOM", "TOL17"),
+    (33, 10): ("OS 106", "BOTTOM", "TOL19"),
+    (40, 6): ("OS 111a", "RIGHT", "TO111"),  # Main West
+    (40, 7): ("OS 111b", "LEFT", "TO111"),  # S-1
+    (42, 7): ("OS 110", "LEFT", "TOL6"),  # Closed LEFT = S-1/111; Thrown BOTTOM = 109
+    (44, 7): ("OS 112", "LEFT", "TOL23"),  # Closed LEFT = 110; Thrown BOTTOM = Main East
+    (41, 8): ("OS 109", "BOTTOM", "TOR7"),
+    (40, 9): ("OS 108", "BOTTOM", "TOR9"),
+    (39, 10): ("OS 107", "BOTTOM", "TOR11"),
+    (52, 6): ("OS 113b", "LEFT", "TO113"),  # West Main Ext
+    (52, 7): ("OS 113a", "RIGHT", "TO113"),  # East Lead
+    (55, 6): ("OS 115", "RIGHT", "TOL29"),  # Thrown = McKees Rocks; Closed TOP = K-1
+    (55, 7): ("OS 114", "RIGHT", "TOR36"),  # Thrown = McKeesport; Closed BOTTOM = K-2
 }
 
-# CATS NORMAL = drawn through. These four are JMRI Thrown when lined
+# CATS NORMAL = drawn through. These three are JMRI Thrown when lined
 # for that through route (Designer “differs from JMRI settings”).
-INVERT_VS_JMRI = {"TOL3", "TOL23", "TOR36", "TOL29"}  # 100, 112, 114, 115
+# 112 is no longer inverted: LEFT is the 110/S-1 closed leg, BOTTOM is Main East.
+INVERT_VS_JMRI = {"TOL3", "TOR36", "TOL29"}  # 100, 114, 115
 
-# Do not add rails. Designer already drew 100/101/117/ladder frogs.
+# Do not add rails. Designer already drew every frog.
 EXTRA_TRACKS: dict[tuple[int, int], str] = {}
 
-# Named BLOCK only at occupancy cuts (different names facing) and the mate
-# of a mid-block lamp. CATS paints a rail gap at every BlkEdge. Occupancy
-# flows through turnouts (PtsEdge.propagateBlock) — frog interiors stay plain.
+# Named BLOCK only on Designer occupancy cuts (do not add/remove gaps).
 ANCHORS: list[tuple[int, int, str, str]] = [
-    # W-1 is 101 NORMAL (TOP / Closed). W-2 is Thrown RIGHT. 101RA/RB follow.
-    (7, 4, "RIGHT", "OS 101"),  # 101RA
-    (8, 4, "LEFT", "W-1"),
-    (10, 4, "RIGHT", "W-1"),
-    (7, 5, "RIGHT", "OS 101"),  # 101RB
-    (8, 5, "LEFT", "W-2"),
-    (10, 5, "RIGHT", "W-2"),
-    # OS 100 | OS 101 on the yard lead. 101 points face LEFT — (5,5) RIGHT stays plain.
-    (5, 6, "TOP", "OS 100"),
-    (5, 5, "BOTTOM", "OS 101"),
-    # Spur west of 100 is Main West (wrap merges with Y=8). Gap at 100:
-    # (4,6) RIGHT stays plain (100 points face LEFT).
-    (3, 6, "RIGHT", "Main West"),
-    (4, 6, "LEFT", "OS 100"),
-    # OS 100 | Brick-Plane (3 cells) | OS 102. Gap at 100 and at 102.
-    (5, 6, "RIGHT", "OS 100"),
-    (6, 6, "LEFT", "Brick-Plane"),
-    (8, 6, "RIGHT", "Brick-Plane"),
-    (9, 6, "LEFT", "OS 102"),
-    # OS 102 includes 102LB / 102LA (plant is (10,6); lamps sit east of the frog)
-    (11, 6, "RIGHT", "OS 102"),  # 102LB
-    (12, 6, "LEFT", "East Main Ext"),
-    (14, 6, "RIGHT", "East Main Ext"),
-    (15, 6, "LEFT", "OS 117b"),  # 117RB
-    # (17,6) is OS 117b (no LEFT gap at the frog). Cut is east of 117LA.
-    (17, 6, "RIGHT", "OS 117b"),  # 117LA
-    (18, 6, "LEFT", "Main East"),
-    # Main East | OS 112 (112R). Lamp stacked with 111 at x=33.
-    # 112 points face RIGHT so (40,6) LEFT stays plain.
-    (32, 6, "RIGHT", "Main East"),
-    (33, 6, "LEFT", "OS 112"),  # 112R
-    # OS 112 | East Lead (112L). (40,6) LEFT faces 112 SP — leave plain.
-    (40, 6, "RIGHT", "OS 112"),  # 112L
-    (41, 6, "LEFT", "East Lead"),
-    (45, 6, "RIGHT", "East Lead"),
-    (46, 6, "LEFT", "OS 113a"),  # 113RB
-    # 113 crossover: Designer gap is mid-slash (47,7)|(48,7), not at 113a frog.
-    (47, 7, "RIGHT", "OS 113a"),
-    (48, 7, "LEFT", "OS 113b"),
-    # OS 113a | OS 114 (114 points face LEFT at (55,6) — (54,6) RIGHT stays plain)
-    (53, 6, "RIGHT", "OS 113a"),
-    (54, 6, "LEFT", "OS 114"),
-    # (56,6) is OS 114 (no LEFT gap at the frog). Cut is east of 114LA.
-    (56, 6, "RIGHT", "OS 114"),  # 114LA
-    (57, 6, "LEFT", "McKeesport"),
-    # Balloon wrap: same McKeesport name on both SHARED bumpers so occupancy
-    # continues Y=6 → wrap → Y=8 east of 115R.
-    (64, 6, "RIGHT", "McKeesport"),
-    (64, 8, "RIGHT", "McKeesport"),
-    (11, 7, "RIGHT", "OS 102"),  # 102LA
-    (12, 7, "LEFT", "Scale"),
-    (14, 7, "RIGHT", "Scale"),
-    (15, 7, "LEFT", "OS 117"),  # 117RA
-    (16, 6, "BOTTOM", "OS 117b"),
-    (16, 7, "TOP", "OS 117"),
-    (17, 7, "RIGHT", "OS 117"),  # 117LB
-    (18, 7, "LEFT", "Barn"),
-    (20, 7, "RIGHT", "Barn"),
-    (21, 7, "LEFT", "OS 116"),
-    # 116 Thrown BOTTOM is a dangling OS 116 edge — do NOT SHARED-jump onto 118.
-    (21, 7, "BOTTOM", "OS 116"),
-    # OS 116 | OS 103 (116 SP is RIGHT so (22,7) LEFT stays plain)
-    (22, 7, "RIGHT", "OS 116"),
-    (23, 7, "LEFT", "OS 103"),
-    # OS 103 | S-1 (103 SP is LEFT so (23,7) RIGHT stays plain)
-    (24, 7, "RIGHT", "OS 103"),
-    (25, 7, "LEFT", "S-1"),
-    (32, 7, "RIGHT", "S-1"),
-    (33, 7, "LEFT", "OS 111b"),  # 111RB — (33,7) is OS, no RIGHT gap
-    # OS 111b | OS 111a
-    (34, 7, "BOTTOM", "OS 111b"),
-    (34, 8, "TOP", "OS 111a"),
-    # OS 111b | OS 110 (111b SP is RIGHT so (35,7) LEFT stays plain)
-    (35, 7, "RIGHT", "OS 111b"),
-    (36, 7, "LEFT", "OS 110"),
-    # OS 110 | OS 112 Closed (110 SP is RIGHT so (37,7) LEFT stays plain)
-    (37, 7, "RIGHT", "OS 110"),
-    (38, 7, "LEFT", "OS 112"),
-    (39, 6, "BOTTOM", "OS 112"),
-    (39, 7, "TOP", "OS 112"),
-    # 110 Thrown: frog BOTTOM stays plain (geographic into (36,8) TOP).
-    # 110R on the longer diverge SHARED-jumps to 109. Occupancy cut.
-    (36, 8, "LEFT", "OS 110"),  # 110R
-    (35, 9, "TOP", "OS 109"),
-    # 111a east leg is gapped at x=35. Same OS 111a name on both SHARED
-    # ends so occupancy continues; paint stays gapped. SP is LEFT so RIGHT
-    # is the through leg (not R2).
-    (34, 8, "RIGHT", "OS 111a"),
-    (37, 8, "LEFT", "OS 111a"),
-    # 103 Thrown SHARED-jumps over Main West to (25,9) (104 approach).
-    (24, 7, "BOTTOM", "OS 103"),
-    (25, 9, "TOP", "OS 104"),
-    # (39,8) is OS 111a (no gap). Cut is east of 111L.
-    (40, 8, "RIGHT", "OS 111a"),  # 111L
-    (41, 8, "LEFT", "West Main Ext"),
-    (45, 8, "RIGHT", "West Main Ext"),
-    (46, 8, "LEFT", "OS 113b"),  # 113RA (same occupancy as 113b, like 113RB)
-    (49, 8, "RIGHT", "OS 113b"),
-    (50, 8, "LEFT", "OS 115"),
-    # (52,8) is OS 115 (no LEFT gap at the frog). Cut is east of 115LA.
-    (52, 8, "RIGHT", "OS 115"),  # 115LA
-    (53, 8, "LEFT", "McKees Rocks"),
-    # Intermediates on Y=8, west of the wrap: 114R westbound into McKees Rocks,
-    # 115R eastbound into the McKeesport wrap. Occupancy cut between them.
-    (61, 8, "RIGHT", "McKees Rocks"),  # 114R
-    (62, 8, "LEFT", "McKeesport"),  # 115R
-    (55, 6, "BOTTOM", "OS 114"),
-    (55, 7, "TOP", "K-2"),
-    (56, 7, "RIGHT", "K-2"),  # 114LB
-    (59, 7, "RIGHT", "K-2"),
-    (51, 8, "BOTTOM", "OS 115"),
-    (51, 9, "TOP", "K-1"),
-    (52, 9, "RIGHT", "K-1"),  # 115LB
-    (55, 9, "RIGHT", "K-1"),
-    # EH: 119 at (17,9) SP RIGHT; 118 at (19,9) SP RIGHT.
-    # (16,9) LEFT faces 119 west leg (ok to name). (18,9) LEFT faces 119 SP — plain.
-    # (20,9) LEFT faces 118 SP — plain. (20,9) TOP is the 118 throat boundary.
-    (14, 9, "LEFT", "EH-1"),
-    (15, 9, "RIGHT", "EH-1"),
-    (16, 9, "LEFT", "OS 119"),
-    (16, 9, "RIGHT", "OS 119"),
-    (18, 9, "RIGHT", "OS 119"),
-    (19, 9, "LEFT", "OS 118"),
-    (20, 9, "TOP", "OS 118"),  # 118 throat — not OS 116
-    (14, 10, "LEFT", "EH-2"),
-    (17, 9, "BOTTOM", "OS 119"),
-    (17, 10, "TOP", "EH-2"),
-    (14, 11, "LEFT", "EH-3"),
-    (19, 9, "BOTTOM", "OS 118"),
-    (19, 10, "TOP", "EH-3"),
-    # Main West | OS 111a (111a SP is LEFT so (33,8) RIGHT stays plain)
-    (32, 8, "RIGHT", "Main West"),
-    # West-edge wrap: Main West (1,8) LEFT SHARED-joins Brick (1,6) LEFT.
-    # Both ends are Main West so occupancy merges — the spur west of 100
-    # is the same detector as the Y=8 spine. Gap at 100 is (3,6)|(4,6).
-    (1, 8, "LEFT", "Main West"),
+    # K-1 | OS 115
+    (56, 5, "RIGHT", "OS 115"),  # 115LB
+    (57, 5, "LEFT", "K-1"),
+    # Main West west rim (Y=6) and west-of-Brick stub (Y=8): same detector,
+    # no SHARED (N/X does not wrap around the frame).
     (1, 6, "LEFT", "Main West"),
-    (33, 8, "LEFT", "OS 111a"),  # 111RA
-    # Staggered ladders — body and spine cuts, never facing SWITCHPOINTS.
-    (26, 9, "RIGHT", "OS 104"),
-    (27, 9, "LEFT", "S-2"),
-    (33, 9, "RIGHT", "S-2"),
-    (34, 9, "LEFT", "OS 109"),
-    (26, 9, "BOTTOM", "OS 104"),
-    (26, 10, "TOP", "OS 105"),
-    (34, 9, "BOTTOM", "OS 109"),
-    (34, 10, "TOP", "OS 108"),
-    (27, 10, "RIGHT", "OS 105"),
-    (28, 10, "LEFT", "S-3"),
-    (32, 10, "RIGHT", "S-3"),
-    (33, 10, "LEFT", "OS 108"),
-    (27, 10, "BOTTOM", "OS 105"),
-    (27, 11, "TOP", "OS 106"),
-    (33, 10, "BOTTOM", "OS 108"),
-    (33, 11, "TOP", "OS 107"),
-    (28, 11, "RIGHT", "OS 106"),
-    (29, 11, "LEFT", "S-4"),
-    (31, 11, "RIGHT", "S-4"),
-    (32, 11, "LEFT", "OS 107"),
-    (28, 11, "BOTTOM", "OS 106"),
-    (28, 12, "TOP", "S-5"),
-    (32, 11, "BOTTOM", "OS 107"),
-    (32, 12, "TOP", "S-5"),
-    # S-5 body is continuous (no LEFT gap at 29,12 / no RIGHT gap at 31,12).
+    (1, 8, "LEFT", "Main West"),
+    (2, 8, "RIGHT", "Main West"),
+    (3, 8, "LEFT", "OS 100"),  # 100L
+    # Main West | OS 111a
+    (38, 6, "RIGHT", "Main West"),
+    (39, 6, "LEFT", "OS 111a"),  # 111RA
+    (40, 6, "RIGHT", "OS 111a"),
+    (41, 6, "LEFT", "West Main Ext"),
+    (40, 6, "BOTTOM", "OS 111a"),
+    (40, 7, "TOP", "OS 111b"),
+    # 111L sits mid West Main Ext (same name both faces — lamp gap only).
+    (45, 6, "RIGHT", "West Main Ext"),  # 111L
+    (46, 6, "LEFT", "West Main Ext"),
+    (50, 6, "RIGHT", "West Main Ext"),
+    (51, 6, "LEFT", "OS 113b"),  # 113RA
+    (52, 6, "BOTTOM", "OS 113b"),
+    (52, 7, "TOP", "OS 113a"),
+    (53, 6, "RIGHT", "OS 113b"),
+    (54, 6, "LEFT", "OS 115"),
+    (56, 6, "RIGHT", "OS 115"),  # 115LA
+    (57, 6, "LEFT", "McKees Rocks"),
+    (61, 6, "RIGHT", "McKees Rocks"),  # 114R
+    (62, 6, "LEFT", "McKeesport"),  # 115R
+    # Scale / 117 / Barn / 116 / 103 / S-1
+    (10, 7, "RIGHT", "OS 102"),  # 102LA
+    (11, 7, "LEFT", "Scale"),
+    (13, 7, "RIGHT", "Scale"),
+    (14, 7, "LEFT", "OS 117"),  # 117RA
+    (15, 7, "BOTTOM", "OS 117"),
+    (15, 8, "TOP", "OS 117b"),
+    (16, 7, "RIGHT", "OS 117"),  # 117LB
+    (17, 7, "LEFT", "Barn"),
+    (26, 7, "RIGHT", "Barn"),
+    (27, 7, "LEFT", "OS 116"),
+    (27, 7, "BOTTOM", "OS 116"),
+    (27, 8, "TOP", "OS 118"),  # 116 Thrown stub | 118 (no jump)
+    (28, 7, "RIGHT", "OS 116"),
+    (29, 7, "LEFT", "OS 103"),
+    (30, 7, "RIGHT", "OS 103"),
+    (31, 7, "LEFT", "S-1"),
+    (30, 7, "BOTTOM", "OS 103"),
+    (30, 8, "TOP", "OS 104"),
+    (38, 7, "RIGHT", "S-1"),
+    (39, 7, "LEFT", "OS 111b"),  # 111RB
+    (41, 7, "RIGHT", "OS 111b"),
+    (42, 7, "LEFT", "OS 110"),  # 110R
+    (42, 7, "BOTTOM", "OS 110"),
+    (42, 8, "TOP", "OS 109"),
+    (43, 7, "RIGHT", "OS 110"),
+    (44, 7, "LEFT", "OS 112"),
+    (45, 7, "RIGHT", "OS 112"),  # 112L
+    (46, 7, "LEFT", "East Lead"),
+    (50, 7, "RIGHT", "East Lead"),
+    (51, 7, "LEFT", "OS 113a"),  # 113RB
+    (53, 7, "RIGHT", "OS 113a"),
+    (54, 7, "LEFT", "OS 114"),
+    (56, 7, "RIGHT", "OS 114"),  # 114LA
+    (57, 7, "LEFT", "McKeesport"),
+    (63, 7, "RIGHT", "McKeesport"),
+    # Brick / Plane / E Main Ext / 117b
+    (4, 8, "RIGHT", "OS 100"),
+    (5, 8, "LEFT", "Brick-Plane"),
+    (4, 8, "BOTTOM", "OS 100"),
+    (4, 9, "TOP", "OS 101"),
+    (7, 8, "RIGHT", "Brick-Plane"),
+    (8, 8, "LEFT", "OS 102"),
+    (10, 8, "RIGHT", "OS 102"),  # 102LB
+    (11, 8, "LEFT", "East Main Ext"),
+    (13, 8, "RIGHT", "East Main Ext"),
+    (14, 8, "LEFT", "OS 117b"),  # 117RB
+    (16, 8, "RIGHT", "OS 117b"),  # 117LA
+    (17, 8, "LEFT", "OS 112"),  # 117b east connector is in the 112/Main East region
+    # Engine House
+    (21, 8, "LEFT", "EH-1"),
+    (23, 8, "RIGHT", "EH-1"),
+    (24, 8, "LEFT", "OS 119"),
+    (24, 8, "BOTTOM", "OS 119"),
+    (24, 9, "TOP", "EH-2"),
+    (25, 8, "RIGHT", "OS 119"),
+    (26, 8, "LEFT", "OS 118"),
+    (26, 8, "BOTTOM", "OS 118"),
+    (26, 9, "TOP", "EH-3"),
+    (21, 9, "LEFT", "EH-2"),
+    (21, 10, "LEFT", "EH-3"),
+    # South yard ladders
+    (31, 8, "RIGHT", "OS 104"),
+    (32, 8, "LEFT", "S-2"),
+    (31, 8, "BOTTOM", "OS 104"),
+    (31, 9, "TOP", "OS 105"),
+    (40, 8, "RIGHT", "S-2"),
+    (41, 8, "LEFT", "OS 109"),
+    (41, 8, "BOTTOM", "OS 109"),
+    (41, 9, "TOP", "OS 108"),
+    (32, 9, "RIGHT", "OS 105"),
+    (33, 9, "LEFT", "S-3"),
+    (32, 9, "BOTTOM", "OS 105"),
+    (32, 10, "TOP", "OS 106"),
+    (39, 9, "RIGHT", "S-3"),
+    (40, 9, "LEFT", "OS 108"),
+    (40, 9, "BOTTOM", "OS 108"),
+    (40, 10, "TOP", "OS 107"),
+    (33, 10, "RIGHT", "OS 106"),
+    (34, 10, "LEFT", "S-4"),
+    (33, 10, "BOTTOM", "OS 106"),
+    (33, 11, "TOP", "S-5"),
+    (38, 10, "RIGHT", "S-4"),
+    (39, 10, "LEFT", "OS 107"),
+    (39, 10, "BOTTOM", "OS 107"),
+    (39, 11, "TOP", "S-5"),
+    # W-1 / W-2
+    (6, 9, "RIGHT", "OS 101"),  # 101RB
+    (7, 9, "LEFT", "W-2"),
+    (9, 9, "RIGHT", "W-2"),
+    (6, 10, "RIGHT", "OS 101"),  # 101RA
+    (7, 10, "LEFT", "W-1"),
+    (9, 10, "RIGHT", "W-1"),
+    # K-2
+    (56, 8, "RIGHT", "OS 114"),  # 114LB
+    (57, 8, "LEFT", "K-2"),
 ]
 # Name existing lamps only (keep Designer PANELSIGNAL).
 SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
-    (7, 4, "RIGHT"): "101RA",
-    (7, 5, "RIGHT"): "101RB",
-    (11, 6, "RIGHT"): "102LB",
-    (15, 6, "LEFT"): "117RB",
-    (17, 6, "RIGHT"): "117LA",
-    (33, 6, "LEFT"): "112R",
-    (40, 6, "RIGHT"): "112L",
-    (46, 6, "LEFT"): "113RB",
-    (56, 6, "RIGHT"): "114LA",
-    (61, 8, "RIGHT"): "114R",
-    (11, 7, "RIGHT"): "102LA",
-    (15, 7, "LEFT"): "117RA",
-    (17, 7, "RIGHT"): "117LB",
-    (33, 7, "LEFT"): "111RB",
-    (56, 7, "RIGHT"): "114LB",
-    (33, 8, "LEFT"): "111RA",
-    (40, 8, "RIGHT"): "111L",
-    (46, 8, "LEFT"): "113RA",
-    (52, 8, "RIGHT"): "115LA",
-    (62, 8, "LEFT"): "115R",
-    (36, 8, "LEFT"): "110R",  # longer 110 diverge — must not sit on OS 109
-    (52, 9, "RIGHT"): "115LB",
+    (6, 10, "RIGHT"): "101RA",  # W-1
+    (6, 9, "RIGHT"): "101RB",  # W-2
+    (3, 8, "LEFT"): "100L",
+    (10, 8, "RIGHT"): "102LB",
+    (10, 7, "RIGHT"): "102LA",
+    (14, 8, "LEFT"): "117RB",
+    (16, 8, "RIGHT"): "117LA",
+    (14, 7, "LEFT"): "117RA",
+    (16, 7, "RIGHT"): "117LB",
+    (39, 6, "LEFT"): "111RA",
+    (45, 6, "RIGHT"): "111L",
+    (51, 6, "LEFT"): "113RA",
+    (51, 7, "LEFT"): "113RB",
+    (56, 6, "RIGHT"): "115LA",
+    (56, 5, "RIGHT"): "115LB",
+    (61, 6, "RIGHT"): "114R",
+    (62, 6, "LEFT"): "115R",
+    (39, 7, "LEFT"): "111RB",
+    (42, 7, "LEFT"): "110R",
+    (45, 7, "RIGHT"): "112L",
+    (56, 7, "RIGHT"): "114LA",
+    (56, 8, "RIGHT"): "114LB",
 }
 
 # Designer captions are in the right cells; do not relocate them.
-LABEL_FIXES: dict[tuple[int, int], str] = {
-    (9, 4): "W-1",
-    (9, 5): "W-2",
-}
+LABEL_FIXES: dict[tuple[int, int], str] = {}
+LABEL_ALIGN: dict[tuple[int, int], str] = {}
 
-LABEL_ALIGN: dict[tuple[int, int], str] = {
-    (9, 4): "LOWCENT",
-    (9, 5): "LOWCENT",
-    (28, 6): "LOWCENT",
-    (41, 6): "LOWCENT",
-    (58, 6): "LOWCENT",
-    (56, 7): "LOWCENT",
-    (56, 8): "LOWCENT",
-    (28, 7): "LOWCENT",
-    (14, 8): "LOWCENT",
-    (28, 8): "LOWCENT",
-    (41, 8): "LOWCENT",
-    (13, 9): "LOWCENT",
-    (28, 9): "LOWCENT",
-    (52, 9): "LOWCENT",
-    (13, 10): "LOWCENT",
-    (28, 10): "LOWCENT",
-    (13, 11): "LOWCENT",
-    (28, 11): "LOWCENT",
-    (28, 12): "LOWCENT",
-}
-
-# 110R stays where Designer put it: (36,8) LEFT on the longer diverge.
-# A CP on OS 109 would stop 109→110 search at the approach.
-# 114R/115R stay where Designer put them: opposing intermediates on Y=8
-# at the McKees Rocks | McKeesport cut, not on the wrap bumpers.
+# 110R stays on OS 110 (42,7) LEFT. A CP on OS 109 would stop 109→110 N/X.
 SIGNAL_MOVES: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = []
 SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {
-    (36, 8, "LEFT"): ("LOWRIGHT", "TOP"),  # 110R
+    (42, 7, "LEFT"): ("LOWRIGHT", "TOP"),  # 110R
 }
 
-# Non-adjacent joints. CATS SecEdge.bind() uses SHARED instead of the
-# geographic neighbor (SecEdge.java: if DescribeEdge != null, locate that
-# Section/edge). Paint stays gapped; N/X routes through. Occupancy only
-# merges when both SHARED ends share a BLOCK name. Princess wrap bumpers
-# are both McKeesport so occupancy continues around the balloon.
-# Both ends must point at each other (HART_Brick.xml, Chubb_APB.xml).
-SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = [
-    # Main West west bumper → Brick west of 100 (panel-edge wrap)
-    ((1, 8, "LEFT"), (1, 6, "LEFT")),
-    # 110 longer diverge → 109 across the schematic gap
-    ((36, 8, "LEFT"), (35, 9, "TOP")),
-    # OS 111a skips the empty (35,8) and the 110 slash at (36,8)
-    ((34, 8, "RIGHT"), (37, 8, "LEFT")),
-    # 103 Thrown → 104 approach across Main West
-    ((24, 7, "BOTTOM"), (25, 9, "TOP")),
-    # Princess balloon: east McKeesport wraps to east McKees Rocks (RIGHT↔RIGHT).
-    # Same BLOCK name (McKeesport) so occupancy merges. 114R/115R sit west of this.
-    ((64, 6, "RIGHT"), (64, 8, "RIGHT")),
-    # 116 Thrown does not jump onto 118. (20,9) is the 118 throat (OS 118).
-]
+# No SHARED jumps — the redraw is geographic. Occupancy can still merge
+# across the frame when two rims share a BLOCK name (Main West west stubs;
+# Princess McKeesport stub on Y=6 with Y=7 McKeesport).
+SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = []
+
 STATIONS = {
     "W-1": "W-1",
     "W-2": "W-2",
@@ -493,15 +405,8 @@ def name_blocks(tp: ET.Element) -> int:
 
 
 def add_shared_jumps(tp: ET.Element) -> int:
-    """Joint non-adjacent edges. CATS SecEdge.bind() uses SHARED instead of
-    the geographic neighbor (paint stays gapped; N/X routes).
-
-    Both ends must point at each other. Occupancy-cut jumps keep ANCHORS
-    names so the two detectors stay separate: 110→109 and 103→104.
-    Same-name jumps merge occupancy: west-edge Main West wrap, Princess
-    McKeesport wrap, and the OS 111a skip (34,8) RIGHT ↔ (37,8) LEFT. 116 Thrown does
-    not jump onto 118.
-    """
+    """No SHARED jumps on this board. Still strip any leftover SHARED from
+    an older save so a stale wrap cannot come back."""
     keep_blk = {(x, y, e) for x, y, e, _ in ANCHORS}
     secs = {
         (int(s.get("X")), int(s.get("Y"))): s
@@ -644,7 +549,7 @@ def finish_empty_spurs(tp: ET.Element) -> int:
 
 
 def drop_110_crossing(tp: ET.Element) -> None:
-    """(36,8) is the 110 diverge UPPERSLASH — do not strip it. (35,8) has no rail."""
+    """No-op: 110 Thrown is geographic into (42,8) toward 109."""
     drop: dict[tuple[int, int], str] = {}
     secs = {
         (int(s.get("X")), int(s.get("Y"))): s
@@ -1101,7 +1006,7 @@ def _expected_idents() -> set[str]:
     return idents
 
 
-OMITTED_BLOCKS: set[str] = set()
+OMITTED_BLOCKS: set[str] = {"Main East"}  # merged into OS 112 — no Designer cut on 112 BOTTOM
 OMITTED_IDENTS: set[str] = set()
 
 
