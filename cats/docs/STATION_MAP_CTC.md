@@ -17,17 +17,8 @@ Visual SoR for yard body: CATS sample [cats.jpg](https://cats4ctc.wdfiles.com/lo
 
 Block / turnout names: `cats/data/occupancy_bindings.csv`, `turnout_bindings.csv`.
 
-**Sheet panels (critique unit = station-map doc):**
-
-| Sheet | Builder | Panel |
-|-------|---------|-------|
-| West Yard | `wire_hart_sheet_west_yard2.py` | `cats/panels/sheets/HART_sheet_West_Yard2.xml` |
-| South Yard + East End CPs | `compose_hart_sheet_west_yard2_row2.py` (row under West Yard) | same panel |
-| Shenango | *(next)* | |
+**Sheet panels:** West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`. Live Digicon is Master 4.
 
 ```bash
-python3 cats/scripts/wire_hart_sheet_west_yard2.py --with-row2
-CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/sheets/HART_sheet_West_Yard2.xml
+python3 cats/scripts/wire_hart_master4.py --live
 ```
-
-Full railroad Digicon only after each sheet is signed off.

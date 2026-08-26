@@ -178,10 +178,10 @@ def main():
     if "<SIDI_LeftRightTrafficSignals />" in col:
         col = col.replace(
             "<SIDI_LeftRightTrafficSignals />",
-            "<SIDI_LeftRightTrafficSignals>\n        <signal>115R</signal>\n      </SIDI_LeftRightTrafficSignals>",
+            "<SIDI_LeftRightTrafficSignals>\n        <signal>120L</signal>\n      </SIDI_LeftRightTrafficSignals>",
             1,
         )
-        notes.append("114 LTR += 115R")
+        notes.append("114 LTR += 120L")
     if "<TRL_RightRules />" in col:
         col = col.replace("<TRL_RightRules />", RULES_114_RIGHT.rstrip(), 1)
         notes.append("114 BOTH + eastbound TRL rules")
@@ -198,10 +198,10 @@ def main():
     if "<SIDI_LeftRightTrafficSignals />" in col:
         col = col.replace(
             "<SIDI_LeftRightTrafficSignals />",
-            "<SIDI_LeftRightTrafficSignals>\n        <signal>114R</signal>\n      </SIDI_LeftRightTrafficSignals>",
+            "<SIDI_LeftRightTrafficSignals>\n        <signal>120R</signal>\n      </SIDI_LeftRightTrafficSignals>",
             1,
         )
-        notes.append("115 LTR += 114R")
+        notes.append("115 LTR += 120R")
     if "<TRL_RightRules />" in col:
         col = col.replace("<TRL_RightRules />", RULES_115_RIGHT.rstrip(), 1)
         notes.append("115 BOTH + eastbound TRL rules")

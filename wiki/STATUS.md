@@ -1,6 +1,8 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-26 — **102LA** is a 1-head dwarf (`IH434` / C4-OU2-3, `SL-1-low`). `IH435` / C4-OU2-4 is a spare (packed slot held). CATS CTC/ABS + Master 4 paint `LAMP1`. USS CTC shows a west dwarf. Mast userName `102LA` unchanged — SML pairs `102LA:111RA` / `117LB:102LA` kept; re-Discover on the layout after reload (aspect family changed). Reload **CATS CTC** or **CATS ABS**, **USS CTC**, and **CATS Master4**. Deploy `--all`. Do not run CATS CTC with USS CTC.
+Updated: 2026-08-26 — Master 4 is **live CATS CTC / CATS ABS**. **114R→120R** (`IH134`) and **115R→120L** (`IH141`). Unused head **IH435** removed; MQTT `track/signalhead/IH435` cleared. West Yard sheets archived. Reload **CATS CTC** or **CATS ABS**. Do not run with USS CTC. Deploy `--all`. Re-Discover SML after reload.
+
+Updated: 2026-08-26 — **102LA** is a 1-head dwarf (`IH434` / C4-OU2-3, `SL-1-low`). Mast userName `102LA` unchanged.
 
 Updated: 2026-08-26 — Master 4: 110R is on OS 110 BOTTOM (`(42,7)`), the 110\|109 cut. Designer cosmetics kept. Reload **CATS Master4**.
 
@@ -36,7 +38,7 @@ Updated: 2026-08-25 — Master 4: 110 diverge is `(36,8)` with 110R; SHARED to 1
 
 Updated: 2026-08-25 — Master 4: W-1 is 101 NORMAL (TOP, not inverted); W-2 is Thrown RIGHT. Brick-Plane is three cells between 100 and 102 (`Block 4-6`). Reload **CATS Master4**. Not deployed.
 
-Updated: 2026-08-25 — Master 4 Princess: wrap is `(62,6)`↔`(62,8)` McKeesport occupancy; 114R/115R are opposing intermediates on Y=8 at McKees Rocks \| McKeesport. Reload **CATS Master4**. Not deployed.
+Updated: 2026-08-25 — Master 4 Princess: wrap is `(62,6)`↔`(62,8)` McKeesport occupancy; 120R/120L are opposing intermediates on Y=8 at McKees Rocks \| McKeesport. Reload **CATS Master4**. Not deployed.
 
 Updated: 2026-08-25 — USS CTC **v54**: East Lead filled 113a→114; 110R dropped a few pixels under SOUTH YD. Reload **USS CTC**. Not deployed.
 
@@ -44,7 +46,7 @@ Updated: 2026-08-24 — USS CTC **v53**: 114 in its column; K-1/K-2 bumpers off;
 
 Updated: 2026-08-24 — USS CTC **v52**: 111 crossover flipped to os-l-sc; McKees Rocks lined up with McKeesport; K-1/K-2 are short spurs with on-track labels. Reload **USS CTC**. Not deployed.
 
-Updated: 2026-08-24 — Master 4 Princess: east bumper of McKeesport is McKees Rocks occupancy (`Block 1-1`), and vice versa, so 114R/115R do not share the body to the west. Reload **CATS Master4**. Not deployed.
+Updated: 2026-08-24 — Master 4 Princess: east bumper of McKeesport is McKees Rocks occupancy (`Block 1-1`), and vice versa, so 120R/120L do not share the body to the west. Reload **CATS Master4**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v51**: 115 in the 114/115 gutter; McKeesport / McKees Rocks lamps follow; K-2 on the second track; `swap:` on 100/112/114/115 like CATS. Reload **USS CTC**. Not deployed.
 
@@ -70,23 +72,23 @@ Updated: 2026-08-24 — Princess McKeesport (`Block 1-2`) and McKees Rocks (`Blo
 
 Updated: 2026-08-24 — USS CTC **v45**: Main West occupancy (`Block 2-1`) repeats at the west end of the focused main (Brick), so a westbound through 111 shows on the west side of the board. Reload **USS CTC**. Not deployed.
 
-Updated: 2026-08-24 — Master 4 Princess balloon: 114R/115R moved to LEFT of the east cells so CATS N/X walks through the SHARED wrap (eastbound McKeesport → westbound McKees Rocks, and vice versa). Reload **CATS Master4**. Not deployed.
+Updated: 2026-08-24 — Master 4 Princess balloon: 120R/120L moved to LEFT of the east cells so CATS N/X walks through the SHARED wrap (eastbound McKeesport → westbound McKees Rocks, and vice versa). Reload **CATS Master4**. Not deployed.
 
-Updated: 2026-08-24 — USS CTC **v44**: Princess McKees Rocks gets eastbound 115R (`IH141`, 1-lamp) stacked with McKeesport 114R. Reload **USS CTC**. Not deployed.
+Updated: 2026-08-24 — USS CTC **v44**: Princess McKees Rocks gets eastbound 120L (`IH141`, 1-lamp) stacked with McKeesport 120R. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v43**: Princess westbounds match CATS (McKeesport, K-2, McKees Rocks, K-1): 2-lamp 114LB/115LB on the mains, 1-lamp 114LA/115LA on K-2/K-1. 114 shifted west for signal room; east occupancy at x=1072. Reload **USS CTC**. Not deployed.
 
-Updated: 2026-08-24 — Master 4 Princess balloon: McKeesport `(55,6)` RIGHT `SHARED` to McKees Rocks `(55,8)` RIGHT so 114R/115R wrap eastbound into the other stub westbound. Occupancy stays separate (Block 1-2 / 1-1). Reload **CATS Master4**. Not deployed.
+Updated: 2026-08-24 — Master 4 Princess balloon: McKeesport `(55,6)` RIGHT `SHARED` to McKees Rocks `(55,8)` RIGHT so 120R/120L wrap eastbound into the other stub westbound. Occupancy stays separate (Block 1-2 / 1-1). Reload **CATS Master4**. Not deployed.
 
 Updated: 2026-08-24 — Master 4 Main West west stub is CATS `SHARED` to Brick west `(1,6)` LEFT so N/X continues around the schematic fold (occupancy cut Main West | OS 101). 110×Main West diamond stays a real `XEdge` (no SHARED skip). Reload **CATS Master4**. Not deployed.
 
-Updated: 2026-08-24 — USS CTC **v42**: Princess McKees Rocks uses 115LB CTC 2-lamp (115R dwarf gone); K-2 gets the same 2-lamp; east occupancy lamps share x=1044. Reload **USS CTC**. Not deployed.
+Updated: 2026-08-24 — USS CTC **v42**: Princess McKees Rocks uses 115LB CTC 2-lamp (120L dwarf gone); K-2 gets the same 2-lamp; east occupancy lamps share x=1044. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v41**: W-1/W-2 dwarfs restored and rails/labels cleared of the bumpers; 110R on the South Yd lead (extra OS 110 occupancy removed); 115LA 2-head on McKees Rocks and 115LB on K-1; MW ink lined into 111. Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v40**: W-1/W-2 in-track lamps on USS bars; MAIN WEST below the rails and extended so its lamp stacks with Main East / S-1; South Yd→110 lamp on the U; 111 unobstructed; Princess McKeesport / K-2 / McKees Rocks / K-1 with 2-head homes on McKeesport and McKees Rocks. Reload **USS CTC**. Not deployed.
 
-Updated: 2026-08-24 — USS CTC **v39**: W-1/W-2 use in-track occupancy (no dwarf heads); 100L west of Brick facing east; Princess labels K-1 / McKees Rocks swapped and 115R on McKees Rocks (east intermediate with McKeesport). Reload **USS CTC**. Not deployed.
+Updated: 2026-08-24 — USS CTC **v39**: W-1/W-2 use in-track occupancy (no dwarf heads); 100L west of Brick facing east; Princess labels K-1 / McKees Rocks swapped and 120L on McKees Rocks (east intermediate with McKeesport). Reload **USS CTC**. Not deployed.
 
 Updated: 2026-08-24 — USS CTC **v38**: 101 back in the 2/3 gap on 100’s `/` (centering in col 3 read as 3/4). W-1/W-2 labels on the east end of the spurs; occupancy lamps stay at x=196. Reload **USS CTC**. Not deployed.
 

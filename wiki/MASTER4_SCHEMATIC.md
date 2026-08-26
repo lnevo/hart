@@ -2,7 +2,7 @@
 
 Source: `cats/panels/HART_Master4.xml` (Designer save, 63×16, 1920×540).  
 Wire: `python3 cats/scripts/wire_hart_master4.py` → `HART_Master4_wired.xml`.  
-`--live` copies that onto CATS CTC / CATS ABS. This redraw is **not** on the live desks until `--live`.
+`--live` copies that onto CATS CTC / CATS ABS. **This is the live Digicon.**
 
 The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. Recent geometry edits were saved into `HART_Master4_wired.xml`; copy that back to `HART_Master4.xml` before a wire pass. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. It does not relocate labels, move lamps, insert rails, or add/remove gaps.
 
@@ -50,19 +50,14 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Signals
 
-23 Designer lamps, named in place. **102LA** is 1-head (`LAMP1` / `IH434`; `IH435` spare). **112R** is `(44,8)` LEFT on OS 112 (CATS CP name; no field mast yet). Occupancy cut Main East \| OS 112 is `(43,8)` RIGHT \| `(44,8)` LEFT. **100L** is `(3,8)` LEFT. **110R** is `(42,7)` BOTTOM on OS 110 at the OS 110 \| OS 109 cut (`UPLEFT`/`TOP`) — not on the 111b cut and not on OS 109. **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. Temporary Princess intermediates **120L** `(60,6)` RIGHT and **120R** `(61,6)` LEFT sit on McKees Rocks \| McKeesport. **117RA** is `LAMP1` on this board; field/JMRI still 2-head.
+23 Designer lamps, named in place. **102LA** is 1-head (`LAMP1` / `IH434`). **120L** `(60,6)` RIGHT is `IH141` (was 115R). **120R** `(61,6)` LEFT is `IH134` (was 114R). **112R** is `(44,8)` LEFT on OS 112. Occupancy cut Main East \| OS 112 is `(43,8)` RIGHT \| `(44,8)` LEFT. **100L** is `(3,8)` LEFT. **110R** is `(42,7)` BOTTOM on OS 110 at the OS 110 \| OS 109 cut. **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. **117RA** is `LAMP1` on this board; field/JMRI still 2-head.
 
-## Rename-prep gaps (not this change)
+## Remaining gaps
 
-- Live CATS CTC/ABS geometry is still **pre-Master 4** (102LA lamp count is now 1-head on those desks; plants/coords/SHARED/120L/R are not).
-- USS CTC track diagram is still the **pre-Master 4** v8 board (102LA icon is now a dwarf; rails are not Master 4).
+- USS CTC track diagram is still the **pre-Master 4** v8 board (signal *names* 120L/120R / 102LA dwarf are updated; rails are not Master 4).
 - **117RA** is `LAMP1` on Master 4; JMRI/field still 2-head (`IH1332`/`IH1333`).
-- **120L / 120R** are CATS-only names — no JMRI heads, masts, SML, LE icons, USS lamps, or wiring CSV.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
-- **114R / 115R** still in live tables for the balloon; Master 4 uses 120L/120R there.
-- `signal_mast_plan.csv` `panel_x/y` are still west-yard-sheet coords, not Master 4 63×16.
-- West Yard sheet XML (`cats/panels/sheets/`) still shows 102LA as `LAMP2`.
-- SML pairs kept by mast userName `102LA`; **re-Discover on the layout** after this aspect-family change (do not run retired `apply_sml_cats_pairs.py` without `--force-legacy`).
+- SML pairs were renamed with the masts; **re-Discover on the layout** after live cutover (facing of 120L/120R changed vs old balloon 114R/115R).
 - Sheets push stays human-gated.
 
 ## Label fixes

@@ -27,7 +27,7 @@ Two Digicon “Master” launchers for Neville Island ops, plus JMRI tables / sc
 | **CATS CTC** | `cats/panels/HART_Master_CTC_hold.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
 | **CATS ABS** | `cats/panels/HART_Master_ABS_hold.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. Geometry source `HART_Master_ABS.xml` stays unbound. |
 
-Geometry sources (no desktop icons): `HART_Master.xml` (CTC rebuild) and `HART_Master_ABS.xml` (ABS rebuild). Checkpoint **Masters only** (`cats/panels/checkpoints/`). Sheet WIP (`cats/panels/sheets/`, including West Yard2) is legacy — do not snapshot it.
+Geometry sources (no desktop icons): `HART_Master4.xml` (Designer) → `wire_hart_master4.py --live` → `HART_Master.xml` / HOLD copies. Checkpoint **Masters only** (`cats/panels/checkpoints/`). West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`.
 
 Each Master carries a publication title row (Y=1):
 
@@ -185,15 +185,15 @@ Examples:
 |-----------------------|-------|----------------------|---------|
 | 100L | 2 | `…(IH438)(IH439)` | LCOS C4-OU3 |
 | 102LB | 2 | `…cats-virtual-2(IH432)(IH433)` | LCOS C4 |
-| 102LA | 1 | `…SL-1-low(IH434)` | LCOS C4-OU2-3 (IH435 / C4-OU2-4 spare) |
+| 102LA | 1 | `…SL-1-low(IH434)` | LCOS C4-OU2-3 |
 | 101RA / 2 | 1 | `IH436` / `IH437` | LCOS C4 |
 | 117RA | 2 | `IH1332`/`IH1333` | LCOS C1 |
 | 112L | 2 | `IH1237`/`IH1238` | LCOS C7 |
 | 115LB | 2 | `…cats-virtual-2(IH132)(IH133)` | LCOS D1 |
-| 114R | 1 | `IH134` | LCOS D1 (was North middle) |
+| 120R | 1 | `IH134` | LCOS D1-OU2-3 (was 114R) |
 | 113RA / 113a | 2 | `IH135`–`IH138` | LCOS D1 |
 | 114LB | 2 | `IH139`/`IH140` | LCOS D1 |
-| 115R | 1 | `IH141` | LCOS D1 (was South bottom) |
+| 120L | 1 | `IH141` | LCOS D1-OU3-2 (was 115R) |
 | 115LA / K-2 | 1 | `IH142` / `IH143` | LCOS D1 dwarfs |
 
 ### JMRI ↔ MQTT for Virtual heads
@@ -258,7 +258,8 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 
 | Script | Purpose |
 |--------|---------|
-| `cats/scripts/wire_hart_sheet_west_yard2.py` | Geometry / plants / signal defs → sheets + Masters |
+| `cats/scripts/wire_hart_master4.py` | Live Digicon geometry / plants / lamps (`--live` → CATS CTC / ABS) |
+| `cats/scripts/wire_hart_sheet_west_yard2.py` | Turnout helpers still imported by Master 4; West Yard sheets archived |
 | `cats/scripts/build_hart_master_ctc_hold.py` | CTC geometry → CATS CTC (`HOLD_ONLY` + AAR bridge) + header |
 | `cats/scripts/build_hart_master_abs_hold.py` | ABS geometry → CATS ABS (`HOLD_ONLY` + AAR bridge) + header |
 | `cats/scripts/aar_aspect_bridge.py` | Digicon R-codes ↔ AAR Clear/Approach/Stop |

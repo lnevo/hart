@@ -329,10 +329,13 @@ def wire_turnouts(
     tp: ET.Element,
     turnout_by_ident: dict[str, tuple[str, str]],
     plants: dict[tuple[int, int], tuple[str, str, str]] | None = None,
+    invert_vs_jmri: set[str] | None = None,
 ) -> int:
     """Bind SELECTEDREPORT + ROUTECOMMAND on each plant SWITCHPOINTS.
 
-    NORMAL route ↔ JMRI CLOSED (close); other leg ↔ THROWN (throw).
+    Default: NORMAL route ↔ JMRI CLOSED (close); other leg ↔ THROWN (throw).
+    ``invert_vs_jmri`` is layout_idents whose CATS NORMAL (drawn through)
+    is JMRI Thrown — Designer “differs from JMRI settings”: NORMAL→throw.
     SELECTEDREPORT and ROUTECOMMAND must use the same polarity — remapping
     only the report (to chase a bad MQTT retain) reverses Digicon commands.
 
@@ -340,6 +343,7 @@ def wire_turnouts(
     plant maps (same tip idents) so both bands share M2T and frogs sync.
     """
     plant_map = PLANTS if plants is None else plants
+    invert = invert_vs_jmri or set()
     secs = {
         (int(s.get("X")), int(s.get("Y"))): s
         for s in tp.findall("SECTION")
@@ -388,7 +392,10 @@ def wire_turnouts(
                     del ri.attrib["NORMAL"]
             for child in list(ri):
                 ri.remove(child)
-            pol = "close" if leg == normal else "throw"
+            if ident in invert:
+                pol = "throw" if leg == normal else "close"
+            else:
+                pol = "close" if leg == normal else "throw"
             for tag in ("SELECTEDREPORT", "ROUTECOMMAND"):
                 el = ET.SubElement(ri, tag)
                 ios = ET.SubElement(
@@ -435,7 +442,7 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (37, 6, "LEFT"): ("113RA", "LAMP2", "LOWLEFT", "RIGHT"),
     (43, 6, "RIGHT"): ("115LA", "LAMP1", "LOWCENT", "LEFT"),
     # Balloon connector: tip into the named block (BOTTOM→TOP, TOP→BOTTOM).
-    (45, 6, "BOTTOM"): ("115R", "LAMP1", "RIGHTUP", "TOP"),
+    (45, 6, "BOTTOM"): ("120L", "LAMP1", "RIGHTUP", "TOP"),
     (9, 7, "RIGHT"): ("102LA", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 7, "LEFT"): ("117RA", "LAMP2", "LOWLEFT", "RIGHT"),
     (14, 7, "RIGHT"): ("117LB", "LAMP1", "LOWLEFT", "LEFT"),
@@ -444,7 +451,7 @@ SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
     (37, 7, "LEFT"): ("113RB", "LAMP2", "LOWLEFT", "RIGHT"),
     (43, 7, "RIGHT"): ("114LA", "LAMP1", "LOWCENT", "LEFT"),
     (31, 7, "BOTTOM"): ("110R", "LAMP1", "LEFTUP", "TOP"),
-    (45, 7, "TOP"): ("114R", "LAMP1", "RIGHTLOW", "BOTTOM"),
+    (45, 7, "TOP"): ("120R", "LAMP1", "RIGHTLOW", "BOTTOM"),
     # Plane normal route (SW102 closed → East Main Ext): virtual heads IH432/IH433 (node 4)
     (9, 8, "RIGHT"): ("102LB", "LAMP2", "LOWLEFT", "LEFT"),
     (12, 8, "LEFT"): ("117RB", "LAMP2", "LOWLEFT", "RIGHT"),

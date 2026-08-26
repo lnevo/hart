@@ -2,7 +2,6 @@ port_id,parent_node_id,mqtt_node,board_location,signal_index,uid,packed,system_n
 C4-OU2-1,C4,4,West - Lower,0,32,432,IH432,102LB Top,102LB,T,track/signalhead/IH432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; Digicon mast '102LB'
 C4-OU2-2,C4,4,West - Lower,1,33,433,IH433,102LB Bottom,102LB,B,track/signalhead/IH433,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; Digicon mast '102LB'
 C4-OU2-3,C4,4,West - Lower,2,34,434,IH434,102LA,102LA,S,track/signalhead/IH434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; Digicon mast '102LA' (1-head; was Top of 2-head)
-C4-OU2-4,C4,4,West - Lower,3,35,435,IH435,spare C4-OU2-4,,SPARE,track/signalhead/IH435,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; spare (was 102LA Bottom); packed slot held so 101RA stays IH436
 C4-OU2-5,C4,4,West - Lower,4,36,436,IH436,101RA,101RA,S,track/signalhead/IH436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; Digicon mast '101RA'
 C4-OU2-6,C4,4,West - Lower,5,37,437,IH437,101RB,101RB,S,track/signalhead/IH437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; Digicon mast '101RB'
 C4-OU3-1,C4,4,West - Lower,6,38,438,IH438,100L Top,100L,T,track/signalhead/IH438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; Digicon mast '100L'
@@ -26,13 +25,13 @@ C7-OU3-3,C7,12,North - Upper (East End),8,40,1240,IH1240,112R Top,112R,T,track/s
 C7-OU3-4,C7,12,North - Upper (East End),9,41,1241,IH1241,112R Bottom,112R,B,track/signalhead/IH1241,Searchlight Signal Head,5V,LCOS Signal 9 UID 41; Digicon mast '112R'
 D1-OU2-1,D1,1,Princess / Helix DCC node,0,32,132,IH132,115LB Top,115LB,T,track/signalhead/IH132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; Digicon mast '115LB'
 D1-OU2-2,D1,1,Princess / Helix DCC node,1,33,133,IH133,115LB Bottom,115LB,B,track/signalhead/IH133,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; Digicon mast '115LB'
-D1-OU2-3,D1,1,Princess / Helix DCC node,2,34,134,IH134,114R,114R,S,track/signalhead/IH134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; Digicon mast '114R'
+D1-OU2-3,D1,1,Princess / Helix DCC node,2,34,134,IH134,120R,120R,S,track/signalhead/IH134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; Digicon mast '120R'
 D1-OU2-4,D1,1,Princess / Helix DCC node,3,35,135,IH135,113RA Top,113RA,T,track/signalhead/IH135,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; Digicon mast '113RA'
 D1-OU2-5,D1,1,Princess / Helix DCC node,4,36,136,IH136,113RA Bottom,113RA,B,track/signalhead/IH136,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; Digicon mast '113RA'
 D1-OU2-6,D1,1,Princess / Helix DCC node,5,37,137,IH137,113RB Top,113RB,T,track/signalhead/IH137,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; Digicon mast '113RB'
 D1-OU2-7,D1,1,Princess / Helix DCC node,6,38,138,IH138,113RB Bottom,113RB,B,track/signalhead/IH138,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; Digicon mast '113RB'
 D1-OU2-8,D1,1,Princess / Helix DCC node,7,39,139,IH139,114LB Top,114LB,T,track/signalhead/IH139,Searchlight Signal Head,5V,LCOS Signal 7 UID 39; Digicon mast '114LB'
 D1-OU3-1,D1,1,Princess / Helix DCC node,8,40,140,IH140,114LB Bottom,114LB,B,track/signalhead/IH140,Searchlight Signal Head,5V,LCOS Signal 8 UID 40; Digicon mast '114LB'
-D1-OU3-2,D1,1,Princess / Helix DCC node,9,41,141,IH141,115R,115R,S,track/signalhead/IH141,Searchlight Signal Head,5V,LCOS Signal 9 UID 41; Digicon mast '115R'
+D1-OU3-2,D1,1,Princess / Helix DCC node,9,41,141,IH141,120L,120L,S,track/signalhead/IH141,Searchlight Signal Head,5V,LCOS Signal 9 UID 41; Digicon mast '120L'
 D1-OU3-3,D1,1,Princess / Helix DCC node,10,42,142,IH142,115LA,115LA,S,track/signalhead/IH142,Searchlight Signal Head,5V,LCOS Signal 10 UID 42; Digicon mast '115LA'
 D1-OU3-4,D1,1,Princess / Helix DCC node,11,43,143,IH143,114LA,114LA,S,track/signalhead/IH143,Searchlight Signal Head,5V,LCOS Signal 11 UID 43; Digicon mast '114LA'

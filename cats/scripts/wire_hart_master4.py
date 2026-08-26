@@ -1076,7 +1076,6 @@ def promote_to_live() -> None:
             str(LIVE_CTC),
             "--dst",
             str(LIVE_CTC_HOLD),
-            "--no-polish",
         ]
     )
     subprocess.check_call(
@@ -1087,7 +1086,6 @@ def promote_to_live() -> None:
             str(LIVE_ABS),
             "--dst",
             str(LIVE_ABS_HOLD),
-            "--no-polish",
         ]
     )
 

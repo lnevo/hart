@@ -189,7 +189,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     ),
     (
         "113RA",
-        "115R",
+        "120L",
         ["OS 113b", "OS 115"],
         [("Switch 113", "closed"), ("Switch 115", "thrown")],
     ),
@@ -201,7 +201,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     ),
     (
         "113RB",
-        "114R",
+        "120R",
         ["OS 113a", "OS 114"],
         [("Switch 113", "closed"), ("Switch 114", "thrown")],
     ),
@@ -211,18 +211,19 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
         ["OS 113a", "OS 114"],
         [("Switch 113", "closed"), ("Switch 114", "closed")],
     ),
-    # Balloon: dest each other. Rocks includes McKees Rocks so occupy → Stop.
-    # McKeesport has no intermediate — dest Stop → Slow Clear / Restricting.
+    # Balloon: dest each other across A48. Adjacent CPs — no intermediate
+    # occupancy. (Old shared 1-1/1-2 circuit stuffed McKees Rocks onto
+    # 120L→120R so either track occupied Stopped both; sensors are independent now.)
     (
-        "114R",
-        "115R",
+        "120R",
+        "120L",
         [],
         [],
     ),
     (
-        "115R",
-        "114R",
-        ["McKees Rocks"],
+        "120L",
+        "120R",
+        [],
         [],
     ),
     (

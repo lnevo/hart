@@ -16,7 +16,7 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**102LA** is a 1-head dwarf on `C4-OU2-3` / `IH434`. `C4-OU2-4` / `IH435` is a spare (was 102LA Bottom); do not reuse that packed slot for 101RA.
+**102LA** is a 1-head dwarf on `C4-OU2-3` / `IH434`. `C4-OU2-4` is an unused packed hole (old 102LA Bottom / IH435); do not reuse it for 101RA. **120L** is `D1-OU3-2` / `IH141` (was 115R). **120R** is `D1-OU2-3` / `IH134` (was 114R).
 
 ## Refresh
 

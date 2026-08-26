@@ -118,10 +118,10 @@ add_os(25, 13, "Block 1-5", "Switch 113",
 # rejects empty lists and forbids sharing a mast across columns).
 # Eastbound homes on the loop were previously unlisted.
 c114 = add_os(27, 14, "Block 1-3", "Switch 114",
-       ["115R"],
+       ["120L"],
        ["114LA", "114LB"])
 c115 = add_os(29, 15, "Block 1-4", "Switch 115",
-       ["114R"],
+       ["120R"],
        ["115LA", "115LB"], left_hand=True)
 c114._mSIDI_TrafficDirection = BOTH
 c115._mSIDI_TrafficDirection = BOTH

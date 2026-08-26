@@ -32,8 +32,8 @@ MASTS: list[tuple[str, int, int, str]] = [
     # node 4 — Plane + W-Y stubs + Brick east main (OU3 after OU2-1..6)
     ("102LB", 2, 4, "double"),
     ("102LA", 1, 4, "single"),
-    # Occupies C4-OU2-4 / IH435 (was 102LA Bottom). Do not drop this slot or a
-    # rebuild shifts 101RA/101RB/100L packed IDs. Wiring-only: see SKIP_MAST.
+    # Skip C4-OU2-4 / packed IH435 (was 102LA Bottom) so 101RA stays IH436.
+    # No JMRI head, no wiring row — see SKIP_HEAD.
     ("SPARE-C4-OU2-4", 1, 4, "single"),
     ("101RA", 1, 4, "single"),
     ("101RB", 1, 4, "single"),
@@ -52,17 +52,18 @@ MASTS: list[tuple[str, int, int, str]] = [
     ("112R", 2, 12, "double"),
     # node 1 — Princess (keep packed IH132–141 stable: 2-head exits, connector singles reuse old middles)
     ("115LB", 2, 1, "double"),
-    ("114R", 1, 1, "single"),
+    ("120R", 1, 1, "single"),
     ("113RA", 2, 1, "double"),
     ("113RB", 2, 1, "double"),
     ("114LB", 2, 1, "double"),
-    ("115R", 1, 1, "single"),
+    ("120L", 1, 1, "single"),
     ("115LA", 1, 1, "single"),
     ("114LA", 1, 1, "single"),
 ]
 
-# Wiring-only packed slots: occupy a DNOU8 port / IH* without a SHSM mast.
-SKIP_MAST = {"SPARE-C4-OU2-4"}
+# Packed holes: increment the node index, emit no head/mast/wiring row.
+SKIP_HEAD = {"SPARE-C4-OU2-4"}
+SKIP_MAST = set()
 
 ROLE = {1: ("",), 2: ("T", "B"), 3: ("T", "M", "B")}
 ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
@@ -103,6 +104,9 @@ def build_rows() -> list[dict]:
     per_node: dict[int, int] = {}
     rows: list[dict] = []
     for mast, nheads, node, lamp in MASTS:
+        if mast in SKIP_HEAD:
+            per_node[node] = per_node.get(node, 0) + nheads
+            continue
         roles = ROLE[nheads]
         ports = NODE_PORTS[node]
         for role in roles:

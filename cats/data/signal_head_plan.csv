@@ -15,10 +15,10 @@ mast_user_name,mqtt_node,parent_node_id,heads,appearance,physignal,mast_system_n
 110R,12,C7,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH1239),IH1239,1239,C7-OU3-2
 112R,12,C7,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH1240)(IH1241),IH1240 IH1241,1240 1241,C7-OU3-3 C7-OU3-4
 115LB,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH132)(IH133),IH132 IH133,132 133,D1-OU2-1 D1-OU2-2
-114R,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH134),IH134,134,D1-OU2-3
+120R,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH134),IH134,134,D1-OU2-3
 113RA,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH135)(IH136),IH135 IH136,135 136,D1-OU2-4 D1-OU2-5
 113RB,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH137)(IH138),IH137 IH138,137 138,D1-OU2-6 D1-OU2-7
 114LB,1,D1,2,SL-2-high-abs,double,IF$shsm:AAR-1946:SL-2-high-abs(IH139)(IH140),IH139 IH140,139 140,D1-OU2-8 D1-OU3-1
-115R,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH141),IH141,141,D1-OU3-2
+120L,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH141),IH141,141,D1-OU3-2
 115LA,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH142),IH142,142,D1-OU3-3
 114LA,1,D1,1,SL-1-low,single,IF$shsm:AAR-1946:SL-1-low(IH143),IH143,143,D1-OU3-4

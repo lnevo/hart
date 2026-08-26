@@ -3144,7 +3144,7 @@
       <tooltip>113RB</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH134" x="1088" y="138" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>114R</tooltip>
+      <tooltip>120R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>
@@ -3219,7 +3219,7 @@
       <tooltip>114LB</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH141" x="1088" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>115R</tooltip>
+      <tooltip>120L</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
           <rotation>0</rotation>

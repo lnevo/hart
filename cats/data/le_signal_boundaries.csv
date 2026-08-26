@@ -3,7 +3,7 @@ turnout,TOL3,A,100L,A=Main West; east face of Brick
 turnout,TOL38,B,101RA,B=W-1 continuing
 turnout,TOL38,C,101RB,C=W-2 diverge
 turnout,TOL42,B,102LB,B=East Main Ext continuing
-turnout,TOL42,C,102LA,C=Scale / east upper face; 1-head IH434 (IH435 spare)
+turnout,TOL42,C,102LA,C=Scale / east upper face; 1-head IH434
 turnout,TO117,A,117RA,A=Scale west upper
 turnout,TO117,B,117LB,B=Barn east upper
 turnout,TO117,C,117LA,C=Main East east lower
@@ -20,5 +20,5 @@ turnout,TOL29,B,115LA,B=K-1 stub block (detector Block 1-4 shared with OS 115)
 turnout,TOL29,C,115LB,C=McKees Rocks (boundary at turnout); icon deg 270 faces west
 turnout,TOR36,B,114LA,B=K-2 stub block (detector Block 1-3 shared with OS 114)
 turnout,TOR36,C,114LB,C=McKeesport (boundary at turnout); icon deg 270 faces west
-anchor,A48,east,115R,north-track signal protects McKeesport and OS 114; CATS (45,6) BOTTOM SIGORIENT TOP
-anchor,A48,west,114R,south-track signal protects McKees Rocks and OS 115; CATS (45,7) TOP SIGORIENT BOTTOM
+anchor,A48,east,120R,McKeesport intermediate; CATS (61,6) LEFT SIGORIENT RIGHT; IH134 D1-OU2-3
+anchor,A48,west,120L,McKees Rocks intermediate; CATS (60,6) RIGHT SIGORIENT LEFT; IH141 D1-OU3-2

@@ -96,10 +96,10 @@ mast,East End South OS 112,112R,East End,IH1240 IH1241,lever 24 Right; Main East
 mast,East End East Lead,112L,East End,IH1237 IH1238,lever 24 Left
 mast,Princess West OS 113b,113RA,Princess,IH135 IH136,lever 26 Right; Main West
 mast,Princess West OS 113a,113RB,Princess,IH137 IH138,lever 26 Right; South Yard East
-mast,Princess East McKeesport,114R,Princess,IH134,lever 28 Right; dwarf
+mast,Princess East McKeesport,120R,Princess,IH134,lever 28 Right; dwarf
 mast,Princess East K-2,114LA,Princess,IH143,lever 28 Left; dwarf
 mast,Princess South McKeesport,114LB,Princess,IH139 IH140,lever 28 Left
-mast,Princess East McKees Rocks,115R,Princess,IH141,lever 30 Right; dwarf
+mast,Princess East McKees Rocks,120L,Princess,IH141,lever 30 Right; dwarf
 mast,Princess East K-1,115LA,Princess,IH142,lever 30 Left; dwarf
 mast,Princess North McKees Rocks,115LB,Princess,IH132 IH133,lever 30 Left
 mast,West Yard 1 buffer,101LA,Brick,virtual $1001,hidden stub-end for Dispatcher Stage 1
@@ -118,7 +118,6 @@ head,Brick West Yard 2,101RB,Brick,IH437,dwarf
 head,Brick East Main West Top,100L Top,Brick,IH438,
 head,Brick East Main West Bottom,100L Bottom,Brick,IH439,
 head,Plane East OS 102,102LA,Plane,IH434,dwarf; was Top of 2-head
-head,spare C4-OU2-4,spare C4-OU2-4,Plane,IH435,was 102LA Bottom; packed slot held
 head,Plane East East Main Ext Top,102LB Top,Plane,IH432,
 head,Plane East East Main Ext Bottom,102LB Bottom,Plane,IH433,
 head,West Yard West OS 117 Top,117RA Top,Barn,IH1332,
@@ -142,11 +141,11 @@ head,Princess West OS 113b Top,113RA Top,Princess,IH135,
 head,Princess West OS 113b Bottom,113RA Bottom,Princess,IH136,
 head,Princess West OS 113a Top,113RB Top,Princess,IH137,
 head,Princess West OS 113a Bottom,113RB Bottom,Princess,IH138,
-head,Princess East McKeesport,114R,Princess,IH134,dwarf
+head,Princess East McKeesport,120R,Princess,IH134,dwarf
 head,Princess East K-2,114LA,Princess,IH143,dwarf
 head,Princess South McKeesport Top,114LB Top,Princess,IH139,
 head,Princess South McKeesport Bottom,114LB Bottom,Princess,IH140,
-head,Princess East McKees Rocks,115R,Princess,IH141,dwarf
+head,Princess East McKees Rocks,120L,Princess,IH141,dwarf
 head,Princess East K-1,115LA,Princess,IH142,dwarf
 head,Princess North McKees Rocks Top,115LB Top,Princess,IH132,
 head,Princess North McKees Rocks Bottom,115LB Bottom,Princess,IH133

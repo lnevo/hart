@@ -104,7 +104,7 @@ All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts: tw
 | East End | `012` → **12** | C7 | `IH1232`–`IH1241` |
 | Princess | `1` | D1 | `IH132`–`IH143` |
 
-Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon connectors `114R` / `115R` stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, S-1, OS 110, W-1/W-2, K-1/K-2). Packed IDs: connector `IH134` / `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
+Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon intermediates **120L** / **120R** (was 115R / 114R) stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, S-1, OS 110, W-1/W-2, K-1/K-2). Packed IDs: 120R `IH134` / 120L `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: custom `hart-aar` `SL-2-digicon` two-head / stock `AAR-1946` `SL-1-low` dwarfs (not `cats-masts`)

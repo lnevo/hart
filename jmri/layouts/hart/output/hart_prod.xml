@@ -615,11 +615,6 @@
       <comment>Head 102LA (1-head; was Top of 2-head)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH435</systemName>
-      <userName>spare C4-OU2-4</userName>
-      <comment>Spare; was 102LA Bottom. Packed slot held so 101RA stays IH436</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
       <userName>101RA</userName>
       <comment>Head 101RA</comment>
@@ -736,8 +731,8 @@
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
-      <userName>114R</userName>
-      <comment>Head 114R</comment>
+      <userName>120R</userName>
+      <comment>Head 120R</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
@@ -771,8 +766,8 @@
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
-      <userName>115R</userName>
-      <comment>Head 115R</comment>
+      <userName>120L</userName>
+      <comment>Head 120L</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH142</systemName>
@@ -884,8 +879,8 @@
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH134)</systemName>
-      <userName>114R</userName>
-      <comment>Mast 114R</comment>
+      <userName>120R</userName>
+      <comment>Mast 120R</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -908,8 +903,8 @@
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH141)</systemName>
-      <userName>115R</userName>
-      <comment>Mast 115R</comment>
+      <userName>120L</userName>
+      <comment>Mast 120L</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2385,7 +2380,7 @@
     <positionablepoint ident="A33" type="ANCHOR" x="277.0" y="252.0" connect1name="F40-S-0" connect2name="T-I-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A42" type="ANCHOR" x="772" y="382" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A43" type="ANCHOR" x="1183.0" y="398.0" connect1name="F10-S-0" connect2name="T-I-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A48" type="ANCHOR" x="1837.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="115R" westboundsignalmast="114R" />
+    <positionablepoint ident="A48" type="ANCHOR" x="1837.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" eastboundsignalmast="120R" westboundsignalmast="120L" />
     <positionablepoint ident="A45" type="ANCHOR" x="381.6000061035156" y="315.0" connect1name="T3" connect2name="T1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A44" type="ANCHOR" x="1268.0" y="315.0" connect1name="T-I-TOR32" connect2name="F34-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A47" type="ANCHOR" x="1333.0" y="340.0" connect1name="F24-S-0" connect2name="T-EL-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -2454,8 +2449,8 @@
     <signalmasticon signalmast="113RA" x="1465" y="264" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="113RB" x="1465" y="325" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
     <signalmasticon signalmast="114LB" x="1628" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="310" />
-    <signalmasticon signalmast="115R" x="1811" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="180" />
-    <signalmasticon signalmast="114R" x="1848" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="0" />
+    <signalmasticon signalmast="120L" x="1811" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="180" />
+    <signalmasticon signalmast="120R" x="1848" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="0" />
     <signalmasticon signalmast="115LA" x="1665" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
     <signalmasticon signalmast="114LA" x="1665" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
 </LayoutEditor>

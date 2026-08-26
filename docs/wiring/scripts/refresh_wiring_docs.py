@@ -98,8 +98,8 @@ NAME_REPLACEMENTS: list[tuple[str, str]] = [
     ("Princess South McKeesport", "114LB"),
     ("Princess West OS 113a", "113RB"),
     ("Princess West OS 113b", "113RA"),
-    ("Princess East McKeesport", "114R"),
-    ("Princess East McKees Rocks", "115R"),
+    ("Princess East McKeesport", "120R"),
+    ("Princess East McKees Rocks", "120L"),
     ("Princess East K-1", "115LA"),
     ("Princess East K-2", "114LA"),
     ("Plane East East Main Ext", "102LB"),
@@ -203,7 +203,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "reverse_ports": ("D1-OU2-6", "D1-OU2-7", None),
     },
     "Switch 114": {
-        "entry": "114R",
+        "entry": "120R",
         "entry_ports": ("D1-OU2-3", None, None),
         "normal": "114LB",
         "normal_ports": ("D1-OU2-8", "D1-OU3-1", None),
@@ -211,7 +211,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "reverse_ports": ("D1-OU3-4", None, None),
     },
     "Switch 115": {
-        "entry": "115R",
+        "entry": "120L",
         "entry_ports": ("D1-OU3-2", None, None),
         "normal": "115LB",
         "normal_ports": ("D1-OU2-1", "D1-OU2-2", None),
@@ -530,7 +530,7 @@ _DWARF_ASPECTS = (
 
 
 def _princess_dwarf_rows() -> list[dict[str, object]]:
-    """ABS rows for 114LA / 115LA / 114R / 115R (SML PAIRS + SIGNAL_FACING)."""
+    """ABS rows for 114LA / 115LA / 120R / 120L (SML PAIRS + SIGNAL_FACING)."""
     loc = "Princess / Helix DCC"
     routes = [
         # K-1 dwarf, westbound. 115 Closed = K-1; dest 111L (113 N) or 112L (113 R).
@@ -587,35 +587,35 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             ih="IH143",
             Notes="K-2 dwarf. Dest 112L when 113 Reverse (East Lead).",
         ),
-        # Balloon A48: south-track 114R (IH134) protects Rocks / OS 115; dest 115R.
+        # Balloon A48: south-track 120R (IH134) protects Rocks / OS 115; dest 120L.
         dict(
-            Signal="114R",
+            Signal="120R",
             Signal_Block="McKees Rocks",
             Route_From="McKeesport",
             Route_To="McKees Rocks",
             Block1="McKees Rocks",
             Block2="OS 115",
-            Next_Signal="115R",
+            Next_Signal="120L",
             SW114="R",
             ih="IH134",
             Notes=(
-                "Balloon connector (SL-1-low). A48 east ends join: 114R/IH134 on McKeesport "
+                "Balloon connector (SL-1-low). A48 east ends join: 120R/IH134 on McKeesport "
                 "track protects Rocks / OS 115. SW114 Thrown = McKeesport."
             ),
         ),
-        # North-track 115R (IH141) protects McKeesport / OS 114; dest 114R.
+        # North-track 120L (IH141) protects McKeesport / OS 114; dest 120R.
         dict(
-            Signal="115R",
+            Signal="120L",
             Signal_Block="McKeesport",
             Route_From="McKees Rocks",
             Route_To="McKeesport",
             Block1="McKeesport",
             Block2="OS 114",
-            Next_Signal="114R",
+            Next_Signal="120R",
             SW115="R",
             ih="IH141",
             Notes=(
-                "Balloon connector (SL-1-low). 115R/IH141 on Rocks track protects McKeesport / "
+                "Balloon connector (SL-1-low). 120L/IH141 on Rocks track protects McKeesport / "
                 "OS 114. SML also Stop if McKees Rocks occupied. SW115 Thrown = Rocks."
             ),
         ),
@@ -653,7 +653,7 @@ def _logic_signals(ws: Worksheet) -> set[str]:
 
 
 def append_princess_dwarf_logic(wb) -> int:
-    """Add 114LA/115LA/114R/115R ABS rows; strip leftover 3-head MQTT on 114LB/115LB."""
+    """Add 114LA/115LA/120R/120L ABS rows; strip leftover 3-head MQTT on 114LB/115LB."""
     added = 0
     new_rows = _princess_dwarf_rows()
     for sheet_name in ("Princess", "all_logic"):
@@ -665,7 +665,7 @@ def append_princess_dwarf_logic(wb) -> int:
                 continue
             ws.append([spec.get(h) for h in PRINCESS_LOGIC_HEADERS])
             added += 1
-        # 114LB / 115LB were authored as triples; IH134/IH141 are now 114R/115R.
+        # 114LB / 115LB were authored as triples; IH134/IH141 are now 120R/120L.
         mqtt_col = idx.get("MQTT_Out")
         notes_col = idx.get("Notes")
         sig_col = idx.get("Signal")
@@ -730,7 +730,7 @@ def refresh_asbuilt() -> Path:
         "(Scale, Barn, S-1…S-5, W-1/W-2, EH-*, Digicon 100L/117LA/114LA). "
         "Companion to frozen signals_split_v8.xlsx (planned RGB). "
         "100L is IH438/IH439 searchlights (not MQTT mast 464). "
-        "Princess dwarfs 114LA / 115LA / 114R / 115R have ABS rows on Princess + all_logic."
+        "Princess dwarfs 114LA / 115LA / 120R / 120L have ABS rows on Princess + all_logic."
     )
     wb.save(dest)
     print(f"wrote {dest} ({n} cell replacements on logic/mqtt sheets, +{dwarf_n} Princess dwarf rows)")
