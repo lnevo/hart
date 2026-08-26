@@ -56,7 +56,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 - USS CTC `GUIObjects.xml` is the Master 4 schematic again (**v55**). `tables.xml` still embeds the pre-Master 4 paneleditor until that is replaced.
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
-- CATS Princess **114LA/115LA** paint as `LAMP2` and **114LB/115LB** as `LAMP1`; USS follows field (dwarfs on LA, 2-head on LB).
+- CATS Princess **114LA/115LA** are field dwarfs (`LAMP1` / `single`); **114LB/115LB** are 2-head (`LAMP2` / `double`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
 - SML re-Discovered after 120L facing west: **120L→115LB/114LB**, **120R→115LB/114LB**. **115LB** dests stay `111L`/`112L`; **114LB** stays `112L`. Reload **CATS CTC** or **CATS ABS**.
 - Sheets push stays human-gated.

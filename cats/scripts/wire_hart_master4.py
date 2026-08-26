@@ -11,6 +11,7 @@ rebuilds the CATS CTC / CATS ABS HOLD copies.
 from __future__ import annotations
 
 import argparse
+import csv
 import shutil
 import subprocess
 import sys
@@ -481,6 +482,42 @@ def name_signals(tp: ET.Element) -> int:
             pan.set("SIGLOCATION", loc[0])
             pan.set("SIGORIENT", loc[1])
         n += 1
+    return n
+
+
+def mast_head_counts() -> dict[str, int]:
+    """Packed-head count per mast userName from signal_wiring.csv."""
+    path = ROOT / "cats/data/signal_wiring.csv"
+    counts: dict[str, int] = {}
+    with path.open(newline="") as f:
+        for row in csv.DictReader(f):
+            mast = (row.get("mast_user_name") or "").strip()
+            if mast:
+                counts[mast] = counts.get(mast, 0) + 1
+    return counts
+
+
+_PHYS_BY_HEADS = {1: "single", 2: "double", 3: "triple"}
+
+
+def align_physignal_to_heads(tp: ET.Element) -> int:
+    """PHYSIGNAL must match JMRI heads. CATS setAspect uses the template name
+    even when HOLD_ONLY; double→Clear on an SL-1-low dwarf aborts Screen.init.
+    SIGPANTYPE (LAMP1 vs LAMP2) is left for Designer cosmetics (117RA/117LA).
+    """
+    heads = mast_head_counts()
+    n = 0
+    for sig in tp.iter("SECSIGNAL"):
+        name = (sig.text or "").strip()
+        want = _PHYS_BY_HEADS.get(heads.get(name, 0))
+        if not want:
+            continue
+        phys = sig.find("PHYSIGNAL")
+        if phys is None:
+            phys = ET.SubElement(sig, "PHYSIGNAL")
+        if (phys.text or "").strip() != want:
+            phys.text = want
+            n += 1
     return n
 
 
@@ -1113,6 +1150,7 @@ def main() -> None:
     n_strip = strip_designer_blocks(tp)
     n_blk = name_blocks(tp)
     n_sig = name_signals(tp)
+    n_phys = align_physignal_to_heads(tp)
     n_new_sp = add_missing_plants(tp)
     n_sp_strip = strip_foreign_points(tp)
     n_spur = finish_empty_spurs(tp)
@@ -1156,7 +1194,7 @@ def main() -> None:
         f"wrote {DST}  extra_tracks={n_tr} labels={n_lab} moved_sig={n_mv} "
         f"ladder_spacers={n_gap} stripped={n_strip} "
         f"blocks={n_blk} "
-        f"signals={n_sig} new_sp={n_new_sp} empty_spurs={n_spur} foreign_sp_stripped={n_sp_strip} r3_cleared={n_r3} "
+        f"signals={n_sig} physignal={n_phys} new_sp={n_new_sp} empty_spurs={n_spur} foreign_sp_stripped={n_sp_strip} r3_cleared={n_r3} "
         f"r4_healed={n_heal} dual={n_dual} anon={n_anon} "
         f"sig_seams={n_sig_seams} blk_plain={n_plain} shared={n_share} turnout_io={n_to}"
     )

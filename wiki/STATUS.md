@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — CATS ABS Screen.init crash: **115LA** was `PHYSIGNAL double` on a 1-head dwarf, so CATS `setAspect("Clear")` aborted load. Princess LA/LB now match field heads; wire forces PHYSIGNAL from `signal_wiring.csv`. Reload **CATS ABS** or **CATS CTC**. Deploy `--all`.
+
 Updated: 2026-08-26 — USS CTC `GUIObjects.xml` restored to the Master 4 schematic (**v55**, `human/master4` / `de8e727`). `tables.xml` unchanged — PanelPro still loads the pre-Master 4 board until that paneleditor is replaced. Not deployed.
 
 Updated: 2026-08-26 — Post-Discover CATS ABS MQTT QA: **120R/120L** now Approach at rest (Yellow). **115LB/114LB** and dwarfs **115LA/114LA** stay Stop when lined — same pattern as CATS Hold, JSON `held` not readable on this desk. Brick/Plane/110/117 still match. Retained MQTT restored.
