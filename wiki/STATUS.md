@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — MQTT mimic QA vs live CATS ABS: SML aspects and MQTT heads stay in lockstep. Princess **120R/120L** stay Stop (SML dests after the rename; re-Discover still due). CATS ABS Hold keeps **114LA/115LA** Stop. Retained MQTT restored.
+
+Updated: 2026-08-26 — Public-name map synced to live for the next rename pass: `current` is live (`W-1`, `S-1…S-5`, `120R`/`120L`, hidden throats, Dispatcher virtuals). Historical aliases kept. Baselines recaptured. Docs-only.
+
 Updated: 2026-08-26 — Digicon turnout IO lives in `cats/scripts/cats_turnout_io.py`. Master 4 no longer imports the West Yard sheet wire. Docs-only.
 
 Updated: 2026-08-26 — USS CTC signal lamps match live CATS: **120L** west-facing (`IH141`), **117RA** / **117LA** 1-lamp dwarfs (top heads). Track schematic unchanged. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--all`.

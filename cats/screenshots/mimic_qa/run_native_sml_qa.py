@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Native-SML mimic QA: drive retained MQTT states, assert mast aspects via JMRI JSON.
 
-Covers the known-bad list from the native-SML plan: 100, 102, 111, 114/115,
-K-1/K-2, A48 balloon, OS 110, 117/117b. Never publishes track/cmd/*.
-Captures the retained baseline of every topic it touches and restores it at the end.
+Covers 100, 102, 110, 111, 114/115, K-1/K-2, A48 balloon, 117/117b.
+Never publishes track/cmd/*. Captures retained baseline and restores it.
+
+Live CATS ABS is HOLD_ONLY on the same JMRI masts (ADR-005 names: 120R, 114LB, …).
+CATS-prefixed twin masts are gone, so this compares SML aspect vs MQTT head
+appearance (what CATS ABS paints / LCOS sees). `held` is CATS ABS Hold.
 """
 from __future__ import annotations
 
@@ -99,21 +102,48 @@ def capture_baseline() -> dict:
     return base
 
 
-def jmri_snapshot() -> dict:
-    remote = r"""
-import json, urllib.request
-with urllib.request.urlopen("http://127.0.0.1:12080/json/signalMast", timeout=8) as r:
-    data = json.load(r)
-out = {}
-for m in data:
-    d = m["data"]
-    un = d.get("userName") or d.get("name")
-    out[un] = d.get("aspect")
-print(json.dumps(out))
-"""
+LIVE_MASTS = {
+    "101RA", "101RB", "100L", "102LA", "102LB",
+    "117RA", "117RB", "117LA", "117LB",
+    "111RA", "111RB", "111L", "110R", "112R", "112L",
+    "113RA", "113RB", "120R", "120L", "114LA", "114LB", "115LA", "115LB",
+}
+
+# Mast userName -> head system names (signal_wiring.csv). MQTT appearance must
+# match JMRI JSON for CATS ABS HOLD_ONLY paint.
+MAST_HEADS = {
+    "102LB": ("IH432", "IH433"),
+    "102LA": ("IH434",),
+    "101RA": ("IH436",),
+    "101RB": ("IH437",),
+    "100L": ("IH438", "IH439"),
+    "117RA": ("IH1332", "IH1333"),
+    "117LB": ("IH1334",),
+    "117RB": ("IH1335", "IH1336"),
+    "117LA": ("IH1337", "IH1338"),
+    "111RA": ("IH1232", "IH1233"),
+    "111L": ("IH1234", "IH1235"),
+    "111RB": ("IH1236",),
+    "112L": ("IH1237", "IH1238"),
+    "110R": ("IH1239",),
+    "112R": ("IH1240", "IH1241"),
+    "115LB": ("IH132", "IH133"),
+    "120R": ("IH134",),
+    "113RA": ("IH135", "IH136"),
+    "113RB": ("IH137", "IH138"),
+    "114LB": ("IH139", "IH140"),
+    "120L": ("IH141",),
+    "115LA": ("IH142",),
+    "114LA": ("IH143",),
+}
+
+STOP_HEAD = {"Red", "Dark", "Held", None, ""}
+
+
+def _ssh_json(snippet: str) -> dict:
     p = subprocess.run(
         ["ssh", "-o", "BatchMode=yes", PI, "python3", "-"],
-        input=remote,
+        input=snippet,
         capture_output=True,
         text=True,
         timeout=25,
@@ -124,14 +154,59 @@ print(json.dumps(out))
     return json.loads(line)
 
 
-def render(snap: dict) -> str:
-    names = sorted(n for n in snap if not n.startswith("CATS "))
-    lines = ["%-42s %-14s %s" % ("mast", "SML", "CATS-twin")]
+def jmri_snapshot() -> dict:
+    return _ssh_json(
+        """
+import json, urllib.request
+with urllib.request.urlopen("http://127.0.0.1:12080/json/signalMast", timeout=8) as r:
+    data = json.load(r)
+out = {}
+for m in data:
+    d = m["data"]
+    un = d.get("userName") or d.get("name")
+    out[un] = {"aspect": d.get("aspect"), "held": d.get("held")}
+print(json.dumps(out))
+"""
+    )
+
+
+    p = subprocess.run(
+        [SUB, "-h", HOST, "-t", "track/signalhead/#", "-v", "-W", "2"],
+        capture_output=True,
+        text=True,
+    )
+    out = {}
+    for line in p.stdout.splitlines():
+        if " " not in line:
+            continue
+        topic, payload = line.split(" ", 1)
+        sysn = topic.rsplit("/", 1)[-1]
+        out[sysn] = payload.strip()
+    return out
+
+
+def aspect_of(snap: dict, name: str):
+    v = snap.get(name)
+    if isinstance(v, dict):
+        return v.get("aspect")
+    return v
+
+
+def render(snap: dict, heads_jmri: dict, heads_mqtt: dict) -> str:
+    names = sorted(n for n in snap if n in LIVE_MASTS)
+    lines = ["%-8s %-14s %-6s  MQTT heads" % ("mast", "SML", "held")]
     for name in names:
-        sml = snap.get(name)
-        cats = snap.get("CATS " + name, "—")
-        mark = "" if cats in ("—", sml) else "  twin-diff"
-        lines.append("%-42s %-14s %-14s%s" % (name, sml, cats, mark))
+        rec = snap.get(name) or {}
+        sml = rec.get("aspect") if isinstance(rec, dict) else rec
+        held = rec.get("held") if isinstance(rec, dict) else ""
+        bits = []
+        for ih in MAST_HEADS.get(name, ()):
+            mqtt = heads_mqtt.get(ih, "—")
+            bits.append("%s=%s" % (ih, mqtt))
+        lines.append("%-8s %-14s %-6s  %s" % (name, sml, held, " ".join(bits)))
+    twins = [n for n in snap if n.startswith("CATS ")]
+    if twins:
+        lines.append("CATS-twin leftovers: " + ", ".join(sorted(twins)))
     return "\n".join(lines)
 
 
@@ -140,7 +215,7 @@ FAILURES: list[str] = []
 
 def check(snap: dict, tag: str, expect: dict) -> None:
     for mast, want in expect.items():
-        aspect = snap.get(mast)
+        aspect = aspect_of(snap, mast)
         is_stop = aspect in STOPLIKE
         if want == "stop":
             ok = is_stop
@@ -155,17 +230,40 @@ def check(snap: dict, tag: str, expect: dict) -> None:
             FAILURES.append(line)
 
 
+def check_mqtt_heads(snap: dict, heads_mqtt: dict, tag: str) -> None:
+    """Stop-like SML must not leave a live Green/Yellow on any mast head."""
+    for mast, ihs in MAST_HEADS.items():
+        aspect = aspect_of(snap, mast)
+        if aspect is None:
+            continue
+        colors = [heads_mqtt.get(ih) for ih in ihs]
+        if aspect in STOPLIKE:
+            ok = all(c in STOP_HEAD or c == "Red" for c in colors)
+            if not ok:
+                line = f"[FAIL] {tag}: {mast} SML={aspect!r} but MQTT {dict(zip(ihs, colors))}"
+                print(line)
+                FAILURES.append(line)
+        elif aspect and aspect not in STOPLIKE:
+            ok = any(c not in STOP_HEAD and c != "Red" for c in colors)
+            if not ok:
+                line = f"[FAIL] {tag}: {mast} SML={aspect!r} but MQTT all stop-like {dict(zip(ihs, colors))}"
+                print(line)
+                FAILURES.append(line)
+
+
 NOTES: list[str] = []
 
 
 def step(tag: str, desc: str, expect: dict | None = None) -> dict:
     time.sleep(SETTLE)
     snap = jmri_snapshot()
-    blob = f"## {tag}\n{desc}\n{render(snap)}\n"
+    heads_mqtt = mqtt_heads()
+    blob = f"## {tag}\n{desc}\n{render(snap, {}, heads_mqtt)}\n"
     NOTES.append(blob)
     print(blob)
     if expect:
         check(snap, tag, expect)
+    check_mqtt_heads(snap, heads_mqtt, tag)
     return snap
 
 
@@ -191,14 +289,14 @@ def main() -> None:
             "qa00_rest",
             "All occ clear; 113/114/115/110/111/117/100/102 CLOSED, 112 THROWN (field rest).",
             {
-                "Princess East McKeesport": "nonstop",
-                "Princess East McKees Rocks": "nonstop",
-                "Princess East K-1": "nonstop",      # dest 111a: Sw115+Sw111 closed
-                "Princess East K-2": "nonstop",      # dest East Lead: Sw113/114 closed
-                "Princess North McKees Rocks": "stop",  # needs Sw115 thrown
-                "Princess South McKeesport": "stop",    # needs Sw114 thrown
-                "East End South OS 110": "stop",        # needs Sw110 thrown
-                "West Yard East OS 117b": "nonstop",    # dest Plane EME: Sw117 closed
+                "120R": "nonstop",
+                "120L": "nonstop",
+                "115LA": "nonstop",      # dest 111L: Sw115+Sw111 closed
+                "114LA": "nonstop",      # dest 112L: Sw113/114 closed
+                "115LB": "stop",         # needs Sw115 thrown
+                "114LB": "stop",         # needs Sw114 thrown
+                "110R": "stop",          # needs Sw110 thrown
+                "117LA": "nonstop",      # dest 102LB: Sw117 closed
             },
         )
 
@@ -208,10 +306,10 @@ def main() -> None:
             "qa01_115_thrown",
             "115 THROWN: main runs via McKees Rocks balloon; K-1 cut off.",
             {
-                "Princess East K-1": "stop",
-                # diverging route (115 thrown) with dest 111a non-Stop: bottom head green
-                "Princess North McKees Rocks": "Medium Clear",
-                "Princess West OS 113b": "nonstop",  # dest McKeesport-mast via 113C+115T
+                "115LA": "stop",
+                # diverging route (115 thrown) with dest 111L non-Stop: bottom head green
+                "115LB": "Medium Clear",
+                "113RA": "nonstop",  # dest 120L via 113C+115T
             },
         )
 
@@ -219,7 +317,7 @@ def main() -> None:
         step(
             "qa02_115T_wme_occ",
             "115 THROWN + West Main Ext occupied: Rocks-main path fouled.",
-            {"Princess North McKees Rocks": "stop"},
+            {"115LB": "stop"},
         )
         set_occ("West Main Ext", "INACTIVE")
         set_to("115", "CLOSED")
@@ -230,8 +328,8 @@ def main() -> None:
             "qa03_114_thrown",
             "114 THROWN: main runs via McKeesport balloon; K-2 cut off.",
             {
-                "Princess South McKeesport": "nonstop",
-                "Princess West OS 113a": "nonstop",  # dest McKees Rocks-mast via 113C+114T
+                "114LB": "nonstop",
+                "113RB": "nonstop",  # dest 120R via 113C+114T
             },
         )
 
@@ -240,8 +338,8 @@ def main() -> None:
             "qa04_114T_mckeesport_occ",
             "114 THROWN + McKeesport balloon occupied (A48 boundary test).",
             {
-                "Princess East McKeesport": "stop",
-                "Princess West OS 113a": "stop",
+                "120R": "stop",
+                "113RB": "stop",
             },
         )
         set_occ("McKeesport", "INACTIVE")
@@ -253,8 +351,8 @@ def main() -> None:
             "qa05_east_lead_occ",
             "East Lead occupied: K-2's route to East Lead mast fouled; K-1 (via 111a) unaffected.",
             {
-                "Princess East K-2": "stop",
-                "Princess East K-1": "nonstop",
+                "114LA": "stop",
+                "115LA": "nonstop",
             },
         )
         set_occ("East Lead", "INACTIVE")
@@ -265,13 +363,13 @@ def main() -> None:
         step(
             "qa06_110T_112C",
             "110 THROWN + 112 CLOSED: ladder move OS110 -> East Lead -> 113a lined.",
-            {"East End South OS 110": "nonstop"},
+            {"110R": "nonstop"},
         )
         set_to("110", "CLOSED")
         step(
             "qa07_110_closed",
             "110 CLOSED again: OS 110 dwarf back to Stop.",
-            {"East End South OS 110": "stop"},
+            {"110R": "stop"},
         )
         set_to("112", "THROWN")
 
@@ -280,7 +378,7 @@ def main() -> None:
         step(
             "qa08_eme_occ",
             "East Main Ext occupied: 117b's route to Plane EME fouled.",
-            {"West Yard East OS 117b": "stop"},
+            {"117LA": "stop"},
         )
         set_occ("East Main Ext", "INACTIVE")
 
@@ -289,8 +387,8 @@ def main() -> None:
             "qa09_117_thrown",
             "117 THROWN: T6 mast routes to Plane EME; 117b cut off.",
             {
-                "West Yard East Yard T6": "nonstop",
-                "West Yard East OS 117b": "stop",
+                "117LB": "nonstop",
+                "117LA": "stop",
             },
         )
         set_to("117", "CLOSED")
@@ -301,25 +399,24 @@ def main() -> None:
             "qa10_100_thrown",
             "100 THROWN + 102 CLOSED: Plane EME lined to EE West Main West.",
             {
-                "Plane East East Main Ext": "nonstop",
-                "Brick East Main West": "nonstop",   # dest WY West EME via 100T+102C
-                # straight route behind a non-Stop Brick EMW: 3-aspect chaining gives Clear
-                "East End East OS 111a": "Clear",
+                "102LB": "nonstop",
+                "100L": "nonstop",   # dest 117RB via 100T+102C
+                "111L": "Clear",
             },
         )
         set_occ("Main West", "ACTIVE")
         step(
             "qa11_100T_main_west_occ",
             "100 THROWN + Main West occupied: Plane EME route fouled.",
-            {"Plane East East Main Ext": "stop"},
+            {"102LB": "stop"},
         )
         set_occ("Main West", "INACTIVE")
         set_to("100", "CLOSED")
 
         step("qa12_back_to_rest", "Everything back at field rest.", {
-            "Princess East K-1": "nonstop",
-            "Princess East K-2": "nonstop",
-            "West Yard East OS 117b": "nonstop",
+            "115LA": "nonstop",
+            "114LA": "nonstop",
+            "117LA": "nonstop",
         })
     finally:
         print("restoring retained baseline…")
