@@ -41,7 +41,7 @@ right cap at x=1117.
 South Yard body tracks are omitted. 103 and 110 are SOUTH YD stubs
 (bumper + label), same grammar as Engine House / W-1.
 East stubs (K-1, K-2, McKees Rocks, McKeesport) still end flush at x=1105
-with lamps at x=1060. W-1/W-2 lamps stack on the Brick-Plane body (x=161).
+with lamps at x=1060. W-1/W-2 lamps sit on the stubs east of 101.
 
 Thin 2px gifs and the os-*-thin turnout icons (SW103/110/116) come from
 "preference:ctc/icons/*.gif" — deploy to JMRI_UserFiles/ctc/icons/.
@@ -184,11 +184,11 @@ LAMPS = [
     # Brick west stub: same Main West circuit as the lamp west of 111
     # (CATS fold SHARED to (1,6)). Westbound through 111 lights here too.
     ("Block 2-1",  24,  100, "Main West (Brick west / westbound of 111)"),
-    ("Block 4-4",  161, 47,  "W-1"),
-    ("Block 4-3",  161, 71,  "W-2"),
+    ("Block 4-4",  196, 47,  "W-1"),
+    ("Block 4-3",  196, 71,  "W-2"),
     ("Block 4-2",  99,  200, "OS 100"),
     ("Block 4-1",  164, 200, "OS 101"),
-    ("Block 4-6",  161, 100, "Brick-Plane (100–102)"),  # midway 100 (86–126) and 102 (216–256)
+    ("Block 4-6",  132, 100, "Brick-Plane (100–117b)"),  # centered on the 2/3 column line
     ("Block 4-7",  286, 100, "East Main Ext (102–117b)"),  # stacked on Scale
     ("Block 4-5",  229, 200, "OS 102"),
     ("Block 4-8",  286, 123, "Scale"),
@@ -198,7 +198,7 @@ LAMPS = [
     ("Block 3-1",  424, 200, "OS 116 (Barn)"),
     ("Block 3-2",  489, 200, "OS 103"),
     ("Block 2-8",  546, 123, "S-1"),
-    # Column 5 west edge: between W-1/W-2 (161) and Scale (286), east of 102.
+    # Column 5 west edge: between W-1/W-2 (196) and Scale (286), east of 102.
     ("Block 2-1",  272, 146, "Main West (approach to 111)"),
     ("Block 2-3",  546, 100, "Main East"),
     ("Block 12-4", 607, 200, "OS 111a (Main West side)"),
@@ -226,7 +226,7 @@ LAMPS = [
 TRACKS = [
     # W-1 / W-2: stop west of East Main Ext (label left ~256).
     (145, 52,  "line050.gif", 0),   # W-1
-    (175, 52,  "line050.gif", 0),   # through lamp 161, ink ends 216
+    (175, 52,  "line050.gif", 0),   # through lamp 196, ink ends 216
     (214, 50,  "thin-end.gif", 0),
     (152, 76,  "line050.gif", 0),   # W-2
     (182, 76,  "line050.gif", 0),
@@ -408,7 +408,7 @@ TEXTS = [
 N, S, M, MR, MK, W1, W2, SY = 110, 133, 156, 156, 183, 57, 81, 199
 # (mast, stem_x, bar_center, facing, kind, head_or_None)
 SIGNALS = [
-    # W-1/W-2: occupancy stacked on Brick-Plane (x=161); dwarfs facing the plant.
+    # W-1/W-2: occupancy in-track at x=196; dwarfs on the stubs facing the plant.
     ("101RA",       168, W1, "W", "d1", "IH436"),
     ("101RB",       168, W2, "W", "d1", "IH437"),
     # Brick 100L: west of 100, facing east into the plant (eastbound home).
@@ -678,7 +678,7 @@ def main():
         print("%s: embedded paneleditor regenerated" % tables)
 
     install_thin_icons()
-    write_preview("cats/screenshots/master4/uss_ctc_v55_preview.png")
+    write_preview("cats/screenshots/master4/uss_ctc_v54_preview.png")
 
 
 if __name__ == "__main__":
