@@ -342,10 +342,10 @@ SIGNALS = [
     ("102LA",          265,  S,  "W", "d1", "IH434"),
     ("102LB",   265,  M,  "W", "h2", None),
     # Barn 117 both ways (T6 is the westbound yard-lead home)
-    ("117RA",      328,  S,  "E", "h2", None),
+    ("117RA",      328,  S,  "E", "d1", "IH1332"),
     ("117RB", 328, M, "E", "h2", None),
     ("117LB",     396,  S,  "W", "d1", "IH1334"),
-    ("117LA",     396,  M,  "W", "h2", None),
+    ("117LA",     396,  M,  "W", "d1", "IH1337"),
     # East End 111 both ways
     ("111RA",    588,  N,  "E", "h2", None),
     ("111RB", 588,  S,  "E", "d1", "IH1236"),
@@ -363,7 +363,7 @@ SIGNALS = [
     ("114LA",         1050,  S,  "W", "d1", "IH143"),
     ("114LB", 1050,  MK, "W", "h2", None),
     # Princess 115 balloon
-    ("120L", 1088, MR, "E", "d1", "IH141"),
+    ("120L", 1088, MR, "W", "d1", "IH141"),
     ("115LA",         1050,  N,  "W", "d1", "IH142"),
     ("115LB", 1050, MR, "W", "h2", None),
 ]

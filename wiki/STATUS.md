@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — USS CTC signal lamps match live CATS: **120L** west-facing (`IH141`), **117RA** / **117LA** 1-lamp dwarfs (top heads). Track schematic unchanged. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--all`.
+
 Updated: 2026-08-26 — Master 4 is **live CATS CTC / CATS ABS**. **114R→120R** (`IH134`) and **115R→120L** (`IH141`). Unused head **IH435** removed; MQTT `track/signalhead/IH435` cleared. West Yard sheets archived. Reload **CATS CTC** or **CATS ABS**. Do not run with USS CTC. Deploy `--all`. Re-Discover SML after reload.
 
 Updated: 2026-08-26 — **102LA** is a 1-head dwarf (`IH434` / C4-OU2-3, `SL-1-low`). Mast userName `102LA` unchanged.

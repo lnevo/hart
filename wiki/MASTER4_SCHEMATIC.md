@@ -54,8 +54,9 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Remaining gaps
 
-- USS CTC track diagram is still the **pre-Master 4** v8 board (signal *names* 120L/120R / 102LA dwarf are updated; rails are not Master 4).
-- **117RA** is `LAMP1` on Master 4; JMRI/field still 2-head (`IH1332`/`IH1333`).
+- USS CTC track diagram is still the **pre-Master 4** v8 board (signal *lamps* match CATS 1 vs 2 and 120L west; rails are not Master 4).
+- **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
+- CATS Princess **114LA/115LA** paint as `LAMP2` and **114LB/115LB** as `LAMP1`; USS follows field (dwarfs on LA, 2-head on LB).
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
 - SML pairs were renamed with the masts; **re-Discover on the layout** after live cutover (facing of 120L/120R changed vs old balloon 114R/115R).
 - Sheets push stays human-gated.

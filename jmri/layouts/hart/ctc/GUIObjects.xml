@@ -3008,9 +3008,42 @@
     <signalmasticon signalmast="102LB" x="245" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>102LB</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="117RA" x="328" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalheadicon signalhead="IH1332" x="328" y="110" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>117RA</tooltip>
-    </signalmasticon>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
     <signalmasticon signalmast="117RB" x="328" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>117RB</tooltip>
     </signalmasticon>
@@ -3050,9 +3083,42 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="117LA" x="376" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalheadicon signalhead="IH1337" x="385" y="133" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>117LA</tooltip>
-    </signalmasticon>
+      <icons>
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </held>
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </dark>
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </red>
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </yellow>
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </green>
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </lunar>
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashred>
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashyellow>
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashgreen>
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
+          <rotation>0</rotation>
+        </flashlunar>
+      </icons>
+      <iconmaps />
+    </signalheadicon>
     <signalmasticon signalmast="111RA" x="588" y="87" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>111RA</tooltip>
     </signalmasticon>
@@ -3218,37 +3284,37 @@
     <signalmasticon signalmast="114LB" x="1030" y="138" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>114LB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH141" x="1088" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH141" x="1077" y="64" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>120L</tooltip>
       <icons>
-        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
         </held>
-        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
           <rotation>0</rotation>
         </dark>
-        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
         </red>
-        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </yellow>
-        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
           <rotation>0</rotation>
         </green>
-        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </lunar>
-        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashred>
-        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashyellow>
-        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashgreen>
-        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashlunar>
       </icons>
