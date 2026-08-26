@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-25 — USS CTC restored to the **pre-Master 4** board (`a99b04f`, v8 yard ladders), not the Aug 23+ Master 4 redraw. CATS desks remain pre-Master 4. EH-1/EH-3 occupancy swap kept. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--all`.
+
 Updated: 2026-08-25 — USS CTC restored to pre-Master 4 cutover (**v54**). CATS desks remain pre-Master 4. EH-1/EH-3 occupancy swap kept. Reload **USS CTC** and **CATS CTC** or **CATS ABS**. Deploy `--all`.
 
 Updated: 2026-08-25 — Live CATS CTC/ABS restored to **pre-Master 4**. Master 4 schematic parked on **`human/master4`**. EH-1/EH-3 occupancy swap kept (`Block 13-7` / `Block 13-5`). Reload **CATS CTC** or **CATS ABS**. Deploy `--all`.
