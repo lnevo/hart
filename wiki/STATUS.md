@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — Post-Discover CATS ABS MQTT QA: **120R/120L** now Approach at rest (Yellow). **115LB/114LB** and dwarfs **115LA/114LA** stay Stop when lined — same pattern as CATS Hold, JSON `held` not readable on this desk. Brick/Plane/110/117 still match. Retained MQTT restored.
+
 Updated: 2026-08-26 — Native SML re-Discovered: **93 dests**. **120L** now dests **115LB** (and 114LB via the balloon); **120R** dests **115LB** and **114LB**. **115LB/114LB** homes unchanged (`111L`/`112L`). Reload **CATS CTC** or **CATS ABS**. Deploy `--all`.
 
 Updated: 2026-08-26 — MQTT mimic QA vs live CATS ABS: SML aspects and MQTT heads stay in lockstep. Princess **120R/120L** stay Stop (SML dests after the rename; re-Discover still due). CATS ABS Hold keeps **114LA/115LA** Stop. Retained MQTT restored.
