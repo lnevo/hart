@@ -54,7 +54,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Remaining gaps
 
-- USS CTC track diagram is still the **pre-Master 4** v8 board (signal *lamps* match CATS 1 vs 2 and 120L west; rails are not Master 4).
+- USS CTC `GUIObjects.xml` is the Master 4 schematic again (**v55**). `tables.xml` still embeds the pre-Master 4 paneleditor until that is replaced.
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
 - CATS Princess **114LA/115LA** paint as `LAMP2` and **114LB/115LB** as `LAMP1`; USS follows field (dwarfs on LA, 2-head on LB).
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
@@ -85,6 +85,6 @@ Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. **CATS Master4** (`/A
 
 CATS is the Digicon. The USS lever machine is a **separate** JMRI Panel Editor panel, always titled **USS CTC**. LogixNG `IQC:AUTO:0002` **hides** that panel on CATS start.
 
-The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml`. That `<paneleditor name="USS CTC">` is also embedded in `tables/new_tables.xml` and the deploy bundle `jmri/layouts/hart/output/tables.xml` (PanelPro loads the host `tables.xml`, not `preference:ctc/GUIObjects.xml` alone). Deploy copies both.
+The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (Master 4 **v55** schematic, restored from `human/master4`). That `<paneleditor name="USS CTC">` is also embedded in `tables/new_tables.xml` and the deploy bundle `jmri/layouts/hart/output/tables.xml` — those copies are still the pre-Master 4 board until replaced. PanelPro loads the host `tables.xml`, not `preference:ctc/GUIObjects.xml` alone. Deploy copies both.
 
 Static preview: `cats/screenshots/master4/uss_ctc_v28_preview.png` (v28: thin icons copied into JMRI `preference:ctc/icons/`; 100 over col 1; W-1/W-2 horizontal; plant dropped 20px; 113b east). `uss_ctc_v27_preview.png` introduced SOUTH YD stubs.
