@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import subprocess
 import time
+import urllib.request
 from pathlib import Path
 
 HOST = "minipc-e5h6x.local"
@@ -154,22 +155,25 @@ def _ssh_json(snippet: str) -> dict:
     return json.loads(line)
 
 
+def _mast_table_from_json(data) -> dict:
+    out = {}
+    for m in data:
+        d = m["data"]
+        un = d.get("userName") or d.get("name")
+        out[un] = {"aspect": d.get("aspect"), "held": d.get("held")}
+    return out
+
+
 def jmri_snapshot() -> dict:
-    return _ssh_json(
-        """
-import json, urllib.request
-with urllib.request.urlopen("http://127.0.0.1:12080/json/signalMast", timeout=8) as r:
-    data = json.load(r)
-out = {}
-for m in data:
-    d = m["data"]
-    un = d.get("userName") or d.get("name")
-    out[un] = {"aspect": d.get("aspect"), "held": d.get("held")}
-print(json.dumps(out))
-"""
-    )
+    """Prefer local JMRI JSON. CATS ABS on this Mac has no web server — use MQTT heads."""
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:12080/json/signalMast", timeout=2) as r:
+            return _mast_table_from_json(json.load(r))
+    except Exception:
+        return snap_from_mqtt(mqtt_heads())
 
 
+def mqtt_heads() -> dict:
     p = subprocess.run(
         [SUB, "-h", HOST, "-t", "track/signalhead/#", "-v", "-W", "2"],
         capture_output=True,
@@ -182,6 +186,26 @@ print(json.dumps(out))
         topic, payload = line.split(" ", 1)
         sysn = topic.rsplit("/", 1)[-1]
         out[sysn] = payload.strip()
+    return out
+
+
+def snap_from_mqtt(heads: dict) -> dict:
+    """Stop / Medium Clear / Clear / Approach from head colors (no JSON)."""
+    out = {}
+    for mast, ihs in MAST_HEADS.items():
+        colors = [heads.get(ih) for ih in ihs]
+        live = [c for c in colors if c not in STOP_HEAD]
+        if not live:
+            aspect = "Stop"
+        elif "Green" in colors and "Red" in colors:
+            aspect = "Medium Clear"
+        elif "Green" in colors:
+            aspect = "Clear"
+        elif "Yellow" in colors:
+            aspect = "Approach"
+        else:
+            aspect = live[0]
+        out[mast] = {"aspect": aspect, "held": None}
     return out
 
 
@@ -309,6 +333,7 @@ def main() -> None:
                 "115LA": "stop",
                 # diverging route (115 thrown) with dest 111L non-Stop: bottom head green
                 "115LB": "Medium Clear",
+                "120L": "nonstop",  # dest 115LB after Discover
                 "113RA": "nonstop",  # dest 120L via 113C+115T
             },
         )
