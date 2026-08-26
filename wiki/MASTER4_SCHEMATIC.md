@@ -1,7 +1,7 @@
 # HART Digicon schematic — plant map
 
 Source: `cats/panels/HART_Master4.xml` (Designer save).  
-This is the **live** CATS CTC / CATS ABS board (`HART_Master.xml` / `HART_Master_ABS.xml`) and the USS CTC track diagram.
+Parked on branch **`human/master4`**. Live CATS CTC / CATS ABS desks are the **pre-Master 4** Masters. This map is the Master 4 schematic, not the running board.
 
 Master 4 draws **one straight focused main on Y=6** (Brick 100 → 101 West Yard above → 102 Plane → 117b → Main East → 112 → East Lead → 113a → 114 → McKeesport). Main West is on **Y=8**. West yard (W-1 / W-2) sits **above** the main. South yard is two fans off 103 / 110.
 

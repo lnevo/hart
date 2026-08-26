@@ -24,12 +24,9 @@ rm -f \
   "$DESKTOP/CATS ABS-RO.desktop" \
   "$DESKTOP/CATS_CTC_SML.desktop" \
   "$DESKTOP/CATS CTC SML.desktop" \
-  "$DESKTOP/CATS Master4.desktop" \
-  "$DESKTOP/CATS_Master4.desktop" \
   "$APPS/CATS_ABS-RO.desktop" \
   "$APPS/CATS_CTC_SML.desktop" \
-  "$APPS/CATS.desktop" \
-  "$APPS/CATS Master4.desktop"
+  "$APPS/CATS.desktop"
 
 chmod +x "$DESKTOP/CATS CTC.desktop" "$DESKTOP/CATS ABS.desktop" 2>/dev/null || true
 echo "Pi Desktop: CATS CTC + CATS ABS"

@@ -62,7 +62,7 @@ foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_
 
 foreach ($legacy in @(
   'HART Master', 'HART Master ABS', 'HART Master ABS-RO', 'CATS',
-  'CATS CTC SML', 'CATS ABS-RO', 'CATS Master4'
+  'CATS CTC SML', 'CATS ABS-RO'
 )) {
   $legacyLnk = Join-Path $Desktop ($legacy + '.lnk')
   if (Test-Path $legacyLnk) {
