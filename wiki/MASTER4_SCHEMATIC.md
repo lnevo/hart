@@ -50,7 +50,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Signals
 
-23 Designer lamps, named in place. **112R** is `(44,8)` LEFT on OS 112 (CATS CP name; no field mast yet). Occupancy cut Main East \| OS 112 is `(43,8)` RIGHT \| `(44,8)` LEFT. **100L** is `(3,8)` LEFT. **110R** is `(42,7)` LEFT on OS 110 (`LOWRIGHT`/`TOP`). **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. Temporary Princess intermediates **120L** `(60,6)` RIGHT and **120R** `(61,6)` LEFT sit on McKees Rocks \| McKeesport.
+23 Designer lamps, named in place. **112R** is `(44,8)` LEFT on OS 112 (CATS CP name; no field mast yet). Occupancy cut Main East \| OS 112 is `(43,8)` RIGHT \| `(44,8)` LEFT. **100L** is `(3,8)` LEFT. **110R** is `(42,7)` BOTTOM on OS 110 at the OS 110 \| OS 109 cut (`UPLEFT`/`TOP`) — not on the 111b cut and not on OS 109. **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. Temporary Princess intermediates **120L** `(60,6)` RIGHT and **120R** `(61,6)` LEFT sit on McKees Rocks \| McKeesport.
 
 ## Label fixes
 

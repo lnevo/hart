@@ -914,8 +914,8 @@
         </BLOCK>
         <SECSIGNAL>
           117RA
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
-          <PHYSIGNAL>double</PHYSIGNAL>
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
@@ -1304,14 +1304,14 @@
             <IOSPEC DECADDR="1206" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
+        <SECSIGNAL>
+          110R
+          <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>single</PHYSIGNAL>
+        </SECSIGNAL>
       </SEC_EDGE>
       <SEC_EDGE EDGE="LEFT">
         <BLOCK />
-        <SECSIGNAL>
-          110R
-          <PANELSIGNAL SIGLOCATION="LOWRIGHT" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
-          <PHYSIGNAL>single</PHYSIGNAL>
-        </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="43" Y="7">
@@ -1872,7 +1872,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK />
+        <BLOCK DISCIPLINE="Unknown" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="18" Y="8">
@@ -2199,7 +2199,7 @@
         <BLOCK />
         <SECSIGNAL>
           112R
-          <PANELSIGNAL SIGLOCATION="LEFTCENT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PANELSIGNAL SIGLOCATION="LEFTLOW" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>

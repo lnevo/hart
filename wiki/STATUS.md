@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — Master 4: 110R is on OS 110 BOTTOM (`(42,7)`), the 110\|109 cut. Designer cosmetics kept. Reload **CATS Master4**.
+
 Updated: 2026-08-26 — **CATS Master4** icon in `/Applications` launches `HART_Master4_wired.xml`. Live CATS CTC/ABS unchanged. Do not run it with CATS CTC or USS CTC.
 
 Updated: 2026-08-26 — Master 4 routing: SHARED `(1,6)`↔`(1,8)` Main West and `(63,6)`↔`(63,7)` McKeesport. Main East cut at `(43,8)|(44,8)` with CATS `112R`. Princess intermediates are **120L** `(60,6)` / **120R** `(61,6)`. Not live.

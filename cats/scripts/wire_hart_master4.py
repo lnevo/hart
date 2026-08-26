@@ -129,8 +129,8 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (38, 7, "RIGHT", "S-1"),
     (39, 7, "LEFT", "OS 111b"),  # 111RB
     (41, 7, "RIGHT", "OS 111b"),
-    (42, 7, "LEFT", "OS 110"),  # 110R
-    (42, 7, "BOTTOM", "OS 110"),
+    (42, 7, "LEFT", "OS 110"),  # OS 110 | OS 111b
+    (42, 7, "BOTTOM", "OS 110"),  # 110R — OS 110 | OS 109
     (42, 8, "TOP", "OS 109"),
     (43, 7, "RIGHT", "OS 110"),
     (44, 7, "LEFT", "OS 112"),
@@ -226,7 +226,7 @@ SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
     (60, 6, "RIGHT"): "120L",
     (61, 6, "LEFT"): "120R",
     (39, 7, "LEFT"): "111RB",
-    (42, 7, "LEFT"): "110R",
+    (42, 7, "BOTTOM"): "110R",
     (45, 7, "RIGHT"): "112L",
     (44, 8, "LEFT"): "112R",  # panel CP name; no JMRI mast yet
     (56, 7, "RIGHT"): "114LA",
@@ -237,11 +237,9 @@ SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
 LABEL_FIXES: dict[tuple[int, int], str] = {}
 LABEL_ALIGN: dict[tuple[int, int], str] = {}
 
-# 110R stays on OS 110 (42,7) LEFT. A CP on OS 109 would stop 109→110 N/X.
+# 110R is on OS 110 BOTTOM (110|109). A CP on OS 109 would stop 109→110 N/X.
 SIGNAL_MOVES: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = []
-SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {
-    (42, 7, "LEFT"): ("LOWRIGHT", "TOP"),  # 110R
-}
+SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {}
 
 # Panel-edge wraps. Paint stays gapped; N/X routes through. Same BLOCK
 # name so occupancy merges: Main West west stubs; Princess McKeesport.
