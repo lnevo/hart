@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-27 — USS **v73**: **120L** uses east dwarf GIFs (name is the exception; lamp faces into the McKees Rocks wrap). Same-X stack with **120R**. Reload **USS CTC**. Do not run it with CATS CTC.
+
+Updated: 2026-08-27 — Proposed Princess intermediates: **120L→2035**, **120R→2036**. Device-map / `public_name_map.csv` only; not applied to XML.
+
 Updated: 2026-08-27 — USS **v72**: **120L** rotated 180° on the shared-X stack. LE **120L**/**120R** kept the Mac-saved relative seats (120L upper-right, 120R lower-left), snapped to even offsets from the NX column. Not deployed.
 
 Updated: 2026-08-27 — USS CTC **v69**: Brick **column 1** signal lever is N/R, **101** is L/N, **102** stays L/N, **117** stays LNR. Master 4 paneleditor is now in production `output/tables.xml`. Reload **USS CTC**. Do not run it with CATS CTC.

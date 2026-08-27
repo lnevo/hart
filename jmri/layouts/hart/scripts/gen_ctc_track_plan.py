@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v72).
+"""Generate the USS CTC track diagram from CATS Master 4 (v73).
 
 20 packed columns. Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is
-LNR. 120R/120L share one X on McKeesport; 120L west GIFs rotated 180°.
+LNR. 120L is named L but faces east (into the McKees Rocks wrap) under 120R.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v72_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v73_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
@@ -196,9 +196,8 @@ SIGNALS = [
     ("115LA", 56, 5, "W", "d1", "IH142"),
     ("114LB", 56, 7, "W", "h2", None),
     ("114LA", 56, 8, "W", "d1", "IH143"),
-    # Still westbound (IH141 / CATS SHARED wrap). USS only moves the lamp
-    # onto McKeesport under 120R — GIFs stay west, placement is east.
-    ("120L", 62, 7, "W", "d1", "IH141"),
+    # 120L is named L but faces east into the McKees Rocks wrap (exception).
+    ("120L", 62, 7, "E", "d1", "IH141"),
 ]
 
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 100–119.
@@ -533,7 +532,7 @@ MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecon
       <tooltip>{name}</tooltip>
     </signalmasticon>"""
 
-HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="{degrees}" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>{name}</tooltip>
       <icons>
         <held url="{stop}" scale="1.0">
@@ -824,10 +823,8 @@ def build_block(cells: dict) -> str:
     for x, y, text, size, col in texts:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
     for name, cx, cy, facing, kind, head in SIGNALS:
-        # 120L is westbound; sit it on the east side of the cell under 120R.
-        place = "E" if name == "120L" else facing
-        stem_x = ux(cx, cy) + (8 if place == "E" else 2)
-        x, y = signal_xy(stem_x, bar_y(cy) + 2, place, kind)
+        stem_x = ux(cx, cy) + (8 if facing == "E" else 2)
+        x, y = signal_xy(stem_x, bar_y(cy) + 2, facing, kind)
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,
@@ -835,7 +832,6 @@ def build_block(cells: dict) -> str:
         else:
             parts.append(HEAD.format(
                 name=name, head=head, x=x, y=y,
-                degrees=180 if name == "120L" else 0,
                 stop=sig_url("d1", "stop", facing),
                 rest=sig_url("d1", "restricting", facing),
                 clr=sig_url("d1", "slow-clear", facing),
