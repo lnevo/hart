@@ -1,361 +1,589 @@
-layer,current,proposed,cp,hardware,notes
-turnout,Switch 100,Switch 1,Brick,M2T408,CTC Switch 1 (was 100); keep
-turnout,Switch 101,Switch 3,Brick,M2T409,CTC Switch 3 (was 101); keep
-turnout,Switch 102,Switch 5,Plane,M2T410,CTC Switch 5 (was 102); keep
-turnout,Switch 103,Switch 15,South Yard,M2T308,CTC Switch 15 (was 103); keep; east of Barn
-turnout,Switch 104,Switch 17,South Yard,M2T309,CTC Switch 17 (was 104); keep; hand-throw
-turnout,Switch 105,Switch 19,South Yard,M2T310,CTC Switch 19 (was 105); keep; hand-throw
-turnout,Switch 106,Switch 21,South Yard,M2T311,CTC Switch 21 (was 106); keep; hand-throw
-turnout,Switch 107,Switch 25,East End,M2T1208,CTC Switch 25 (was 107); keep
-turnout,Switch 108,Switch 27,East End,M2T1209,CTC Switch 27 (was 108); keep
-turnout,Switch 109,Switch 29,East End,M2T1210,CTC Switch 29 (was 109); keep
-turnout,Switch 110,Switch 31,East End,M2T1211,CTC Switch 31 (was 110); keep
-turnout,Switch 111,Switch 23,East End,M2T1212,CTC Switch 23 (was 111); keep; crossover 111a/111b
-turnout,Switch 112,Switch 33,East End,M2T1213,CTC Switch 33 (was 112); keep
-turnout,Switch 113,Switch 35,Princess,M2T108,CTC Switch 35 (was 113); keep; crossover 113a/113b
-turnout,Switch 114,Switch 37,Princess,M2T109,CTC Switch 37 (was 114); keep
-turnout,Switch 115,Switch 39,Princess,M2T110,CTC Switch 39 (was 115); keep
-turnout,Switch 116,Switch 13,Engine House,M2T411,CTC Switch 13 (was 116); hand-throw
-turnout,Switch 117,Switch 7,Barn,M2T1308,CTC Switch 7 (was 117); crossover 117/117b; field still hand-throw
-turnout,Switch 118,Switch 11,,M2T1309,CTC Switch 11 (was 118); hand-throw; Engine House
-turnout,Switch 119,Switch 9,,M2T1310,CTC Switch 9 (was 119); hand-throw; Engine House
-block,Barn,OS Barn,Barn,Block 13-1,MQTT 1300; 117 to 116; was Yard T6
-block,Brick-Plane,OS Brick-Plane,Brick,Block 4-6,also listed as Block 100-102
-block,EH-1,OS EH-1,,Block 13-7,top house; MQTT 1306 (swapped vs plate order vs EH-3)
-block,EH-2,OS EH-2,,Block 13-6,MQTT 1305
-block,EH-3,OS EH-3,,Block 13-5,bottom house; MQTT 1304 (swapped vs plate order vs EH-1)
-block,East Lead,OS East Lead,East End,Block 1-7,east of 110/112 toward Princess
-block,East Main Ext,OS East Main Ext,Plane,Block 4-7,keep
-block,K-1,OS K-1,Princess,Block 1-4,keep; same sensor as OS 115
-block,K-2,OS K-2,Princess,Block 1-3,keep; same sensor as OS 114
-block,Main East,OS Main East,,Block 2-3,keep
-block,Main West,OS Main West,,Block 2-1,keep
-block,McKees Rocks,OS McKees Rocks,Princess,Block 1-1,keep
-block,McKeesport,OS McKeesport,Princess,Block 1-2,keep
-block,OS 100,OS 1,Brick,Block 4-2,CP in comment
-block,OS 101,OS 3,Brick,Block 4-1,CP in comment
-block,OS 102,OS 5,Plane,Block 4-5,CP in comment
-block,OS 103,OS 15,South Yard,Block 3-2,CP in comment; between Barn and S-R
-block,OS 104,OS 17,South Yard,Block 3-3,CP in comment
-block,OS 105,OS 19,South Yard,Block 3-5,CP in comment
-block,OS 106,OS 21,South Yard,Block 3-7,CP in comment
-block,OS 107,OS 25,East End,Block 12-1,CP in comment
-block,OS 108,OS 27,East End,Block 12-3,CP in comment
-block,OS 109,OS 29,East End,Block 12-5,CP in comment
-block,OS 110,OS 31,East End,Block 12-7,CP in comment
-block,OS 111a,OS 23a,East End,Block 12-4,CP in comment
-block,OS 111b,OS 23b,East End,Block 12-6,CP in comment
-block,OS 112,OS 33,East End,Block 12-8,CP in comment
-block,OS 113a,OS 35a,Princess,Block 1-6,CP in comment
-block,OS 113b,OS 35b,Princess,Block 1-5,CP in comment
-block,OS 114,OS 37,Princess,Block 1-3,CP in comment; same circuit as K-2
-block,OS 115,OS 39,Princess,Block 1-4,CP in comment; same circuit as K-1
-block,OS 116,OS 13,Engine House,Block 3-1,hand-throw
-block,OS 117,OS 7,Barn,Block 13-3,Barn CP crossover north/west leg
-block,OS 117b,OS 7b,Barn,Block 13-4,MQTT 1303
-block,OS 118,OS 11,,Block 13-2,MQTT 1301
-block,OS 119,OS 9,,Block 13-8,MQTT 1307
-block,S-1,OS S-R,South Yard,Block 2-8,run-through east of 103 to 110/112; plate S-R
-block,S-1 East,OS S-R East,South Yard,Block 2-8,hidden S-R east throat; same occupancy as S-R (Block 2-8)
-block,S-1 West,OS S-R West,South Yard,Block 2-8,hidden S-R west throat; same occupancy as S-R (Block 2-8)
-block,S-2,OS S-1,South Yard,Block 2-7,plate S-1
-block,S-2 East,OS S-1 East,South Yard,Block 2-7,hidden S-1 east throat; same occupancy as S-1 (Block 2-7)
-block,S-2 West,OS S-1 West,South Yard,Block 2-7,hidden S-1 west throat; same occupancy as S-1 (Block 2-7)
-block,S-3,OS S-2,South Yard,Block 2-6,plate S-2
-block,S-3 East,OS S-2 East,South Yard,Block 2-6,hidden S-2 east throat; same occupancy as S-2 (Block 2-6)
-block,S-3 West,OS S-2 West,South Yard,Block 2-6,hidden S-2 west throat; same occupancy as S-2 (Block 2-6)
-block,S-4,OS S-3,South Yard,Block 2-5,plate S-3
-block,S-4 East,OS S-3 East,South Yard,Block 2-5,hidden S-3 east throat; same occupancy as S-3 (Block 2-5)
-block,S-4 West,OS S-3 West,South Yard,Block 2-5,hidden S-3 west throat; same occupancy as S-3 (Block 2-5)
-block,S-5,OS S-4,South Yard,Block 2-4,plate S-4
-block,S-5 East,OS S-4 East,South Yard,Block 2-4,hidden S-4 east throat; same occupancy as S-4 (Block 2-4)
-block,S-5 West,OS S-4 West,South Yard,Block 2-4,hidden S-4 west throat; same occupancy as S-4 (Block 2-4)
-block,Scale,OS Scale,Plane,Block 4-8,Plane diverging to 117; was Yard T1
-block,W-1,OS W-1,Brick,Block 4-4,yard body; access Switch 101 only; plate W-1
-block,W-2,OS W-2,Brick,Block 4-3,yard body; access Switch 101 only; plate W-2
-block,West Main Ext,OS West Main Ext,East End,Block 1-8,keep
-block,OS 100 (Brick),OS 1,Brick,Block 4-2,historical alias; CP in comment
-block,OS 101 (Brick),OS 3,Brick,Block 4-1,historical alias; CP in comment
-block,OS 102 (Plane),OS 5,Plane,Block 4-5,historical alias; CP in comment
-block,OS 103 (South Yard),OS 15,South Yard,Block 3-2,historical alias; CP in comment; between Barn and South Yard 1
-block,OS 104 (South Yard),OS 17,South Yard,Block 3-3,historical alias; CP in comment
-block,OS 105 (South Yard),OS 19,South Yard,Block 3-5,historical alias; CP in comment
-block,OS 106 (South Yard),OS 21,South Yard,Block 3-7,historical alias; CP in comment
-block,OS 107 (East End),OS 25,East End,Block 12-1,historical alias; CP in comment
-block,OS 108 (East End),OS 27,East End,Block 12-3,historical alias; CP in comment
-block,OS 109 (East End),OS 29,East End,Block 12-5,historical alias; CP in comment
-block,OS 110 (East End),OS 31,East End,Block 12-7,historical alias; CP in comment
-block,OS 111a (East End),OS 23a,East End,Block 12-4,historical alias; CP in comment
-block,OS 111b (East End),OS 23b,East End,Block 12-6,historical alias; CP in comment
-block,OS 112 (East End),OS 33,East End,Block 12-8,historical alias; CP in comment
-block,OS 113a (Princess),OS 35a,Princess,Block 1-6,historical alias; CP in comment
-block,OS 113b (Princess),OS 35b,Princess,Block 1-5,historical alias; CP in comment
-block,OS 114 (Princess),OS 37,Princess,Block 1-3,historical alias; CP in comment; same circuit as K-2
-block,OS 115 (Princess),OS 39,Princess,Block 1-4,historical alias; CP in comment; same circuit as K-1
-block,OS 116 (West Yard),OS 13,,Block 3-1,historical alias; hand-throw
-block,OS 117 (West Yard),OS 7,Barn,Block 13-3,historical alias of OS 117
-block,OS 117b (West Yard),OS 7b,Barn,Block 13-4,historical alias; MQTT 1303
-block,OS 118 (West Yard),OS 11,,Block 13-2,historical alias; MQTT 1301
-block,OS 119 (West Yard),OS 9,,Block 13-8,historical alias; MQTT 1307
-block,Main West Brick-Plane,OS Brick-Plane,Brick,Block 4-6,historical alias; also listed as Block 100-102
-block,Block 100-102,OS Brick-Plane,Brick,Block 4-6,historical alias; alias retire
-block,South Yard East,OS East Lead,East End,Block 1-7,historical alias; was South Yard East; dest East Lead
-block,Yard T1,OS Scale,Plane,Block 4-8,historical alias; Plane diverging to 117; was South Yard Scale
-block,Yard T6,OS Barn,Barn,Block 13-1,historical alias; MQTT 1300; 117 to 116; was South Yard West
-block,South Yard Scale,OS Scale,Plane,Block 4-8,historical alias; alias after Scale/West public names
-block,South Yard West,OS Barn,Barn,Block 13-1,historical alias; alias after Scale/West public names
-block,Yard Track 1,OS S-R,South Yard,Block 2-8,historical alias; run-through east of 103 to 110/112; plate S-R
-block,Yard Track 2,OS S-1,South Yard,Block 2-7,historical alias; plate S-1
-block,Yard Track 3,OS S-2,South Yard,Block 2-6,historical alias; plate S-2
-block,Yard Track 4,OS S-3,South Yard,Block 2-5,historical alias; plate S-3
-block,Yard Track 5,OS S-4,South Yard,Block 2-4,historical alias; plate S-4
-block,South Yard 1,OS S-R,South Yard,Block 2-8,historical alias; was South Yard 1; plate S-R
-block,South Yard 2,OS S-1,South Yard,Block 2-7,historical alias; was South Yard 2; plate S-1
-block,South Yard 3,OS S-2,South Yard,Block 2-6,historical alias; was South Yard 3; plate S-2
-block,South Yard 4,OS S-3,South Yard,Block 2-5,historical alias; was South Yard 4; plate S-3
-block,South Yard 5,OS S-4,South Yard,Block 2-4,historical alias; was South Yard 5; plate S-4
-block,West Yard 1,OS W-1,Brick,Block 4-4,historical alias; yard body; access Switch 101 only; plate W-1
-block,West Yard 2,OS W-2,Brick,Block 4-3,historical alias; yard body; access Switch 101 only; plate W-2
-block,Yard T9,OS EH-1,,Block 13-7,historical alias; MQTT 1306
-block,Yard T10,OS EH-2,,Block 13-6,historical alias; MQTT 1305
-block,Yard T11,OS EH-3,,Block 13-5,historical alias; MQTT 1304
-block,ET-1,OS EH-3,,Block 13-5,historical alias; CATS station alias
-block,ET-2,OS EH-2,,Block 13-6,historical alias; CATS station alias
-block,ET-3,OS EH-1,,Block 13-7,historical alias; CATS station alias
-block,Engine House 1,OS EH-1,,Block 13-7,historical alias; was Engine House 1; plate EH-1
-block,Engine House 2,OS EH-2,,Block 13-6,historical alias; was Engine House 2; plate EH-2
-block,Engine House 3,OS EH-3,,Block 13-5,historical alias; was Engine House 3; plate EH-3
-occupancy,Block 1-1,BS McKees Rocks,Princess,M2S100,canvas BS userName; comment stays Block 1-1
-occupancy,Block 1-2,BS McKeesport,Princess,M2S101,canvas BS userName; comment stays Block 1-2
-occupancy,Block 1-3,BS Switch 37 / BS K-2,Princess,M2S102,canvas BS userName; comment stays Block 1-3
-occupancy,Block 1-4,BS Switch 39 / BS K-1,Princess,M2S103,canvas BS userName; comment stays Block 1-4
-occupancy,Block 1-5,BS Switch 35b,Princess,M2S104,canvas BS userName; comment stays Block 1-5
-occupancy,Block 1-6,BS Switch 35a,Princess,M2S105,canvas BS userName; comment stays Block 1-6
-occupancy,Block 1-7,BS East Lead,East End,M2S106,canvas BS userName; comment stays Block 1-7
-occupancy,Block 1-8,BS West Main Ext,East End,M2S107,canvas BS userName; comment stays Block 1-8
-occupancy,Block 12-1,BS Switch 25,East End,M2S1200,canvas BS userName; comment stays Block 12-1
-occupancy,Block 12-3,BS Switch 27,East End,M2S1202,canvas BS userName; comment stays Block 12-3
-occupancy,Block 12-4,BS Switch 23a,East End,M2S1203,canvas BS userName; comment stays Block 12-4
-occupancy,Block 12-5,BS Switch 29,East End,M2S1204,canvas BS userName; comment stays Block 12-5
-occupancy,Block 12-6,BS Switch 23b,East End,M2S1205,canvas BS userName; comment stays Block 12-6
-occupancy,Block 12-7,BS Switch 31,East End,M2S1206,canvas BS userName; comment stays Block 12-7
-occupancy,Block 12-8,BS Switch 33,East End,M2S1207,canvas BS userName; comment stays Block 12-8
-occupancy,Block 13-1,BS Barn,Barn,M2S1300,canvas BS userName; comment stays Block 13-1
-occupancy,Block 13-2,BS Switch 11,,M2S1301,canvas BS userName; comment stays Block 13-2
-occupancy,Block 13-3,BS Switch 7,Barn,M2S1302,canvas BS userName; comment stays Block 13-3
-occupancy,Block 13-4,BS Switch 7b,Barn,M2S1303,canvas BS userName; comment stays Block 13-4
-occupancy,Block 13-5,BS EH-3,,M2S1304,canvas BS userName; comment stays Block 13-5
-occupancy,Block 13-6,BS EH-2,,M2S1305,canvas BS userName; comment stays Block 13-6
-occupancy,Block 13-7,BS EH-1,,M2S1306,canvas BS userName; comment stays Block 13-7
-occupancy,Block 13-8,BS Switch 9,,M2S1307,canvas BS userName; comment stays Block 13-8
-occupancy,Block 2-1,BS Main West,,M2S200,canvas BS userName; comment stays Block 2-1
-occupancy,Block 2-2,BS unused,,M2S201,canvas BS userName; comment stays Block 2-2
-occupancy,Block 2-3,BS Main East,,M2S202,canvas BS userName; comment stays Block 2-3
-occupancy,Block 2-4,BS S-4,South Yard,M2S203,canvas BS userName; comment stays Block 2-4
-occupancy,Block 2-5,BS S-3,South Yard,M2S204,canvas BS userName; comment stays Block 2-5
-occupancy,Block 2-6,BS S-2,South Yard,M2S205,canvas BS userName; comment stays Block 2-6
-occupancy,Block 2-7,BS S-1,South Yard,M2S206,canvas BS userName; comment stays Block 2-7
-occupancy,Block 2-8,BS S-R,South Yard,M2S207,canvas BS userName; comment stays Block 2-8
-occupancy,Block 3-1,BS Switch 13,Engine House,M2S300,canvas BS userName; comment stays Block 3-1
-occupancy,Block 3-2,BS Switch 15,South Yard,M2S301,canvas BS userName; comment stays Block 3-2
-occupancy,Block 3-3,BS Switch 17,South Yard,M2S302,canvas BS userName; comment stays Block 3-3
-occupancy,Block 3-5,BS Switch 19,South Yard,M2S304,canvas BS userName; comment stays Block 3-5
-occupancy,Block 3-7,BS Switch 21,South Yard,M2S306,canvas BS userName; comment stays Block 3-7
-occupancy,Block 3-8,BS unused,,M2S307,canvas BS userName; comment stays Block 3-8
-occupancy,Block 4-1,BS Switch 3,Brick,M2S400,canvas BS userName; comment stays Block 4-1
-occupancy,Block 4-2,BS Switch 1,Brick,M2S401,canvas BS userName; comment stays Block 4-2
-occupancy,Block 4-3,BS W-2,Brick,M2S402,canvas BS userName; comment stays Block 4-3
-occupancy,Block 4-4,BS W-1,Brick,M2S403,canvas BS userName; comment stays Block 4-4
-occupancy,Block 4-5,BS Switch 5,Plane,M2S404,canvas BS userName; comment stays Block 4-5
-occupancy,Block 4-6,BS Brick-Plane,Brick,M2S405,canvas BS userName; comment stays Block 4-6
-occupancy,Block 4-7,BS East Main Ext,Plane,M2S406,canvas BS userName; comment stays Block 4-7
-occupancy,Block 4-8,BS Scale,Plane,M2S407,canvas BS userName; comment stays Block 4-8
-mast,100L,Mast 2L,Brick,IH438 IH439,lever 4 Left
-mast,101LA,Mast 4LA,Brick,virtual $1001,hidden W-1 bumper; Dispatcher Stage 1
-mast,101LB,Mast 4LB,Brick,virtual $1002,hidden W-2 bumper; Dispatcher Stage 1
-mast,101RA,Mast 4RA,Brick,IH436,lever 2 Right; W-1 dwarf
-mast,101RB,Mast 4RB,Brick,IH437,lever 2 Right; W-2 dwarf
-mast,102LA,Mast 6LA,Plane,IH434,lever 6 Left; Scale; 1-head dwarf (was 2-head; IH435 removed)
-mast,102LB,Mast 6LB,Plane,IH432 IH433,lever 6 Left; main
-mast,103L,Mast 16L,South Yard,virtual $1016,hidden S-R west / 103 ladder; Dispatcher Stage 1
-mast,104L,Mast 18L,South Yard,virtual $1008,hidden S-1 west throat; Dispatcher Stage 1
-mast,104R,Mast 18R,South Yard,virtual $1012,hidden S-1 east throat; Dispatcher Stage 1
-mast,105L,Mast 20L,South Yard,virtual $1009,hidden S-2 west throat; Dispatcher Stage 1
-mast,105R,Mast 20R,South Yard,virtual $1013,hidden S-2 east throat; Dispatcher Stage 1
-mast,106L,Mast 22L,South Yard,virtual $1010,hidden S-3 west throat; Dispatcher Stage 1
-mast,106R,Mast 22R,South Yard,virtual $1014,hidden S-3 east throat; Dispatcher Stage 1
-mast,107L,Mast 26L,South Yard,virtual $1011,hidden S-4 west throat; Dispatcher Stage 1
-mast,107R,Mast 26R,South Yard,virtual $1015,hidden S-4 east throat; Dispatcher Stage 1
-mast,110L,Mast 32L,East End,virtual $1017,hidden S-R east / 110 ladder; Dispatcher Stage 1
-mast,110R,Mast 32R,East End,IH1239,lever 20 Right; dwarf
-mast,111L,Mast 24L,East End,IH1234 IH1235,lever 18 Left
-mast,111RA,Mast 24RA,East End,IH1232 IH1233,lever 18 Right; Main West
-mast,111RB,Mast 24RB,East End,IH1236,lever 18 Right; S-R dwarf
-mast,112L,Mast 34L,East End,IH1237 IH1238,lever 24 Left
-mast,112R,Mast 34R,East End,IH1240 IH1241,lever 24 Right; Main East
-mast,113RA,Mast 36RA,Princess,IH135 IH136,lever 26 Right; Main West
-mast,113RB,Mast 36RB,Princess,IH137 IH138,lever 26 Right; South Yard East
-mast,114LA,Mast 38LA,Princess,IH143,lever 28 Left; dwarf
-mast,114LB,Mast 38LB,Princess,IH139 IH140,lever 28 Left
-mast,114RA,Mast 38RA,Princess,virtual $1004,hidden K-2 bumper; Dispatcher Stage 1
-mast,115LA,Mast 40LA,Princess,IH142,lever 30 Left; dwarf
-mast,115LB,Mast 40LB,Princess,IH132 IH133,lever 30 Left
-mast,115RA,Mast 40RA,Princess,virtual $1003,hidden K-1 bumper; Dispatcher Stage 1
-mast,117LA,Mast 8LA,Barn,IH1337 IH1338,lever 8 Left; main (2-head JMRI; USS lamp uses top head)
-mast,117LB,Mast 8LB,Barn,IH1334,lever 8 Left; Barn dwarf
-mast,117RA,Mast 8RA,Barn,IH1332 IH1333,lever 8 Right; yard (2-head JMRI; USS lamp uses top head)
-mast,117RB,Mast 8RB,Barn,IH1335 IH1336,lever 8 Right; main
-mast,118L,Mast 12L,,virtual $1005,hidden EH-1 bumper; Dispatcher Stage 1
-mast,119LA,Mast 10LA,,virtual $1006,hidden EH-2 bumper; Dispatcher Stage 1
-mast,119LB,Mast 10LB,,virtual $1007,hidden EH-3 bumper; Dispatcher Stage 1
-mast,120L,Mast 2035,Princess,IH141,Princess intermediate (was 115R / 120L); field 2035; no switch
-mast,120R,Mast 2036,Princess,IH134,Princess intermediate (was 114R / 120R); field 2036; no switch
-mast,Brick West Yard 1,Mast 4RA,Brick,IH436,historical alias; lever 2 Right; W-1 dwarf
-mast,Brick West Yard 2,Mast 4RB,Brick,IH437,historical alias; lever 2 Right; W-2 dwarf
-mast,Brick East Main West,Mast 2L,Brick,IH438 IH439,historical alias; lever 4 Left
-mast,Plane East OS 102,Mast 6LA,Plane,IH434,historical alias; lever 6 Left; Scale; 1-head dwarf (was 2-head)
-mast,Plane East East Main Ext,Mast 6LB,Plane,IH432 IH433,historical alias; lever 6 Left; main
-mast,West Yard West OS 117,Mast 8RA,Barn,IH1332 IH1333,historical alias; lever 8 Right; yard
-mast,West Yard West East Main Ext,Mast 8RB,Barn,IH1335 IH1336,historical alias; lever 8 Right; main
-mast,West Yard East OS 117b,Mast 8LA,Barn,IH1337 IH1338,historical alias; lever 8 Left; main
-mast,West Yard East Yard T6,Mast 8LB,Barn,IH1334,historical alias; lever 8 Left; Barn dwarf
-mast,East End West Main West,Mast 24RA,East End,IH1232 IH1233,historical alias; lever 18 Right; Main West
-mast,East End West Yard Track 1,Mast 24RB,East End,IH1236,historical alias; lever 18 Right; South Yard 1 dwarf
-mast,East End East OS 111a,Mast 24L,East End,IH1234 IH1235,historical alias; lever 18 Left
-mast,East End South OS 110,Mast 32R,East End,IH1239,historical alias; lever 20 Right; dwarf
-mast,East End South OS 112,Mast 34R,East End,IH1240 IH1241,historical alias; lever 24 Right; Main East
-mast,East End East Lead,Mast 34L,East End,IH1237 IH1238,historical alias; lever 24 Left
-mast,Princess West OS 113b,Mast 36RA,Princess,IH135 IH136,historical alias; lever 26 Right; Main West
-mast,Princess West OS 113a,Mast 36RB,Princess,IH137 IH138,historical alias; lever 26 Right; South Yard East
-mast,Princess East McKeesport,Mast 2036,Princess,IH134,historical alias; dwarf; field 2036 (was 120R); no switch; Princess intermediates
-mast,Princess East K-2,Mast 38LA,Princess,IH143,historical alias; lever 28 Left; dwarf
-mast,Princess South McKeesport,Mast 38LB,Princess,IH139 IH140,historical alias; lever 28 Left
-mast,Princess East McKees Rocks,Mast 2035,Princess,IH141,historical alias; dwarf; field 2035 (was 120L); no switch; Princess intermediates
-mast,Princess East K-1,Mast 40LA,Princess,IH142,historical alias; lever 30 Left; dwarf
-mast,Princess North McKees Rocks,Mast 40LB,Princess,IH132 IH133,historical alias; lever 30 Left
-mast,West Yard 1 buffer,Mast 4LA,Brick,virtual $1001,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,West Yard 2 buffer,Mast 4LB,Brick,virtual $1002,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,K-1 buffer,Mast 40RA,Princess,virtual $1003,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,K-2 buffer,Mast 38RA,Princess,virtual $1004,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,Engine House 1 buffer,Mast 12L,,virtual $1005,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,Engine House 2 buffer,Mast 10LA,,virtual $1006,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,Engine House 3 buffer,Mast 10LB,,virtual $1007,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,South Yard 2 west,Mast 18L,South Yard,virtual $1008,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,South Yard 3 west,Mast 20L,South Yard,virtual $1009,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,South Yard 4 west,Mast 22L,South Yard,virtual $1010,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,South Yard 5 west,Mast 26L,South Yard,virtual $1011,historical alias; hidden stub-end for Dispatcher Stage 1
-head,100L Bottom,Head 2L Bottom,Brick,IH439,
-head,100L Top,Head 2L Top,Brick,IH438,
-head,101RA,Head 4RA,Brick,IH436,dwarf
-head,101RB,Head 4RB,Brick,IH437,dwarf
-head,102LA,Head 6LA,Plane,IH434,dwarf; was Top of 2-head (IH435 removed)
-head,102LB Bottom,Head 6LB Bottom,Plane,IH433,
-head,102LB Top,Head 6LB Top,Plane,IH432,
-head,110R,Head 32R,East End,IH1239,dwarf
-head,111L Bottom,Head 24L Bottom,East End,IH1235,
-head,111L Top,Head 24L Top,East End,IH1234,
-head,111RA Bottom,Head 24RA Bottom,East End,IH1233,
-head,111RA Top,Head 24RA Top,East End,IH1232,
-head,111RB,Head 24RB,East End,IH1236,dwarf
-head,112L Bottom,Head 34L Bottom,East End,IH1238,
-head,112L Top,Head 34L Top,East End,IH1237,
-head,112R Bottom,Head 34R Bottom,East End,IH1241,
-head,112R Top,Head 34R Top,East End,IH1240,
-head,113RA Bottom,Head 36RA Bottom,Princess,IH136,
-head,113RA Top,Head 36RA Top,Princess,IH135,
-head,113RB Bottom,Head 36RB Bottom,Princess,IH138,
-head,113RB Top,Head 36RB Top,Princess,IH137,
-head,114LA,Head 38LA,Princess,IH143,dwarf
-head,114LB Bottom,Head 38LB Bottom,Princess,IH140,
-head,114LB Top,Head 38LB Top,Princess,IH139,
-head,115LA,Head 40LA,Princess,IH142,dwarf
-head,115LB Bottom,Head 40LB Bottom,Princess,IH133,
-head,115LB Top,Head 40LB Top,Princess,IH132,
-head,117LA Bottom,Head 8LA Bottom,Barn,IH1338,
-head,117LA Top,Head 8LA Top,Barn,IH1337,
-head,117LB,Head 8LB,Barn,IH1334,dwarf
-head,117RA Bottom,Head 8RA Bottom,Barn,IH1333,
-head,117RA Top,Head 8RA Top,Barn,IH1332,
-head,117RB Bottom,Head 8RB Bottom,Barn,IH1336,
-head,117RB Top,Head 8RB Top,Barn,IH1335,
-head,120L,Head 2035,Princess,IH141,dwarf lamps; field 2035; no switch
-head,120R,Head 2036,Princess,IH134,dwarf lamps; field 2036; no switch
-head,Brick West Yard 1,Head 4RA,Brick,IH436,historical alias; dwarf
-head,Brick West Yard 2,Head 4RB,Brick,IH437,historical alias; dwarf
-head,Brick East Main West Top,Head 2L Top,Brick,IH438,historical alias of 100L Top
-head,Brick East Main West Bottom,Head 2L Bottom,Brick,IH439,historical alias of 100L Bottom
-head,Plane East OS 102,Head 6LA,Plane,IH434,historical alias; dwarf; was Top of 2-head
-head,Plane East East Main Ext Top,Head 6LB Top,Plane,IH432,historical alias of 102LB Top
-head,Plane East East Main Ext Bottom,Head 6LB Bottom,Plane,IH433,historical alias of 102LB Bottom
-head,West Yard West OS 117 Top,Head 8RA Top,Barn,IH1332,historical alias of 117RA Top
-head,West Yard West OS 117 Bottom,Head 8RA Bottom,Barn,IH1333,historical alias of 117RA Bottom
-head,West Yard West East Main Ext Top,Head 8RB Top,Barn,IH1335,historical alias of 117RB Top
-head,West Yard West East Main Ext Bottom,Head 8RB Bottom,Barn,IH1336,historical alias of 117RB Bottom
-head,West Yard East OS 117b Top,Head 8LA Top,Barn,IH1337,historical alias of 117LA Top
-head,West Yard East OS 117b Bottom,Head 8LA Bottom,Barn,IH1338,historical alias of 117LA Bottom
-head,West Yard East Yard T6,Head 8LB,Barn,IH1334,historical alias; dwarf
-head,East End West Main West Top,Head 24RA Top,East End,IH1232,historical alias of 111RA Top
-head,East End West Main West Bottom,Head 24RA Bottom,East End,IH1233,historical alias of 111RA Bottom
-head,East End West Yard Track 1,Head 24RB,East End,IH1236,historical alias; dwarf
-head,East End East OS 111a Top,Head 24L Top,East End,IH1234,historical alias of 111L Top
-head,East End East OS 111a Bottom,Head 24L Bottom,East End,IH1235,historical alias of 111L Bottom
-head,East End South OS 110,Head 32R,East End,IH1239,historical alias; dwarf
-head,East End South OS 112 Top,Head 34R Top,East End,IH1240,historical alias of 112R Top
-head,East End South OS 112 Bottom,Head 34R Bottom,East End,IH1241,historical alias of 112R Bottom
-head,East End East Lead Top,Head 34L Top,East End,IH1237,historical alias of 112L Top
-head,East End East Lead Bottom,Head 34L Bottom,East End,IH1238,historical alias of 112L Bottom
-head,Princess West OS 113b Top,Head 36RA Top,Princess,IH135,historical alias of 113RA Top
-head,Princess West OS 113b Bottom,Head 36RA Bottom,Princess,IH136,historical alias of 113RA Bottom
-head,Princess West OS 113a Top,Head 36RB Top,Princess,IH137,historical alias of 113RB Top
-head,Princess West OS 113a Bottom,Head 36RB Bottom,Princess,IH138,historical alias of 113RB Bottom
-head,Princess East McKeesport,Head 2036,Princess,IH134,historical alias; dwarf; field 2036 (was 120R); no switch; Princess intermediates
-head,Princess East K-2,Head 38LA,Princess,IH143,historical alias; dwarf
-head,Princess South McKeesport Top,Head 38LB Top,Princess,IH139,historical alias of 114LB Top
-head,Princess South McKeesport Bottom,Head 38LB Bottom,Princess,IH140,historical alias of 114LB Bottom
-head,Princess East McKees Rocks,Head 2035,Princess,IH141,historical alias; dwarf; field 2035 (was 120L); no switch; Princess intermediates
-head,Princess East K-1,Head 40LA,Princess,IH142,historical alias; dwarf
-head,Princess North McKees Rocks Top,Head 40LB Top,Princess,IH132,historical alias of 115LB Top
-head,Princess North McKees Rocks Bottom,Head 40LB Bottom,Princess,IH133,historical alias of 115LB Bottom
-fb,Switch 1-1 FB N,FB Switch 35 N,,M2S167,canvas FB Switch N N/R
-fb,Switch 1-1 FB R,FB Switch 35 R,,M2S168,canvas FB Switch N N/R
-fb,Switch 1-2 FB N,FB Switch 37 N,,M2S169,canvas FB Switch N N/R
-fb,Switch 1-2 FB R,FB Switch 37 R,,M2S170,canvas FB Switch N N/R
-fb,Switch 1-3 FB N,FB Switch 39 N,,M2S171,canvas FB Switch N N/R
-fb,Switch 1-3 FB R,FB Switch 39 R,,M2S172,canvas FB Switch N N/R
-fb,Switch 3-1 FB N,FB Switch 15 N,,M2S367,canvas FB Switch N N/R
-fb,Switch 3-1 FB R,FB Switch 15 R,,M2S368,canvas FB Switch N N/R
-fb,Switch 3-2 FB N,FB Switch 17 N,,M2S369,canvas FB Switch N N/R
-fb,Switch 3-2 FB R,FB Switch 17 R,,M2S370,canvas FB Switch N N/R
-fb,Switch 3-3 FB N,FB Switch 19 N,,M2S371,canvas FB Switch N N/R
-fb,Switch 3-3 FB R,FB Switch 19 R,,M2S372,canvas FB Switch N N/R
-fb,Switch 3-4 FB N,FB Switch 21 N,,M2S373,canvas FB Switch N N/R
-fb,Switch 3-4 FB R,FB Switch 21 R,,M2S374,canvas FB Switch N N/R
-fb,Switch 4-1 FB N,FB Switch 1 N,,M2S470,canvas FB Switch N N/R
-fb,Switch 4-1 FB R,FB Switch 1 R,,M2S471,canvas FB Switch N N/R
-fb,Switch 4-2 FB N,FB Switch 3 N,,M2S472,canvas FB Switch N N/R
-fb,Switch 4-2 FB R,FB Switch 3 R,,M2S473,canvas FB Switch N N/R
-fb,Switch 4-3 FB N,FB Switch 5 N,,M2S474,canvas FB Switch N N/R
-fb,Switch 4-3 FB R,FB Switch 5 R,,M2S475,canvas FB Switch N N/R
-fb,Switch 4-4 FB N,FB Switch 13 N,,M2S476,canvas FB Switch N N/R
-fb,Switch 4-4 FB R,FB Switch 13 R,,M2S477,canvas FB Switch N N/R
-fb,Switch 12-1 FB N,FB Switch 25 N,,M2S1267,canvas FB Switch N N/R
-fb,Switch 12-1 FB R,FB Switch 25 R,,M2S1268,canvas FB Switch N N/R
-fb,Switch 12-2 FB N,FB Switch 27 N,,M2S1269,canvas FB Switch N N/R
-fb,Switch 12-2 FB R,FB Switch 27 R,,M2S1270,canvas FB Switch N N/R
-fb,Switch 12-3 FB N,FB Switch 29 N,,M2S1271,canvas FB Switch N N/R
-fb,Switch 12-3 FB R,FB Switch 29 R,,M2S1272,canvas FB Switch N N/R
-fb,Switch 12-4 FB N,FB Switch 31 N,,M2S1273,canvas FB Switch N N/R
-fb,Switch 12-4 FB R,FB Switch 31 R,,M2S1274,canvas FB Switch N N/R
-fb,Switch 12-5 FB N,FB Switch 23 N,,M2S1275,canvas FB Switch N N/R
-fb,Switch 12-5 FB R,FB Switch 23 R,,M2S1276,canvas FB Switch N N/R
-fb,Switch 12-6 FB N,FB Switch 33 N,,M2S1277,canvas FB Switch N N/R
-fb,Switch 12-6 FB R,FB Switch 33 R,,M2S1278,canvas FB Switch N N/R
-fb,Switch 13-1 FB N,FB Switch 7 N,,M2S1367,canvas FB Switch N N/R
-fb,Switch 13-1 FB R,FB Switch 7 R,,M2S1368,canvas FB Switch N N/R
-fb,Switch 13-2 FB N,FB Switch 11 N,,M2S1369,canvas FB Switch N N/R
-fb,Switch 13-2 FB R,FB Switch 11 R,,M2S1370,canvas FB Switch N N/R
-fb,Switch 13-3 FB N,FB Switch 9 N,,M2S1371,canvas FB Switch N N/R
-fb,Switch 13-3 FB R,FB Switch 9 R,,M2S1372,canvas FB Switch N N/R
-fb_comment,Switch 4-1 FB N,Switch 4-1 FB N,Brick,M2S470,comment: Switch 100
-fb_comment,Switch 4-2 FB N,Switch 4-2 FB N,Brick,M2S472,comment: Switch 101
-fb_comment,Switch 4-3 FB N,Switch 4-3 FB N,Plane,M2S474,comment: Switch 102
+layer,current,proposed,cp,hardware,comment,notes
+turnout,Switch 1,Switch 1,Brick,M2T408,"Node 4 / OU-1 / Ports 1,2 / DCC 100",
+turnout,Switch 1 alias,Switch 1 alias,,MTT100,"Node 4 / OU-1 / Ports 1,2",
+turnout,Switch 11,Switch 11,,M2T1309,"Node 13 / OU-3 / Ports 3,4 / DCC 118",
+turnout,Switch 13,Switch 13,Engine House,M2T411,"Node 4 / OU-1 / Ports 7,8 / DCC 116",
+turnout,Switch 15,Switch 15,South Yard,M2T308,"Node 3 / OU-1 / Ports 1,2 / DCC 103",
+turnout,Switch 17,Switch 17,South Yard,M2T309,"Node 3 / OU-1 / Ports 3,4 / DCC 104",
+turnout,Switch 19,Switch 19,South Yard,M2T310,"Node 3 / OU-1 / Ports 5,6 / DCC 105",
+turnout,Switch 21,Switch 21,South Yard,M2T311,"Node 3 / OU-1 / Ports 7,8 / DCC 106",
+turnout,Switch 23,Switch 23,East End,M2T1212,"Node 12 / OU-4 / Ports 1,2 / DCC 111",
+turnout,Switch 23 alias,Switch 23 alias,,MTT111,"Node 12 / OU-4 / Ports 1,2",
+turnout,Switch 25,Switch 25,East End,M2T1208,"Node 12 / OU-1 / Ports 1,2 / DCC 107",
+turnout,Switch 27,Switch 27,East End,M2T1209,"Node 12 / OU-1 / Ports 3,4 / DCC 108",
+turnout,Switch 29,Switch 29,East End,M2T1210,"Node 12 / OU-1 / Ports 5,6 / DCC 109",
+turnout,Switch 3,Switch 3,Brick,M2T409,"Node 4 / OU-1 / Ports 3,4 / DCC 101",
+turnout,Switch 31,Switch 31,East End,M2T1211,"Node 12 / OU-1 / Ports 7,8 / DCC 110",
+turnout,Switch 33,Switch 33,East End,M2T1213,"Node 12 / OU-4 / Ports 3,4 / DCC 112",
+turnout,Switch 35,Switch 35,Princess,M2T108,"Node 1 / OU-1 / Ports 1,2 / DCC 113",
+turnout,Switch 35 alias,Switch 35 alias,,MTT113,"Node 1 / OU-1 / Ports 1,2",
+turnout,Switch 37,Switch 37,Princess,M2T109,"Node 1 / OU-1 / Ports 3,4 / DCC 114",
+turnout,Switch 37 alias,Switch 37 alias,,MTT114,"Node 1 / OU-1 / Ports 3,4",
+turnout,Switch 39,Switch 39,Princess,M2T110,"Node 1 / OU-1 / Ports 5,6 / DCC 115",
+turnout,Switch 39 alias,Switch 39 alias,,MTT115,"Node 1 / OU-1 / Ports 5,6",
+turnout,Switch 5,Switch 5,Plane,M2T410,"Node 4 / OU-1 / Ports 5,6 / DCC 102",
+turnout,Switch 7,Switch 7,Barn,M2T1308,"Node 13 / OU-3 / Ports 1,2 / DCC 117",
+turnout,Switch 9,Switch 9,,M2T1310,"Node 13 / OU-3 / Ports 5,6 / DCC 119",
+turnout,Switch 100,Switch 1,Brick,M2T408,"Node 4 / OU-1 / Ports 1,2 / DCC 100",historical alias; CTC Switch 1 (was 100); keep
+turnout,Switch 118,Switch 11,,M2T1309,"Node 13 / OU-3 / Ports 3,4 / DCC 118",historical alias; CTC Switch 11 (was 118); hand-throw; Engine House
+turnout,Switch 116,Switch 13,Engine House,M2T411,"Node 4 / OU-1 / Ports 7,8 / DCC 116",historical alias; CTC Switch 13 (was 116); hand-throw
+turnout,Switch 103,Switch 15,South Yard,M2T308,"Node 3 / OU-1 / Ports 1,2 / DCC 103",historical alias; CTC Switch 15 (was 103); keep; east of Barn
+turnout,Switch 104,Switch 17,South Yard,M2T309,"Node 3 / OU-1 / Ports 3,4 / DCC 104",historical alias; CTC Switch 17 (was 104); keep; hand-throw
+turnout,Switch 105,Switch 19,South Yard,M2T310,"Node 3 / OU-1 / Ports 5,6 / DCC 105",historical alias; CTC Switch 19 (was 105); keep; hand-throw
+turnout,Switch 106,Switch 21,South Yard,M2T311,"Node 3 / OU-1 / Ports 7,8 / DCC 106",historical alias; CTC Switch 21 (was 106); keep; hand-throw
+turnout,Switch 111,Switch 23,East End,M2T1212,"Node 12 / OU-4 / Ports 1,2 / DCC 111",historical alias; CTC Switch 23 (was 111); keep; crossover 111a/111b
+turnout,Switch 107,Switch 25,East End,M2T1208,"Node 12 / OU-1 / Ports 1,2 / DCC 107",historical alias; CTC Switch 25 (was 107); keep
+turnout,Switch 108,Switch 27,East End,M2T1209,"Node 12 / OU-1 / Ports 3,4 / DCC 108",historical alias; CTC Switch 27 (was 108); keep
+turnout,Switch 109,Switch 29,East End,M2T1210,"Node 12 / OU-1 / Ports 5,6 / DCC 109",historical alias; CTC Switch 29 (was 109); keep
+turnout,Switch 101,Switch 3,Brick,M2T409,"Node 4 / OU-1 / Ports 3,4 / DCC 101",historical alias; CTC Switch 3 (was 101); keep
+turnout,Switch 110,Switch 31,East End,M2T1211,"Node 12 / OU-1 / Ports 7,8 / DCC 110",historical alias; CTC Switch 31 (was 110); keep
+turnout,Switch 112,Switch 33,East End,M2T1213,"Node 12 / OU-4 / Ports 3,4 / DCC 112",historical alias; CTC Switch 33 (was 112); keep
+turnout,Switch 113,Switch 35,Princess,M2T108,"Node 1 / OU-1 / Ports 1,2 / DCC 113",historical alias; CTC Switch 35 (was 113); keep; crossover 113a/113b
+turnout,Switch 114,Switch 37,Princess,M2T109,"Node 1 / OU-1 / Ports 3,4 / DCC 114",historical alias; CTC Switch 37 (was 114); keep
+turnout,Switch 115,Switch 39,Princess,M2T110,"Node 1 / OU-1 / Ports 5,6 / DCC 115",historical alias; CTC Switch 39 (was 115); keep
+turnout,Switch 102,Switch 5,Plane,M2T410,"Node 4 / OU-1 / Ports 5,6 / DCC 102",historical alias; CTC Switch 5 (was 102); keep
+turnout,Switch 117,Switch 7,Barn,M2T1308,"Node 13 / OU-3 / Ports 1,2 / DCC 117",historical alias; CTC Switch 7 (was 117); crossover 117/117b; field still hand-throw
+turnout,Switch 119,Switch 9,,M2T1310,"Node 13 / OU-3 / Ports 5,6 / DCC 119",historical alias; CTC Switch 9 (was 119); hand-throw; Engine House
+block,OS 1,OS 1,Brick,Block 4-2,Brick,
+block,OS 11,OS 11,Engine House,Block 13-2,Engine House,
+block,OS 13,OS 13,Engine House,Block 3-1,Engine House,
+block,OS 15,OS 15,South Yard,Block 3-2,South Yard,
+block,OS 17,OS 17,South Yard,Block 3-3,South Yard,
+block,OS 19,OS 19,South Yard,Block 3-5,South Yard,
+block,OS 21,OS 21,South Yard,Block 3-7,South Yard,
+block,OS 23a,OS 23a,East End,Block 12-4,East End,
+block,OS 23b,OS 23b,East End,Block 12-6,East End,
+block,OS 25,OS 25,East End,Block 12-1,East End,
+block,OS 27,OS 27,East End,Block 12-3,East End,
+block,OS 29,OS 29,East End,Block 12-5,East End,
+block,OS 3,OS 3,Brick,Block 4-1,Brick,
+block,OS 31,OS 31,East End,Block 12-7,East End,
+block,OS 33,OS 33,East End,Block 12-8,East End,
+block,OS 35a,OS 35a,Princess,Block 1-6,Princess,
+block,OS 35b,OS 35b,Princess,Block 1-5,Princess,
+block,OS 37,OS 37,Princess,Block 1-3,Princess,
+block,OS 39,OS 39,Princess,Block 1-4,Princess,
+block,OS 5,OS 5,Plane,Block 4-5,Plane,
+block,OS 7,OS 7,Barn,Block 13-3,Barn,
+block,OS 7b,OS 7b,Barn,Block 13-4,Barn,
+block,OS 9,OS 9,Engine House,Block 13-8,Engine House,
+block,OS Barn,OS Barn,Barn,Block 13-1,Barn,
+block,OS Brick-Plane,OS Brick-Plane,Brick,Block 4-6,Brick,
+block,OS EH-1,OS EH-1,Engine House,Block 13-7,Engine House,
+block,OS EH-2,OS EH-2,Engine House,Block 13-6,Engine House,
+block,OS EH-3,OS EH-3,Engine House,Block 13-5,Engine House,
+block,OS East Lead,OS East Lead,East End,Block 1-7,East End,
+block,OS East Main Ext,OS East Main Ext,Plane,Block 4-7,Plane,
+block,OS K-1,OS K-1,Princess,Block 1-4,Princess,
+block,OS K-2,OS K-2,Princess,Block 1-3,Princess,
+block,OS Main East,OS Main East,,Block 2-3,,
+block,OS Main West,OS Main West,,Block 2-1,,
+block,OS McKees Rocks,OS McKees Rocks,Princess,Block 1-1,Princess,
+block,OS McKeesport,OS McKeesport,Princess,Block 1-2,Princess,
+block,OS S-1,OS S-1,South Yard,Block 2-7,South Yard,
+block,OS S-2,OS S-2,South Yard,Block 2-6,South Yard,
+block,OS S-3,OS S-3,South Yard,Block 2-5,South Yard,
+block,OS S-4,OS S-4,South Yard,Block 2-4,South Yard,
+block,OS S-R,OS S-R,South Yard,Block 2-8,South Yard,
+block,OS Scale,OS Scale,Plane,Block 4-8,Plane,
+block,OS W-1,OS W-1,Brick,Block 4-4,Brick,
+block,OS W-2,OS W-2,Brick,Block 4-3,Brick,
+block,OS West Main Ext,OS West Main Ext,East End,Block 1-8,East End,
+block,OS 100,OS 1,Brick,Block 4-2,Brick,historical alias; CP in comment
+block,OS 100 (Brick),OS 1,Brick,Block 4-2,Brick,historical alias; CP in comment
+block,OS 118,OS 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
+block,OS 118 (West Yard),OS 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
+block,OS 116,OS 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
+block,OS 116 (West Yard),OS 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
+block,OS 103,OS 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and S-R
+block,OS 103 (South Yard),OS 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and South Yard 1
+block,OS 104,OS 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
+block,OS 104 (South Yard),OS 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
+block,OS 105,OS 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
+block,OS 105 (South Yard),OS 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
+block,OS 106,OS 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
+block,OS 106 (South Yard),OS 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
+block,OS 111a,OS 23a,East End,Block 12-4,East End,historical alias; CP in comment
+block,OS 111a (East End),OS 23a,East End,Block 12-4,East End,historical alias; CP in comment
+block,OS 111b,OS 23b,East End,Block 12-6,East End,historical alias; CP in comment
+block,OS 111b (East End),OS 23b,East End,Block 12-6,East End,historical alias; CP in comment
+block,OS 107,OS 25,East End,Block 12-1,East End,historical alias; CP in comment
+block,OS 107 (East End),OS 25,East End,Block 12-1,East End,historical alias; CP in comment
+block,OS 108,OS 27,East End,Block 12-3,East End,historical alias; CP in comment
+block,OS 108 (East End),OS 27,East End,Block 12-3,East End,historical alias; CP in comment
+block,OS 109,OS 29,East End,Block 12-5,East End,historical alias; CP in comment
+block,OS 109 (East End),OS 29,East End,Block 12-5,East End,historical alias; CP in comment
+block,OS 101,OS 3,Brick,Block 4-1,Brick,historical alias; CP in comment
+block,OS 101 (Brick),OS 3,Brick,Block 4-1,Brick,historical alias; CP in comment
+block,OS 110,OS 31,East End,Block 12-7,East End,historical alias; CP in comment
+block,OS 110 (East End),OS 31,East End,Block 12-7,East End,historical alias; CP in comment
+block,OS 112,OS 33,East End,Block 12-8,East End,historical alias; CP in comment
+block,OS 112 (East End),OS 33,East End,Block 12-8,East End,historical alias; CP in comment
+block,OS 113a,OS 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
+block,OS 113a (Princess),OS 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
+block,OS 113b,OS 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
+block,OS 113b (Princess),OS 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
+block,OS 114,OS 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
+block,OS 114 (Princess),OS 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
+block,OS 115,OS 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
+block,OS 115 (Princess),OS 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
+block,OS 102,OS 5,Plane,Block 4-5,Plane,historical alias; CP in comment
+block,OS 102 (Plane),OS 5,Plane,Block 4-5,Plane,historical alias; CP in comment
+block,OS 117,OS 7,Barn,Block 13-3,Barn,historical alias; Barn CP crossover north/west leg
+block,OS 117 (West Yard),OS 7,Barn,Block 13-3,Barn,historical alias of OS 117
+block,OS 117b,OS 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
+block,OS 117b (West Yard),OS 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
+block,OS 119,OS 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
+block,OS 119 (West Yard),OS 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
+block,Barn,OS Barn,Barn,Block 13-1,Barn,historical alias; MQTT 1300; 117 to 116; was Yard T6
+block,South Yard West,OS Barn,Barn,Block 13-1,Barn,historical alias; alias after Scale/West public names
+block,Yard T6,OS Barn,Barn,Block 13-1,Barn,historical alias; MQTT 1300; 117 to 116; was South Yard West
+block,Block 100-102,OS Brick-Plane,Brick,Block 4-6,Brick,historical alias; alias retire
+block,Brick-Plane,OS Brick-Plane,Brick,Block 4-6,Brick,historical alias; also listed as Block 100-102
+block,Main West Brick-Plane,OS Brick-Plane,Brick,Block 4-6,Brick,historical alias; also listed as Block 100-102
+block,EH-1,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; top house; MQTT 1306 (swapped vs plate order vs EH-3)
+block,ET-3,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; CATS station alias
+block,Engine House 1,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; was Engine House 1; plate EH-1
+block,Yard T9,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; MQTT 1306
+block,EH-2,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; MQTT 1305
+block,ET-2,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; CATS station alias
+block,Engine House 2,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; was Engine House 2; plate EH-2
+block,Yard T10,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; MQTT 1305
+block,EH-3,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; bottom house; MQTT 1304 (swapped vs plate order vs EH-1)
+block,ET-1,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; CATS station alias
+block,Engine House 3,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; was Engine House 3; plate EH-3
+block,Yard T11,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; MQTT 1304
+block,East Lead,OS East Lead,East End,Block 1-7,East End,historical alias; east of 110/112 toward Princess
+block,South Yard East,OS East Lead,East End,Block 1-7,East End,historical alias; was South Yard East; dest East Lead
+block,East Main Ext,OS East Main Ext,Plane,Block 4-7,Plane,historical alias; keep
+block,K-1,OS K-1,Princess,Block 1-4,Princess,historical alias; keep; same sensor as OS 115
+block,K-2,OS K-2,Princess,Block 1-3,Princess,historical alias; keep; same sensor as OS 114
+block,Main East,OS Main East,,Block 2-3,,historical alias; keep
+block,Main West,OS Main West,,Block 2-1,,historical alias; keep
+block,McKees Rocks,OS McKees Rocks,Princess,Block 1-1,Princess,historical alias; keep
+block,McKeesport,OS McKeesport,Princess,Block 1-2,Princess,historical alias; keep
+block,S-2,OS S-1,South Yard,Block 2-7,South Yard,historical alias; plate S-1
+block,South Yard 2,OS S-1,South Yard,Block 2-7,South Yard,historical alias; was South Yard 2; plate S-1
+block,Yard Track 2,OS S-1,South Yard,Block 2-7,South Yard,historical alias; plate S-1
+block,S-2 East,OS S-1 East,South Yard,Block 2-7,,historical alias; hidden S-1 east throat; same occupancy as S-1 (Block 2-7)
+block,S-2 West,OS S-1 West,South Yard,Block 2-7,,historical alias; hidden S-1 west throat; same occupancy as S-1 (Block 2-7)
+block,S-3,OS S-2,South Yard,Block 2-6,South Yard,historical alias; plate S-2
+block,South Yard 3,OS S-2,South Yard,Block 2-6,South Yard,historical alias; was South Yard 3; plate S-2
+block,Yard Track 3,OS S-2,South Yard,Block 2-6,South Yard,historical alias; plate S-2
+block,S-3 East,OS S-2 East,South Yard,Block 2-6,,historical alias; hidden S-2 east throat; same occupancy as S-2 (Block 2-6)
+block,S-3 West,OS S-2 West,South Yard,Block 2-6,,historical alias; hidden S-2 west throat; same occupancy as S-2 (Block 2-6)
+block,S-4,OS S-3,South Yard,Block 2-5,South Yard,historical alias; plate S-3
+block,South Yard 4,OS S-3,South Yard,Block 2-5,South Yard,historical alias; was South Yard 4; plate S-3
+block,Yard Track 4,OS S-3,South Yard,Block 2-5,South Yard,historical alias; plate S-3
+block,S-4 East,OS S-3 East,South Yard,Block 2-5,,historical alias; hidden S-3 east throat; same occupancy as S-3 (Block 2-5)
+block,S-4 West,OS S-3 West,South Yard,Block 2-5,,historical alias; hidden S-3 west throat; same occupancy as S-3 (Block 2-5)
+block,S-5,OS S-4,South Yard,Block 2-4,South Yard,historical alias; plate S-4
+block,South Yard 5,OS S-4,South Yard,Block 2-4,South Yard,historical alias; was South Yard 5; plate S-4
+block,Yard Track 5,OS S-4,South Yard,Block 2-4,South Yard,historical alias; plate S-4
+block,S-5 East,OS S-4 East,South Yard,Block 2-4,,historical alias; hidden S-4 east throat; same occupancy as S-4 (Block 2-4)
+block,S-5 West,OS S-4 West,South Yard,Block 2-4,,historical alias; hidden S-4 west throat; same occupancy as S-4 (Block 2-4)
+block,S-1,OS S-R,South Yard,Block 2-8,South Yard,historical alias; run-through east of 103 to 110/112; plate S-R
+block,South Yard 1,OS S-R,South Yard,Block 2-8,South Yard,historical alias; was South Yard 1; plate S-R
+block,Yard Track 1,OS S-R,South Yard,Block 2-8,South Yard,historical alias; run-through east of 103 to 110/112; plate S-R
+block,S-1 East,OS S-R East,South Yard,Block 2-8,,historical alias; hidden S-R east throat; same occupancy as S-R (Block 2-8)
+block,S-1 West,OS S-R West,South Yard,Block 2-8,,historical alias; hidden S-R west throat; same occupancy as S-R (Block 2-8)
+block,Scale,OS Scale,Plane,Block 4-8,Plane,historical alias; Plane diverging to 117; was Yard T1
+block,South Yard Scale,OS Scale,Plane,Block 4-8,Plane,historical alias; alias after Scale/West public names
+block,Yard T1,OS Scale,Plane,Block 4-8,Plane,historical alias; Plane diverging to 117; was South Yard Scale
+block,W-1,OS W-1,Brick,Block 4-4,Brick,historical alias; yard body; access Switch 101 only; plate W-1
+block,West Yard 1,OS W-1,Brick,Block 4-4,Brick,historical alias; yard body; access Switch 101 only; plate W-1
+block,W-2,OS W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 101 only; plate W-2
+block,West Yard 2,OS W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 101 only; plate W-2
+block,West Main Ext,OS West Main Ext,East End,Block 1-8,East End,historical alias; keep
+occupancy,BS Barn,BS Barn,Barn,M2S1300,Block 13-1,
+occupancy,BS Brick-Plane,BS Brick-Plane,Brick,M2S405,Block 4-6,
+occupancy,BS EH-1,BS EH-1,,M2S1306,Block 13-7,
+occupancy,BS EH-2,BS EH-2,,M2S1305,Block 13-6,
+occupancy,BS EH-3,BS EH-3,,M2S1304,Block 13-5,
+occupancy,BS East Lead,BS East Lead,East End,M2S106,Block 1-7,
+occupancy,BS East Main Ext,BS East Main Ext,Plane,M2S406,Block 4-7,
+occupancy,BS Main East,BS Main East,,M2S202,Block 2-3,
+occupancy,BS Main West,BS Main West,,M2S200,Block 2-1,
+occupancy,BS McKees Rocks,BS McKees Rocks,Princess,M2S100,Block 1-1,
+occupancy,BS McKeesport,BS McKeesport,Princess,M2S101,Block 1-2,
+occupancy,BS S-1,BS S-1,South Yard,M2S206,Block 2-7,
+occupancy,BS S-2,BS S-2,South Yard,M2S205,Block 2-6,
+occupancy,BS S-3,BS S-3,South Yard,M2S204,Block 2-5,
+occupancy,BS S-4,BS S-4,South Yard,M2S203,Block 2-4,
+occupancy,BS S-R,BS S-R,South Yard,M2S207,Block 2-8,
+occupancy,BS Scale,BS Scale,Plane,M2S407,Block 4-8,
+occupancy,BS Switch 1,BS Switch 1,Brick,M2S401,Block 4-2,
+occupancy,BS Switch 11,BS Switch 11,,M2S1301,Block 13-2,
+occupancy,BS Switch 13,BS Switch 13,Engine House,M2S300,Block 3-1,
+occupancy,BS Switch 15,BS Switch 15,South Yard,M2S301,Block 3-2,
+occupancy,BS Switch 17,BS Switch 17,South Yard,M2S302,Block 3-3,
+occupancy,BS Switch 19,BS Switch 19,South Yard,M2S304,Block 3-5,
+occupancy,BS Switch 21,BS Switch 21,South Yard,M2S306,Block 3-7,
+occupancy,BS Switch 23a,BS Switch 23a,East End,M2S1203,Block 12-4,
+occupancy,BS Switch 23b,BS Switch 23b,East End,M2S1205,Block 12-6,
+occupancy,BS Switch 25,BS Switch 25,East End,M2S1200,Block 12-1,
+occupancy,BS Switch 27,BS Switch 27,East End,M2S1202,Block 12-3,
+occupancy,BS Switch 29,BS Switch 29,East End,M2S1204,Block 12-5,
+occupancy,BS Switch 3,BS Switch 3,Brick,M2S400,Block 4-1,
+occupancy,BS Switch 31,BS Switch 31,East End,M2S1206,Block 12-7,
+occupancy,BS Switch 33,BS Switch 33,East End,M2S1207,Block 12-8,
+occupancy,BS Switch 35a,BS Switch 35a,Princess,M2S105,Block 1-6,
+occupancy,BS Switch 35b,BS Switch 35b,Princess,M2S104,Block 1-5,
+occupancy,BS Switch 37 / BS K-2,BS Switch 37 / BS K-2,Princess,M2S102,Block 1-3,
+occupancy,BS Switch 39 / BS K-1,BS Switch 39 / BS K-1,Princess,M2S103,Block 1-4,
+occupancy,BS Switch 5,BS Switch 5,Plane,M2S404,Block 4-5,
+occupancy,BS Switch 7,BS Switch 7,Barn,M2S1302,Block 13-3,
+occupancy,BS Switch 7b,BS Switch 7b,Barn,M2S1303,Block 13-4,
+occupancy,BS Switch 9,BS Switch 9,,M2S1307,Block 13-8,
+occupancy,BS W-1,BS W-1,Brick,M2S403,Block 4-4,
+occupancy,BS W-2,BS W-2,Brick,M2S402,Block 4-3,
+occupancy,BS West Main Ext,BS West Main Ext,East End,M2S107,Block 1-8,
+occupancy,unused Block 2-2,unused Block 2-2,,M2S201,Block 2-2,
+occupancy,unused Block 3-8,unused Block 3-8,,M2S307,Block 3-8,
+occupancy,Block 13-1,BS Barn,Barn,M2S1300,Block 13-1,historical alias; canvas BS userName; comment stays Block 13-1
+occupancy,Block 4-6,BS Brick-Plane,Brick,M2S405,Block 4-6,historical alias; canvas BS userName; comment stays Block 4-6
+occupancy,Block 13-7,BS EH-1,,M2S1306,Block 13-7,historical alias; canvas BS userName; comment stays Block 13-7
+occupancy,Block 13-6,BS EH-2,,M2S1305,Block 13-6,historical alias; canvas BS userName; comment stays Block 13-6
+occupancy,Block 13-5,BS EH-3,,M2S1304,Block 13-5,historical alias; canvas BS userName; comment stays Block 13-5
+occupancy,Block 1-7,BS East Lead,East End,M2S106,Block 1-7,historical alias; canvas BS userName; comment stays Block 1-7
+occupancy,Block 4-7,BS East Main Ext,Plane,M2S406,Block 4-7,historical alias; canvas BS userName; comment stays Block 4-7
+occupancy,Block 2-3,BS Main East,,M2S202,Block 2-3,historical alias; canvas BS userName; comment stays Block 2-3
+occupancy,Block 2-1,BS Main West,,M2S200,Block 2-1,historical alias; canvas BS userName; comment stays Block 2-1
+occupancy,Block 1-1,BS McKees Rocks,Princess,M2S100,Block 1-1,historical alias; canvas BS userName; comment stays Block 1-1
+occupancy,Block 1-2,BS McKeesport,Princess,M2S101,Block 1-2,historical alias; canvas BS userName; comment stays Block 1-2
+occupancy,Block 2-7,BS S-1,South Yard,M2S206,Block 2-7,historical alias; canvas BS userName; comment stays Block 2-7
+occupancy,Block 2-6,BS S-2,South Yard,M2S205,Block 2-6,historical alias; canvas BS userName; comment stays Block 2-6
+occupancy,Block 2-5,BS S-3,South Yard,M2S204,Block 2-5,historical alias; canvas BS userName; comment stays Block 2-5
+occupancy,Block 2-4,BS S-4,South Yard,M2S203,Block 2-4,historical alias; canvas BS userName; comment stays Block 2-4
+occupancy,Block 2-8,BS S-R,South Yard,M2S207,Block 2-8,historical alias; canvas BS userName; comment stays Block 2-8
+occupancy,Block 4-8,BS Scale,Plane,M2S407,Block 4-8,historical alias; canvas BS userName; comment stays Block 4-8
+occupancy,Block 4-2,BS Switch 1,Brick,M2S401,Block 4-2,historical alias; canvas BS userName; comment stays Block 4-2
+occupancy,Block 13-2,BS Switch 11,,M2S1301,Block 13-2,historical alias; canvas BS userName; comment stays Block 13-2
+occupancy,Block 3-1,BS Switch 13,Engine House,M2S300,Block 3-1,historical alias; canvas BS userName; comment stays Block 3-1
+occupancy,Block 3-2,BS Switch 15,South Yard,M2S301,Block 3-2,historical alias; canvas BS userName; comment stays Block 3-2
+occupancy,Block 3-3,BS Switch 17,South Yard,M2S302,Block 3-3,historical alias; canvas BS userName; comment stays Block 3-3
+occupancy,Block 3-5,BS Switch 19,South Yard,M2S304,Block 3-5,historical alias; canvas BS userName; comment stays Block 3-5
+occupancy,Block 3-7,BS Switch 21,South Yard,M2S306,Block 3-7,historical alias; canvas BS userName; comment stays Block 3-7
+occupancy,Block 12-4,BS Switch 23a,East End,M2S1203,Block 12-4,historical alias; canvas BS userName; comment stays Block 12-4
+occupancy,Block 12-6,BS Switch 23b,East End,M2S1205,Block 12-6,historical alias; canvas BS userName; comment stays Block 12-6
+occupancy,Block 12-1,BS Switch 25,East End,M2S1200,Block 12-1,historical alias; canvas BS userName; comment stays Block 12-1
+occupancy,Block 12-3,BS Switch 27,East End,M2S1202,Block 12-3,historical alias; canvas BS userName; comment stays Block 12-3
+occupancy,Block 12-5,BS Switch 29,East End,M2S1204,Block 12-5,historical alias; canvas BS userName; comment stays Block 12-5
+occupancy,Block 4-1,BS Switch 3,Brick,M2S400,Block 4-1,historical alias; canvas BS userName; comment stays Block 4-1
+occupancy,Block 12-7,BS Switch 31,East End,M2S1206,Block 12-7,historical alias; canvas BS userName; comment stays Block 12-7
+occupancy,Block 12-8,BS Switch 33,East End,M2S1207,Block 12-8,historical alias; canvas BS userName; comment stays Block 12-8
+occupancy,Block 1-6,BS Switch 35a,Princess,M2S105,Block 1-6,historical alias; canvas BS userName; comment stays Block 1-6
+occupancy,Block 1-5,BS Switch 35b,Princess,M2S104,Block 1-5,historical alias; canvas BS userName; comment stays Block 1-5
+occupancy,Block 1-3,BS Switch 37 / BS K-2,Princess,M2S102,Block 1-3,historical alias; canvas BS userName; comment stays Block 1-3
+occupancy,Block 1-4,BS Switch 39 / BS K-1,Princess,M2S103,Block 1-4,historical alias; canvas BS userName; comment stays Block 1-4
+occupancy,Block 4-5,BS Switch 5,Plane,M2S404,Block 4-5,historical alias; canvas BS userName; comment stays Block 4-5
+occupancy,Block 13-3,BS Switch 7,Barn,M2S1302,Block 13-3,historical alias; canvas BS userName; comment stays Block 13-3
+occupancy,Block 13-4,BS Switch 7b,Barn,M2S1303,Block 13-4,historical alias; canvas BS userName; comment stays Block 13-4
+occupancy,Block 13-8,BS Switch 9,,M2S1307,Block 13-8,historical alias; canvas BS userName; comment stays Block 13-8
+occupancy,Block 4-4,BS W-1,Brick,M2S403,Block 4-4,historical alias; canvas BS userName; comment stays Block 4-4
+occupancy,Block 4-3,BS W-2,Brick,M2S402,Block 4-3,historical alias; canvas BS userName; comment stays Block 4-3
+occupancy,Block 1-8,BS West Main Ext,East End,M2S107,Block 1-8,historical alias; canvas BS userName; comment stays Block 1-8
+occupancy,Block 2-2,BS unused,,M2S201,,historical alias; canvas BS userName; comment stays Block 2-2
+occupancy,Block 3-8,BS unused,,M2S307,,historical alias; canvas BS userName; comment stays Block 3-8
+mast,Mast 10LA,Mast 10LA,Engine House,virtual $1006,Engine House,
+mast,Mast 10LB,Mast 10LB,Engine House,virtual $1007,Engine House,
+mast,Mast 12L,Mast 12L,Engine House,virtual $1005,Engine House,
+mast,Mast 16L,Mast 16L,South Yard,virtual $1016,South Yard,
+mast,Mast 18L,Mast 18L,South Yard,virtual $1008,South Yard,
+mast,Mast 18R,Mast 18R,South Yard,virtual $1012,South Yard,
+mast,Mast 2035,Mast 2035,Princess,IH141,Princess,
+mast,Mast 2036,Mast 2036,Princess,IH134,Princess,
+mast,Mast 20L,Mast 20L,South Yard,virtual $1009,South Yard,
+mast,Mast 20R,Mast 20R,South Yard,virtual $1013,South Yard,
+mast,Mast 22L,Mast 22L,South Yard,virtual $1010,South Yard,
+mast,Mast 22R,Mast 22R,South Yard,virtual $1014,South Yard,
+mast,Mast 24L,Mast 24L,East End,IH1234 IH1235,East End,
+mast,Mast 24RA,Mast 24RA,East End,IH1232 IH1233,East End,
+mast,Mast 24RB,Mast 24RB,East End,IH1236,East End,
+mast,Mast 26L,Mast 26L,South Yard,virtual $1011,South Yard,
+mast,Mast 26R,Mast 26R,South Yard,virtual $1015,South Yard,
+mast,Mast 2L,Mast 2L,Brick,IH438 IH439,Brick,
+mast,Mast 32L,Mast 32L,East End,virtual $1017,East End,
+mast,Mast 32R,Mast 32R,East End,IH1239,East End,
+mast,Mast 34L,Mast 34L,East End,IH1237 IH1238,East End,
+mast,Mast 34R,Mast 34R,East End,IH1240 IH1241,East End,
+mast,Mast 36RA,Mast 36RA,Princess,IH135 IH136,Princess,
+mast,Mast 36RB,Mast 36RB,Princess,IH137 IH138,Princess,
+mast,Mast 38LA,Mast 38LA,Princess,IH143,Princess,
+mast,Mast 38LB,Mast 38LB,Princess,IH139 IH140,Princess,
+mast,Mast 38RA,Mast 38RA,Princess,virtual $1004,Princess,
+mast,Mast 40LA,Mast 40LA,Princess,IH142,Princess,
+mast,Mast 40LB,Mast 40LB,Princess,IH132 IH133,Princess,
+mast,Mast 40RA,Mast 40RA,Princess,virtual $1003,Princess,
+mast,Mast 4LA,Mast 4LA,Brick,virtual $1001,Brick,
+mast,Mast 4LB,Mast 4LB,Brick,virtual $1002,Brick,
+mast,Mast 4RA,Mast 4RA,Brick,IH436,Brick,
+mast,Mast 4RB,Mast 4RB,Brick,IH437,Brick,
+mast,Mast 6LA,Mast 6LA,Plane,IH434,Plane,
+mast,Mast 6LB,Mast 6LB,Plane,IH432 IH433,Plane,
+mast,Mast 8LA,Mast 8LA,Barn,IH1337 IH1338,Barn,
+mast,Mast 8LB,Mast 8LB,Barn,IH1334,Barn,
+mast,Mast 8RA,Mast 8RA,Barn,IH1332 IH1333,Barn,
+mast,Mast 8RB,Mast 8RB,Barn,IH1335 IH1336,Barn,
+mast,119LA,Mast 10LA,Engine House,virtual $1006,Engine House,historical alias; hidden EH-2 bumper; Dispatcher Stage 1
+mast,Engine House 2 buffer,Mast 10LA,Engine House,virtual $1006,Engine House,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,119LB,Mast 10LB,Engine House,virtual $1007,Engine House,historical alias; hidden EH-3 bumper; Dispatcher Stage 1
+mast,Engine House 3 buffer,Mast 10LB,Engine House,virtual $1007,Engine House,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,118L,Mast 12L,Engine House,virtual $1005,Engine House,historical alias; hidden EH-1 bumper; Dispatcher Stage 1
+mast,Engine House 1 buffer,Mast 12L,Engine House,virtual $1005,Engine House,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,103L,Mast 16L,South Yard,virtual $1016,South Yard,historical alias; hidden S-R west / 103 ladder; Dispatcher Stage 1
+mast,104L,Mast 18L,South Yard,virtual $1008,South Yard,historical alias; hidden S-1 west throat; Dispatcher Stage 1
+mast,South Yard 2 west,Mast 18L,South Yard,virtual $1008,South Yard,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,104R,Mast 18R,South Yard,virtual $1012,South Yard,historical alias; hidden S-1 east throat; Dispatcher Stage 1
+mast,120L,Mast 2035,Princess,IH141,Princess,historical alias; Princess intermediate (was 115R / 120L); field 2035; no switch
+mast,Princess East McKees Rocks,Mast 2035,Princess,IH141,Princess,historical alias; dwarf; field 2035 (was 120L); no switch; Princess intermediates
+mast,120R,Mast 2036,Princess,IH134,Princess,historical alias; Princess intermediate (was 114R / 120R); field 2036; no switch
+mast,Princess East McKeesport,Mast 2036,Princess,IH134,Princess,historical alias; dwarf; field 2036 (was 120R); no switch; Princess intermediates
+mast,105L,Mast 20L,South Yard,virtual $1009,South Yard,historical alias; hidden S-2 west throat; Dispatcher Stage 1
+mast,South Yard 3 west,Mast 20L,South Yard,virtual $1009,South Yard,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,105R,Mast 20R,South Yard,virtual $1013,South Yard,historical alias; hidden S-2 east throat; Dispatcher Stage 1
+mast,106L,Mast 22L,South Yard,virtual $1010,South Yard,historical alias; hidden S-3 west throat; Dispatcher Stage 1
+mast,South Yard 4 west,Mast 22L,South Yard,virtual $1010,South Yard,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,106R,Mast 22R,South Yard,virtual $1014,South Yard,historical alias; hidden S-3 east throat; Dispatcher Stage 1
+mast,111L,Mast 24L,East End,IH1234 IH1235,East End,historical alias; lever 18 Left
+mast,East End East OS 111a,Mast 24L,East End,IH1234 IH1235,East End,historical alias; lever 18 Left
+mast,111RA,Mast 24RA,East End,IH1232 IH1233,East End,historical alias; lever 18 Right; Main West
+mast,East End West Main West,Mast 24RA,East End,IH1232 IH1233,East End,historical alias; lever 18 Right; Main West
+mast,111RB,Mast 24RB,East End,IH1236,East End,historical alias; lever 18 Right; S-R dwarf
+mast,East End West Yard Track 1,Mast 24RB,East End,IH1236,East End,historical alias; lever 18 Right; South Yard 1 dwarf
+mast,107L,Mast 26L,South Yard,virtual $1011,South Yard,historical alias; hidden S-4 west throat; Dispatcher Stage 1
+mast,South Yard 5 west,Mast 26L,South Yard,virtual $1011,South Yard,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,107R,Mast 26R,South Yard,virtual $1015,South Yard,historical alias; hidden S-4 east throat; Dispatcher Stage 1
+mast,100L,Mast 2L,Brick,IH438 IH439,Brick,historical alias; lever 4 Left
+mast,Brick East Main West,Mast 2L,Brick,IH438 IH439,Brick,historical alias; lever 4 Left
+mast,110L,Mast 32L,East End,virtual $1017,East End,historical alias; hidden S-R east / 110 ladder; Dispatcher Stage 1
+mast,110R,Mast 32R,East End,IH1239,East End,historical alias; lever 20 Right; dwarf
+mast,East End South OS 110,Mast 32R,East End,IH1239,East End,historical alias; lever 20 Right; dwarf
+mast,112L,Mast 34L,East End,IH1237 IH1238,East End,historical alias; lever 24 Left
+mast,East End East Lead,Mast 34L,East End,IH1237 IH1238,East End,historical alias; lever 24 Left
+mast,112R,Mast 34R,East End,IH1240 IH1241,East End,historical alias; lever 24 Right; Main East
+mast,East End South OS 112,Mast 34R,East End,IH1240 IH1241,East End,historical alias; lever 24 Right; Main East
+mast,113RA,Mast 36RA,Princess,IH135 IH136,Princess,historical alias; lever 26 Right; Main West
+mast,Princess West OS 113b,Mast 36RA,Princess,IH135 IH136,Princess,historical alias; lever 26 Right; Main West
+mast,113RB,Mast 36RB,Princess,IH137 IH138,Princess,historical alias; lever 26 Right; South Yard East
+mast,Princess West OS 113a,Mast 36RB,Princess,IH137 IH138,Princess,historical alias; lever 26 Right; South Yard East
+mast,114LA,Mast 38LA,Princess,IH143,Princess,historical alias; lever 28 Left; dwarf
+mast,Princess East K-2,Mast 38LA,Princess,IH143,Princess,historical alias; lever 28 Left; dwarf
+mast,114LB,Mast 38LB,Princess,IH139 IH140,Princess,historical alias; lever 28 Left
+mast,Princess South McKeesport,Mast 38LB,Princess,IH139 IH140,Princess,historical alias; lever 28 Left
+mast,114RA,Mast 38RA,Princess,virtual $1004,Princess,historical alias; hidden K-2 bumper; Dispatcher Stage 1
+mast,K-2 buffer,Mast 38RA,Princess,virtual $1004,Princess,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,115LA,Mast 40LA,Princess,IH142,Princess,historical alias; lever 30 Left; dwarf
+mast,Princess East K-1,Mast 40LA,Princess,IH142,Princess,historical alias; lever 30 Left; dwarf
+mast,115LB,Mast 40LB,Princess,IH132 IH133,Princess,historical alias; lever 30 Left
+mast,Princess North McKees Rocks,Mast 40LB,Princess,IH132 IH133,Princess,historical alias; lever 30 Left
+mast,115RA,Mast 40RA,Princess,virtual $1003,Princess,historical alias; hidden K-1 bumper; Dispatcher Stage 1
+mast,K-1 buffer,Mast 40RA,Princess,virtual $1003,Princess,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,101LA,Mast 4LA,Brick,virtual $1001,Brick,historical alias; hidden W-1 bumper; Dispatcher Stage 1
+mast,West Yard 1 buffer,Mast 4LA,Brick,virtual $1001,Brick,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,101LB,Mast 4LB,Brick,virtual $1002,Brick,historical alias; hidden W-2 bumper; Dispatcher Stage 1
+mast,West Yard 2 buffer,Mast 4LB,Brick,virtual $1002,Brick,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,101RA,Mast 4RA,Brick,IH436,Brick,historical alias; lever 2 Right; W-1 dwarf
+mast,Brick West Yard 1,Mast 4RA,Brick,IH436,Brick,historical alias; lever 2 Right; W-1 dwarf
+mast,101RB,Mast 4RB,Brick,IH437,Brick,historical alias; lever 2 Right; W-2 dwarf
+mast,Brick West Yard 2,Mast 4RB,Brick,IH437,Brick,historical alias; lever 2 Right; W-2 dwarf
+mast,102LA,Mast 6LA,Plane,IH434,Plane,historical alias; lever 6 Left; Scale; 1-head dwarf (was 2-head; IH435 removed)
+mast,Plane East OS 102,Mast 6LA,Plane,IH434,Plane,historical alias; lever 6 Left; Scale; 1-head dwarf (was 2-head)
+mast,102LB,Mast 6LB,Plane,IH432 IH433,Plane,historical alias; lever 6 Left; main
+mast,Plane East East Main Ext,Mast 6LB,Plane,IH432 IH433,Plane,historical alias; lever 6 Left; main
+mast,117LA,Mast 8LA,Barn,IH1337 IH1338,Barn,historical alias; lever 8 Left; main (2-head JMRI; USS lamp uses top head)
+mast,West Yard East OS 117b,Mast 8LA,Barn,IH1337 IH1338,Barn,historical alias; lever 8 Left; main
+mast,117LB,Mast 8LB,Barn,IH1334,Barn,historical alias; lever 8 Left; Barn dwarf
+mast,West Yard East Yard T6,Mast 8LB,Barn,IH1334,Barn,historical alias; lever 8 Left; Barn dwarf
+mast,117RA,Mast 8RA,Barn,IH1332 IH1333,Barn,historical alias; lever 8 Right; yard (2-head JMRI; USS lamp uses top head)
+mast,West Yard West OS 117,Mast 8RA,Barn,IH1332 IH1333,Barn,historical alias; lever 8 Right; yard
+mast,117RB,Mast 8RB,Barn,IH1335 IH1336,Barn,historical alias; lever 8 Right; main
+mast,West Yard West East Main Ext,Mast 8RB,Barn,IH1335 IH1336,Barn,historical alias; lever 8 Right; main
+head,Head 2035,Head 2035,Princess,IH141,Node 1 / OU-3 / Ports 2,
+head,Head 2036,Head 2036,Princess,IH134,Node 1 / OU-2 / Ports 3,
+head,Head 24L Bottom,Head 24L Bottom,East End,IH1235,"Node 12 / OU-2 / Ports 3,4",
+head,Head 24L Top,Head 24L Top,East End,IH1234,"Node 12 / OU-2 / Ports 3,4",
+head,Head 24RA Bottom,Head 24RA Bottom,East End,IH1233,"Node 12 / OU-2 / Ports 1,2",
+head,Head 24RA Top,Head 24RA Top,East End,IH1232,"Node 12 / OU-2 / Ports 1,2",
+head,Head 24RB,Head 24RB,East End,IH1236,Node 12 / OU-2 / Ports 5,
+head,Head 2L Bottom,Head 2L Bottom,Brick,IH439,"Node 4 / OU-3 / Ports 1,2",
+head,Head 2L Top,Head 2L Top,Brick,IH438,"Node 4 / OU-3 / Ports 1,2",
+head,Head 32R,Head 32R,East End,IH1239,Node 12 / OU-3 / Ports 2,
+head,Head 34L Bottom,Head 34L Bottom,East End,IH1238,Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1,
+head,Head 34L Top,Head 34L Top,East End,IH1237,Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1,
+head,Head 34R Bottom,Head 34R Bottom,East End,IH1241,"Node 12 / OU-3 / Ports 3,4",
+head,Head 34R Top,Head 34R Top,East End,IH1240,"Node 12 / OU-3 / Ports 3,4",
+head,Head 36RA Bottom,Head 36RA Bottom,Princess,IH136,"Node 1 / OU-2 / Ports 4,5",
+head,Head 36RA Top,Head 36RA Top,Princess,IH135,"Node 1 / OU-2 / Ports 4,5",
+head,Head 36RB Bottom,Head 36RB Bottom,Princess,IH138,"Node 1 / OU-2 / Ports 6,7",
+head,Head 36RB Top,Head 36RB Top,Princess,IH137,"Node 1 / OU-2 / Ports 6,7",
+head,Head 38LA,Head 38LA,Princess,IH143,Node 1 / OU-3 / Ports 4,
+head,Head 38LB Bottom,Head 38LB Bottom,Princess,IH140,Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1,
+head,Head 38LB Top,Head 38LB Top,Princess,IH139,Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1,
+head,Head 40LA,Head 40LA,Princess,IH142,Node 1 / OU-3 / Ports 3,
+head,Head 40LB Bottom,Head 40LB Bottom,Princess,IH133,"Node 1 / OU-2 / Ports 1,2",
+head,Head 40LB Top,Head 40LB Top,Princess,IH132,"Node 1 / OU-2 / Ports 1,2",
+head,Head 4RA,Head 4RA,Brick,IH436,Node 4 / OU-2 / Ports 5,
+head,Head 4RB,Head 4RB,Brick,IH437,Node 4 / OU-2 / Ports 6,
+head,Head 6LA,Head 6LA,Plane,IH434,Node 4 / OU-2 / Ports 3,
+head,Head 6LB Bottom,Head 6LB Bottom,Plane,IH433,"Node 4 / OU-2 / Ports 1,2",
+head,Head 6LB Top,Head 6LB Top,Plane,IH432,"Node 4 / OU-2 / Ports 1,2",
+head,Head 8LA Bottom,Head 8LA Bottom,Barn,IH1338,Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1,
+head,Head 8LA Top,Head 8LA Top,Barn,IH1337,Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1,
+head,Head 8LB,Head 8LB,Barn,IH1334,Node 13 / OU-2 / Ports 3,
+head,Head 8RA Bottom,Head 8RA Bottom,Barn,IH1333,"Node 13 / OU-2 / Ports 1,2",
+head,Head 8RA Top,Head 8RA Top,Barn,IH1332,"Node 13 / OU-2 / Ports 1,2",
+head,Head 8RB Bottom,Head 8RB Bottom,Barn,IH1336,"Node 13 / OU-2 / Ports 4,5",
+head,Head 8RB Top,Head 8RB Top,Barn,IH1335,"Node 13 / OU-2 / Ports 4,5",
+head,120L,Head 2035,Princess,IH141,Node 1 / OU-3 / Ports 2,historical alias; dwarf lamps; field 2035; no switch
+head,Princess East McKees Rocks,Head 2035,Princess,IH141,Node 1 / OU-3 / Ports 2,historical alias; dwarf; field 2035 (was 120L); no switch; Princess intermediates
+head,120R,Head 2036,Princess,IH134,Node 1 / OU-2 / Ports 3,historical alias; dwarf lamps; field 2036; no switch
+head,Princess East McKeesport,Head 2036,Princess,IH134,Node 1 / OU-2 / Ports 3,historical alias; dwarf; field 2036 (was 120R); no switch; Princess intermediates
+head,111L Bottom,Head 24L Bottom,East End,IH1235,"Node 12 / OU-2 / Ports 3,4",historical alias
+head,East End East OS 111a Bottom,Head 24L Bottom,East End,IH1235,"Node 12 / OU-2 / Ports 3,4",historical alias of 111L Bottom
+head,111L Top,Head 24L Top,East End,IH1234,"Node 12 / OU-2 / Ports 3,4",historical alias
+head,East End East OS 111a Top,Head 24L Top,East End,IH1234,"Node 12 / OU-2 / Ports 3,4",historical alias of 111L Top
+head,111RA Bottom,Head 24RA Bottom,East End,IH1233,"Node 12 / OU-2 / Ports 1,2",historical alias
+head,East End West Main West Bottom,Head 24RA Bottom,East End,IH1233,"Node 12 / OU-2 / Ports 1,2",historical alias of 111RA Bottom
+head,111RA Top,Head 24RA Top,East End,IH1232,"Node 12 / OU-2 / Ports 1,2",historical alias
+head,East End West Main West Top,Head 24RA Top,East End,IH1232,"Node 12 / OU-2 / Ports 1,2",historical alias of 111RA Top
+head,111RB,Head 24RB,East End,IH1236,Node 12 / OU-2 / Ports 5,historical alias; dwarf
+head,East End West Yard Track 1,Head 24RB,East End,IH1236,Node 12 / OU-2 / Ports 5,historical alias; dwarf
+head,100L Bottom,Head 2L Bottom,Brick,IH439,"Node 4 / OU-3 / Ports 1,2",historical alias
+head,Brick East Main West Bottom,Head 2L Bottom,Brick,IH439,"Node 4 / OU-3 / Ports 1,2",historical alias of 100L Bottom
+head,100L Top,Head 2L Top,Brick,IH438,"Node 4 / OU-3 / Ports 1,2",historical alias
+head,Brick East Main West Top,Head 2L Top,Brick,IH438,"Node 4 / OU-3 / Ports 1,2",historical alias of 100L Top
+head,110R,Head 32R,East End,IH1239,Node 12 / OU-3 / Ports 2,historical alias; dwarf
+head,East End South OS 110,Head 32R,East End,IH1239,Node 12 / OU-3 / Ports 2,historical alias; dwarf
+head,112L Bottom,Head 34L Bottom,East End,IH1238,Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias
+head,East End East Lead Bottom,Head 34L Bottom,East End,IH1238,Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias of 112L Bottom
+head,112L Top,Head 34L Top,East End,IH1237,Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias
+head,East End East Lead Top,Head 34L Top,East End,IH1237,Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias of 112L Top
+head,112R Bottom,Head 34R Bottom,East End,IH1241,"Node 12 / OU-3 / Ports 3,4",historical alias
+head,East End South OS 112 Bottom,Head 34R Bottom,East End,IH1241,"Node 12 / OU-3 / Ports 3,4",historical alias of 112R Bottom
+head,112R Top,Head 34R Top,East End,IH1240,"Node 12 / OU-3 / Ports 3,4",historical alias
+head,East End South OS 112 Top,Head 34R Top,East End,IH1240,"Node 12 / OU-3 / Ports 3,4",historical alias of 112R Top
+head,113RA Bottom,Head 36RA Bottom,Princess,IH136,"Node 1 / OU-2 / Ports 4,5",historical alias
+head,Princess West OS 113b Bottom,Head 36RA Bottom,Princess,IH136,"Node 1 / OU-2 / Ports 4,5",historical alias of 113RA Bottom
+head,113RA Top,Head 36RA Top,Princess,IH135,"Node 1 / OU-2 / Ports 4,5",historical alias
+head,Princess West OS 113b Top,Head 36RA Top,Princess,IH135,"Node 1 / OU-2 / Ports 4,5",historical alias of 113RA Top
+head,113RB Bottom,Head 36RB Bottom,Princess,IH138,"Node 1 / OU-2 / Ports 6,7",historical alias
+head,Princess West OS 113a Bottom,Head 36RB Bottom,Princess,IH138,"Node 1 / OU-2 / Ports 6,7",historical alias of 113RB Bottom
+head,113RB Top,Head 36RB Top,Princess,IH137,"Node 1 / OU-2 / Ports 6,7",historical alias
+head,Princess West OS 113a Top,Head 36RB Top,Princess,IH137,"Node 1 / OU-2 / Ports 6,7",historical alias of 113RB Top
+head,114LA,Head 38LA,Princess,IH143,Node 1 / OU-3 / Ports 4,historical alias; dwarf
+head,Princess East K-2,Head 38LA,Princess,IH143,Node 1 / OU-3 / Ports 4,historical alias; dwarf
+head,114LB Bottom,Head 38LB Bottom,Princess,IH140,Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1,historical alias
+head,Princess South McKeesport Bottom,Head 38LB Bottom,Princess,IH140,Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1,historical alias of 114LB Bottom
+head,114LB Top,Head 38LB Top,Princess,IH139,Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1,historical alias
+head,Princess South McKeesport Top,Head 38LB Top,Princess,IH139,Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1,historical alias of 114LB Top
+head,115LA,Head 40LA,Princess,IH142,Node 1 / OU-3 / Ports 3,historical alias; dwarf
+head,Princess East K-1,Head 40LA,Princess,IH142,Node 1 / OU-3 / Ports 3,historical alias; dwarf
+head,115LB Bottom,Head 40LB Bottom,Princess,IH133,"Node 1 / OU-2 / Ports 1,2",historical alias
+head,Princess North McKees Rocks Bottom,Head 40LB Bottom,Princess,IH133,"Node 1 / OU-2 / Ports 1,2",historical alias of 115LB Bottom
+head,115LB Top,Head 40LB Top,Princess,IH132,"Node 1 / OU-2 / Ports 1,2",historical alias
+head,Princess North McKees Rocks Top,Head 40LB Top,Princess,IH132,"Node 1 / OU-2 / Ports 1,2",historical alias of 115LB Top
+head,101RA,Head 4RA,Brick,IH436,Node 4 / OU-2 / Ports 5,historical alias; dwarf
+head,Brick West Yard 1,Head 4RA,Brick,IH436,Node 4 / OU-2 / Ports 5,historical alias; dwarf
+head,101RB,Head 4RB,Brick,IH437,Node 4 / OU-2 / Ports 6,historical alias; dwarf
+head,Brick West Yard 2,Head 4RB,Brick,IH437,Node 4 / OU-2 / Ports 6,historical alias; dwarf
+head,102LA,Head 6LA,Plane,IH434,Node 4 / OU-2 / Ports 3,historical alias; dwarf; was Top of 2-head (IH435 removed)
+head,Plane East OS 102,Head 6LA,Plane,IH434,Node 4 / OU-2 / Ports 3,historical alias; dwarf; was Top of 2-head
+head,102LB Bottom,Head 6LB Bottom,Plane,IH433,"Node 4 / OU-2 / Ports 1,2",historical alias
+head,Plane East East Main Ext Bottom,Head 6LB Bottom,Plane,IH433,"Node 4 / OU-2 / Ports 1,2",historical alias of 102LB Bottom
+head,102LB Top,Head 6LB Top,Plane,IH432,"Node 4 / OU-2 / Ports 1,2",historical alias
+head,Plane East East Main Ext Top,Head 6LB Top,Plane,IH432,"Node 4 / OU-2 / Ports 1,2",historical alias of 102LB Top
+head,117LA Bottom,Head 8LA Bottom,Barn,IH1338,Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias
+head,West Yard East OS 117b Bottom,Head 8LA Bottom,Barn,IH1338,Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias of 117LA Bottom
+head,117LA Top,Head 8LA Top,Barn,IH1337,Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias
+head,West Yard East OS 117b Top,Head 8LA Top,Barn,IH1337,Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1,historical alias of 117LA Top
+head,117LB,Head 8LB,Barn,IH1334,Node 13 / OU-2 / Ports 3,historical alias; dwarf
+head,West Yard East Yard T6,Head 8LB,Barn,IH1334,Node 13 / OU-2 / Ports 3,historical alias; dwarf
+head,117RA Bottom,Head 8RA Bottom,Barn,IH1333,"Node 13 / OU-2 / Ports 1,2",historical alias
+head,West Yard West OS 117 Bottom,Head 8RA Bottom,Barn,IH1333,"Node 13 / OU-2 / Ports 1,2",historical alias of 117RA Bottom
+head,117RA Top,Head 8RA Top,Barn,IH1332,"Node 13 / OU-2 / Ports 1,2",historical alias
+head,West Yard West OS 117 Top,Head 8RA Top,Barn,IH1332,"Node 13 / OU-2 / Ports 1,2",historical alias of 117RA Top
+head,117RB Bottom,Head 8RB Bottom,Barn,IH1336,"Node 13 / OU-2 / Ports 4,5",historical alias
+head,West Yard West East Main Ext Bottom,Head 8RB Bottom,Barn,IH1336,"Node 13 / OU-2 / Ports 4,5",historical alias of 117RB Bottom
+head,117RB Top,Head 8RB Top,Barn,IH1335,"Node 13 / OU-2 / Ports 4,5",historical alias
+head,West Yard West East Main Ext Top,Head 8RB Top,Barn,IH1335,"Node 13 / OU-2 / Ports 4,5",historical alias of 117RB Top
+fb,FB Switch 1 N,FB Switch 1 N,,M2S470,Node 4 / IN-1 / Ports 1,
+fb,FB Switch 1 R,FB Switch 1 R,,M2S471,Node 4 / IN-1 / Ports 2,
+fb,FB Switch 11 N,FB Switch 11 N,,M2S1369,Node 13 / IN-1 / Ports 3,
+fb,FB Switch 11 R,FB Switch 11 R,,M2S1370,Node 13 / IN-1 / Ports 4,
+fb,FB Switch 13 N,FB Switch 13 N,,M2S476,Node 4 / IN-1 / Ports 7,
+fb,FB Switch 13 R,FB Switch 13 R,,M2S477,Node 4 / IN-1 / Ports 8,
+fb,FB Switch 15 N,FB Switch 15 N,,M2S367,Node 3 / IN-1 / Ports 1,
+fb,FB Switch 15 R,FB Switch 15 R,,M2S368,Node 3 / IN-1 / Ports 2,
+fb,FB Switch 17 N,FB Switch 17 N,,M2S369,Node 3 / IN-1 / Ports 3,
+fb,FB Switch 17 R,FB Switch 17 R,,M2S370,Node 3 / IN-1 / Ports 4,
+fb,FB Switch 19 N,FB Switch 19 N,,M2S371,Node 3 / IN-1 / Ports 5,
+fb,FB Switch 19 R,FB Switch 19 R,,M2S372,Node 3 / IN-1 / Ports 6,
+fb,FB Switch 21 N,FB Switch 21 N,,M2S373,Node 3 / IN-1 / Ports 7,
+fb,FB Switch 21 R,FB Switch 21 R,,M2S374,Node 3 / IN-1 / Ports 8,
+fb,FB Switch 23 N,FB Switch 23 N,,M2S1275,Node 12 / IN-3 / Ports 1,
+fb,FB Switch 23 R,FB Switch 23 R,,M2S1276,Node 12 / IN-3 / Ports 2,
+fb,FB Switch 25 N,FB Switch 25 N,,M2S1267,Node 12 / IN-1 / Ports 1,
+fb,FB Switch 25 R,FB Switch 25 R,,M2S1268,Node 12 / IN-1 / Ports 2,
+fb,FB Switch 27 N,FB Switch 27 N,,M2S1269,Node 12 / IN-1 / Ports 3,
+fb,FB Switch 27 R,FB Switch 27 R,,M2S1270,Node 12 / IN-1 / Ports 4,
+fb,FB Switch 29 N,FB Switch 29 N,,M2S1271,Node 12 / IN-1 / Ports 5,
+fb,FB Switch 29 R,FB Switch 29 R,,M2S1272,Node 12 / IN-1 / Ports 6,
+fb,FB Switch 3 N,FB Switch 3 N,,M2S472,Node 4 / IN-1 / Ports 3,
+fb,FB Switch 3 R,FB Switch 3 R,,M2S473,Node 4 / IN-1 / Ports 4,
+fb,FB Switch 31 N,FB Switch 31 N,,M2S1273,Node 12 / IN-1 / Ports 7,
+fb,FB Switch 31 R,FB Switch 31 R,,M2S1274,Node 12 / IN-1 / Ports 8,
+fb,FB Switch 33 N,FB Switch 33 N,,M2S1277,Node 12 / IN-3 / Ports 3,
+fb,FB Switch 33 R,FB Switch 33 R,,M2S1278,Node 12 / IN-3 / Ports 4,
+fb,FB Switch 35 N,FB Switch 35 N,,M2S167,Node 1 / IN-1 / Ports 1,
+fb,FB Switch 35 R,FB Switch 35 R,,M2S168,Node 1 / IN-1 / Ports 2,
+fb,FB Switch 37 N,FB Switch 37 N,,M2S169,Node 1 / IN-1 / Ports 3,
+fb,FB Switch 37 R,FB Switch 37 R,,M2S170,Node 1 / IN-1 / Ports 4,
+fb,FB Switch 39 N,FB Switch 39 N,,M2S171,Node 1 / IN-1 / Ports 5,
+fb,FB Switch 39 R,FB Switch 39 R,,M2S172,Node 1 / IN-1 / Ports 6,
+fb,FB Switch 5 N,FB Switch 5 N,,M2S474,Node 4 / IN-1 / Ports 5,
+fb,FB Switch 5 R,FB Switch 5 R,,M2S475,Node 4 / IN-1 / Ports 6,
+fb,FB Switch 7 N,FB Switch 7 N,,M2S1367,Node 13 / IN-1 / Ports 1,
+fb,FB Switch 7 R,FB Switch 7 R,,M2S1368,Node 13 / IN-1 / Ports 2,
+fb,FB Switch 9 N,FB Switch 9 N,,M2S1371,Node 13 / IN-1 / Ports 5,
+fb,FB Switch 9 R,FB Switch 9 R,,M2S1372,Node 13 / IN-1 / Ports 6,
+fb,Switch 4-1 FB N,FB Switch 1 N,,M2S470,Node 4 / IN-1 / Ports 1,historical alias; canvas FB Switch N N/R
+fb,Switch 4-1 FB R,FB Switch 1 R,,M2S471,Node 4 / IN-1 / Ports 2,historical alias; canvas FB Switch N N/R
+fb,Switch 13-2 FB N,FB Switch 11 N,,M2S1369,Node 13 / IN-1 / Ports 3,historical alias; canvas FB Switch N N/R
+fb,Switch 13-2 FB R,FB Switch 11 R,,M2S1370,Node 13 / IN-1 / Ports 4,historical alias; canvas FB Switch N N/R
+fb,Switch 4-4 FB N,FB Switch 13 N,,M2S476,Node 4 / IN-1 / Ports 7,historical alias; canvas FB Switch N N/R
+fb,Switch 4-4 FB R,FB Switch 13 R,,M2S477,Node 4 / IN-1 / Ports 8,historical alias; canvas FB Switch N N/R
+fb,Switch 3-1 FB N,FB Switch 15 N,,M2S367,Node 3 / IN-1 / Ports 1,historical alias; canvas FB Switch N N/R
+fb,Switch 3-1 FB R,FB Switch 15 R,,M2S368,Node 3 / IN-1 / Ports 2,historical alias; canvas FB Switch N N/R
+fb,Switch 3-2 FB N,FB Switch 17 N,,M2S369,Node 3 / IN-1 / Ports 3,historical alias; canvas FB Switch N N/R
+fb,Switch 3-2 FB R,FB Switch 17 R,,M2S370,Node 3 / IN-1 / Ports 4,historical alias; canvas FB Switch N N/R
+fb,Switch 3-3 FB N,FB Switch 19 N,,M2S371,Node 3 / IN-1 / Ports 5,historical alias; canvas FB Switch N N/R
+fb,Switch 3-3 FB R,FB Switch 19 R,,M2S372,Node 3 / IN-1 / Ports 6,historical alias; canvas FB Switch N N/R
+fb,Switch 3-4 FB N,FB Switch 21 N,,M2S373,Node 3 / IN-1 / Ports 7,historical alias; canvas FB Switch N N/R
+fb,Switch 3-4 FB R,FB Switch 21 R,,M2S374,Node 3 / IN-1 / Ports 8,historical alias; canvas FB Switch N N/R
+fb,Switch 12-5 FB N,FB Switch 23 N,,M2S1275,Node 12 / IN-3 / Ports 1,historical alias; canvas FB Switch N N/R
+fb,Switch 12-5 FB R,FB Switch 23 R,,M2S1276,Node 12 / IN-3 / Ports 2,historical alias; canvas FB Switch N N/R
+fb,Switch 12-1 FB N,FB Switch 25 N,,M2S1267,Node 12 / IN-1 / Ports 1,historical alias; canvas FB Switch N N/R
+fb,Switch 12-1 FB R,FB Switch 25 R,,M2S1268,Node 12 / IN-1 / Ports 2,historical alias; canvas FB Switch N N/R
+fb,Switch 12-2 FB N,FB Switch 27 N,,M2S1269,Node 12 / IN-1 / Ports 3,historical alias; canvas FB Switch N N/R
+fb,Switch 12-2 FB R,FB Switch 27 R,,M2S1270,Node 12 / IN-1 / Ports 4,historical alias; canvas FB Switch N N/R
+fb,Switch 12-3 FB N,FB Switch 29 N,,M2S1271,Node 12 / IN-1 / Ports 5,historical alias; canvas FB Switch N N/R
+fb,Switch 12-3 FB R,FB Switch 29 R,,M2S1272,Node 12 / IN-1 / Ports 6,historical alias; canvas FB Switch N N/R
+fb,Switch 4-2 FB N,FB Switch 3 N,,M2S472,Node 4 / IN-1 / Ports 3,historical alias; canvas FB Switch N N/R
+fb,Switch 4-2 FB R,FB Switch 3 R,,M2S473,Node 4 / IN-1 / Ports 4,historical alias; canvas FB Switch N N/R
+fb,Switch 12-4 FB N,FB Switch 31 N,,M2S1273,Node 12 / IN-1 / Ports 7,historical alias; canvas FB Switch N N/R
+fb,Switch 12-4 FB R,FB Switch 31 R,,M2S1274,Node 12 / IN-1 / Ports 8,historical alias; canvas FB Switch N N/R
+fb,Switch 12-6 FB N,FB Switch 33 N,,M2S1277,Node 12 / IN-3 / Ports 3,historical alias; canvas FB Switch N N/R
+fb,Switch 12-6 FB R,FB Switch 33 R,,M2S1278,Node 12 / IN-3 / Ports 4,historical alias; canvas FB Switch N N/R
+fb,Switch 1-1 FB N,FB Switch 35 N,,M2S167,Node 1 / IN-1 / Ports 1,historical alias; canvas FB Switch N N/R
+fb,Switch 1-1 FB R,FB Switch 35 R,,M2S168,Node 1 / IN-1 / Ports 2,historical alias; canvas FB Switch N N/R
+fb,Switch 1-2 FB N,FB Switch 37 N,,M2S169,Node 1 / IN-1 / Ports 3,historical alias; canvas FB Switch N N/R
+fb,Switch 1-2 FB R,FB Switch 37 R,,M2S170,Node 1 / IN-1 / Ports 4,historical alias; canvas FB Switch N N/R
+fb,Switch 1-3 FB N,FB Switch 39 N,,M2S171,Node 1 / IN-1 / Ports 5,historical alias; canvas FB Switch N N/R
+fb,Switch 1-3 FB R,FB Switch 39 R,,M2S172,Node 1 / IN-1 / Ports 6,historical alias; canvas FB Switch N N/R
+fb,Switch 4-3 FB N,FB Switch 5 N,,M2S474,Node 4 / IN-1 / Ports 5,historical alias; canvas FB Switch N N/R
+fb,Switch 4-3 FB R,FB Switch 5 R,,M2S475,Node 4 / IN-1 / Ports 6,historical alias; canvas FB Switch N N/R
+fb,Switch 13-1 FB N,FB Switch 7 N,,M2S1367,Node 13 / IN-1 / Ports 1,historical alias; canvas FB Switch N N/R
+fb,Switch 13-1 FB R,FB Switch 7 R,,M2S1368,Node 13 / IN-1 / Ports 2,historical alias; canvas FB Switch N N/R
+fb,Switch 13-3 FB N,FB Switch 9 N,,M2S1371,Node 13 / IN-1 / Ports 5,historical alias; canvas FB Switch N N/R
+fb,Switch 13-3 FB R,FB Switch 9 R,,M2S1372,Node 13 / IN-1 / Ports 6,historical alias; canvas FB Switch N N/R

@@ -33,7 +33,7 @@ used to replace the complete tables bundle.
 | `tables/new_tables.xml` | Writable working source for the complete JMRI configuration |
 | `output/tables.xml` | Deployment bundle: LE + SML + Dispatcher + CTC |
 | `output/hart_prod.xml` | Standalone Layout Editor monitor artifact |
-| `data/public_name_map.csv` | Apply map (`current` live, `proposed` next pass) |
+| `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `comment` from Device map) |
 | `data/block_display_names.csv` | Live CP / OS / track index |
 | `data/control_points.csv` | CP → switches |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
@@ -47,6 +47,7 @@ python3 jmri/scripts/export_hart_devices_for_cats.py    # CATS Designer bindings
 python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
+python3 jmri/layouts/hart/scripts/sync_public_name_map.py   # Device-map CSV identity + comments
 python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync
 python3 jmri/layouts/hart/scripts/sync_hart_sml_to_deployment.py --check
 ```

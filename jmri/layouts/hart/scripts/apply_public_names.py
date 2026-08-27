@@ -7,8 +7,10 @@ Renames userName text and XML fields that store public names (blocks, masts,
 heads, turnouts, CTC SIDI/TRL, SML pairs, LayoutEditor bindings). Never touches
 systemName values (including ISNX:*), MQTT ids, or CTC IS* internals.
 Occupancy Block n-n and FB Switch n-n userNames are separate layers and are
-not whole-file replaced (comments keep Block n-n). occupancysensor fields and
-LE occupancy icons (sensor="Block n-n") follow the occupancy layer.
+not whole-file replaced (occupancy comments stay Block n-n from the Device
+map). occupancysensor fields and LE occupancy icons (sensor="Block n-n")
+follow the occupancy layer. Post-convert, rebuild identity rows and comments
+with sync_public_name_map.py.
 """
 
 from __future__ import annotations

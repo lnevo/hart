@@ -14,6 +14,7 @@ TABLES_PATH = HART_ROOT / "output" / "tables.xml"
 BASELINE_PATH = HART_ROOT / "data" / "baselines" / "hardware_identity.csv"
 
 REQUIRED_COLUMNS = ("layer", "current", "proposed", "cp", "hardware")
+COMMENT_COLUMN = "comment"
 
 BLOCK_ALIAS_CURRENT_SETS = frozenset(
     {
@@ -34,7 +35,11 @@ BLOCK_ALIAS_CURRENT_SETS = frozenset(
 
 BARN_TURNOUT_BLOCK = frozenset(
     {
+        ("turnout", "Switch 7"),
         ("turnout", "Switch 117"),
+        ("block", "OS 7"),
+        ("block", "OS 7b"),
+        ("block", "OS Barn"),
         ("block", "OS 117"),
         ("block", "OS 117b"),
         ("block", "Barn"),
@@ -176,7 +181,29 @@ class PublicNameMapContractTest(unittest.TestCase):
             )
             for column in REQUIRED_COLUMNS:
                 self.assertIn(column, reader.fieldnames)
+            self.assertIn(COMMENT_COLUMN, reader.fieldnames)
         self.assertGreater(len(self.rows), 0, "CSV must contain data rows")
+
+    def test_live_mqtt_turnouts_are_identity_rows(self) -> None:
+        """Post-convert: live Switch N is current == proposed, not Switch 100."""
+        identity = {
+            row["current"]: row
+            for row in self.by_layer["turnout"]
+            if row["current"] == row["proposed"]
+        }
+        xml_turnouts = turnout_user_names_by_system()
+        missing = [
+            f"{system} {name}"
+            for system, name in sorted(xml_turnouts.items())
+            if name not in identity
+        ]
+        self.assertEqual(missing, [])
+        switch_1 = identity.get("Switch 1")
+        self.assertIsNotNone(switch_1)
+        self.assertTrue(
+            (switch_1 or {}).get("comment", "").startswith("Node "),
+            f"Switch 1 comment should be Device-map wiring, got {switch_1}",
+        )
 
     def test_unique_layer_current_pairs(self) -> None:
         seen: dict[tuple[str, str], int] = {}
@@ -400,6 +427,21 @@ class PublicNameMapContractTest(unittest.TestCase):
                     f"baseline systemName {system_name!r} missing from tables.xml"
                 )
         self.assertEqual(violations, [])
+
+    def test_device_map_comments_on_identity_hardware(self) -> None:
+        """MQTT occupancy/FB/head identity rows carry Device-map comments."""
+        missing: list[str] = []
+        for row in self.rows:
+            if row["current"] != row["proposed"]:
+                continue
+            if row["layer"] not in {"occupancy", "fb", "head", "turnout"}:
+                continue
+            hardware = (row.get("hardware") or "").split()[0]
+            if not hardware.startswith(("M2T", "M2S", "IH")):
+                continue
+            if not (row.get("comment") or "").strip():
+                missing.append(f"{row['layer']} {row['current']!r}")
+        self.assertEqual(missing, [])
 
 
 if __name__ == "__main__":

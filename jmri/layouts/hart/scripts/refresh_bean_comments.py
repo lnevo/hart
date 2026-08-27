@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import csv
 import re
 import sys
 from pathlib import Path
@@ -394,7 +395,51 @@ def ctc_comment(system_name: str) -> str | None:
     return f"USS CTC {plant}: {role}"
 
 
+def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], str]]:
+    """Identity-row comments from public_name_map.csv (HART Device map)."""
+    path = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+    by_sys: dict[str, str] = {}
+    by_user: dict[tuple[str, str], str] = {}
+    if not path.is_file():
+        return by_sys, by_user
+
+    layer_kind = {
+        "turnout": "turnout",
+        "occupancy": "sensor",
+        "fb": "sensor",
+        "head": "signalhead",
+        "mast": "signalmast",
+        "block": "block",
+    }
+    with path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            current = (row.get("current") or "").strip()
+            proposed = (row.get("proposed") or "").strip()
+            comment = (row.get("comment") or "").strip()
+            if not comment or current != proposed:
+                continue
+            for token in (row.get("hardware") or "").split():
+                if token.startswith(("M2T", "M2S", "IH", "MTT")):
+                    by_sys[token] = comment
+            xml_kind = layer_kind.get((row.get("layer") or "").strip())
+            if xml_kind:
+                by_user[(xml_kind, proposed)] = comment
+                if xml_kind == "signalmast":
+                    by_user[("virtualsignalmast", proposed)] = comment
+    return by_sys, by_user
+
+
+DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
+
+
 def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> str | None:
+    if existing and re.search(r"(?:unused LCOS|\bstop\b|not a station)", existing, re.I):
+        return existing
+    mapped = DEVICE_MAP_COMMENTS_BY_SYS.get(system_name) or DEVICE_MAP_COMMENTS_BY_USER.get(
+        (kind, user_name)
+    )
+    if mapped:
+        return mapped
     if kind == "block":
         return BLOCK_COMMENTS.get(user_name)
     # LayoutBlock XSD requires <metric> before <comment>; JMRI omits metric

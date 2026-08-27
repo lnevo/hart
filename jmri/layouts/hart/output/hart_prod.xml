@@ -10,417 +10,417 @@
     <sensor inverted="false">
       <systemName>M2S100</systemName>
       <userName>BS McKees Rocks</userName>
-      <comment>Occupancy OS McKees Rocks; MQTT M2S100</comment>
+      <comment>Block 1-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S101</systemName>
       <userName>BS McKeesport</userName>
-      <comment>Occupancy OS McKeesport; MQTT M2S101</comment>
+      <comment>Block 1-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S102</systemName>
       <userName>BS Switch 37 / BS K-2</userName>
-      <comment>Occupancy OS 37 / OS K-2; MQTT M2S102</comment>
+      <comment>Block 1-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S103</systemName>
       <userName>BS Switch 39 / BS K-1</userName>
-      <comment>Occupancy OS 39 / OS K-1; MQTT M2S103</comment>
+      <comment>Block 1-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S104</systemName>
       <userName>BS Switch 35b</userName>
-      <comment>Occupancy OS 35b; MQTT M2S104</comment>
+      <comment>Block 1-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S105</systemName>
       <userName>BS Switch 35a</userName>
-      <comment>Occupancy OS 35a; MQTT M2S105</comment>
+      <comment>Block 1-6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S106</systemName>
       <userName>BS East Lead</userName>
-      <comment>Occupancy OS East Lead; MQTT M2S106</comment>
+      <comment>Block 1-7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S107</systemName>
       <userName>BS West Main Ext</userName>
-      <comment>Occupancy OS West Main Ext; MQTT M2S107</comment>
+      <comment>Block 1-8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S167</systemName>
       <userName>FB Switch 35 N</userName>
-      <comment>Points feedback Switch 1-1 FB N</comment>
+      <comment>Node 1 / IN-1 / Ports 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S168</systemName>
       <userName>FB Switch 35 R</userName>
-      <comment>Points feedback Switch 1-1 FB R</comment>
+      <comment>Node 1 / IN-1 / Ports 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S169</systemName>
       <userName>FB Switch 37 N</userName>
-      <comment>Points feedback Switch 1-2 FB N</comment>
+      <comment>Node 1 / IN-1 / Ports 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S170</systemName>
       <userName>FB Switch 37 R</userName>
-      <comment>Points feedback Switch 1-2 FB R</comment>
+      <comment>Node 1 / IN-1 / Ports 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S171</systemName>
       <userName>FB Switch 39 N</userName>
-      <comment>Points feedback Switch 1-3 FB N</comment>
+      <comment>Node 1 / IN-1 / Ports 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S172</systemName>
       <userName>FB Switch 39 R</userName>
-      <comment>Points feedback Switch 1-3 FB R</comment>
+      <comment>Node 1 / IN-1 / Ports 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S200</systemName>
       <userName>BS Main West</userName>
-      <comment>Occupancy OS Main West; MQTT M2S200</comment>
+      <comment>Block 2-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S202</systemName>
       <userName>BS Main East</userName>
-      <comment>Occupancy OS Main East; MQTT M2S202</comment>
+      <comment>Block 2-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S203</systemName>
       <userName>BS S-4</userName>
-      <comment>Occupancy OS S-4; MQTT M2S203</comment>
+      <comment>Block 2-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S204</systemName>
       <userName>BS S-3</userName>
-      <comment>Occupancy OS S-3; MQTT M2S204</comment>
+      <comment>Block 2-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S205</systemName>
       <userName>BS S-2</userName>
-      <comment>Occupancy OS S-2; MQTT M2S205</comment>
+      <comment>Block 2-6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S206</systemName>
       <userName>BS S-1</userName>
-      <comment>Occupancy OS S-1; MQTT M2S206</comment>
+      <comment>Block 2-7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S207</systemName>
       <userName>BS S-R</userName>
-      <comment>Occupancy OS S-R; MQTT M2S207</comment>
+      <comment>Block 2-8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S300</systemName>
       <userName>BS Switch 13</userName>
-      <comment>Occupancy OS 13; MQTT M2S300</comment>
+      <comment>Block 3-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S301</systemName>
       <userName>BS Switch 15</userName>
-      <comment>Occupancy OS 15; MQTT M2S301</comment>
+      <comment>Block 3-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S302</systemName>
       <userName>BS Switch 17</userName>
-      <comment>Occupancy OS 17; MQTT M2S302</comment>
+      <comment>Block 3-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S304</systemName>
       <userName>BS Switch 19</userName>
-      <comment>Occupancy OS 19; MQTT M2S304</comment>
+      <comment>Block 3-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S306</systemName>
       <userName>BS Switch 21</userName>
-      <comment>Occupancy OS 21; MQTT M2S306</comment>
+      <comment>Block 3-7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S367</systemName>
       <userName>FB Switch 15 N</userName>
-      <comment>Points feedback Switch 3-1 FB N</comment>
+      <comment>Node 3 / IN-1 / Ports 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S368</systemName>
       <userName>FB Switch 15 R</userName>
-      <comment>Points feedback Switch 3-1 FB R</comment>
+      <comment>Node 3 / IN-1 / Ports 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S369</systemName>
       <userName>FB Switch 17 N</userName>
-      <comment>Points feedback Switch 3-2 FB N</comment>
+      <comment>Node 3 / IN-1 / Ports 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S370</systemName>
       <userName>FB Switch 17 R</userName>
-      <comment>Points feedback Switch 3-2 FB R</comment>
+      <comment>Node 3 / IN-1 / Ports 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S371</systemName>
       <userName>FB Switch 19 N</userName>
-      <comment>Points feedback Switch 3-3 FB N</comment>
+      <comment>Node 3 / IN-1 / Ports 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S372</systemName>
       <userName>FB Switch 19 R</userName>
-      <comment>Points feedback Switch 3-3 FB R</comment>
+      <comment>Node 3 / IN-1 / Ports 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S373</systemName>
       <userName>FB Switch 21 N</userName>
-      <comment>Points feedback Switch 3-4 FB N</comment>
+      <comment>Node 3 / IN-1 / Ports 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S374</systemName>
       <userName>FB Switch 21 R</userName>
-      <comment>Points feedback Switch 3-4 FB R</comment>
+      <comment>Node 3 / IN-1 / Ports 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S400</systemName>
       <userName>BS Switch 3</userName>
-      <comment>Occupancy OS 3; MQTT M2S400</comment>
+      <comment>Block 4-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S401</systemName>
       <userName>BS Switch 1</userName>
-      <comment>Occupancy OS 1; MQTT M2S401</comment>
+      <comment>Block 4-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S402</systemName>
       <userName>BS W-2</userName>
-      <comment>Occupancy OS W-2; MQTT M2S402</comment>
+      <comment>Block 4-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S403</systemName>
       <userName>BS W-1</userName>
-      <comment>Occupancy OS W-1; MQTT M2S403</comment>
+      <comment>Block 4-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S404</systemName>
       <userName>BS Switch 5</userName>
-      <comment>Occupancy OS 5; MQTT M2S404</comment>
+      <comment>Block 4-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S405</systemName>
       <userName>BS Brick-Plane</userName>
-      <comment>Occupancy OS Brick-Plane; MQTT M2S405</comment>
+      <comment>Block 4-6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S406</systemName>
       <userName>BS East Main Ext</userName>
-      <comment>Occupancy OS East Main Ext; MQTT M2S406</comment>
+      <comment>Block 4-7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S407</systemName>
       <userName>BS Scale</userName>
-      <comment>Occupancy OS Scale; MQTT M2S407</comment>
+      <comment>Block 4-8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S470</systemName>
       <userName>FB Switch 1 N</userName>
-      <comment>Points feedback Switch 4-1 FB N</comment>
+      <comment>Node 4 / IN-1 / Ports 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S471</systemName>
       <userName>FB Switch 1 R</userName>
-      <comment>Points feedback Switch 4-1 FB R</comment>
+      <comment>Node 4 / IN-1 / Ports 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S472</systemName>
       <userName>FB Switch 3 N</userName>
-      <comment>Points feedback Switch 4-2 FB N</comment>
+      <comment>Node 4 / IN-1 / Ports 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S473</systemName>
       <userName>FB Switch 3 R</userName>
-      <comment>Points feedback Switch 4-2 FB R</comment>
+      <comment>Node 4 / IN-1 / Ports 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S474</systemName>
       <userName>FB Switch 5 N</userName>
-      <comment>Points feedback Switch 4-3 FB N</comment>
+      <comment>Node 4 / IN-1 / Ports 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S475</systemName>
       <userName>FB Switch 5 R</userName>
-      <comment>Points feedback Switch 4-3 FB R</comment>
+      <comment>Node 4 / IN-1 / Ports 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S476</systemName>
       <userName>FB Switch 13 N</userName>
-      <comment>Points feedback Switch 4-4 FB N</comment>
+      <comment>Node 4 / IN-1 / Ports 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S477</systemName>
       <userName>FB Switch 13 R</userName>
-      <comment>Points feedback Switch 4-4 FB R</comment>
+      <comment>Node 4 / IN-1 / Ports 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1200</systemName>
       <userName>BS Switch 25</userName>
-      <comment>Occupancy OS 25; MQTT M2S1200</comment>
+      <comment>Block 12-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1202</systemName>
       <userName>BS Switch 27</userName>
-      <comment>Occupancy OS 27; MQTT M2S1202</comment>
+      <comment>Block 12-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1203</systemName>
       <userName>BS Switch 23a</userName>
-      <comment>Occupancy OS 23a; MQTT M2S1203</comment>
+      <comment>Block 12-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1204</systemName>
       <userName>BS Switch 29</userName>
-      <comment>Occupancy OS 29; MQTT M2S1204</comment>
+      <comment>Block 12-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1205</systemName>
       <userName>BS Switch 23b</userName>
-      <comment>Occupancy OS 23b; MQTT M2S1205</comment>
+      <comment>Block 12-6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1206</systemName>
       <userName>BS Switch 31</userName>
-      <comment>Occupancy OS 31; MQTT M2S1206</comment>
+      <comment>Block 12-7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1207</systemName>
       <userName>BS Switch 33</userName>
-      <comment>Occupancy OS 33; MQTT M2S1207</comment>
+      <comment>Block 12-8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1267</systemName>
       <userName>FB Switch 25 N</userName>
-      <comment>Points feedback Switch 12-1 FB N</comment>
+      <comment>Node 12 / IN-1 / Ports 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1268</systemName>
       <userName>FB Switch 25 R</userName>
-      <comment>Points feedback Switch 12-1 FB R</comment>
+      <comment>Node 12 / IN-1 / Ports 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1269</systemName>
       <userName>FB Switch 27 N</userName>
-      <comment>Points feedback Switch 12-2 FB N</comment>
+      <comment>Node 12 / IN-1 / Ports 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1270</systemName>
       <userName>FB Switch 27 R</userName>
-      <comment>Points feedback Switch 12-2 FB R</comment>
+      <comment>Node 12 / IN-1 / Ports 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1271</systemName>
       <userName>FB Switch 29 N</userName>
-      <comment>Points feedback Switch 12-3 FB N</comment>
+      <comment>Node 12 / IN-1 / Ports 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1272</systemName>
       <userName>FB Switch 29 R</userName>
-      <comment>Points feedback Switch 12-3 FB R</comment>
+      <comment>Node 12 / IN-1 / Ports 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1273</systemName>
       <userName>FB Switch 31 N</userName>
-      <comment>Points feedback Switch 12-4 FB N</comment>
+      <comment>Node 12 / IN-1 / Ports 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1274</systemName>
       <userName>FB Switch 31 R</userName>
-      <comment>Points feedback Switch 12-4 FB R</comment>
+      <comment>Node 12 / IN-1 / Ports 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1275</systemName>
       <userName>FB Switch 23 N</userName>
-      <comment>Points feedback Switch 12-5 FB N</comment>
+      <comment>Node 12 / IN-3 / Ports 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1276</systemName>
       <userName>FB Switch 23 R</userName>
-      <comment>Points feedback Switch 12-5 FB R</comment>
+      <comment>Node 12 / IN-3 / Ports 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1277</systemName>
       <userName>FB Switch 33 N</userName>
-      <comment>Points feedback Switch 12-6 FB N</comment>
+      <comment>Node 12 / IN-3 / Ports 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1278</systemName>
       <userName>FB Switch 33 R</userName>
-      <comment>Points feedback Switch 12-6 FB R</comment>
+      <comment>Node 12 / IN-3 / Ports 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1300</systemName>
       <userName>BS Barn</userName>
-      <comment>Occupancy OS Barn; MQTT M2S1300</comment>
+      <comment>Block 13-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1301</systemName>
       <userName>BS Switch 11</userName>
-      <comment>Occupancy OS 11; MQTT M2S1301</comment>
+      <comment>Block 13-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1302</systemName>
       <userName>BS Switch 7</userName>
-      <comment>Occupancy OS 7; MQTT M2S1302</comment>
+      <comment>Block 13-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1303</systemName>
       <userName>BS Switch 7b</userName>
-      <comment>Occupancy OS 7b; MQTT M2S1303</comment>
+      <comment>Block 13-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1304</systemName>
       <userName>BS EH-3</userName>
-      <comment>Occupancy OS EH-3; MQTT M2S1304</comment>
+      <comment>Block 13-5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1305</systemName>
       <userName>BS EH-2</userName>
-      <comment>Occupancy OS EH-2; MQTT M2S1305</comment>
+      <comment>Block 13-6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1306</systemName>
       <userName>BS EH-1</userName>
-      <comment>Occupancy OS EH-1; MQTT M2S1306</comment>
+      <comment>Block 13-7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1307</systemName>
       <userName>BS Switch 9</userName>
-      <comment>Occupancy OS 9; MQTT M2S1307</comment>
+      <comment>Block 13-8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1367</systemName>
       <userName>FB Switch 7 N</userName>
-      <comment>Points feedback Switch 13-1 FB N</comment>
+      <comment>Node 13 / IN-1 / Ports 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1368</systemName>
       <userName>FB Switch 7 R</userName>
-      <comment>Points feedback Switch 13-1 FB R</comment>
+      <comment>Node 13 / IN-1 / Ports 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1369</systemName>
       <userName>FB Switch 11 N</userName>
-      <comment>Points feedback Switch 13-2 FB N</comment>
+      <comment>Node 13 / IN-1 / Ports 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1370</systemName>
       <userName>FB Switch 11 R</userName>
-      <comment>Points feedback Switch 13-2 FB R</comment>
+      <comment>Node 13 / IN-1 / Ports 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1371</systemName>
       <userName>FB Switch 9 N</userName>
-      <comment>Points feedback Switch 13-3 FB N</comment>
+      <comment>Node 13 / IN-1 / Ports 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1372</systemName>
       <userName>FB Switch 9 R</userName>
-      <comment>Points feedback Switch 13-3 FB R</comment>
+      <comment>Node 13 / IN-1 / Ports 6</comment>
     </sensor>
   </sensors>
   <sensors class="jmri.jmrix.openlcb.configurexml.OlcbSensorManagerXml">
@@ -454,102 +454,102 @@
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N" inverted="false" automate="Off">
       <systemName>M2T108</systemName>
       <userName>Switch 35</userName>
-      <comment>Princess crossover 113a/113b; MQTT M2T108; FB Switch 1-1</comment>
+      <comment>Node 1 / OU-1 / Ports 1,2 / DCC 113</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
       <systemName>M2T109</systemName>
       <userName>Switch 37</userName>
-      <comment>Princess; MQTT M2T109; FB Switch 1-2; rests Thrown</comment>
+      <comment>Node 1 / OU-1 / Ports 3,4 / DCC 114</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
       <systemName>M2T110</systemName>
       <userName>Switch 39</userName>
-      <comment>Princess; MQTT M2T110; FB Switch 1-3; rests Thrown</comment>
+      <comment>Node 1 / OU-1 / Ports 5,6 / DCC 115</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 15 R" sensor2="FB Switch 15 N" inverted="false" automate="Off">
       <systemName>M2T308</systemName>
       <userName>Switch 15</userName>
-      <comment>South Yard ladder; MQTT M2T308; FB Switch 3-1; CTC local</comment>
+      <comment>Node 3 / OU-1 / Ports 1,2 / DCC 103</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 17 R" sensor2="FB Switch 17 N" inverted="false" automate="Off">
       <systemName>M2T309</systemName>
       <userName>Switch 17</userName>
-      <comment>South Yard; MQTT M2T309; FB Switch 3-2; hand-throw</comment>
+      <comment>Node 3 / OU-1 / Ports 3,4 / DCC 104</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 19 R" sensor2="FB Switch 19 N" inverted="false" automate="Off">
       <systemName>M2T310</systemName>
       <userName>Switch 19</userName>
-      <comment>South Yard; MQTT M2T310; FB Switch 3-3; hand-throw</comment>
+      <comment>Node 3 / OU-1 / Ports 5,6 / DCC 105</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 21 R" sensor2="FB Switch 21 N" inverted="false" automate="Off">
       <systemName>M2T311</systemName>
       <userName>Switch 21</userName>
-      <comment>South Yard; MQTT M2T311; FB Switch 3-4; hand-throw</comment>
+      <comment>Node 3 / OU-1 / Ports 7,8 / DCC 106</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N" inverted="false" automate="Off">
       <systemName>M2T408</systemName>
       <userName>Switch 1</userName>
-      <comment>Brick CP; MQTT M2T408; FB Switch 4-1; rests Thrown</comment>
+      <comment>Node 4 / OU-1 / Ports 1,2 / DCC 100</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 3 R" sensor2="FB Switch 3 N" inverted="false" automate="Off">
       <systemName>M2T409</systemName>
       <userName>Switch 3</userName>
-      <comment>Brick CP, West Yard access; MQTT M2T409; FB Switch 4-2</comment>
+      <comment>Node 4 / OU-1 / Ports 3,4 / DCC 101</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 5 R" sensor2="FB Switch 5 N" inverted="false" automate="Off">
       <systemName>M2T410</systemName>
       <userName>Switch 5</userName>
-      <comment>Plane CP; MQTT M2T410; FB Switch 4-3</comment>
+      <comment>Node 4 / OU-1 / Ports 5,6 / DCC 102</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T411</systemName>
       <userName>Switch 13</userName>
-      <comment>Hand-throw west of South Yard; MQTT M2T411; CTC local</comment>
+      <comment>Node 4 / OU-1 / Ports 7,8 / DCC 116</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 25 R" sensor2="FB Switch 25 N" inverted="false" automate="Off">
       <systemName>M2T1208</systemName>
       <userName>Switch 25</userName>
-      <comment>East End; MQTT M2T1208; FB Switch 12-1</comment>
+      <comment>Node 12 / OU-1 / Ports 1,2 / DCC 107</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 27 R" sensor2="FB Switch 27 N" inverted="false" automate="Off">
       <systemName>M2T1209</systemName>
       <userName>Switch 27</userName>
-      <comment>East End; MQTT M2T1209; FB Switch 12-2</comment>
+      <comment>Node 12 / OU-1 / Ports 3,4 / DCC 108</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 29 R" sensor2="FB Switch 29 N" inverted="false" automate="Off">
       <systemName>M2T1210</systemName>
       <userName>Switch 29</userName>
-      <comment>East End; MQTT M2T1210; FB Switch 12-3</comment>
+      <comment>Node 12 / OU-1 / Ports 5,6 / DCC 109</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 31 R" sensor2="FB Switch 31 N" inverted="false" automate="Off">
       <systemName>M2T1211</systemName>
       <userName>Switch 31</userName>
-      <comment>East End ladder; MQTT M2T1211; FB Switch 12-4; CTC local</comment>
+      <comment>Node 12 / OU-1 / Ports 7,8 / DCC 110</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
       <systemName>M2T1212</systemName>
       <userName>Switch 23</userName>
-      <comment>East End crossover 111a/111b; MQTT M2T1212; FB Switch 12-5</comment>
+      <comment>Node 12 / OU-4 / Ports 1,2 / DCC 111</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 33 R" sensor2="FB Switch 33 N" inverted="false" automate="Off">
       <systemName>M2T1213</systemName>
       <userName>Switch 33</userName>
-      <comment>East End; MQTT M2T1213; FB Switch 12-6; rests Thrown</comment>
+      <comment>Node 12 / OU-4 / Ports 3,4 / DCC 112</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1308</systemName>
       <userName>Switch 7</userName>
-      <comment>OS Barn CP crossover 117/117b; MQTT M2T1308; field hand-throw</comment>
+      <comment>Node 13 / OU-3 / Ports 1,2 / DCC 117</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1309</systemName>
       <userName>Switch 11</userName>
-      <comment>Hand-throw Engine House lead; MQTT M2T1309</comment>
+      <comment>Node 13 / OU-3 / Ports 3,4 / DCC 118</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1310</systemName>
       <userName>Switch 9</userName>
-      <comment>Hand-throw Engine House; MQTT M2T1310</comment>
+      <comment>Node 13 / OU-3 / Ports 5,6 / DCC 119</comment>
     </turnout>
   </turnouts>
   <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
@@ -563,27 +563,27 @@
     <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N">
       <systemName>MTT100</systemName>
       <userName>Switch 1 alias</userName>
-      <comment>OpenLCB alias of Switch 1; same FB as MQTT hardware (Switch 4-1)</comment>
+      <comment>Node 4 / OU-1 / Ports 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
       <systemName>MTT111</systemName>
       <userName>Switch 23 alias</userName>
-      <comment>OpenLCB alias of Switch 23; same FB as MQTT hardware (Switch 12-5)</comment>
+      <comment>Node 12 / OU-4 / Ports 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N">
       <systemName>MTT113</systemName>
       <userName>Switch 35 alias</userName>
-      <comment>OpenLCB alias of Switch 35; same FB as MQTT hardware (Switch 1-1)</comment>
+      <comment>Node 1 / OU-1 / Ports 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
       <systemName>MTT114</systemName>
       <userName>Switch 37 alias</userName>
-      <comment>OpenLCB alias of Switch 37; same FB as MQTT hardware (Switch 1-2)</comment>
+      <comment>Node 1 / OU-1 / Ports 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
       <systemName>MTT115</systemName>
       <userName>Switch 39 alias</userName>
-      <comment>OpenLCB alias of Switch 39; same FB as MQTT hardware (Switch 1-3)</comment>
+      <comment>Node 1 / OU-1 / Ports 5,6</comment>
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
@@ -602,396 +602,402 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>Head 6LB Top</userName>
-      <comment>Head 6LB Top</comment>
+      <comment>Node 4 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH433</systemName>
       <userName>Head 6LB Bottom</userName>
-      <comment>Head 6LB Bottom</comment>
+      <comment>Node 4 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH434</systemName>
       <userName>Head 6LA</userName>
-      <comment>Head 6LA (1-head; was Top of 2-head)</comment>
+      <comment>Node 4 / OU-2 / Ports 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
       <userName>Head 4RA</userName>
-      <comment>Head 4RA</comment>
+      <comment>Node 4 / OU-2 / Ports 5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH437</systemName>
       <userName>Head 4RB</userName>
-      <comment>Head 4RB</comment>
+      <comment>Node 4 / OU-2 / Ports 6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH438</systemName>
       <userName>Head 2L Top</userName>
-      <comment>Head 2L Top</comment>
+      <comment>Node 4 / OU-3 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH439</systemName>
       <userName>Head 2L Bottom</userName>
-      <comment>Head 2L Bottom</comment>
+      <comment>Node 4 / OU-3 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1332</systemName>
       <userName>Head 8RA Top</userName>
-      <comment>Head 8RA Top</comment>
+      <comment>Node 13 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1333</systemName>
       <userName>Head 8RA Bottom</userName>
-      <comment>Head 8RA Bottom</comment>
+      <comment>Node 13 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1334</systemName>
       <userName>Head 8LB</userName>
-      <comment>Head 8LB</comment>
+      <comment>Node 13 / OU-2 / Ports 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1335</systemName>
       <userName>Head 8RB Top</userName>
-      <comment>Head 8RB Top</comment>
+      <comment>Node 13 / OU-2 / Ports 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1336</systemName>
       <userName>Head 8RB Bottom</userName>
-      <comment>Head 8RB Bottom</comment>
+      <comment>Node 13 / OU-2 / Ports 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1337</systemName>
       <userName>Head 8LA Top</userName>
-      <comment>Head 8LA Top</comment>
+      <comment>Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1338</systemName>
       <userName>Head 8LA Bottom</userName>
-      <comment>Head 8LA Bottom</comment>
+      <comment>Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1232</systemName>
       <userName>Head 24RA Top</userName>
-      <comment>Head 24RA Top</comment>
+      <comment>Node 12 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1233</systemName>
       <userName>Head 24RA Bottom</userName>
-      <comment>Head 24RA Bottom</comment>
+      <comment>Node 12 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1234</systemName>
       <userName>Head 24L Top</userName>
-      <comment>Head 24L Top</comment>
+      <comment>Node 12 / OU-2 / Ports 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1235</systemName>
       <userName>Head 24L Bottom</userName>
-      <comment>Head 24L Bottom</comment>
+      <comment>Node 12 / OU-2 / Ports 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1236</systemName>
       <userName>Head 24RB</userName>
-      <comment>Head 24RB</comment>
+      <comment>Node 12 / OU-2 / Ports 5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1237</systemName>
       <userName>Head 34L Top</userName>
-      <comment>Head 34L Top</comment>
+      <comment>Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1238</systemName>
       <userName>Head 34L Bottom</userName>
-      <comment>Head 34L Bottom</comment>
+      <comment>Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1239</systemName>
       <userName>Head 32R</userName>
-      <comment>Head 32R</comment>
+      <comment>Node 12 / OU-3 / Ports 2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1240</systemName>
       <userName>Head 34R Top</userName>
-      <comment>Head 34R Top</comment>
+      <comment>Node 12 / OU-3 / Ports 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1241</systemName>
       <userName>Head 34R Bottom</userName>
-      <comment>Head 34R Bottom</comment>
+      <comment>Node 12 / OU-3 / Ports 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH132</systemName>
       <userName>Head 40LB Top</userName>
-      <comment>Head 40LB Top</comment>
+      <comment>Node 1 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH133</systemName>
       <userName>Head 40LB Bottom</userName>
-      <comment>Head 40LB Bottom</comment>
+      <comment>Node 1 / OU-2 / Ports 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
       <userName>Head 2036</userName>
-      <comment>Head 2036</comment>
+      <comment>Node 1 / OU-2 / Ports 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
       <userName>Head 36RA Top</userName>
-      <comment>Head 36RA Top</comment>
+      <comment>Node 1 / OU-2 / Ports 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH136</systemName>
       <userName>Head 36RA Bottom</userName>
-      <comment>Head 36RA Bottom</comment>
+      <comment>Node 1 / OU-2 / Ports 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH137</systemName>
       <userName>Head 36RB Top</userName>
-      <comment>Head 36RB Top</comment>
+      <comment>Node 1 / OU-2 / Ports 6,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH138</systemName>
       <userName>Head 36RB Bottom</userName>
-      <comment>Head 36RB Bottom</comment>
+      <comment>Node 1 / OU-2 / Ports 6,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH139</systemName>
       <userName>Head 38LB Top</userName>
-      <comment>Head 38LB Top</comment>
+      <comment>Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH140</systemName>
       <userName>Head 38LB Bottom</userName>
-      <comment>Head 38LB Bottom</comment>
+      <comment>Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
       <userName>Head 2035</userName>
-      <comment>Head 2035</comment>
+      <comment>Node 1 / OU-3 / Ports 2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH142</systemName>
       <userName>Head 40LA</userName>
-      <comment>Head 40LA</comment>
+      <comment>Node 1 / OU-3 / Ports 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH143</systemName>
       <userName>Head 38LA</userName>
-      <comment>Head 38LA</comment>
+      <comment>Node 1 / OU-3 / Ports 4</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433)</systemName>
       <userName>Mast 6LB</userName>
-      <comment>Mast 6LB</comment>
+      <comment>Plane</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH434)</systemName>
       <userName>Mast 6LA</userName>
-      <comment>Mast 6LA (1-head dwarf; was SL-2-digicon IH434+IH435)</comment>
+      <comment>Plane</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH436)</systemName>
       <userName>Mast 4RA</userName>
-      <comment>Mast 4RA</comment>
+      <comment>Brick</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH437)</systemName>
       <userName>Mast 4RB</userName>
-      <comment>Mast 4RB</comment>
+      <comment>Brick</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439)</systemName>
       <userName>Mast 2L</userName>
-      <comment>Mast 2L</comment>
+      <comment>Brick</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333)</systemName>
       <userName>Mast 8RA</userName>
-      <comment>Mast 8RA</comment>
+      <comment>Barn</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1334)</systemName>
       <userName>Mast 8LB</userName>
-      <comment>Mast 8LB</comment>
+      <comment>Barn</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336)</systemName>
       <userName>Mast 8RB</userName>
-      <comment>Mast 8RB</comment>
+      <comment>Barn</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338)</systemName>
       <userName>Mast 8LA</userName>
-      <comment>Mast 8LA</comment>
+      <comment>Barn</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233)</systemName>
       <userName>Mast 24RA</userName>
-      <comment>Mast 24RA</comment>
+      <comment>East End</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235)</systemName>
       <userName>Mast 24L</userName>
-      <comment>Mast 24L</comment>
+      <comment>East End</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1236)</systemName>
       <userName>Mast 24RB</userName>
-      <comment>Mast 24RB</comment>
+      <comment>East End</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238)</systemName>
       <userName>Mast 34L</userName>
-      <comment>Mast 34L</comment>
+      <comment>East End</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1239)</systemName>
       <userName>Mast 32R</userName>
-      <comment>Mast 32R</comment>
+      <comment>East End</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)</systemName>
       <userName>Mast 34R</userName>
-      <comment>Mast 34R</comment>
+      <comment>East End</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133)</systemName>
       <userName>Mast 40LB</userName>
-      <comment>Mast 40LB</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH134)</systemName>
       <userName>Mast 2036</userName>
-      <comment>Mast 2036</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136)</systemName>
       <userName>Mast 36RA</userName>
-      <comment>Mast 36RA</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138)</systemName>
       <userName>Mast 36RB</userName>
-      <comment>Mast 36RB</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140)</systemName>
       <userName>Mast 38LB</userName>
-      <comment>Mast 38LB</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH141)</systemName>
       <userName>Mast 2035</userName>
-      <comment>Mast 2035</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH142)</systemName>
       <userName>Mast 40LA</userName>
-      <comment>Mast 40LA</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH143)</systemName>
       <userName>Mast 38LA</userName>
-      <comment>Mast 38LA</comment>
+      <comment>Princess</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
       <userName>Mast 4LA</userName>
-      <comment>Mast 4LA</comment>
+      <comment>Brick</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
       <userName>Mast 4LB</userName>
-      <comment>Mast 4LB</comment>
+      <comment>Brick</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1003)</systemName>
       <userName>Mast 40RA</userName>
-      <comment>Mast 40RA</comment>
+      <comment>Princess</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1004)</systemName>
       <userName>Mast 38RA</userName>
-      <comment>Mast 38RA</comment>
+      <comment>Princess</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1005)</systemName>
       <userName>Mast 12L</userName>
-      <comment>Mast 12L</comment>
+      <comment>Engine House</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1006)</systemName>
       <userName>Mast 10LA</userName>
-      <comment>Mast 10LA</comment>
+      <comment>Engine House</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1007)</systemName>
       <userName>Mast 10LB</userName>
-      <comment>Mast 10LB</comment>
+      <comment>Engine House</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1008)</systemName>
       <userName>Mast 18L</userName>
-      <comment>Mast 18L</comment>
+      <comment>South Yard</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1009)</systemName>
       <userName>Mast 20L</userName>
-      <comment>Mast 20L</comment>
+      <comment>South Yard</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1010)</systemName>
       <userName>Mast 22L</userName>
-      <comment>Mast 22L</comment>
+      <comment>South Yard</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1011)</systemName>
       <userName>Mast 26L</userName>
-      <comment>Mast 26L</comment>
+      <comment>South Yard</comment>
       <unlit allowed="yes" />
     </signalmast>
-  <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1012)</systemName><userName>Mast 18R</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1013)</systemName><userName>Mast 20R</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1014)</systemName><userName>Mast 22R</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1015)</systemName><userName>Mast 26R</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1016)</systemName><userName>Mast 16L</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1017)</systemName><userName>Mast 32L</userName><unlit allowed="yes" /></virtualsignalmast></signalmasts>
+  <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1012)</systemName><userName>Mast 18R</userName>
+      <comment>South Yard</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1013)</systemName><userName>Mast 20R</userName>
+      <comment>South Yard</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1014)</systemName><userName>Mast 22R</userName>
+      <comment>South Yard</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1015)</systemName><userName>Mast 26R</userName>
+      <comment>South Yard</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1016)</systemName><userName>Mast 16L</userName>
+      <comment>South Yard</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1017)</systemName><userName>Mast 32L</userName>
+      <comment>East End</comment><unlit allowed="yes" /></virtualsignalmast></signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
     <block systemName="IB1" length="0.0" curve="0">
       <systemName>IB1</systemName>
       <userName>OS 13</userName>
-      <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
+      <comment>Engine House</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 13</occupancysensor>
       <path todir="128" fromdir="64" block="IB15">
@@ -1026,7 +1032,7 @@
     <block systemName="IB6" length="0.0" curve="0">
       <systemName>IB6</systemName>
       <userName>OS 7b</userName>
-      <comment>OS Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
+      <comment>Barn</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7b</occupancysensor>
       <path todir="80" fromdir="160" block="IB8">
@@ -1044,7 +1050,7 @@
     <block systemName="IB8" length="0.0" curve="0">
       <systemName>IB8</systemName>
       <userName>OS 7</userName>
-      <comment>OS Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
+      <comment>Barn</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7</occupancysensor>
       <path todir="128" fromdir="64" block="IB3">
@@ -1075,7 +1081,7 @@
     <block systemName="IB18" length="0.0" curve="0">
       <systemName>IB18</systemName>
       <userName>OS 9</userName>
-      <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
+      <comment>Engine House</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 9</occupancysensor>
       <path todir="80" fromdir="160" block="IB19">
@@ -1097,7 +1103,7 @@
     <block systemName="IB19" length="0.0" curve="0">
       <systemName>IB19</systemName>
       <userName>OS 11</userName>
-      <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
+      <comment>Engine House</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 11</occupancysensor>
       <path todir="96" fromdir="144" block="IB1">
@@ -1325,7 +1331,7 @@
     <block systemName="IB:AUTO:0030" length="0.0" curve="0">
       <systemName>IB:AUTO:0030</systemName>
       <userName>OS 33</userName>
-      <comment>East End, Switch 33; occupancy Block 12-8 / M2S1207</comment>
+      <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 33</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0001">
@@ -1343,7 +1349,7 @@
     <block systemName="IB:AUTO:0031" length="0.0" curve="0">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS 5</userName>
-      <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>
+      <comment>Plane</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 5</occupancysensor>
       <path todir="64" fromdir="128" block="IB3">
@@ -1361,7 +1367,7 @@
     <block systemName="IB:AUTO:0032" length="0.0" curve="0">
       <systemName>IB:AUTO:0032</systemName>
       <userName>OS 37</userName>
-      <comment>Princess, Switch 37 (same detector as OS K-2); occupancy Block 1-3 / M2S102</comment>
+      <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37 / BS K-2</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0046" />
@@ -1374,7 +1380,7 @@
     <block systemName="IB:AUTO:0033" length="0.0" curve="0">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS 1</userName>
-      <comment>Brick CP, Switch 1; occupancy Block 4-2 / M2S401</comment>
+      <comment>Brick</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0003" />
@@ -1392,7 +1398,7 @@
     <block systemName="IB:AUTO:0034" length="0.0" curve="0">
       <systemName>IB:AUTO:0034</systemName>
       <userName>OS 23a</userName>
-      <comment>East End crossover 111 north/west leg; occupancy Block 12-4 / M2S1203</comment>
+      <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23a</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0003" />
@@ -1410,7 +1416,7 @@
     <block systemName="IB:AUTO:0035" length="0.0" curve="0">
       <systemName>IB:AUTO:0035</systemName>
       <userName>OS 3</userName>
-      <comment>Brick CP, Switch 3; occupancy Block 4-1 / M2S400</comment>
+      <comment>Brick</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 3</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0020">
@@ -1428,7 +1434,7 @@
     <block systemName="IB:AUTO:0036" length="0.0" curve="0">
       <systemName>IB:AUTO:0036</systemName>
       <userName>OS 25</userName>
-      <comment>East End, Switch 25; occupancy Block 12-1 / M2S1200</comment>
+      <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 25</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0007">
@@ -1450,7 +1456,7 @@
     <block systemName="IB:AUTO:0037" length="0.0" curve="0">
       <systemName>IB:AUTO:0037</systemName>
       <userName>OS 27</userName>
-      <comment>East End, Switch 27; occupancy Block 12-3 / M2S1202</comment>
+      <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 27</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0026">
@@ -1472,7 +1478,7 @@
     <block systemName="IB:AUTO:0038" length="0.0" curve="0">
       <systemName>IB:AUTO:0038</systemName>
       <userName>OS 21</userName>
-      <comment>South Yard, Switch 21; occupancy Block 3-7 / M2S306</comment>
+      <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 21</occupancysensor>
       <path todir="96" fromdir="144" block="IB:AUTO:0007">
@@ -1490,7 +1496,7 @@
     <block systemName="IB:AUTO:0039" length="0.0" curve="0">
       <systemName>IB:AUTO:0039</systemName>
       <userName>OS 23b</userName>
-      <comment>East End crossover 111 south/east leg; occupancy Block 12-6 / M2S1205</comment>
+      <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23b</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0012">
@@ -1508,7 +1514,7 @@
     <block systemName="IB:AUTO:0040" length="0.0" curve="0">
       <systemName>IB:AUTO:0040</systemName>
       <userName>OS 39</userName>
-      <comment>Princess, Switch 39 (same detector as OS K-1); occupancy Block 1-4 / M2S103</comment>
+      <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39 / BS K-1</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0010">
@@ -1521,7 +1527,7 @@
     <block systemName="IB:AUTO:0041" length="0.0" curve="0">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS 15</userName>
-      <comment>South Yard, Switch 15; occupancy Block 3-2 / M2S301</comment>
+      <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
       <path todir="128" fromdir="64" block="IB1" />
@@ -1539,7 +1545,7 @@
     <block systemName="IB:AUTO:0042" length="0.0" curve="0">
       <systemName>IB:AUTO:0042</systemName>
       <userName>OS 31</userName>
-      <comment>East End, Switch 31; occupancy Block 12-7 / M2S1206</comment>
+      <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0030">
@@ -1561,7 +1567,7 @@
     <block systemName="IB:AUTO:0043" length="0.0" curve="0">
       <systemName>IB:AUTO:0043</systemName>
       <userName>OS 29</userName>
-      <comment>East End, Switch 29; occupancy Block 12-5 / M2S1204</comment>
+      <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 29</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0016">
@@ -1583,7 +1589,7 @@
     <block systemName="IB:AUTO:0044" length="0.0" curve="0">
       <systemName>IB:AUTO:0044</systemName>
       <userName>OS 17</userName>
-      <comment>South Yard, Switch 17; occupancy Block 3-3 / M2S302</comment>
+      <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 17</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0016">
@@ -1601,7 +1607,7 @@
     <block systemName="IB:AUTO:0045" length="0.0" curve="0">
       <systemName>IB:AUTO:0045</systemName>
       <userName>OS 19</userName>
-      <comment>South Yard, Switch 19; occupancy Block 3-5 / M2S304</comment>
+      <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0026">
@@ -1619,7 +1625,7 @@
     <block systemName="IB:AUTO:0046" length="0.0" curve="0">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS 35a</userName>
-      <comment>Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105</comment>
+      <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0017" />
@@ -1637,7 +1643,7 @@
     <block systemName="IB:AUTO:0047" length="0.0" curve="0">
       <systemName>IB:AUTO:0047</systemName>
       <userName>OS 35b</userName>
-      <comment>Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104</comment>
+      <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35b</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0040" />

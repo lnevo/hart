@@ -30,7 +30,7 @@ Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R
 
 ## Live inventory (2026-08-27)
 
-CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; comments keep `Block n-n`. Dispatcher MoveTo sensors are `MoveToOS_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 12 columns / 23 SIDI masts.
+CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; occupancy comments are `Block n-n`. Turnout / head / FB comments are LCOS port wiring (`Node # / OU-# / Ports #,# [/ DCC #]`). Mast and switch-OS comments are the CP name. Dispatcher station blocks keep the `stop` contract. Dispatcher MoveTo sensors are `MoveToOS_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 12 columns / 23 SIDI masts.
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 
@@ -51,7 +51,7 @@ After a rename: `systemName` columns identical; public strings follow the CSV `p
 
 [`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv)
 
-For the next pass: edit **`proposed`** on the live identity rows; leave historical alias rows pointing at the same `proposed`. ADR-002’s `block_display_names.csv` is a live-name index, not the apply map.
+Identity rows are `current` == `proposed` == live userName, with Device-map text in **`comment`**. Historical alias rows keep pre-convert names. Rebuild with `sync_public_name_map.py` (from the HART Device map canvas + live `tables.xml`). For the next rename pass: edit **`proposed`** on the live identity rows; leave historical alias rows pointing at the same `proposed`. ADR-002’s `block_display_names.csv` is a live-name index, not the apply map.
 
 ## Attack (executed 2026-08-21)
 
