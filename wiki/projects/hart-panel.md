@@ -18,10 +18,10 @@ Best geometry and live wiring lived in an ad-hoc folder without a named layout p
 
 ## Non-goals that still hold
 
-- NextTrain / Google Sheets sync for hart
+- NextTrain / Google Sheets — **abandoned**; not a HART desk
 - Mutating Pi `tables.xml` from a CATS Store
 - linear3-style resize / `fit_panel_*` / polish skew
-- Merging two NX products (ISIS200 block-boundary vs mast `ISNX:*`)
+- Merging AnyRail `ISIS200` block-boundary NX into live mast `ISNX:*` (HART NX is mast-only)
 
 ## Outcomes (phases 0–2) — done
 
@@ -42,7 +42,7 @@ Native SML (93 dests: 91 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD
 | Dispatcher S-1…S-5 platforms | Done 2026-08-22 — hidden throats + Stage 1; 62 inbound traininfo each |
 | First-registration facing invert | Overlay live; [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) open; [PR#15408](https://github.com/JMRI/JMRI/pull/15408) closed pending more testing |
 | END_BUMPER far-slot hack | Keep until a real facing-block fix; still needed for W-1/W-2/K-1/K-2/EH |
-| Node 13 occupancy walk-down | Hardware: 1301=118, 1304–1306=house, 1307=119 — freeze the CSV |
+| Node 13 occupancy walk-down | Done — 1301=OS 11 (118), 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS 9 (119); EH-1↔EH-3 swap stuck |
 
 ## Decisions (locked 2026-08-07)
 
@@ -62,7 +62,7 @@ See ADRs 001–005.
 | 0 | Wiki SoR, ADRs, DoD | Done |
 | 1 | Scaffold `hart`, register paths, freeze baseline, bootstrap panel | Done |
 | 2 | Naming contract; unused internal sensors; OS audit notes | Done |
-| 3+ | Dark masts, NX, SML, NextTrain | SML done; NX parked; NextTrain still out of scope |
+| 3+ | Dark masts, NX, SML | SML + mast NX done; NextTrain abandoned |
 
 ## Related
 

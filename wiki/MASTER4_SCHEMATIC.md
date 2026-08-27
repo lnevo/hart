@@ -54,12 +54,9 @@ OS Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 betwe
 
 ## Remaining gaps
 
-- USS CTC `GUIObjects.xml` is **v73**: Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is LNR. **Mast 2036** and **Mast 2035** share one X on OS McKeesport; **Mast 2035** faces east (east dwarf GIFs) into the OS McKees Rocks wrap. LE **Mast 2035** is upper-right of the NX column, **Mast 2036** lower-left, even 22px offsets. New UniqueIDs for 119/118/104–106 (IS32/34/36/38/40) are GUI-only. Local default still not applied. Production `output/tables.xml` embeds this paneleditor.
-- **Mast 8RA** / **Mast 8LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
+- USS CTC `GUIObjects.xml` is **v73** in this note (production schematic has moved): Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is LNR. **Mast 2036** and **Mast 2035** share one X on OS McKeesport. UniqueIDs for 119/118/104–106 (`IS32/34/36/38/40`) are GUI-only — no CTC Logic columns. Leave them local unless those plants should code from the USS machine.
 - CATS Princess lamps match LE: **Mast 40LB** OS McKees Rocks and **Mast 38LB** OS McKeesport are 2-head (`LAMP2` / `double`); **Mast 40LA** OS K-1 and **Mast 38LA** OS K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
-- **Mast 34R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
 - SML re-Discovered 2026-08-27 (**33 sources / 93 dests**): **Mast 2035→Mast 40LB/Mast 38LB**, **Mast 2036→Mast 40LB/Mast 38LB**. **Mast 2035→Mast 38LB** is disabled; **Mast 2035→Mast 40LB** extra occupancy is **OS McKees Rocks** / **BS McKees Rocks**. **Mast 40LB** dests stay `Mast 24L`/`Mast 34L`; **Mast 38LB** stays `Mast 34L`. Reload **CATS CTC** or **CATS ABS**.
-- Sheets push stays human-gated.
 
 ## Label fixes
 

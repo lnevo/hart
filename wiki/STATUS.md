@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-27 — NX **re-Discovered**: **39 pairs** (SML mode, not full lock). Occupancy smoke uses **BS Switch 1**. CTC Logic smoke **ok** (12 columns, 23 SIDI masts). SML still **93 dests**; 2035 occupancy hold kept. Reload **PanelPro**. Do not run USS with CATS CTC. Deploy `--pi --win`.
+Updated: 2026-08-27 — NextTrain is abandoned (not a HART desk). Node 13 occupancy walk-down **stuck**: 1301=OS 11 (was 118), house 1304=EH-3 / 1305=EH-2 / 1306=EH-1 (EH-1↔EH-3 swap), 1307=OS 9 (was 119). Mast `ISNX:*` is the live NX; do not merge AnyRail `ISIS200` NX.
 
 Updated: 2026-08-27 — CTC-number convert **finished**. Dispatcher MoveTo sensors are `MoveToOS_Barn_stored`; occupancy lookups are `BS …` (comments keep `Block n-n`). USS **v75**. Reload PanelPro, **Discover SML**. Do not run USS with CATS CTC. Deploy `--pi --win`.
 
@@ -372,8 +372,7 @@ Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.
 ## Remaining
 
 - Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
-- Dispatcher stub stations (EH, W-1/W-2, K, S-2…S-5): occupancy icons are on the panel; auto-dispatch still cannot start/stop there
-- Node 13 occupancy walk-down (1301=118, 1304–1306=house, 1307=119)
+- Dispatcher traininfo ordered-route smoke (422 files) — Stage 1 re-run, then `fix_traininfo_detection.py`
 
 ## Manual launch (local Mac only)
 
