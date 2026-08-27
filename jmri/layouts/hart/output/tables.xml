@@ -21196,7 +21196,7 @@
     <signalmasticon signalmast="113RB" x="1066" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>113RB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH134" x="1297" y="109" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH134" x="1297" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>120R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -21310,37 +21310,37 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalheadicon signalhead="IH141" x="1297" y="130" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH141" x="1297" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>120L</tooltip>
       <icons>
-        <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+        <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
         </held>
-        <dark url="preference:ctc/icons/sig-d1-unknown.gif" scale="1.0">
+        <dark url="preference:ctc/icons/sig-d1-unknown-w.gif" scale="1.0">
           <rotation>0</rotation>
         </dark>
-        <red url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+        <red url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
         </red>
-        <yellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <yellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </yellow>
-        <green url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+        <green url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
           <rotation>0</rotation>
         </green>
-        <lunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <lunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </lunar>
-        <flashred url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
+        <flashred url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashred>
-        <flashyellow url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <flashyellow url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashyellow>
-        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear.gif" scale="1.0">
+        <flashgreen url="preference:ctc/icons/sig-d1-slow-clear-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashgreen>
-        <flashlunar url="preference:ctc/icons/sig-d1-restricting.gif" scale="1.0">
+        <flashlunar url="preference:ctc/icons/sig-d1-restricting-w.gif" scale="1.0">
           <rotation>0</rotation>
         </flashlunar>
       </icons>
@@ -22050,8 +22050,8 @@
     <signalmasticon signalmast="113RA" x="1465" y="264" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="113RB" x="1465" y="325" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="114LB" x="1628" y="322" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="310" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="120L" x="1811" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="120R" x="1848" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="120L" x="1811" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="120R" x="1848" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="115LA" x="1665" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="114LA" x="1665" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <sensoricon sensor="NX 100L" x="382" y="242" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
