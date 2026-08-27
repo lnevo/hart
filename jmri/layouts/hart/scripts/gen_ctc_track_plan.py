@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v59).
+"""Generate the USS CTC track diagram from CATS Master 4 (v60).
 
-CATS cell grammar on an 18×18 grid, drawn with stock USS track GIFs
-(black punched to transparent so they can overlap). Occupancy jewels
-are the stock 21px USS lamps on every non-OS block. Switch
-correspondence stays a small points dot. Default write is GUIObjects.xml
-only.
+20 packed columns (device-map plates 1…39), CATS geometry stretched to
+the gold board. New plants are switch-only. Beans stay Switch 100–119.
+Default write is GUIObjects.xml only — CTC logic / tables.xml later.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v59_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v60_preview.png
 """
 from __future__ import annotations
 
@@ -28,16 +26,18 @@ JMRI_RES = Path("/Applications/JMRI/resources")
 U = "program:resources/icons/USS/"
 THIN = "preference:ctc/icons/"
 
-# Square cells so 45° legs meet. 17-slot gold board is 12 + 17*65 + 12.
+# Square cells. 20 packed tiles: 12 + 20*65 + 12 = 1324.
 # USS background: gold 0–31, silver 32–36, dark diagram 38–275.
 OX, OY = 8, 62
-CELL_W, CELL_H = 18, 18
-OS_Y = 226
+CELL_W, CELL_H = 21, 21
+OS_Y = 240
 STATION_Y = 42
+PANEL_W, PANEL_H = 1400, 800
 
-N_SLOTS = 17
-BLANK_SLOTS = {0, 4, 8, 12, 16}
-SWITCH_ONLY_SLOTS = {6, 7}
+N_SLOTS = 20
+BLANK_SLOTS: set[int] = set()
+# 119, 118, 116, 103, 104, 105, 106, 107, 108, 109 — switch-only, local later.
+SWITCH_ONLY_SLOTS = {4, 5, 6, 7, 8, 9, 10, 12, 13, 14}
 
 CREAM = dict(red=220, green=220, blue=180)
 WHITE = dict(red=255, green=255, blue=255)
@@ -67,11 +67,11 @@ PLANTS = {
     (55, 7): ("Switch 114", True),
 }
 # Stock USS tiles (transparent copies in ctc/icons/). Offsets center the
-# native GIF on the 18×18 CATS cell. Slashes stay half-cell custom tiles
+# native GIF on the CATS cell. Slashes stay half-cell custom tiles
 # at stock bar weight so frogs still meet.
-STOCK_H = ("stock-h.gif", -3, 5)       # line025 24×8
-STOCK_V = ("stock-v.gif", 5, -3)       # rotated line025 8×24
-STOCK_END = ("stock-end.gif", -4, 1)   # eotwht 26×16
+STOCK_H = ("stock-h.gif", -1, 6)       # line025 24×8 on 21×21
+STOCK_V = ("stock-v.gif", 6, -1)       # rotated line025 8×24
+STOCK_END = ("stock-end.gif", -2, 2)   # eotwht 26×16
 CELL_GIF = {
     "UPPERSLASH": "cell-us.gif",
     "LOWERSLASH": "cell-ls.gif",
@@ -108,30 +108,32 @@ SIGNALS = [
     ("115LB", 56, 5, "W", "h2", None),
 ]
 
-# Lever-column OS lamps (slot, sensor, tooltip). Crossovers get two.
-OS_ROW = [
-    (1, "Block 4-1", "OS 101"),
-    (2, "Block 4-2", "OS 100"),
-    (3, "Block 4-5", "OS 102"),
-    (5, "Block 13-3", "OS 117 (yard side)"),
-    (5, "Block 13-4", "OS 117b (main side)", 24),
-    (6, "Block 3-1", "OS 116"),
-    (7, "Block 3-2", "OS 103"),
-    (9, "Block 12-4", "OS 111a (Main West side)"),
-    (9, "Block 12-6", "OS 111b (yard side)", 24),
-    (10, "Block 12-7", "OS 110"),
-    (11, "Block 12-8", "OS 112"),
-    (13, "Block 1-5", "OS 113b (Main West side)"),
-    (13, "Block 1-6", "OS 113a (East Lead side)", 24),
-    (14, "Block 1-3", "OS 114"),
-    (15, "Block 1-4", "OS 115"),
-]
-
-OS_NUMBERS = [
-    (1, "101"), (2, "100"), (3, "102"),
-    (5, "117"), (6, "116"), (7, "103"),
-    (9, "111"), (10, "110"), (11, "112"),
-    (13, "113"), (14, "114"), (15, "115"),
+# Packed 20: device-map plate (odd) west→east. Beans remain Switch 100–119.
+# (slot, plate, [(sensor, tip), ...])
+COLUMNS = [
+    (0, "1", [("Block 4-2", "OS 100")]),
+    (1, "3", [("Block 4-1", "OS 101")]),
+    (2, "5", [("Block 4-5", "OS 102")]),
+    (3, "7", [("Block 13-3", "OS 117 (yard side)"),
+              ("Block 13-4", "OS 117b (main side)")]),
+    (4, "9", [("Block 13-8", "OS 119")]),
+    (5, "11", [("Block 13-2", "OS 118")]),
+    (6, "13", [("Block 3-1", "OS 116")]),
+    (7, "15", [("Block 3-2", "OS 103")]),
+    (8, "17", [("Block 3-3", "OS 104")]),
+    (9, "19", [("Block 3-5", "OS 105")]),
+    (10, "21", [("Block 3-7", "OS 106")]),
+    (11, "23", [("Block 12-4", "OS 111a (Main West side)"),
+                ("Block 12-6", "OS 111b (yard side)")]),
+    (12, "25", [("Block 12-1", "OS 107")]),
+    (13, "27", [("Block 12-3", "OS 108")]),
+    (14, "29", [("Block 12-5", "OS 109")]),
+    (15, "31", [("Block 12-7", "OS 110")]),
+    (16, "33", [("Block 12-8", "OS 112")]),
+    (17, "35", [("Block 1-5", "OS 113b (Main West side)"),
+                ("Block 1-6", "OS 113a (East Lead side)")]),
+    (18, "37", [("Block 1-3", "OS 114")]),
+    (19, "39", [("Block 1-4", "OS 115")]),
 ]
 
 STATION_NAMES = {"BRICK", "PLANE", "BARN", "EAST END", "PRINCESS"}
@@ -510,12 +512,12 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         lamps.append((sensor, jx, jy, bname or sensor))
         placed.add(sensor)
 
-    for row in OS_ROW:
-        slot, sensor, tip = row[0], row[1], row[2]
-        extra = row[3] if len(row) > 3 else 0
-        lamps.append((sensor, slot * 65 + 34 + extra, OS_Y, tip))
+    for slot, _plate, lamps_spec in COLUMNS:
+        for i, (sensor, tip) in enumerate(lamps_spec):
+            extra = 24 if i else 0
+            lamps.append((sensor, slot * 65 + 34 + extra, OS_Y, tip))
 
-    texts.append((415, 8, "HART RAILROAD - NEVILLE ISLAND", 16, dict(red=0, green=0, blue=0)))
+    texts.append((480, 8, "HART RAILROAD - NEVILLE ISLAND", 16, dict(red=0, green=0, blue=0)))
     for (x, y), cell in cells.items():
         name = cell["name"]
         if not name or name in SKIP_LABELS:
@@ -525,9 +527,9 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         if name in STATION_NAMES:
             texts.append((ux(x), STATION_Y, name, 12, WHITE))
             continue
-        texts.append((ux(x) + 22, bar_y(y) + 4, name, 8, CREAM))
-    for slot, num in OS_NUMBERS:
-        texts.append((slot * 65 + 37, OS_Y + 23, num, 8, WHITE))
+        texts.append((ux(x) + CELL_W + 1, bar_y(y) + 4, name, 8, CREAM))
+    for slot, plate, _lamps in COLUMNS:
+        texts.append((slot * 65 + 37, OS_Y + 23, plate, 8, WHITE))
     return turnouts, tracks, lamps, texts
 
 
@@ -582,7 +584,7 @@ STRIP = [
         re.S,
     ),
     re.compile(
-        r"\s*<positionablelabel\b[^>]*text=\"(?:BRICK|PLANE|BARN|EAST END|PRINCESS|1[01][0-9]|HART RAILROAD[^\"]*)\".*?</positionablelabel>",
+        r"\s*<positionablelabel\b[^>]*text=\"(?:BRICK|PLANE|BARN|EAST END|PRINCESS|\d+|HART RAILROAD[^\"]*)\".*?</positionablelabel>",
         re.S,
     ),
     re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:UNLOCKEDINDICATOR\".*?</sensoricon>", re.S),
@@ -598,7 +600,7 @@ def apply(text: str, cells: dict, close_tag: str = "</paneleditor>") -> str:
         text = pat.sub("", text)
     text = re.sub(
         r'(<paneleditor\b[^>]*?) x="-?\d+" y="-?\d+" height="\d+" width="\d+"',
-        r'\1 x="40" y="40" height="780" width="1190"',
+        r'\1 x="40" y="40" height="%d" width="%d"' % (PANEL_H, PANEL_W),
         text,
         count=1,
     )
@@ -617,7 +619,7 @@ def resolve_icon(url: str) -> Path | None:
 def render_preview(gui_text: str, out: Path) -> None:
     from PIL import Image, ImageDraw, ImageFont
 
-    W, H = 1190, 280
+    W, H = PANEL_W, 300
     S = 2
     img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 255))
     draw = ImageDraw.Draw(img)

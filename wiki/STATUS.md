@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — USS CTC **v60** render: 20 packed columns, device-map plates **1…39**, schematic stretched to the gold board. New plants (119/118/104–109) are switch-only. Beans still Switch 100–119. CTC logic / Local default / `tables.xml` not in this pass. Preview `cats/screenshots/master4/uss_ctc_v60_preview.png`. Not deployed.
+
 Updated: 2026-08-26 — USS CTC **v59** drops the schematic 16px so CP names sit in the dark diagram (not the gold/silver cap). Preview `cats/screenshots/master4/uss_ctc_v59_preview.png`. Not deployed.
 
 Updated: 2026-08-26 — USS CTC **v58** uses stock USS track bars (`line025` / `eotwht`, black punched transparent) and puts the 21px occupancy jewels back on every non-switch block (at the CATS label). `tables.xml` unchanged. Preview `cats/screenshots/master4/uss_ctc_v58_preview.png`. Not deployed.
