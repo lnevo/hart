@@ -4,7 +4,7 @@ Source: `cats/panels/HART_Master4.xml` (Designer save, 63×16, 1920×540).
 Wire: `python3 cats/scripts/wire_hart_master4.py` → `HART_Master4_wired.xml`.  
 `--live` copies that onto CATS CTC / CATS ABS. **This is the live Digicon.**
 
-The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. Recent geometry edits were saved into `HART_Master4_wired.xml`; copy that back to `HART_Master4.xml` before a wire pass. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. It does not relocate labels, move lamps, insert rails, or add/remove gaps.
+The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. Recent geometry edits were saved into `HART_Master4_wired.xml`; copy that back to `HART_Master4.xml` before a wire pass. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. Track labels (`FONT_LABEL`) on Y≥5 are lifted `LOWCENT` → `UPCENT`. It does not move lamps, insert rails, or add/remove gaps.
 
 **SHARED wraps (N/X + occupancy):** `(1,6)` LEFT ↔ `(1,8)` LEFT both **Main West**; `(63,6)` RIGHT ↔ `(63,7)` RIGHT both **McKeesport**.
 
@@ -50,20 +50,20 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Signals
 
-23 Designer lamps, named in place. **102LA** is 1-head (`LAMP1` / `IH434`). **120L** `(60,6)` RIGHT is `IH141` (was 115R). **120R** `(61,6)` LEFT is `IH134` (was 114R). **112R** is `(44,8)` LEFT on OS 112. Occupancy cut Main East \| OS 112 is `(43,8)` RIGHT \| `(44,8)` LEFT. **100L** is `(3,8)` LEFT. **110R** is `(42,7)` BOTTOM on OS 110 at the OS 110 \| OS 109 cut. **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. **117RA** is `LAMP1` on this board; field/JMRI still 2-head.
+23 Designer lamps, named in place. **102LA** is 1-head (`LAMP1` / `IH434`). **120L** `(60,6)` RIGHT is `IH141` (was 115R). **120R** `(61,6)` LEFT is `IH134` (was 114R). **112R** is `(44,8)` LEFT on OS 112. Occupancy cut Main East \| OS 112 is `(43,8)` RIGHT \| `(44,8)` LEFT. **100L** is `(3,8)` LEFT. **110R** is `(42,7)` BOTTOM on OS 110 at the OS 110 \| OS 109 cut. **101RA** is W-1 `(6,10)` RIGHT; **101RB** is W-2 `(6,9)` RIGHT. **117RA** is `LAMP1` on this board; field/JMRI still 2-head. Princess westbounds match LE: **115LB** / **114LB** (`LAMP2`) on McKees Rocks / McKeesport; **115LA** / **114LA** (`LAMP1`) on K-1 / K-2.
 
 ## Remaining gaps
 
-- USS CTC `GUIObjects.xml` is **v60** (20 packed columns, device-map plates 1…39). Track diagram only — CTC columns / Local default / bean rename not applied. `tables.xml` still embeds the pre-Master 4 paneleditor.
+- USS CTC `GUIObjects.xml` is **v61** (20 packed columns). OS jewels sit at each plant throat; Brick-Plane / W-1 / W-2 occupancy is centered; track labels sit above the rail. CTC columns / Local default / bean rename not applied. `tables.xml` still embeds the pre-Master 4 paneleditor.
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
-- CATS Princess **114LA/115LA** are field dwarfs (`LAMP1` / `single`); **114LB/115LB** are 2-head (`LAMP2` / `double`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
+- CATS Princess lamps match LE: **115LB** McKees Rocks and **114LB** McKeesport are 2-head (`LAMP2` / `double`); **115LA** K-1 and **114LA** K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
 - SML re-Discovered after 120L facing west: **120L→115LB/114LB**, **120R→115LB/114LB**. **115LB** dests stay `111L`/`112L`; **114LB** stays `112L`. Reload **CATS CTC** or **CATS ABS**.
 - Sheets push stays human-gated.
 
 ## Label fixes
 
-Designer captions are used as saved. The wire script does not relocate labels.
+Designer captions stay as saved. Wire lifts `FONT_LABEL` on operating rows (`Y≥5`) from `LOWCENT` to `UPCENT` so names sit above the rail. `FONT_CP` station names are unchanged.
 
 ## Live launch
 

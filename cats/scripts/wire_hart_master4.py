@@ -80,7 +80,7 @@ EXTRA_TRACKS: dict[tuple[int, int], str] = {}
 # Named BLOCK only on Designer occupancy cuts (do not add/remove gaps).
 ANCHORS: list[tuple[int, int, str, str]] = [
     # K-1 | OS 115
-    (56, 5, "RIGHT", "OS 115"),  # 115LB
+    (56, 5, "RIGHT", "OS 115"),  # 115LA (K-1 dwarf)
     (57, 5, "LEFT", "K-1"),
     # Main West west rim (Y=6) SHARED-joins west-of-Brick (Y=8) for N/X.
     (1, 6, "LEFT", "Main West"),
@@ -103,7 +103,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (52, 7, "TOP", "OS 113a"),
     (53, 6, "RIGHT", "OS 113b"),
     (54, 6, "LEFT", "OS 115"),
-    (56, 6, "RIGHT", "OS 115"),  # 115LA
+    (56, 6, "RIGHT", "OS 115"),  # 115LB (McKees Rocks 2-head)
     (57, 6, "LEFT", "McKees Rocks"),
     (60, 6, "RIGHT", "McKees Rocks"),  # 120L
     (61, 6, "LEFT", "McKeesport"),  # 120R
@@ -143,7 +143,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (51, 7, "LEFT", "OS 113a"),  # 113RB
     (53, 7, "RIGHT", "OS 113a"),
     (54, 7, "LEFT", "OS 114"),
-    (56, 7, "RIGHT", "OS 114"),  # 114LA
+    (56, 7, "RIGHT", "OS 114"),  # 114LB (McKeesport 2-head)
     (57, 7, "LEFT", "McKeesport"),
     (63, 7, "RIGHT", "McKeesport"),
     # Brick / Plane / E Main Ext / 117b
@@ -204,7 +204,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (7, 10, "LEFT", "W-1"),
     (9, 10, "RIGHT", "W-1"),
     # K-2
-    (56, 8, "RIGHT", "OS 114"),  # 114LB
+    (56, 8, "RIGHT", "OS 114"),  # 114LA (K-2 dwarf)
     (57, 8, "LEFT", "K-2"),
 ]
 # Name existing lamps only (keep Designer PANELSIGNAL).
@@ -222,16 +222,16 @@ SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
     (45, 6, "RIGHT"): "111L",
     (51, 6, "LEFT"): "113RA",
     (51, 7, "LEFT"): "113RB",
-    (56, 6, "RIGHT"): "115LA",
-    (56, 5, "RIGHT"): "115LB",
+    (56, 6, "RIGHT"): "115LB",  # McKees Rocks
+    (56, 5, "RIGHT"): "115LA",  # K-1
     (60, 6, "RIGHT"): "120L",
     (61, 6, "LEFT"): "120R",
     (39, 7, "LEFT"): "111RB",
     (42, 7, "BOTTOM"): "110R",
     (45, 7, "RIGHT"): "112L",
     (44, 8, "LEFT"): "112R",  # panel CP name; no JMRI mast yet
-    (56, 7, "RIGHT"): "114LA",
-    (56, 8, "RIGHT"): "114LB",
+    (56, 7, "RIGHT"): "114LB",  # McKeesport
+    (56, 8, "RIGHT"): "114LA",  # K-2
 }
 
 # Designer captions are in the right cells; do not relocate them.
@@ -939,6 +939,15 @@ def strip_blk_facing_plain(tp: ET.Element) -> int:
 
 def fix_labels(tp: ET.Element) -> int:
     n = 0
+    for sec in tp.findall("SECTION"):
+        if int(sec.get("Y", "0")) < 5:
+            continue
+        nm = sec.find("SEC_NAME")
+        if nm is None:
+            continue
+        if nm.get("FONT_NAME") == "FONT_LABEL" and nm.get("LOC_NAME") == "LOWCENT":
+            nm.set("LOC_NAME", "UPCENT")
+            n += 1
     by_xy = {(int(s.get("X")), int(s.get("Y"))): s for s in tp.findall("SECTION")}
     for xy, text in LABEL_FIXES.items():
         s = by_xy.get(xy)
@@ -954,7 +963,7 @@ def fix_labels(tp: ET.Element) -> int:
             s = ET.Element("SECTION", {"X": str(xy[0]), "Y": str(xy[1])})
             tp.append(s)
             by_xy[xy] = s
-        loc = LABEL_ALIGN.get(xy, "LOWCENT")
+        loc = LABEL_ALIGN.get(xy, "UPCENT")
         nm = s.find("SEC_NAME")
         if nm is None:
             ET.SubElement(

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v60).
+"""Generate the USS CTC track diagram from CATS Master 4 (v61).
 
 20 packed columns (device-map plates 1…39), CATS geometry stretched to
 the gold board. New plants are switch-only. Beans stay Switch 100–119.
 Default write is GUIObjects.xml only — CTC logic / tables.xml later.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v60_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v61_preview.png
 """
 from __future__ import annotations
 
@@ -18,7 +18,10 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-CATS_XML = ROOT / "cats/panels/HART_Master4.xml"
+CATS_XML = ROOT / "cats/panels/HART_Master4_wired.xml"
+CATS_DESIGNER = ROOT / "cats/panels/HART_Master4.xml"
+if not CATS_XML.is_file():
+    CATS_XML = CATS_DESIGNER
 GUI_XML = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 THIN_DIR = ROOT / "jmri/layouts/hart/ctc/icons"
 JMRI_RES = Path("/Applications/JMRI/resources")
@@ -78,8 +81,42 @@ CELL_GIF = {
     "UPPERBACKSLASH": "cell-ub.gif",
     "LOWERBACKSLASH": "cell-lb.gif",
 }
+# Occupancy jewels centered on these named segments (CATS cell).
+CENTER_OCC = {
+    "Brick-Plane": (6, 8),
+    "W-1": (8, 10),
+    "W-2": (8, 9),
+}
+
 # CATS has no occupancy edge on Main East; JMRI sensor is Block 2-3.
 FALLBACK_LABEL_SENSORS = {"Main East": ("Block 2-3", "Main East")}
+
+# OS occupancy-cut sits at the frog; lamp goes left/right of the points.
+OS_FROG = {
+    "OS 100": (4, 8),
+    "OS 101": (5, 9),
+    "OS 102": (9, 8),
+    "OS 117": (15, 7),
+    "OS 117b": (15, 8),
+    "OS 119": (24, 8),
+    "OS 118": (26, 8),
+    "OS 116": (27, 7),
+    "OS 103": (30, 7),
+    "OS 104": (31, 8),
+    "OS 105": (32, 9),
+    "OS 106": (33, 10),
+    "OS 111a": (40, 6),
+    "OS 111b": (40, 7),
+    "OS 110": (42, 7),
+    "OS 112": (44, 7),
+    "OS 109": (41, 8),
+    "OS 108": (40, 9),
+    "OS 107": (39, 10),
+    "OS 113b": (52, 6),
+    "OS 113a": (52, 7),
+    "OS 115": (55, 6),
+    "OS 114": (55, 7),
+}
 
 # (mast, cats_x, cats_y, facing, kind, IH* or None)
 SIGNALS = [
@@ -101,11 +138,11 @@ SIGNALS = [
     ("113RA", 51, 6, "E", "h2", None),
     ("113RB", 51, 7, "E", "h2", None),
     ("120R", 61, 6, "E", "d1", "IH134"),
-    ("114LA", 56, 7, "W", "d1", "IH143"),
-    ("114LB", 56, 8, "W", "h2", None),
+    ("115LB", 56, 6, "W", "h2", None),
+    ("115LA", 56, 5, "W", "d1", "IH142"),
+    ("114LB", 56, 7, "W", "h2", None),
+    ("114LA", 56, 8, "W", "d1", "IH143"),
     ("120L", 60, 6, "W", "d1", "IH141"),
-    ("115LA", 56, 6, "W", "d1", "IH142"),
-    ("115LB", 56, 5, "W", "h2", None),
 ]
 
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 100–119.
@@ -440,6 +477,42 @@ def _jewel_xy(cx: int, cy: int) -> tuple[int, int]:
     return ux(cx) + (CELL_W - 21) // 2, bar_y(cy) + (CELL_H - 21) // 2
 
 
+def _throat_cell(os_cells: set[tuple[int, int]], frog: tuple[int, int]) -> tuple[int, int]:
+    """Cell beside the points, not the frog and not a far signal cell."""
+    fx, fy = frog
+    adj = [p for p in os_cells if abs(p[0] - fx) + abs(p[1] - fy) == 1]
+    left = [p for p in adj if p[0] < fx and p[1] == fy]
+    if left:
+        return left[0]
+    vert = [p for p in adj if p[0] == fx]
+    if vert:
+        return vert[0]
+    if frog in os_cells:
+        return frog
+    right = [p for p in adj if p[0] > fx and p[1] == fy]
+    if right:
+        return right[0]
+    if os_cells:
+        return min(os_cells, key=lambda p: abs(p[0] - fx) + abs(p[1] - fy))
+    return frog
+
+
+def _os_jewel_xy(pick: tuple[int, int], frog: tuple[int, int]) -> tuple[int, int]:
+    jx, jy = _jewel_xy(*pick)
+    fx, fy = frog
+    if pick[0] < fx:
+        jx -= 6
+    elif pick[0] > fx:
+        jx += 6
+    elif pick[1] < fy:
+        jy -= 6
+    elif pick[1] > fy:
+        jy += 6
+    else:
+        jx -= CELL_W
+    return jx, jy
+
+
 def build_geometry(cells: dict) -> tuple[list, list, list, list]:
     turnouts = []
     tracks = []
@@ -483,6 +556,20 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
                 name_sensor[n] = sensor
 
     placed: set[str] = set()
+    for sensor, hits in occ.items():
+        os_hits = [(x, y, n) for x, y, n in hits if n.startswith("OS ")]
+        if not os_hits:
+            continue
+        os_name = os_hits[0][2]
+        frog = OS_FROG.get(os_name)
+        os_cells = {(x, y) for x, y, _n in os_hits}
+        if frog is None:
+            frog = min(os_cells)
+        pick = _throat_cell(os_cells, frog)
+        jx, jy = _os_jewel_xy(pick, frog)
+        lamps.append((sensor, jx, jy, os_name))
+        placed.add(sensor)
+
     for (x, y), cell in cells.items():
         raw = cell["name"]
         if not raw or raw in SKIP_LABELS or raw in STATION_NAMES:
@@ -494,7 +581,8 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
             sensor, tip = FALLBACK_LABEL_SENSORS[raw]
         if not sensor or sensor in placed:
             continue
-        jx, jy = _jewel_xy(x, y)
+        cx, cy = CENTER_OCC.get(name, (x, y))
+        jx, jy = _jewel_xy(cx, cy)
         lamps.append((sensor, jx, jy, tip))
         placed.add(sensor)
 
@@ -508,7 +596,9 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         my = ys[len(ys) // 2]
         on_row = sorted((h for h in non_os if h[1] == my), key=lambda h: h[0])
         hx, hy, bname = on_row[len(on_row) // 2]
-        jx, jy = _jewel_xy(hx, hy)
+        name = _norm_name(bname)
+        cx, cy = CENTER_OCC.get(name, (hx, hy))
+        jx, jy = _jewel_xy(cx, cy)
         lamps.append((sensor, jx, jy, bname or sensor))
         placed.add(sensor)
 
@@ -516,6 +606,12 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         for i, (sensor, tip) in enumerate(lamps_spec):
             extra = 24 if i else 0
             lamps.append((sensor, slot * 65 + 34 + extra, OS_Y, tip))
+
+    jewel_cells: set[tuple[int, int]] = set()
+    for _sensor, jx, jy, _tip in lamps:
+        if jy >= OS_Y - 5:
+            continue
+        jewel_cells.add(((jx - OX) // CELL_W + 1, (jy - OY) // CELL_H + 5))
 
     texts.append((480, 8, "HART RAILROAD - NEVILLE ISLAND", 16, dict(red=0, green=0, blue=0)))
     for (x, y), cell in cells.items():
@@ -527,7 +623,13 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         if name in STATION_NAMES:
             texts.append((ux(x), STATION_Y, name, 12, WHITE))
             continue
-        texts.append((ux(x) + CELL_W + 1, bar_y(y) + 4, name, 8, CREAM))
+        lx, ly = x, y
+        if (lx, ly) in jewel_cells:
+            if (lx + 1, ly) not in jewel_cells:
+                lx += 1
+            elif (lx - 1, ly) not in jewel_cells:
+                lx -= 1
+        texts.append((ux(lx) + 1, bar_y(ly) - 6, name, 8, CREAM))
     for slot, plate, _lamps in COLUMNS:
         texts.append((slot * 65 + 37, OS_Y + 23, plate, 8, WHITE))
     return turnouts, tracks, lamps, texts
