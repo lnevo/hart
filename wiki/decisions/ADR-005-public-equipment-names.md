@@ -1,6 +1,6 @@
 # ADR-005 — Public equipment names (switch / signal / track)
 
-- **Status:** Accepted (CTC-number convert executed 2026-08-27; Discover still due)
+- **Status:** Accepted (CTC-number convert + native SML Discover 2026-08-27)
 - **Date:** 2026-08-20
 - **Deciders:** lnevo
 - **Amends:** [ADR-002](ADR-002-naming-contract.md) — **Barn** is Switch 7 / 7b; **West Yard** is the yard at Brick; signal names are numbers with `Mast`/`Head` prefixes; plates **W-1 / W-2**, **S-R** (run-through) and **S-1…S-4**, **EH-1 / EH-2 / EH-3**
@@ -30,7 +30,7 @@ Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R
 
 ## Live inventory (2026-08-27)
 
-CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; comments keep `Block n-n`. Dispatcher MoveTo sensors are `MoveToOS_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Re-Discover SML after reload.
+CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; comments keep `Block n-n`. Dispatcher MoveTo sensors are `MoveToOS_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**).
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 

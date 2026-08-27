@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-27 — PanelPro load error 2: block paths / Princess routes still had `systemName="Switch 116"` (old userName). JMRI invented OpenLCB `MTSwitch 116`/`MTSwitch 114`. Those lookups now use MQTT `M2T*`. Audit checks it. **Discover SML still due** after a clean reload.
+Updated: 2026-08-27 — Native SML **re-Discovered**: **33 sources / 93 dests**. Mast 2035 occupancy hold on **BS McKees Rocks** kept; 2035→38LB stays disabled. Reload **PanelPro**. Do not run USS with CATS CTC. Deploy `--pi --win`.
 
 Updated: 2026-08-27 — CTC-number convert **finished**. Dispatcher MoveTo sensors are `MoveToOS_Barn_stored`; occupancy lookups are `BS …` (comments keep `Block n-n`). USS **v75**. Reload PanelPro, **Discover SML**. Do not run USS with CATS CTC. Deploy `--pi --win`.
 

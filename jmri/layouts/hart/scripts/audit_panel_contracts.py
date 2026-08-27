@@ -313,40 +313,40 @@ def audit_turnout_feedback_sensors(root: ET.Element, audit: Audit, *, required: 
     audit.facts["turnout_feedback"] = tuple(sorted(missing or stale_old))
 
 
-def _manager_turnout_system_names(root: ET.Element) -> set[str]:
-    names: set[str] = set()
-    for manager in root.findall("turnouts"):
-        for turnout in manager.findall("turnout"):
-            sn = text(turnout, "systemName") or (turnout.get("systemName") or "").strip()
-            if sn:
-                names.add(sn)
-    return names
-
-
 def audit_turnout_systemname_lookups(
     root: ET.Element, audit: Audit, *, required: bool
 ) -> None:
-    """Block-path and route turnout lookups must be real MQTT/LCC systemNames.
+    """Block-path and route turnout lookups must resolve to a live turnout.
 
-    Stale userNames (Switch 116) make OpenLCB invent MTSwitch 116.
+    JMRI may store M2T* or the public userName (Switch 13). Old convert names
+    (Switch 116) do not resolve and make OpenLCB invent MTSwitch 116.
     """
     problem = audit.error if required else audit.warn
-    real = _manager_turnout_system_names(root)
+    real_sys: set[str] = set()
+    real_user: set[str] = set()
+    for manager in root.findall("turnouts"):
+        for turnout in manager.findall("turnout"):
+            sn = text(turnout, "systemName") or (turnout.get("systemName") or "").strip()
+            un = text(turnout, "userName")
+            if sn:
+                real_sys.add(sn)
+            if un:
+                real_user.add(un)
     missing: list[str] = []
     for setting in root.iter("beansetting"):
         turnout = setting.find("turnout")
         if turnout is None:
             continue
         sn = (turnout.get("systemName") or text(turnout, "systemName")).strip()
-        if sn and sn not in real:
+        if sn and sn not in real_sys and sn not in real_user:
             missing.append(f"path {sn}")
     for route_to in root.iter("routeOutputTurnout"):
         sn = (route_to.get("systemName") or "").strip()
-        if sn and sn not in real:
+        if sn and sn not in real_sys and sn not in real_user:
             missing.append(f"route {sn}")
     if missing:
         problem(
-            "turnout lookups are not turnout systemNames: "
+            "turnout lookups do not resolve to a turnout systemName or userName: "
             + "; ".join(missing[:8])
             + (" ..." if len(missing) > 8 else "")
         )
