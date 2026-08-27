@@ -54,7 +54,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Remaining gaps
 
-- USS CTC `GUIObjects.xml` is **v58**, generated from live CATS Master 4 (`gen_ctc_track_plan.py`). Stock USS track bars + occupancy jewels on every non-OS block. `tables.xml` still embeds the pre-Master 4 paneleditor until that is replaced.
+- USS CTC `GUIObjects.xml` is **v59**, generated from live CATS Master 4 (`gen_ctc_track_plan.py`). Stock USS track bars + occupancy jewels on every non-OS block. Schematic sits in the dark diagram so CP names are not clipped by the gold cap. `tables.xml` still embeds the pre-Master 4 paneleditor until that is replaced.
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
 - CATS Princess **114LA/115LA** are field dwarfs (`LAMP1` / `single`); **114LB/115LB** are 2-head (`LAMP2` / `double`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
@@ -85,13 +85,13 @@ Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. **CATS Master4** (`/A
 
 CATS is the Digicon. The USS lever machine is a **separate** JMRI Panel Editor panel, always titled **USS CTC**. LogixNG `IQC:AUTO:0002` **hides** that panel on CATS start.
 
-The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v58**, generated from `cats/panels/HART_Master4.xml`). Lever UniqueIDs are unchanged. That `<paneleditor name="USS CTC">` is also embedded in `tables/new_tables.xml` and the deploy bundle `jmri/layouts/hart/output/tables.xml` — those copies are still the pre-Master 4 board until replaced. PanelPro loads the host `tables.xml`, not `preference:ctc/GUIObjects.xml` alone. Deploy copies both.
+The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v59**, generated from `cats/panels/HART_Master4.xml`). Lever UniqueIDs are unchanged. That `<paneleditor name="USS CTC">` is also embedded in `tables/new_tables.xml` and the deploy bundle `jmri/layouts/hart/output/tables.xml` — those copies are still the pre-Master 4 board until replaced. PanelPro loads the host `tables.xml`, not `preference:ctc/GUIObjects.xml` alone. Deploy copies both.
 
 ```bash
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v58_preview.png
+python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v59_preview.png
 ```
 
 Regen also copies GIFs + `GUIObjects.xml` into local `*.jmri/ctc/` (`preference:ctc/`).
 
-Static preview: `cats/screenshots/master4/uss_ctc_v58_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v57`.
+Static preview: `cats/screenshots/master4/uss_ctc_v59_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v58`.

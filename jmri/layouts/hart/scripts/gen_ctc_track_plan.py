@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v58).
+"""Generate the USS CTC track diagram from CATS Master 4 (v59).
 
 CATS cell grammar on an 18×18 grid, drawn with stock USS track GIFs
 (black punched to transparent so they can overlap). Occupancy jewels
@@ -8,7 +8,7 @@ correspondence stays a small points dot. Default write is GUIObjects.xml
 only.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v58_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v59_preview.png
 """
 from __future__ import annotations
 
@@ -29,10 +29,11 @@ U = "program:resources/icons/USS/"
 THIN = "preference:ctc/icons/"
 
 # Square cells so 45° legs meet. 17-slot gold board is 12 + 17*65 + 12.
-OX, OY = 8, 46
+# USS background: gold 0–31, silver 32–36, dark diagram 38–275.
+OX, OY = 8, 62
 CELL_W, CELL_H = 18, 18
-OS_Y = 210
-STATION_Y = 32
+OS_Y = 226
+STATION_Y = 42
 
 N_SLOTS = 17
 BLANK_SLOTS = {0, 4, 8, 12, 16}
@@ -616,7 +617,7 @@ def resolve_icon(url: str) -> Path | None:
 def render_preview(gui_text: str, out: Path) -> None:
     from PIL import Image, ImageDraw, ImageFont
 
-    W, H = 1190, 250
+    W, H = 1190, 280
     S = 2
     img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 255))
     draw = ImageDraw.Draw(img)

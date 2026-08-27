@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — USS CTC **v59** drops the schematic 16px so CP names sit in the dark diagram (not the gold/silver cap). Preview `cats/screenshots/master4/uss_ctc_v59_preview.png`. Not deployed.
+
 Updated: 2026-08-26 — USS CTC **v58** uses stock USS track bars (`line025` / `eotwht`, black punched transparent) and puts the 21px occupancy jewels back on every non-switch block (at the CATS label). `tables.xml` unchanged. Preview `cats/screenshots/master4/uss_ctc_v58_preview.png`. Not deployed.
 
 Updated: 2026-08-26 — USS CTC **v57** cell/pts/occ icons installed into this Mac's JMRI profiles (`preference:ctc/icons/`). Reload **USS CTC**. `tables.xml` still pre-Master 4. Not deployed to Pi.
