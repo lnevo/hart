@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v62).
+"""Generate the USS CTC track diagram from CATS Master 4 (v63).
 
 20 packed columns (device-map plates 1…39). 111 sits on column 12
-(slot 11 / plate 23). Levers are shifted onto those slots.
+with fill rails through the shift. Lever-row OS jewels are off.
 Default write is GUIObjects.xml only — new UniqueIDs / tables.xml later.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v62_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v63_preview.png
 """
 from __future__ import annotations
 
@@ -97,11 +97,16 @@ SHIFT_CELLS = {(x, y) for x in range(38, 41) for y in (6, 7)}
 
 HIDE_TRACK_LABELS = {
     "E Main Ext", "East Main Ext", "West Main Ext", "East Lead",
+    "Main West", "Main East",
 }
-LABEL_LEFT = {"EH-1", "EH-2"}
+LABEL_LEFT = {"EH-1", "EH-2", "EH-3", "Barn"}
 LABEL_AT = {
     "K-1": (59, 5),
     "K-2": (59, 8),
+    "Barn": (21, 7),
+    "EH-1": (21, 8),
+    "EH-2": (21, 9),
+    "EH-3": (21, 10),
 }
 
 # Existing CTC UniqueIDs → 20-col slot (odd = switch, even = its signal).
@@ -154,7 +159,7 @@ OS_FROG = {
 SIGNALS = [
     ("101RA", 6, 10, "E", "d1", "IH436"),
     ("101RB", 6, 9, "E", "d1", "IH437"),
-    ("100L", 3, 8, "E", "h2", None),  # CATS SIGORIENT RIGHT
+    ("100L", 3, 8, "W", "h2", None),
     ("102LA", 10, 7, "W", "d1", "IH434"),
     ("102LB", 10, 8, "W", "h2", None),
     ("117RA", 14, 7, "E", "d1", "IH1332"),
@@ -575,6 +580,11 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
                 gif, dx, dy = STOCK_END
                 tracks.append((ux(x, y) + dx, bar_y(y) + dy, gif, 0))
 
+    # 111 shift leaves a 3-cell hole at the original frog; fill with mains.
+    gif, dx, dy = STOCK_H
+    for x, y in SHIFT_CELLS:
+        tracks.append((OX + (x - 1) * CELL_W + dx, bar_y(y) + dy, gif, 0))
+
     occ: dict[str, list[tuple[int, int, str]]] = defaultdict(list)
     name_sensor: dict[str, str] = {}
     for (x, y), cell in cells.items():
@@ -635,11 +645,6 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         lamps.append((sensor, jx, jy, bname or sensor))
         placed.add(sensor)
 
-    for slot, _plate, lamps_spec in COLUMNS:
-        for i, (sensor, tip) in enumerate(lamps_spec):
-            extra = 24 if i else 0
-            lamps.append((sensor, slot * 65 + 34 + extra, OS_Y, tip))
-
     jewel_cells: set[tuple[int, int]] = set()
     for _sensor, jx, jy, _tip in lamps:
         if jy >= OS_Y - 5:
@@ -667,6 +672,9 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
                 elif (lx - prefer, ly) not in jewel_cells:
                     lx -= prefer
         texts.append((ux(lx, ly) + 1, bar_y(ly) - 6, name, 8, CREAM))
+    main_x = 12 + 65 * 8 + 65  # packed columns 9–10
+    texts.append((main_x, bar_y(6) - 6, "Main", 8, CREAM))
+    texts.append((main_x, bar_y(12) - 6, "Main", 8, CREAM))
     for slot, plate, _lamps in COLUMNS:
         texts.append((slot * 65 + 37, OS_Y + 23, plate, 8, WHITE))
     return turnouts, tracks, lamps, texts
