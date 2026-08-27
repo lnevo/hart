@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v75).
+"""Generate the USS CTC track diagram from CATS Master 4 (v76).
 
 20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
 101 is L/N, 102 is L/N, 117 is LNR. Mast 2035 is named L but faces east (into
-the OS McKees Rocks wrap) under Mast 2036.
+the OS McKees Rocks wrap) under Mast 2036. Lever number plates: odd on SWITCH,
+even on SIGNAL (same seats as the first 15-column machine).
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v75_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v76_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
@@ -472,6 +473,14 @@ LOCK_CAP = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="fals
       <tooltip>Text Label</tooltip>
     </positionablelabel>"""
 
+# Original 15-col machine: odd on SWITCH (y=356), even on SIGNAL (y=470),
+# centred on the 65px plate. x = column origin + 29.
+PLATE_NUM = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="{text}" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>"""
+SWITCH_PLATE_Y = 356
+SIGNAL_PLATE_Y = 470
+
 SIG_LEVER = """<multisensoricon x="{x}" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS{uid}:LDGL,IS{uid}:NGL,IS{uid}:RDGL</tooltip>
       <active url="{u}plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS{uid}:LDGL">
@@ -869,6 +878,10 @@ def build_block(cells: dict) -> str:
             uid=SLOT_LOCK_UID[slot], x=origin + 21, u=U))
         parts.append(LOCK_CAP.format(x=origin + 48, y=536, text="Local"))
         parts.append(LOCK_CAP.format(x=origin + 48, y=560, text="Locked"))
+        nx = origin + 29
+        parts.append(PLATE_NUM.format(x=nx, y=SWITCH_PLATE_Y, text=str(2 * slot + 1)))
+        if slot not in SWITCH_ONLY_SLOTS:
+            parts.append(PLATE_NUM.format(x=nx, y=SIGNAL_PLATE_Y, text=str(2 * slot + 2)))
     return "    " + "\n    ".join(parts) + "\n"
 
 
@@ -1116,7 +1129,7 @@ def resolve_icon(url: str) -> Path | None:
 def render_preview(gui_text: str, out: Path) -> None:
     from PIL import Image, ImageDraw, ImageFont
 
-    W, H = PANEL_W, 300
+    W, H = PANEL_W, 560
     S = 2
     img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 255))
     draw = ImageDraw.Draw(img)
@@ -1261,7 +1274,7 @@ def main() -> None:
     if NEW_TABLES.is_file() and (
         not args.tables or args.tables.resolve() != NEW_TABLES.resolve()
     ):
-        embed(NEW_TABLES, replace_panel=False)
+        embed(NEW_TABLES, replace_panel=True)
 
     if args.preview:
         render_preview(new, args.preview)

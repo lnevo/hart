@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-27 — NextTrain is abandoned (not a HART desk). Node 13 occupancy walk-down **stuck**: 1301=OS 11 (was 118), house 1304=EH-3 / 1305=EH-2 / 1306=EH-1 (EH-1↔EH-3 swap), 1307=OS 9 (was 119). Mast `ISNX:*` is the live NX; do not merge AnyRail `ISIS200` NX.
+Updated: 2026-08-27 — USS **v76**: lever number plates restored — **odd** on SWITCH (1…39), **even** on SIGNAL (2, 4, 6, 8, 24, 32…40). Switch-only plants have no signal plate. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--pi --win`.
 
 Updated: 2026-08-27 — CTC-number convert **finished**. Dispatcher MoveTo sensors are `MoveToOS_Barn_stored`; occupancy lookups are `BS …` (comments keep `Block n-n`). USS **v75**. Reload PanelPro, **Discover SML**. Do not run USS with CATS CTC. Deploy `--pi --win`.
 
