@@ -13760,13 +13760,13 @@
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
         <blocks>
           <block>
             <blockName>McKees Rocks</blockName>
             <blockState>unoccupied</blockState>
           </block>
         </blocks>
-        <lockTurnouts>no</lockTurnouts>
       </destinationMast>
       <destinationMast destination="114LB">
         <destinationSignalMast>114LB</destinationSignalMast>
@@ -13777,13 +13777,13 @@
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <associatedSection>120L:114LB</associatedSection>
+        <lockTurnouts>no</lockTurnouts>
         <blocks>
           <block>
             <blockName>McKees Rocks</blockName>
             <blockState>unoccupied</blockState>
           </block>
         </blocks>
-        <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
     <signalmastlogic source="115LA">
