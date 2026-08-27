@@ -54,7 +54,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Remaining gaps
 
-- USS CTC `GUIObjects.xml` is **v63**: 111 fill rails; no lever-row OS jewels; 100L west-facing again; Barn/EH labels stacked west of the lamps; Main West/East captions are **Main** over columns 9–10. New UniqueIDs for 119/118/104–109 and Local default still not applied. `tables.xml` still embeds the pre-Master 4 paneleditor.
+- USS CTC `GUIObjects.xml` is **v64**: signal-lever axes follow UniqueIDs; every packed column has Local/Locked + lock switch. New UniqueIDs for 119/118/104–106 (IS32/34/36/38/40) are GUI-only — they do not release field locks until CTC columns exist. Local default still not applied. `tables.xml` still embeds the pre-Master 4 paneleditor.
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
 - CATS Princess lamps match LE: **115LB** McKees Rocks and **114LB** McKeesport are 2-head (`LAMP2` / `double`); **115LA** K-1 and **114LA** K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
@@ -85,13 +85,13 @@ Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. **CATS Master4** (`/A
 
 CATS is the Digicon. The USS lever machine is a **separate** JMRI Panel Editor panel, always titled **USS CTC**. LogixNG `IQC:AUTO:0002` **hides** that panel on CATS start.
 
-The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v60**, 20 packed columns). Lever UniqueIDs and JMRI beans are still the 12-column machine / Switch 100–119. PanelPro `tables.xml` is still the pre-Master 4 board.
+The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v64**, 20 packed columns). Lever UniqueIDs and JMRI beans are still the 12-column machine / Switch 100–119; lock toggles on 119/118/104–106 are GUI-only Internal sensors. PanelPro `tables.xml` is still the pre-Master 4 board.
 
 ```bash
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v60_preview.png
+python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v64_preview.png
 ```
 
 Regen also copies GIFs + `GUIObjects.xml` into local `*.jmri/ctc/` (`preference:ctc/`).
 
-Static preview: `cats/screenshots/master4/uss_ctc_v60_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v59`.
+Static preview: `cats/screenshots/master4/uss_ctc_v64_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v63`.

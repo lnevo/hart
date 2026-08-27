@@ -178,28 +178,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS2:LOCKTOGGLE" x="98" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS2:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="125" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="125" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS4:CB" x="33" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS4:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -301,7 +279,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <multisensoricon x="150" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="20" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS4:LDGL,IS4:NGL,</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS4:LDGL">
         <rotation>0</rotation>
@@ -319,28 +297,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS4:LOCKTOGGLE" x="33" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS4:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="190" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="190" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS6:CB" x="163" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS6:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -442,7 +398,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <multisensoricon x="215" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="150" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS6:LDGL,IS6:NGL,</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS6:LDGL">
         <rotation>0</rotation>
@@ -460,28 +416,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS6:LOCKTOGGLE" x="163" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS6:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="255" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="255" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS8:CB" x="228" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS8:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -594,7 +528,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <multisensoricon x="345" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="215" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS8:LDGL,IS8:NGL,IS8:RDGL</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS8:LDGL">
         <rotation>0</rotation>
@@ -615,28 +549,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS8:LOCKTOGGLE" x="228" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS8:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="385" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="385" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS10:CB" x="423" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS10:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -701,28 +613,6 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS10:LOCKTOGGLE" x="423" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS10:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="450" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="450" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS12:CB" x="488" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS12:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -787,28 +677,6 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS12:LOCKTOGGLE" x="488" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS12:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="515" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="515" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS18:CB" x="748" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS18:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -921,7 +789,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <multisensoricon x="605" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="735" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS18:LDGL,IS18:NGL,IS18:RDGL</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS18:LDGL">
         <rotation>0</rotation>
@@ -942,28 +810,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS18:LOCKTOGGLE" x="748" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS18:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="645" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="645" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS22:CB" x="1008" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS22:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -1065,7 +911,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <multisensoricon x="670" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="995" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>,IS22:NGL,IS22:RDGL</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS22:NGL">
         <rotation>0</rotation>
@@ -1083,28 +929,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS22:LOCKTOGGLE" x="1008" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS22:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="710" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="710" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS24:CB" x="1073" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS24:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -1217,7 +1041,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <multisensoricon x="735" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="1060" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS24:LDGL,IS24:NGL,IS24:RDGL</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS24:LDGL">
         <rotation>0</rotation>
@@ -1238,28 +1062,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS24:LOCKTOGGLE" x="1073" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS24:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="775" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="775" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS26:CB" x="1138" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS26:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -1361,7 +1163,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <multisensoricon x="865" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="1125" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>,IS26:NGL,IS26:RDGL</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS26:NGL">
         <rotation>0</rotation>
@@ -1379,28 +1181,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS26:LOCKTOGGLE" x="1138" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS26:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="905" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="905" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS28:CB" x="1203" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS28:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -1502,7 +1282,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <multisensoricon x="930" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="1190" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS28:LDGL,IS28:NGL,</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS28:LDGL">
         <rotation>0</rotation>
@@ -1520,28 +1300,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS28:LOCKTOGGLE" x="1203" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS28:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="970" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="970" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <sensoricon sensor="IS30:CB" x="1268" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS30:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
@@ -1643,7 +1401,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <multisensoricon x="995" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+    <multisensoricon x="1255" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
       <tooltip>IS30:LDGL,IS30:NGL,</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS30:LDGL">
         <rotation>0</rotation>
@@ -1661,28 +1419,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS30:LOCKTOGGLE" x="1268" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS30:LOCKTOGGLE</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <positionablelabel x="1035" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="1035" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
       <positionablelabel x="0" y="0" level="1" forcecontroloff="false" hidden="no" positionable="false" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USS/background/Panel-left-7.gif" scale="1.0">
         <rotation>0</rotation>
@@ -4828,5 +4564,445 @@
       </icons>
       <iconmaps />
     </signalheadicon>
+    <sensoricon sensor="IS4:LOCKTOGGLE" x="33" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS4:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="60" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="60" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS2:LOCKTOGGLE" x="98" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS2:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="125" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="125" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS6:LOCKTOGGLE" x="163" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS6:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="190" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="190" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS8:LOCKTOGGLE" x="228" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS8:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="255" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="255" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS32:LOCKTOGGLE" x="293" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS32:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="320" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="320" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS34:LOCKTOGGLE" x="358" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS34:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="385" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="385" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS10:LOCKTOGGLE" x="423" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS10:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="450" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="450" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS12:LOCKTOGGLE" x="488" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS12:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="515" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="515" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS36:LOCKTOGGLE" x="553" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS36:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="580" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="580" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS38:LOCKTOGGLE" x="618" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS38:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="645" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="645" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS40:LOCKTOGGLE" x="683" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS40:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="710" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="710" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS18:LOCKTOGGLE" x="748" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS18:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="775" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="775" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS14:LOCKTOGGLE" x="813" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS14:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="840" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="840" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS16:LOCKTOGGLE" x="878" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS16:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="905" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="905" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS20:LOCKTOGGLE" x="943" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS20:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="970" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="970" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS22:LOCKTOGGLE" x="1008" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS22:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="1035" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="1035" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS24:LOCKTOGGLE" x="1073" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS24:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="1100" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="1100" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS26:LOCKTOGGLE" x="1138" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS26:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="1165" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="1165" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS28:LOCKTOGGLE" x="1203" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS28:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="1230" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="1230" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <sensoricon sensor="IS30:LOCKTOGGLE" x="1268" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS30:LOCKTOGGLE</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="1295" y="536" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Local" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
+    <positionablelabel x="1295" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>
   </paneleditor>
 </layout-config>

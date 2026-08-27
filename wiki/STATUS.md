@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-26 — USS CTC **v63**: 100L west again; lever-row OS jewels removed; 111 shift filled with mains; Barn/EH-1/2/3 stacked left of the lamps; Main West/East captions are **Main** over columns 9–10. Preview `cats/screenshots/master4/uss_ctc_v63_preview.png`. Reload **USS CTC**. Do not run it with CATS CTC.
+Updated: 2026-08-26 — USS CTC **v64**: leftover signal-lever axes follow their UniqueIDs; every packed column has a Local/Locked lock switch. New lock sensors IS32/34/36/38/40 are GUI-only until CTC UniqueIDs exist for 119/118/104–106. IS14/16/20 (107–109) now have panel locks. Preview `cats/screenshots/master4/uss_ctc_v64_preview.png`. Reload **USS CTC**. Do not run it with CATS CTC.
 
 Updated: 2026-08-26 — Proposed South Yard plates: run-through **S-R** (was S-1); body tracks **S-1…S-4** (was S-2…S-5). Device-map / `public_name_map.csv` only; not applied to XML.
 

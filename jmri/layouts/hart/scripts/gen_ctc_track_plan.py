@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v63).
+"""Generate the USS CTC track diagram from CATS Master 4 (v64).
 
-20 packed columns (device-map plates 1…39). 111 sits on column 12
-with fill rails through the shift. Lever-row OS jewels are off.
-Default write is GUIObjects.xml only — new UniqueIDs / tables.xml later.
+20 packed columns. Signal-lever axes follow their UniqueIDs; every
+column has a Local/Locked lock toggle. GUIObjects.xml only.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v63_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v64_preview.png
 """
 from __future__ import annotations
 
@@ -39,7 +38,7 @@ PANEL_W, PANEL_H = 1400, 800
 
 N_SLOTS = 20
 BLANK_SLOTS: set[int] = set()
-# 119, 118, 116, 103, 104, 105, 106, 107, 108, 109 — switch-only, local later.
+# 119, 118, 116, 103, 104, 105, 106, 107, 108, 109 — switch-only (no signal lever).
 SWITCH_ONLY_SLOTS = {4, 5, 6, 7, 8, 9, 10, 12, 13, 14}
 
 CREAM = dict(red=220, green=220, blue=180)
@@ -118,11 +117,24 @@ UID_SLOT = {
     9: 6, 10: 6,      # 116 switch-only
     11: 7, 12: 7,     # 103 switch-only
     17: 11, 18: 11,   # 111
+    13: 12, 14: 12,   # 107 (lock in tables.xml; levers added if present)
+    15: 13, 16: 13,   # 108
+    19: 14, 20: 14,   # 109
     21: 15, 22: 15,   # 110
     23: 16, 24: 16,   # 112
     25: 17, 26: 17,   # 113
     27: 18, 28: 18,   # 114
     29: 19, 30: 19,   # 115
+}
+
+# Even UniqueID that owns LOCKTOGGLE on each packed slot.
+# 32/34/36/38/40 are GUI-only until CTC columns are created (119, 118, 104–106).
+SLOT_LOCK_UID = {
+    0: 4, 1: 2, 2: 6, 3: 8,
+    4: 32, 5: 34, 6: 10, 7: 12,
+    8: 36, 9: 38, 10: 40,
+    11: 18, 12: 14, 13: 16, 14: 20,
+    15: 22, 16: 24, 17: 26, 18: 28, 19: 30,
 }
 
 # CATS has no occupancy edge on Main East; JMRI sensor is Block 2-3.
@@ -403,6 +415,27 @@ TRACK = """<positionablelabel x="{x}" y="{y}" level="3" forcecontroloff="false" 
     </positionablelabel>"""
 
 TEXT = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="{text}" fontname="Dialog.plain" size="{size}" style="1" red="{red}" green="{green}" blue="{blue}" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <tooltip>Text Label</tooltip>
+    </positionablelabel>"""
+
+LOCK_TOGGLE = """<sensoricon sensor="IS{uid}:LOCKTOGGLE" x="{x}" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS{uid}:LOCKTOGGLE</tooltip>
+      <active url="{u}plate/levers/switch-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="{u}plate/levers/switch-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="{u}plate/levers/switch-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="{u}plate/levers/switch-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>"""
+
+LOCK_CAP = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="{text}" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>"""
 
@@ -716,6 +749,12 @@ def build_block(cells: dict) -> str:
                 rest=sig_url("d1", "restricting", facing),
                 clr=sig_url("d1", "slow-clear", facing),
                 unk=sig_url("d1", "unknown", facing)))
+    for slot in range(N_SLOTS):
+        origin = 12 + 65 * slot
+        parts.append(LOCK_TOGGLE.format(
+            uid=SLOT_LOCK_UID[slot], x=origin + 21, u=U))
+        parts.append(LOCK_CAP.format(x=origin + 48, y=536, text="Local"))
+        parts.append(LOCK_CAP.format(x=origin + 48, y=560, text="Locked"))
     return "    " + "\n    ".join(parts) + "\n"
 
 
@@ -735,7 +774,9 @@ STRIP = [
         re.S,
     ),
     re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:UNLOCKEDINDICATOR\".*?</sensoricon>", re.S),
+    re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:LOCKTOGGLE\".*?</sensoricon>", re.S),
     re.compile(r"\s*<positionablelabel\b[^>]*text=\"Unlocked\".*?</positionablelabel>", re.S),
+    re.compile(r"\s*<positionablelabel\b[^>]*text=\"(?:Local|Locked)\".*?</positionablelabel>", re.S),
     re.compile(r"\s*<signalmasticon\b[^>]*/>", re.S),
     re.compile(r"\s*<signalmasticon\b[^>]*>.*?</signalmasticon>", re.S),
     re.compile(r"\s*<signalheadicon\b[^>]*>.*?</signalheadicon>", re.S),
@@ -759,7 +800,31 @@ def reposition_levers(text: str) -> str:
             lambda m, d=delta: "%s%d%s" % (m.group(1), int(m.group(2)) + d, m.group(3)),
             text,
         )
-    return text
+
+    def _ms(m: re.Match) -> str:
+        block = m.group(0)
+        uid_m = re.search(r"IS(\d+):", block)
+        if not uid_m:
+            return block
+        uid = int(uid_m.group(1))
+        if uid not in UID_SLOT:
+            return block
+        xm = re.search(r'<multisensoricon x="(\d+)"', block)
+        if not xm:
+            return block
+        x = int(xm.group(1))
+        cur = int(round((x - 12) / 65.0))
+        d = (12 + 65 * UID_SLOT[uid]) - (12 + 65 * cur)
+        if d == 0:
+            return block
+        return re.sub(
+            r'(<multisensoricon x=")(\d+)(")',
+            lambda mm, delta=d: "%s%d%s" % (mm.group(1), int(mm.group(2)) + delta, mm.group(3)),
+            block,
+            count=1,
+        )
+
+    return re.sub(r"<multisensoricon\b.*?</multisensoricon>", _ms, text, flags=re.S)
 
 
 def apply(text: str, cells: dict, close_tag: str = "</paneleditor>") -> str:
