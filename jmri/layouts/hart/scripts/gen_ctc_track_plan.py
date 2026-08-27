@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v61).
+"""Generate the USS CTC track diagram from CATS Master 4 (v62).
 
-20 packed columns (device-map plates 1…39), CATS geometry stretched to
-the gold board. New plants are switch-only. Beans stay Switch 100–119.
-Default write is GUIObjects.xml only — CTC logic / tables.xml later.
+20 packed columns (device-map plates 1…39). 111 sits on column 12
+(slot 11 / plate 23). Levers are shifted onto those slots.
+Default write is GUIObjects.xml only — new UniqueIDs / tables.xml later.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v61_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v62_preview.png
 """
 from __future__ import annotations
 
@@ -86,6 +86,38 @@ CENTER_OCC = {
     "Brick-Plane": (6, 8),
     "W-1": (8, 10),
     "W-2": (8, 9),
+    "Main West": (33, 6),
+    "S-1": (33, 7),
+}
+
+# 111 crossover (Y=6/7 around the frog) shifts 3 CATS cells west onto
+# CTC column 12 (slot 11, plate 23).
+SHIFT_WEST = 3
+SHIFT_CELLS = {(x, y) for x in range(38, 41) for y in (6, 7)}
+
+HIDE_TRACK_LABELS = {
+    "E Main Ext", "East Main Ext", "West Main Ext", "East Lead",
+}
+LABEL_LEFT = {"EH-1", "EH-2"}
+LABEL_AT = {
+    "K-1": (59, 5),
+    "K-2": (59, 8),
+}
+
+# Existing CTC UniqueIDs → 20-col slot (odd = switch, even = its signal).
+UID_SLOT = {
+    1: 1, 2: 1,       # 101
+    3: 0, 4: 0,       # 100
+    5: 2, 6: 2,       # 102
+    7: 3, 8: 3,       # 117
+    9: 6, 10: 6,      # 116 switch-only
+    11: 7, 12: 7,     # 103 switch-only
+    17: 11, 18: 11,   # 111
+    21: 15, 22: 15,   # 110
+    23: 16, 24: 16,   # 112
+    25: 17, 26: 17,   # 113
+    27: 18, 28: 18,   # 114
+    29: 19, 30: 19,   # 115
 }
 
 # CATS has no occupancy edge on Main East; JMRI sensor is Block 2-3.
@@ -122,7 +154,7 @@ OS_FROG = {
 SIGNALS = [
     ("101RA", 6, 10, "E", "d1", "IH436"),
     ("101RB", 6, 9, "E", "d1", "IH437"),
-    ("100L", 3, 8, "W", "h2", None),
+    ("100L", 3, 8, "E", "h2", None),  # CATS SIGORIENT RIGHT
     ("102LA", 10, 7, "W", "d1", "IH434"),
     ("102LB", 10, 8, "W", "h2", None),
     ("117RA", 14, 7, "E", "d1", "IH1332"),
@@ -411,8 +443,9 @@ HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="9" forcecon
     </signalheadicon>"""
 
 
-def ux(cx: int) -> int:
-    return OX + (cx - 1) * CELL_W
+def ux(cx: int, cy: int | None = None) -> int:
+    dx = -SHIFT_WEST if cy is not None and (cx, cy) in SHIFT_CELLS else 0
+    return OX + (cx - 1 + dx) * CELL_W
 
 
 def bar_y(cy: int) -> int:
@@ -474,7 +507,7 @@ def _norm_name(name: str | None) -> str:
 
 
 def _jewel_xy(cx: int, cy: int) -> tuple[int, int]:
-    return ux(cx) + (CELL_W - 21) // 2, bar_y(cy) + (CELL_H - 21) // 2
+    return ux(cx, cy) + (CELL_W - 21) // 2, bar_y(cy) + (CELL_H - 21) // 2
 
 
 def _throat_cell(os_cells: set[tuple[int, int]], frog: tuple[int, int]) -> tuple[int, int]:
@@ -521,7 +554,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
 
     for xy, (name, invert) in PLANTS.items():
         cx, cy = xy
-        turnouts.append((name, ux(cx) + 5, bar_y(cy) + 5, invert))
+        turnouts.append((name, ux(cx, cy) + 5, bar_y(cy) + 5, invert))
 
     for (x, y), cell in cells.items():
         if y < 5 or y > 12:
@@ -529,18 +562,18 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         kinds = set(cell["tracks"])
         if "HORIZONTAL" in kinds:
             gif, dx, dy = STOCK_H
-            tracks.append((ux(x) + dx, bar_y(y) + dy, gif, 0))
+            tracks.append((ux(x, y) + dx, bar_y(y) + dy, gif, 0))
         if "VERTICAL" in kinds:
             gif, dx, dy = STOCK_V
-            tracks.append((ux(x) + dx, bar_y(y) + dy, gif, 0))
+            tracks.append((ux(x, y) + dx, bar_y(y) + dy, gif, 0))
         for kind in kinds:
             gif = CELL_GIF.get(kind)
             if gif:
-                tracks.append((ux(x), bar_y(y), gif, 0))
+                tracks.append((ux(x, y), bar_y(y), gif, 0))
         for edge, bname, _sensor in cell["blocks"]:
             if edge == "RIGHT" and (x + 1, y) not in cells and bname:
                 gif, dx, dy = STOCK_END
-                tracks.append((ux(x) + dx, bar_y(y) + dy, gif, 0))
+                tracks.append((ux(x, y) + dx, bar_y(y) + dy, gif, 0))
 
     occ: dict[str, list[tuple[int, int, str]]] = defaultdict(list)
     name_sensor: dict[str, str] = {}
@@ -621,15 +654,19 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         if name.endswith(", PA"):
             name = name[:-4]
         if name in STATION_NAMES:
-            texts.append((ux(x), STATION_Y, name, 12, WHITE))
+            texts.append((ux(x, y), STATION_Y, name, 12, WHITE))
             continue
-        lx, ly = x, y
-        if (lx, ly) in jewel_cells:
-            if (lx + 1, ly) not in jewel_cells:
-                lx += 1
-            elif (lx - 1, ly) not in jewel_cells:
-                lx -= 1
-        texts.append((ux(lx) + 1, bar_y(ly) - 6, name, 8, CREAM))
+        if name in HIDE_TRACK_LABELS or _norm_name(name) in HIDE_TRACK_LABELS:
+            continue
+        lx, ly = LABEL_AT.get(name, (x, y))
+        if name in LABEL_LEFT or (lx, ly) in jewel_cells:
+            prefer = -1 if name in LABEL_LEFT else 1
+            if (lx, ly) in jewel_cells:
+                if (lx + prefer, ly) not in jewel_cells:
+                    lx += prefer
+                elif (lx - prefer, ly) not in jewel_cells:
+                    lx -= prefer
+        texts.append((ux(lx, ly) + 1, bar_y(ly) - 6, name, 8, CREAM))
     for slot, plate, _lamps in COLUMNS:
         texts.append((slot * 65 + 37, OS_Y + 23, plate, 8, WHITE))
     return turnouts, tracks, lamps, texts
@@ -658,7 +695,7 @@ def build_block(cells: dict) -> str:
     for x, y, text, size, col in texts:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
     for name, cx, cy, facing, kind, head in SIGNALS:
-        stem_x = ux(cx) + (8 if facing == "E" else 2)
+        stem_x = ux(cx, cy) + (8 if facing == "E" else 2)
         x, y = signal_xy(stem_x, bar_y(cy) + 2, facing, kind)
         if kind == "h2":
             parts.append(MAST.format(
@@ -697,7 +734,28 @@ STRIP = [
 ]
 
 
+def reposition_levers(text: str) -> str:
+    """Slide existing UniqueID lever groups onto the 20-column slots."""
+    xs: dict[int, list[int]] = defaultdict(list)
+    for m in re.finditer(r'sensor="IS(\d+):[^"]+" x="(\d+)"', text):
+        xs[int(m.group(1))].append(int(m.group(2)))
+    for uid, slot in UID_SLOT.items():
+        if uid not in xs:
+            continue
+        cur = int(round((min(xs[uid]) - 12) / 65.0))
+        delta = (12 + 65 * slot) - (12 + 65 * cur)
+        if delta == 0:
+            continue
+        text = re.sub(
+            r'(sensor="IS%d:[^"]+" x=")(\d+)(")' % uid,
+            lambda m, d=delta: "%s%d%s" % (m.group(1), int(m.group(2)) + d, m.group(3)),
+            text,
+        )
+    return text
+
+
 def apply(text: str, cells: dict, close_tag: str = "</paneleditor>") -> str:
+    text = reposition_levers(text)
     for pat in STRIP:
         text = pat.sub("", text)
     text = re.sub(
@@ -836,12 +894,12 @@ def main() -> None:
         sys.exit("refusing to write tables/tables.xml")
 
     write_cell_icons()
-    install_preference_icons()
     cells = parse_cats(args.cats)
     txt = args.gui.read_text()
     new = apply(txt, cells)
     args.gui.write_text(new)
     print("%s: Master 4 track plan regenerated" % args.gui)
+    install_preference_icons()
 
     if args.tables:
         tables = args.tables.read_text()

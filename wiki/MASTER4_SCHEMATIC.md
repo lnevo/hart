@@ -54,7 +54,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Remaining gaps
 
-- USS CTC `GUIObjects.xml` is **v61** (20 packed columns). OS jewels sit at each plant throat; Brick-Plane / W-1 / W-2 occupancy is centered; track labels sit above the rail. CTC columns / Local default / bean rename not applied. `tables.xml` still embeds the pre-Master 4 paneleditor.
+- USS CTC `GUIObjects.xml` is **v62**: 111 crossover on column 12 (plate 23); existing signal/switch levers shifted onto the 20 packed columns; 100L faces east (CATS RIGHT). New UniqueIDs for 119/118/104–109 and Local default still not applied. `tables.xml` still embeds the pre-Master 4 paneleditor.
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
 - CATS Princess lamps match LE: **115LB** McKees Rocks and **114LB** McKeesport are 2-head (`LAMP2` / `double`); **115LA** K-1 and **114LA** K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).

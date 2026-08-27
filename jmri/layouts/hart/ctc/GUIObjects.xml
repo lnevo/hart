@@ -200,7 +200,7 @@
     <positionablelabel x="125" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS4:CB" x="163" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS4:CB" x="33" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS4:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -216,7 +216,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS3:SWNI" x="146" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS3:SWNI" x="16" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS3:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -232,7 +232,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS3:SWRI" x="180" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS3:SWRI" x="50" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS3:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -248,7 +248,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS3:LEVER" x="150" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS3:LEVER" x="20" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS3:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -264,7 +264,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS4:LDGK" x="146" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS4:LDGK" x="16" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS4:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -280,7 +280,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS4:NGK" x="164" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS4:NGK" x="34" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS4:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -319,7 +319,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS4:LOCKTOGGLE" x="163" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS4:LOCKTOGGLE" x="33" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS4:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -341,7 +341,7 @@
     <positionablelabel x="190" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS6:CB" x="228" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS6:CB" x="163" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS6:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -357,7 +357,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS5:SWNI" x="211" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS5:SWNI" x="146" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS5:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -373,7 +373,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS5:SWRI" x="245" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS5:SWRI" x="180" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS5:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -389,7 +389,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS5:LEVER" x="215" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS5:LEVER" x="150" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS5:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -405,7 +405,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS6:LDGK" x="211" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS6:LDGK" x="146" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS6:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -421,7 +421,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS6:NGK" x="229" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS6:NGK" x="164" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS6:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -460,7 +460,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS6:LOCKTOGGLE" x="228" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS6:LOCKTOGGLE" x="163" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS6:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -482,7 +482,7 @@
     <positionablelabel x="255" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS8:CB" x="358" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS8:CB" x="228" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS8:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -498,7 +498,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS7:SWNI" x="341" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS7:SWNI" x="211" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS7:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -514,7 +514,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS7:SWRI" x="375" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS7:SWRI" x="245" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS7:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -530,7 +530,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS7:LEVER" x="345" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS7:LEVER" x="215" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS7:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -546,7 +546,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS8:LDGK" x="341" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS8:LDGK" x="211" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS8:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -562,7 +562,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS8:NGK" x="359" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS8:NGK" x="229" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS8:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -578,7 +578,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS8:RDGK" x="375" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS8:RDGK" x="245" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS8:RDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -615,7 +615,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS8:LOCKTOGGLE" x="358" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS8:LOCKTOGGLE" x="228" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS8:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -809,7 +809,7 @@
     <positionablelabel x="515" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS18:CB" x="618" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS18:CB" x="748" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS18:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -825,7 +825,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS17:SWNI" x="601" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS17:SWNI" x="731" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS17:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -841,7 +841,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS17:SWRI" x="635" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS17:SWRI" x="765" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS17:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -857,7 +857,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS17:LEVER" x="605" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS17:LEVER" x="735" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS17:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -873,7 +873,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS18:LDGK" x="601" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS18:LDGK" x="731" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS18:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -889,7 +889,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS18:NGK" x="619" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS18:NGK" x="749" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS18:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -905,7 +905,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS18:RDGK" x="635" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS18:RDGK" x="765" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS18:RDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -942,7 +942,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS18:LOCKTOGGLE" x="618" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS18:LOCKTOGGLE" x="748" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS18:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -964,7 +964,7 @@
     <positionablelabel x="645" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS22:CB" x="683" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS22:CB" x="1008" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS22:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -980,7 +980,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS21:SWNI" x="666" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS21:SWNI" x="991" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS21:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -996,7 +996,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS21:SWRI" x="700" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS21:SWRI" x="1025" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS21:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1012,7 +1012,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS21:LEVER" x="670" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS21:LEVER" x="995" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS21:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1033,7 +1033,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <sensoricon sensor="IS22:NGK" x="684" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS22:NGK" x="1009" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS22:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1049,7 +1049,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS22:RDGK" x="700" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS22:RDGK" x="1025" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS22:RDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1083,7 +1083,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS22:LOCKTOGGLE" x="683" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS22:LOCKTOGGLE" x="1008" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS22:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1105,7 +1105,7 @@
     <positionablelabel x="710" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS24:CB" x="748" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS24:CB" x="1073" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS24:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1121,7 +1121,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS23:SWNI" x="731" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS23:SWNI" x="1056" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS23:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1137,7 +1137,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS23:SWRI" x="765" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS23:SWRI" x="1090" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS23:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1153,7 +1153,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS23:LEVER" x="735" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS23:LEVER" x="1060" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS23:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1169,7 +1169,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS24:LDGK" x="731" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS24:LDGK" x="1056" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS24:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1185,7 +1185,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS24:NGK" x="749" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS24:NGK" x="1074" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS24:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1201,7 +1201,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS24:RDGK" x="765" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS24:RDGK" x="1090" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS24:RDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1238,7 +1238,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS24:LOCKTOGGLE" x="748" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS24:LOCKTOGGLE" x="1073" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS24:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1260,7 +1260,7 @@
     <positionablelabel x="775" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS26:CB" x="878" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS26:CB" x="1138" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS26:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1276,7 +1276,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS25:SWNI" x="861" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS25:SWNI" x="1121" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS25:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1292,7 +1292,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS25:SWRI" x="895" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS25:SWRI" x="1155" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS25:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1308,7 +1308,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS25:LEVER" x="865" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS25:LEVER" x="1125" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS25:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1329,7 +1329,7 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <sensoricon sensor="IS26:NGK" x="879" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS26:NGK" x="1139" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS26:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1345,7 +1345,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS26:RDGK" x="895" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS26:RDGK" x="1155" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS26:RDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1379,7 +1379,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS26:LOCKTOGGLE" x="878" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS26:LOCKTOGGLE" x="1138" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS26:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1401,7 +1401,7 @@
     <positionablelabel x="905" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS28:CB" x="943" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS28:CB" x="1203" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS28:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1417,7 +1417,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS27:SWNI" x="926" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS27:SWNI" x="1186" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS27:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1433,7 +1433,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS27:SWRI" x="960" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS27:SWRI" x="1220" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS27:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1449,7 +1449,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS27:LEVER" x="930" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS27:LEVER" x="1190" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS27:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1465,7 +1465,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS28:LDGK" x="926" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS28:LDGK" x="1186" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS28:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1481,7 +1481,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS28:NGK" x="944" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS28:NGK" x="1204" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS28:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1520,7 +1520,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS28:LOCKTOGGLE" x="943" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS28:LOCKTOGGLE" x="1203" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS28:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1542,7 +1542,7 @@
     <positionablelabel x="970" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS30:CB" x="1008" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS30:CB" x="1268" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS30:CB</tooltip>
       <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1558,7 +1558,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS29:SWNI" x="991" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS29:SWNI" x="1251" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS29:SWNI</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1574,7 +1574,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS29:SWRI" x="1025" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS29:SWRI" x="1285" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS29:SWRI</tooltip>
       <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1590,7 +1590,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS29:LEVER" x="995" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS29:LEVER" x="1255" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS29:LEVER</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1606,7 +1606,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS30:LDGK" x="991" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS30:LDGK" x="1251" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS30:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1622,7 +1622,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS30:NGK" x="1009" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS30:NGK" x="1269" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS30:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1661,7 +1661,7 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS30:LOCKTOGGLE" x="1008" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="IS30:LOCKTOGGLE" x="1268" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS30:LOCKTOGGLE</tooltip>
       <active url="program:resources/icons/USS/plate/levers/switch-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -2031,7 +2031,7 @@
       </icons>
       <iconmaps />
     </turnouticon>
-    <turnouticon turnout="Switch 111" x="832" y="88" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
+    <turnouticon turnout="Switch 111" x="769" y="88" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="true" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
         <closed url="preference:ctc/icons/pts-closed.gif" scale="1.0">
           <rotation>0</rotation>
@@ -2149,7 +2149,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 12-4" x="800" y="83" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 12-4" x="737" y="83" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS 111a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -2245,7 +2245,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 12-6" x="800" y="104" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 12-6" x="737" y="104" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS 111b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -2501,7 +2501,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 2-1" x="743" y="83" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 2-1" x="680" y="83" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Main West</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -2581,7 +2581,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="Block 2-8" x="743" y="104" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="Block 2-8" x="680" y="104" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>S-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -3399,22 +3399,22 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="784" y="89" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="721" y="89" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/stock-h.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="805" y="89" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="742" y="89" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/stock-h.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="826" y="89" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="763" y="89" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/stock-h.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="827" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="764" y="83" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/cell-lb.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -3709,22 +3709,22 @@
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="784" y="110" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="721" y="110" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/stock-h.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="805" y="110" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="742" y="110" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/stock-h.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="826" y="110" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="763" y="110" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/stock-h.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
-    <positionablelabel x="827" y="104" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="764" y="104" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="preference:ctc/icons/cell-ub.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
@@ -4587,13 +4587,10 @@
     <positionablelabel x="1100" y="42" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="PRINCESS" fontname="Dialog.plain" size="12" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1206" y="56" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="56" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="765" y="77" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Main West" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="1017" y="77" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="West Main Ext" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="77" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Main West" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="1227" y="77" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKees Rocks" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -4605,16 +4602,10 @@
     <positionablelabel x="471" y="98" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Barn" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="765" y="98" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="1017" y="98" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="East Lead" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="98" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="1227" y="98" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKeesport" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="219" y="119" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="E Main Ext" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="429" y="119" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="EH-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -4623,13 +4614,13 @@
     <positionablelabel x="765" y="119" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1206" y="119" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="119" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="177" y="140" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="471" y="140" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="EH-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="140" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="EH-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="765" y="140" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-3" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -4782,7 +4773,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="100L" x="32" y="124" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="100L" x="58" y="124" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>100L</tooltip>
     </signalmasticon>
     <signalheadicon signalhead="IH434" x="188" y="103" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
@@ -4935,10 +4926,10 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="111RA" x="814" y="82" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="111RA" x="751" y="82" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>111RA</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1236" x="814" y="103" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1236" x="751" y="103" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>111RB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
