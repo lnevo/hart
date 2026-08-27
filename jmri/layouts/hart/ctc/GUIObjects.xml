@@ -3985,64 +3985,58 @@
     <positionablelabel x="1100" y="51" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="PRINCESS" fontname="Dialog.plain" size="12" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="37" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="1" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="67" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="102" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="3" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKees Rocks" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="167" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="5" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="219" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Scale" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="232" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="7" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Barn" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="297" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="9" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="362" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="11" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="McKeesport" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="427" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="13" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="EH-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="492" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="15" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="765" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="557" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="17" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="622" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="19" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="177" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="687" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="21" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="EH-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="752" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="23" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="765" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-3" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="817" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="25" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="177" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="W-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="882" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="27" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="EH-3" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="947" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="29" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="765" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-4" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1012" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="31" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="765" y="193" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="S-5" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1077" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="33" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="597" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Main" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1142" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="35" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="1207" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="37" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
-    <positionablelabel x="1272" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="39" fontname="Dialog.plain" size="8" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="597" y="214" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Main" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <signalheadicon signalhead="IH436" x="121" y="177" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">

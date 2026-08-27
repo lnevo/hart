@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v66).
+"""Generate the USS CTC track diagram from CATS Master 4 (v67).
 
-20 packed columns. Cream track/switch captions off; schematic centered
-in the dark plate. 120L stays westbound on McKeesport under 120R.
+20 packed columns. Track captions restored; bottom OS-jewel numbers off
+(those lamps are gone). 120L stays westbound on McKeesport under 120R.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v66_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v67_preview.png
 """
 from __future__ import annotations
 
@@ -697,9 +697,20 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         if name in STATION_NAMES:
             texts.append((ux(x, y), STATION_Y, name, 12, WHITE))
             continue
-        # Cream switch/track captions stay off — stations and OS numbers only.
-    for slot, plate, _lamps in COLUMNS:
-        texts.append((slot * 65 + 37, OS_Y + 23, plate, 8, WHITE))
+        if name in HIDE_TRACK_LABELS or _norm_name(name) in HIDE_TRACK_LABELS:
+            continue
+        lx, ly = LABEL_AT.get(name, (x, y))
+        if name in LABEL_LEFT or (lx, ly) in jewel_cells:
+            prefer = -1 if name in LABEL_LEFT else 1
+            if (lx, ly) in jewel_cells:
+                if (lx + prefer, ly) not in jewel_cells:
+                    lx += prefer
+                elif (lx - prefer, ly) not in jewel_cells:
+                    lx -= prefer
+        texts.append((ux(lx, ly) + 1, bar_y(ly) - 6, name, 8, CREAM))
+    main_x = 12 + 65 * 8 + 65  # packed columns 9–10
+    texts.append((main_x, bar_y(6) - 6, "Main", 8, CREAM))
+    texts.append((main_x, bar_y(12) - 6, "Main", 8, CREAM))
     return turnouts, tracks, lamps, texts
 
 
