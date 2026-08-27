@@ -15112,12 +15112,12 @@
       <SIDI_RightInternalSensor>IS2:RDGK</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
-      <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
-      <SIDI_LeftRightTrafficSignals>
+      <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
+      <SIDI_LeftRightTrafficSignals />
+      <SIDI_RightLeftTrafficSignals>
         <signal>101RA</signal>
         <signal>101RB</signal>
-      </SIDI_LeftRightTrafficSignals>
-      <SIDI_RightLeftTrafficSignals />
+      </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
       <SIDL_LeftInternalSensor>IS2:LDGL</SIDL_LeftInternalSensor>
       <SIDL_NormalInternalSensor>IS2:NGL</SIDL_NormalInternalSensor>
@@ -15137,8 +15137,7 @@
       <CO_CallOnToggleInternalSensor>IS2:CALLON</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
-      <TRL_LeftRules />
-      <TRL_RightRules>
+      <TRL_LeftRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:1</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
@@ -15185,7 +15184,8 @@
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
-      </TRL_RightRules>
+      </TRL_LeftRules>
+      <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS2:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 101</TUL_ExternalTurnout>
@@ -15216,11 +15216,11 @@
       <SIDI_RightInternalSensor>IS4:RDGK</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
-      <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
-      <SIDI_LeftRightTrafficSignals />
-      <SIDI_RightLeftTrafficSignals>
+      <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
+      <SIDI_LeftRightTrafficSignals>
         <signal>100L</signal>
-      </SIDI_RightLeftTrafficSignals>
+      </SIDI_LeftRightTrafficSignals>
+      <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>true</SIDL_Enabled>
       <SIDL_LeftInternalSensor>IS4:LDGL</SIDL_LeftInternalSensor>
       <SIDL_NormalInternalSensor>IS4:NGL</SIDL_NormalInternalSensor>
@@ -15240,7 +15240,8 @@
       <CO_CallOnToggleInternalSensor>IS4:CALLON</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
-      <TRL_LeftRules>
+      <TRL_LeftRules />
+      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:1</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
@@ -15289,8 +15290,7 @@
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
-      </TRL_LeftRules>
-      <TRL_RightRules />
+      </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
       <TUL_DispatcherInternalSensorLockToggle>IS4:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 100</TUL_ExternalTurnout>

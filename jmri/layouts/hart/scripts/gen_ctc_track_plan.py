@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v68).
+"""Generate the USS CTC track diagram from CATS Master 4 (v69).
 
-20 packed columns. Brick signal levers are full L/N/R so column 1 and 2
-are not click-inverted. 120L stays westbound on McKeesport under 120R.
+20 packed columns. Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is
+LNR. 120L stays westbound on McKeesport under 120R.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v68_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v69_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
 
@@ -22,6 +23,9 @@ CATS_DESIGNER = ROOT / "cats/panels/HART_Master4.xml"
 if not CATS_XML.is_file():
     CATS_XML = CATS_DESIGNER
 GUI_XML = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
+OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+NEW_TABLES = ROOT / "tables/new_tables.xml"
+SOURCE_TABLES = ROOT / "tables/tables.xml"
 THIN_DIR = ROOT / "jmri/layouts/hart/ctc/icons"
 JMRI_RES = Path("/Applications/JMRI/resources")
 
@@ -464,6 +468,67 @@ SIG_LEVER = """<multisensoricon x="{x}" y="492" level="10" forcecontroloff="fals
       </inconsistent>
     </multisensoricon>"""
 
+SIG_LEVER_LN = """<multisensoricon x="{x}" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+      <tooltip>IS{uid}:LDGL,IS{uid}:NGL,</tooltip>
+      <active url="{u}plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS{uid}:LDGL">
+        <rotation>0</rotation>
+      </active>
+      <active url="{u}plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS{uid}:NGL">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="{u}plate/levers/lever-inactive-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="{u}plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="{u}plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+    </multisensoricon>"""
+
+SIG_LEVER_NR = """<multisensoricon x="{x}" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+      <tooltip>,IS{uid}:NGL,IS{uid}:RDGL</tooltip>
+      <active url="{u}plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS{uid}:NGL">
+        <rotation>0</rotation>
+      </active>
+      <active url="{u}plate/levers/lever-right-wide.gif" scale="1.0" sensor="IS{uid}:RDGL">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="{u}plate/levers/lever-inactive-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="{u}plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="{u}plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+    </multisensoricon>"""
+
+KNOCKOUT = """<positionablelabel x="{x}" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>"""
+
+GREEN_JEWEL = """<sensoricon sensor="IS{uid}:{kind}" x="{x}" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS{uid}:{kind}</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>"""
+
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>{name}</tooltip>
     </signalmasticon>"""
@@ -852,29 +917,152 @@ def reposition_levers(text: str) -> str:
     return re.sub(r"<multisensoricon\b.*?</multisensoricon>", _ms, text, flags=re.S)
 
 
-def fix_brick_signal_levers(text: str) -> str:
-    """Columns 1–2 were 2-position (N on opposite click halves). Use L/N/R."""
-    for uid, slot in ((4, 0), (2, 1)):
-        x = 12 + 65 * slot + 8
-        text = re.sub(
-            r'<multisensoricon x="\d+" y="492"[^>]*>.*?</multisensoricon>',
-            lambda m, uid=uid, x=x: (
-                SIG_LEVER.format(uid=uid, x=x, u=U)
-                if ("IS%d:" % uid) in m.group(0)
-                else m.group(0)
-            ),
+def _replace_signal_lever(text: str, uid: int, xml: str) -> str:
+    return re.sub(
+        r'<multisensoricon x="\d+" y="492"[^>]*>.*?</multisensoricon>',
+        lambda m, uid=uid, xml=xml: xml if ("IS%d:" % uid) in m.group(0) else m.group(0),
+        text,
+        flags=re.S,
+    )
+
+
+def _replace_sensoricon(text: str, sensor: str, xml: str) -> str:
+    return re.sub(
+        r'<sensoricon sensor="%s"[^>]*>.*?</sensoricon>' % re.escape(sensor),
+        xml,
+        text,
+        count=1,
+        flags=re.S,
+    )
+
+
+def _replace_knockout_at(text: str, x: int, xml: str) -> str:
+    return re.sub(
+        r'<positionablelabel x="%d" y="454"[^>]*>\s*<icon url="[^"]*knockout\.gif"[^>]*>.*?</positionablelabel>'
+        % x,
+        xml,
+        text,
+        count=1,
+        flags=re.S,
+    )
+
+
+def _has_knockout_at(text: str, x: int) -> bool:
+    return bool(
+        re.search(
+            r'x="%d" y="454"[^>]*>\s*<icon url="[^"]*knockout\.gif"' % x,
             text,
-            flags=re.S,
-            count=0,
         )
-    # 100's right knockout stayed at the old column-2 x when 100 moved west.
-    if not re.search(r'x="50" y="454"[^>]*>\s*<icon url="[^"]*knockout\.gif"', text):
+    )
+
+
+def fix_brick_signal_levers(text: str) -> str:
+    """Column 1 = N/R, 101 = L/N. 102 stays L/N, 117 stays LNR."""
+    text = _replace_signal_lever(text, 4, SIG_LEVER_NR.format(uid=4, x=20, u=U))
+    text = _replace_signal_lever(text, 2, SIG_LEVER_LN.format(uid=2, x=85, u=U))
+
+    if re.search(r'sensor="IS4:LDGK"', text):
+        text = _replace_sensoricon(text, "IS4:LDGK", KNOCKOUT.format(x=16))
+    if _has_knockout_at(text, 50) and not re.search(r'sensor="IS4:RDGK"', text):
+        text = _replace_knockout_at(text, 50, GREEN_JEWEL.format(uid=4, kind="RDGK", x=50))
+
+    if _has_knockout_at(text, 81) and not re.search(r'sensor="IS2:LDGK"', text):
+        text = _replace_knockout_at(text, 81, GREEN_JEWEL.format(uid=2, kind="LDGK", x=81))
+    if re.search(r'sensor="IS2:RDGK"', text):
+        text = _replace_sensoricon(text, "IS2:RDGK", KNOCKOUT.format(x=115))
+
+    if not _has_knockout_at(text, 180):
         text = re.sub(
-            r'(<positionablelabel x=")180(" y="454")',
-            r"\g<1>50\2",
+            r'(<sensoricon sensor="IS6:NGK"[^>]*>.*?</sensoricon>)',
+            r"\1\n    " + KNOCKOUT.format(x=180),
             text,
             count=1,
+            flags=re.S,
         )
+    return text
+
+
+def _ctc_uid_block(text: str, uid: int) -> re.Match | None:
+    return re.search(
+        r"<ctcCodeButtonData>\s*<UniqueID>%d</UniqueID>.*?</ctcCodeButtonData>" % uid,
+        text,
+        re.S,
+    )
+
+
+def _sidi_signal_list(tag: str, names: list[str]) -> str:
+    if not names:
+        return "      <%s />" % tag
+    inner = "\n".join("        <signal>%s</signal>" % n for n in names)
+    return "      <%s>\n%s\n      </%s>" % (tag, inner, tag)
+
+
+def _set_sidi_lists(block: str, direction: str, ltr: list[str], rtl: list[str], swap_trl: bool) -> str:
+    block = re.sub(
+        r"<SIDI_TrafficDirection>[A-Z]+</SIDI_TrafficDirection>",
+        "<SIDI_TrafficDirection>%s</SIDI_TrafficDirection>" % direction,
+        block,
+        count=1,
+    )
+    block = re.sub(
+        r"      <SIDI_LeftRightTrafficSignals(?: />|>.*?</SIDI_LeftRightTrafficSignals>)",
+        _sidi_signal_list("SIDI_LeftRightTrafficSignals", ltr),
+        block,
+        count=1,
+        flags=re.S,
+    )
+    block = re.sub(
+        r"      <SIDI_RightLeftTrafficSignals(?: />|>.*?</SIDI_RightLeftTrafficSignals>)",
+        _sidi_signal_list("SIDI_RightLeftTrafficSignals", rtl),
+        block,
+        count=1,
+        flags=re.S,
+    )
+    if not swap_trl:
+        return block
+    left_m = re.search(r"<TRL_LeftRules(?: />|>(.*?)</TRL_LeftRules>)", block, re.S)
+    right_m = re.search(r"<TRL_RightRules(?: />|>(.*?)</TRL_RightRules>)", block, re.S)
+    if not left_m or not right_m:
+        return block
+    left_inner = left_m.group(1) if left_m.lastindex else ""
+    right_inner = right_m.group(1) if right_m.lastindex else ""
+
+    def rules(tag: str, inner: str | None) -> str:
+        if not inner or not inner.strip():
+            return "      <%s />" % tag
+        return "      <%s>%s</%s>" % (tag, inner, tag)
+
+    block = re.sub(
+        r"      <TRL_LeftRules(?: />|>.*?</TRL_LeftRules>)",
+        rules("TRL_LeftRules", right_inner),
+        block,
+        count=1,
+        flags=re.S,
+    )
+    block = re.sub(
+        r"      <TRL_RightRules(?: />|>.*?</TRL_RightRules>)",
+        rules("TRL_RightRules", left_inner),
+        block,
+        count=1,
+        flags=re.S,
+    )
+    return block
+
+
+def patch_brick_sidi(text: str) -> str:
+    """Column 1 (100) codes from R; 101 codes from L — match the 2-position levers."""
+    specs = (
+        (13, "LEFT", [], ["101RA", "101RB"]),
+        (14, "RIGHT", ["100L"], []),
+    )
+    for uid, direction, ltr, rtl in specs:
+        m = _ctc_uid_block(text, uid)
+        if not m:
+            continue
+        block = m.group(0)
+        already = "<SIDI_TrafficDirection>%s</SIDI_TrafficDirection>" % direction in block
+        block = _set_sidi_lists(block, direction, ltr, rtl, swap_trl=not already)
+        text = text[: m.start()] + block + text[m.end() :]
     return text
 
 
@@ -1012,10 +1200,10 @@ def main() -> None:
     ap.add_argument("--cats", type=Path, default=CATS_XML)
     ap.add_argument("--gui", type=Path, default=GUI_XML)
     ap.add_argument("--tables", type=Path, default=None,
-                    help="Optional. Only tables/new_tables.xml — never tables.xml")
+                    help="Optional. output/tables.xml or tables/new_tables.xml — never tables/tables.xml")
     ap.add_argument("--preview", type=Path, default=None)
     args = ap.parse_args()
-    if args.tables and args.tables.name == "tables.xml":
+    if args.tables and args.tables.resolve() == SOURCE_TABLES.resolve():
         sys.exit("refusing to write tables/tables.xml")
 
     write_cell_icons()
@@ -1026,13 +1214,30 @@ def main() -> None:
     print("%s: Master 4 track plan regenerated" % args.gui)
     install_preference_icons()
 
+    pe = re.search(r"<paneleditor\b.*?</paneleditor>", new, re.S)
+    assert pe, "no paneleditor in regenerated GUI"
+
+    def embed(path: Path, replace_panel: bool) -> None:
+        tables = path.read_text()
+        if replace_panel:
+            m = re.search(r"<paneleditor\b.*?</paneleditor>", tables, re.S)
+            assert m, "no paneleditor in %s" % path
+            tables = tables[: m.start()] + pe.group(0) + tables[m.end() :]
+        patched = patch_brick_sidi(tables)
+        if patched != tables or replace_panel:
+            path.write_text(patched)
+            print("%s: %s" % (
+                path,
+                "paneleditor replaced, Brick SIDI updated" if replace_panel
+                else "Brick SIDI updated",
+            ))
+
     if args.tables:
-        tables = args.tables.read_text()
-        m = re.search(r"<paneleditor\b.*?</paneleditor>", tables, re.S)
-        assert m, "no paneleditor in %s" % args.tables
-        new_panel = apply(m.group(0), cells)
-        args.tables.write_text(tables[: m.start()] + new_panel + tables[m.end():])
-        print("%s: embedded paneleditor regenerated" % args.tables)
+        embed(args.tables, replace_panel=True)
+    if NEW_TABLES.is_file() and (
+        not args.tables or args.tables.resolve() != NEW_TABLES.resolve()
+    ):
+        embed(NEW_TABLES, replace_panel=False)
 
     if args.preview:
         render_preview(new, args.preview)

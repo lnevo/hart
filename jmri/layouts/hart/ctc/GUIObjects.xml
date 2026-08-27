@@ -123,11 +123,22 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <positionablelabel x="81" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
+    <sensoricon sensor="IS2:LDGK" x="81" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS2:LDGK</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <sensoricon sensor="IS2:NGK" x="99" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS2:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
@@ -144,31 +155,17 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS2:RDGK" x="115" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS2:RDGK</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+    <positionablelabel x="115" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
+      </icon>
+    </positionablelabel>
     <multisensoricon x="85" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
-      <tooltip>IS2:LDGL,IS2:NGL,IS2:RDGL</tooltip>
+      <tooltip>IS2:LDGL,IS2:NGL,</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS2:LDGL">
         <rotation>0</rotation>
       </active>
       <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS2:NGL">
-        <rotation>0</rotation>
-      </active>
-      <active url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0" sensor="IS2:RDGL">
         <rotation>0</rotation>
       </active>
       <inactive url="program:resources/icons/USS/plate/levers/lever-inactive-wide.gif" scale="1.0">
@@ -245,22 +242,11 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="IS4:LDGK" x="16" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS4:LDGK</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+    <positionablelabel x="16" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
+      </icon>
+    </positionablelabel>
     <sensoricon sensor="IS4:NGK" x="34" y="440" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS4:NGK</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
@@ -277,16 +263,24 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <positionablelabel x="50" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </icon>
-    </positionablelabel>
-    <multisensoricon x="20" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
-      <tooltip>IS4:LDGL,IS4:NGL,IS4:RDGL</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS4:LDGL">
+    <sensoricon sensor="IS4:RDGK" x="50" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS4:RDGK</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <multisensoricon x="20" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+      <tooltip>,IS4:NGL,IS4:RDGL</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS4:NGL">
         <rotation>0</rotation>
       </active>
@@ -399,6 +393,11 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
+    <positionablelabel x="180" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+      <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
+        <rotation>0</rotation>
+      </icon>
+    </positionablelabel>
     <positionablelabel x="245" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>

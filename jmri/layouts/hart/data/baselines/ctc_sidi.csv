@@ -1,13 +1,13 @@
 column,turnout,ltr,rtl
-10,Switch 111,East End West Main West|East End West Yard Track 1,East End East OS 111a
-11,Switch 110,East End South OS 110,
-12,Switch 112,East End South OS 112,East End East Lead
-14,Switch 113,Princess West OS 113b|Princess West OS 113a,
-15,Switch 114,Princess East McKees Rocks,Princess East K-2|Princess South McKeesport
-16,Switch 115,Princess East McKeesport,Princess East K-1|Princess North McKees Rocks
-2,Switch 101,Brick West Yard 1|Brick West Yard 2,
-3,Switch 100,,Brick East Main West
-4,Switch 102,,Plane East East Main Ext|Plane East OS 102
-6,Switch 117,West Yard West OS 117|West Yard West East Main Ext,West Yard East OS 117b|West Yard East Yard T6
+10,Switch 111,111RA|111RB,111L
+11,Switch 110,110R,
+12,Switch 112,112R,112L
+14,Switch 113,113RA|113RB,
+15,Switch 114,120L,114LA|114LB
+16,Switch 115,120R,115LA|115LB
+2,Switch 101,,101RA|101RB
+3,Switch 100,100L,
+4,Switch 102,,102LB|102LA
+6,Switch 117,117RA|117RB,117LA|117LB
 7,Switch 116,,
 8,Switch 103,,
