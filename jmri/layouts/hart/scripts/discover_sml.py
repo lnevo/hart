@@ -104,21 +104,29 @@ def _on_edt(fn):
 
 
 def _settle_unknown_turnouts():
-    """Layout may be off; UNKNOWN points keep routing from ever stabilising."""
+    """Layout may be off; UNKNOWN points keep routing from ever stabilising.
+
+    Paint KnownState only. Never setCommandedState / MQTT track/cmd.
+    """
     mgr = jmri.InstanceManager.turnoutManagerInstance()
     n = 0
+    skipped = 0
     for to in mgr.getNamedBeanSet():
         try:
             if to.getKnownState() != jmri.Turnout.UNKNOWN:
                 continue
             if hasattr(to, "newKnownState"):
                 to.newKnownState(jmri.Turnout.CLOSED)
+                n += 1
+            elif hasattr(to, "setOwnState"):
+                to.setOwnState(jmri.Turnout.CLOSED)
+                n += 1
             else:
-                to.setCommandedState(jmri.Turnout.CLOSED)
-            n += 1
+                skipped += 1
+                _log("skip UNKNOWN %s (no paint-only setter)" % to)
         except Exception as e:
             _log("turnout %s: %s" % (to, e))
-    _log("set Closed on %s UNKNOWN turnouts (layout-off settle)" % n)
+    _log("painted Closed on %s UNKNOWN turnouts; skipped %s" % (n, skipped))
 
 
 def _store_tables():

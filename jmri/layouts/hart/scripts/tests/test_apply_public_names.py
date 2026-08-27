@@ -184,6 +184,22 @@ class ApplyPublicNamesTest(unittest.TestCase):
         self.assertIn('USER_NAME="BS Barn"', updated)
         self.assertIn("occupancy Block 13-1 / M2S1300; stop", updated)
 
+    def test_turnout_fb_and_sml_sensor_lookups_follow_usernames(self):
+        mapping = apply_public_names.load_sensor_username_map(MAP)
+        xml = (
+            '<turnout sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N"/>'
+            "<sensorName>Block 1-1</sensorName>"
+            "<sensor>Block 1-1</sensor>"
+            "<comment>same FB as MQTT hardware (Switch 4-1)</comment>"
+        )
+        updated, hits = apply_public_names.apply_sensor_lookups_to_text(xml, mapping)
+        self.assertGreater(hits, 0)
+        self.assertIn('sensor1="FB Switch 1 R"', updated)
+        self.assertIn('sensor2="FB Switch 1 N"', updated)
+        self.assertIn("<sensorName>BS McKees Rocks</sensorName>", updated)
+        self.assertIn("<sensor>BS McKees Rocks</sensor>", updated)
+        self.assertIn("same FB as MQTT hardware (Switch 4-1)", updated)
+
 
 if __name__ == "__main__":
     unittest.main()

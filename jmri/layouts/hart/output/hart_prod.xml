@@ -451,52 +451,52 @@
     </operations>
     <defaultclosedspeed>Normal</defaultclosedspeed>
     <defaultthrownspeed>Restricted</defaultthrownspeed>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 1-1 FB R" sensor2="Switch 1-1 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N" inverted="false" automate="Off">
       <systemName>M2T108</systemName>
       <userName>Switch 35</userName>
       <comment>Princess crossover 113a/113b; MQTT M2T108; FB Switch 1-1</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 1-2 FB R" sensor2="Switch 1-2 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
       <systemName>M2T109</systemName>
       <userName>Switch 37</userName>
       <comment>Princess; MQTT M2T109; FB Switch 1-2; rests Thrown</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 1-3 FB R" sensor2="Switch 1-3 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
       <systemName>M2T110</systemName>
       <userName>Switch 39</userName>
       <comment>Princess; MQTT M2T110; FB Switch 1-3; rests Thrown</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 3-1 FB R" sensor2="Switch 3-1 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 15 R" sensor2="FB Switch 15 N" inverted="false" automate="Off">
       <systemName>M2T308</systemName>
       <userName>Switch 15</userName>
       <comment>South Yard ladder; MQTT M2T308; FB Switch 3-1; CTC local</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 3-2 FB R" sensor2="Switch 3-2 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 17 R" sensor2="FB Switch 17 N" inverted="false" automate="Off">
       <systemName>M2T309</systemName>
       <userName>Switch 17</userName>
       <comment>South Yard; MQTT M2T309; FB Switch 3-2; hand-throw</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 3-3 FB R" sensor2="Switch 3-3 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 19 R" sensor2="FB Switch 19 N" inverted="false" automate="Off">
       <systemName>M2T310</systemName>
       <userName>Switch 19</userName>
       <comment>South Yard; MQTT M2T310; FB Switch 3-3; hand-throw</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 3-4 FB R" sensor2="Switch 3-4 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 21 R" sensor2="FB Switch 21 N" inverted="false" automate="Off">
       <systemName>M2T311</systemName>
       <userName>Switch 21</userName>
       <comment>South Yard; MQTT M2T311; FB Switch 3-4; hand-throw</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N" inverted="false" automate="Off">
       <systemName>M2T408</systemName>
       <userName>Switch 1</userName>
       <comment>Brick CP; MQTT M2T408; FB Switch 4-1; rests Thrown</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 4-2 FB R" sensor2="Switch 4-2 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 3 R" sensor2="FB Switch 3 N" inverted="false" automate="Off">
       <systemName>M2T409</systemName>
       <userName>Switch 3</userName>
       <comment>Brick CP, West Yard access; MQTT M2T409; FB Switch 4-2</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 4-3 FB R" sensor2="Switch 4-3 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 5 R" sensor2="FB Switch 5 N" inverted="false" automate="Off">
       <systemName>M2T410</systemName>
       <userName>Switch 5</userName>
       <comment>Plane CP; MQTT M2T410; FB Switch 4-3</comment>
@@ -506,32 +506,32 @@
       <userName>Switch 13</userName>
       <comment>Hand-throw west of South Yard; MQTT M2T411; CTC local</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-1 FB R" sensor2="Switch 12-1 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 25 R" sensor2="FB Switch 25 N" inverted="false" automate="Off">
       <systemName>M2T1208</systemName>
       <userName>Switch 25</userName>
       <comment>East End; MQTT M2T1208; FB Switch 12-1</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-2 FB R" sensor2="Switch 12-2 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 27 R" sensor2="FB Switch 27 N" inverted="false" automate="Off">
       <systemName>M2T1209</systemName>
       <userName>Switch 27</userName>
       <comment>East End; MQTT M2T1209; FB Switch 12-2</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-3 FB R" sensor2="Switch 12-3 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 29 R" sensor2="FB Switch 29 N" inverted="false" automate="Off">
       <systemName>M2T1210</systemName>
       <userName>Switch 29</userName>
       <comment>East End; MQTT M2T1210; FB Switch 12-3</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-4 FB R" sensor2="Switch 12-4 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 31 R" sensor2="FB Switch 31 N" inverted="false" automate="Off">
       <systemName>M2T1211</systemName>
       <userName>Switch 31</userName>
       <comment>East End ladder; MQTT M2T1211; FB Switch 12-4; CTC local</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-5 FB R" sensor2="Switch 12-5 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
       <systemName>M2T1212</systemName>
       <userName>Switch 23</userName>
       <comment>East End crossover 111a/111b; MQTT M2T1212; FB Switch 12-5</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-6 FB R" sensor2="Switch 12-6 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 33 R" sensor2="FB Switch 33 N" inverted="false" automate="Off">
       <systemName>M2T1213</systemName>
       <userName>Switch 33</userName>
       <comment>East End; MQTT M2T1213; FB Switch 12-6; rests Thrown</comment>
@@ -560,27 +560,27 @@
     </operations>
     <defaultclosedspeed>Normal</defaultclosedspeed>
     <defaultthrownspeed>Restricted</defaultthrownspeed>
-    <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="Switch 4-1 FB R" sensor2="Switch 4-1 FB N">
+    <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N">
       <systemName>MTT100</systemName>
       <userName>Switch 1 alias</userName>
       <comment>OpenLCB alias of Switch 1; same FB as MQTT hardware (Switch 4-1)</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 12-5 FB R" sensor2="Switch 12-5 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
       <systemName>MTT111</systemName>
       <userName>Switch 23 alias</userName>
       <comment>OpenLCB alias of Switch 23; same FB as MQTT hardware (Switch 12-5)</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="Switch 1-1 FB R" sensor2="Switch 1-1 FB N">
+    <turnout feedback="TWOSENSOR" inverted="false" automate="Off" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N">
       <systemName>MTT113</systemName>
       <userName>Switch 35 alias</userName>
       <comment>OpenLCB alias of Switch 35; same FB as MQTT hardware (Switch 1-1)</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 1-2 FB R" sensor2="Switch 1-2 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
       <systemName>MTT114</systemName>
       <userName>Switch 37 alias</userName>
       <comment>OpenLCB alias of Switch 37; same FB as MQTT hardware (Switch 1-2)</comment>
     </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="Switch 1-3 FB R" sensor2="Switch 1-3 FB N" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
       <systemName>MTT115</systemName>
       <userName>Switch 39 alias</userName>
       <comment>OpenLCB alias of Switch 39; same FB as MQTT hardware (Switch 1-3)</comment>

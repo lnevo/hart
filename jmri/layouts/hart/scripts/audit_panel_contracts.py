@@ -275,6 +275,44 @@ def audit_occupancy_bindings(root: ET.Element, audit: Audit, *, required: bool) 
     audit.facts["occupancy_bindings"] = tuple(sorted(expected.items()))
 
 
+def audit_turnout_feedback_sensors(root: ET.Element, audit: Audit, *, required: bool) -> None:
+    """TWOSENSOR sensor1/sensor2 must resolve to existing sensor userNames.
+
+    Stale names make OpenLCB invent systemNames like MSSwitch 4-1 FB R.
+    """
+    problem = audit.error if required else audit.warn
+    sensor_names = {
+        text(sensor, "userName")
+        for sensor in root.iter("sensor")
+        if text(sensor, "userName")
+    }
+    missing: list[str] = []
+    stale_old: list[str] = []
+    for turnout in root.iter("turnout"):
+        ident = text(turnout, "userName") or text(turnout, "systemName") or "?"
+        for attr in ("sensor1", "sensor2"):
+            name = (turnout.get(attr) or "").strip()
+            if not name:
+                continue
+            if re.fullmatch(r"Switch \d+-\d+ FB [NR]", name):
+                stale_old.append(f"{ident} {attr}={name}")
+            if name not in sensor_names:
+                missing.append(f"{ident} {attr}={name}")
+    if stale_old:
+        problem(
+            "turnout feedback still uses pre-convert FB userNames: "
+            + "; ".join(stale_old[:8])
+            + (" ..." if len(stale_old) > 8 else "")
+        )
+    elif missing:
+        problem(
+            "turnout feedback sensors are not sensor userNames: "
+            + "; ".join(missing[:8])
+            + (" ..." if len(missing) > 8 else "")
+        )
+    audit.facts["turnout_feedback"] = tuple(sorted(missing or stale_old))
+
+
 def audit_stations(
     root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool
 ) -> None:
@@ -506,6 +544,7 @@ def audit_source(
         audit_sml(root, audit, required=True)
         audit_stations(root, panel, audit, required=True)
         audit_occupancy_bindings(root, audit, required=True)
+        audit_turnout_feedback_sensors(root, audit, required=True)
         audit_dispatcher_startup(root, audit)
         if label == "deployment":
             audit_generated_dispatcher(root, audit)
@@ -517,6 +556,7 @@ def audit_source(
         audit.facts["station_sensors"] = ()
         audit.facts["station_icons"] = ()
         audit_occupancy_bindings(root, audit, required=True)
+        audit_turnout_feedback_sensors(root, audit, required=True)
     audit_placeholders(panel, audit)
     return audit
 

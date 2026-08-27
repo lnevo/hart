@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-27 — Deploy is **one staged tree**: **rsync** to Pi, **one tarball** to Windows (not git pull; hosts are not clones). `--dry-run` added.
+Updated: 2026-08-27 — PanelPro load error: LCC turnout FB still pointed at old `Switch 4-1 FB N/R` userNames, so OpenLCB invented `MSSwitch 4-1 FB *`. Feedback/SML/CTC lookups now use `FB Switch n` / `BS …`. Audit checks it. **Discover SML still due** after a clean reload. Do not run USS with CATS CTC.
 
 Updated: 2026-08-27 — CTC-number convert **finished**. Dispatcher MoveTo sensors are `MoveToOS_Barn_stored`; occupancy lookups are `BS …` (comments keep `Block n-n`). USS **v75**. Reload PanelPro, **Discover SML**. Do not run USS with CATS CTC. Deploy `--pi --win`.
 

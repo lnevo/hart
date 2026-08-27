@@ -417,6 +417,47 @@ def apply_occupancy_refs_to_text(
     return updated, hits
 
 
+def apply_sensor_lookups_to_text(
+    content: str, mapping: dict[str, str]
+) -> tuple[str, int]:
+    """Rewrite turnout FB and SML/CTC sensor lookups to live userNames.
+
+    Occupancy comments keep Block n-n; only JMRI name-resolution fields change.
+    """
+    if not mapping:
+        return content, 0
+    hits = 0
+
+    def repl_attr(attr: str):
+        def inner(match: re.Match[str]) -> str:
+            nonlocal hits
+            new = mapping.get(match.group(1))
+            if not new:
+                return match.group(0)
+            hits += 1
+            return f'{attr}="{new}"'
+
+        return inner
+
+    def repl_tag(tag: str):
+        def inner(match: re.Match[str]) -> str:
+            nonlocal hits
+            new = mapping.get(match.group(1))
+            if not new:
+                return match.group(0)
+            hits += 1
+            return f"<{tag}>{new}</{tag}>"
+
+        return inner
+
+    updated = content
+    for attr in ("sensor1", "sensor2"):
+        updated = re.sub(rf'{attr}="([^"]*)"', repl_attr(attr), updated)
+    updated = re.sub(r"<sensorName>([^<]*)</sensorName>", repl_tag("sensorName"), updated)
+    updated = re.sub(r"<sensor>([^<]*)</sensor>", repl_tag("sensor"), updated)
+    return updated, hits
+
+
 def apply_renames_to_xml_file(
     xml_path: Path | str,
     renames: list[RenameEntry],
@@ -436,6 +477,9 @@ def apply_renames_to_xml_file(
         updated, occ_n = apply_occupancy_refs_to_text(updated, sensor_usernames)
         if occ_n:
             counts[("(occupancy refs)", f"{occ_n} Block n-n → BS")] += occ_n
+        updated, lookup_n = apply_sensor_lookups_to_text(updated, sensor_usernames)
+        if lookup_n:
+            counts[("(sensor lookups)", f"{lookup_n} FB/SML/CTC")] += lookup_n
     after_system_names = collect_system_names(ET.fromstring(updated))
     system_names_ok = before_system_names == after_system_names
 
