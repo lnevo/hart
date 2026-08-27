@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v65).
+"""Generate the USS CTC track diagram from CATS Master 4 (v66).
 
 20 packed columns. Cream track/switch captions off; schematic centered
-in the dark plate. 120R/120L stacked at Princess (USS display only).
+in the dark plate. 120L stays westbound on McKeesport under 120R.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v65_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v66_preview.png
 """
 from __future__ import annotations
 
@@ -192,9 +192,9 @@ SIGNALS = [
     ("115LA", 56, 5, "W", "d1", "IH142"),
     ("114LB", 56, 7, "W", "h2", None),
     ("114LA", 56, 8, "W", "d1", "IH143"),
-    # USS display: 120L sits on McKeesport under 120R, east-facing.
-    # CATS/field 120L stays west on McKees Rocks.
-    ("120L", 62, 7, "E", "d1", "IH141"),
+    # Still westbound (IH141 / CATS SHARED wrap). USS only moves the lamp
+    # onto McKeesport under 120R — GIFs stay west, placement is east.
+    ("120L", 62, 7, "W", "d1", "IH141"),
 ]
 
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 100–119.
@@ -726,8 +726,10 @@ def build_block(cells: dict) -> str:
     for x, y, text, size, col in texts:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
     for name, cx, cy, facing, kind, head in SIGNALS:
-        stem_x = ux(cx, cy) + (8 if facing == "E" else 2)
-        x, y = signal_xy(stem_x, bar_y(cy) + 2, facing, kind)
+        # 120L is westbound; sit it on the east side of the cell under 120R.
+        place = "E" if name == "120L" else facing
+        stem_x = ux(cx, cy) + (8 if place == "E" else 2)
+        x, y = signal_xy(stem_x, bar_y(cy) + 2, place, kind)
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,

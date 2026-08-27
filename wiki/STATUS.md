@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-26 — USS CTC **v65**: cream switch/track captions off; schematic + OS numbers centered in the dark plate; **120R** east on McKees Rocks and **120L** east on McKeesport, stacked at x=62 (USS display only — CATS/field 120L stays west). Preview `cats/screenshots/master4/uss_ctc_v65_preview.png`. Reload **USS CTC**. Do not run it with CATS CTC.
+Updated: 2026-08-26 — USS CTC **v66**: **120L** stays westbound (`IH141`, `-w` GIFs) on McKeesport under **120R**. Placement only — CATS/LE/SML unchanged. Preview `cats/screenshots/master4/uss_ctc_v66_preview.png`. Reload **USS CTC**. Do not run it with CATS CTC.
 
 Updated: 2026-08-26 — Proposed South Yard plates: run-through **S-R** (was S-1); body tracks **S-1…S-4** (was S-2…S-5). Device-map / `public_name_map.csv` only; not applied to XML.
 
