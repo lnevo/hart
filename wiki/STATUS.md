@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-26 — USS CTC **v67**: track captions restored (W-1, S-1, McKees*, EH-*, Main, …). Bottom OS-jewel numbers **1…39** stay off with those lamps. **120L** still westbound on McKeesport under **120R**. Preview `cats/screenshots/master4/uss_ctc_v67_preview.png`. Reload **USS CTC**. Do not run it with CATS CTC.
+Updated: 2026-08-27 — USS CTC **v68**: Brick **column 1 and 2** signal levers are full L/N/R (they were 2-position with Normal on opposite click halves). 100’s right knockout follows the lever. Reload **USS CTC**. Do not run it with CATS CTC.
 
 Updated: 2026-08-26 — Proposed South Yard plates: run-through **S-R** (was S-1); body tracks **S-1…S-4** (was S-2…S-5). Device-map / `public_name_map.csv` only; not applied to XML.
 

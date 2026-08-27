@@ -161,7 +161,10 @@
       <iconmaps />
     </sensoricon>
     <multisensoricon x="85" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
-      <tooltip>,IS2:NGL,IS2:RDGL</tooltip>
+      <tooltip>IS2:LDGL,IS2:NGL,IS2:RDGL</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS2:LDGL">
+        <rotation>0</rotation>
+      </active>
       <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS2:NGL">
         <rotation>0</rotation>
       </active>
@@ -274,17 +277,20 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <positionablelabel x="180" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="50" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
     <multisensoricon x="20" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
-      <tooltip>IS4:LDGL,IS4:NGL,</tooltip>
+      <tooltip>IS4:LDGL,IS4:NGL,IS4:RDGL</tooltip>
       <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS4:LDGL">
         <rotation>0</rotation>
       </active>
       <active url="program:resources/icons/USS/plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS4:NGL">
+        <rotation>0</rotation>
+      </active>
+      <active url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0" sensor="IS4:RDGL">
         <rotation>0</rotation>
       </active>
       <inactive url="program:resources/icons/USS/plate/levers/lever-inactive-wide.gif" scale="1.0">

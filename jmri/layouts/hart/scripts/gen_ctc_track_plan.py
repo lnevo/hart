@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v67).
+"""Generate the USS CTC track diagram from CATS Master 4 (v68).
 
-20 packed columns. Track captions restored; bottom OS-jewel numbers off
-(those lamps are gone). 120L stays westbound on McKeesport under 120R.
+20 packed columns. Brick signal levers are full L/N/R so column 1 and 2
+are not click-inverted. 120L stays westbound on McKeesport under 120R.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v67_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v68_preview.png
 """
 from __future__ import annotations
 
@@ -442,6 +442,28 @@ LOCK_CAP = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="fals
       <tooltip>Text Label</tooltip>
     </positionablelabel>"""
 
+SIG_LEVER = """<multisensoricon x="{x}" y="492" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" updown="false" class="jmri.jmrit.display.configurexml.MultiSensorIconXml">
+      <tooltip>IS{uid}:LDGL,IS{uid}:NGL,IS{uid}:RDGL</tooltip>
+      <active url="{u}plate/levers/lever-left-wide.gif" scale="1.0" sensor="IS{uid}:LDGL">
+        <rotation>0</rotation>
+      </active>
+      <active url="{u}plate/levers/lever-vertical-wide.gif" scale="1.0" sensor="IS{uid}:NGL">
+        <rotation>0</rotation>
+      </active>
+      <active url="{u}plate/levers/lever-right-wide.gif" scale="1.0" sensor="IS{uid}:RDGL">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="{u}plate/levers/lever-inactive-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="{u}plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="{u}plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+    </multisensoricon>"""
+
 MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>{name}</tooltip>
     </signalmasticon>"""
@@ -830,8 +852,35 @@ def reposition_levers(text: str) -> str:
     return re.sub(r"<multisensoricon\b.*?</multisensoricon>", _ms, text, flags=re.S)
 
 
+def fix_brick_signal_levers(text: str) -> str:
+    """Columns 1–2 were 2-position (N on opposite click halves). Use L/N/R."""
+    for uid, slot in ((4, 0), (2, 1)):
+        x = 12 + 65 * slot + 8
+        text = re.sub(
+            r'<multisensoricon x="\d+" y="492"[^>]*>.*?</multisensoricon>',
+            lambda m, uid=uid, x=x: (
+                SIG_LEVER.format(uid=uid, x=x, u=U)
+                if ("IS%d:" % uid) in m.group(0)
+                else m.group(0)
+            ),
+            text,
+            flags=re.S,
+            count=0,
+        )
+    # 100's right knockout stayed at the old column-2 x when 100 moved west.
+    if not re.search(r'x="50" y="454"[^>]*>\s*<icon url="[^"]*knockout\.gif"', text):
+        text = re.sub(
+            r'(<positionablelabel x=")180(" y="454")',
+            r"\g<1>50\2",
+            text,
+            count=1,
+        )
+    return text
+
+
 def apply(text: str, cells: dict, close_tag: str = "</paneleditor>") -> str:
     text = reposition_levers(text)
+    text = fix_brick_signal_levers(text)
     for pat in STRIP:
         text = pat.sub("", text)
     text = re.sub(
