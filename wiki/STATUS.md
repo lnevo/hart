@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-27 — USS **v71**: **120L**/**120R** back on the rail at the same X (120L west GIFs, seated east under 120R). LE **120L**/**120R** mast Y values swapped. Occupancy hold still pending. Reload **USS CTC** and **Layout Editor**. Do not run USS with CATS CTC.
+Updated: 2026-08-27 — USS **v72**: **120L** rotated 180° on the shared-X stack. LE **120L**/**120R** kept the Mac-saved relative seats (120L upper-right, 120R lower-left), snapped to even offsets from the NX column. Not deployed.
 
 Updated: 2026-08-27 — USS CTC **v69**: Brick **column 1** signal lever is N/R, **101** is L/N, **102** stays L/N, **117** stays LNR. Master 4 paneleditor is now in production `output/tables.xml`. Reload **USS CTC**. Do not run it with CATS CTC.
 

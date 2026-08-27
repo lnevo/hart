@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v71).
+"""Generate the USS CTC track diagram from CATS Master 4 (v72).
 
 20 packed columns. Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is
-LNR. 120R/120L share one X on McKeesport (120L west GIFs, seated east under 120R).
+LNR. 120R/120L share one X on McKeesport; 120L west GIFs rotated 180°.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v71_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v72_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
@@ -533,7 +533,7 @@ MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecon
       <tooltip>{name}</tooltip>
     </signalmasticon>"""
 
-HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="{degrees}" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>{name}</tooltip>
       <icons>
         <held url="{stop}" scale="1.0">
@@ -835,6 +835,7 @@ def build_block(cells: dict) -> str:
         else:
             parts.append(HEAD.format(
                 name=name, head=head, x=x, y=y,
+                degrees=180 if name == "120L" else 0,
                 stop=sig_url("d1", "stop", facing),
                 rest=sig_url("d1", "restricting", facing),
                 clr=sig_url("d1", "slow-clear", facing),

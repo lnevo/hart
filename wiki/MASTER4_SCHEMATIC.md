@@ -54,7 +54,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 
 ## Remaining gaps
 
-- USS CTC `GUIObjects.xml` is **v71**: Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is LNR. **120R** and **120L** share one X on McKeesport (on the rail; 120L west GIFs seated east under 120R). LE **120L**/**120R** mast Y values are swapped. New UniqueIDs for 119/118/104–106 (IS32/34/36/38/40) are GUI-only. Local default still not applied. Production `output/tables.xml` embeds this paneleditor.
+- USS CTC `GUIObjects.xml` is **v72**: Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is LNR. **120R** and **120L** share one X on McKeesport; **120L** west GIFs rotated 180°. LE **120L** is upper-right of the NX column, **120R** lower-left, even 22px offsets. New UniqueIDs for 119/118/104–106 (IS32/34/36/38/40) are GUI-only. Local default still not applied. Production `output/tables.xml` embeds this paneleditor.
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
 - CATS Princess lamps match LE: **115LB** McKees Rocks and **114LB** McKeesport are 2-head (`LAMP2` / `double`); **115LA** K-1 and **114LA** K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
@@ -85,14 +85,14 @@ Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. **CATS Master4** (`/A
 
 CATS is the Digicon. The USS lever machine is a **separate** JMRI Panel Editor panel, always titled **USS CTC**. LogixNG `IQC:AUTO:0002` **hides** that panel on CATS start.
 
-The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v71**, 20 packed columns). Lever UniqueIDs and JMRI beans are still the 12-column machine / Switch 100–119; lock toggles on 119/118/104–106 are GUI-only Internal sensors. Production `jmri/layouts/hart/output/tables.xml` embeds this paneleditor.
+The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v72**, 20 packed columns). Lever UniqueIDs and JMRI beans are still the 12-column machine / Switch 100–119; lock toggles on 119/118/104–106 are GUI-only Internal sensors. Production `jmri/layouts/hart/output/tables.xml` embeds this paneleditor.
 
 ```bash
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v71_preview.png
+python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v72_preview.png
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 ```
 
 Regen also copies GIFs + `GUIObjects.xml` into local `*.jmri/ctc/` (`preference:ctc/`).
 
-Static preview: `cats/screenshots/master4/uss_ctc_v71_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v70`.
+Static preview: `cats/screenshots/master4/uss_ctc_v72_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v71`.
