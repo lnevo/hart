@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-27 — **120L** stays westbound on McKeesport under **120R**, but SML still requires **McKees Rocks** unoccupied (same hold as when the lamp sat on that track). Reload **USS CTC**. Do not run it with CATS CTC.
+
 Updated: 2026-08-27 — USS CTC **v69**: Brick **column 1** signal lever is N/R, **101** is L/N, **102** stays L/N, **117** stays LNR. Master 4 paneleditor is now in production `output/tables.xml`. Reload **USS CTC**. Do not run it with CATS CTC.
 
 Updated: 2026-08-26 — Proposed South Yard plates: run-through **S-R** (was S-1); body tracks **S-1…S-4** (was S-2…S-5). Device-map / `public_name_map.csv` only; not applied to XML.

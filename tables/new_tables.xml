@@ -13760,6 +13760,12 @@
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <blocks>
+          <block>
+            <blockName>McKees Rocks</blockName>
+            <blockState>unoccupied</blockState>
+          </block>
+        </blocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
       <destinationMast destination="114LB">
@@ -13771,6 +13777,12 @@
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <associatedSection>120L:114LB</associatedSection>
+        <blocks>
+          <block>
+            <blockName>McKees Rocks</blockName>
+            <blockState>unoccupied</blockState>
+          </block>
+        </blocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>

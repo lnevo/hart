@@ -58,7 +58,7 @@ Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 between 
 - **117RA** / **117LA** are `LAMP1` on Master 4 and USS (top head only); JMRI/field still 2-head.
 - CATS Princess lamps match LE: **115LB** McKees Rocks and **114LB** McKeesport are 2-head (`LAMP2` / `double`); **115LA** K-1 and **114LA** K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - **112R** CATS lamp at `(44,8)` vs existing field 2-head mast (`IH1240`/`IH1241`).
-- SML re-Discovered after 120L facing west: **120L→115LB/114LB**, **120R→115LB/114LB**. **115LB** dests stay `111L`/`112L`; **114LB** stays `112L`. Reload **CATS CTC** or **CATS ABS**.
+- SML re-Discovered after 120L facing west: **120L→115LB/114LB**, **120R→115LB/114LB**. **120L** dests also require **McKees Rocks** unoccupied (USS lamp sits on McKeesport; occupancy hold is unchanged). **115LB** dests stay `111L`/`112L`; **114LB** stays `112L`. Reload **CATS CTC** or **CATS ABS**.
 - Sheets push stays human-gated.
 
 ## Label fixes
