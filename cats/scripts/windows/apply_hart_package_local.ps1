@@ -137,7 +137,10 @@ foreach ($r in ($roots | Select-Object -Unique)) {
   if (Test-Path $trainInfoSrc) {
     $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
     New-Item -ItemType Directory -Force -Path $trainInfoDest | Out-Null
-    Copy-Item (Join-Path $trainInfoSrc '*.xml') $trainInfoDest -Force
+    & robocopy $trainInfoSrc $trainInfoDest *.xml /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
+    if ($LASTEXITCODE -ge 8) {
+      throw ("robocopy traininfo failed ({0}) -> {1}" -f $LASTEXITCODE, $trainInfoDest)
+    }
     Write-Host ("Dispatcher traininfo -> {0}\dispatcher\traininfo" -f $r)
   }
 }
@@ -181,6 +184,11 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
     & python @pyArgs
     Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
   }
+}
+
+$masts = Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'
+if (Test-Path $masts) {
+  & $masts
 }
 
 Write-Host 'apply_hart_package_local done'

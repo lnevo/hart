@@ -247,9 +247,10 @@ Same package carries Digicon Masters, `tables.xml`, yard-ladder button icons, an
 Deploy via SSH (agent does this — no manual batch/Dropbox step):
 
 ```bash
-./cats/scripts/sync_hart_package.sh --pi    # Pi
-./cats/scripts/sync_hart_package.sh --win   # Windows (SSH :2222)
+./cats/scripts/sync_hart_package.sh --pi    # Pi (rsync + local apply)
+./cats/scripts/sync_hart_package.sh --win   # Windows SSH :2222 (one tarball + apply)
 ./cats/scripts/sync_hart_package.sh --all   # Mac web + Pi + Windows
+./cats/scripts/sync_hart_package.sh --pi --dry-run
 ```
 
 ---
@@ -269,7 +270,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `cats/scripts/polish_hart_master_header.py` | Publication title row |
 | `cats/scripts/build_hart_signal_heads.py` | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |
 | `cats/scripts/add_yard_ladder_buttons.py` | Ladder lamp buttons on Masters |
-| `cats/scripts/sync_hart_package.sh` | SSH deploy package to Pi / Windows |
+| `cats/scripts/sync_hart_package.sh` | Stage `~/hart` package; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `cats/scripts/windows/install_hart_tables.ps1` | Windows local install helper (tables + jars + web); prefer `sync_hart_package.sh --win` |
 | `jmri/layouts/hart/scripts/apply_maintain_mqtt.py` | Boot retain paint (sensors/turnouts) |
