@@ -92,4 +92,6 @@ python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v57_preview.png
 ```
 
+Regen also copies GIFs + `GUIObjects.xml` into local `*.jmri/ctc/` (`preference:ctc/`).
+
 Static preview: `cats/screenshots/master4/uss_ctc_v57_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v56`.

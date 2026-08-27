@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-26 — USS CTC **v57** cell/pts/occ icons installed into this Mac's JMRI profiles (`preference:ctc/icons/`). Reload **USS CTC**. `tables.xml` still pre-Master 4. Not deployed to Pi.
+
 Updated: 2026-08-26 — USS CTC **v57** cleans the Master 4 diagram: one transparent 18×18 tile per CATS cell (no overlapping USS line gifs / 40px frogs). Points are small yellow dots. `tables.xml` unchanged. Preview `cats/screenshots/master4/uss_ctc_v57_preview.png`. Not deployed.
 
 Updated: 2026-08-26 — USS CTC track diagram **v56** starts over from live CATS Master 4 (`HART_Master4.xml`): same row order (Main West / Scale-Barn-S-1 / Brick-Plane / W-1-W-2 / south yard / Main East), W-1/W-2 east of 101, EH-1/2/3, S-1…S-5, 104–109 frogs drawn. Regen `gen_ctc_track_plan.py`. `tables.xml` unchanged — PanelPro still loads the pre-Master 4 board. Preview `cats/screenshots/master4/uss_ctc_v56_preview.png`. Not deployed.

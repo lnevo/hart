@@ -635,6 +635,40 @@ def render_preview(gui_text: str, out: Path) -> None:
     print("preview %s (%dx%d)" % (out, W * S, H * S))
 
 
+def install_preference_icons() -> list[Path]:
+    """Copy preference:ctc/icons GIFs (and GUIObjects.xml) into local profiles."""
+    dests: list[Path] = []
+    candidates = [
+        Path.home() / "JMRI_UserFiles",
+        Path.home() / "Library/Preferences/JMRI",
+        Path.home() / ".jmri",
+        Path.home() / "JMRI",
+    ]
+    for base in candidates:
+        if not base.is_dir():
+            continue
+        if base.name == "JMRI_UserFiles":
+            dests.append(base / "ctc")
+        dests.extend(p / "ctc" for p in base.glob("*.jmri") if p.is_dir())
+    written: list[Path] = []
+    gifs = sorted(THIN_DIR.glob("*.gif"))
+    if not gifs:
+        return written
+    for dest in dests:
+        icons = dest / "icons"
+        icons.mkdir(parents=True, exist_ok=True)
+        for gif in gifs:
+            target = icons / gif.name
+            target.write_bytes(gif.read_bytes())
+            written.append(target)
+        if GUI_XML.is_file():
+            panel = dest / "GUIObjects.xml"
+            panel.write_bytes(GUI_XML.read_bytes())
+            written.append(panel)
+        print("CTC icons -> %s" % dest)
+    return written
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cats", type=Path, default=CATS_XML)
@@ -647,6 +681,7 @@ def main() -> None:
         sys.exit("refusing to write tables/tables.xml")
 
     write_cell_icons()
+    install_preference_icons()
     cells = parse_cats(args.cats)
     txt = args.gui.read_text()
     new = apply(txt, cells)
