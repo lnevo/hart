@@ -19,7 +19,7 @@ this machine: [`../dispatcher/DISPATCHER_GUIDE.md`](../dispatcher/DISPATCHER_GUI
 ## 1. Reading the machine
 
 The panel is **15 columns, west → east, left → right**, matching the
-railroad: Brick → Plane → Barn → East End → Princess. Each column is one
+railroad: Brick → Plane → OS Barn → East End → Princess. Each column is one
 **OS section** (interlocking plant) with, top to bottom:
 
 - **Track diagram row** — OS lamp lights **red while a train occupies the
@@ -40,20 +40,20 @@ railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 
 | Cols | Station | Lever (SW/SIG) | Plant |
 |------|---------|----------------|-------|
-| 1 | Brick | 1 / 2 | Switch 101 (yard exits W-1 / W-2) |
-| 2 | Brick | 3 / 4 | Switch 100 |
-| 3 | Plane | 5 / 6 | Switch 102 (main vs Scale) |
-| 4 | Barn | 7 / 8 | Switch 117 crossover (OS 117 / 117b). One signal lever releases both tracks |
-| 5 | Barn | 9 / — | Switch 116 (ladder, switch-only, defaults Local) |
-| 6 | Barn | 11 / — | Switch 103 (ladder, switch-only, defaults Local) |
+| 1 | Brick | 1 / 2 | Switch 3 (yard exits OS W-1 / OS W-2) |
+| 2 | Brick | 3 / 4 | Switch 1 |
+| 3 | Plane | 5 / 6 | Switch 5 (main vs OS Scale) |
+| 4 | OS Barn | 7 / 8 | Switch 7 crossover (OS 7 / 117b). One signal lever releases both tracks |
+| 5 | OS Barn | 9 / — | Switch 13 (ladder, switch-only, defaults Local) |
+| 6 | OS Barn | 11 / — | Switch 15 (ladder, switch-only, defaults Local) |
 | 7–8 | East End | 13 / 14, 15 / 16 | Switches 107, 108 (ladder, switch-only) |
-| 9 | East End | 17 / 18 | Switch 111 crossover (OS 111a / 111b) |
-| 10 | East End | 19 / 20 | Switch 109 (ladder, switch-only) |
-| 11 | East End | 21 / 22 | Switch 110 (ladder → East Lead; defaults Local) |
-| 12 | East End | 23 / 24 | Switch 112 (East Lead vs Main East) |
-| 13 | Princess | 25 / 26 | Switch 113 crossover (OS 113b / 113a) |
-| 14 | Princess | 27 / 28 | Switch 114 (McKeesport vs K-2) |
-| 15 | Princess | 29 / 30 | Switch 115 (McKees Rocks vs K-1) |
+| 9 | East End | 17 / 18 | Switch 23 crossover (OS 23a / 111b) |
+| 10 | East End | 19 / 20 | Switch 29 (ladder, switch-only) |
+| 11 | East End | 21 / 22 | Switch 31 (ladder → OS East Lead; defaults Local) |
+| 12 | East End | 23 / 24 | Switch 33 (OS East Lead vs OS Main East) |
+| 13 | Princess | 25 / 26 | Switch 35 crossover (OS 35b / 113a) |
+| 14 | Princess | 27 / 28 | Switch 37 (OS McKeesport vs OS K-2) |
+| 15 | Princess | 29 / 30 | Switch 39 (OS McKees Rocks vs OS K-1) |
 
 Below the columns: **Fleeting** toggle, **Reload CTC**, and **CTC Debug**
 (leave the last two alone in normal operation).
@@ -128,9 +128,9 @@ Never fleet a route you may need to take back quickly.
    at Stop — and re-lock the moment they report clear. You have no route
    protection through an unlocked switch.
 8. **Yard ladder is unsignaled.** Switches 116 and 103 have **no signal
-   levers**. The westbound home into Barn from the yard lead is
-   **117LB** on the 117 column. Switch 104 and the rest
-   of the South Yard ladder are occupancy-only. The K-1 / K-2 stubs and
+   levers**. The westbound home into OS Barn from the yard lead is
+   **Mast 8LB** on the 117 column. Switch 17 and the rest
+   of the South Yard ladder are occupancy-only. The OS K-1 / OS K-2 stubs and
    yard tracks are restricted-speed territory beyond the dwarf.
 9. **During an automated dispatch, hands off the throttle.** A phone
    throttle press on a dispatched locomotive flips its direction bit and

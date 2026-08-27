@@ -29,16 +29,16 @@ the classpath. PanelPro leaves **HART Railroad** visible so the geographic desk
 still works. Reopen **USS CTC** from the Panels menu when you want the lever machine.
 
 **Help** and **Quit** on **CTC Panel** sit on the bottom button strip (with Restart
-RPi / Shutdown RPi). The Digicon **Dispatcher Panel** uses a small in-window
-toolbar. Do not add a second File -> Quit; CATS already has File -> Exit.
+RPi / Shutdown RPi). The Digicon **Dispatcher Panel** is schematic-only — no
+Help/Quit bar. Do not add a second File -> Quit; CATS already has File -> Exit.
 Quit on the strip uses JMRI `Apps.handleQuit()` (store prompt, clean shutdown).
 
 ---
 
 ## 1. Reading the Digicon panel
 
-The schematic runs **west → east** (left → right): Brick → Plane → Barn → East End →
-Princess, with South Yard on the ladder and McKees Rocks / McKeesport at the east end.
+The schematic runs **west → east** (left → right): Brick → Plane → OS Barn → East End →
+Princess, with South Yard on the ladder and OS McKees Rocks / OS McKeesport at the east end.
 It is an **interlocking diagram**, not a scale map.
 
 | What you see | Meaning |
@@ -77,7 +77,7 @@ Use when points are already lined and you only need the next interlocking step.
 ### Extended route (N/X) — multiple plants, CATS lines turnouts
 
 Use when the move needs **turnouts thrown** across several control points (typical mainline
-run: Brick → Plane → Barn → …).
+run: Brick → Plane → OS Barn → …).
 
 1. **Right-click** the **entry** signal → **Set N/X Route** → **Accept**.
 2. The entry icon **blinks** (entry/exit color) — CATS is waiting for the far end.
@@ -120,7 +120,7 @@ line is the one waiting for a clear path; delete or reorder from this dialog.
 **Good HART examples:**
 
 - NVL clears Princess; you stack the **return** move through 113 before the plant is free.
-- D749 will need a **South Yard setout** right after clearing Barn — stack it while the
+- D749 will need a **South Yard setout** right after clearing OS Barn — stack it while the
   train is still east of the plant.
 - Opposing meets at East End: stack the second train’s route while the first occupies 111/112.
 
@@ -189,7 +189,7 @@ feature — verbal permission).
 | **Track authority** | Right-click track | Let crew move within limits without a signaled route |
 | **Out of service** | Right-click track | Take a block off the board for maintenance |
 | **Train label** | Drag label between blocks | Track identity when Train Tracker is off or wrong |
-| **Yard ladder lamps** | Click S-1…S-5 buttons | Line South Yard ladder tracks (pairs with JMRI auto-routes) |
+| **Yard ladder lamps** | Click OS S-R…OS S-4 buttons | Line South Yard ladder tracks (pairs with JMRI auto-routes) |
 
 ---
 
@@ -204,8 +204,8 @@ feature — verbal permission).
    the schematic.
 5. **Use stacking for choreography**, **fleeting for parades**, **call-on for joins** — not
    interchangeably.
-6. **West Yard ladder (116 / 103) and South Yard Switch 104** are **yard
-   territory** — no CTC homes. Westbound into Barn from the yard lead is the
+6. **West Yard ladder (116 / 103) and South Yard Switch 17** are **yard
+   territory** — no CTC homes. Westbound into OS Barn from the yard lead is the
    **T6** dwarf on the 117 plant. K-stub tracks are restricted speed beyond
    the dwarfs, prepared to stop.
 7. **Refresh Screen** is safe after glitches; avoid **Refresh Layout** during ops (pushes

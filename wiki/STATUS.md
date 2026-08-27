@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-27 — CTC-number convert **applied**. Beans are `Switch 1`, `Mast 2L`, `OS S-R`, `BS …`, Princess **Mast 2035**/**Mast 2036**. CATS Master 4 rewired; USS **v74**. Wiring v85 + pptx copied to Desktop. **Re-Discover SML** after reload. Do not run USS with CATS CTC. Deploy `--pi --win`.
+
 Updated: 2026-08-27 — USS **v73**: **120L** uses east dwarf GIFs (name is the exception; lamp faces into the McKees Rocks wrap). Same-X stack with **120R**. Reload **USS CTC**. Do not run it with CATS CTC.
 
 Updated: 2026-08-27 — Proposed Princess intermediates: **120L→2035**, **120R→2036**. Device-map / `public_name_map.csv` only; not applied to XML.

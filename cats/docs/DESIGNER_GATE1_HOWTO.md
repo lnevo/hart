@@ -1,6 +1,6 @@
 # Gate 1 in CATS Designer — beginner how-to
 
-You do **not** need to learn all of Designer. This is only Brick → Brick-Plane → Plane.
+You do **not** need to learn all of Designer. This is only Brick → OS Brick-Plane → Plane.
 
 Official manual (full): [`DesignerManual.pdf`](DesignerManual.pdf)  
 Geometry checklist: [`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md)
@@ -21,15 +21,15 @@ A blank grid should appear (or an empty CTC window). Designer is already install
 West → east on **one horizontal row** (do not stack bands):
 
 ```
-Main West ═══[ OS 100 LH ]═══ Brick-Plane ═══[ OS 102 ]═══ East Main Ext
+OS Main West ═══[ OS 1 LH ]═══ OS Brick-Plane ═══[ OS 5 ]═══ OS East Main Ext
                   ╲
-                   OS 101 (yard)
+                   OS 3 (yard)
 ```
 
 Rules that matter:
 
-- **Brick-Plane** = straight track east of Brick (continuing route).
-- Yard / OS 101 = the **other** leg of the Brick turnout (down or diagonal).
+- **OS Brick-Plane** = straight track east of Brick (continuing route).
+- Yard / OS 3 = the **other** leg of the Brick turnout (down or diagonal).
 - Do **not** put 100–102 on a slash that runs into the Plane plant throat.
 
 ## 2. How to *draw* (this is the whole trick)
@@ -57,12 +57,12 @@ Start near the left, middle row. Expand the grid if needed: **Edit → Insert Co
 
 | Step | Cell action | Check in Details→Tracks |
 |------|-------------|-------------------------|
-| 1–3 | Three cells in a row | **Horizontal** only → Main West |
+| 1–3 | Three cells in a row | **Horizontal** only → OS Main West |
 | 4 | Next cell (Brick) | **Horizontal** + a **diagonal** (＼ or ／) so it looks like a LH turnout; continuing = east |
-| 5 | Cell below/diagonal from Brick | Track that continues the diverge → toward OS 101 |
-| 6–8 | Three cells east of Brick on the main | **Horizontal** only → Brick-Plane |
+| 5 | Cell below/diagonal from Brick | Track that continues the diverge → toward OS 3 |
+| 6–8 | Three cells east of Brick on the main | **Horizontal** only → OS Brick-Plane |
 | 9 | Next cell (Plane) | **Horizontal** + diagonal (plant) |
-| 10–11 | Two cells east | **Horizontal** → East Main Ext |
+| 10–11 | Two cells east | **Horizontal** → OS East Main Ext |
 
 **Turnout cell** = one cell with **two** track pieces checked (horizontal + slash). That’s how Digicon “draws” a switch.
 
@@ -90,12 +90,12 @@ Still in **Define Block** / block detector fields for that block:
 
 | Block name | Occupied sensor (JMRI userName) |
 |------------|----------------------------------|
-| Main West | `Block 2-1` |
-| OS 100 | `Block 4-2` |
-| OS 101 | `Block 4-1` |
-| Brick-Plane | `Block 4-6` |
-| OS 102 | `Block 4-5` |
-| East Main Ext | `Block 4-7` |
+| OS Main West | `Block 2-1` |
+| OS 1 | `Block 4-2` |
+| OS 3 | `Block 4-1` |
+| OS Brick-Plane | `Block 4-6` |
+| OS 5 | `Block 4-5` |
+| OS East Main Ext | `Block 4-7` |
 
 If Designer asks for JMRI prefix / address, prefer binding by **user name** when offered. MQTT prefixes `M2S` / `M2T` are already on the HART JMRI profile.
 
@@ -112,15 +112,15 @@ That fills occupancy from hart without changing your drawn track.
 On the Brick turnout cell:
 
 1. **Details → Track Ends** → edge with **two** tracks → **Switch Points** (or similar).
-2. Set the **normal / continuing** route to the **east horizontal** into Brick-Plane (not the yard diverge).
-3. Command turnout: **`M2T408`** (Switch 100).
+2. Set the **normal / continuing** route to the **east horizontal** into OS Brick-Plane (not the yard diverge).
+3. Command turnout: **`M2T408`** (Switch 1).
 
 On Plane:
 
-- Continuing / normal = through toward East Main Ext as you intend.
-- Command: **`M2T410`** (Switch 102).
+- Continuing / normal = through toward OS East Main Ext as you intend.
+- Command: **`M2T410`** (Switch 5).
 
-OS 101 points (if separate): **`M2T409`**.
+OS 3 points (if separate): **`M2T409`**.
 
 Skip signals for Gate 1.
 
@@ -128,12 +128,12 @@ Skip signals for Gate 1.
 
 | Digicon role | Block name (type exactly) | Occupancy | Turnout |
 |--------------|---------------------------|-----------|---------|
-| Approach | `Main West` | `Block 2-1` | — |
-| Brick plant | `OS 100` | `Block 4-2` | `M2T408` |
-| Yard diverge | `OS 101` | `Block 4-1` | `M2T409` |
-| Straight | `Brick-Plane` | `Block 4-6` | — |
-| Plane | `OS 102` | `Block 4-5` | `M2T410` |
-| East of Plane | `East Main Ext` | `Block 4-7` | — |
+| Approach | `OS Main West` | `Block 2-1` | — |
+| Brick plant | `OS 1` | `Block 4-2` | `M2T408` |
+| Yard diverge | `OS 3` | `Block 4-1` | `M2T409` |
+| Straight | `OS Brick-Plane` | `Block 4-6` | — |
+| Plane | `OS 5` | `Block 4-5` | `M2T410` |
+| East of Plane | `OS East Main Ext` | `Block 4-7` | — |
 
 ## 7. Save
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v73).
+"""Generate the USS CTC track diagram from CATS Master 4 (v74).
 
 20 packed columns. Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is
-LNR. 120L is named L but faces east (into the McKees Rocks wrap) under 120R.
+LNR. Mast 2035 is named L but faces east (into the OS McKees Rocks wrap) under Mast 2036.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v73_preview.png
@@ -52,26 +52,26 @@ WHITE = dict(red=255, green=255, blue=255)
 # CATS frog cell → (JMRI turnout, invert vs JMRI). Rails come from CATS
 # track pieces; the turnouticon is only a points dot.
 PLANTS = {
-    (4, 8): ("Switch 100", True),
-    (5, 9): ("Switch 101", False),
-    (9, 8): ("Switch 102", False),
-    (15, 7): ("Switch 117", False),
-    (24, 8): ("Switch 119", False),
-    (26, 8): ("Switch 118", False),
-    (27, 7): ("Switch 116", False),
-    (30, 7): ("Switch 103", False),
-    (31, 8): ("Switch 104", False),
-    (32, 9): ("Switch 105", False),
-    (33, 10): ("Switch 106", False),
-    (39, 10): ("Switch 107", False),
-    (40, 9): ("Switch 108", False),
-    (41, 8): ("Switch 109", False),
-    (40, 6): ("Switch 111", False),
-    (42, 7): ("Switch 110", False),
-    (44, 7): ("Switch 112", False),
-    (52, 6): ("Switch 113", False),
-    (55, 6): ("Switch 115", True),
-    (55, 7): ("Switch 114", True),
+    (4, 8): ("Switch 1", True),
+    (5, 9): ("Switch 3", False),
+    (9, 8): ("Switch 5", False),
+    (15, 7): ("Switch 7", False),
+    (24, 8): ("Switch 9", False),
+    (26, 8): ("Switch 11", False),
+    (27, 7): ("Switch 13", False),
+    (30, 7): ("Switch 15", False),
+    (31, 8): ("Switch 17", False),
+    (32, 9): ("Switch 19", False),
+    (33, 10): ("Switch 21", False),
+    (39, 10): ("Switch 25", False),
+    (40, 9): ("Switch 27", False),
+    (41, 8): ("Switch 29", False),
+    (40, 6): ("Switch 23", False),
+    (42, 7): ("Switch 31", False),
+    (44, 7): ("Switch 33", False),
+    (52, 6): ("Switch 35", False),
+    (55, 6): ("Switch 39", True),
+    (55, 7): ("Switch 37", True),
 }
 # Stock USS tiles (transparent copies in ctc/icons/). Offsets center the
 # native GIF on the CATS cell. Slashes stay half-cell custom tiles
@@ -87,11 +87,11 @@ CELL_GIF = {
 }
 # Occupancy jewels centered on these named segments (CATS cell).
 CENTER_OCC = {
-    "Brick-Plane": (6, 8),
-    "W-1": (8, 10),
-    "W-2": (8, 9),
-    "Main West": (33, 6),
-    "S-1": (33, 7),
+    "OS Brick-Plane": (6, 8),
+    "OS W-1": (8, 10),
+    "OS W-2": (8, 9),
+    "OS Main West": (33, 6),
+    "OS S-R": (33, 7),
 }
 
 # 111 crossover (Y=6/7 around the frog) shifts 3 CATS cells west onto
@@ -100,17 +100,17 @@ SHIFT_WEST = 3
 SHIFT_CELLS = {(x, y) for x in range(38, 41) for y in (6, 7)}
 
 HIDE_TRACK_LABELS = {
-    "E Main Ext", "East Main Ext", "West Main Ext", "East Lead",
-    "Main West", "Main East",
+    "E Main Ext", "OS East Main Ext", "OS West Main Ext", "OS East Lead",
+    "OS Main West", "OS Main East",
 }
-LABEL_LEFT = {"EH-1", "EH-2", "EH-3", "Barn"}
+LABEL_LEFT = {"OS EH-1", "OS EH-2", "OS EH-3", "OS Barn"}
 LABEL_AT = {
-    "K-1": (59, 5),
-    "K-2": (59, 8),
-    "Barn": (21, 7),
-    "EH-1": (21, 8),
-    "EH-2": (21, 9),
-    "EH-3": (21, 10),
+    "OS K-1": (59, 5),
+    "OS K-2": (59, 8),
+    "OS Barn": (21, 7),
+    "OS EH-1": (21, 8),
+    "OS EH-2": (21, 9),
+    "OS EH-3": (21, 10),
 }
 
 # Existing CTC UniqueIDs → 20-col slot (odd = switch, even = its signal).
@@ -142,90 +142,90 @@ SLOT_LOCK_UID = {
     15: 22, 16: 24, 17: 26, 18: 28, 19: 30,
 }
 
-# CATS has no occupancy edge on Main East; JMRI sensor is Block 2-3.
-FALLBACK_LABEL_SENSORS = {"Main East": ("Block 2-3", "Main East")}
+# CATS has no occupancy edge on OS Main East; JMRI sensor is Block 2-3.
+FALLBACK_LABEL_SENSORS = {"OS Main East": ("Block 2-3", "OS Main East")}
 
 # OS occupancy-cut sits at the frog; lamp goes left/right of the points.
 OS_FROG = {
-    "OS 100": (4, 8),
-    "OS 101": (5, 9),
-    "OS 102": (9, 8),
-    "OS 117": (15, 7),
-    "OS 117b": (15, 8),
-    "OS 119": (24, 8),
-    "OS 118": (26, 8),
-    "OS 116": (27, 7),
-    "OS 103": (30, 7),
-    "OS 104": (31, 8),
-    "OS 105": (32, 9),
-    "OS 106": (33, 10),
-    "OS 111a": (40, 6),
-    "OS 111b": (40, 7),
-    "OS 110": (42, 7),
-    "OS 112": (44, 7),
-    "OS 109": (41, 8),
-    "OS 108": (40, 9),
-    "OS 107": (39, 10),
-    "OS 113b": (52, 6),
-    "OS 113a": (52, 7),
-    "OS 115": (55, 6),
-    "OS 114": (55, 7),
+    "OS 1": (4, 8),
+    "OS 3": (5, 9),
+    "OS 5": (9, 8),
+    "OS 7": (15, 7),
+    "OS 7b": (15, 8),
+    "OS 9": (24, 8),
+    "OS 11": (26, 8),
+    "OS 13": (27, 7),
+    "OS 15": (30, 7),
+    "OS 17": (31, 8),
+    "OS 19": (32, 9),
+    "OS 21": (33, 10),
+    "OS 23a": (40, 6),
+    "OS 23b": (40, 7),
+    "OS 31": (42, 7),
+    "OS 33": (44, 7),
+    "OS 29": (41, 8),
+    "OS 27": (40, 9),
+    "OS 25": (39, 10),
+    "OS 35b": (52, 6),
+    "OS 35a": (52, 7),
+    "OS 39": (55, 6),
+    "OS 37": (55, 7),
 }
 
 # (mast, cats_x, cats_y, facing, kind, IH* or None)
 SIGNALS = [
-    ("101RA", 6, 10, "E", "d1", "IH436"),
-    ("101RB", 6, 9, "E", "d1", "IH437"),
-    ("100L", 3, 8, "W", "h2", None),
-    ("102LA", 10, 7, "W", "d1", "IH434"),
-    ("102LB", 10, 8, "W", "h2", None),
-    ("117RA", 14, 7, "E", "d1", "IH1332"),
-    ("117RB", 14, 8, "E", "h2", None),
-    ("117LB", 16, 7, "W", "d1", "IH1334"),
-    ("117LA", 16, 8, "W", "d1", "IH1337"),
-    ("111RA", 39, 6, "E", "h2", None),
-    ("111RB", 39, 7, "E", "d1", "IH1236"),
-    ("111L", 45, 6, "W", "h2", None),
-    ("110R", 42, 7, "E", "d1", "IH1239"),
-    ("112R", 44, 8, "E", "h2", None),
-    ("112L", 45, 7, "W", "h2", None),
-    ("113RA", 51, 6, "E", "h2", None),
-    ("113RB", 51, 7, "E", "h2", None),
-    ("120R", 62, 6, "E", "d1", "IH134"),
-    ("115LB", 56, 6, "W", "h2", None),
-    ("115LA", 56, 5, "W", "d1", "IH142"),
-    ("114LB", 56, 7, "W", "h2", None),
-    ("114LA", 56, 8, "W", "d1", "IH143"),
-    # 120L is named L but faces east into the McKees Rocks wrap (exception).
-    ("120L", 62, 7, "E", "d1", "IH141"),
+    ("Mast 4RA", 6, 10, "E", "d1", "IH436"),
+    ("Mast 4RB", 6, 9, "E", "d1", "IH437"),
+    ("Mast 2L", 3, 8, "W", "h2", None),
+    ("Mast 6LA", 10, 7, "W", "d1", "IH434"),
+    ("Mast 6LB", 10, 8, "W", "h2", None),
+    ("Mast 8RA", 14, 7, "E", "d1", "IH1332"),
+    ("Mast 8RB", 14, 8, "E", "h2", None),
+    ("Mast 8LB", 16, 7, "W", "d1", "IH1334"),
+    ("Mast 8LA", 16, 8, "W", "d1", "IH1337"),
+    ("Mast 24RA", 39, 6, "E", "h2", None),
+    ("Mast 24RB", 39, 7, "E", "d1", "IH1236"),
+    ("Mast 24L", 45, 6, "W", "h2", None),
+    ("Mast 32R", 42, 7, "E", "d1", "IH1239"),
+    ("Mast 34R", 44, 8, "E", "h2", None),
+    ("Mast 34L", 45, 7, "W", "h2", None),
+    ("Mast 36RA", 51, 6, "E", "h2", None),
+    ("Mast 36RB", 51, 7, "E", "h2", None),
+    ("Mast 2036", 62, 6, "E", "d1", "IH134"),
+    ("Mast 40LB", 56, 6, "W", "h2", None),
+    ("Mast 40LA", 56, 5, "W", "d1", "IH142"),
+    ("Mast 38LB", 56, 7, "W", "h2", None),
+    ("Mast 38LA", 56, 8, "W", "d1", "IH143"),
+    # Mast 2035 is named L but faces east into the OS McKees Rocks wrap (exception).
+    ("Mast 2035", 62, 7, "E", "d1", "IH141"),
 ]
 
-# Packed 20: device-map plate (odd) west→east. Beans remain Switch 100–119.
+# Packed 20: device-map plate (odd) west→east. Beans remain Switch 1–119.
 # (slot, plate, [(sensor, tip), ...])
 COLUMNS = [
-    (0, "1", [("Block 4-2", "OS 100")]),
-    (1, "3", [("Block 4-1", "OS 101")]),
-    (2, "5", [("Block 4-5", "OS 102")]),
-    (3, "7", [("Block 13-3", "OS 117 (yard side)"),
-              ("Block 13-4", "OS 117b (main side)")]),
-    (4, "9", [("Block 13-8", "OS 119")]),
-    (5, "11", [("Block 13-2", "OS 118")]),
-    (6, "13", [("Block 3-1", "OS 116")]),
-    (7, "15", [("Block 3-2", "OS 103")]),
-    (8, "17", [("Block 3-3", "OS 104")]),
-    (9, "19", [("Block 3-5", "OS 105")]),
-    (10, "21", [("Block 3-7", "OS 106")]),
-    (11, "23", [("Block 12-4", "OS 111a (Main West side)"),
-                ("Block 12-6", "OS 111b (yard side)")]),
-    (12, "25", [("Block 12-1", "OS 107")]),
-    (13, "27", [("Block 12-3", "OS 108")]),
-    (14, "29", [("Block 12-5", "OS 109")]),
-    (15, "31", [("Block 12-7", "OS 110")]),
-    (16, "33", [("Block 12-8", "OS 112")]),
-    (17, "35", [("Block 1-5", "OS 113b (Main West side)"),
-                ("Block 1-6", "OS 113a (East Lead side)")]),
-    (18, "37", [("Block 1-3", "OS 114")]),
-    (19, "39", [("Block 1-4", "OS 115")]),
+    (0, "1", [("Block 4-2", "OS 1")]),
+    (1, "3", [("Block 4-1", "OS 3")]),
+    (2, "5", [("Block 4-5", "OS 5")]),
+    (3, "7", [("Block 13-3", "OS 7 (yard side)"),
+              ("Block 13-4", "OS 7b (main side)")]),
+    (4, "9", [("Block 13-8", "OS 9")]),
+    (5, "11", [("Block 13-2", "OS 11")]),
+    (6, "13", [("Block 3-1", "OS 13")]),
+    (7, "15", [("Block 3-2", "OS 15")]),
+    (8, "17", [("Block 3-3", "OS 17")]),
+    (9, "19", [("Block 3-5", "OS 19")]),
+    (10, "21", [("Block 3-7", "OS 21")]),
+    (11, "23", [("Block 12-4", "OS 23a (OS Main West side)"),
+                ("Block 12-6", "OS 23b (yard side)")]),
+    (12, "25", [("Block 12-1", "OS 25")]),
+    (13, "27", [("Block 12-3", "OS 27")]),
+    (14, "29", [("Block 12-5", "OS 29")]),
+    (15, "31", [("Block 12-7", "OS 31")]),
+    (16, "33", [("Block 12-8", "OS 33")]),
+    (17, "35", [("Block 1-5", "OS 35b (OS Main West side)"),
+                ("Block 1-6", "OS 35a (OS East Lead side)")]),
+    (18, "37", [("Block 1-3", "OS 37")]),
+    (19, "39", [("Block 1-4", "OS 39")]),
 ]
 
 STATION_NAMES = {"BRICK", "PLANE", "BARN", "EAST END", "PRINCESS"}
@@ -630,7 +630,7 @@ def _norm_name(name: str | None) -> str:
     s = name or ""
     if s.endswith(", PA"):
         s = s[:-4]
-    return {"E Main Ext": "East Main Ext"}.get(s, s)
+    return {"E Main Ext": "OS East Main Ext"}.get(s, s)
 
 
 def _jewel_xy(cx: int, cy: int) -> tuple[int, int]:
@@ -1049,8 +1049,8 @@ def _set_sidi_lists(block: str, direction: str, ltr: list[str], rtl: list[str], 
 def patch_brick_sidi(text: str) -> str:
     """Column 1 (100) codes from R; 101 codes from L — match the 2-position levers."""
     specs = (
-        (13, "LEFT", [], ["101RA", "101RB"]),
-        (14, "RIGHT", ["100L"], []),
+        (13, "LEFT", [], ["Mast 4RA", "Mast 4RB"]),
+        (14, "RIGHT", ["Mast 2L"], []),
     )
     for uid, direction, ltr, rtl in specs:
         m = _ctc_uid_block(text, uid)

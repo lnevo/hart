@@ -803,6 +803,13 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="61" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
@@ -811,7 +818,7 @@
         </SECSIGNAL>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="61" Y="6">
+    <SECTION X="62" Y="6">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -822,13 +829,6 @@
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="62" Y="6">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="63" Y="6">
@@ -914,7 +914,7 @@
         </BLOCK>
         <SECSIGNAL>
           117RA
-          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>
@@ -1861,7 +1861,7 @@
         <BLOCK />
         <SECSIGNAL>
           117LA
-          <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
       </SEC_EDGE>

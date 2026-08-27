@@ -4,16 +4,16 @@ Source maps (Car Cards docs → extracted under `cats/docs/station_maps/`):
 
 | Map | Digicon role |
 |-----|----------------|
-| West Yard | CP Brick 100 / 101, Plane 102, Barn 117, West Lead |
-| South Yard | West Lead → ET + ladder 103–106 → S-1…S-5 (Fall River A/D style) |
+| West Yard | CP Brick 100 / 101, Plane 102, OS Barn 117, West Lead |
+| South Yard | West Lead → ET + ladder 103–106 → OS S-R…OS S-4 (Fall River A/D style) |
 | East End | Ladder 107–110, 111 x-over, 112, mains → Princess |
-| Shenango (+ rotated) | Princess 113–115, K-1/K-2, Rocks / McKeesport |
+| Shenango (+ rotated) | Princess 113–115, OS K-1/OS K-2, Rocks / OS McKeesport |
 
 Visual SoR for yard body: CATS sample [cats.jpg](https://cats4ctc.wdfiles.com/local--files/home:home/cats.jpg) **FALL RIVER A/D 1–4** — parallel horizontal tracks fed by a diagonal ladder.
 
 **Labels (station-map language):**
-- On-track `STATION` shows map names (`W-1`, `West Lead`, `S-1`…`S-5`, `K-1`/`K-2`, CP `100`…`115`) while `NAME` stays the JMRI occupancy id.
-- Header/footer `SEC_NAME` callouts spell connections: e.g. `103→S-1`, `West Lead: Plane → Barn → 103 → S-1`, `112 → East Lead → Princess`.
+- On-track `STATION` shows map names (`OS W-1`, `West Lead`, `OS S-R`…`OS S-4`, `OS K-1`/`OS K-2`, CP `100`…`115`) while `NAME` stays the JMRI occupancy id.
+- Header/footer `SEC_NAME` callouts spell connections: e.g. `103→OS S-R`, `West Lead: Plane → OS Barn → 103 → OS S-R`, `112 → OS East Lead → Princess`.
 
 Block / turnout names: `cats/data/occupancy_bindings.csv`, `turnout_bindings.csv`.
 

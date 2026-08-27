@@ -24,7 +24,7 @@ Plan: `cats/data/signal_mast_plan.csv`
 
 ## How to attach Digicon to an **existing** JMRI mast
 
-100L used to be this MQTT-mast case (`track/signalmast/432`). It is now Virtual heads + SHSM like the others (`IH438`/`IH439`). Keep the notes below only if you attach another leftover MQTT mast.
+Mast 2L used to be this MQTT-mast case (`track/signalmast/432`). It is now Virtual heads + SHSM like the others (`IH438`/`IH439`). Keep the notes below only if you attach another leftover MQTT mast.
 
 Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT topic alone.
 
@@ -32,7 +32,7 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 
 - MQTT Signal Mast exists, e.g.  
   `IF$mqm:AAR-1946:SL-2-high-abs($432)`  
-  userName `100L`  
+  userName `Mast 2L`  
   topic `track/signalmast/432` (from `($432)`)
 - Mast aspects are AAR names: **Clear**, **Approach**, **Stop** (Restricting optional/disabled)
 
@@ -56,7 +56,7 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 </SIGNALTEMPLATE>
 
 <SECSIGNAL>
-  100L
+  Mast 2L
   <PANELSIGNAL SIGLOCATION="…" SIGORIENT="…" SIGPANTYPE="LAMP2" />
   <PHYSIGNAL>aar-single</PHYSIGNAL>
 </SECSIGNAL>
@@ -78,9 +78,9 @@ Do **not** recreate or retype the JMRI Signal Mast. Leave its systemName / MQTT 
 
 Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code aspects. His `cats-virtual` mast is one way to make JMRI speak those codes. For an **existing AAR mast**, keep the mast and remap Digicon → AAR names instead.
 
-### 100L
+### Mast 2L
 
-- Digicon name `100L` @ Brick east main face  
+- Digicon name `Mast 2L` @ Brick east main face  
 - `LAMP2` + `double` — same Virtual-head + AAR-1946 SHSM path as the other homes  
 - Packed heads `IH438` / `IH439` on C4-OU3-1 / C4-OU3-2 (`track/signalhead/IH438`, `track/signalhead/IH439`)  
 - JMRI does **not** publish `track/signalmast/432` (old MQTT mast retired; that topic collided with LCOS status for Plane `IH432`)
@@ -89,7 +89,7 @@ Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code 
 
 **CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting, not Clear.
 
-**W-1 / W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_master4.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
+**OS W-1 / OS W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_master4.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
 
 ### Digicon → virtual heads + SHSM (hart-aar two-head, AAR-1946 dwarfs)
 
@@ -99,19 +99,19 @@ All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts: tw
 
 | Area | Radio → MQTT node | Parent board | Packed heads |
 |------|-------------------|--------------|--------------|
-| Plane + W-1 / W-2 + Brick east | `4` | C4 | `IH432`–`IH439` |
-| Barn / W-117 | `013` → **13** | C1 | `IH1332`–`IH1338` |
+| Plane + OS W-1 / OS W-2 + Brick east | `4` | C4 | `IH432`–`IH439` |
+| OS Barn / W-117 | `013` → **13** | C1 | `IH1332`–`IH1338` |
 | East End | `012` → **12** | C7 | `IH1232`–`IH1241` |
 | Princess | `1` | D1 | `IH132`–`IH143` |
 
-Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon intermediates **120L** / **120R** (was 115R / 114R) stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, S-1, OS 110, W-1/W-2, K-1/K-2). Packed IDs: 120R `IH134` / 120L `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
+Princess east exits are **2-head** (main vs OS K-1/OS K-2 restricting). Balloon intermediates **Mast 2035** / **Mast 2036** (was 115R / 114R) stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, OS S-R, OS 31, OS W-1/OS W-2, OS K-1/OS K-2). Packed IDs: Mast 2036 `IH134` / Mast 2035 `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: custom `hart-aar` `SL-2-digicon` two-head / stock `AAR-1946` `SL-1-low` dwarfs (not `cats-masts`)
 - Digicon `PHYSIGNAL`: templates remapped to AAR names (`cats/scripts/aar_aspect_bridge.py`); CATS CTC is `HOLD_ONLY`; CATS ABS SECSIGNAL names are unbound (`unbind_abs_from_jmri_masts.py`) so SML owns LE
-- Layout Editor facing: `cats/data/le_signal_boundaries.csv` → `python3 cats/scripts/apply_le_sml_facing.py` (`signalAMast` / `eastboundsignalmast`). Balloon A48 joins the east ends of the two loop blocks, so the mast named for its approach track must protect the opposite block: **McKeesport / `IH134` protects McKees Rocks and OS 115** (`westboundsignalmast`), while **McKees Rocks / `IH141` protects McKeesport and OS 114** (`eastboundsignalmast`). CATS display locations and physical IH wiring remain McKeesport at (45,7) TOP and Rocks at (45,6) BOTTOM; do not swap those outputs to correct the Layout Editor facing. 114/115 C homes face west (CATS SIGORIENT LEFT, LE deg 270); dest WME `111a` when 113 is normal, East Lead when 113 is reverse. K-1 / K-2 dwarfs dest the same westbound next masts (`111a` / East Lead), not the opposing 113a/113b faces. South line (Plane EME ↔ Barn D) dest each other across East Main Ext — not East End Main West.
+- Layout Editor facing: `cats/data/le_signal_boundaries.csv` → `python3 cats/scripts/apply_le_sml_facing.py` (`signalAMast` / `eastboundsignalmast`). Balloon A48 joins the east ends of the two loop blocks, so the mast named for its approach track must protect the opposite block: **OS McKeesport / `IH134` protects OS McKees Rocks and OS 39** (`westboundsignalmast`), while **OS McKees Rocks / `IH141` protects OS McKeesport and OS 37** (`eastboundsignalmast`). CATS display locations and physical IH wiring remain OS McKeesport at (45,7) TOP and Rocks at (45,6) BOTTOM; do not swap those outputs to correct the Layout Editor facing. 114/115 C homes face west (CATS SIGORIENT LEFT, LE deg 270); dest WME `111a` when 113 is normal, OS East Lead when 113 is reverse. OS K-1 / OS K-2 dwarfs dest the same westbound next masts (`111a` / OS East Lead), not the opposing 113a/113b faces. South line (Plane EME ↔ OS Barn D) dest each other across OS East Main Ext — not East End OS Main West.
 - SML dests: **native** — discovered by Layout Editor (`cats/scripts/run_sml_discover.sh`, one-shot) and stored in `tables.xml` with `useLayoutEditor=yes`; JMRI re-paths them on every load. The old hand-pair injector `apply_sml_cats_pairs.py` is retired (its `PAIRS` list is kept as a regression oracle for `validate_le_signalling.py --dests`); the startup Jython re-apply is removed from all profiles. Runtime criteria can be inspected with `jmri/layouts/hart/scripts/dump_sml_criteria.py` (one-shot, same harness env as `discover_sml.py`). CATS ABS is the visual reference only — it must not `setAspect` on JMRI masts.
-- Plant dests (CATS MQTT compare): Barn D (lower west) dests OS 112 when 117 is closed (east into Main East), not back across East Main Ext. 117b dests Plane EME when 117 is closed (westbound). East Lead dests 117b only when 112 is thrown (diverge to Main East). OS 112 dests 113a when 112 is thrown. OS 110 dests 113a only when 110 is thrown **and** 112 is closed (ladder into East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West Main West dests 113b; 111 thrown → both Stop.
+- Plant dests (CATS MQTT compare): OS Barn D (lower west) dests OS 33 when 117 is closed (east into OS Main East), not back across OS East Main Ext. 117b dests Plane EME when 117 is closed (westbound). OS East Lead dests 117b only when 112 is thrown (diverge to OS Main East). OS 33 dests 113a when 112 is thrown. OS 31 dests 113a only when 110 is thrown **and** 112 is closed (ladder into OS East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West OS Main West dests 113b; 111 thrown → both Stop.
 - Ports + topics: `cats/data/signal_wiring.csv` (also updates `docs/wiring/LCOS_Layout_Inventory_v85.xlsx` DNOU8)
 - Mast index: `cats/data/signal_head_plan.csv` / enriched `signal_mast_plan.csv`
 - Rebuild heads: `python3 cats/scripts/build_hart_signal_heads.py`
@@ -121,4 +121,4 @@ Princess east exits are **2-head** (main vs K-1/K-2 restricting). Balloon interm
   appearances reach LCOS.
 - LE `signalmasticon`s use AAR schematic GIFs (stock JMRI). Deploy via `sync_hart_package.sh` (full `tables.xml`).
 
-**102LB** @ `(9,8) RIGHT` is now `IH432`/`IH433` (was POC `IH465`/`IH466`).
+**Mast 6LB** @ `(9,8) RIGHT` is now `IH432`/`IH433` (was POC `IH465`/`IH466`).

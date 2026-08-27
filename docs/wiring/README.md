@@ -16,7 +16,9 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**102LA** is a 1-head dwarf on `C4-OU2-3` / `IH434`. `C4-OU2-4` is an unused packed hole (old 102LA Bottom / IH435); do not reuse it for 101RA. **120L** is `D1-OU3-2` / `IH141` (was 115R). **120R** is `D1-OU2-3` / `IH134` (was 114R).
+**102LA** is a 1-head dwarf on `C4-OU2-3` / `IH434`. `C4-OU2-4` is an unused packed hole (old 102LA Bottom / IH435); do not reuse it for 101RA. **120L** is `D1-OU3-2` / `IH141` (was 115R). **120R** is `D1-OU2-3` / `IH134` (was 114R). Next public names: **Mast 2035** / **Mast 2036**. Refresh maps `public_name_map.csv` proposed names onto v85 / asbuilt / the PowerPoint. `signals_split_v8.xlsx` stays the frozen RGB plan.
+
+Copy the three current workbooks **and** `Wiring_Schematic.pptx` back to `~/Desktop/HART/Wiring Documentation/` after a refresh (and after XML apply) so the bench copy matches git.
 
 ## Refresh
 
@@ -26,7 +28,7 @@ python3 docs/wiring/scripts/refresh_wiring_docs.py
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 ```
 
-Copy the three current workbooks back to Desktop after a refresh so the bench copy matches git.
+Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`, and `Wiring_Schematic.pptx` to `~/Desktop/HART/Wiring Documentation/`. Do not refresh Desktop until JMRI XML is applied so the bench pack matches live beans.
 
 ## What v85 changed vs Desktop v84
 

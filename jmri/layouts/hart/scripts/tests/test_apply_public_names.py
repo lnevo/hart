@@ -70,7 +70,7 @@ class ApplyPublicNamesTest(unittest.TestCase):
         currents = {entry.current for entry in renames}
         self.assertIn("South Yard East", currents)
         self.assertIn("West Yard 1", currents)
-        self.assertNotIn("Switch 100", currents)
+        self.assertIn("Switch 100", currents)
 
     def test_apply_renames_preserves_system_names_and_sensor_usernames(self):
         renames = apply_public_names.load_rename_map(MAP)
@@ -81,8 +81,8 @@ class ApplyPublicNamesTest(unittest.TestCase):
                 target, renames, apply=True
             )
             self.assertTrue(system_names_ok)
-            self.assertGreater(counts[("South Yard East", "East Lead")], 0)
-            self.assertGreater(counts[("East End East Lead", "112L")], 0)
+            self.assertGreater(counts[("South Yard East", "OS East Lead")], 0)
+            self.assertGreater(counts[("East End East Lead", "Mast 34L")], 0)
 
             root = ET.parse(target).getroot()
             block_user = root.find(".//blocks/block/userName")
@@ -101,13 +101,54 @@ class ApplyPublicNamesTest(unittest.TestCase):
             self.assertIsNotNone(sml_source)
             self.assertIsNotNone(sidi_signal)
 
-            self.assertEqual("East Lead", block_user.text)
-            self.assertEqual("112L", mast_user.text)
+            self.assertEqual("OS East Lead", block_user.text)
+            self.assertEqual("Mast 34L", mast_user.text)
             self.assertEqual("Block 13-5", sensor_user.text)
             self.assertEqual("M2S1304", sensor_system.text)
             self.assertEqual("IF$shsm:TEST:0001", mast_system.text)
-            self.assertEqual("112L", sml_source.text)
-            self.assertEqual("112L", sidi_signal.text)
+            self.assertEqual("Mast 34L", sml_source.text)
+            self.assertEqual("Mast 34L", sidi_signal.text)
+
+    def test_alias_does_not_rewrite_south_yard_103_comment(self):
+        renames = apply_public_names.load_rename_map(MAP)
+        text = "Hand-throw west of South Yard 103; occupancy Block 3-1"
+        updated, counts = apply_public_names.apply_renames_to_text(text, renames)
+        self.assertEqual(text, updated)
+        self.assertEqual(counts[("South Yard 1", "OS S-R")], 0)
+
+    def test_south_yard_cascade_uses_placeholders(self):
+        renames = apply_public_names.load_rename_map(MAP)
+        text = "S-5 East and S-2 West and S-1 stay distinct"
+        updated, _counts = apply_public_names.apply_renames_to_text(text, renames)
+        self.assertIn("OS S-4 East", updated)
+        self.assertIn("OS S-1 West", updated)
+        self.assertIn("OS S-R", updated)
+        self.assertNotIn("S-5", updated)
+        self.assertNotIn("S-2 West", updated)
+
+    def test_isnx_system_names_are_frozen(self):
+        renames = apply_public_names.load_rename_map(MAP)
+        xml = (
+            "<?xml version='1.0' encoding='UTF-8'?>\n"
+            "<layout-config>"
+            "<sensor><systemName>ISNX:100L</systemName>"
+            "<userName>NX 100L</userName></sensor>"
+            "<signalmast><systemName>IF$shsm:AAR-1946:SL-1-low(IH438)</systemName>"
+            "<userName>100L</userName></signalmast>"
+            "</layout-config>"
+        )
+        with tempfile.TemporaryDirectory() as td:
+            target = Path(td) / "tables.xml"
+            target.write_text(xml, encoding="utf-8")
+            _counts, system_names_ok = apply_public_names.apply_renames_to_xml_file(
+                target, renames, apply=True
+            )
+            self.assertTrue(system_names_ok)
+            out = target.read_text(encoding="utf-8")
+            self.assertIn("<systemName>ISNX:100L</systemName>", out)
+            self.assertIn("IF$shsm:AAR-1946:SL-1-low(IH438)", out)
+            self.assertIn("<userName>Mast 2L</userName>", out)
+            self.assertIn("<userName>NX Mast 2L</userName>", out)
 
 
 if __name__ == "__main__":

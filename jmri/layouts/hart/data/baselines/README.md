@@ -1,6 +1,8 @@
-# Public-name rename baselines (pre-ADR-005)
+# Public-name rename baselines (live)
 
-Captured **2026-08-20** before executing the ADR-005 public equipment name rename. These files are read-only snapshots for regression detection; they do **not** apply any rename.
+Recaptured **2026-08-26** from live `tables.xml` and **CATS CTC** (`HART_Master_CTC_hold.xml`) so the next rename pass diffs against current public names, not the pre-ADR-005 strings. The 2026-08-20 pre-convert snapshot is in git history.
+
+These files are read-only snapshots for regression detection; they do **not** apply any rename.
 
 ## Capture
 
@@ -11,6 +13,7 @@ python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py
 Defaults:
 
 - Input: `jmri/layouts/hart/output/tables.xml`
+- CATS: `cats/panels/HART_Master_CTC_hold.xml` (falls back to ABS hold, then geometry sources)
 - Output: this directory
 
 Optional flags: `--tables PATH`, `--out PATH`.
@@ -19,28 +22,28 @@ Optional flags: `--tables PATH`, `--out PATH`.
 
 | File | Primary source |
 |------|----------------|
-| `hardware_identity.csv` | JMRI sensors, turnouts, signal heads/masts, blocks in `tables.xml` |
+| `hardware_identity.csv` | JMRI sensors, turnouts, signal heads/masts (including `virtualsignalmast`), blocks in `tables.xml` |
 | `sml_pairs.csv` | Signal mast logic destination pairs |
 | `sml_sections.csv` | Auto sections created from SML |
 | `ctc_sidi.csv` | CTC code-button SIDI lever signals |
 | `ctc_trl.csv` | CTC traffic-locking rules |
 | `le_mast_bindings.csv` | Layout Editor turnout/point mast bindings |
 | `block_sensors.csv` | Layout block → occupancy sensor map |
-| `cats_bindings.csv` | CATS master panel block/signal bindings (best-effort) |
+| `cats_bindings.csv` | Live CATS CTC hold panel block/signal bindings |
 | `counts.txt` | Row counts per CSV + SHA-256 of `tables.xml` |
-| `validate_le_signalling.txt` | Mini-discovery dests vs stored SML (PASS, 36 dests) |
-| `audit_panel_contracts.txt` | working / deployment / standalone (PASS, drift 0) |
-| `check_hart_phase02.txt` | Phase 0–2 (PASS) |
-| `validate_cats_panel.txt` | Live masters PASS; stale HART.xml variants fail en-dash |
+| `validate_le_signalling.txt` | Mini-discovery dests vs stored SML (historical 2026-08-20; 36 dests then) |
+| `audit_panel_contracts.txt` | working / deployment / standalone (historical 2026-08-20) |
+| `check_hart_phase02.txt` | Phase 0–2 (historical 2026-08-20) |
+| `validate_cats_panel.txt` | Live masters (historical 2026-08-20) |
 
-Also consulted (not written): `cats/panels/HART_Master.xml` (or `HART_Master_ABS.xml`), `cats/data/occupancy_bindings.csv`, `cats/data/le_signal_boundaries.csv`.
+Also consulted (not written): `cats/data/occupancy_bindings.csv`, `cats/data/le_signal_boundaries.csv`.
 
-## After rename
+## After a rename
 
 1. Re-run the capture script into a scratch directory or replace these files intentionally.
 2. Diff against this baseline:
    - **`hardware_identity.csv`**: `systemName` values must be **identical** (MQTT / internal ids are frozen).
-   - **`userName` values** should match the `proposed` column in `jmri/layouts/hart/data/public_name_map.csv` where a rename applies; unchanged rows should match `current`.
+   - **`userName` values** should match the `proposed` column in `jmri/layouts/hart/data/public_name_map.csv` where a rename applies; identity rows (`current` == `proposed`) should match `current`.
    - **SML / CTC / LE / block / CATS** CSVs: public names in mast, section, destination, and block columns should follow the map; hardware columns (`occupancySensor`, `mqttAddr`, `sensorUserName`) must not change.
 3. Compare `counts.txt` SHA-256 only when checking whether the Layout Editor agent touched `tables.xml` structure; user-name edits may not change the hash if element count is unchanged.
 

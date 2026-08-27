@@ -27,25 +27,25 @@ PATH_NORTH, PATH_SOUTH, PATH_EAST, PATH_WEST = 16, 32, 64, 128
 # From MQTT turnout sensor1/sensor2 bindings. 13-x reserved for 117–119
 # even though those turnouts are currently DIRECT (FB not attached).
 HW_TO_PLANT = {
-    "1-1": "Switch 113",
-    "1-2": "Switch 114",
-    "1-3": "Switch 115",
-    "3-1": "Switch 103",
-    "3-2": "Switch 104",
-    "3-3": "Switch 105",
-    "3-4": "Switch 106",
-    "4-1": "Switch 100",
-    "4-2": "Switch 101",
-    "4-3": "Switch 102",
-    "12-1": "Switch 107",
-    "12-2": "Switch 108",
-    "12-3": "Switch 109",
-    "12-4": "Switch 110",
-    "12-5": "Switch 111",
-    "12-6": "Switch 112",
-    "13-1": "Switch 117",
-    "13-2": "Switch 118",
-    "13-3": "Switch 119",
+    "1-1": "Switch 35",
+    "1-2": "Switch 37",
+    "1-3": "Switch 39",
+    "3-1": "Switch 15",
+    "3-2": "Switch 17",
+    "3-3": "Switch 19",
+    "3-4": "Switch 21",
+    "4-1": "Switch 1",
+    "4-2": "Switch 3",
+    "4-3": "Switch 5",
+    "12-1": "Switch 25",
+    "12-2": "Switch 27",
+    "12-3": "Switch 29",
+    "12-4": "Switch 31",
+    "12-5": "Switch 23",
+    "12-6": "Switch 33",
+    "13-1": "Switch 7",
+    "13-2": "Switch 11",
+    "13-3": "Switch 9",
 }
 
 UNUSED_FB = {
@@ -58,48 +58,48 @@ UNUSED_OCC = {
 }
 
 # 2091 circuit. Tuple: (block, enter-from along lap, enter-from opposite).
-# FORWARD = lap direction (WME west → Brick → Plane → Barn → Main East →
-# 112 → East Lead → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME).
+# FORWARD = lap direction (WME west → Brick → Plane → OS Barn → OS Main East →
+# 112 → OS East Lead → 113a → 114 → OS McKeesport → Rocks → 115 → 113b → WME).
 LAP_SECTIONS = [
-    ("West Main Ext", "OS 113b", "OS 111a"),
-    ("OS 111a", "West Main Ext", "Main West"),
-    ("Main West", "OS 111a", "OS 100"),
-    ("OS 100", "Main West", "Brick-Plane"),
-    ("Brick-Plane", "OS 100", "OS 102"),
-    ("OS 102", "Brick-Plane", "East Main Ext"),
-    ("East Main Ext", "OS 102", "OS 117b"),
-    ("OS 117b", "East Main Ext", "Main East"),
-    ("Main East", "OS 117b", "OS 112"),
-    ("OS 112", "Main East", "East Lead"),
-    ("East Lead", "OS 112", "OS 113a"),
-    ("OS 113a", "East Lead", "OS 114"),
-    ("OS 114", "OS 113a", "McKeesport"),
-    ("McKeesport", "OS 114", "McKees Rocks"),
-    ("McKees Rocks", "McKeesport", "OS 115"),
-    ("OS 115", "McKees Rocks", "OS 113b"),
-    ("OS 113b", "OS 115", "West Main Ext"),
+    ("OS West Main Ext", "OS 35b", "OS 23a"),
+    ("OS 23a", "OS West Main Ext", "OS Main West"),
+    ("OS Main West", "OS 23a", "OS 1"),
+    ("OS 1", "OS Main West", "OS Brick-Plane"),
+    ("OS Brick-Plane", "OS 1", "OS 5"),
+    ("OS 5", "OS Brick-Plane", "OS East Main Ext"),
+    ("OS East Main Ext", "OS 5", "OS 7b"),
+    ("OS 7b", "OS East Main Ext", "OS Main East"),
+    ("OS Main East", "OS 7b", "OS 33"),
+    ("OS 33", "OS Main East", "OS East Lead"),
+    ("OS East Lead", "OS 33", "OS 35a"),
+    ("OS 35a", "OS East Lead", "OS 37"),
+    ("OS 37", "OS 35a", "OS McKeesport"),
+    ("OS McKeesport", "OS 37", "OS McKees Rocks"),
+    ("OS McKees Rocks", "OS McKeesport", "OS 39"),
+    ("OS 39", "OS McKees Rocks", "OS 35b"),
+    ("OS 35b", "OS 39", "OS West Main Ext"),
 ]
 
 # First and last section are the same (continuous lap).
 TRANSIT_SEQ = [
-    ("West Main Ext", FORWARD),
-    ("OS 111a", FORWARD),
-    ("Main West", FORWARD),
-    ("OS 100", FORWARD),
-    ("Brick-Plane", FORWARD),
-    ("OS 102", FORWARD),
-    ("East Main Ext", FORWARD),
-    ("OS 117b", FORWARD),
-    ("Main East", FORWARD),
-    ("OS 112", FORWARD),
-    ("East Lead", FORWARD),
-    ("OS 113a", FORWARD),
-    ("OS 114", FORWARD),
-    ("McKeesport", FORWARD),
-    ("McKees Rocks", FORWARD),
-    ("OS 115", FORWARD),
-    ("OS 113b", FORWARD),
-    ("West Main Ext", FORWARD),
+    ("OS West Main Ext", FORWARD),
+    ("OS 23a", FORWARD),
+    ("OS Main West", FORWARD),
+    ("OS 1", FORWARD),
+    ("OS Brick-Plane", FORWARD),
+    ("OS 5", FORWARD),
+    ("OS East Main Ext", FORWARD),
+    ("OS 7b", FORWARD),
+    ("OS Main East", FORWARD),
+    ("OS 33", FORWARD),
+    ("OS East Lead", FORWARD),
+    ("OS 35a", FORWARD),
+    ("OS 37", FORWARD),
+    ("OS McKeesport", FORWARD),
+    ("OS McKees Rocks", FORWARD),
+    ("OS 39", FORWARD),
+    ("OS 35b", FORWARD),
+    ("OS West Main Ext", FORWARD),
 ]
 
 
@@ -271,10 +271,10 @@ def build_transits_xml() -> str:
     sys_by_user = section_sys_by_user()
     lines = [
         '  <transits class="jmri.configurexml.TransitManagerXml">',
-        '    <transit systemName="IZ:HART:2091" userName="2091 West Main Ext lap">',
+        '    <transit systemName="IZ:HART:2091" userName="2091 OS West Main Ext lap">',
         "      <systemName>IZ:HART:2091</systemName>",
-        "      <userName>2091 West Main Ext lap</userName>",
-        "      <comment>WME → 111 → Brick → Plane → Barn 117 → Main East → 112 → East Lead → 113a → 114 → McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
+        "      <userName>2091 OS West Main Ext lap</userName>",
+        "      <comment>WME → 111 → Brick → Plane → OS Barn 117 → OS Main East → 112 → OS East Lead → 113a → 114 → OS McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
     ]
     for seq, (name, direction) in enumerate(TRANSIT_SEQ, start=1):
         iy = sys_by_user[name]
@@ -290,16 +290,16 @@ def build_transits_xml() -> str:
 
 def write_traininfo() -> Path:
     TRAININFO_DIR.mkdir(parents=True, exist_ok=True)
-    path = TRAININFO_DIR / "2091_WME_to_McKeesport.xml"
+    path = TRAININFO_DIR / "2091_WME_to_OS McKeesport.xml"
     blocks = {
-        "West Main Ext": "IB:AUTO:0050",
-        "McKeesport": "IB:AUTO:0048",
+        "OS West Main Ext": "IB:AUTO:0050",
+        "OS McKeesport": "IB:AUTO:0048",
     }
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="/xml/XSLT/dispatcher-traininfo.xsl" type="text/xsl"?>
 <traininfofile>
   <traininfo version="8"
-    transitname="2091 West Main Ext lap"
+    transitname="2091 OS West Main Ext lap"
     transitid="IZ:HART:2091"
     dynamictransit="no"
     trainname="2091"
@@ -307,11 +307,11 @@ def write_traininfo() -> Path:
     rosterid="2091"
     dccaddress="2091"
     trainintransit="yes"
-    startblockname="West Main Ext-1"
-    startblockid="{blocks['West Main Ext']}"
+    startblockname="OS West Main Ext-1"
+    startblockid="{blocks['OS West Main Ext']}"
     startblockseq="1"
-    endblockname="West Main Ext-18"
-    endblockid="{blocks['West Main Ext']}"
+    endblockname="OS West Main Ext-18"
+    endblockid="{blocks['OS West Main Ext']}"
     endblockseq="18"
     viablockname=""
     trainfromroster="yes"

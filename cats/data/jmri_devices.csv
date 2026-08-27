@@ -72,9 +72,9 @@ sensor,M2S1300,Block 13-1,occupancy_or_feedback,
 sensor,M2S1301,Block 13-2,occupancy_or_feedback,
 sensor,M2S1302,Block 13-3,occupancy_or_feedback,
 sensor,M2S1303,Block 13-4,occupancy_or_feedback,
-sensor,M2S1304,Block 13-5,occupancy_or_feedback,occupancy EH-3
-sensor,M2S1305,Block 13-6,occupancy_or_feedback,occupancy EH-2
-sensor,M2S1306,Block 13-7,occupancy_or_feedback,occupancy EH-1
+sensor,M2S1304,Block 13-5,occupancy_or_feedback,occupancy OS EH-3
+sensor,M2S1305,Block 13-6,occupancy_or_feedback,occupancy OS EH-2
+sensor,M2S1306,Block 13-7,occupancy_or_feedback,occupancy OS EH-1
 sensor,M2S1307,Block 13-8,occupancy_or_feedback,
 sensor,M2S1367,Switch 13-1 FB N,occupancy_or_feedback,
 sensor,M2S1368,Switch 13-1 FB R,occupancy_or_feedback,
@@ -85,26 +85,26 @@ sensor,M2S1372,Switch 13-3 FB R,occupancy_or_feedback,
 sensor,MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB,,occupancy_or_feedback,
 sensor,MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED,,occupancy_or_feedback,
 sensor,ISCLOCKRUNNING,,occupancy_or_feedback,
-turnout,M2T108,Switch 113,points_command,
-turnout,M2T109,Switch 114,points_command,
-turnout,M2T110,Switch 115,points_command,
-turnout,M2T308,Switch 103,points_command,
-turnout,M2T309,Switch 104,points_command,
-turnout,M2T310,Switch 105,points_command,
-turnout,M2T311,Switch 106,points_command,
-turnout,M2T408,Switch 100,points_command,
-turnout,M2T409,Switch 101,points_command,
-turnout,M2T410,Switch 102,points_command,
-turnout,M2T411,Switch 116,points_command,
-turnout,M2T1208,Switch 107,points_command,
-turnout,M2T1209,Switch 108,points_command,
-turnout,M2T1210,Switch 109,points_command,
-turnout,M2T1211,Switch 110,points_command,
-turnout,M2T1212,Switch 111,points_command,
-turnout,M2T1213,Switch 112,points_command,
-turnout,M2T1308,Switch 117,points_command,
-turnout,M2T1309,Switch 118,points_command,
-turnout,M2T1310,Switch 119,points_command,
+turnout,M2T108,Switch 35,points_command,
+turnout,M2T109,Switch 37,points_command,
+turnout,M2T110,Switch 39,points_command,
+turnout,M2T308,Switch 15,points_command,
+turnout,M2T309,Switch 17,points_command,
+turnout,M2T310,Switch 19,points_command,
+turnout,M2T311,Switch 21,points_command,
+turnout,M2T408,Switch 1,points_command,
+turnout,M2T409,Switch 3,points_command,
+turnout,M2T410,Switch 5,points_command,
+turnout,M2T411,Switch 13,points_command,
+turnout,M2T1208,Switch 25,points_command,
+turnout,M2T1209,Switch 27,points_command,
+turnout,M2T1210,Switch 29,points_command,
+turnout,M2T1211,Switch 31,points_command,
+turnout,M2T1212,Switch 23,points_command,
+turnout,M2T1213,Switch 33,points_command,
+turnout,M2T1308,Switch 7,points_command,
+turnout,M2T1309,Switch 11,points_command,
+turnout,M2T1310,Switch 9,points_command,
 turnout,IT1,TOL35287,points_command,
 turnout,IT36,TOR35284,points_command,
 turnout,IT37,TO8,points_command,
@@ -113,25 +113,25 @@ turnout,MTT111,,points_command,
 turnout,MTT113,,points_command,
 turnout,MTT114,,points_command,
 turnout,MTT115,,points_command,
-turnout,Switch 116,,points_command,
-turnout,Switch 116,,points_command,
-turnout,Switch 117,,points_command,
+turnout,Switch 13,,points_command,
+turnout,Switch 13,,points_command,
+turnout,Switch 7,,points_command,
 turnout,M2T410,,points_command,
-turnout,Switch 117,,points_command,
-turnout,Switch 117,,points_command,
-turnout,Switch 117,,points_command,
-turnout,Switch 117,,points_command,
-turnout,Switch 116,,points_command,
-turnout,Switch 118,,points_command,
-turnout,Switch 119,,points_command,
-turnout,Switch 119,,points_command,
-turnout,Switch 116,,points_command,
-turnout,Switch 118,,points_command,
-turnout,Switch 118,,points_command,
-turnout,Switch 118,,points_command,
-turnout,Switch 119,,points_command,
-turnout,Switch 119,,points_command,
-turnout,Switch 117,,points_command,
+turnout,Switch 7,,points_command,
+turnout,Switch 7,,points_command,
+turnout,Switch 7,,points_command,
+turnout,Switch 7,,points_command,
+turnout,Switch 13,,points_command,
+turnout,Switch 11,,points_command,
+turnout,Switch 9,,points_command,
+turnout,Switch 9,,points_command,
+turnout,Switch 13,,points_command,
+turnout,Switch 11,,points_command,
+turnout,Switch 11,,points_command,
+turnout,Switch 11,,points_command,
+turnout,Switch 9,,points_command,
+turnout,Switch 9,,points_command,
+turnout,Switch 7,,points_command,
 turnout,M2T1213,,points_command,
 turnout,M2T408,,points_command,
 turnout,M2T1208,,points_command,
@@ -139,7 +139,7 @@ turnout,M2T311,,points_command,
 turnout,M2T1208,,points_command,
 turnout,M2T311,,points_command,
 turnout,M2T110,,points_command,
-turnout,Switch 111,,points_command,
+turnout,Switch 23,,points_command,
 turnout,M2T308,,points_command,
 turnout,M2T1210,,points_command,
 turnout,M2T309,,points_command,
@@ -154,8 +154,8 @@ turnout,M2T410,,points_command,
 turnout,M2T109,,points_command,
 turnout,M2T408,,points_command,
 turnout,M2T408,,points_command,
-turnout,Switch 111,,points_command,
-turnout,Switch 111,,points_command,
+turnout,Switch 23,,points_command,
+turnout,Switch 23,,points_command,
 turnout,M2T409,,points_command,
 turnout,M2T409,,points_command,
 turnout,M2T1208,,points_command,
@@ -166,8 +166,8 @@ turnout,M2T1209,,points_command,
 turnout,M2T1210,,points_command,
 turnout,M2T311,,points_command,
 turnout,M2T311,,points_command,
-turnout,Switch 111,,points_command,
-turnout,Switch 111,,points_command,
+turnout,Switch 23,,points_command,
+turnout,Switch 23,,points_command,
 turnout,M2T110,,points_command,
 turnout,M2T308,,points_command,
 turnout,M2T308,,points_command,
@@ -181,31 +181,31 @@ turnout,M2T309,,points_command,
 turnout,M2T309,,points_command,
 turnout,M2T310,,points_command,
 turnout,M2T310,,points_command,
-turnout,Switch 113,,points_command,
-turnout,Switch 113,,points_command,
-turnout,Switch 113,,points_command,
-turnout,Switch 113,,points_command,
+turnout,Switch 35,,points_command,
+turnout,Switch 35,,points_command,
+turnout,Switch 35,,points_command,
+turnout,Switch 35,,points_command,
 turnout,M2T109,,points_command,
-turnout,Switch 111,,points_command,
-turnout,Switch 113,,points_command,
+turnout,Switch 23,,points_command,
+turnout,Switch 35,,points_command,
 turnout,M2T410,,points_command,
-layout_os,TOL3,OS 100,os_block,turnoutname=M2T408
-layout_os,TOR11,OS 107,os_block,turnoutname=M2T1208
-layout_os,TOL15,OS 104,os_block,turnoutname=M2T309
-layout_os,TOL23,OS 112,os_block,turnoutname=M2T1213
-layout_os,TOL38,OS 101,os_block,turnoutname=M2T409
-layout_os,TOL42,OS 102,os_block,turnoutname=M2T410
-layout_os,TOR7,OS 109,os_block,turnoutname=M2T1210
-layout_os,TOL19,OS 106,os_block,turnoutname=M2T311
-layout_os,TOR9,OS 108,os_block,turnoutname=M2T1209
-layout_os,TO111,OS 111a,os_block,turnoutname=Switch 111
-layout_os,TOL6,OS 110,os_block,turnoutname=M2T1211
-layout_os,TOL29,OS 115,os_block,turnoutname=M2T110
-layout_os,TOL17,OS 105,os_block,turnoutname=M2T310
-layout_os,TOR36,OS 114,os_block,turnoutname=M2T109
-layout_os,TOR14,OS 103,os_block,turnoutname=M2T308
-layout_os,TO113,OS 113b,os_block,turnoutname=Switch 113
-layout_os,TO1,OS 116,os_block,turnoutname=Switch 116
-layout_os,TO10,OS 119,os_block,turnoutname=Switch 119
-layout_os,TO117,OS 117,os_block,turnoutname=Switch 117
-layout_os,TO11,OS 118,os_block,turnoutname=Switch 118
+layout_os,TOL3,OS 1,os_block,turnoutname=M2T408
+layout_os,TOR11,OS 25,os_block,turnoutname=M2T1208
+layout_os,TOL15,OS 17,os_block,turnoutname=M2T309
+layout_os,TOL23,OS 33,os_block,turnoutname=M2T1213
+layout_os,TOL38,OS 3,os_block,turnoutname=M2T409
+layout_os,TOL42,OS 5,os_block,turnoutname=M2T410
+layout_os,TOR7,OS 29,os_block,turnoutname=M2T1210
+layout_os,TOL19,OS 21,os_block,turnoutname=M2T311
+layout_os,TOR9,OS 27,os_block,turnoutname=M2T1209
+layout_os,TO111,OS 23a,os_block,turnoutname=Switch 23
+layout_os,TOL6,OS 31,os_block,turnoutname=M2T1211
+layout_os,TOL29,OS 39,os_block,turnoutname=M2T110
+layout_os,TOL17,OS 19,os_block,turnoutname=M2T310
+layout_os,TOR36,OS 37,os_block,turnoutname=M2T109
+layout_os,TOR14,OS 15,os_block,turnoutname=M2T308
+layout_os,TO113,OS 35b,os_block,turnoutname=Switch 35
+layout_os,TO1,OS 13,os_block,turnoutname=Switch 13
+layout_os,TO10,OS 9,os_block,turnoutname=Switch 9
+layout_os,TO117,OS 7,os_block,turnoutname=Switch 7
+layout_os,TO11,OS 11,os_block,turnoutname=Switch 11

@@ -2,8 +2,8 @@
 """Build HART Digicon→JMRI virtual signal heads (LCOS packed MQTT numbers).
 
 Allocation (MQTT display node = radio addr octal-digits-as-decimal):
-  node 4  — Plane faces + Brick W-1/W-2 + 100L (IH438/IH439 on C4-OU3)
-  node 13 — Barn / W-117–117b  (radio 013 → display 13)
+  node 4  — Plane faces + Brick OS W-1/OS W-2 + Mast 2L (IH438/IH439 on C4-OU3)
+  node 13 — OS Barn / W-117–117b  (radio 013 → display 13)
   node 12 — East End                 (radio 012 → display 12)
   node 1  — Princess                 (radio 1   → display 1)
 
@@ -30,35 +30,35 @@ DATA = ROOT / "cats/data"
 # Order within a node = signal_index assignment (top→bottom / high→low).
 MASTS: list[tuple[str, int, int, str]] = [
     # node 4 — Plane + W-Y stubs + Brick east main (OU3 after OU2-1..6)
-    ("102LB", 2, 4, "double"),
-    ("102LA", 1, 4, "single"),
-    # Skip C4-OU2-4 / packed IH435 (was 102LA Bottom) so 101RA stays IH436.
+    ("Mast 6LB", 2, 4, "double"),
+    ("Mast 6LA", 1, 4, "single"),
+    # Skip C4-OU2-4 / packed IH435 (was Mast 6LA Bottom) so Mast 4RA stays IH436.
     # No JMRI head, no wiring row — see SKIP_HEAD.
     ("SPARE-C4-OU2-4", 1, 4, "single"),
-    ("101RA", 1, 4, "single"),
-    ("101RB", 1, 4, "single"),
-    ("100L", 2, 4, "double"),
-    # node 13 — Barn
-    ("117RA", 2, 13, "double"),
-    ("117LB", 1, 13, "single"),
-    ("117RB", 2, 13, "double"),
-    ("117LA", 2, 13, "double"),
+    ("Mast 4RA", 1, 4, "single"),
+    ("Mast 4RB", 1, 4, "single"),
+    ("Mast 2L", 2, 4, "double"),
+    # node 13 — OS Barn
+    ("Mast 8RA", 2, 13, "double"),
+    ("Mast 8LB", 1, 13, "single"),
+    ("Mast 8RB", 2, 13, "double"),
+    ("Mast 8LA", 2, 13, "double"),
     # node 12 — East End
-    ("111RA", 2, 12, "double"),
-    ("111L", 2, 12, "double"),
-    ("111RB", 1, 12, "single"),
-    ("112L", 2, 12, "double"),
-    ("110R", 1, 12, "single"),
-    ("112R", 2, 12, "double"),
+    ("Mast 24RA", 2, 12, "double"),
+    ("Mast 24L", 2, 12, "double"),
+    ("Mast 24RB", 1, 12, "single"),
+    ("Mast 34L", 2, 12, "double"),
+    ("Mast 32R", 1, 12, "single"),
+    ("Mast 34R", 2, 12, "double"),
     # node 1 — Princess (keep packed IH132–141 stable: 2-head exits, connector singles reuse old middles)
-    ("115LB", 2, 1, "double"),
-    ("120R", 1, 1, "single"),
-    ("113RA", 2, 1, "double"),
-    ("113RB", 2, 1, "double"),
-    ("114LB", 2, 1, "double"),
-    ("120L", 1, 1, "single"),
-    ("115LA", 1, 1, "single"),
-    ("114LA", 1, 1, "single"),
+    ("Mast 40LB", 2, 1, "double"),
+    ("Mast 2036", 1, 1, "single"),
+    ("Mast 36RA", 2, 1, "double"),
+    ("Mast 36RB", 2, 1, "double"),
+    ("Mast 38LB", 2, 1, "double"),
+    ("Mast 2035", 1, 1, "single"),
+    ("Mast 40LA", 1, 1, "single"),
+    ("Mast 38LA", 1, 1, "single"),
 ]
 
 # Packed holes: increment the node index, emit no head/mast/wiring row.
@@ -89,7 +89,7 @@ NODE_PORTS: dict[int, list[str]] = {
 }
 NODE_BOARD_LOC: dict[int, str] = {
     4: "West - Lower",
-    13: "Helix - Lower (Barn / West Yard)",
+    13: "Helix - Lower (OS Barn / West Yard)",
     12: "North - Upper (East End)",
     1: "Princess / Helix DCC node",
 }

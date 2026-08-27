@@ -5,7 +5,7 @@ From `cats/data/jmri_devices.csv` — enable these connection prefixes in Design
 | Prefix | Type | Example |
 |--------|------|---------|
 | M2S | Sensor | occupancy / feedback (`Block 4-2`, Switch FB…) |
-| M2T | Turnout | `M2T408` = Switch 100 |
+| M2T | Turnout | `M2T408` = Switch 1 |
 | IS / ISIS | Sensor | mostly purged; keep `ISCLOCKRUNNING` only |
 | IT | Turnout | crossover / internal legs if still used |
 | IF$vsm / MQTT masts | Signal | defer until signal ownership decided |

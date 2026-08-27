@@ -1,24 +1,41 @@
 kind,ident,slot,mast
-point,A48,east,Princess East McKees Rocks
-point,A48,west,Princess East McKeesport
-turnout,TO111,A,East End West Main West
-turnout,TO111,B,East End East OS 111a
-turnout,TO111,D,East End West Yard Track 1
-turnout,TO113,A,Princess West OS 113b
-turnout,TO113,D,Princess West OS 113a
-turnout,TO117,A,West Yard West OS 117
-turnout,TO117,B,West Yard East Yard T6
-turnout,TO117,C,West Yard East OS 117b
-turnout,TO117,D,West Yard West East Main Ext
-turnout,TOL23,A,East End East Lead
-turnout,TOL23,C,East End South OS 112
-turnout,TOL29,B,Princess East K-1
-turnout,TOL29,C,Princess North McKees Rocks
-turnout,TOL3,A,Brick East Main West
-turnout,TOL38,B,Brick West Yard 1
-turnout,TOL38,C,Brick West Yard 2
-turnout,TOL42,B,Plane East East Main Ext
-turnout,TOL42,C,Plane East OS 102
-turnout,TOL6,C,East End South OS 110
-turnout,TOR36,B,Princess East K-2
-turnout,TOR36,C,Princess South McKeesport
+point,A12,east,Mast 26R
+point,A15,west,Mast 26L
+point,A36,east,Mast 20R
+point,A37,east,Mast 32L
+point,A39,east,Mast 22R
+point,A41,west,Mast 22L
+point,A46,west,Mast 20L
+point,A48,east,Mast 2036
+point,A48,west,Mast 2035
+point,A53,west,Mast 18L
+point,A61,east,Mast 18R
+point,A81,west,Mast 16L
+point,EB1,west,Mast 12L
+point,EB2,west,Mast 10LA
+point,EB3,west,Mast 10LB
+point,EB70,west,Mast 4LA
+point,EB71,east,Mast 40RA
+point,EB72,east,Mast 38RA
+point,EB73,west,Mast 4LB
+turnout,TO111,A,Mast 24RA
+turnout,TO111,B,Mast 24L
+turnout,TO111,D,Mast 24RB
+turnout,TO113,A,Mast 36RA
+turnout,TO113,D,Mast 36RB
+turnout,TO117,A,Mast 8RA
+turnout,TO117,B,Mast 8LB
+turnout,TO117,C,Mast 8LA
+turnout,TO117,D,Mast 8RB
+turnout,TOL23,A,Mast 34L
+turnout,TOL23,C,Mast 34R
+turnout,TOL29,B,Mast 40LA
+turnout,TOL29,C,Mast 40LB
+turnout,TOL3,A,Mast 2L
+turnout,TOL38,B,Mast 4RA
+turnout,TOL38,C,Mast 4RB
+turnout,TOL42,B,Mast 6LB
+turnout,TOL42,C,Mast 6LA
+turnout,TOL6,C,Mast 32R
+turnout,TOR36,B,Mast 38LA
+turnout,TOR36,C,Mast 38LB

@@ -4,9 +4,10 @@
 Default is dry-run. Pass --apply to write files.
 
 Renames userName text and XML fields that store public names (blocks, masts,
-heads, CTC SIDI/TRL, SML pairs, LayoutEditor bindings). Never touches
-systemName values, occupancy sensor userNames (Block N-N), MQTT ids, or
-CTC IS* internals.
+heads, turnouts, CTC SIDI/TRL, SML pairs, LayoutEditor bindings). Never touches
+systemName values (including ISNX:*), MQTT ids, or CTC IS* internals.
+Occupancy Block n-n and FB Switch n-n userNames are separate layers and are
+not whole-file replaced (comments keep Block n-n).
 """
 
 from __future__ import annotations
@@ -23,7 +24,7 @@ import xml.etree.ElementTree as ET
 DEFAULT_MAP = Path(__file__).resolve().parents[1] / "data" / "public_name_map.csv"
 DEFAULT_TABLES = Path(__file__).resolve().parents[1] / "output" / "tables.xml"
 
-RENAME_LAYERS = frozenset({"block", "mast", "head"})
+RENAME_LAYERS = frozenset({"block", "mast", "head", "turnout"})
 OPTIONAL_MISSING = frozenset(
     {
         "ET-1",
@@ -102,9 +103,17 @@ PUBLIC_NAME_TAGS = frozenset(
     }
 )
 
-FROZEN_PREFIX_RE = re.compile(r"^(M2T|M2S|IH|IF\$shsm|IS:)")
+FROZEN_PREFIX_RE = re.compile(r"^(M2T|M2S|IH|IF\$shsm|IS:|ISNX:)")
 SENSOR_BLOCK_USERNAME_RE = re.compile(r"^Block \d+-\d+$")
-TURNOUT_USERNAME_RE = re.compile(r"^Switch \d+$")
+# Protect hardware ids in whole-file replace so 100L inside ISNX:100L is untouched.
+_PROTECT_RE = re.compile(
+    r"(<systemName>[^<]*</systemName>"
+    r"|systemName=\"[^\"]*\""
+    r"|ISNX:[A-Za-z0-9:._-]+"
+    r"|IF\$shsm:[^<\s\"]+"
+    r"|M2[TS]\d+|IH\d+)",
+    re.I,
+)
 
 
 @dataclass(frozen=True)
@@ -112,6 +121,7 @@ class RenameEntry:
     layer: str
     current: str
     proposed: str
+    optional: bool = False
 
 
 def load_rename_map(csv_path: Path | str) -> list[RenameEntry]:
@@ -126,10 +136,26 @@ def load_rename_map(csv_path: Path | str) -> list[RenameEntry]:
             proposed = (row.get("proposed") or "").strip()
             if layer not in RENAME_LAYERS or not current or current == proposed:
                 continue
-            entries.append(RenameEntry(layer=layer, current=current, proposed=proposed))
+            notes = (row.get("notes") or "").strip().lower()
+            optional = current in OPTIONAL_MISSING or notes.startswith("historical alias")
+            entries.append(
+                RenameEntry(
+                    layer=layer,
+                    current=current,
+                    proposed=proposed,
+                    optional=optional,
+                )
+            )
     for current, proposed in DISPATCHER_SENSOR_RENAMES:
         if current != proposed:
-            entries.append(RenameEntry(layer="sensor", current=current, proposed=proposed))
+            entries.append(
+                RenameEntry(
+                    layer="sensor",
+                    current=current,
+                    proposed=proposed,
+                    optional=True,
+                )
+            )
     entries.sort(key=lambda item: len(item.current), reverse=True)
     return entries
 
@@ -140,22 +166,44 @@ def _is_frozen_public_text(text: str) -> bool:
         return False
     if SENSOR_BLOCK_USERNAME_RE.fullmatch(stripped):
         return True
-    if TURNOUT_USERNAME_RE.fullmatch(stripped):
-        return True
     return bool(FROZEN_PREFIX_RE.match(stripped))
 
 
+def _protect_frozen_tokens(text: str) -> tuple[str, list[str]]:
+    stashed: list[str] = []
+
+    def _stash(match: re.Match[str]) -> str:
+        stashed.append(match.group(0))
+        return f"__HART_PROTECT_{len(stashed) - 1}__"
+
+    return _PROTECT_RE.sub(_stash, text), stashed
+
+
+def _restore_frozen_tokens(text: str, stashed: list[str]) -> str:
+    restored = text
+    for index, original in enumerate(stashed):
+        restored = restored.replace(f"__HART_PROTECT_{index}__", original)
+    return restored
+
+
 def _replace_in_string(text: str, renames: list[RenameEntry], counts: Counter[tuple[str, str]]) -> str:
+    """Two-phase replace so S-2→OS S-1 cannot then become OS S-R."""
     if not text:
         return text
-    updated = text
-    for entry in renames:
-        if entry.current not in updated:
-            continue
-        occurrences = updated.count(entry.current)
-        updated = updated.replace(entry.current, entry.proposed)
-        counts[(entry.current, entry.proposed)] += occurrences
-    return updated
+    work, stashed = _protect_frozen_tokens(text)
+    tokens: list[tuple[str, RenameEntry]] = []
+    for index, entry in enumerate(renames):
+        token = f"__HART_RN_{index}__"
+        pattern = re.compile(
+            r"(?<![A-Za-z0-9])" + re.escape(entry.current) + r"(?![A-Za-z0-9])"
+        )
+        work, n = pattern.subn(token, work)
+        if n:
+            counts[(entry.current, entry.proposed)] += n
+            tokens.append((token, entry))
+    for token, entry in tokens:
+        work = work.replace(token, entry.proposed)
+    return _restore_frozen_tokens(work, stashed)
 
 
 def _should_replace_element_text(elem: ET.Element, parent: ET.Element | None) -> bool:
@@ -165,10 +213,6 @@ def _should_replace_element_text(elem: ET.Element, parent: ET.Element | None) ->
         if parent.tag == "sensor":
             text = (elem.text or "").strip()
             if SENSOR_BLOCK_USERNAME_RE.fullmatch(text):
-                return False
-        if parent.tag == "turnout":
-            text = (elem.text or "").strip()
-            if TURNOUT_USERNAME_RE.fullmatch(text):
                 return False
     text = elem.text or ""
     if _is_frozen_public_text(text):
@@ -222,7 +266,7 @@ def collect_system_names(root: ET.Element) -> list[str]:
 def find_missing_current_names(content: str, renames: list[RenameEntry]) -> list[str]:
     missing: list[str] = []
     for entry in renames:
-        if entry.current in OPTIONAL_MISSING:
+        if entry.optional or entry.current in OPTIONAL_MISSING:
             continue
         if entry.current not in content:
             missing.append(entry.current)
@@ -236,17 +280,58 @@ def apply_renames_to_text(content: str, renames: list[RenameEntry]) -> tuple[str
     return updated, counts
 
 
+def load_sensor_username_map(csv_path: Path | str) -> dict[str, str]:
+    """occupancy + fb layers: sensor userName only (comments stay Block n-n)."""
+    path = Path(csv_path)
+    mapping: dict[str, str] = {}
+    with path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            layer = (row.get("layer") or "").strip()
+            if layer not in {"occupancy", "fb"}:
+                continue
+            current = (row.get("current") or "").strip()
+            proposed = (row.get("proposed") or "").strip()
+            if current and proposed and current != proposed:
+                mapping[current] = proposed
+    return mapping
+
+
+def apply_sensor_usernames_to_text(
+    content: str, mapping: dict[str, str]
+) -> tuple[str, int]:
+    if not mapping:
+        return content, 0
+    hits = 0
+
+    def repl(match: re.Match[str]) -> str:
+        nonlocal hits
+        name = match.group(1)
+        new = mapping.get(name)
+        if not new:
+            return match.group(0)
+        hits += 1
+        return f"<userName>{new}</userName>"
+
+    updated = re.sub(r"<userName>([^<]*)</userName>", repl, content)
+    return updated, hits
+
+
 def apply_renames_to_xml_file(
     xml_path: Path | str,
     renames: list[RenameEntry],
     *,
     apply: bool = False,
+    sensor_usernames: dict[str, str] | None = None,
 ) -> tuple[Counter[tuple[str, str]], bool]:
     """Apply renames to one XML file. Returns replacement counts and systemName_ok."""
     path = Path(xml_path)
     original = path.read_text(encoding="utf-8")
     before_system_names = collect_system_names(ET.fromstring(original))
     updated, counts = apply_renames_to_text(original, renames)
+    if sensor_usernames:
+        updated, sensor_n = apply_sensor_usernames_to_text(updated, sensor_usernames)
+        if sensor_n:
+            counts[("(sensor userName)", f"{sensor_n} occupancy/fb")] += sensor_n
     after_system_names = collect_system_names(ET.fromstring(updated))
     system_names_ok = before_system_names == after_system_names
 
@@ -261,12 +346,15 @@ def apply_public_names(
     renames: list[RenameEntry],
     *,
     apply: bool = False,
+    sensor_usernames: dict[str, str] | None = None,
 ) -> tuple[Counter[tuple[str, str]], list[str], bool]:
     """Apply renames after verifying all required current names exist in the file."""
     path = Path(xml_path)
     original = path.read_text(encoding="utf-8")
     missing = find_missing_current_names(original, renames)
-    counts, system_names_ok = apply_renames_to_xml_file(path, renames, apply=apply)
+    counts, system_names_ok = apply_renames_to_xml_file(
+        path, renames, apply=apply, sensor_usernames=sensor_usernames
+    )
     return counts, missing, system_names_ok
 
 
@@ -321,6 +409,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     renames = load_rename_map(args.map)
+    sensor_usernames = load_sensor_username_map(args.map)
     targets = [args.tables, *args.also]
 
     all_counts: list[Counter[tuple[str, str]]] = []
@@ -332,7 +421,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"error: file not found: {target}", file=sys.stderr)
             return 1
         counts, missing, names_ok = apply_public_names(
-            target, renames, apply=args.apply
+            target,
+            renames,
+            apply=args.apply,
+            sensor_usernames=sensor_usernames,
         )
         all_counts.append(counts)
         missing_names.extend(missing)

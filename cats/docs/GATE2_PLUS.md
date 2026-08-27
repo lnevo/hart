@@ -15,42 +15,42 @@ python3 cats/scripts/wire_designer_ctc_rules.py --mqtt
 CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 ```
 
-## Gate 2 — West Yard + East Main Ext spine
+## Gate 2 — West Yard + OS East Main Ext spine
 
 | Digicon role | Block | Notes |
 |--------------|-------|-------|
-| Yard leads / ladder | OS 116, OS 118, OS 119 | West of / under Brick |
-| Xover | OS 117 (top), OS 117b (bottom C/D) | Main East ↔ East Main Ext uses **117b** |
-| Spine | East Main Ext → OS 117b → Main East | Contiguous main |
+| Yard leads / ladder | OS 13, OS 11, OS 9 | West of / under Brick |
+| Xover | OS 7 (top), OS 7b (bottom C/D) | OS Main East ↔ OS East Main Ext uses **117b** |
+| Spine | OS East Main Ext → OS 7b → OS Main East | Contiguous main |
 
-Accept: occupy East Main Ext and OS 117b; Digicon red matches JMRI path (not 117 top).
+Accept: occupy OS East Main Ext and OS 7b; Digicon red matches JMRI path (not 117 top).
 
 ## Gate 3 — South Yard ladder
 
 | Digicon role | Block |
 |--------------|-------|
-| West ladder | OS 103–106 |
-| Body (optional) | S-1–5 |
+| West ladder | OS 15–106 |
+| Body (optional) | OS S-R–5 |
 
 Accept: diverge from Plane / main into 103 chain without lighting unrelated spine cells.
 
-## Gate 4 — East End + East Lead
+## Gate 4 — East End + OS East Lead
 
 | Digicon role | Block |
 |--------------|-------|
-| East ladder / plant | OS 107–112 |
-| Lead | East Lead |
+| East ladder / plant | OS 25–112 |
+| Lead | OS East Lead |
 
-Accept: Main East → OS 112 → East Lead contiguous on Digicon + JMRI.
+Accept: OS Main East → OS 33 → OS East Lead contiguous on Digicon + JMRI.
 
 ## Gate 5 — Princess loops
 
 | Digicon role | Block |
 |--------------|-------|
-| Plant | OS 113a/b, OS 114, OS 115 |
-| Loops | McKees Rocks, McKeesport |
+| Plant | OS 35a/b, OS 37, OS 39 |
+| Loops | OS McKees Rocks, OS McKeesport |
 
-Accept: reverse-loop pair (not a wye); East Lead ↔ 113b adjacency.
+Accept: reverse-loop pair (not a wye); OS East Lead ↔ 113b adjacency.
 
 ## Checklist template (each gate)
 

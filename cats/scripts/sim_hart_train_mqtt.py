@@ -98,65 +98,65 @@ def _merge(base: dict[str, str], override: dict[str, str]) -> dict[str, str]:
 
 
 # Digicon spines after Armstrong primary remap (see jmri_to_cats_digicon.py).
-# main = Armstrong spine MW→100→Main West Brick–Plane→102→EME→… (JMRI-adjacent).
+# main = Armstrong spine MW→100→OS Main West Brick–Plane→102→EME→… (JMRI-adjacent).
 # princess / south_yard / yard may need deck_transfer where Armstrong ≠ Neville.
 ROUTES: dict[str, Route] = {
     "main": Route(
         key="main",
-        title="Route 1 — Main West → East Lead (R1 contiguous)",
-        summary="Digicon R1 spine + JMRI: MW→100→Block→102→EME→117→Main East→112→East Lead",
+        title="Route 1 — OS Main West → OS East Lead (R1 contiguous)",
+        summary="Digicon R1 spine + JMRI: MW→100→Block→102→EME→117→OS Main East→112→OS East Lead",
         turnouts=_merge(BASE_TURNOUTS, {}),
         steps=[
-            Step("Main West", "R1 far left", "Main West (top spine west)", "Start"),
-            Step("OS 100", "R1 · Brick", "Blue OS 100", ""),
-            Step("Main West Brick–Plane", "R1 Brick→Plane", "Main West Brick–Plane", ""),
-            Step("OS 102", "R1 · Plane", "Blue OS 102", ""),
-            Step("East Main Ext", "R1 east of Plane", "East Main Ext", ""),
+            Step("OS Main West", "R1 far left", "OS Main West (top spine west)", "Start"),
+            Step("OS 1", "R1 · Brick", "Blue OS 1", ""),
+            Step("OS Main West Brick–Plane", "R1 Brick→Plane", "OS Main West Brick–Plane", ""),
+            Step("OS 5", "R1 · Plane", "Blue OS 5", ""),
+            Step("OS East Main Ext", "R1 east of Plane", "OS East Main Ext", ""),
             Step(
-                "OS 117b (Barn)",
-                "R1 · Barn/117b",
-                "Blue OS 117b (bottom C/D)",
-                "Main East↔EME uses 117 bottom — not 117 top (M2S1302)",
+                "OS 7b (OS Barn)",
+                "R1 · OS Barn/117b",
+                "Blue OS 7b (bottom C/D)",
+                "OS Main East↔EME uses 117 bottom — not 117 top (M2S1302)",
             ),
-            Step("Main East", "R1 mid-east", "Main East (bottom spine)", ""),
-            Step("OS 112", "R1 · East End", "Blue OS 112", ""),
-            Step("East Lead", "R1 far right", "East Lead", "End R1 spine — next deck is R3 for Princess"),
+            Step("OS Main East", "R1 mid-east", "OS Main East (bottom spine)", ""),
+            Step("OS 33", "R1 · East End", "Blue OS 33", ""),
+            Step("OS East Lead", "R1 far right", "OS East Lead", "End R1 spine — next deck is R3 for Princess"),
         ],
     ),
     "princess": Route(
         key="princess",
-        title="Route 2 — Princess reverse via McKeesport (R3 contiguous)",
-        summary="Deck transfer to R3, then Digicon f-spine: W Main Ext→113b→113a→114→McKeesport→reverse",
+        title="Route 2 — Princess reverse via OS McKeesport (R3 contiguous)",
+        summary="Deck transfer to R3, then Digicon f-spine: W Main Ext→113b→113a→114→OS McKeesport→reverse",
         turnouts=_merge(
             BASE_TURNOUTS,
             {"108": "CLOSED", "109": "THROWN", "110": "CLOSED"},
         ),
         steps=[
             Step(
-                "East Lead",
-                "R1 East Lead",
-                "East Lead",
+                "OS East Lead",
+                "R1 OS East Lead",
+                "OS East Lead",
                 "Still on R1; next step transfers to R3 (Chubb decks are separate)",
             ),
             Step(
-                "West Main Ext",
+                "OS West Main Ext",
                 "R3 far left",
-                "West Main Ext",
+                "OS West Main Ext",
                 "CTC deck change R1→R3",
                 deck_transfer=True,
             ),
-            Step("OS 113b", "R3 Princess", "Blue OS 113b · Sw 113", "JMRI: East Lead↔113b↔West Main Ext"),
-            Step("OS 113a", "R3", "Blue OS 113a", ""),
-            Step("OS 114", "R3 → port", "Blue OS 114 · Sw 114 THROWN", "Into McKeesport loop"),
-            Step("McKeesport", "R3 McKeesport", "McKeesport", "Reverse here"),
-            Step("OS 114", "R3 ← port", "Blue OS 114", "Backing out"),
-            Step("OS 113a", "R3", "Blue OS 113a", ""),
-            Step("OS 113b", "R3", "Blue OS 113b", ""),
-            Step("West Main Ext", "R3 far left", "West Main Ext", ""),
+            Step("OS 35b", "R3 Princess", "Blue OS 35b · Sw 113", "JMRI: OS East Lead↔113b↔OS West Main Ext"),
+            Step("OS 35a", "R3", "Blue OS 35a", ""),
+            Step("OS 37", "R3 → port", "Blue OS 37 · Sw 114 THROWN", "Into OS McKeesport loop"),
+            Step("OS McKeesport", "R3 OS McKeesport", "OS McKeesport", "Reverse here"),
+            Step("OS 37", "R3 ← port", "Blue OS 37", "Backing out"),
+            Step("OS 35a", "R3", "Blue OS 35a", ""),
+            Step("OS 35b", "R3", "Blue OS 35b", ""),
+            Step("OS West Main Ext", "R3 far left", "OS West Main Ext", ""),
             Step(
-                "East Lead",
-                "R1 East Lead",
-                "East Lead",
+                "OS East Lead",
+                "R1 OS East Lead",
+                "OS East Lead",
                 "Back on R1",
                 deck_transfer=True,
             ),
@@ -164,24 +164,24 @@ ROUTES: dict[str, Route] = {
     ),
     "return": Route(
         key="return",
-        title="Route 3 — East Lead → Main West (R1 contiguous reverse)",
+        title="Route 3 — OS East Lead → OS Main West (R1 contiguous reverse)",
         summary="Westbound on the same Digicon/JMRI spine",
         turnouts=_merge(BASE_TURNOUTS, {}),
         steps=[
-            Step("East Lead", "R1 far right", "East Lead", "Westbound"),
-            Step("OS 112", "R1 · East End", "Blue OS 112", ""),
-            Step("Main East", "R1 mid-east", "Main East", ""),
+            Step("OS East Lead", "R1 far right", "OS East Lead", "Westbound"),
+            Step("OS 33", "R1 · East End", "Blue OS 33", ""),
+            Step("OS Main East", "R1 mid-east", "OS Main East", ""),
             Step(
-                "OS 117b (Barn)",
-                "R1 · Barn/117b",
-                "Blue OS 117b (bottom C/D)",
+                "OS 7b (OS Barn)",
+                "R1 · OS Barn/117b",
+                "Blue OS 7b (bottom C/D)",
                 "",
             ),
-            Step("East Main Ext", "R1", "East Main Ext", ""),
-            Step("OS 102", "R1 · Plane", "Blue OS 102", ""),
-            Step("Main West Brick–Plane", "R1", "Main West Brick–Plane", ""),
-            Step("OS 100", "R1 · Brick", "Blue OS 100", ""),
-            Step("Main West", "R1 far left", "Main West", "Home"),
+            Step("OS East Main Ext", "R1", "OS East Main Ext", ""),
+            Step("OS 5", "R1 · Plane", "Blue OS 5", ""),
+            Step("OS Main West Brick–Plane", "R1", "OS Main West Brick–Plane", ""),
+            Step("OS 1", "R1 · Brick", "Blue OS 1", ""),
+            Step("OS Main West", "R1 far left", "OS Main West", "Home"),
         ],
     ),
     "south_yard": Route(
@@ -198,17 +198,17 @@ ROUTES: dict[str, Route] = {
             },
         ),
         steps=[
-            Step("Main West", "R1 far left", "Main West", "Restart for South Yard"),
-            Step("OS 100", "R1", "Blue OS 100", ""),
-            Step("Main West Brick–Plane", "R1", "Main West Brick–Plane", ""),
-            Step("OS 102", "R1 · Plane", "Blue OS 102", "Diverge (a4→a10/a16)"),
-            Step("OS 103", "R1 diverge", "Blue OS 103 · Sw 103 THROWN", ""),
-            Step("OS 104", "R1 diverge", "Blue OS 104", "Side cell; back via 103"),
-            Step("OS 103", "R1 diverge", "Blue OS 103", "Rejoin diverge spine"),
-            Step("OS 105", "R1 diverge", "Blue OS 105", ""),
-            Step("OS 106", "R1 diverge", "Blue OS 106", ""),
-            Step("OS 107", "R1 diverge", "Blue OS 107", ""),
-            Step("OS 108", "R1 diverge", "Blue OS 108", "End Digicon diverge chain"),
+            Step("OS Main West", "R1 far left", "OS Main West", "Restart for South Yard"),
+            Step("OS 1", "R1", "Blue OS 1", ""),
+            Step("OS Main West Brick–Plane", "R1", "OS Main West Brick–Plane", ""),
+            Step("OS 5", "R1 · Plane", "Blue OS 5", "Diverge (a4→a10/a16)"),
+            Step("OS 15", "R1 diverge", "Blue OS 15 · Sw 103 THROWN", ""),
+            Step("OS 17", "R1 diverge", "Blue OS 17", "Side cell; back via 103"),
+            Step("OS 15", "R1 diverge", "Blue OS 15", "Rejoin diverge spine"),
+            Step("OS 19", "R1 diverge", "Blue OS 19", ""),
+            Step("OS 21", "R1 diverge", "Blue OS 21", ""),
+            Step("OS 25", "R1 diverge", "Blue OS 25", ""),
+            Step("OS 27", "R1 diverge", "Blue OS 27", "End Digicon diverge chain"),
         ],
     ),
     "yard": Route(
@@ -227,83 +227,83 @@ ROUTES: dict[str, Route] = {
         ),
         steps=[
             Step(
-                "OS 100",
+                "OS 1",
                 "R1 Brick",
-                "Blue OS 100",
+                "Blue OS 1",
                 "Approach; next step transfers to R2 yard deck",
             ),
             Step(
-                "OS 101",
+                "OS 3",
                 "R2 far left",
-                "Blue OS 101 · Sw 101",
+                "Blue OS 3 · Sw 101",
                 "CTC deck change R1→R2",
                 deck_transfer=True,
             ),
-            Step("OS 116", "R2 West Yard", "Blue OS 116", ""),
+            Step("OS 13", "R2 West Yard", "Blue OS 13", ""),
             # Digicon: d3 (118) junctions to d4 leads spur and d10 yard tracks
-            Step("OS 118", "R2 junction", "Blue OS 118", "Junction → leads or tracks"),
-            Step("OS 119", "R2 leads spur", "Blue OS 119", "Leads spur"),
-            Step("OS 118", "R2 junction", "Blue OS 118", "Back to junction"),
-            Step("S-1", "R2 Tracks", "S-1", "Into yard body (d10)"),
-            Step("S-2", "R2 Tracks", "S-2", ""),
-            Step("S-3", "R2 Tracks", "S-3", ""),
-            Step("S-4", "R2 Tracks", "S-4", ""),
-            Step("S-5", "R2 Tracks", "S-5", ""),
-            Step("OS 111a", "R2 east", "Blue OS 111a", "East end of yard deck"),
+            Step("OS 11", "R2 junction", "Blue OS 11", "Junction → leads or tracks"),
+            Step("OS 9", "R2 leads spur", "Blue OS 9", "Leads spur"),
+            Step("OS 11", "R2 junction", "Blue OS 11", "Back to junction"),
+            Step("OS S-R", "R2 Tracks", "OS S-R", "Into yard body (d10)"),
+            Step("OS S-1", "R2 Tracks", "OS S-1", ""),
+            Step("OS S-2", "R2 Tracks", "OS S-2", ""),
+            Step("OS S-3", "R2 Tracks", "OS S-3", ""),
+            Step("OS S-4", "R2 Tracks", "OS S-4", ""),
+            Step("OS 23a", "R2 east", "Blue OS 23a", "East end of yard deck"),
         ],
     ),
-    # Neville-style: top spine via West Main Ext / Princess, home via Main East·117·Plane·Brick
+    # Neville-style: top spine via OS West Main Ext / Princess, home via OS Main East·117·Plane·Brick
     "neville": Route(
         key="neville",
-        title="Route Neville — Main West → W Main Ext → Princess → East Lead → Main East → 117 → Plane → Brick",
-        summary="JMRI-true top path around Princess, then bottom home through 117b/Plane/Brick (Barn = 117 bottom)",
+        title="Route Neville — OS Main West → W Main Ext → Princess → OS East Lead → OS Main East → 117 → Plane → Brick",
+        summary="JMRI-true top path around Princess, then bottom home through 117b/Plane/Brick (OS Barn = 117 bottom)",
         turnouts=_merge(
             BASE_TURNOUTS,
             {"108": "CLOSED", "109": "THROWN", "110": "CLOSED"},
         ),
         steps=[
-            Step("Main West", "R1 far left", "Main West (top spine west)", "Start — Neville west"),
+            Step("OS Main West", "R1 far left", "OS Main West (top spine west)", "Start — Neville west"),
             Step(
-                "OS 111a",
+                "OS 23a",
                 "R2 east (Digicon) / top main east (JMRI)",
-                "Blue OS 111a · East End",
+                "Blue OS 23a · East End",
                 "JMRI top spine east; Digicon parks 111a on R2",
                 deck_transfer=True,
             ),
             Step(
-                "West Main Ext",
+                "OS West Main Ext",
                 "R3 far left",
-                "West Main Ext (toward Princess)",
+                "OS West Main Ext (toward Princess)",
                 "Onto Princess approach",
                 deck_transfer=True,
             ),
-            Step("OS 113b", "R3 Princess", "Blue OS 113b · Sw 113", "Around Princess"),
-            Step("OS 113a", "R3", "Blue OS 113a", ""),
-            Step("OS 114", "R3 → port", "Blue OS 114 · Sw 114 THROWN", "McKeesport leg"),
-            Step("McKeesport", "R3 McKeesport", "McKeesport", "Reverse in the loop"),
-            Step("OS 114", "R3 ← port", "Blue OS 114", "Backing out"),
-            Step("OS 113a", "R3", "Blue OS 113a", ""),
-            Step("OS 113b", "R3", "Blue OS 113b", ""),
+            Step("OS 35b", "R3 Princess", "Blue OS 35b · Sw 113", "Around Princess"),
+            Step("OS 35a", "R3", "Blue OS 35a", ""),
+            Step("OS 37", "R3 → port", "Blue OS 37 · Sw 114 THROWN", "OS McKeesport leg"),
+            Step("OS McKeesport", "R3 OS McKeesport", "OS McKeesport", "Reverse in the loop"),
+            Step("OS 37", "R3 ← port", "Blue OS 37", "Backing out"),
+            Step("OS 35a", "R3", "Blue OS 35a", ""),
+            Step("OS 35b", "R3", "Blue OS 35b", ""),
             Step(
-                "East Lead",
+                "OS East Lead",
                 "R1 far right",
-                "East Lead",
-                "Out of Princess onto East Lead",
+                "OS East Lead",
+                "Out of Princess onto OS East Lead",
                 deck_transfer=True,
             ),
-            Step("OS 112", "R1 · East End", "Blue OS 112", "Westbound toward Main East"),
-            Step("Main East", "R1 mid-east", "Main East (bottom spine)", ""),
+            Step("OS 33", "R1 · East End", "Blue OS 33", "Westbound toward OS Main East"),
+            Step("OS Main East", "R1 mid-east", "OS Main East (bottom spine)", ""),
             Step(
-                "OS 117b (Barn)",
-                "R1 · Barn/117b",
-                "Blue OS 117b (bottom C/D) · Barn",
-                "Main East↔EME = 117 bottom (M2S1303), not top 1302",
+                "OS 7b (OS Barn)",
+                "R1 · OS Barn/117b",
+                "Blue OS 7b (bottom C/D) · OS Barn",
+                "OS Main East↔EME = 117 bottom (M2S1303), not top 1302",
             ),
-            Step("East Main Ext", "R1", "East Main Ext", ""),
-            Step("OS 102", "R1 · Plane", "Blue OS 102", "Through Plane"),
-            Step("Main West Brick–Plane", "R1 Brick↔Plane", "Main West Brick–Plane", ""),
-            Step("OS 100", "R1 · Brick", "Blue OS 100", "Through Brick"),
-            Step("Main West", "R1 far left", "Main West", "Home"),
+            Step("OS East Main Ext", "R1", "OS East Main Ext", ""),
+            Step("OS 5", "R1 · Plane", "Blue OS 5", "Through Plane"),
+            Step("OS Main West Brick–Plane", "R1 Brick↔Plane", "OS Main West Brick–Plane", ""),
+            Step("OS 1", "R1 · Brick", "Blue OS 1", "Through Brick"),
+            Step("OS Main West", "R1 far left", "OS Main West", "Home"),
         ],
     ),
 }
@@ -397,17 +397,17 @@ def load_digicon_adjacency(panel: Path) -> dict[str, set[str]]:
 def load_jmri_adjacency(hart_prod: Path) -> dict[str, set[str]]:
     """Block adjacency from Layout Editor, including xover C/D legs.
 
-    TO117: A/B = OS 117 (top, M2S1302); C/D = OS 117b (bottom, M2S1303).
-    Main East / East Main Ext attach on C/D — not the top OS.
+    TO117: A/B = OS 7 (top, M2S1302); C/D = OS 7b (bottom, M2S1303).
+    OS Main East / OS East Main Ext attach on C/D — not the top OS.
     """
     root = ET.parse(hart_prod).getroot()
 
-    # Alias turnout blockcname "Switch 117b" → block userName "OS 117b (Barn)"
+    # Alias turnout blockcname "Switch 117b" → block userName "OS 7b (OS Barn)"
     aliases: dict[str, str] = {}
     for b in root.iter("block"):
         un = b.findtext("userName") or ""
         if un.startswith("OS ") and "(" in un:
-            # "OS 117b (Barn)" also answers to "Switch 117b"
+            # "OS 7b (OS Barn)" also answers to "Switch 117b"
             num = un.split()[1] if len(un.split()) > 1 else ""
             if num:
                 aliases[f"Switch {num}"] = un

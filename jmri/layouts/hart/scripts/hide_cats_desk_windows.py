@@ -12,9 +12,9 @@
 # on `print "closed Option"`.
 #
 # CTC Panel: Help/Quit go on Apps.buttonSpace() (bottom, with Restart RPi).
-# Do not wrap a second toolbar at the top. Dispatcher Panel has no button
-# strip, so it keeps the in-window toolbar. File already has Exit; do not
-# add a second Quit.
+# Do not wrap a second toolbar at the top. Dispatcher Panel is schematic-only:
+# unwrap any leftover Help/Quit chrome; do not add buttons there. File already
+# has Exit; do not add a second Quit.
 
 from java.awt import BorderLayout, FlowLayout, Frame, Window
 from java.awt.event import ActionListener
@@ -360,14 +360,8 @@ def decorate_dispatcher_panel():
     if frame is None:
         return False
     decorate_menus(frame)
-    cp = frame.getContentPane()
-    already = cp is not None and (
-        cp.getName() == WRAP_NAME or _has_named(cp, TOOLBAR_NAME)
-    )
-    if not install_window_toolbar(frame):
-        return False
-    if not already:
-        print("HART: CATS Help/Quit on Dispatcher Panel")
+    # Dispatcher Panel is the schematic: no Help/Quit chrome.
+    remove_window_toolbar(frame)
     return True
 
 

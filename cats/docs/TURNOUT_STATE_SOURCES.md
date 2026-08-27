@@ -7,9 +7,9 @@
    close/throw polarity. Remapping report-only to chase MQTT makes frogs look
    right and **reverses commands**.
 3. **112 / 114 / 115 tip SoR (dispatcher):**
-   - **112** THROWN = Barn (BOTTOM); CLOSED = through OS110 (LEFT)
-   - **114** THROWN = McKeesport (BOTTOM, default); CLOSED = K-2 (RIGHT)
-   - **115** THROWN = Rocks (TOP); CLOSED = K-1 (RIGHT) — confirmed good
+   - **112** THROWN = OS Barn (BOTTOM); CLOSED = through OS110 (LEFT)
+   - **114** THROWN = OS McKeesport (BOTTOM, default); CLOSED = OS K-2 (RIGHT)
+   - **115** THROWN = Rocks (TOP); CLOSED = OS K-1 (RIGHT) — confirmed good
 4. If Digicon shows the **wrong direction**, flip **that one switch only** in
    `cats/scripts/wire_hart_master4.py` `PLANTS` (NORMAL leg), rewire,
    reload. Do **not** publish MQTT or command JMRI turnouts to “fix” paint.
@@ -48,10 +48,10 @@ python3 cats/scripts/seed_default_thrown_turnouts.py --diagnose
 | Switch | Digicon close (NORMAL) | Digicon throw | Notes |
 |--------|------------------------|---------------|-------|
 | 100 | LEFT | BOTTOM (100–102) | continuing = THROWN |
-| 102 | BOTTOM (East Main Ext) | RIGHT (Scale) | |
-| 112 | LEFT (OS110 ↔ East Lead) | BOTTOM (Barn) | THROWN = Barn |
-| 114 | RIGHT (K-2) | BOTTOM (McKeesport) | THROWN default = McKeesport |
-| 115 | RIGHT (K-1) | TOP (McKees Rocks) | confirmed good |
+| 102 | BOTTOM (OS East Main Ext) | RIGHT (OS Scale) | |
+| 112 | LEFT (OS110 ↔ OS East Lead) | BOTTOM (OS Barn) | THROWN = OS Barn |
+| 114 | RIGHT (OS K-2) | BOTTOM (OS McKeesport) | THROWN default = OS McKeesport |
+| 115 | RIGHT (OS K-1) | TOP (OS McKees Rocks) | confirmed good |
 
 At rest 112/114/115 are typically JMRI/MQTT `THROWN` — Digicon throw frog
 matches the field. Commands use the same map.
@@ -66,4 +66,4 @@ Layout Editor `continuing` is JMRI `Turnout` state, not 1/2 Closed/Thrown:
 
 `apply_le_sml_facing.py` keeps 114/115/111/113/117 at **2**. Do not write `1`.
 
-K-1/K-2 stubs are plain (no BLK↔BLK gaps).
+OS K-1/OS K-2 stubs are plain (no BLK↔BLK gaps).

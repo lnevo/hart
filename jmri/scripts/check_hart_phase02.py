@@ -74,9 +74,9 @@ def main() -> int:
     # Crossover / paired legs: occupancy exists in block table; layoutturnout
     # may only name the primary leg (linear6 connectivity).
     secondary_ok = {
-        "OS 111b",
-        "OS 113a",
-        "OS 117b",
+        "OS 23b",
+        "OS 35a",
+        "OS 7b",
     }
     missing = [m for m in missing if m not in secondary_ok]
     if missing:

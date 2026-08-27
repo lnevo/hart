@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Read-only baseline capture for ADR-005 public-name rename regression checks."""
+"""Read-only baseline capture for public-name rename regression checks.
+
+Writes live userNames / bindings from tables.xml (and the live CATS CTC
+hold panel when present). Re-run before a rename pass so `current` in
+public_name_map.csv can be diffed against this snapshot.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +20,8 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_TABLES = REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 DEFAULT_OUT = REPO_ROOT / "jmri" / "layouts" / "hart" / "data" / "baselines"
 CATS_MASTER_CANDIDATES = (
+    REPO_ROOT / "cats" / "panels" / "HART_Master_CTC_hold.xml",
+    REPO_ROOT / "cats" / "panels" / "HART_Master_ABS_hold.xml",
     REPO_ROOT / "cats" / "panels" / "HART_Master.xml",
     REPO_ROOT / "cats" / "panels" / "HART_Master_ABS.xml",
 )
@@ -94,14 +101,15 @@ def capture_hardware_identity(root: ET.Element) -> list[dict[str, str]]:
                 }
             )
 
-    for signalmast in root.iter("signalmast"):
-        rows.append(
-            {
-                "layer": "signalmast",
-                "systemName": text(signalmast, "systemName"),
-                "userName": text(signalmast, "userName"),
-            }
-        )
+    for tag in ("signalmast", "virtualsignalmast"):
+        for signalmast in root.iter(tag):
+            rows.append(
+                {
+                    "layer": "signalmast",
+                    "systemName": text(signalmast, "systemName"),
+                    "userName": text(signalmast, "userName"),
+                }
+            )
 
     blocks_by_name: dict[str, dict[str, str]] = {}
     for block in root.iter("block"):

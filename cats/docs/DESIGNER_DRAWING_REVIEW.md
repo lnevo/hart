@@ -36,29 +36,29 @@ block; the **named** column is where the `BLOCK NAME=` anchor lives.
 
 | Cells | Block | Anchor edge | Notes |
 |-------|-------|-------------|-------|
-| (1,5) | Main West | (1,5) LEFT | added rim cell, extends drawn main west |
-| (2,5) (3,5) | **OS 100** | (2,5) LEFT | SW100, points on (3,5) LEFT, **normal TOP** to Plane, diverge RIGHT |
-| (4,5) (5,5) | **OS 101** | (4,5) LEFT | SW101, points on (5,5) LEFT, normal RIGHT, diverge TOP |
-| (6,5) (7,5) | W-2 | (6,5) LEFT | east of OS 101 normal |
-| (5,4) (6,4) (7,4) | W-1 | (5,4) BOTTOM | OS 101 diverging leg, heads toward South Yard |
-| (3,4) (4,4) | Brick-Plane | (3,4) BOTTOM | the Brick→Plane diagonal |
-| (4,3) (5,3) | **OS 102** | (4,3) BOTTOM | SW102, points on (5,3) LEFT, normal RIGHT, diverge TOP |
-| (6,3) | East Main Ext | (6,3) LEFT | main east of Plane |
-| (7,3) (8,3) | **OS 116** | (7,3) LEFT | points on (8,3) LEFT, normal RIGHT, diverge TOP to the crossover |
-| (9,3) | Scale | (9,3) LEFT | east stub off OS 116 normal (South Yard / East End not drawn) |
-| (5,2) (6,2) (7,2) | Barn | (5,2) BOTTOM | Plane diverging leg, row 2 lead to the crossover |
-| (8,2) (9,2) (10,2) | **OS 117** | (8,2) LEFT | 117 points on (8,2) RIGHT; 117b points on (9,2) RIGHT |
-| (9,1) (8,1) | EH-1 | (9,1) BOTTOM | westward stub off 117b top leg |
-| (11,2) | Main East | (11,2) LEFT | added rim cell, extends drawn main east |
+| (1,5) | OS Main West | (1,5) LEFT | added rim cell, extends drawn main west |
+| (2,5) (3,5) | **OS 1** | (2,5) LEFT | SW100, points on (3,5) LEFT, **normal TOP** to Plane, diverge RIGHT |
+| (4,5) (5,5) | **OS 3** | (4,5) LEFT | SW101, points on (5,5) LEFT, normal RIGHT, diverge TOP |
+| (6,5) (7,5) | OS W-2 | (6,5) LEFT | east of OS 3 normal |
+| (5,4) (6,4) (7,4) | OS W-1 | (5,4) BOTTOM | OS 3 diverging leg, heads toward South Yard |
+| (3,4) (4,4) | OS Brick-Plane | (3,4) BOTTOM | the Brick→Plane diagonal |
+| (4,3) (5,3) | **OS 5** | (4,3) BOTTOM | SW102, points on (5,3) LEFT, normal RIGHT, diverge TOP |
+| (6,3) | OS East Main Ext | (6,3) LEFT | main east of Plane |
+| (7,3) (8,3) | **OS 13** | (7,3) LEFT | points on (8,3) LEFT, normal RIGHT, diverge TOP to the crossover |
+| (9,3) | OS Scale | (9,3) LEFT | east stub off OS 13 normal (South Yard / East End not drawn) |
+| (5,2) (6,2) (7,2) | OS Barn | (5,2) BOTTOM | Plane diverging leg, row 2 lead to the crossover |
+| (8,2) (9,2) (10,2) | **OS 7** | (8,2) LEFT | 117 points on (8,2) RIGHT; 117b points on (9,2) RIGHT |
+| (9,1) (8,1) | OS EH-1 | (9,1) BOTTOM | westward stub off 117b top leg |
+| (11,2) | OS Main East | (11,2) LEFT | added rim cell, extends drawn main east |
 
-Earlier revisions of this doc put Brick-Plane at (6,4)(7,4). That was wrong:
-Brick-Plane must join plant 100 to plant 102, which is the
-(3,4)→(4,4)→(4,3) diagonal. (6,4)(7,4) hang off OS 101's diverging leg.
+Earlier revisions of this doc put OS Brick-Plane at (6,4)(7,4). That was wrong:
+OS Brick-Plane must join plant 100 to plant 102, which is the
+(3,4)→(4,4)→(4,3) diagonal. (6,4)(7,4) hang off OS 3's diverging leg.
 
 ## Painted vs missing
 
 **Designer primary (`HART.xml`):** Gate 1 only — 12×7 grid, 27 track cells, 14
-named blocks. `EXTRA_CELLS` adds rim cells `(1,5)` Main West and `(11,2)` Main
+named blocks. `EXTRA_CELLS` adds rim cells `(1,5)` OS Main West and `(11,2)` Main
 East only. Rebuild refuses to write on any R2–R5 failure.
 
 **LE WIP (`HART_le.xml`):** full occupancy name set (Gates 2–5 schematic) from
@@ -70,9 +70,9 @@ Do **not** invent South Yard / East End / Princess cells in
 
 | Block | Why |
 |-------|-----|
-| W-1 as its own main-line block | only one cell between SW100 and SW101 |
-| OS 117b | throat adjacent to OS 117 (merged into OS 117 name) |
-| OS 118, OS 119 | not in Designer draw yet (present on LE WIP) |
+| OS W-1 as its own main-line block | only one cell between SW100 and SW101 |
+| OS 7b | throat adjacent to OS 7 (merged into OS 7 name) |
+| OS 11, OS 9 | not in Designer draw yet (present on LE WIP) |
 | South Yard / East End / Princess | Gates 3–5 — Designer draw or LE WIP |
 
 Turnout `points_command` IO is deliberately not wired yet — the panel is a

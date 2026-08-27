@@ -1,46 +1,46 @@
 block_user_name,occupancy_sensor_user_name,cats_discipline
-Brick-Plane,Block 4-6,CTC
-East Lead,Block 1-7,CTC
-East Main Ext,Block 4-7,CTC
-Main East,Block 2-3,CTC
-Main West,Block 2-1,CTC
-McKees Rocks,Block 1-1,CTC
-McKeesport,Block 1-2,CTC
-OS 100,Block 4-2,CTC
-OS 101,Block 4-1,CTC
-OS 102,Block 4-5,CTC
-OS 103,Block 3-2,CTC
-OS 104,Block 3-3,CTC
-OS 105,Block 3-5,CTC
-OS 106,Block 3-7,CTC
-OS 107,Block 12-1,CTC
-OS 108,Block 12-3,CTC
-OS 109,Block 12-5,CTC
-OS 110,Block 12-7,CTC
-OS 111a,Block 12-4,CTC
-OS 111b,Block 12-6,CTC
-OS 112,Block 12-8,CTC
-OS 113a,Block 1-6,CTC
-OS 113b,Block 1-5,CTC
-OS 114,Block 1-3,CTC
-K-2,Block 1-3,YARD
-OS 115,Block 1-4,CTC
-K-1,Block 1-4,YARD
-OS 116,Block 3-1,CTC
-OS 117,Block 13-3,CTC
-OS 117b,Block 13-4,CTC
-OS 118,Block 13-2,CTC
-OS 119,Block 13-8,CTC
-West Main Ext,Block 1-8,CTC
-W-1,Block 4-4,YARD
-W-2,Block 4-3,YARD
-Scale,Block 4-8,YARD
-Barn,Block 13-1,YARD
-EH-3,Block 13-5,YARD
-EH-2,Block 13-6,YARD
-EH-1,Block 13-7,YARD
-S-1,Block 2-8,YARD
-S-2,Block 2-7,YARD
-S-3,Block 2-6,YARD
-S-4,Block 2-5,YARD
-S-5,Block 2-4,YARD
+OS Brick-Plane,Block 4-6,CTC
+OS East Lead,Block 1-7,CTC
+OS East Main Ext,Block 4-7,CTC
+OS Main East,Block 2-3,CTC
+OS Main West,Block 2-1,CTC
+OS McKees Rocks,Block 1-1,CTC
+OS McKeesport,Block 1-2,CTC
+OS 1,Block 4-2,CTC
+OS 3,Block 4-1,CTC
+OS 5,Block 4-5,CTC
+OS 15,Block 3-2,CTC
+OS 17,Block 3-3,CTC
+OS 19,Block 3-5,CTC
+OS 21,Block 3-7,CTC
+OS 25,Block 12-1,CTC
+OS 27,Block 12-3,CTC
+OS 29,Block 12-5,CTC
+OS 31,Block 12-7,CTC
+OS 23a,Block 12-4,CTC
+OS 23b,Block 12-6,CTC
+OS 33,Block 12-8,CTC
+OS 35a,Block 1-6,CTC
+OS 35b,Block 1-5,CTC
+OS 37,Block 1-3,CTC
+OS K-2,Block 1-3,YARD
+OS 39,Block 1-4,CTC
+OS K-1,Block 1-4,YARD
+OS 13,Block 3-1,CTC
+OS 7,Block 13-3,CTC
+OS 7b,Block 13-4,CTC
+OS 11,Block 13-2,CTC
+OS 9,Block 13-8,CTC
+OS West Main Ext,Block 1-8,CTC
+OS W-1,Block 4-4,YARD
+OS W-2,Block 4-3,YARD
+OS Scale,Block 4-8,YARD
+OS Barn,Block 13-1,YARD
+OS EH-3,Block 13-5,YARD
+OS EH-2,Block 13-6,YARD
+OS EH-1,Block 13-7,YARD
+OS S-R,Block 2-8,YARD
+OS S-1,Block 2-7,YARD
+OS S-2,Block 2-6,YARD
+OS S-3,Block 2-5,YARD
+OS S-4,Block 2-4,YARD

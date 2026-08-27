@@ -2,7 +2,7 @@
 
 ## Goal (phase 1)
 
-Magnet-board / dark CTC schematic of Neville Island west→east. **Gate 1 first:** Brick + Brick-Plane + Plane ([`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md)), then Gates 2–5 ([`GATE2_PLUS.md`](GATE2_PLUS.md)).
+Magnet-board / dark CTC schematic of Neville Island west→east. **Gate 1 first:** Brick + OS Brick-Plane + Plane ([`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md)), then Gates 2–5 ([`GATE2_PLUS.md`](GATE2_PLUS.md)).
 
 Layout Editor `hart_prod.xml` stays the MQTT hardware panel. Designer XML is a **second** definition that references the same JMRI user names.
 
@@ -21,13 +21,13 @@ After save: `python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panel
 3. Enable MQTT device prefixes in Designer connection tables if prompted (sensors `M2S*`, turnouts `M2T*` — see `jmri_devices.csv`).
 4. Draw left→right:
    - West Yard (dark / no signals initially)
-   - **Brick** (OS 100, OS 101) + approach `Main West` / `West Main Ext`
-   - **Plane** (OS 102)
-   - South Yard ladder (OS 103–106) — optional phase 1b
-   - **East End** (OS 107–112, crossover 111)
-   - **Princess** (OS 113–115) → McKees Rocks / McKeesport
-5. For each OS block, set **Occupied Report** user name from `occupancy_bindings.csv` (e.g. OS 100 → `Block 4-2`).
-6. For each set of points, bind **Command** to turnout user name (`Switch 100`, …) from `turnout_bindings.csv`.
+   - **Brick** (OS 1, OS 3) + approach `OS Main West` / `OS West Main Ext`
+   - **Plane** (OS 5)
+   - South Yard ladder (OS 15–106) — optional phase 1b
+   - **East End** (OS 25–112, crossover 111)
+   - **Princess** (OS 113–115) → OS McKees Rocks / OS McKeesport
+5. For each OS block, set **Occupied Report** user name from `occupancy_bindings.csv` (e.g. OS 1 → `Block 4-2`).
+6. For each set of points, bind **Command** to turnout user name (`Switch 1`, …) from `turnout_bindings.csv`.
 7. Add station/section labels: Brick, Plane, East End, Princess, Neville Island.
 8. Signals: leave as panel lamps / no physical JMRI mast until ADR confirms ownership; use `signal_mast_plan.csv` for placement intent.
 9. Save as `cats/panels/HART.xml`.
@@ -35,9 +35,9 @@ After save: `python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panel
 
 ## Acceptance (Brick)
 
-- [ ] Designer block `OS 100` occupancy follows live `Block 4-2`
-- [ ] Designer block `OS 101` occupancy follows live sensor
-- [ ] Throwing Switch 100/101 from CATS moves MQTT motors
+- [ ] Designer block `OS 1` occupancy follows live `Block 4-2`
+- [ ] Designer block `OS 3` occupancy follows live sensor
+- [ ] Throwing Switch 1/101 from CATS moves MQTT motors
 - [ ] Layout Editor still shows alignment; no double-command from NextTrain
 
 ## Do not

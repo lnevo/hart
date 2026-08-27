@@ -1,24 +1,24 @@
 kind,ident,slot,mast_user_name,notes
-turnout,TOL3,A,100L,A=Main West; east face of Brick
-turnout,TOL38,B,101RA,B=W-1 continuing
-turnout,TOL38,C,101RB,C=W-2 diverge
-turnout,TOL42,B,102LB,B=East Main Ext continuing
-turnout,TOL42,C,102LA,C=Scale / east upper face; 1-head IH434
-turnout,TO117,A,117RA,A=Scale west upper
-turnout,TO117,B,117LB,B=Barn east upper
-turnout,TO117,C,117LA,C=Main East east lower
-turnout,TO117,D,117RB,D=East Main Ext west lower
-turnout,TO111,A,111RA,A=Main West west upper
-turnout,TO111,B,111L,B=West Main Ext east upper
-turnout,TO111,D,111RB,D=S-1 west lower
-turnout,TOL6,C,110R,C=OS 109 ladder leg; governs ladder move into OS 110
-turnout,TOL23,A,112L,A=East Lead east of 112
-turnout,TOL23,C,112R,C=Main East diverge
-turnout,TO113,A,113RA,A=West Main Ext west upper
-turnout,TO113,D,113RB,D=East Lead west lower
-turnout,TOL29,B,115LA,B=K-1 stub block (detector Block 1-4 shared with OS 115)
-turnout,TOL29,C,115LB,C=McKees Rocks (boundary at turnout); icon deg 270 faces west
-turnout,TOR36,B,114LA,B=K-2 stub block (detector Block 1-3 shared with OS 114)
-turnout,TOR36,C,114LB,C=McKeesport (boundary at turnout); icon deg 270 faces west
-anchor,A48,east,120R,McKeesport intermediate; CATS (61,6) LEFT SIGORIENT RIGHT; IH134 D1-OU2-3
-anchor,A48,west,120L,McKees Rocks intermediate; CATS (60,6) RIGHT SIGORIENT LEFT; IH141 D1-OU3-2
+turnout,TOL3,A,Mast 2L,A=OS Main West; east face of Brick
+turnout,TOL38,B,Mast 4RA,B=OS W-1 continuing
+turnout,TOL38,C,Mast 4RB,C=OS W-2 diverge
+turnout,TOL42,B,Mast 6LB,B=OS East Main Ext continuing
+turnout,TOL42,C,Mast 6LA,C=OS Scale / east upper face; 1-head IH434
+turnout,TO117,A,Mast 8RA,A=OS Scale west upper
+turnout,TO117,B,Mast 8LB,B=OS Barn east upper
+turnout,TO117,C,Mast 8LA,C=OS Main East east lower
+turnout,TO117,D,Mast 8RB,D=OS East Main Ext west lower
+turnout,TO111,A,Mast 24RA,A=OS Main West west upper
+turnout,TO111,B,Mast 24L,B=OS West Main Ext east upper
+turnout,TO111,D,Mast 24RB,D=OS S-R west lower
+turnout,TOL6,C,Mast 32R,C=OS 29 ladder leg; governs ladder move into OS 31
+turnout,TOL23,A,Mast 34L,A=OS East Lead east of 112
+turnout,TOL23,C,Mast 34R,C=OS Main East diverge
+turnout,TO113,A,Mast 36RA,A=OS West Main Ext west upper
+turnout,TO113,D,Mast 36RB,D=OS East Lead west lower
+turnout,TOL29,B,Mast 40LA,B=OS K-1 stub block (detector Block 1-4 shared with OS 39)
+turnout,TOL29,C,Mast 40LB,C=OS McKees Rocks (boundary at turnout); icon deg 270 faces west
+turnout,TOR36,B,Mast 38LA,B=OS K-2 stub block (detector Block 1-3 shared with OS 37)
+turnout,TOR36,C,Mast 38LB,C=OS McKeesport (boundary at turnout); icon deg 270 faces west
+anchor,A48,east,Mast 2036,OS McKeesport intermediate; CATS (61,6) LEFT SIGORIENT RIGHT; IH134 D1-OU2-3
+anchor,A48,west,Mast 2035,OS McKees Rocks intermediate; CATS (60,6) RIGHT SIGORIENT LEFT; IH141 D1-OU3-2

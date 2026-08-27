@@ -3,11 +3,11 @@
 ## Topology (Neville Island — SoR)
 
 ```
-West Yard ── Brick(100/101) ── Brick-Plane ── Plane(102) ── …
+West Yard ── Brick(100/101) ── OS Brick-Plane ── Plane(102) ── …
         │         │ LH100 continuing = main east into 100-102
-        │         └── diverge = yard / OS 101
+        │         └── diverge = yard / OS 3
         └── ladder 116–119 / 117b …
-South Yard · East End · East Lead · Princess (McKees Rocks / McKeesport)
+South Yard · East End · OS East Lead · Princess (OS McKees Rocks / OS McKeesport)
 ```
 
 ## Digicon status

@@ -35,6 +35,9 @@ BLOCK_ALIAS_CURRENT_SETS = frozenset(
 BARN_TURNOUT_BLOCK = frozenset(
     {
         ("turnout", "Switch 117"),
+        ("block", "OS 117"),
+        ("block", "OS 117b"),
+        ("block", "Barn"),
         ("block", "OS 117 (West Yard)"),
         ("block", "OS 117b (West Yard)"),
         ("block", "Yard T6"),
@@ -43,35 +46,61 @@ BARN_TURNOUT_BLOCK = frozenset(
 )
 
 ENGINE_HOUSE_MAP = {
-    "Yard T9": "EH-1",
-    "Yard T10": "EH-2",
-    "Yard T11": "EH-3",
-    "Engine House 1": "EH-1",
-    "Engine House 2": "EH-2",
-    "Engine House 3": "EH-3",
+    "Yard T9": "OS EH-1",
+    "Yard T10": "OS EH-2",
+    "Yard T11": "OS EH-3",
+    "Engine House 1": "OS EH-1",
+    "Engine House 2": "OS EH-2",
+    "Engine House 3": "OS EH-3",
 }
 
 SOUTH_YARD_RENAME_MAP = {
-    "Yard T1": "Scale",
-    "Yard T6": "Barn",
-    "East Lead": "East Lead",
-    "South Yard East": "East Lead",
-    "Yard Track 1": "S-1",
-    "Yard Track 2": "S-2",
-    "Yard Track 3": "S-3",
-    "Yard Track 4": "S-4",
-    "Yard Track 5": "S-5",
-    "South Yard 1": "S-1",
-    "South Yard 2": "S-2",
-    "South Yard 3": "S-3",
-    "South Yard 4": "S-4",
-    "South Yard 5": "S-5",
+    "Yard T1": "OS Scale",
+    "Yard T6": "OS Barn",
+    "East Lead": "OS East Lead",
+    "South Yard East": "OS East Lead",
+    "Yard Track 1": "OS S-R",
+    "Yard Track 2": "OS S-1",
+    "Yard Track 3": "OS S-2",
+    "Yard Track 4": "OS S-3",
+    "Yard Track 5": "OS S-4",
+    "South Yard 1": "OS S-R",
+    "South Yard 2": "OS S-1",
+    "South Yard 3": "OS S-2",
+    "South Yard 4": "OS S-3",
+    "South Yard 5": "OS S-4",
 }
 
 EAST_END_SWITCHES = ("Switch 107", "Switch 108", "Switch 109")
 
-MAST_PROPOSED_RE = re.compile(r"^\d{3}[LR][AB]?$")
-HEAD_PROPOSED_RE = re.compile(r"^\d{3}[LR][AB]?(\s+(Top|Bottom))?$")
+# Prototype CTC: odd switches west→east; homes even (switch+1). 120 is lamps-only → 42.
+CTC_SWITCH_MAP = {
+    100: 1,
+    101: 3,
+    102: 5,
+    117: 7,
+    119: 9,
+    118: 11,
+    116: 13,
+    103: 15,
+    104: 17,
+    105: 19,
+    106: 21,
+    111: 23,
+    107: 25,
+    108: 27,
+    109: 29,
+    110: 31,
+    112: 33,
+    113: 35,
+    114: 37,
+    115: 39,
+}
+
+MAST_PROPOSED_RE = re.compile(r"^Mast (?:\d{1,3}[LR][AB]?|\d{4})$")
+HEAD_PROPOSED_RE = re.compile(
+    r"^Head (?:\d{1,3}[LR][AB]?|\d{4})(?:\s+(Top|Bottom))?$"
+)
 
 HARDWARE_TOKEN_RE = re.compile(
     r"^(?:M2T\d+|M2S\d+|IH\d+|Block \d+-\d+)$"
@@ -113,17 +142,15 @@ def parse_tables_names() -> tuple[set[str], set[str]]:
     return system_names, user_names
 
 
-def turnout_user_names_by_switch() -> dict[str, str]:
+def turnout_user_names_by_system() -> dict[str, str]:
     root = ET.parse(TABLES_PATH).getroot()
-    by_switch: dict[str, str] = {}
+    by_system: dict[str, str] = {}
     for turnout in root.iter("turnout"):
-        system_name = turnout.findtext("systemName")
-        user_name = turnout.findtext("userName")
-        if not user_name or not user_name.startswith("Switch "):
-            continue
-        if system_name and system_name.startswith("M2T"):
-            by_switch[user_name.strip()] = user_name.strip()
-    return by_switch
+        system_name = (turnout.findtext("systemName") or "").strip()
+        user_name = (turnout.findtext("userName") or "").strip()
+        if system_name.startswith("M2T") and user_name.startswith("Switch "):
+            by_system[system_name] = user_name
+    return by_system
 
 
 class PublicNameMapContractTest(unittest.TestCase):
@@ -175,6 +202,14 @@ class PublicNameMapContractTest(unittest.TestCase):
                 if len(unique_currents) <= 1:
                     continue
                 current_set = frozenset(unique_currents)
+                live_hits = [
+                    name for name in unique_currents if name in self.tables_user_names
+                ]
+                # Historical aliases share proposed with the live name; at most one live current.
+                if len(live_hits) <= 1:
+                    continue
+                if proposed in current_set:
+                    continue
                 if layer == "block" and current_set in BLOCK_ALIAS_CURRENT_SETS:
                     continue
                 violations.append(
@@ -201,7 +236,7 @@ class PublicNameMapContractTest(unittest.TestCase):
             for row in self.by_layer["turnout"]
             if row["current"].startswith("Switch 1")
         }
-        xml_turnouts = turnout_user_names_by_switch()
+        xml_turnouts = turnout_user_names_by_system()
         violations: list[str] = []
         for number in range(100, 120):
             switch = f"Switch {number}"
@@ -209,14 +244,17 @@ class PublicNameMapContractTest(unittest.TestCase):
             if row is None:
                 violations.append(f"CSV missing turnout row for {switch}")
                 continue
-            if row["proposed"] != switch:
+            expected = f"Switch {CTC_SWITCH_MAP[number]}"
+            if row["proposed"] != expected:
                 violations.append(
-                    f"{switch}: proposed {row['proposed']!r} != {switch!r} (no turnout rename)"
+                    f"{switch}: proposed {row['proposed']!r} != {expected!r}"
                 )
-            xml_name = xml_turnouts.get(switch)
-            if xml_name != switch:
+            hardware = (row.get("hardware") or "").split()[0]
+            xml_name = xml_turnouts.get(hardware)
+            if xml_name not in {switch, expected}:
                 violations.append(
-                    f"{switch}: tables.xml userName {xml_name!r} != {switch!r}"
+                    f"{switch}: tables.xml userName {xml_name!r} "
+                    f"not {switch!r} or {expected!r}"
                 )
         self.assertEqual(violations, [])
 
@@ -260,10 +298,12 @@ class PublicNameMapContractTest(unittest.TestCase):
                 if key not in BARN_TURNOUT_BLOCK:
                     violations.append(f"unexpected Barn cp on {row['layer']} {row['current']!r}")
             elif row["layer"] in {"mast", "head"}:
-                if not row["proposed"].startswith("117"):
+                if not re.search(r"\b8[LR]", row["proposed"]):
                     violations.append(
-                        f"Barn signal {row['current']!r} proposed {row['proposed']!r} is not 117*"
+                        f"Barn signal {row['current']!r} proposed {row['proposed']!r} is not 8*"
                     )
+            elif row["layer"] in {"occupancy", "fb", "fb_comment"}:
+                continue
             else:
                 violations.append(f"unexpected Barn cp on {row['layer']} {row['current']!r}")
         for key in BARN_TURNOUT_BLOCK:
@@ -297,6 +337,50 @@ class PublicNameMapContractTest(unittest.TestCase):
             if not HEAD_PROPOSED_RE.match(proposed):
                 violations.append(f"head {row['current']!r}: proposed {proposed!r}")
         self.assertEqual(violations, [])
+
+    def test_live_tables_usernames_appear_as_current(self) -> None:
+        """Every live public userName must be a `current` or `proposed` in the map."""
+        by_name = {(row["layer"], row["current"]) for row in self.rows} | {
+            (row["layer"], row["proposed"]) for row in self.rows
+        }
+        missing: list[str] = []
+
+        root = ET.parse(TABLES_PATH).getroot()
+
+        def child(el: ET.Element, tag: str) -> str:
+            value = el.findtext(tag)
+            return value.strip() if value else ""
+
+        for turnout in root.iter("turnout"):
+            user_name = child(turnout, "userName")
+            system_name = child(turnout, "systemName")
+            if user_name.startswith("Switch ") and system_name.startswith("M2T"):
+                if ("turnout", user_name) not in by_name:
+                    missing.append(f"turnout {user_name!r}")
+
+        seen_blocks: set[str] = set()
+        for block in root.iter("block"):
+            system_name = (block.get("systemName") or child(block, "systemName")).strip()
+            if not system_name.startswith("IB") or system_name in seen_blocks:
+                continue
+            seen_blocks.add(system_name)
+            user_name = child(block, "userName")
+            if user_name and ("block", user_name) not in by_name:
+                missing.append(f"block {user_name!r}")
+
+        for tag in ("signalmast", "virtualsignalmast"):
+            for mast in root.iter(tag):
+                user_name = child(mast, "userName")
+                if user_name and ("mast", user_name) not in by_name:
+                    missing.append(f"mast {user_name!r}")
+
+        for head in root.iter("signalhead"):
+            system_name = child(head, "systemName")
+            user_name = child(head, "userName")
+            if system_name.startswith("IH") and user_name and ("head", user_name) not in by_name:
+                missing.append(f"head {user_name!r}")
+
+        self.assertEqual(missing, [])
 
     def test_hardware_identity_baseline_if_present(self) -> None:
         if not BASELINE_PATH.is_file():

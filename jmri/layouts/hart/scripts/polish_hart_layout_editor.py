@@ -26,30 +26,30 @@ STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 # Horizontal masts follow the North American right-hand placement convention:
 # east-facing (90 degrees) below the rail, west-facing (270) above it.
 SIGNAL_PLACEMENTS: dict[str, tuple[int, int, int]] = {
-    "100L": (378, 222, 270),
-    "101RA": (185, 258, 90),
-    "101RB": (185, 321, 90),
-    "102LA": (360, 297, 270),
-    "102LB": (365, 345, 270),
+    "Mast 2L": (378, 222, 270),
+    "Mast 4RA": (185, 258, 90),
+    "Mast 4RB": (185, 321, 90),
+    "Mast 6LA": (360, 297, 270),
+    "Mast 6LB": (365, 345, 270),
     # 117 east homes sit just east of the diamond, not out on 116 / engine house.
-    "117RA": (435, 321, 90),
-    "117LB": (534, 297, 270),
-    "117RB": (425, 368, 90),
-    "117LA": (534, 344, 270),
-    "111RA": (1095, 258, 90),
-    "111L": (1225, 222, 270),
-    "111RB": (1135, 321, 90),
-    "112L": (1392, 285, 270),
-    "110R": (1248, 350, 60),
-    "112R": (1320, 348, 60),
-    "115LB": (1608, 185, 225),
-    "113RA": (1465, 258, 90),
-    "113RB": (1465, 321, 90),
-    "114LB": (1628, 322, 310),
-    "120L": (1810, 276, 180),
-    "120R": (1855, 276, 0),
-    "115LA": (1665, 239, 270),
-    "114LA": (1665, 302, 270),
+    "Mast 8RA": (435, 321, 90),
+    "Mast 8LB": (534, 297, 270),
+    "Mast 8RB": (425, 368, 90),
+    "Mast 8LA": (534, 344, 270),
+    "Mast 24RA": (1095, 258, 90),
+    "Mast 24L": (1225, 222, 270),
+    "Mast 24RB": (1135, 321, 90),
+    "Mast 34L": (1392, 285, 270),
+    "Mast 32R": (1248, 350, 60),
+    "Mast 34R": (1320, 348, 60),
+    "Mast 40LB": (1608, 185, 225),
+    "Mast 36RA": (1465, 258, 90),
+    "Mast 36RB": (1465, 321, 90),
+    "Mast 38LB": (1628, 322, 310),
+    "Mast 2035": (1810, 276, 180),
+    "Mast 2036": (1855, 276, 0),
+    "Mast 40LA": (1665, 239, 270),
+    "Mast 38LA": (1665, 302, 270),
 }
 
 SIGNAL_ICON_SCALE = "1.0"
@@ -77,14 +77,14 @@ OS_OCCUPANCY_ICONS = {
     "Block 1-5": (1568, 262),
     "Block 1-6": (1523, 325),
 }
-REMOVED_LABELS = {"East Lead", "Main East", "Main West"}
+REMOVED_LABELS = {"OS East Lead", "OS Main East", "OS Main West"}
 
 # ADR-002 visible hierarchy.
 LABEL_STYLE: dict[str, tuple[str, str]] = {
     "Neville Island": ("28", "1"),
     "Brick": ("16", "1"),
     "Plane": ("16", "1"),
-    "Barn": ("16", "1"),
+    "OS Barn": ("16", "1"),
     "East End": ("16", "1"),
     "Princess": ("16", "1"),
     "West Yard": ("16", "0"),
@@ -94,7 +94,7 @@ LABEL_STYLE: dict[str, tuple[str, str]] = {
 
 LABEL_PLACEMENTS: dict[str, tuple[tuple[int, int], ...]] = {
     "116": ((572, 270),),
-    "Barn": ((464, 430),),
+    "OS Barn": ((464, 430),),
     "Princess": ((1510, 170),),
     "114": ((1570, 340),),
     "115": ((1570, 220),),

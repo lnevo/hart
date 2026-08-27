@@ -16,10 +16,10 @@ CATS only loads panels with **complete** Digicon topology. Cutting out a yard su
 
 | CATS block | Meaning |
 |------------|---------|
-| Main West, West Main Ext | Approach |
-| OS 100, OS 101 | Switch plants |
-| Brick-Plane | Between them |
-| W-1 / W-2 | Yard tracks |
+| OS Main West, OS West Main Ext | Approach |
+| OS 1, OS 3 | Switch plants |
+| OS Brick-Plane | Between them |
+| OS W-1 / OS W-2 | Yard tracks |
 
 East/south names (Plane, South Yard, East End, Princess, etc.) are mapped onto the rest of the Armstrong geometry as placeholders until a Designer redraw.
 

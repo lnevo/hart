@@ -24,29 +24,31 @@ OCCUPANCY_BINDINGS = REPO_ROOT / "cats" / "data" / "occupancy_bindings.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "preference:jython/hart_dispatcher_startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
+# Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
+FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
 STATION_COMMENTS = {
-    "East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
-    "East Main Ext": "Main east of Plane toward Barn; occupancy Block 4-7 / M2S406; stop",
-    "Main East": "Main east of East End; occupancy Block 2-3 / M2S202; stop",
-    "Main West": "Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop",
-    "Brick-Plane": "Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop",
-    "McKees Rocks": "Princess balloon, McKees Rocks; occupancy Block 1-1 / M2S100; stop",
-    "McKeesport": "Princess balloon, McKeesport; occupancy Block 1-2 / M2S101; stop",
-    "West Main Ext": "Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
-    "EH-1": "Top house track; occupancy Block 13-7 / M2S1306; stop",
-    "EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
-    "EH-3": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
-    "S-1": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
-    "S-2": "South Yard body; occupancy Block 2-7 / M2S206; stop",
-    "S-3": "South Yard body; occupancy Block 2-6 / M2S205; stop",
-    "S-4": "South Yard body; occupancy Block 2-5 / M2S204; stop",
-    "S-5": "South Yard body; occupancy Block 2-4 / M2S203; stop",
-    "Scale": "Plane diverging lead to Barn; occupancy Block 4-8 / M2S407; stop",
-    "Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
-    "W-1": "Brick yard W-1; access Switch 101 only; occupancy Block 4-4 / M2S403; stop",
-    "W-2": "Brick yard W-2; access Switch 101 only; occupancy Block 4-3 / M2S402; stop",
-    "K-1": "Princess stub east of Switch 115; shares Block 1-4 with OS 115; occupancy Block 1-4 / M2S103; stop",
-    "K-2": "Princess stub east of Switch 114; shares Block 1-3 with OS 114; occupancy Block 1-3 / M2S102; stop",
+    "OS East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
+    "OS East Main Ext": "Main east of Plane toward OS Barn; occupancy Block 4-7 / M2S406; stop",
+    "OS Main East": "Main east of East End; occupancy Block 2-3 / M2S202; stop",
+    "OS Main West": "Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop",
+    "OS Brick-Plane": "OS Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop",
+    "OS McKees Rocks": "Princess balloon, OS McKees Rocks; occupancy Block 1-1 / M2S100; stop",
+    "OS McKeesport": "Princess balloon, OS McKeesport; occupancy Block 1-2 / M2S101; stop",
+    "OS West Main Ext": "OS Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
+    "OS EH-1": "Top house track; occupancy Block 13-7 / M2S1306; stop",
+    "OS EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
+    "OS EH-3": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
+    "OS S-R": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
+    "OS S-1": "South Yard body; occupancy Block 2-7 / M2S206; stop",
+    "OS S-2": "South Yard body; occupancy Block 2-6 / M2S205; stop",
+    "OS S-3": "South Yard body; occupancy Block 2-5 / M2S204; stop",
+    "OS S-4": "South Yard body; occupancy Block 2-4 / M2S203; stop",
+    "OS Scale": "Plane diverging lead to OS Barn; occupancy Block 4-8 / M2S407; stop",
+    "OS Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
+    "OS W-1": "Brick yard OS W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop",
+    "OS W-2": "Brick yard OS W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop",
+    "OS K-1": "Princess stub east of Switch 39; shares Block 1-4 with OS 39; occupancy Block 1-4 / M2S103; stop",
+    "OS K-2": "Princess stub east of Switch 37; shares Block 1-3 with OS 37; occupancy Block 1-3 / M2S102; stop",
 }
 
 
@@ -137,6 +139,20 @@ def select_panel(root: ET.Element, audit: Audit) -> ET.Element | None:
         return None
     audit.facts["panel"] = candidates[0].get("name", "")
     return candidates[0]
+
+
+def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
+    found: list[str] = []
+    for sensor in root.iter("sensor"):
+        sysn = text(sensor, "systemName") or (sensor.get("systemName") or "").strip()
+        if sysn in FORBIDDEN_MQTT_SENSORS:
+            found.append(sysn)
+    if found:
+        audit.error(
+            "do not add MQTT sensors "
+            + ", ".join(FORBIDDEN_MQTT_SENSORS)
+            + f"; found {sorted(set(found))}"
+        )
 
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
@@ -482,6 +498,7 @@ def audit_source(
         audit.error(f"cannot parse source: {exc}")
         return audit
     panel = select_panel(root, audit)
+    audit_forbidden_mqtt_sensors(root, audit)
     full_config = label != "standalone"
     audit_masts(root, expected_masts, audit)
     audit_bindings(panel, boundaries, audit)

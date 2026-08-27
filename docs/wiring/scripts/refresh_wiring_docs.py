@@ -32,6 +32,7 @@ ROOT = Path(__file__).resolve().parents[3]
 WIRING = ROOT / "docs/wiring"
 IMPORTED = WIRING / "imported"
 CATS = ROOT / "cats/data"
+PUBLIC_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 BLOCK_IN_NOTES = re.compile(r"Block\s+(\d+-\d+)")
 
@@ -39,6 +40,39 @@ BLOCK_IN_NOTES = re.compile(r"Block\s+(\d+-\d+)")
 def load_csv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="") as f:
         return list(csv.DictReader(f))
+
+
+def load_proposed() -> dict[str, str]:
+    """Live public string → proposed (device-map grammar)."""
+    out: dict[str, str] = {}
+    for row in load_csv(PUBLIC_MAP):
+        current = (row.get("current") or "").strip()
+        proposed = (row.get("proposed") or "").strip()
+        if current and proposed and current != proposed:
+            out[current] = proposed
+    return out
+
+
+_PROPOSED = load_proposed()
+
+
+def proposed(name: str | None) -> str | None:
+    if not name:
+        return name
+    mapped = _PROPOSED.get(name)
+    if mapped:
+        return mapped
+    if " / " in name:
+        return " / ".join(proposed(part.strip()) or part.strip() for part in name.split("/"))
+    return name
+
+
+def apply_proposed_to_wiring(rows: list[dict[str, str]]) -> None:
+    for row in rows:
+        if row.get("user_name"):
+            row["user_name"] = proposed(row["user_name"]) or row["user_name"]
+        if row.get("mast_user_name"):
+            row["mast_user_name"] = proposed(row["mast_user_name"]) or row["mast_user_name"]
 
 
 def occupancy_by_hw() -> dict[str, str]:
@@ -52,8 +86,10 @@ def occupancy_by_hw() -> dict[str, str]:
 
     picked: dict[str, str] = {}
     for hw, names in groups.items():
-        os_names = [n for n in names if n.startswith("OS ")]
-        other = [n for n in names if n not in os_names]
+        raw_os = [n for n in names if n.startswith("OS ")]
+        raw_other = [n for n in names if n not in raw_os]
+        os_names = [proposed(n) or n for n in raw_os]
+        other = [proposed(n) or n for n in raw_other]
         if os_names and other:
             picked[hw] = f"{os_names[0]} / {other[0]}"
         else:
@@ -84,69 +120,69 @@ def walk_replace(ws: Worksheet, replacements: list[tuple[str, str]]) -> int:
 
 NAME_REPLACEMENTS: list[tuple[str, str]] = [
     # Long JMRI mast userNames → Digicon (longest first)
-    ("West Yard West East Main Ext", "117RB"),
-    ("West Yard East OS 117b", "117LA"),
-    ("West Yard East Yard T6", "117LB"),
-    ("West Yard West OS 117", "117RA"),
-    ("East End West Yard Track 1", "111RB"),
-    ("East End West Main West", "111RA"),
-    ("East End South OS 112", "112R"),
-    ("East End South OS 110", "110R"),
-    ("East End East OS 111a", "111L"),
-    ("East End East Lead", "112L"),
-    ("Princess North McKees Rocks", "115LB"),
-    ("Princess South McKeesport", "114LB"),
-    ("Princess West OS 113a", "113RB"),
-    ("Princess West OS 113b", "113RA"),
-    ("Princess East McKeesport", "120R"),
-    ("Princess East McKees Rocks", "120L"),
-    ("Princess East K-1", "115LA"),
-    ("Princess East K-2", "114LA"),
-    ("Plane East East Main Ext", "102LB"),
-    ("Plane East OS 102", "102LA"),
-    ("Brick East Main West", "100L"),
-    ("Brick West Yard 1", "101RA"),
-    ("Brick West Yard 2", "101RB"),
-    ("Brick W-1 West Stub", "101LA"),
-    ("Brick W-2 West Stub", "101LB"),
+    ("West Yard West East Main Ext", proposed("117RB") or "117RB"),
+    ("West Yard East OS 117b", proposed("117LA") or "117LA"),
+    ("West Yard East Yard T6", proposed("117LB") or "117LB"),
+    ("West Yard West OS 117", proposed("117RA") or "117RA"),
+    ("East End West Yard Track 1", proposed("111RB") or "111RB"),
+    ("East End West Main West", proposed("111RA") or "111RA"),
+    ("East End South OS 112", proposed("112R") or "112R"),
+    ("East End South OS 110", proposed("110R") or "110R"),
+    ("East End East OS 111a", proposed("111L") or "111L"),
+    ("East End East Lead", proposed("112L") or "112L"),
+    ("Princess North McKees Rocks", proposed("115LB") or "115LB"),
+    ("Princess South McKeesport", proposed("114LB") or "114LB"),
+    ("Princess West OS 113a", proposed("113RB") or "113RB"),
+    ("Princess West OS 113b", proposed("113RA") or "113RA"),
+    ("Princess East McKeesport", proposed("120R") or "120R"),
+    ("Princess East McKees Rocks", proposed("120L") or "120L"),
+    ("Princess East K-1", proposed("115LA") or "115LA"),
+    ("Princess East K-2", proposed("114LA") or "114LA"),
+    ("Plane East East Main Ext", proposed("102LB") or "102LB"),
+    ("Plane East OS 102", proposed("102LA") or "102LA"),
+    ("Brick East Main West", proposed("100L") or "100L"),
+    ("Brick West Yard 1", proposed("101RA") or "101RA"),
+    ("Brick West Yard 2", proposed("101RB") or "101RB"),
+    ("Brick W-1 West Stub", proposed("101LA") or "101LA"),
+    ("Brick W-2 West Stub", proposed("101LB") or "101LB"),
     # OS public names (ADR-005: CP lives in comment, not the name)
-    ("OS 117b (West Yard)", "OS 117b"),
-    ("OS 119 (West Yard)", "OS 119"),
-    ("OS 118 (West Yard)", "OS 118"),
-    ("OS 117 (West Yard)", "OS 117"),
-    ("OS 116 (West Yard)", "OS 116"),
-    ("OS 115 (Princess)", "OS 115"),
-    ("OS 114 (Princess)", "OS 114"),
-    ("OS 113b (Princess)", "OS 113b"),
-    ("OS 113a (Princess)", "OS 113a"),
-    ("OS 112 (East End)", "OS 112"),
-    ("OS 111b (East End)", "OS 111b"),
-    ("OS 111a (East End)", "OS 111a"),
-    ("OS 110 (East End)", "OS 110"),
-    ("OS 109 (East End)", "OS 109"),
-    ("OS 108 (East End)", "OS 108"),
-    ("OS 107 (East End)", "OS 107"),
-    ("OS 106 (South Yard)", "OS 106"),
-    ("OS 105 (South Yard)", "OS 105"),
-    ("OS 104 (South Yard)", "OS 104"),
-    ("OS 103 (South Yard)", "OS 103"),
-    ("OS 102 (Plane)", "OS 102"),
-    ("OS 101 (Brick)", "OS 101"),
-    ("OS 100 (Brick)", "OS 100"),
-    ("Main West Brick–Plane", "Brick-Plane"),
-    ("Main West Brick-Plane", "Brick-Plane"),
+    ("OS 117b (West Yard)", proposed("OS 117b") or "OS 117b"),
+    ("OS 119 (West Yard)", proposed("OS 119") or "OS 119"),
+    ("OS 118 (West Yard)", proposed("OS 118") or "OS 118"),
+    ("OS 117 (West Yard)", proposed("OS 117") or "OS 117"),
+    ("OS 116 (West Yard)", proposed("OS 116") or "OS 116"),
+    ("OS 115 (Princess)", proposed("OS 115") or "OS 115"),
+    ("OS 114 (Princess)", proposed("OS 114") or "OS 114"),
+    ("OS 113b (Princess)", proposed("OS 113b") or "OS 113b"),
+    ("OS 113a (Princess)", proposed("OS 113a") or "OS 113a"),
+    ("OS 112 (East End)", proposed("OS 112") or "OS 112"),
+    ("OS 111b (East End)", proposed("OS 111b") or "OS 111b"),
+    ("OS 111a (East End)", proposed("OS 111a") or "OS 111a"),
+    ("OS 110 (East End)", proposed("OS 110") or "OS 110"),
+    ("OS 109 (East End)", proposed("OS 109") or "OS 109"),
+    ("OS 108 (East End)", proposed("OS 108") or "OS 108"),
+    ("OS 107 (East End)", proposed("OS 107") or "OS 107"),
+    ("OS 106 (South Yard)", proposed("OS 106") or "OS 106"),
+    ("OS 105 (South Yard)", proposed("OS 105") or "OS 105"),
+    ("OS 104 (South Yard)", proposed("OS 104") or "OS 104"),
+    ("OS 103 (South Yard)", proposed("OS 103") or "OS 103"),
+    ("OS 102 (Plane)", proposed("OS 102") or "OS 102"),
+    ("OS 101 (Brick)", proposed("OS 101") or "OS 101"),
+    ("OS 100 (Brick)", proposed("OS 100") or "OS 100"),
+    ("Main West Brick–Plane", proposed("Brick-Plane") or "Brick-Plane"),
+    ("Main West Brick-Plane", proposed("Brick-Plane") or "Brick-Plane"),
     # Yard plates (longest first so T11 before T1)
-    ("Yard Track 5", "S-5"),
-    ("Yard Track 4", "S-4"),
-    ("Yard Track 3", "S-3"),
-    ("Yard Track 2", "S-2"),
-    ("Yard Track 1", "S-1"),
-    ("West Yard Track 2", "W-2"),
-    ("West Yard Track 1", "W-1"),
-    ("West Yard 2", "W-2"),
-    ("West Yard 1", "W-1"),
-    ("Yard T6", "Barn"),
-    ("Yard T1", "Scale"),
+    ("Yard Track 5", proposed("S-5") or "S-5"),
+    ("Yard Track 4", proposed("S-4") or "S-4"),
+    ("Yard Track 3", proposed("S-3") or "S-3"),
+    ("Yard Track 2", proposed("S-2") or "S-2"),
+    ("Yard Track 1", proposed("S-1") or "S-1"),
+    ("West Yard Track 2", proposed("W-2") or "W-2"),
+    ("West Yard Track 1", proposed("W-1") or "W-1"),
+    ("West Yard 2", proposed("W-2") or "W-2"),
+    ("West Yard 1", proposed("W-1") or "W-1"),
+    ("Yard T6", proposed("Barn") or "Barn"),
+    ("Yard T1", proposed("Scale") or "Scale"),
     ("track/signalmast/464", "track/signalhead/IH438 / IH439"),
 ]
 
@@ -332,9 +368,10 @@ def refresh_turnout_summary(ws: Worksheet) -> list[str]:
         spec = TURNOUT_DIGICON.get(str(name) if name else "")
         if not spec:
             continue
+        ws.cell(row, tcol).value = proposed(str(name)) or name
 
         def set_group(prefix: str, signal_key: str, ports_key: str) -> None:
-            sig = spec.get(signal_key)
+            sig = proposed(spec.get(signal_key)) or spec.get(signal_key)
             if not sig:
                 return
             ws.cell(row, idx[prefix]).value = sig
@@ -470,7 +507,9 @@ def refresh_inventory() -> Path:
     wb = load_workbook(dest)
     occ = occupancy_by_hw()
     wiring = load_csv(CATS / "signal_wiring.csv")
+    apply_proposed_to_wiring(wiring)
     heads = load_csv(CATS / "signal_head_plan.csv")
+    apply_proposed_to_wiring(heads)
 
     bs_log = refresh_block_sensors(wb["BlockSensors"], occ)
     dnou_log = overlay_dnou8(wb["DNOU8"], wiring)
@@ -636,6 +675,20 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
                 **route,
             )
             out.append(row)
+    public_keys = (
+        "Signal",
+        "Signal_Block",
+        "Route_From",
+        "Route_To",
+        "Block1",
+        "Block2",
+        "Next_Signal",
+    )
+    for row in out:
+        for key in public_keys:
+            value = row.get(key)
+            if isinstance(value, str):
+                row[key] = proposed(value) or value
     return out
 
 
@@ -696,7 +749,13 @@ def refresh_asbuilt() -> Path:
     shutil.copy2(src, dest)
     wb = load_workbook(dest)
     wiring = load_csv(CATS / "signal_wiring.csv")
+    apply_proposed_to_wiring(wiring)
     masts = load_csv(CATS / "signal_mast_plan.csv")
+    for row in masts:
+        if row.get("proposed_mast_name"):
+            row["proposed_mast_name"] = (
+                proposed(row["proposed_mast_name"]) or row["proposed_mast_name"]
+            )
     rebuild_asbuilt_inventory(wb["inventory"], wiring, masts)
     n = 0
     for name in wb.sheetnames:

@@ -25,33 +25,33 @@ Two windows:
 | Window | What it is |
 |--------|------------|
 | **Dispatcher System** | Command panel: start/stop, register trains, Run Dispatch vs Setup Route vs Run Route |
-| **HART Railroad** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House **EH-1…EH-3** where occupancy sits further left on the same row |
+| **HART Railroad** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House **OS EH-1…OS EH-3** where occupancy sits further left on the same row |
 
 Stations, west → east around the plant, then the yard and house:
 
 | Station | Where it is |
 |---------|-------------|
-| **Brick-Plane** | Hairpin between Brick and Plane |
-| **East Main Ext** | Main between Plane (102) and Barn (117) |
-| **Main East** | Main south of the yard, approaching East End |
-| **East Lead** | East End lead off 112; destination label **E Lead** |
-| **Main West** | Main West at East End (around-the-room from Brick) |
-| **West Main Ext** | Main West between East End and Princess |
-| **McKees Rocks** | Princess, north branch |
-| **McKeesport** | Princess, south branch |
-| **Scale** | Left of the engine house, Plane–117 lead; destination label **Scale** |
-| **Barn** | Immediately to the right of Scale (Barn lead); destination label **Barn** |
-| **EH-1 / EH-2 / EH-3** | Right of the 116 ladder |
-| **S-1…S-5** | South Yard body; destination labels **S-1…S-5**, aligned with Main W / Main E |
-| **W-1 / W-2** | Brick yard body |
-| **K-1 / K-2** | Princess stubs east of 115 / 114; destination labels **K-1** / **K-2** |
+| **OS Brick-Plane** | Hairpin between Brick and Plane |
+| **OS East Main Ext** | Main between Plane (102) and OS Barn (117) |
+| **OS Main East** | Main south of the yard, approaching East End |
+| **OS East Lead** | East End lead off 112; destination label **E Lead** |
+| **OS Main West** | OS Main West at East End (around-the-room from Brick) |
+| **OS West Main Ext** | OS Main West between East End and Princess |
+| **OS McKees Rocks** | Princess, north branch |
+| **OS McKeesport** | Princess, south branch |
+| **OS Scale** | Left of the engine house, Plane–117 lead; destination label **OS Scale** |
+| **OS Barn** | Immediately to the right of OS Scale (OS Barn lead); destination label **OS Barn** |
+| **OS EH-1 / OS EH-2 / OS EH-3** | Right of the 116 ladder |
+| **OS S-R…OS S-4** | South Yard body; destination labels **OS S-R…OS S-4**, aligned with Main W / Main E |
+| **OS W-1 / OS W-2** | Brick yard body |
+| **OS K-1 / OS K-2** | Princess stubs east of 115 / 114; destination labels **OS K-1** / **OS K-2** |
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
 buttons are in place. **Stage 1 was re-run 2026-08-22** after hidden yard
 throats (graph is **91 sections / 688 transits / 1508 traininfo**). Every listed
-station is a valid **start and destination**, including **S-1…S-5**
-(enter/leave via 103 or East Lead). Manual Princess pairs (`113RA→115LA`,
-`113RB→114LA`) were re-added after Discover. After any future Stage 1:
+station is a valid **start and destination**, including **OS S-R…OS S-4**
+(enter/leave via 103 or OS East Lead). Manual Princess pairs (`Mast 36RA→Mast 40LA`,
+`Mast 36RB→Mast 38LA`) were re-added after Discover. After any future Stage 1:
 `python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py` then
 `reconcile_dispatcher_stations.py`. Never run Stage 1 or store tables from
 CATS.
@@ -98,14 +98,14 @@ train to another station by hand, register it again there.
 
 ## 4. Send it to one station (no saved route)
 
-Use this when you just want “go to Main East.”
+Use this when you just want “go to OS Main East.”
 
 1. Click **Run Dispatch** so it is selected (**Setup Route** must be off).
 2. On **HART Railroad**, click the **wide label** of the destination station.
 3. Pick the train if asked, and Express vs stopping if asked.
 
 The system takes the **shortest** path (block lengths). It does **not** ask
-which plant to go through. From East Main Ext to Main East that is normally
+which plant to go through. From OS East Main Ext to OS Main East that is normally
 east through 117b, not around through Plane.
 
 **To force a path that is not the shortest**, do not use this mode. Build a
@@ -149,12 +149,12 @@ is in place.
 
 ### Example
 
-Train on **East Main Ext**, facing east, want Barn then East End without
+Train on **OS East Main Ext**, facing east, want OS Barn then East End without
 going the long way around Plane:
 
-**East Main Ext** → **Main East** → **East Lead**
+**OS East Main Ext** → **OS Main East** → **OS East Lead**
 
-To send it the long way on purpose, put **Brick-Plane** (and
+To send it the long way on purpose, put **OS Brick-Plane** (and
 whatever else you need) in the list so shortest-path cannot skip it.
 
 ---
@@ -202,7 +202,7 @@ stations unless you are locking a one-way plant for the session.
 ## 9. NX on HART Railroad (separate desk)
 
 JMRI Entry/Exit lives on **HART Railroad** as a **white USS lamp** on the
-approach track into each CTC switch (`NX 100L`, `NX 102LB`, …). It turns
+approach track into each CTC switch (`NX Mast 2L`, `NX Mast 6LB`, …). It turns
 **green** when that end of a route is active. That is not the Dispatcher
 System pair: the **loco** is MoveTo, the **small track-circuit square** is
 progress.
@@ -222,8 +222,8 @@ Signal Mode**. Store from PanelPro if you change it there.
 
 1. Open **PanelPro**.
 2. Click the white lamp, then the exit lamp to line turnouts / SML.
-3. First prove-out pair: **NX 100L → NX 102LB** (Brick main) and
-   **NX 101RA → NX 100L** (W-1 out).
+3. First prove-out pair: **NX Mast 2L → NX Mast 6LB** (Brick main) and
+   **NX Mast 4RA → NX Mast 2L** (OS W-1 out).
 
 Do not click Dispatcher System **MoveTo** labels as NX points — those are a
 different desk. Hand-throws 116/118/119 and yard stubs are not NX ends.

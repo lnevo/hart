@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Patch JMRI CTC locking so the machine matches the live layout.
 
-  * SW112 Closed = East Lead ↔ 110, Thrown = Main East (icon + eastbound TRL)
+  * SW112 Closed = OS East Lead ↔ 110, Thrown = OS Main East (icon + eastbound TRL)
   * SW114 / SW115 traffic direction BOTH (balloon). JMRI requires a
     unique mast in each SIDI list; 113 stays RIGHT (its homes face east).
-  * SW111 eastbound Main West → West Main Ext TRL rule
+  * SW111 eastbound OS Main West → OS West Main Ext TRL rule
 
 Edits jmri/layouts/hart/output/tables.xml ctcdata in place.
 Safe to re-run.
@@ -18,7 +18,7 @@ TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 RULE_111_EAST_WME = """        <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>113RA</DestinationSignalOrComment>
+          <DestinationSignalOrComment>Mast 36RA</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>17/18</UserText>
@@ -38,7 +38,7 @@ RULES_114_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:1</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>114LA</DestinationSignalOrComment>
+          <DestinationSignalOrComment>Mast 38LA</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>27/28</UserText>
@@ -54,7 +54,7 @@ RULES_114_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>114LB</DestinationSignalOrComment>
+          <DestinationSignalOrComment>Mast 38LB</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>27/28</UserText>
@@ -75,7 +75,7 @@ RULES_115_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:1</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>115LA</DestinationSignalOrComment>
+          <DestinationSignalOrComment>Mast 40LA</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>29/30</UserText>
@@ -91,7 +91,7 @@ RULES_115_RIGHT = """      <TRL_RightRules>
         <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>115LB</DestinationSignalOrComment>
+          <DestinationSignalOrComment>Mast 40LB</DestinationSignalOrComment>
           <switches>
             <switch>
               <UserText>29/30</UserText>
@@ -120,7 +120,7 @@ def main():
     text = path.read_text()
     notes = []
 
-    # --- SW112: eastbound to 113a is Closed (East Lead), not Thrown ---
+    # --- SW112: eastbound to 113a is Closed (OS East Lead), not Thrown ---
     s, e, col = slice_column(text, "24")
     old = col
     col = col.replace(
@@ -147,16 +147,16 @@ def main():
     if col == old:
         notes.append("112 right-rule alignment already Normal (or pattern missed)")
     else:
-        notes.append("112 eastbound TRL: Reverse → Normal (East Lead ↔ 110)")
+        notes.append("112 eastbound TRL: Reverse → Normal (OS East Lead ↔ 110)")
     text = text[:s] + col + text[e:]
 
-    # --- SW111: missing eastbound Main West → West Main Ext ---
+    # --- SW111: missing eastbound OS Main West → OS West Main Ext ---
     s, e, col = slice_column(text, "21")
-    if "113RA" in col.split("<TRL_RightRules>")[-1]:
+    if "Mast 36RA" in col.split("<TRL_RightRules>")[-1]:
         notes.append("111 eastbound 113b rule already present")
     else:
         col = col.replace("</TRL_RightRules>", RULE_111_EAST_WME + "      </TRL_RightRules>", 1)
-        notes.append("111 added RIGHT dest 113RA (Main West → WME)")
+        notes.append("111 added RIGHT dest Mast 36RA (OS Main West → WME)")
         text = text[:s] + col + text[e:]
 
     # --- Balloon: 114 / 115 BOTH (113 stays RIGHT — no unused westbound mast) ---
@@ -178,10 +178,10 @@ def main():
     if "<SIDI_LeftRightTrafficSignals />" in col:
         col = col.replace(
             "<SIDI_LeftRightTrafficSignals />",
-            "<SIDI_LeftRightTrafficSignals>\n        <signal>120L</signal>\n      </SIDI_LeftRightTrafficSignals>",
+            "<SIDI_LeftRightTrafficSignals>\n        <signal>Mast 2035</signal>\n      </SIDI_LeftRightTrafficSignals>",
             1,
         )
-        notes.append("114 LTR += 120L")
+        notes.append("114 LTR += Mast 2035")
     if "<TRL_RightRules />" in col:
         col = col.replace("<TRL_RightRules />", RULES_114_RIGHT.rstrip(), 1)
         notes.append("114 BOTH + eastbound TRL rules")
@@ -198,10 +198,10 @@ def main():
     if "<SIDI_LeftRightTrafficSignals />" in col:
         col = col.replace(
             "<SIDI_LeftRightTrafficSignals />",
-            "<SIDI_LeftRightTrafficSignals>\n        <signal>120R</signal>\n      </SIDI_LeftRightTrafficSignals>",
+            "<SIDI_LeftRightTrafficSignals>\n        <signal>Mast 2036</signal>\n      </SIDI_LeftRightTrafficSignals>",
             1,
         )
-        notes.append("115 LTR += 120R")
+        notes.append("115 LTR += Mast 2036")
     if "<TRL_RightRules />" in col:
         col = col.replace("<TRL_RightRules />", RULES_115_RIGHT.rstrip(), 1)
         notes.append("115 BOTH + eastbound TRL rules")
