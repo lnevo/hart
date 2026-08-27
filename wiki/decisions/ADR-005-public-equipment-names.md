@@ -30,7 +30,7 @@ Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R
 
 ## Live inventory (2026-08-27)
 
-CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). MQTT `systemName`s and `ISNX:*` unchanged. Re-Discover SML after reload.
+CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; comments keep `Block n-n`. Dispatcher MoveTo sensors are `MoveToOS_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Re-Discover SML after reload.
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 

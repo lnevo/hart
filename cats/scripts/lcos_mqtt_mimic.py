@@ -20,6 +20,7 @@ import csv
 import json
 import os
 import queue
+import re
 import shutil
 import socket
 import subprocess
@@ -172,7 +173,7 @@ def load_layout() -> dict:
     blocks = []
     for addr, rec in sensors.items():
         un = rec["userName"]
-        if not un.startswith("Block "):
+        if not un.startswith("BS "):
             continue
         names = occ_names.get(un, [])
         label = " / ".join(names) if names else (rec["comment"] or un)
@@ -236,7 +237,10 @@ def load_layout() -> dict:
 
 
 def _plant_for_block(label: str, comment: str, uname: str) -> str:
-    # Block N-M from tables.xml is the stable grouping key.
+    # Block N-M in the occupancy comment is the stable grouping key.
+    match = re.search(r"Block \d+-\d+", comment or "")
+    if match:
+        uname = match.group(0)
     if uname.startswith("Block 1-"):
         return "Princess"
     if uname in ("Block 2-1", "Block 2-3"):

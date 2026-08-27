@@ -180,16 +180,16 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="OS 115" STATION="115" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 39" STATION="115" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="Block 1-4">close</IOSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="BS Switch 39 / BS K-1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          115LA
+          Mast 40LA
           <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -201,9 +201,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="K-1" STATION="K-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS K-1" STATION="OS K-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="Block 1-4">close</IOSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="BS Switch 39 / BS K-1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -218,7 +218,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="K-1" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS K-1" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="59" Y="5">
       <TRACKGROUP>
@@ -232,9 +232,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Main West" STATION="Main West" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS Main West" STATION="OS Main West" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="200" JMRIPREFIX="M2S" USER_NAME="Block 2-1">close</IOSPEC>
+            <IOSPEC DECADDR="200" JMRIPREFIX="M2S" USER_NAME="BS Main West">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="200" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -485,7 +485,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="Main West" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS Main West" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -510,16 +510,16 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 111a" STATION="111a" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 23a" STATION="111a" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1203" JMRIPREFIX="M2S" USER_NAME="Block 12-4">close</IOSPEC>
+            <IOSPEC DECADDR="1203" JMRIPREFIX="M2S" USER_NAME="BS Switch 23a">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1203" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          111RA
+          Mast 24RA
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -541,18 +541,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">close</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">close</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">throw</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">throw</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -563,9 +563,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Main Ext" STATION="Main West" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS West Main Ext" STATION="OS Main West" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="Block 1-8">close</IOSPEC>
+            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="BS West Main Ext">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="107" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -603,7 +603,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          111L
+          Mast 24L
           <PANELSIGNAL SIGLOCATION="UPCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -614,9 +614,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Main Ext" STATION="Main West" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS West Main Ext" STATION="OS Main West" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="Block 1-8">close</IOSPEC>
+            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="BS West Main Ext">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="107" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -638,7 +638,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="West Main Ext" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS West Main Ext" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="49" Y="6">
       <TRACKGROUP>
@@ -662,16 +662,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113b" STATION="113b" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 35b" STATION="113b" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="104" JMRIPREFIX="M2S" USER_NAME="Block 1-5">close</IOSPEC>
+            <IOSPEC DECADDR="104" JMRIPREFIX="M2S" USER_NAME="BS Switch 35b">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="104" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          113RA
+          Mast 36RA
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -686,18 +686,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">close</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">close</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -735,18 +735,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 115">throw</IOSPEC>
+              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 39">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 115">throw</IOSPEC>
+              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 39">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="TOP">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 115">close</IOSPEC>
+              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 39">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 115">close</IOSPEC>
+              <IOSPEC DECADDR="110" JMRIPREFIX="M2T" USER_NAME="Switch 39">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -760,7 +760,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          115LB
+          Mast 40LB
           <PANELSIGNAL SIGLOCATION="UPCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -772,9 +772,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="McKees Rocks" STATION="McKees Rocks" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS McKees Rocks" STATION="OS McKees Rocks" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="100" JMRIPREFIX="M2S" USER_NAME="Block 1-1">close</IOSPEC>
+            <IOSPEC DECADDR="100" JMRIPREFIX="M2S" USER_NAME="BS McKees Rocks">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="100" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -789,7 +789,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="McKees Rocks, PA" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS McKees Rocks, PA" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="59" Y="6">
       <TRACKGROUP>
@@ -851,16 +851,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="OS 102" STATION="102" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 5" STATION="102" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="404" JMRIPREFIX="M2S" USER_NAME="Block 4-5">close</IOSPEC>
+            <IOSPEC DECADDR="404" JMRIPREFIX="M2S" USER_NAME="BS Switch 5">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="404" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          102LA
+          Mast 6LA
           <PANELSIGNAL SIGLOCATION="UPCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -871,9 +871,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Scale" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS Scale" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="407" JMRIPREFIX="M2S" USER_NAME="Block 4-8">close</IOSPEC>
+            <IOSPEC DECADDR="407" JMRIPREFIX="M2S" USER_NAME="BS Scale">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="407" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -888,7 +888,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="Scale" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS Scale" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="13" Y="7">
       <TRACKGROUP>
@@ -904,16 +904,16 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 117" STATION="117" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 7" STATION="117" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1302" JMRIPREFIX="M2S" USER_NAME="Block 13-3">close</IOSPEC>
+            <IOSPEC DECADDR="1302" JMRIPREFIX="M2S" USER_NAME="BS Switch 7">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1302" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          117RA
+          Mast 8RA
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -929,18 +929,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">close</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">close</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -958,7 +958,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          117LB
+          Mast 8LB
           <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -970,9 +970,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Barn" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS Barn" STATION="West Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1300" JMRIPREFIX="M2S" USER_NAME="Block 13-1">close</IOSPEC>
+            <IOSPEC DECADDR="1300" JMRIPREFIX="M2S" USER_NAME="BS Barn">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1300" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1014,7 +1014,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="Barn" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS Barn" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="23" Y="7">
       <TRACKGROUP>
@@ -1055,26 +1055,26 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 116">throw</IOSPEC>
+              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 13">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 116">throw</IOSPEC>
+              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 13">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 116">close</IOSPEC>
+              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 13">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 116">close</IOSPEC>
+              <IOSPEC DECADDR="411" JMRIPREFIX="M2T" USER_NAME="Switch 13">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 116" STATION="116" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 13" STATION="116" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="300" JMRIPREFIX="M2S" USER_NAME="Block 3-1">close</IOSPEC>
+            <IOSPEC DECADDR="300" JMRIPREFIX="M2S" USER_NAME="BS Switch 13">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="300" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1099,9 +1099,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 103" STATION="103" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 15" STATION="103" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="301" JMRIPREFIX="M2S" USER_NAME="Block 3-2">close</IOSPEC>
+            <IOSPEC DECADDR="301" JMRIPREFIX="M2S" USER_NAME="BS Switch 15">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="301" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1125,18 +1125,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 103">close</IOSPEC>
+              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 15">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 103">close</IOSPEC>
+              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 15">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 103">throw</IOSPEC>
+              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 15">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 103">throw</IOSPEC>
+              <IOSPEC DECADDR="308" JMRIPREFIX="M2T" USER_NAME="Switch 15">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1148,9 +1148,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="S-1" STATION="S-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS S-R" STATION="OS S-R" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="207" JMRIPREFIX="M2S" USER_NAME="Block 2-8">close</IOSPEC>
+            <IOSPEC DECADDR="207" JMRIPREFIX="M2S" USER_NAME="BS S-R">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="207" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1190,7 +1190,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="S-1" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS S-R" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -1215,16 +1215,16 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 111b" STATION="111b" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 23b" STATION="111b" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1205" JMRIPREFIX="M2S" USER_NAME="Block 12-6">close</IOSPEC>
+            <IOSPEC DECADDR="1205" JMRIPREFIX="M2S" USER_NAME="BS Switch 23b">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1205" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          111RB
+          Mast 24RB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1240,18 +1240,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">close</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">close</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="TOP">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">throw</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 111">throw</IOSPEC>
+              <IOSPEC DECADDR="1212" JMRIPREFIX="M2T" USER_NAME="Switch 23">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1279,33 +1279,33 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">throw</IOSPEC>
+              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 31">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">throw</IOSPEC>
+              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 31">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">close</IOSPEC>
+              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 31">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 110">close</IOSPEC>
+              <IOSPEC DECADDR="1211" JMRIPREFIX="M2T" USER_NAME="Switch 31">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 110" STATION="110" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 31" STATION="110" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1206" JMRIPREFIX="M2S" USER_NAME="Block 12-7">close</IOSPEC>
+            <IOSPEC DECADDR="1206" JMRIPREFIX="M2S" USER_NAME="BS Switch 31">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1206" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          110R
+          Mast 32R
           <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="TOP" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -1332,27 +1332,27 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">throw</IOSPEC>
+              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 33">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">throw</IOSPEC>
+              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 33">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">close</IOSPEC>
+              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 33">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 112">close</IOSPEC>
+              <IOSPEC DECADDR="1213" JMRIPREFIX="M2T" USER_NAME="Switch 33">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 112" STATION="112" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 33" STATION="112" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1207" JMRIPREFIX="M2S" USER_NAME="Block 12-8">close</IOSPEC>
+            <IOSPEC DECADDR="1207" JMRIPREFIX="M2S" USER_NAME="BS Switch 33">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1207" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1367,7 +1367,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          112L
+          Mast 34L
           <PANELSIGNAL SIGLOCATION="UPCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1379,9 +1379,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="East Lead" STATION="East Lead" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS East Lead" STATION="OS East Lead" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="106" JMRIPREFIX="M2S" USER_NAME="Block 1-7">close</IOSPEC>
+            <IOSPEC DECADDR="106" JMRIPREFIX="M2S" USER_NAME="BS East Lead">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="106" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1403,7 +1403,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="East Lead" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS East Lead" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="49" Y="7">
       <TRACKGROUP>
@@ -1427,16 +1427,16 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 113a" STATION="113a" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 35a" STATION="113a" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="105" JMRIPREFIX="M2S" USER_NAME="Block 1-6">close</IOSPEC>
+            <IOSPEC DECADDR="105" JMRIPREFIX="M2S" USER_NAME="BS Switch 35a">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="105" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          113RB
+          Mast 36RB
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1452,18 +1452,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">close</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">close</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="TOP">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 113">throw</IOSPEC>
+              <IOSPEC DECADDR="108" JMRIPREFIX="M2T" USER_NAME="Switch 35">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1486,9 +1486,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 114" STATION="114" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 37" STATION="114" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="Block 1-3">close</IOSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="BS Switch 37 / BS K-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1506,18 +1506,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 114">throw</IOSPEC>
+              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 37">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 114">throw</IOSPEC>
+              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 37">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 114">close</IOSPEC>
+              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 37">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 114">close</IOSPEC>
+              <IOSPEC DECADDR="109" JMRIPREFIX="M2T" USER_NAME="Switch 37">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1532,7 +1532,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          114LB
+          Mast 38LB
           <PANELSIGNAL SIGLOCATION="UPCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1544,9 +1544,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="McKeesport" STATION="McKeesport" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS McKeesport" STATION="OS McKeesport" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="Block 1-2">close</IOSPEC>
+            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="BS McKeesport">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="101" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1561,7 +1561,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="McKeesport, PA" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS McKeesport, PA" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="59" Y="7">
       <TRACKGROUP>
@@ -1597,9 +1597,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="McKeesport" STATION="McKeesport" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS McKeesport" STATION="OS McKeesport" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="Block 1-2">close</IOSPEC>
+            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="BS McKeesport">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="101" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1612,9 +1612,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Main West" STATION="Main West" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS Main West" STATION="OS Main West" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="200" JMRIPREFIX="M2S" USER_NAME="Block 2-1">close</IOSPEC>
+            <IOSPEC DECADDR="200" JMRIPREFIX="M2S" USER_NAME="BS Main West">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="200" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1637,16 +1637,16 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 100" STATION="100" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 1" STATION="100" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="401" JMRIPREFIX="M2S" USER_NAME="Block 4-2">close</IOSPEC>
+            <IOSPEC DECADDR="401" JMRIPREFIX="M2S" USER_NAME="BS Switch 1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="401" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          100L
+          Mast 2L
           <PANELSIGNAL SIGLOCATION="LOWCENT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1668,18 +1668,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC>
+              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 1">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">throw</IOSPEC>
+              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 1">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC>
+              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 1">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 100">close</IOSPEC>
+              <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 1">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1691,9 +1691,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Brick-Plane" STATION="Brick-Plane" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS Brick-Plane" STATION="OS Brick-Plane" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="405" JMRIPREFIX="M2S" USER_NAME="Block 4-6">close</IOSPEC>
+            <IOSPEC DECADDR="405" JMRIPREFIX="M2S" USER_NAME="BS Brick-Plane">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="405" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1736,18 +1736,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 102">close</IOSPEC>
+              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 5">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 102">close</IOSPEC>
+              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 5">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="TOP">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 102">throw</IOSPEC>
+              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 5">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 102">throw</IOSPEC>
+              <IOSPEC DECADDR="410" JMRIPREFIX="M2T" USER_NAME="Switch 5">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1762,7 +1762,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          102LB
+          Mast 6LB
           <PANELSIGNAL SIGLOCATION="UPCENT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1773,9 +1773,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="East Main Ext" STATION="Main East" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS East Main Ext" STATION="OS Main East" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="406" JMRIPREFIX="M2S" USER_NAME="Block 4-7">close</IOSPEC>
+            <IOSPEC DECADDR="406" JMRIPREFIX="M2S" USER_NAME="BS East Main Ext">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="406" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1806,16 +1806,16 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS 117b" STATION="117b" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 7b" STATION="117b" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1303" JMRIPREFIX="M2S" USER_NAME="Block 13-4">close</IOSPEC>
+            <IOSPEC DECADDR="1303" JMRIPREFIX="M2S" USER_NAME="BS Switch 7b">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1303" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
         <SECSIGNAL>
-          117RB
+          Mast 8RB
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1832,18 +1832,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">close</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">close</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="TOP">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 117">throw</IOSPEC>
+              <IOSPEC DECADDR="1308" JMRIPREFIX="M2T" USER_NAME="Switch 7">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -1860,7 +1860,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          117LA
+          Mast 8LA
           <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -1887,9 +1887,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="EH-1" STATION="EH-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS EH-1" STATION="OS EH-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="Block 13-7">close</IOSPEC>
+            <IOSPEC DECADDR="1306" JMRIPREFIX="M2S" USER_NAME="BS EH-1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1306" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1902,7 +1902,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="EH-1" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS EH-1" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -1924,26 +1924,26 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 119">throw</IOSPEC>
+              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 9">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 119">throw</IOSPEC>
+              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 9">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 119">close</IOSPEC>
+              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 9">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 119">close</IOSPEC>
+              <IOSPEC DECADDR="1310" JMRIPREFIX="M2T" USER_NAME="Switch 9">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 119" STATION="119" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 9" STATION="119" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1307" JMRIPREFIX="M2S" USER_NAME="Block 13-8">close</IOSPEC>
+            <IOSPEC DECADDR="1307" JMRIPREFIX="M2S" USER_NAME="BS Switch 9">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1307" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1972,26 +1972,26 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 118">throw</IOSPEC>
+              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 11">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 118">throw</IOSPEC>
+              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 11">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 118">close</IOSPEC>
+              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 11">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 118">close</IOSPEC>
+              <IOSPEC DECADDR="1309" JMRIPREFIX="M2T" USER_NAME="Switch 11">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 118" STATION="118" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 11" STATION="118" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S" USER_NAME="Block 13-2">close</IOSPEC>
+            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S" USER_NAME="BS Switch 11">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1301" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2017,9 +2017,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 104" STATION="104" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 17" STATION="104" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="302" JMRIPREFIX="M2S" USER_NAME="Block 3-3">close</IOSPEC>
+            <IOSPEC DECADDR="302" JMRIPREFIX="M2S" USER_NAME="BS Switch 17">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="302" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2042,18 +2042,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 104">throw</IOSPEC>
+              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 17">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 104">throw</IOSPEC>
+              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 17">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 104">close</IOSPEC>
+              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 17">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 104">close</IOSPEC>
+              <IOSPEC DECADDR="309" JMRIPREFIX="M2T" USER_NAME="Switch 17">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -2065,9 +2065,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="S-2" STATION="S-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS S-1" STATION="OS S-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="206" JMRIPREFIX="M2S" USER_NAME="Block 2-7">close</IOSPEC>
+            <IOSPEC DECADDR="206" JMRIPREFIX="M2S" USER_NAME="BS S-1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="206" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2100,7 +2100,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="S-2" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS S-1" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -2143,26 +2143,26 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">close</IOSPEC>
+              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 29">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">close</IOSPEC>
+              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 29">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">throw</IOSPEC>
+              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 29">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 109">throw</IOSPEC>
+              <IOSPEC DECADDR="1210" JMRIPREFIX="M2T" USER_NAME="Switch 29">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 109" STATION="109" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 29" STATION="109" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1204" JMRIPREFIX="M2S" USER_NAME="Block 12-5">close</IOSPEC>
+            <IOSPEC DECADDR="1204" JMRIPREFIX="M2S" USER_NAME="BS Switch 29">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1204" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2198,7 +2198,7 @@
       <SEC_EDGE EDGE="LEFT">
         <BLOCK />
         <SECSIGNAL>
-          112R
+          Mast 34R
           <PANELSIGNAL SIGLOCATION="LEFTLOW" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
           <PHYSIGNAL>double</PHYSIGNAL>
         </SECSIGNAL>
@@ -2219,7 +2219,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          114LA
+          Mast 38LA
           <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -2231,9 +2231,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="K-2" STATION="K-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS K-2" STATION="OS K-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="Block 1-3">close</IOSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="BS Switch 37 / BS K-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2248,7 +2248,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="K-2" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS K-2" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="59" Y="8">
       <TRACKGROUP>
@@ -2263,9 +2263,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 101" STATION="101" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 3" STATION="101" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="400" JMRIPREFIX="M2S" USER_NAME="Block 4-1">close</IOSPEC>
+            <IOSPEC DECADDR="400" JMRIPREFIX="M2S" USER_NAME="BS Switch 3">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="400" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2284,18 +2284,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC>
+              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 3">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">throw</IOSPEC>
+              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 3">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC>
+              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 3">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 101">close</IOSPEC>
+              <IOSPEC DECADDR="409" JMRIPREFIX="M2T" USER_NAME="Switch 3">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -2308,7 +2308,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          101RB
+          Mast 4RB
           <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -2320,9 +2320,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="W-2" STATION="W-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS W-2" STATION="OS W-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="BS W-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="402" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2337,7 +2337,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="W-2" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS W-2" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="9" Y="9">
       <TRACKGROUP>
@@ -2345,9 +2345,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="W-2" STATION="W-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS W-2" STATION="OS W-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="Block 4-3">close</IOSPEC>
+            <IOSPEC DECADDR="402" JMRIPREFIX="M2S" USER_NAME="BS W-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="402" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2374,9 +2374,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="EH-2" STATION="EH-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS EH-2" STATION="OS EH-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="Block 13-6">close</IOSPEC>
+            <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="BS EH-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1305" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2389,7 +2389,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="EH-2" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS EH-2" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -2406,9 +2406,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="EH-2" STATION="EH-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS EH-2" STATION="OS EH-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="Block 13-6">close</IOSPEC>
+            <IOSPEC DECADDR="1305" JMRIPREFIX="M2S" USER_NAME="BS EH-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1305" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2429,9 +2429,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="EH-3" STATION="EH-3" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS EH-3" STATION="OS EH-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="Block 13-5">close</IOSPEC>
+            <IOSPEC DECADDR="1304" JMRIPREFIX="M2S" USER_NAME="BS EH-3">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1304" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2445,9 +2445,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 105" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 19" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="304" JMRIPREFIX="M2S" USER_NAME="Block 3-5">close</IOSPEC>
+            <IOSPEC DECADDR="304" JMRIPREFIX="M2S" USER_NAME="BS Switch 19">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="304" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2470,18 +2470,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 105">throw</IOSPEC>
+              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 19">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 105">throw</IOSPEC>
+              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 19">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 105">close</IOSPEC>
+              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 19">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 105">close</IOSPEC>
+              <IOSPEC DECADDR="310" JMRIPREFIX="M2T" USER_NAME="Switch 19">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -2493,9 +2493,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="S-3" STATION="S-3" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS S-2" STATION="OS S-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="205" JMRIPREFIX="M2S" USER_NAME="Block 2-6">close</IOSPEC>
+            <IOSPEC DECADDR="205" JMRIPREFIX="M2S" USER_NAME="BS S-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="205" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2521,7 +2521,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="S-3" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS S-2" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -2557,26 +2557,26 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">close</IOSPEC>
+              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 27">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">close</IOSPEC>
+              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 27">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">throw</IOSPEC>
+              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 27">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 108">throw</IOSPEC>
+              <IOSPEC DECADDR="1209" JMRIPREFIX="M2T" USER_NAME="Switch 27">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 108" STATION="108" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 27" STATION="108" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1202" JMRIPREFIX="M2S" USER_NAME="Block 12-3">close</IOSPEC>
+            <IOSPEC DECADDR="1202" JMRIPREFIX="M2S" USER_NAME="BS Switch 27">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1202" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2624,7 +2624,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK />
         <SECSIGNAL>
-          101RA
+          Mast 4RA
           <PANELSIGNAL SIGLOCATION="UPLEFT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
           <PHYSIGNAL>single</PHYSIGNAL>
         </SECSIGNAL>
@@ -2636,9 +2636,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="W-1" STATION="W-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS W-1" STATION="OS W-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="BS W-1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="403" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2653,7 +2653,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="W-1" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS W-1" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="9" Y="10">
       <TRACKGROUP>
@@ -2661,9 +2661,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="W-1" STATION="W-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS W-1" STATION="OS W-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="Block 4-4">close</IOSPEC>
+            <IOSPEC DECADDR="403" JMRIPREFIX="M2S" USER_NAME="BS W-1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="403" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2698,7 +2698,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="EH-3" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS EH-3" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -2729,9 +2729,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="OS 106" STATION="106" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 21" STATION="106" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="306" JMRIPREFIX="M2S" USER_NAME="Block 3-7">close</IOSPEC>
+            <IOSPEC DECADDR="306" JMRIPREFIX="M2S" USER_NAME="BS Switch 21">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="306" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2754,18 +2754,18 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="RIGHT">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 106">throw</IOSPEC>
+              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 21">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 106">throw</IOSPEC>
+              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 21">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 106">close</IOSPEC>
+              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 21">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 106">close</IOSPEC>
+              <IOSPEC DECADDR="311" JMRIPREFIX="M2T" USER_NAME="Switch 21">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
@@ -2777,9 +2777,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="S-4" STATION="S-4" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS S-3" STATION="OS S-3" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="204" JMRIPREFIX="M2S" USER_NAME="Block 2-5">close</IOSPEC>
+            <IOSPEC DECADDR="204" JMRIPREFIX="M2S" USER_NAME="BS S-3">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="204" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2798,7 +2798,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="S-4" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS S-3" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -2827,26 +2827,26 @@
         <SWITCHPOINTS>
           <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">close</IOSPEC>
+              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 25">close</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">close</IOSPEC>
+              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 25">close</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
           <ROUTEINFO ROUTEID="LEFT">
             <SELECTEDREPORT>
-              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">throw</IOSPEC>
+              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 25">throw</IOSPEC>
             </SELECTEDREPORT>
             <ROUTECOMMAND>
-              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 107">throw</IOSPEC>
+              <IOSPEC DECADDR="1208" JMRIPREFIX="M2T" USER_NAME="Switch 25">throw</IOSPEC>
             </ROUTECOMMAND>
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS 107" STATION="107" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS 25" STATION="107" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1200" JMRIPREFIX="M2S" USER_NAME="Block 12-1">close</IOSPEC>
+            <IOSPEC DECADDR="1200" JMRIPREFIX="M2S" USER_NAME="BS Switch 25">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="1200" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2900,9 +2900,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="S-5" STATION="S-5" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS S-4" STATION="OS S-4" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="203" JMRIPREFIX="M2S" USER_NAME="Block 2-4">close</IOSPEC>
+            <IOSPEC DECADDR="203" JMRIPREFIX="M2S" USER_NAME="BS S-4">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="203" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2928,7 +2928,7 @@
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="S-5" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS S-4" FONT_NAME="FONT_LABEL" />
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
@@ -2952,9 +2952,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP">
-        <BLOCK NAME="S-5" STATION="S-5" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="OS S-4" STATION="OS S-4" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="203" JMRIPREFIX="M2S" USER_NAME="Block 2-4">close</IOSPEC>
+            <IOSPEC DECADDR="203" JMRIPREFIX="M2S" USER_NAME="BS S-4">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="203" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -3087,7 +3087,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="Main East" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="OS Main East" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="37" Y="12">
       <TRACKGROUP>

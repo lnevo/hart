@@ -150,6 +150,40 @@ class ApplyPublicNamesTest(unittest.TestCase):
             self.assertIn("<userName>Mast 2L</userName>", out)
             self.assertIn("<userName>NX Mast 2L</userName>", out)
 
+    def test_dispatcher_os_prefix_and_south_yard_cascade(self):
+        renames = apply_public_names.load_rename_map(MAP)
+        text = "MoveToBarn_stored MoveToS-1_stored MoveToS-2_stored MoveToS-5_stored"
+        updated, _counts = apply_public_names.apply_renames_to_text(text, renames)
+        self.assertIn("MoveToOS_Barn_stored", updated)
+        self.assertIn("MoveToOS_S-R_stored", updated)
+        self.assertIn("MoveToOS_S-1_stored", updated)
+        self.assertIn("MoveToOS_S-4_stored", updated)
+        self.assertNotIn("MoveToBarn_stored", updated)
+        self.assertNotIn("MoveToS-5_stored", updated)
+
+    def test_already_os_prefixed_names_are_not_double_prefixed(self):
+        renames = apply_public_names.load_rename_map(MAP)
+        text = "OS McKeesport and OS S-1 and OS Barn and OS S-R"
+        updated, _counts = apply_public_names.apply_renames_to_text(text, renames)
+        self.assertEqual(text, updated)
+
+    def test_occupancy_refs_follow_bs_usernames(self):
+        mapping = apply_public_names.load_sensor_username_map(MAP)
+        xml = (
+            "<block><occupancysensor>Block 13-1</occupancysensor></block>"
+            '<layoutblock occupancysensor="Block 2-1"/>'
+            '<sensoricon sensor="Block 13-1"/>'
+            '<IOSPEC USER_NAME="Block 13-1"/>'
+            "<comment>occupancy Block 13-1 / M2S1300; stop</comment>"
+        )
+        updated, hits = apply_public_names.apply_occupancy_refs_to_text(xml, mapping)
+        self.assertGreater(hits, 0)
+        self.assertIn("<occupancysensor>BS Barn</occupancysensor>", updated)
+        self.assertIn('occupancysensor="BS Main West"', updated)
+        self.assertIn('sensor="BS Barn"', updated)
+        self.assertIn('USER_NAME="BS Barn"', updated)
+        self.assertIn("occupancy Block 13-1 / M2S1300; stop", updated)
+
 
 if __name__ == "__main__":
     unittest.main()

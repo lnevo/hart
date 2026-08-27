@@ -7,7 +7,8 @@ Renames userName text and XML fields that store public names (blocks, masts,
 heads, turnouts, CTC SIDI/TRL, SML pairs, LayoutEditor bindings). Never touches
 systemName values (including ISNX:*), MQTT ids, or CTC IS* internals.
 Occupancy Block n-n and FB Switch n-n userNames are separate layers and are
-not whole-file replaced (comments keep Block n-n).
+not whole-file replaced (comments keep Block n-n). occupancysensor fields and
+LE occupancy icons (sensor="Block n-n") follow the occupancy layer.
 """
 
 from __future__ import annotations
@@ -56,6 +57,47 @@ OPTIONAL_MISSING = frozenset(
     }
 )
 
+def _dispatcher_os_sensor_renames() -> tuple[tuple[str, str], ...]:
+    """MoveTo / MoveInProgress follow station.replace(" ","_") including OS_.
+
+    Word-boundary plate replace cannot rewrite MoveToBarn (Barn is inside the
+    identifier). S-yard cascade matches the plate map: S-1→S-R … S-5→S-4.
+    """
+    simple = (
+        "Barn",
+        "Brick-Plane",
+        "EH-1",
+        "EH-2",
+        "EH-3",
+        "East_Lead",
+        "East_Main_Ext",
+        "K-1",
+        "K-2",
+        "Main_East",
+        "Main_West",
+        "McKees_Rocks",
+        "McKeesport",
+        "Scale",
+        "W-1",
+        "W-2",
+        "West_Main_Ext",
+    )
+    pairs: list[tuple[str, str]] = []
+    for key in simple:
+        pairs.append((f"MoveTo{key}_stored", f"MoveToOS_{key}_stored"))
+        pairs.append((f"MoveInProgress{key}", f"MoveInProgressOS_{key}"))
+    for old, new in (
+        ("S-1", "OS_S-R"),
+        ("S-2", "OS_S-1"),
+        ("S-3", "OS_S-2"),
+        ("S-4", "OS_S-3"),
+        ("S-5", "OS_S-4"),
+    ):
+        pairs.append((f"MoveTo{old}_stored", f"MoveTo{new}_stored"))
+        pairs.append((f"MoveInProgress{old}", f"MoveInProgress{new}"))
+    return tuple(pairs)
+
+
 # Dispatcher MoveTo / MoveInProgress userNames are station.replace(" ","_").
 # Plate names (W-1, EH-1) keep the hyphen; spaces become underscores.
 DISPATCHER_SENSOR_RENAMES = (
@@ -71,7 +113,7 @@ DISPATCHER_SENSOR_RENAMES = (
     ("MoveInProgressEngine_House_2", "MoveInProgressEH-2"),
     ("MoveToEngine_House_3_stored", "MoveToEH-3_stored"),
     ("MoveInProgressEngine_House_3", "MoveInProgressEH-3"),
-)
+) + _dispatcher_os_sensor_renames()
 
 PUBLIC_NAME_ATTRS = frozenset(
     {
@@ -195,7 +237,9 @@ def _replace_in_string(text: str, renames: list[RenameEntry], counts: Counter[tu
     for index, entry in enumerate(renames):
         token = f"__HART_RN_{index}__"
         pattern = re.compile(
-            r"(?<![A-Za-z0-9])" + re.escape(entry.current) + r"(?![A-Za-z0-9])"
+            r"(?<![A-Za-z0-9])(?<!OS )"
+            + re.escape(entry.current)
+            + r"(?![A-Za-z0-9])"
         )
         work, n = pattern.subn(token, work)
         if n:
@@ -316,6 +360,63 @@ def apply_sensor_usernames_to_text(
     return updated, hits
 
 
+def apply_occupancy_refs_to_text(
+    content: str, mapping: dict[str, str]
+) -> tuple[str, int]:
+    """Point occupancysensor / occupancy icons at BS userNames.
+
+    Comments keep Block n-n; only JMRI lookup fields are rewritten.
+    """
+    occ = {
+        current: proposed
+        for current, proposed in mapping.items()
+        if SENSOR_BLOCK_USERNAME_RE.fullmatch(current)
+    }
+    if not occ:
+        return content, 0
+    hits = 0
+
+    def repl_tag(match: re.Match[str]) -> str:
+        nonlocal hits
+        new = occ.get(match.group(1))
+        if not new:
+            return match.group(0)
+        hits += 1
+        return f"<occupancysensor>{new}</occupancysensor>"
+
+    def repl_occ_attr(match: re.Match[str]) -> str:
+        nonlocal hits
+        new = occ.get(match.group(1))
+        if not new:
+            return match.group(0)
+        hits += 1
+        return f'occupancysensor="{new}"'
+
+    def repl_sensor_attr(match: re.Match[str]) -> str:
+        nonlocal hits
+        new = occ.get(match.group(1))
+        if not new:
+            return match.group(0)
+        hits += 1
+        return f'sensor="{new}"'
+
+    def repl_user_name_attr(match: re.Match[str]) -> str:
+        nonlocal hits
+        new = occ.get(match.group(1))
+        if not new:
+            return match.group(0)
+        hits += 1
+        return f'USER_NAME="{new}"'
+
+    updated = re.sub(
+        r"<occupancysensor>([^<]*)</occupancysensor>", repl_tag, content
+    )
+    updated = re.sub(r'occupancysensor="([^"]*)"', repl_occ_attr, updated)
+    updated = re.sub(r'sensor="(Block \d+-\d+)"', repl_sensor_attr, updated)
+    updated = re.sub(r'USER_NAME="(Block \d+-\d+)"', repl_user_name_attr, updated)
+    return updated, hits
+
+
 def apply_renames_to_xml_file(
     xml_path: Path | str,
     renames: list[RenameEntry],
@@ -332,6 +433,9 @@ def apply_renames_to_xml_file(
         updated, sensor_n = apply_sensor_usernames_to_text(updated, sensor_usernames)
         if sensor_n:
             counts[("(sensor userName)", f"{sensor_n} occupancy/fb")] += sensor_n
+        updated, occ_n = apply_occupancy_refs_to_text(updated, sensor_usernames)
+        if occ_n:
+            counts[("(occupancy refs)", f"{occ_n} Block n-n → BS")] += occ_n
     after_system_names = collect_system_names(ET.fromstring(updated))
     system_names_ok = before_system_names == after_system_names
 

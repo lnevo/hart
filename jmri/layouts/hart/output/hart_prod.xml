@@ -993,7 +993,7 @@
       <userName>OS 13</userName>
       <comment>Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 3-1</occupancysensor>
+      <occupancysensor>BS Switch 13</occupancysensor>
       <path todir="128" fromdir="64" block="IB15">
         <beansetting setting="2">
           <turnout systemName="Switch 116" />
@@ -1011,7 +1011,7 @@
       <userName>OS Scale</userName>
       <comment>Plane diverging lead to OS Barn; occupancy Block 4-8 / M2S407; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-8</occupancysensor>
+      <occupancysensor>BS Scale</occupancysensor>
       <path todir="64" fromdir="128" block="IB8">
         <beansetting setting="2">
           <turnout systemName="Switch 117" />
@@ -1028,7 +1028,7 @@
       <userName>OS 7b</userName>
       <comment>OS Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-4</occupancysensor>
+      <occupancysensor>BS Switch 7b</occupancysensor>
       <path todir="80" fromdir="160" block="IB8">
         <beansetting setting="4">
           <turnout systemName="Switch 117" />
@@ -1046,7 +1046,7 @@
       <userName>OS 7</userName>
       <comment>OS Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-3</occupancysensor>
+      <occupancysensor>BS Switch 7</occupancysensor>
       <path todir="128" fromdir="64" block="IB3">
         <beansetting setting="2">
           <turnout systemName="Switch 117" />
@@ -1064,7 +1064,7 @@
       <userName>OS Barn</userName>
       <comment>Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-1</occupancysensor>
+      <occupancysensor>BS Barn</occupancysensor>
       <path todir="64" fromdir="128" block="IB1">
         <beansetting setting="2">
           <turnout systemName="Switch 116" />
@@ -1077,7 +1077,7 @@
       <userName>OS 9</userName>
       <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-8</occupancysensor>
+      <occupancysensor>BS Switch 9</occupancysensor>
       <path todir="80" fromdir="160" block="IB19">
         <beansetting setting="4">
           <turnout systemName="Switch 118" />
@@ -1099,7 +1099,7 @@
       <userName>OS 11</userName>
       <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-2</occupancysensor>
+      <occupancysensor>BS Switch 11</occupancysensor>
       <path todir="96" fromdir="144" block="IB1">
         <beansetting setting="4">
           <turnout systemName="Switch 116" />
@@ -1121,7 +1121,7 @@
       <userName>OS EH-1</userName>
       <comment>Top house track; occupancy Block 13-7 / M2S1306; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-7</occupancysensor>
+      <occupancysensor>BS EH-1</occupancysensor>
       <path todir="64" fromdir="128" block="IB19">
         <beansetting setting="2">
           <turnout systemName="Switch 118" />
@@ -1133,7 +1133,7 @@
       <userName>OS EH-2</userName>
       <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-6</occupancysensor>
+      <occupancysensor>BS EH-2</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
         <beansetting setting="4">
           <turnout systemName="Switch 119" />
@@ -1145,7 +1145,7 @@
       <userName>OS EH-3</userName>
       <comment>Bottom house track; occupancy Block 13-5 / M2S1304; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 13-5</occupancysensor>
+      <occupancysensor>BS EH-3</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
         <beansetting setting="2">
           <turnout systemName="Switch 119" />
@@ -1157,7 +1157,7 @@
       <userName>OS Main East</userName>
       <comment>Main east of East End; occupancy Block 2-3 / M2S202; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 2-3</occupancysensor>
+      <occupancysensor>BS Main East</occupancysensor>
       <path todir="128" fromdir="64" block="IB6">
         <beansetting setting="2">
           <turnout systemName="Switch 117" />
@@ -1174,7 +1174,7 @@
       <userName>OS Main West</userName>
       <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 2-1</occupancysensor>
+      <occupancysensor>BS Main West</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0033" />
       <path todir="128" fromdir="64" block="IB:AUTO:0034" />
     </block>
@@ -1183,7 +1183,7 @@
       <userName>OS Brick-Plane</userName>
       <comment>OS Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-6</occupancysensor>
+      <occupancysensor>BS Brick-Plane</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0031" />
       <path todir="80" fromdir="160" block="IB:AUTO:0033">
         <beansetting setting="4">
@@ -1196,7 +1196,7 @@
       <userName>OS S-4</userName>
       <comment>South Yard body; occupancy Block 2-4 / M2S203; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 2-4</occupancysensor>
+      <occupancysensor>BS S-4</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0036">
         <beansetting setting="2">
           <turnout systemName="M2T1208" />
@@ -1213,7 +1213,7 @@
       <userName>OS S-3</userName>
       <comment>South Yard body; occupancy Block 2-5 / M2S204; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 2-5</occupancysensor>
+      <occupancysensor>BS S-3</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0036">
         <beansetting setting="4">
           <turnout systemName="M2T1208" />
@@ -1230,7 +1230,7 @@
       <userName>OS McKees Rocks</userName>
       <comment>Princess balloon, OS McKees Rocks; occupancy Block 1-1 / M2S100; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-1</occupancysensor>
+      <occupancysensor>BS McKees Rocks</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0040">
         <beansetting setting="4">
           <turnout systemName="M2T110" />
@@ -1243,7 +1243,7 @@
       <userName>OS S-R</userName>
       <comment>Run-through east of 103; occupancy Block 2-8 / M2S207; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 2-8</occupancysensor>
+      <occupancysensor>BS S-R</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0039">
         <beansetting setting="2">
           <turnout systemName="Switch 111" />
@@ -1260,7 +1260,7 @@
       <userName>OS S-1</userName>
       <comment>South Yard body; occupancy Block 2-7 / M2S206; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 2-7</occupancysensor>
+      <occupancysensor>BS S-1</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0043">
         <beansetting setting="4">
           <turnout systemName="M2T1210" />
@@ -1277,7 +1277,7 @@
       <userName>OS East Lead</userName>
       <comment>South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-7</occupancysensor>
+      <occupancysensor>BS East Lead</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0030" />
       <path todir="64" fromdir="128" block="IB:AUTO:0046" />
     </block>
@@ -1286,7 +1286,7 @@
       <userName>OS W-1</userName>
       <comment>Brick yard OS W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-4</occupancysensor>
+      <occupancysensor>BS W-1</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0035">
         <beansetting setting="2">
           <turnout systemName="M2T409" />
@@ -1298,7 +1298,7 @@
       <userName>OS W-2</userName>
       <comment>Brick yard OS W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-3</occupancysensor>
+      <occupancysensor>BS W-2</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0035">
         <beansetting setting="4">
           <turnout systemName="M2T409" />
@@ -1310,7 +1310,7 @@
       <userName>OS S-2</userName>
       <comment>South Yard body; occupancy Block 2-6 / M2S205; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 2-6</occupancysensor>
+      <occupancysensor>BS S-2</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0037">
         <beansetting setting="4">
           <turnout systemName="M2T1209" />
@@ -1327,7 +1327,7 @@
       <userName>OS 33</userName>
       <comment>East End, Switch 33; occupancy Block 12-8 / M2S1207</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 12-8</occupancysensor>
+      <occupancysensor>BS Switch 33</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0001">
         <beansetting setting="4">
           <turnout systemName="M2T1213" />
@@ -1345,7 +1345,7 @@
       <userName>OS 5</userName>
       <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-5</occupancysensor>
+      <occupancysensor>BS Switch 5</occupancysensor>
       <path todir="64" fromdir="128" block="IB3">
         <beansetting setting="4">
           <turnout systemName="M2T410" />
@@ -1363,7 +1363,7 @@
       <userName>OS 37</userName>
       <comment>Princess, Switch 37 (same detector as OS K-2); occupancy Block 1-3 / M2S102</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-3</occupancysensor>
+      <occupancysensor>BS Switch 37 / BS K-2</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0046" />
       <path todir="96" fromdir="144" block="IB:AUTO:0048">
         <beansetting setting="4">
@@ -1376,7 +1376,7 @@
       <userName>OS 1</userName>
       <comment>Brick CP, Switch 1; occupancy Block 4-2 / M2S401</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-2</occupancysensor>
+      <occupancysensor>BS Switch 1</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0003" />
       <path todir="160" fromdir="80" block="IB:AUTO:0005">
         <beansetting setting="4">
@@ -1394,7 +1394,7 @@
       <userName>OS 23a</userName>
       <comment>East End crossover 111 north/west leg; occupancy Block 12-4 / M2S1203</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 12-4</occupancysensor>
+      <occupancysensor>BS Switch 23a</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0003" />
       <path todir="64" fromdir="128" block="IB:AUTO:0039">
         <beansetting setting="4">
@@ -1412,7 +1412,7 @@
       <userName>OS 3</userName>
       <comment>Brick CP, Switch 3; occupancy Block 4-1 / M2S400</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-1</occupancysensor>
+      <occupancysensor>BS Switch 3</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0020">
         <beansetting setting="2">
           <turnout systemName="M2T409" />
@@ -1430,7 +1430,7 @@
       <userName>OS 25</userName>
       <comment>East End, Switch 25; occupancy Block 12-1 / M2S1200</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 12-1</occupancysensor>
+      <occupancysensor>BS Switch 25</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0007">
         <beansetting setting="2">
           <turnout systemName="M2T1208" />
@@ -1452,7 +1452,7 @@
       <userName>OS 27</userName>
       <comment>East End, Switch 27; occupancy Block 12-3 / M2S1202</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 12-3</occupancysensor>
+      <occupancysensor>BS Switch 27</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0026">
         <beansetting setting="4">
           <turnout systemName="M2T1209" />
@@ -1474,7 +1474,7 @@
       <userName>OS 21</userName>
       <comment>South Yard, Switch 21; occupancy Block 3-7 / M2S306</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 3-7</occupancysensor>
+      <occupancysensor>BS Switch 21</occupancysensor>
       <path todir="96" fromdir="144" block="IB:AUTO:0007">
         <beansetting setting="2">
           <turnout systemName="M2T311" />
@@ -1492,7 +1492,7 @@
       <userName>OS 23b</userName>
       <comment>East End crossover 111 south/east leg; occupancy Block 12-6 / M2S1205</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 12-6</occupancysensor>
+      <occupancysensor>BS Switch 23b</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0012">
         <beansetting setting="2">
           <turnout systemName="Switch 111" />
@@ -1510,7 +1510,7 @@
       <userName>OS 39</userName>
       <comment>Princess, Switch 39 (same detector as OS K-1); occupancy Block 1-4 / M2S103</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-4</occupancysensor>
+      <occupancysensor>BS Switch 39 / BS K-1</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0010">
         <beansetting setting="4">
           <turnout systemName="M2T110" />
@@ -1523,7 +1523,7 @@
       <userName>OS 15</userName>
       <comment>South Yard, Switch 15; occupancy Block 3-2 / M2S301</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 3-2</occupancysensor>
+      <occupancysensor>BS Switch 15</occupancysensor>
       <path todir="128" fromdir="64" block="IB1" />
       <path todir="64" fromdir="128" block="IB:AUTO:0012">
         <beansetting setting="2">
@@ -1541,7 +1541,7 @@
       <userName>OS 31</userName>
       <comment>East End, Switch 31; occupancy Block 12-7 / M2S1206</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 12-7</occupancysensor>
+      <occupancysensor>BS Switch 31</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0030">
         <beansetting setting="2">
           <turnout systemName="M2T1213" />
@@ -1563,7 +1563,7 @@
       <userName>OS 29</userName>
       <comment>East End, Switch 29; occupancy Block 12-5 / M2S1204</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 12-5</occupancysensor>
+      <occupancysensor>BS Switch 29</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0016">
         <beansetting setting="4">
           <turnout systemName="M2T1210" />
@@ -1585,7 +1585,7 @@
       <userName>OS 17</userName>
       <comment>South Yard, Switch 17; occupancy Block 3-3 / M2S302</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 3-3</occupancysensor>
+      <occupancysensor>BS Switch 17</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0016">
         <beansetting setting="4">
           <turnout systemName="M2T309" />
@@ -1603,7 +1603,7 @@
       <userName>OS 19</userName>
       <comment>South Yard, Switch 19; occupancy Block 3-5 / M2S304</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 3-5</occupancysensor>
+      <occupancysensor>BS Switch 19</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0026">
         <beansetting setting="4">
           <turnout systemName="M2T310" />
@@ -1621,7 +1621,7 @@
       <userName>OS 35a</userName>
       <comment>Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-6</occupancysensor>
+      <occupancysensor>BS Switch 35a</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0017" />
       <path todir="64" fromdir="128" block="IB:AUTO:0032">
         <beansetting setting="2">
@@ -1639,7 +1639,7 @@
       <userName>OS 35b</userName>
       <comment>Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-5</occupancysensor>
+      <occupancysensor>BS Switch 35b</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0040" />
       <path todir="160" fromdir="80" block="IB:AUTO:0046">
         <beansetting setting="4">
@@ -1657,7 +1657,7 @@
       <userName>OS McKeesport</userName>
       <comment>Princess balloon, OS McKeesport; occupancy Block 1-2 / M2S101; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-2</occupancysensor>
+      <occupancysensor>BS McKeesport</occupancysensor>
       <path todir="16" fromdir="32" block="IB:AUTO:0010" />
       <path todir="144" fromdir="96" block="IB:AUTO:0032">
         <beansetting setting="4">
@@ -1670,7 +1670,7 @@
       <userName>OS West Main Ext</userName>
       <comment>OS Main West stub west of 111; occupancy Block 1-8 / M2S107; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 1-8</occupancysensor>
+      <occupancysensor>BS West Main Ext</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0034">
         <beansetting setting="2">
           <turnout systemName="Switch 111" />
@@ -1687,7 +1687,7 @@
       <userName>OS East Main Ext</userName>
       <comment>Main east of Plane toward OS Barn; occupancy Block 4-7 / M2S406; stop</comment>
       <permissive>no</permissive>
-      <occupancysensor>Block 4-7</occupancysensor>
+      <occupancysensor>BS East Main Ext</occupancysensor>
       <path todir="64" fromdir="128" block="IB6" />
       <path todir="128" fromdir="64" block="IB:AUTO:0031">
         <beansetting setting="2">
@@ -1705,189 +1705,189 @@
       <userName>OS K-2</userName>
       <comment>Princess stub east of Switch 37; shares Block 1-3 with OS 37; occupancy Block 1-3 / M2S102; stop</comment>
     </block>
-  <block systemName="IB:AUTO:0052" length="400.0" curve="0"><systemName>IB:AUTO:0052</systemName><userName>OS S-1 West</userName><comment>Hidden OS S-1 throat (same detector as OS S-1); occupancy Block 2-7; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-7</occupancysensor></block><block systemName="IB:AUTO:0053" length="400.0" curve="0"><systemName>IB:AUTO:0053</systemName><userName>OS S-1 East</userName><comment>Hidden OS S-1 throat (same detector as OS S-1); occupancy Block 2-7; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-7</occupancysensor></block><block systemName="IB:AUTO:0054" length="400.0" curve="0"><systemName>IB:AUTO:0054</systemName><userName>OS S-2 West</userName><comment>Hidden OS S-2 throat (same detector as OS S-2); occupancy Block 2-6; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-6</occupancysensor></block><block systemName="IB:AUTO:0055" length="400.0" curve="0"><systemName>IB:AUTO:0055</systemName><userName>OS S-2 East</userName><comment>Hidden OS S-2 throat (same detector as OS S-2); occupancy Block 2-6; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-6</occupancysensor></block><block systemName="IB:AUTO:0056" length="400.0" curve="0"><systemName>IB:AUTO:0056</systemName><userName>OS S-3 West</userName><comment>Hidden OS S-3 throat (same detector as OS S-3); occupancy Block 2-5; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-5</occupancysensor></block><block systemName="IB:AUTO:0057" length="400.0" curve="0"><systemName>IB:AUTO:0057</systemName><userName>OS S-3 East</userName><comment>Hidden OS S-3 throat (same detector as OS S-3); occupancy Block 2-5; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-5</occupancysensor></block><block systemName="IB:AUTO:0058" length="400.0" curve="0"><systemName>IB:AUTO:0058</systemName><userName>OS S-4 West</userName><comment>Hidden OS S-4 throat (same detector as OS S-4); occupancy Block 2-4; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-4</occupancysensor></block><block systemName="IB:AUTO:0059" length="400.0" curve="0"><systemName>IB:AUTO:0059</systemName><userName>OS S-4 East</userName><comment>Hidden OS S-4 throat (same detector as OS S-4); occupancy Block 2-4; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-4</occupancysensor></block><block systemName="IB:AUTO:0060" length="400.0" curve="0"><systemName>IB:AUTO:0060</systemName><userName>OS S-R East</userName><comment>Hidden OS S-R throat (same detector as OS S-R); occupancy Block 2-8; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-8</occupancysensor></block><block systemName="IB:AUTO:0061" length="400.0" curve="0"><systemName>IB:AUTO:0061</systemName><userName>OS S-R West</userName><comment>Hidden OS S-R throat (same detector as OS S-R); occupancy Block 2-8; not a station</comment><permissive>no</permissive><occupancysensor>Block 2-8</occupancysensor></block></blocks>
+  <block systemName="IB:AUTO:0052" length="400.0" curve="0"><systemName>IB:AUTO:0052</systemName><userName>OS S-1 West</userName><comment>Hidden OS S-1 throat (same detector as OS S-1); occupancy Block 2-7; not a station</comment><permissive>no</permissive><occupancysensor>BS S-1</occupancysensor></block><block systemName="IB:AUTO:0053" length="400.0" curve="0"><systemName>IB:AUTO:0053</systemName><userName>OS S-1 East</userName><comment>Hidden OS S-1 throat (same detector as OS S-1); occupancy Block 2-7; not a station</comment><permissive>no</permissive><occupancysensor>BS S-1</occupancysensor></block><block systemName="IB:AUTO:0054" length="400.0" curve="0"><systemName>IB:AUTO:0054</systemName><userName>OS S-2 West</userName><comment>Hidden OS S-2 throat (same detector as OS S-2); occupancy Block 2-6; not a station</comment><permissive>no</permissive><occupancysensor>BS S-2</occupancysensor></block><block systemName="IB:AUTO:0055" length="400.0" curve="0"><systemName>IB:AUTO:0055</systemName><userName>OS S-2 East</userName><comment>Hidden OS S-2 throat (same detector as OS S-2); occupancy Block 2-6; not a station</comment><permissive>no</permissive><occupancysensor>BS S-2</occupancysensor></block><block systemName="IB:AUTO:0056" length="400.0" curve="0"><systemName>IB:AUTO:0056</systemName><userName>OS S-3 West</userName><comment>Hidden OS S-3 throat (same detector as OS S-3); occupancy Block 2-5; not a station</comment><permissive>no</permissive><occupancysensor>BS S-3</occupancysensor></block><block systemName="IB:AUTO:0057" length="400.0" curve="0"><systemName>IB:AUTO:0057</systemName><userName>OS S-3 East</userName><comment>Hidden OS S-3 throat (same detector as OS S-3); occupancy Block 2-5; not a station</comment><permissive>no</permissive><occupancysensor>BS S-3</occupancysensor></block><block systemName="IB:AUTO:0058" length="400.0" curve="0"><systemName>IB:AUTO:0058</systemName><userName>OS S-4 West</userName><comment>Hidden OS S-4 throat (same detector as OS S-4); occupancy Block 2-4; not a station</comment><permissive>no</permissive><occupancysensor>BS S-4</occupancysensor></block><block systemName="IB:AUTO:0059" length="400.0" curve="0"><systemName>IB:AUTO:0059</systemName><userName>OS S-4 East</userName><comment>Hidden OS S-4 throat (same detector as OS S-4); occupancy Block 2-4; not a station</comment><permissive>no</permissive><occupancysensor>BS S-4</occupancysensor></block><block systemName="IB:AUTO:0060" length="400.0" curve="0"><systemName>IB:AUTO:0060</systemName><userName>OS S-R East</userName><comment>Hidden OS S-R throat (same detector as OS S-R); occupancy Block 2-8; not a station</comment><permissive>no</permissive><occupancysensor>BS S-R</occupancysensor></block><block systemName="IB:AUTO:0061" length="400.0" curve="0"><systemName>IB:AUTO:0061</systemName><userName>OS S-R West</userName><comment>Hidden OS S-R throat (same detector as OS S-R); occupancy Block 2-8; not a station</comment><permissive>no</permissive><occupancysensor>BS S-R</occupancysensor></block></blocks>
   <layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml" blockrouting="yes">
-    <layoutblock systemName="ILB1" occupancysensor="Block 2-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB1" occupancysensor="BS Main East" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1</systemName>
       <userName>OS Main East</userName>
     </layoutblock>
-    <layoutblock systemName="ILB3" occupancysensor="Block 2-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB3" occupancysensor="BS Main West" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB3</systemName>
       <userName>OS Main West</userName>
     </layoutblock>
-    <layoutblock systemName="ILB5" occupancysensor="Block 4-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB5" occupancysensor="BS Brick-Plane" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB5</systemName>
       <userName>OS Brick-Plane</userName>
     </layoutblock>
-    <layoutblock systemName="ILB7" occupancysensor="Block 2-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB7" occupancysensor="BS S-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB7</systemName>
       <userName>OS S-4</userName>
     </layoutblock>
-    <layoutblock systemName="ILB8" occupancysensor="Block 2-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB8" occupancysensor="BS S-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB8</systemName>
       <userName>OS S-3</userName>
     </layoutblock>
-    <layoutblock systemName="ILB10" occupancysensor="Block 1-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB10" occupancysensor="BS McKees Rocks" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB10</systemName>
       <userName>OS McKees Rocks</userName>
     </layoutblock>
-    <layoutblock systemName="ILB12" occupancysensor="Block 2-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB12" occupancysensor="BS S-R" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB12</systemName>
       <userName>OS S-R</userName>
     </layoutblock>
-    <layoutblock systemName="ILB16" occupancysensor="Block 2-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB16" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB16</systemName>
       <userName>OS S-1</userName>
     </layoutblock>
-    <layoutblock systemName="ILB17" occupancysensor="Block 1-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB17" occupancysensor="BS East Lead" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB17</systemName>
       <userName>OS East Lead</userName>
     </layoutblock>
-    <layoutblock systemName="ILB20" occupancysensor="Block 4-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB20" occupancysensor="BS W-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB20</systemName>
       <userName>OS W-1</userName>
     </layoutblock>
-    <layoutblock systemName="ILB22" occupancysensor="Block 4-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB22" occupancysensor="BS W-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB22</systemName>
       <userName>OS W-2</userName>
     </layoutblock>
-    <layoutblock systemName="ILB26" occupancysensor="Block 2-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB26" occupancysensor="BS S-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB26</systemName>
       <userName>OS S-2</userName>
     </layoutblock>
-    <layoutblock systemName="ILB30" occupancysensor="Block 12-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB30" occupancysensor="BS Switch 33" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB30</systemName>
       <userName>OS 33</userName>
     </layoutblock>
-    <layoutblock systemName="ILB31" occupancysensor="Block 4-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB31" occupancysensor="BS Switch 5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB31</systemName>
       <userName>OS 5</userName>
     </layoutblock>
-    <layoutblock systemName="ILB32" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB32" occupancysensor="BS Switch 37 / BS K-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB32</systemName>
       <userName>OS 37</userName>
     </layoutblock>
-    <layoutblock systemName="ILB33" occupancysensor="Block 4-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB33" occupancysensor="BS Switch 1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB33</systemName>
       <userName>OS 1</userName>
     </layoutblock>
-    <layoutblock systemName="ILB34" occupancysensor="Block 12-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB34" occupancysensor="BS Switch 23a" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB34</systemName>
       <userName>OS 23a</userName>
     </layoutblock>
-    <layoutblock systemName="ILB35" occupancysensor="Block 4-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB35" occupancysensor="BS Switch 3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB35</systemName>
       <userName>OS 3</userName>
     </layoutblock>
-    <layoutblock systemName="ILB36" occupancysensor="Block 12-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB36" occupancysensor="BS Switch 25" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB36</systemName>
       <userName>OS 25</userName>
     </layoutblock>
-    <layoutblock systemName="ILB37" occupancysensor="Block 12-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB37" occupancysensor="BS Switch 27" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB37</systemName>
       <userName>OS 27</userName>
     </layoutblock>
-    <layoutblock systemName="ILB38" occupancysensor="Block 3-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB38" occupancysensor="BS Switch 21" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB38</systemName>
       <userName>OS 21</userName>
     </layoutblock>
-    <layoutblock systemName="ILB39" occupancysensor="Block 12-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB39" occupancysensor="BS Switch 23b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB39</systemName>
       <userName>OS 23b</userName>
     </layoutblock>
-    <layoutblock systemName="ILB40" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB40" occupancysensor="BS Switch 39 / BS K-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB40</systemName>
       <userName>OS 39</userName>
     </layoutblock>
-    <layoutblock systemName="ILB41" occupancysensor="Block 3-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB41" occupancysensor="BS Switch 15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB41</systemName>
       <userName>OS 15</userName>
     </layoutblock>
-    <layoutblock systemName="ILB42" occupancysensor="Block 12-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB42" occupancysensor="BS Switch 31" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB42</systemName>
       <userName>OS 31</userName>
     </layoutblock>
-    <layoutblock systemName="ILB43" occupancysensor="Block 12-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB43" occupancysensor="BS Switch 29" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB43</systemName>
       <userName>OS 29</userName>
     </layoutblock>
-    <layoutblock systemName="ILB44" occupancysensor="Block 3-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB44" occupancysensor="BS Switch 17" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB44</systemName>
       <userName>OS 17</userName>
     </layoutblock>
-    <layoutblock systemName="ILB45" occupancysensor="Block 3-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB45" occupancysensor="BS Switch 19" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB45</systemName>
       <userName>OS 19</userName>
     </layoutblock>
-    <layoutblock systemName="ILB46" occupancysensor="Block 1-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB46" occupancysensor="BS Switch 35a" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB46</systemName>
       <userName>OS 35a</userName>
     </layoutblock>
-    <layoutblock systemName="ILB47" occupancysensor="Block 1-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB47" occupancysensor="BS Switch 35b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB47</systemName>
       <userName>OS 35b</userName>
     </layoutblock>
-    <layoutblock systemName="ILB48" occupancysensor="Block 3-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB48" occupancysensor="BS Switch 13" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB48</systemName>
       <userName>OS 13</userName>
     </layoutblock>
-    <layoutblock systemName="ILB50" occupancysensor="Block 4-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB50" occupancysensor="BS Scale" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB50</systemName>
       <userName>OS Scale</userName>
     </layoutblock>
-    <layoutblock systemName="ILB53" occupancysensor="Block 13-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB53" occupancysensor="BS Switch 7b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB53</systemName>
       <userName>OS 7b</userName>
     </layoutblock>
-    <layoutblock systemName="ILB55" occupancysensor="Block 13-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB55" occupancysensor="BS Switch 7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB55</systemName>
       <userName>OS 7</userName>
     </layoutblock>
-    <layoutblock systemName="ILB62" occupancysensor="Block 13-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB62" occupancysensor="BS Barn" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB62</systemName>
       <userName>OS Barn</userName>
     </layoutblock>
-    <layoutblock systemName="ILB65" occupancysensor="Block 13-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB65" occupancysensor="BS Switch 9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB65</systemName>
       <userName>OS 9</userName>
     </layoutblock>
-    <layoutblock systemName="ILB66" occupancysensor="Block 13-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB66" occupancysensor="BS Switch 11" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB66</systemName>
       <userName>OS 11</userName>
     </layoutblock>
-    <layoutblock systemName="ILB67" occupancysensor="Block 13-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB67" occupancysensor="BS EH-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB67</systemName>
       <userName>OS EH-1</userName>
     </layoutblock>
-    <layoutblock systemName="ILB68" occupancysensor="Block 13-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB68" occupancysensor="BS EH-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB68</systemName>
       <userName>OS EH-2</userName>
     </layoutblock>
-    <layoutblock systemName="ILB69" occupancysensor="Block 13-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB69" occupancysensor="BS EH-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB69</systemName>
       <userName>OS EH-3</userName>
     </layoutblock>
-    <layoutblock systemName="ILB72" occupancysensor="Block 1-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB72" occupancysensor="BS McKeesport" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB72</systemName>
       <userName>OS McKeesport</userName>
     </layoutblock>
-    <layoutblock systemName="ILB74" occupancysensor="Block 1-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB74" occupancysensor="BS West Main Ext" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB74</systemName>
       <userName>OS West Main Ext</userName>
     </layoutblock>
-    <layoutblock systemName="ILB75" occupancysensor="Block 4-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB75" occupancysensor="BS East Main Ext" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB75</systemName>
       <userName>OS East Main Ext</userName>
     </layoutblock>
-    <layoutblock systemName="ILB76" occupancysensor="Block 1-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB76" occupancysensor="BS Switch 39 / BS K-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB76</systemName>
       <userName>OS K-1</userName>
     </layoutblock>
-    <layoutblock systemName="ILB77" occupancysensor="Block 1-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB77" occupancysensor="BS Switch 37 / BS K-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB77</systemName>
       <userName>OS K-2</userName>
     </layoutblock>
-  <layoutblock systemName="ILB78" occupancysensor="Block 2-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB78</systemName><userName>OS S-1 West</userName></layoutblock><layoutblock systemName="ILB79" occupancysensor="Block 2-7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB79</systemName><userName>OS S-1 East</userName></layoutblock><layoutblock systemName="ILB80" occupancysensor="Block 2-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB80</systemName><userName>OS S-2 West</userName></layoutblock><layoutblock systemName="ILB81" occupancysensor="Block 2-6" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB81</systemName><userName>OS S-2 East</userName></layoutblock><layoutblock systemName="ILB82" occupancysensor="Block 2-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB82</systemName><userName>OS S-3 West</userName></layoutblock><layoutblock systemName="ILB83" occupancysensor="Block 2-5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB83</systemName><userName>OS S-3 East</userName></layoutblock><layoutblock systemName="ILB84" occupancysensor="Block 2-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB84</systemName><userName>OS S-4 West</userName></layoutblock><layoutblock systemName="ILB85" occupancysensor="Block 2-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB85</systemName><userName>OS S-4 East</userName></layoutblock><layoutblock systemName="ILB86" occupancysensor="Block 2-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB86</systemName><userName>OS S-R East</userName></layoutblock><layoutblock systemName="ILB87" occupancysensor="Block 2-8" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB87</systemName><userName>OS S-R West</userName></layoutblock></layoutblocks>
+  <layoutblock systemName="ILB78" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB78</systemName><userName>OS S-1 West</userName></layoutblock><layoutblock systemName="ILB79" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB79</systemName><userName>OS S-1 East</userName></layoutblock><layoutblock systemName="ILB80" occupancysensor="BS S-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB80</systemName><userName>OS S-2 West</userName></layoutblock><layoutblock systemName="ILB81" occupancysensor="BS S-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB81</systemName><userName>OS S-2 East</userName></layoutblock><layoutblock systemName="ILB82" occupancysensor="BS S-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB82</systemName><userName>OS S-3 West</userName></layoutblock><layoutblock systemName="ILB83" occupancysensor="BS S-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB83</systemName><userName>OS S-3 East</userName></layoutblock><layoutblock systemName="ILB84" occupancysensor="BS S-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB84</systemName><userName>OS S-4 West</userName></layoutblock><layoutblock systemName="ILB85" occupancysensor="BS S-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB85</systemName><userName>OS S-4 East</userName></layoutblock><layoutblock systemName="ILB86" occupancysensor="BS S-R" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB86</systemName><userName>OS S-R East</userName></layoutblock><layoutblock systemName="ILB87" occupancysensor="BS S-R" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB87</systemName><userName>OS S-R West</userName></layoutblock></layoutblocks>
   <routes class="jmri.managers.configurexml.DefaultRouteManagerXml">
     <route userName="Switch 37 Closed">
       <systemName>IO:AUTO:0001</systemName>

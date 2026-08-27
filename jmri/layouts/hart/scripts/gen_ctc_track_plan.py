@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v74).
+"""Generate the USS CTC track diagram from CATS Master 4 (v75).
 
-20 packed columns. Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is
-LNR. Mast 2035 is named L but faces east (into the OS McKees Rocks wrap) under Mast 2036.
+20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
+101 is L/N, 102 is L/N, 117 is LNR. Mast 2035 is named L but faces east (into
+the OS McKees Rocks wrap) under Mast 2036.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v73_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v75_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
@@ -16,6 +17,7 @@ import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
+import csv
 
 ROOT = Path(__file__).resolve().parents[4]
 CATS_XML = ROOT / "cats/panels/HART_Master4_wired.xml"
@@ -28,6 +30,27 @@ NEW_TABLES = ROOT / "tables/new_tables.xml"
 SOURCE_TABLES = ROOT / "tables/tables.xml"
 THIN_DIR = ROOT / "jmri/layouts/hart/ctc/icons"
 JMRI_RES = Path("/Applications/JMRI/resources")
+NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+
+
+def _occupancy_user_names() -> dict[str, str]:
+    out: dict[str, str] = {}
+    with NAME_MAP.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            if (row.get("layer") or "").strip() != "occupancy":
+                continue
+            current = (row.get("current") or "").strip()
+            proposed = (row.get("proposed") or "").strip()
+            if current and proposed:
+                out[current] = proposed
+    return out
+
+
+OCC_USER = _occupancy_user_names()
+
+
+def _bs(block_nn: str) -> str:
+    return OCC_USER.get(block_nn, block_nn)
 
 U = "program:resources/icons/USS/"
 THIN = "preference:ctc/icons/"
@@ -142,8 +165,8 @@ SLOT_LOCK_UID = {
     15: 22, 16: 24, 17: 26, 18: 28, 19: 30,
 }
 
-# CATS has no occupancy edge on OS Main East; JMRI sensor is Block 2-3.
-FALLBACK_LABEL_SENSORS = {"OS Main East": ("Block 2-3", "OS Main East")}
+# CATS has no occupancy edge on OS Main East; JMRI sensor is BS Main East.
+FALLBACK_LABEL_SENSORS = {"OS Main East": ("BS Main East", "OS Main East")}
 
 # OS occupancy-cut sits at the frog; lamp goes left/right of the points.
 OS_FROG = {
@@ -226,6 +249,10 @@ COLUMNS = [
                 ("Block 1-6", "OS 35a (OS East Lead side)")]),
     (18, "37", [("Block 1-3", "OS 37")]),
     (19, "39", [("Block 1-4", "OS 39")]),
+]
+COLUMNS = [
+    (slot, plate, [(_bs(sensor), tip) for sensor, tip in sensors])
+    for slot, plate, sensors in COLUMNS
 ]
 
 STATION_NAMES = {"BRICK", "PLANE", "BARN", "EAST END", "PRINCESS"}
