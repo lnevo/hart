@@ -200,6 +200,22 @@ class ApplyPublicNamesTest(unittest.TestCase):
         self.assertIn("<sensor>BS McKees Rocks</sensor>", updated)
         self.assertIn("same FB as MQTT hardware (Switch 4-1)", updated)
 
+    def test_block_path_turnout_lookups_use_mqtt_system_names(self):
+        mapping = apply_public_names.load_turnout_hardware_map(MAP)
+        xml = (
+            '<beansetting><turnout systemName="Switch 116" /></beansetting>'
+            '<routeOutputTurnout systemName="Switch 114" state="CLOSED" />'
+            '<routeOutputTurnout systemName="M2T411" state="CLOSED" />'
+        )
+        updated, hits = apply_public_names.apply_turnout_systemname_lookups_to_text(
+            xml, mapping
+        )
+        self.assertGreater(hits, 0)
+        self.assertIn('systemName="M2T411"', updated)
+        self.assertIn('systemName="M2T109"', updated)
+        self.assertNotIn('systemName="Switch 116"', updated)
+        self.assertNotIn('systemName="Switch 114"', updated)
+
 
 if __name__ == "__main__":
     unittest.main()

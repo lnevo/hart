@@ -3391,12 +3391,12 @@
       <occupancysensor>BS Switch 13</occupancysensor>
       <path todir="128" fromdir="64" block="IB15">
         <beansetting setting="2">
-          <turnout systemName="Switch 116" />
+          <turnout systemName="M2T411" />
         </beansetting>
       </path>
       <path todir="144" fromdir="96" block="IB19">
         <beansetting setting="4">
-          <turnout systemName="Switch 116" />
+          <turnout systemName="M2T411" />
         </beansetting>
       </path>
       <path todir="64" fromdir="128" block="IB:AUTO:0041" />
@@ -3409,7 +3409,7 @@
       <occupancysensor>BS Scale</occupancysensor>
       <path todir="64" fromdir="128" block="IB8">
         <beansetting setting="2">
-          <turnout systemName="Switch 117" />
+          <turnout systemName="M2T1308" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB:AUTO:0031">
@@ -3426,12 +3426,12 @@
       <occupancysensor>BS Switch 7b</occupancysensor>
       <path todir="80" fromdir="160" block="IB8">
         <beansetting setting="4">
-          <turnout systemName="Switch 117" />
+          <turnout systemName="M2T1308" />
         </beansetting>
       </path>
       <path todir="64" fromdir="128" block="IB:AUTO:0001">
         <beansetting setting="2">
-          <turnout systemName="Switch 117" />
+          <turnout systemName="M2T1308" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB:AUTO:0051" />
@@ -3444,12 +3444,12 @@
       <occupancysensor>BS Switch 7</occupancysensor>
       <path todir="128" fromdir="64" block="IB3">
         <beansetting setting="2">
-          <turnout systemName="Switch 117" />
+          <turnout systemName="M2T1308" />
         </beansetting>
       </path>
       <path todir="160" fromdir="80" block="IB6">
         <beansetting setting="4">
-          <turnout systemName="Switch 117" />
+          <turnout systemName="M2T1308" />
         </beansetting>
       </path>
       <path todir="64" fromdir="128" block="IB15" />
@@ -3462,7 +3462,7 @@
       <occupancysensor>BS Barn</occupancysensor>
       <path todir="64" fromdir="128" block="IB1">
         <beansetting setting="2">
-          <turnout systemName="Switch 116" />
+          <turnout systemName="M2T411" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB8" />
@@ -3475,17 +3475,17 @@
       <occupancysensor>BS Switch 9</occupancysensor>
       <path todir="64" fromdir="128" block="IB19">
         <beansetting setting="4">
-          <turnout systemName="Switch 118" />
+          <turnout systemName="M2T1309" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB21">
         <beansetting setting="4">
-          <turnout systemName="Switch 119" />
+          <turnout systemName="M2T1310" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB22">
         <beansetting setting="2">
-          <turnout systemName="Switch 119" />
+          <turnout systemName="M2T1310" />
         </beansetting>
       </path>
     </block>
@@ -3497,17 +3497,17 @@
       <occupancysensor>BS Switch 11</occupancysensor>
       <path todir="96" fromdir="144" block="IB1">
         <beansetting setting="4">
-          <turnout systemName="Switch 116" />
+          <turnout systemName="M2T411" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB18">
         <beansetting setting="4">
-          <turnout systemName="Switch 118" />
+          <turnout systemName="M2T1309" />
         </beansetting>
       </path>
       <path todir="144" fromdir="96" block="IB20">
         <beansetting setting="2">
-          <turnout systemName="Switch 118" />
+          <turnout systemName="M2T1309" />
         </beansetting>
       </path>
     </block>
@@ -3519,7 +3519,7 @@
       <occupancysensor>BS EH-1</occupancysensor>
       <path todir="96" fromdir="144" block="IB19">
         <beansetting setting="2">
-          <turnout systemName="Switch 118" />
+          <turnout systemName="M2T1309" />
         </beansetting>
       </path>
     </block>
@@ -3531,7 +3531,7 @@
       <occupancysensor>BS EH-2</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
         <beansetting setting="4">
-          <turnout systemName="Switch 119" />
+          <turnout systemName="M2T1310" />
         </beansetting>
       </path>
     </block>
@@ -3543,7 +3543,7 @@
       <occupancysensor>BS EH-3</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
         <beansetting setting="2">
-          <turnout systemName="Switch 119" />
+          <turnout systemName="M2T1310" />
         </beansetting>
       </path>
     </block>
@@ -3579,7 +3579,7 @@
       <occupancysensor>BS Main East</occupancysensor>
       <path todir="128" fromdir="64" block="IB6">
         <beansetting setting="2">
-          <turnout systemName="Switch 117" />
+          <turnout systemName="M2T1308" />
         </beansetting>
       </path>
       <path todir="80" fromdir="160" block="IB:AUTO:0030">
@@ -3782,12 +3782,12 @@
       <path todir="64" fromdir="128" block="IB:AUTO:0003" />
       <path todir="64" fromdir="128" block="IB:AUTO:0039">
         <beansetting setting="4">
-          <turnout systemName="Switch 111" />
+          <turnout systemName="M2T1212" />
         </beansetting>
       </path>
       <path todir="64" fromdir="128" block="IB:AUTO:0050">
         <beansetting setting="2">
-          <turnout systemName="Switch 111" />
+          <turnout systemName="M2T1212" />
         </beansetting>
       </path>
     </block>
@@ -3879,13 +3879,13 @@
       <occupancysensor>BS Switch 23b</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0034">
         <beansetting setting="4">
-          <turnout systemName="Switch 111" />
+          <turnout systemName="M2T1212" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB:AUTO:0042" />
       <path todir="128" fromdir="64" block="IB:AUTO:0060">
         <beansetting setting="2">
-          <turnout systemName="Switch 111" />
+          <turnout systemName="M2T1212" />
         </beansetting>
       </path>
     </block>
@@ -4015,7 +4015,7 @@
       <path todir="64" fromdir="128" block="IB:AUTO:0032" />
       <path todir="80" fromdir="160" block="IB:AUTO:0047">
         <beansetting setting="4">
-          <turnout systemName="Switch 113" />
+          <turnout systemName="M2T108" />
         </beansetting>
       </path>
     </block>
@@ -4028,12 +4028,12 @@
       <path todir="64" fromdir="128" block="IB:AUTO:0040" />
       <path todir="160" fromdir="80" block="IB:AUTO:0046">
         <beansetting setting="4">
-          <turnout systemName="Switch 113" />
+          <turnout systemName="M2T108" />
         </beansetting>
       </path>
       <path todir="64" fromdir="128" block="IB:AUTO:0050">
         <beansetting setting="2">
-          <turnout systemName="Switch 113" />
+          <turnout systemName="M2T108" />
         </beansetting>
       </path>
     </block>
@@ -4058,12 +4058,12 @@
       <occupancysensor>BS West Main Ext</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0034">
         <beansetting setting="2">
-          <turnout systemName="Switch 111" />
+          <turnout systemName="M2T1212" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB:AUTO:0047">
         <beansetting setting="2">
-          <turnout systemName="Switch 113" />
+          <turnout systemName="M2T108" />
         </beansetting>
       </path>
     </block>
@@ -4193,7 +4193,7 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0012" />
       <path todir="64" fromdir="128" block="IB:AUTO:0039">
         <beansetting setting="2">
-          <turnout systemName="Switch 111" />
+          <turnout systemName="M2T1212" />
         </beansetting>
       </path>
     </block>
@@ -13548,28 +13548,28 @@
       <systemName>IO:AUTO:0001</systemName>
       <userName>Switch 37 Closed</userName>
       <comment>Route Switch 37 Closed</comment>
-      <routeOutputTurnout systemName="Switch 114" state="CLOSED" />
+      <routeOutputTurnout systemName="M2T109" state="CLOSED" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onInactive" />
     </route>
     <route userName="Switch 37 Thrown">
       <systemName>IO:AUTO:0002</systemName>
       <userName>Switch 37 Thrown</userName>
       <comment>Route Switch 37 Thrown</comment>
-      <routeOutputTurnout systemName="Switch 114" state="THROWN" />
+      <routeOutputTurnout systemName="M2T109" state="THROWN" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onActive" />
     </route>
     <route userName="Switch 39 Closed">
       <systemName>IO:AUTO:0003</systemName>
       <userName>Switch 39 Closed</userName>
       <comment>Route Switch 39 Closed</comment>
-      <routeOutputTurnout systemName="Switch 115" state="CLOSED" />
+      <routeOutputTurnout systemName="M2T110" state="CLOSED" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onInactive" />
     </route>
     <route userName="Switch 39 Thrown">
       <systemName>IO:AUTO:0004</systemName>
       <userName>Switch 39 Thrown</userName>
       <comment>Route Switch 39 Thrown</comment>
-      <routeOutputTurnout systemName="Switch 115" state="THROWN" />
+      <routeOutputTurnout systemName="M2T110" state="THROWN" />
       <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onActive" />
     </route>
     <route userName="Left OS S-R ladder" controlTurnout="IT:HART:YL:L1" controlTurnoutState="THROWN">

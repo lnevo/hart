@@ -297,13 +297,24 @@ def apply_renames_to_tree(root: ET.Element, renames: list[RenameEntry]) -> Count
 
 
 def collect_system_names(root: ET.Element) -> list[str]:
+    """Bean systemNames only. Block-path / route lookups may store userNames."""
     names: list[str] = []
+    parent_map: dict[int, ET.Element] = {}
+    for parent in root.iter():
+        for child in list(parent):
+            parent_map[id(child)] = parent
     for elem in root.iter():
         if elem.tag == "systemName" and elem.text:
             names.append(elem.text)
         system_name_attr = elem.get("systemName")
-        if system_name_attr:
-            names.append(system_name_attr)
+        if not system_name_attr:
+            continue
+        parent = parent_map.get(id(elem))
+        if elem.tag == "routeOutputTurnout":
+            continue
+        if elem.tag == "turnout" and parent is not None and parent.tag == "beansetting":
+            continue
+        names.append(system_name_attr)
     return names
 
 
@@ -458,12 +469,54 @@ def apply_sensor_lookups_to_text(
     return updated, hits
 
 
+def load_turnout_hardware_map(csv_path: Path | str) -> dict[str, str]:
+    """Public Switch n → MQTT M2T* for block-path / route systemName lookups."""
+    path = Path(csv_path)
+    mapping: dict[str, str] = {}
+    with path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            if (row.get("layer") or "").strip() != "turnout":
+                continue
+            hardware = (row.get("hardware") or "").strip()
+            if not hardware:
+                continue
+            for key in ("current", "proposed"):
+                name = (row.get(key) or "").strip()
+                if name:
+                    mapping[name] = hardware
+    return mapping
+
+
+def apply_turnout_systemname_lookups_to_text(
+    content: str, mapping: dict[str, str]
+) -> tuple[str, int]:
+    """Rewrite beansetting/route systemName=\"Switch n\" to M2T*.
+
+    JMRI provideTurnout(Switch 116) invents OpenLCB MTSwitch 116.
+    """
+    if not mapping:
+        return content, 0
+    hits = 0
+
+    def repl(match: re.Match[str]) -> str:
+        nonlocal hits
+        new = mapping.get(match.group(1))
+        if not new:
+            return match.group(0)
+        hits += 1
+        return f'systemName="{new}"'
+
+    updated = re.sub(r'systemName="(Switch [^"]+)"', repl, content)
+    return updated, hits
+
+
 def apply_renames_to_xml_file(
     xml_path: Path | str,
     renames: list[RenameEntry],
     *,
     apply: bool = False,
     sensor_usernames: dict[str, str] | None = None,
+    turnout_hardware: dict[str, str] | None = None,
 ) -> tuple[Counter[tuple[str, str]], bool]:
     """Apply renames to one XML file. Returns replacement counts and systemName_ok."""
     path = Path(xml_path)
@@ -480,6 +533,12 @@ def apply_renames_to_xml_file(
         updated, lookup_n = apply_sensor_lookups_to_text(updated, sensor_usernames)
         if lookup_n:
             counts[("(sensor lookups)", f"{lookup_n} FB/SML/CTC")] += lookup_n
+    if turnout_hardware:
+        updated, to_n = apply_turnout_systemname_lookups_to_text(
+            updated, turnout_hardware
+        )
+        if to_n:
+            counts[("(turnout lookups)", f"{to_n} Switch n → M2T")] += to_n
     after_system_names = collect_system_names(ET.fromstring(updated))
     system_names_ok = before_system_names == after_system_names
 
@@ -495,13 +554,18 @@ def apply_public_names(
     *,
     apply: bool = False,
     sensor_usernames: dict[str, str] | None = None,
+    turnout_hardware: dict[str, str] | None = None,
 ) -> tuple[Counter[tuple[str, str]], list[str], bool]:
     """Apply renames after verifying all required current names exist in the file."""
     path = Path(xml_path)
     original = path.read_text(encoding="utf-8")
     missing = find_missing_current_names(original, renames)
     counts, system_names_ok = apply_renames_to_xml_file(
-        path, renames, apply=apply, sensor_usernames=sensor_usernames
+        path,
+        renames,
+        apply=apply,
+        sensor_usernames=sensor_usernames,
+        turnout_hardware=turnout_hardware,
     )
     return counts, missing, system_names_ok
 
@@ -558,6 +622,7 @@ def main(argv: list[str] | None = None) -> int:
 
     renames = load_rename_map(args.map)
     sensor_usernames = load_sensor_username_map(args.map)
+    turnout_hardware = load_turnout_hardware_map(args.map)
     targets = [args.tables, *args.also]
 
     all_counts: list[Counter[tuple[str, str]]] = []
@@ -573,6 +638,7 @@ def main(argv: list[str] | None = None) -> int:
             renames,
             apply=args.apply,
             sensor_usernames=sensor_usernames,
+            turnout_hardware=turnout_hardware,
         )
         all_counts.append(counts)
         missing_names.extend(missing)

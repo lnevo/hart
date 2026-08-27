@@ -313,6 +313,46 @@ def audit_turnout_feedback_sensors(root: ET.Element, audit: Audit, *, required: 
     audit.facts["turnout_feedback"] = tuple(sorted(missing or stale_old))
 
 
+def _manager_turnout_system_names(root: ET.Element) -> set[str]:
+    names: set[str] = set()
+    for manager in root.findall("turnouts"):
+        for turnout in manager.findall("turnout"):
+            sn = text(turnout, "systemName") or (turnout.get("systemName") or "").strip()
+            if sn:
+                names.add(sn)
+    return names
+
+
+def audit_turnout_systemname_lookups(
+    root: ET.Element, audit: Audit, *, required: bool
+) -> None:
+    """Block-path and route turnout lookups must be real MQTT/LCC systemNames.
+
+    Stale userNames (Switch 116) make OpenLCB invent MTSwitch 116.
+    """
+    problem = audit.error if required else audit.warn
+    real = _manager_turnout_system_names(root)
+    missing: list[str] = []
+    for setting in root.iter("beansetting"):
+        turnout = setting.find("turnout")
+        if turnout is None:
+            continue
+        sn = (turnout.get("systemName") or text(turnout, "systemName")).strip()
+        if sn and sn not in real:
+            missing.append(f"path {sn}")
+    for route_to in root.iter("routeOutputTurnout"):
+        sn = (route_to.get("systemName") or "").strip()
+        if sn and sn not in real:
+            missing.append(f"route {sn}")
+    if missing:
+        problem(
+            "turnout lookups are not turnout systemNames: "
+            + "; ".join(missing[:8])
+            + (" ..." if len(missing) > 8 else "")
+        )
+    audit.facts["turnout_lookups"] = tuple(sorted(missing))
+
+
 def audit_stations(
     root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool
 ) -> None:
@@ -545,6 +585,7 @@ def audit_source(
         audit_stations(root, panel, audit, required=True)
         audit_occupancy_bindings(root, audit, required=True)
         audit_turnout_feedback_sensors(root, audit, required=True)
+        audit_turnout_systemname_lookups(root, audit, required=True)
         audit_dispatcher_startup(root, audit)
         if label == "deployment":
             audit_generated_dispatcher(root, audit)
@@ -557,6 +598,7 @@ def audit_source(
         audit.facts["station_icons"] = ()
         audit_occupancy_bindings(root, audit, required=True)
         audit_turnout_feedback_sensors(root, audit, required=True)
+        audit_turnout_systemname_lookups(root, audit, required=True)
     audit_placeholders(panel, audit)
     return audit
 

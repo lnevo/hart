@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-27 — PanelPro load error: LCC turnout FB still pointed at old `Switch 4-1 FB N/R` userNames, so OpenLCB invented `MSSwitch 4-1 FB *`. Feedback/SML/CTC lookups now use `FB Switch n` / `BS …`. Audit checks it. **Discover SML still due** after a clean reload. Do not run USS with CATS CTC.
+Updated: 2026-08-27 — PanelPro load error 2: block paths / Princess routes still had `systemName="Switch 116"` (old userName). JMRI invented OpenLCB `MTSwitch 116`/`MTSwitch 114`. Those lookups now use MQTT `M2T*`. Audit checks it. **Discover SML still due** after a clean reload.
 
 Updated: 2026-08-27 — CTC-number convert **finished**. Dispatcher MoveTo sensors are `MoveToOS_Barn_stored`; occupancy lookups are `BS …` (comments keep `Block n-n`). USS **v75**. Reload PanelPro, **Discover SML**. Do not run USS with CATS CTC. Deploy `--pi --win`.
 
