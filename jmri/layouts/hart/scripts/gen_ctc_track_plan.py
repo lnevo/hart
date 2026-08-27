@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v69).
+"""Generate the USS CTC track diagram from CATS Master 4 (v70).
 
 20 packed columns. Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is
-LNR. 120L stays westbound on McKeesport under 120R.
+LNR. 120L/120R sit under the rail; 120L faces east on McKeesport under 120R.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v69_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v70_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
@@ -196,9 +196,8 @@ SIGNALS = [
     ("115LA", 56, 5, "W", "d1", "IH142"),
     ("114LB", 56, 7, "W", "h2", None),
     ("114LA", 56, 8, "W", "d1", "IH143"),
-    # Still westbound (IH141 / CATS SHARED wrap). USS only moves the lamp
-    # onto McKeesport under 120R — GIFs stay west, placement is east.
-    ("120L", 62, 7, "W", "d1", "IH141"),
+    # USS display: east GIFs on McKeesport under 120R (still IH141 / 120L).
+    ("120L", 62, 7, "E", "d1", "IH141"),
 ]
 
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 100–119.
@@ -598,10 +597,12 @@ def sig_url(kind: str, aspect: str, facing: str) -> str:
     return "preference:ctc/icons/sig-%s-%s%s.gif" % (kind, aspect, suf)
 
 
-def signal_xy(stem_x: int, bar_c: int, facing: str, kind: str) -> tuple[int, int]:
+def signal_xy(stem_x: int, bar_c: int, facing: str, kind: str, below: bool = False) -> tuple[int, int]:
     width = 21 if kind == "h2" else 12
     x = stem_x if facing == "E" else stem_x - width + 1
-    return x, bar_c - 3
+    # Track bar is stock-h at bar+6…14; default lamps sit on the rail.
+    y = bar_c + 13 if below else bar_c - 3
+    return x, y
 
 
 def parse_cats(path: Path) -> dict:
@@ -824,10 +825,10 @@ def build_block(cells: dict) -> str:
     for x, y, text, size, col in texts:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
     for name, cx, cy, facing, kind, head in SIGNALS:
-        # 120L is westbound; sit it on the east side of the cell under 120R.
-        place = "E" if name == "120L" else facing
-        stem_x = ux(cx, cy) + (8 if place == "E" else 2)
-        x, y = signal_xy(stem_x, bar_y(cy) + 2, place, kind)
+        stem_x = ux(cx, cy) + (8 if facing == "E" else 2)
+        x, y = signal_xy(
+            stem_x, bar_y(cy) + 2, facing, kind, below=name in ("120L", "120R")
+        )
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,

@@ -13767,11 +13767,17 @@
             <blockState>unoccupied</blockState>
           </block>
         </blocks>
+        <sensors>
+          <sensor>
+            <sensorName>Block 1-1</sensorName>
+            <sensorState>inActive</sensorState>
+          </sensor>
+        </sensors>
       </destinationMast>
       <destinationMast destination="114LB">
         <destinationSignalMast>114LB</destinationSignalMast>
         <comment />
-        <enabled>yes</enabled>
+        <enabled>no</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -13784,6 +13790,12 @@
             <blockState>unoccupied</blockState>
           </block>
         </blocks>
+        <sensors>
+          <sensor>
+            <sensorName>Block 1-1</sensorName>
+            <sensorState>inActive</sensorState>
+          </sensor>
+        </sensors>
       </destinationMast>
     </signalmastlogic>
     <signalmastlogic source="115LA">
