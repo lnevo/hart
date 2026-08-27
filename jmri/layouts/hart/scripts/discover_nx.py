@@ -20,9 +20,9 @@ import traceback
 
 import jmri
 from java.beans import PropertyChangeListener
-from java.io import File
 from java.lang import Runnable, System, Thread
 from javax.swing import SwingUtilities
+from jmri.util import FileUtil
 
 from jmri.jmrit.display.layoutEditor import LayoutBlockConnectivityTools
 from jmri.jmrit.entryexit import EntryExitPairs
@@ -41,7 +41,7 @@ REQUIRED = (
     ("NX Mast 2L", "NX Mast 6LB"),
     ("NX Mast 4RA", "NX Mast 2L"),
 )
-OS100_SENSOR = "Block 4-2"
+OS100_SENSOR = "BS Switch 1"
 
 
 NX_SENSORS = (
@@ -92,26 +92,17 @@ class _CompleteListener(PropertyChangeListener):
             self.bucket.append(event.getPropertyName())
 
 
-class _Call(Runnable):
-    """Jython Java Runnable must not take constructor args (proxy __init__)."""
-
-    def __init__(self):
-        self.fn = None
-        self.holder = None
-
-    def run(self):
-        try:
-            self.holder["result"] = self.fn()
-        except Exception as e:
-            self.holder["err"] = e
-
-
 def _on_edt(fn):
     holder = {"result": None, "err": None}
-    task = _Call()
-    task.fn = fn
-    task.holder = holder
-    SwingUtilities.invokeAndWait(task)
+
+    class Go(Runnable):
+        def run(self):
+            try:
+                holder["result"] = fn()
+            except Exception as e:
+                holder["err"] = e
+
+    SwingUtilities.invokeAndWait(Go())
     if holder["err"] is not None:
         raise holder["err"]
     return holder["result"]
@@ -133,6 +124,7 @@ def _wait_until(pred, seconds, label):
 
 
 def _settle_unknown_turnouts():
+    # Paint KnownState only. Never setCommandedState / MQTT track/cmd.
     mgr = jmri.InstanceManager.turnoutManagerInstance()
     n = 0
     for to in mgr.getNamedBeanSet():
@@ -141,8 +133,8 @@ def _settle_unknown_turnouts():
                 continue
             if hasattr(to, "newKnownState"):
                 to.newKnownState(jmri.Turnout.CLOSED)
-            else:
-                to.setCommandedState(jmri.Turnout.CLOSED)
+            elif hasattr(to, "setOwnState"):
+                to.setOwnState(jmri.Turnout.CLOSED)
             n += 1
         except Exception as e:
             _log("turnout %s: %s" % (to, e))
@@ -152,18 +144,17 @@ def _settle_unknown_turnouts():
 def _store_tables():
     path = STORE_PATH
     if not path:
-        from jmri.util import FileUtil
-
         path = FileUtil.getUserFilesPath() + "tables.xml"
+    abs_path = FileUtil.getAbsoluteFilename(path) or path
+    target = FileUtil.getFile(abs_path)
     cm = jmri.InstanceManager.getDefault(jmri.ConfigureManager)
-    target = File(path)
 
     def go():
         return bool(cm.storeUser(target))
 
     if not _on_edt(go):
-        raise RuntimeError("storeUser returned false for %s" % path)
-    _log("stored %s" % path)
+        raise RuntimeError("storeUser returned false for %s" % abs_path)
+    _log("stored %s" % abs_path)
 
 
 GEOGRAPHIC_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
@@ -286,7 +277,7 @@ def _clear_all_occupancy():
     for sensor in mgr.getNamedBeanSet():
         user = sensor.getUserName() or ""
         sysn = sensor.getSystemName() or ""
-        if not (user.startswith("Block ") or sysn.startswith("M2S")):
+        if not (user.startswith("Block ") or user.startswith("BS ") or sysn.startswith("M2S")):
             continue
         try:
             if sensor.getKnownState() != jmri.Sensor.INACTIVE:
@@ -580,6 +571,7 @@ def _worker_body():
         try:
             _store_tables()
         except Exception as e:
+            traceback.print_exc()
             _log("store failed: %s" % e)
             _finish("fail", "store: %s" % e)
             return

@@ -2736,7 +2736,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="4:24 PM">
+    <memory value="4:44 PM">
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -16810,6 +16810,7 @@
       </source>
       <source type="sensor" item="NX Mast 36RA">
         <destination type="sensor" item="NX Mast 2035" nxType="signalmastlogic" uniqueid="IN:c713cc56-16a5-4605-8173-d176fa810af2" />
+        <destination type="sensor" item="NX Mast 2036" nxType="signalmastlogic" uniqueid="IN:485804f5-1047-440a-bdec-774d9b4e7ed8" />
       </source>
       <source type="sensor" item="NX Mast 36RB">
         <destination type="sensor" item="NX Mast 2035" nxType="signalmastlogic" uniqueid="IN:49d9a880-41b8-487f-82f3-c2926a9829b8" />
@@ -16847,8 +16848,10 @@
       </source>
       <source type="sensor" item="NX Mast 2035">
         <destination type="sensor" item="NX Mast 38LB" nxType="signalmastlogic" uniqueid="IN:1c3c36e9-8e16-466f-9c51-eaa43c915242" />
+        <destination type="sensor" item="NX Mast 40LB" nxType="signalmastlogic" uniqueid="IN:0e8987e3-b2ed-44de-92ef-bd279d4a9633" />
       </source>
       <source type="sensor" item="NX Mast 2036">
+        <destination type="sensor" item="NX Mast 38LB" nxType="signalmastlogic" uniqueid="IN:e07f9867-0a32-4f87-9642-04b9c78cacdb" />
         <destination type="sensor" item="NX Mast 40LB" nxType="signalmastlogic" uniqueid="IN:2958e10a-036b-4ef7-868a-ced628f32ce5" />
       </source>
     </layoutPanel>
@@ -24436,104 +24439,104 @@
   <filehistory>
     <operation>
       <type>app</type>
-      <date>Thu Aug 27 16:24:14 EDT 2026</date>
+      <date>Thu Aug 27 16:43:58 EDT 2026</date>
       <filename>PanelPro (v5.15.5)</filename>
     </operation>
     <operation>
       <type>Load OK</type>
-      <date>Thu Aug 27 16:24:23 EDT 2026</date>
+      <date>Thu Aug 27 16:44:07 EDT 2026</date>
       <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
       <filehistory>
         <operation>
           <type>app</type>
-          <date>Wed Aug 26 17:34:01 EDT 2026</date>
+          <date>Thu Aug 27 16:24:14 EDT 2026</date>
           <filename>PanelPro (v5.15.5)</filename>
         </operation>
         <operation>
           <type>Load OK</type>
-          <date>Wed Aug 26 17:34:11 EDT 2026</date>
+          <date>Thu Aug 27 16:24:23 EDT 2026</date>
           <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
           <filehistory>
             <operation>
               <type>app</type>
-              <date>Sat Aug 22 20:51:33 EDT 2026</date>
-              <filename>PanelPro (v5.15.4)</filename>
+              <date>Wed Aug 26 17:34:01 EDT 2026</date>
+              <filename>PanelPro (v5.15.5)</filename>
             </operation>
             <operation>
               <type>Load OK</type>
-              <date>Sat Aug 22 20:51:46 EDT 2026</date>
-              <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
+              <date>Wed Aug 26 17:34:11 EDT 2026</date>
+              <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
               <filehistory>
                 <operation>
                   <type>app</type>
-                  <date>Sat Aug 22 10:49:08 EDT 2026</date>
+                  <date>Sat Aug 22 20:51:33 EDT 2026</date>
                   <filename>PanelPro (v5.15.4)</filename>
                 </operation>
                 <operation>
                   <type>Load OK</type>
-                  <date>Sat Aug 22 10:49:21 EDT 2026</date>
+                  <date>Sat Aug 22 20:51:46 EDT 2026</date>
                   <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
                   <filehistory>
                     <operation>
                       <type>app</type>
-                      <date>Fri Aug 21 23:53:25 EDT 2026</date>
+                      <date>Sat Aug 22 10:49:08 EDT 2026</date>
                       <filename>PanelPro (v5.15.4)</filename>
                     </operation>
                     <operation>
                       <type>Load OK</type>
-                      <date>Fri Aug 21 23:53:35 EDT 2026</date>
+                      <date>Sat Aug 22 10:49:21 EDT 2026</date>
                       <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
                       <filehistory>
                         <operation>
                           <type>app</type>
-                          <date>Fri Aug 21 15:29:48 EDT 2026</date>
-                          <filename>PanelPro (v5.15.5)</filename>
+                          <date>Fri Aug 21 23:53:25 EDT 2026</date>
+                          <filename>PanelPro (v5.15.4)</filename>
                         </operation>
                         <operation>
                           <type>Load OK</type>
-                          <date>Fri Aug 21 15:29:56 EDT 2026</date>
-                          <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
+                          <date>Fri Aug 21 23:53:35 EDT 2026</date>
+                          <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
                         </operation>
                         <operation>
                           <type>Store</type>
-                          <date>Fri Aug 21 15:30:10 EDT 2026</date>
-                          <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
+                          <date>Sat Aug 22 00:12:10 EDT 2026</date>
+                          <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
                         </operation>
                       </filehistory>
                     </operation>
                     <operation>
                       <type>Store</type>
-                      <date>Sat Aug 22 00:12:10 EDT 2026</date>
+                      <date>Sat Aug 22 11:10:03 EDT 2026</date>
                       <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
                     </operation>
                   </filehistory>
                 </operation>
                 <operation>
                   <type>Store</type>
-                  <date>Sat Aug 22 11:10:03 EDT 2026</date>
+                  <date>Sat Aug 22 21:03:48 EDT 2026</date>
                   <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
                 </operation>
               </filehistory>
             </operation>
             <operation>
               <type>Store</type>
-              <date>Sat Aug 22 21:03:48 EDT 2026</date>
-              <filename>/home/pi/JMRI_UserFiles/tables.xml</filename>
+              <date>Wed Aug 26 17:34:22 EDT 2026</date>
+              <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
             </operation>
           </filehistory>
         </operation>
         <operation>
           <type>Store</type>
-          <date>Wed Aug 26 17:34:22 EDT 2026</date>
+          <date>Thu Aug 27 16:24:34 EDT 2026</date>
           <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
         </operation>
       </filehistory>
     </operation>
     <operation>
       <type>Store</type>
-      <date>Thu Aug 27 16:24:34 EDT 2026</date>
+      <date>Thu Aug 27 16:44:19 EDT 2026</date>
       <filename>/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml</filename>
     </operation>
   </filehistory>
-  <!--Written by JMRI version 5.15.5+Rb8002ab3ce on Thu Aug 27 16:24:34 EDT 2026-->
+  <!--Written by JMRI version 5.15.5+Rb8002ab3ce on Thu Aug 27 16:44:19 EDT 2026-->
 </layout-config>

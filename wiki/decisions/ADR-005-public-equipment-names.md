@@ -1,6 +1,6 @@
 # ADR-005 — Public equipment names (switch / signal / track)
 
-- **Status:** Accepted (CTC-number convert + native SML Discover 2026-08-27)
+- **Status:** Accepted (CTC-number convert + SML Discover + NX Discover 2026-08-27)
 - **Date:** 2026-08-20
 - **Deciders:** lnevo
 - **Amends:** [ADR-002](ADR-002-naming-contract.md) — **Barn** is Switch 7 / 7b; **West Yard** is the yard at Brick; signal names are numbers with `Mast`/`Head` prefixes; plates **W-1 / W-2**, **S-R** (run-through) and **S-1…S-4**, **EH-1 / EH-2 / EH-3**
@@ -30,7 +30,7 @@ Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R
 
 ## Live inventory (2026-08-27)
 
-CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; comments keep `Block n-n`. Dispatcher MoveTo sensors are `MoveToOS_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**).
+CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; comments keep `Block n-n`. Dispatcher MoveTo sensors are `MoveToOS_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 12 columns / 23 SIDI masts.
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 
@@ -55,13 +55,13 @@ For the next pass: edit **`proposed`** on the live identity rows; leave historic
 
 ## Attack (executed 2026-08-21)
 
-Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. Discover + CTC Logic smoke + `--pi --win` done 2026-08-21. Optional later: node 13 occupancy walk-down. Do not change MQTT topics.
+Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. CTC-number convert + SML Discover + NX Discover + CTC Logic smoke + `--pi --win` done 2026-08-27. Optional later: node 13 occupancy walk-down. Do not change MQTT topics.
 
 1. Walk-down node 13 (1301=118, 1304–1306=house, 1307=119). Freeze the CSV.  
 2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
 3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_hart_master4.py` then `build_hart_master_abs_hold.py`.  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  
-5. Re-discover SML (dests are mast userNames).  
+5. Re-discover SML (dests are mast userNames) and NX (`run_nx_discover.sh`; `ISNX:*` stays frozen).  
 6. `validate_le_signalling.py` + `check_hart_phase02.py` + `validate_cats_panel.py` + load PanelPro + Run CTC Logic.  
 7. Deploy `--pi --win`. Do not change MQTT topics.
 

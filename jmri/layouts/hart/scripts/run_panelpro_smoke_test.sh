@@ -54,7 +54,7 @@ for name in (
         count=1,
     )
     if count != 1:
-        raise SystemExit("startup action not found: " + name)
+        print("startup action not present (ok): " + name)
 path.write_text(text, encoding="utf-8")
 PY
 

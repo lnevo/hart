@@ -103,7 +103,7 @@ install_dispatcher_facing_patch() {
     echo "preference:jython scripts -> $dest"
     if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
-      cp -f "$traininfo/"*.xml "$profile/dispatcher/traininfo/"
+      rsync -a --delete "$traininfo/" "$profile/dispatcher/traininfo/"
       echo "Dispatcher traininfo -> $profile/dispatcher/traininfo"
     fi
     local profxml="$profile/profile/profile.xml"
