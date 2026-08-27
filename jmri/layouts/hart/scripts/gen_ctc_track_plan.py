@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v56).
+"""Generate the USS CTC track diagram from CATS Master 4 (v57).
 
-Reads `cats/panels/HART_Master4.xml` and places USS tiles on the same
-west→east / north→south grid as the Digicon. Lever plates are unchanged.
-Default write is `ctc/GUIObjects.xml` only (does not touch `tables.xml`).
+One transparent 16×16 tile per CATS track piece (no overlapping USS line
+gifs, no 40px opaque frogs). Switch correspondence is a small points
+dot. Lever plates are unchanged. Default write is GUIObjects.xml only.
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v56_preview.png
-
-`--tables tables/new_tables.xml` also rewrites the embedded paneleditor.
-Never pass `tables/tables.xml`.
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v57_preview.png
 """
 from __future__ import annotations
 
@@ -28,11 +25,11 @@ JMRI_RES = Path("/Applications/JMRI/resources")
 U = "program:resources/icons/USS/"
 THIN = "preference:ctc/icons/"
 
-# CATS cell → USS pixels. 17-slot gold board is 12 + 17*65 + 12 = 1129.
-OX, OY = 10, 52
-CELL_W, CELL_H = 17, 22
-OS_Y = 255
-STATION_Y = 36
+# Square cells so 45° legs meet. 17-slot gold board is 12 + 17*65 + 12.
+OX, OY = 8, 46
+CELL_W, CELL_H = 18, 18
+OS_Y = 210
+STATION_Y = 32
 
 N_SLOTS = 17
 BLANK_SLOTS = {0, 4, 8, 12, 16}
@@ -41,33 +38,38 @@ SWITCH_ONLY_SLOTS = {6, 7}
 CREAM = dict(red=220, green=220, blue=180)
 WHITE = dict(red=255, green=255, blue=255)
 
-# CATS frog cell → (JMRI turnout, icon kind, dy from bar_y).
-# Crossovers sit on the upper cell and span CELL_H into the lower.
-# swap: = invert vs JMRI (100 / 114 / 115).
+# CATS frog cell → (JMRI turnout, invert vs JMRI). Rails come from CATS
+# track pieces; the turnouticon is only a points dot.
 PLANTS = {
-    (4, 8): ("Switch 100", "swap:track/turnout/right/east/os-r-e", -6),
-    (5, 9): ("Switch 101", "track/turnout/right/east/os-r-e", -6),
-    (9, 8): ("Switch 102", "track/turnout/left/east/os-l-e", -28),
-    (15, 7): ("Switch 117", "track/crossover/right/os-r-sc", -6),
-    (24, 8): ("Switch 119", "thin:os-r-e-thin", -6),
-    (26, 8): ("Switch 118", "thin:os-r-e-thin", -6),
-    (27, 7): ("Switch 116", "thin:os-r-e-thin", -6),
-    (30, 7): ("Switch 103", "thin:os-r-e-thin", -6),
-    (31, 8): ("Switch 104", "track/turnout/right/east/os-r-e", -6),
-    (32, 9): ("Switch 105", "track/turnout/right/east/os-r-e", -6),
-    (33, 10): ("Switch 106", "track/turnout/right/east/os-r-e", -6),
-    (39, 10): ("Switch 107", "thin:os-l-w-thin", -6),
-    (40, 9): ("Switch 108", "thin:os-l-w-thin", -6),
-    (41, 8): ("Switch 109", "thin:os-l-w-thin", -6),
-    (40, 6): ("Switch 111", "track/crossover/left/os-l-sc", -6),
-    (42, 7): ("Switch 110", "thin:os-l-w-thin", -6),
-    (44, 7): ("Switch 112", "track/turnout/left/west/os-l-w", -6),
-    (52, 6): ("Switch 113", "track/crossover/right/os-r-sc", -6),
-    (55, 6): ("Switch 115", "swap:track/turnout/left/east/os-l-e", -28),
-    (55, 7): ("Switch 114", "swap:track/turnout/right/east/os-r-e", -6),
+    (4, 8): ("Switch 100", True),
+    (5, 9): ("Switch 101", False),
+    (9, 8): ("Switch 102", False),
+    (15, 7): ("Switch 117", False),
+    (24, 8): ("Switch 119", False),
+    (26, 8): ("Switch 118", False),
+    (27, 7): ("Switch 116", False),
+    (30, 7): ("Switch 103", False),
+    (31, 8): ("Switch 104", False),
+    (32, 9): ("Switch 105", False),
+    (33, 10): ("Switch 106", False),
+    (39, 10): ("Switch 107", False),
+    (40, 9): ("Switch 108", False),
+    (41, 8): ("Switch 109", False),
+    (40, 6): ("Switch 111", False),
+    (42, 7): ("Switch 110", False),
+    (44, 7): ("Switch 112", False),
+    (52, 6): ("Switch 113", False),
+    (55, 6): ("Switch 115", True),
+    (55, 7): ("Switch 114", True),
 }
-# Lower half of a crossover — rails come from the scissor icon.
-SKIP_RAIL_CELLS = {(15, 8), (40, 7), (52, 7)}
+CELL_GIF = {
+    "HORIZONTAL": "cell-h.gif",
+    "VERTICAL": "cell-v.gif",
+    "UPPERSLASH": "cell-us.gif",
+    "LOWERSLASH": "cell-ls.gif",
+    "UPPERBACKSLASH": "cell-ub.gif",
+    "LOWERBACKSLASH": "cell-lb.gif",
+}
 
 # (mast, cats_x, cats_y, facing, kind, IH* or None)
 SIGNALS = [
@@ -131,6 +133,125 @@ SKIP_LABELS = {
 SLASH = {"UPPERSLASH", "LOWERSLASH"}
 BACKSLASH = {"UPPERBACKSLASH", "LOWERBACKSLASH"}
 
+RAIL = (255, 255, 255, 255)
+PTS_N = (255, 214, 80, 255)
+PTS_R = (255, 170, 40, 255)
+
+
+def _save_gif(im, path: Path) -> None:
+    """1-bit transparency GIF (index 0 = empty)."""
+    from PIL import Image
+
+    w, h = im.size
+    rgba = im.convert("RGBA")
+    pal = Image.new("P", (w, h))
+    pal.putpalette(
+        [0, 0, 0, 255, 255, 255, 255, 214, 80, 255, 170, 40, 255, 40, 40]
+        + [0, 0, 0] * 251
+    )
+    data = []
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = rgba.getpixel((x, y))
+            if a < 128:
+                data.append(0)
+            elif r > 200 and g > 200 and b > 200:
+                data.append(1)
+            elif r > 200 and g < 80:
+                data.append(4)
+            elif g > 180:
+                data.append(2)
+            else:
+                data.append(3)
+    pal.putdata(data)
+    pal.save(path, transparency=0, disposal=2)
+
+
+def _bresenham(x0: int, y0: int, x1: int, y1: int) -> list[tuple[int, int]]:
+    pts = []
+    dx, dy = abs(x1 - x0), abs(y1 - y0)
+    sx = 1 if x0 < x1 else -1
+    sy = 1 if y0 < y1 else -1
+    err = dx - dy
+    while True:
+        pts.append((x0, y0))
+        if x0 == x1 and y0 == y1:
+            break
+        e2 = 2 * err
+        if e2 > -dy:
+            err -= dy
+            x0 += sx
+        if e2 < dx:
+            err += dx
+            y0 += sy
+    return pts
+
+
+def write_cell_icons() -> None:
+    from PIL import Image, ImageDraw
+
+    THIN_DIR.mkdir(parents=True, exist_ok=True)
+    n = CELL_W
+    mid = n // 2
+    last = n - 1
+
+    def blank():
+        return Image.new("RGBA", (n, n), (0, 0, 0, 0))
+
+    def stroke(im, x0, y0, x1, y1, color=RAIL, width=2):
+        pix = im.load()
+        w, h = im.size
+        offsets = [(0, 0)]
+        if width >= 2:
+            if abs(x1 - x0) >= abs(y1 - y0):
+                offsets.append((0, 1))
+            else:
+                offsets.append((1, 0))
+        for x, y in _bresenham(x0, y0, x1, y1):
+            for ox, oy in offsets:
+                xx, yy = x + ox, y + oy
+                if 0 <= xx < w and 0 <= yy < h:
+                    pix[xx, yy] = color
+
+    h = blank()
+    stroke(h, 0, mid, last, mid)
+    _save_gif(h, THIN_DIR / "cell-h.gif")
+    v = blank()
+    stroke(v, mid, 0, mid, last)
+    _save_gif(v, THIN_DIR / "cell-v.gif")
+    us = blank()
+    stroke(us, 0, mid, mid, 0)
+    _save_gif(us, THIN_DIR / "cell-us.gif")
+    ls = blank()
+    stroke(ls, mid, last, last, mid)
+    _save_gif(ls, THIN_DIR / "cell-ls.gif")
+    ub = blank()
+    stroke(ub, mid, 0, last, mid)
+    _save_gif(ub, THIN_DIR / "cell-ub.gif")
+    lb = blank()
+    stroke(lb, 0, mid, mid, last)
+    _save_gif(lb, THIN_DIR / "cell-lb.gif")
+    end = blank()
+    stroke(end, last, mid - 4, last, mid + 4, width=2)
+    _save_gif(end, THIN_DIR / "cell-end.gif")
+
+    def dot(color):
+        im = Image.new("RGBA", (9, 9), (0, 0, 0, 0))
+        ImageDraw.Draw(im).ellipse((1, 1, 7, 7), fill=color)
+        return im
+
+    _save_gif(dot(PTS_N), THIN_DIR / "pts-closed.gif")
+    _save_gif(dot(PTS_R), THIN_DIR / "pts-thrown.gif")
+    _save_gif(dot(PTS_N), THIN_DIR / "pts-unknown.gif")
+    _save_gif(dot((180, 180, 180, 255)), THIN_DIR / "pts-inconsistent.gif")
+    occ = Image.new("RGBA", (9, 9), (0, 0, 0, 0))
+    ImageDraw.Draw(occ).ellipse((1, 1, 7, 7), fill=(200, 40, 40, 255))
+    _save_gif(occ, THIN_DIR / "occ-off.gif")
+    occ_on = Image.new("RGBA", (9, 9), (0, 0, 0, 0))
+    ImageDraw.Draw(occ_on).ellipse((1, 1, 7, 7), fill=(255, 40, 40, 255))
+    _save_gif(occ_on, THIN_DIR / "occ-on.gif")
+
+
 BG = """<positionablelabel x="{x}" y="0" level="1" forcecontroloff="false" hidden="no" positionable="false" showtooltip="false" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="{u}background/{gif}" scale="1.0">
         <rotation>0</rotation>
@@ -167,6 +288,23 @@ LAMP = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontrolo
         <rotation>0</rotation>
       </unknown>
       <inconsistent url="{u}sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>"""
+
+LAMP_SM = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>{tip}</tooltip>
+      <active url="{th}occ-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="{th}occ-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="{th}occ-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="{th}occ-off.gif" scale="1.0">
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
@@ -232,21 +370,15 @@ def bar_y(cy: int) -> int:
     return OY + (cy - 5) * CELL_H
 
 
-def turnout_urls(kind: str) -> dict[str, str]:
-    swap = kind.startswith("swap:")
-    if swap:
-        kind = kind[5:]
-    if kind.startswith("thin:"):
-        base = THIN + kind[5:]
-    else:
-        base = U + kind
+def turnout_urls(invert: bool) -> dict[str, str]:
+    base = THIN + "pts"
     urls = dict(
         closed=base + "-closed.gif",
         thrown=base + "-thrown.gif",
         unknown=base + "-unknown.gif",
         inconsistent=base + "-inconsistent.gif",
     )
-    if swap:
+    if invert:
         urls["closed"], urls["thrown"] = urls["thrown"], urls["closed"]
     return urls
 
@@ -285,81 +417,47 @@ def parse_cats(path: Path) -> dict:
     return cells
 
 
-def _cover_run(x0: int, x1: int, y: int, tracks: list) -> None:
-    px0, px1 = ux(x0), ux(x1) + CELL_W
-    x = px0
-    by = bar_y(y) - 1
-    while x < px1 - 4:
-        remain = px1 - x
-        if remain >= 78:
-            tracks.append((x, by - 1, "line1.gif", 0))
-            x += 78
-        elif remain >= 38:
-            tracks.append((x, by, "line050.gif", 0))
-            x += 40
-        else:
-            tracks.append((x, by + 1, "line025.gif", 0))
-            x += 22
-
-
 def build_geometry(cells: dict) -> tuple[list, list, list, list]:
     turnouts = []
     tracks = []
     lamps = []
     texts = []
+    plant_xy = set(PLANTS)
 
-    plant_cells = set(PLANTS) | SKIP_RAIL_CELLS
-    for xy, (name, kind, dy) in PLANTS.items():
+    for xy, (name, invert) in PLANTS.items():
         cx, cy = xy
-        turnouts.append((name, ux(cx) - 4, bar_y(cy) + dy, kind))
+        turnouts.append((name, ux(cx) + 5, bar_y(cy) + 5, invert))
 
-    by_row: dict[int, list[int]] = {}
     for (x, y), cell in cells.items():
         if y < 5 or y > 12:
             continue
-        kinds = set(cell["tracks"])
-        if (x, y) not in plant_cells:
-            if "HORIZONTAL" in kinds:
-                by_row.setdefault(y, []).append(x)
-        slash = kinds & SLASH
-        back = kinds & BACKSLASH
-        if slash and (x, y) not in PLANTS:
-            tracks.append((ux(x) + 1, bar_y(y) - 6, "thin-45.gif", 1))
-        if back and (x, y) not in PLANTS:
-            tracks.append((ux(x) + 1, bar_y(y) - 6, "thin-45.gif", 0))
-
-        # East bumper: named block on RIGHT and no neighbor.
+        for kind in cell["tracks"]:
+            gif = CELL_GIF.get(kind)
+            if gif:
+                tracks.append((ux(x), bar_y(y), gif, 0))
         for edge, bname, _sensor in cell["blocks"]:
             if edge == "RIGHT" and (x + 1, y) not in cells and bname:
-                tracks.append((ux(x) + CELL_W - 2, bar_y(y) - 4, "thin-end.gif", 0))
-
-    for y, xs in by_row.items():
-        xs = sorted(set(xs))
-        start = prev = xs[0]
-        for x in xs[1:]:
-            if x != prev + 1:
-                _cover_run(start, prev, y, tracks)
-                start = x
-            prev = x
-        _cover_run(start, prev, y, tracks)
+                tracks.append((ux(x), bar_y(y), "cell-end.gif", 0))
 
     seen_sensors = set()
     for (x, y), cell in cells.items():
         if y < 5 or y > 12:
             continue
+        near_frog = any(abs(x - px) + abs(y - py) <= 1 for px, py in plant_xy)
         for _edge, bname, sensor in cell["blocks"]:
             if not sensor or sensor in seen_sensors:
                 continue
             if bname and str(bname).startswith("OS "):
                 continue
+            if near_frog:
+                continue
             seen_sensors.add(sensor)
-            tip = bname or sensor
-            lamps.append((sensor, ux(x) + 2, bar_y(y) - 8, tip))
+            lamps.append((sensor, ux(x) + 3, bar_y(y) - 1, bname or sensor, True))
 
     for row in OS_ROW:
         slot, sensor, tip = row[0], row[1], row[2]
         extra = row[3] if len(row) > 3 else 0
-        lamps.append((sensor, slot * 65 + 34 + extra, OS_Y, tip))
+        lamps.append((sensor, slot * 65 + 34 + extra, OS_Y, tip, False))
 
     texts.append((415, 8, "HART RAILROAD - NEVILLE ISLAND", 16, dict(red=0, green=0, blue=0)))
     for (x, y), cell in cells.items():
@@ -367,11 +465,11 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         if not name or name in SKIP_LABELS:
             continue
         if name.endswith(", PA"):
-            name = name[: -4]
+            name = name[:-4]
         if name in STATION_NAMES:
             texts.append((ux(x), STATION_Y, name, 12, WHITE))
             continue
-        texts.append((ux(x), bar_y(y) - 12, name, 8, CREAM))
+        texts.append((ux(x), bar_y(y) + 1, name, 8, CREAM))
     for slot, num in OS_NUMBERS:
         texts.append((slot * 65 + 37, OS_Y + 23, num, 8, WHITE))
     return turnouts, tracks, lamps, texts
@@ -390,13 +488,16 @@ def build_block(cells: dict) -> str:
             gif = "Panel-sw-sig-7.gif"
         parts.append(BG.format(x=12 + 65 * slot, u=U, gif=gif))
     parts.append(BG.format(x=12 + 65 * N_SLOTS, u=U, gif="Panel-right-7.gif"))
-    for name, x, y, kind in turnouts:
-        parts.append(TURNOUT.format(name=name, x=x, y=y, **turnout_urls(kind)))
-    for sensor, x, y, tip in lamps:
-        parts.append(LAMP.format(sensor=sensor, x=x, y=y, tip=tip, u=U))
+    for name, x, y, invert in turnouts:
+        parts.append(TURNOUT.format(name=name, x=x, y=y, **turnout_urls(invert)))
+    for item in lamps:
+        sensor, x, y, tip, small = item
+        if small:
+            parts.append(LAMP_SM.format(sensor=sensor, x=x, y=y, tip=tip, th=THIN))
+        else:
+            parts.append(LAMP.format(sensor=sensor, x=x, y=y, tip=tip, u=U))
     for x, y, gif, rot in tracks:
-        url = THIN if gif.startswith(("thin", "thick")) else U + "track/block/"
-        parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, url=url))
+        parts.append(TRACK.format(x=x, y=y, gif=gif, rot=rot, url=THIN))
     for x, y, text, size, col in texts:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
     for name, cx, cy, facing, kind, head in SIGNALS:
@@ -463,12 +564,13 @@ def resolve_icon(url: str) -> Path | None:
 def render_preview(gui_text: str, out: Path) -> None:
     from PIL import Image, ImageDraw, ImageFont
 
-    W, H = 1190, 340
-    img = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    W, H = 1190, 250
+    S = 2
+    img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 255))
     draw = ImageDraw.Draw(img)
     try:
-        font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 11)
-        font_sm = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 8)
+        font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 22)
+        font_sm = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 14)
     except OSError:
         font = font_sm = ImageFont.load_default()
 
@@ -478,14 +580,15 @@ def render_preview(gui_text: str, out: Path) -> None:
         tile = Image.open(path).convert("RGBA")
         if rot:
             tile = tile.rotate(-90 * rot, expand=True)
-        img.alpha_composite(tile, (x, y))
+        tile = tile.resize((tile.size[0] * S, tile.size[1] * S), Image.Resampling.NEAREST)
+        img.alpha_composite(tile, (x * S, y * S))
 
     for m in re.finditer(
         r'<positionablelabel x="(\d+)" y="(\d+)"[^>]*>\s*<icon url="([^"]+)"[^>]*>(?:\s*<rotation>(\d+)</rotation>)?',
         gui_text,
     ):
         x, y, url, rot = int(m.group(1)), int(m.group(2)), m.group(3), int(m.group(4) or 0)
-        if y > H:
+        if y > H or "background/" in url:
             continue
         p = resolve_icon(url)
         if p:
@@ -510,7 +613,9 @@ def render_preview(gui_text: str, out: Path) -> None:
         x, y = int(m.group(2)), int(m.group(3))
         if y > H:
             continue
-        p = resolve_icon(U + "sensor/red-off.gif")
+        # OS row keeps the USS bezel; on-track lamps are the small occ dots.
+        url = U + "sensor/red-off.gif" if y >= OS_Y - 5 else THIN + "occ-off.gif"
+        p = resolve_icon(url)
         if p:
             paste(p, x, y)
 
@@ -522,11 +627,12 @@ def render_preview(gui_text: str, out: Path) -> None:
         rgb = (int(m.group(5)), int(m.group(6)), int(m.group(7)))
         if y > H:
             continue
-        draw.text((x, y), text, fill=rgb + (255,), font=font if size >= 12 else font_sm)
+        draw.text((x * S, y * S), text, fill=rgb + (255,),
+                  font=font if size >= 12 else font_sm)
 
     out.parent.mkdir(parents=True, exist_ok=True)
     img.convert("RGB").save(out)
-    print("preview %s (%dx%d)" % (out, W, H))
+    print("preview %s (%dx%d)" % (out, W * S, H * S))
 
 
 def main() -> None:
@@ -540,6 +646,7 @@ def main() -> None:
     if args.tables and args.tables.name == "tables.xml":
         sys.exit("refusing to write tables/tables.xml")
 
+    write_cell_icons()
     cells = parse_cats(args.cats)
     txt = args.gui.read_text()
     new = apply(txt, cells)
