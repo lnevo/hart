@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-26 — USS CTC **v62**: 111 crossover on column 12 with its lever; Main West / S-1 occupancy one column west; 100L faces east; EH-1/EH-2 left of their lamps; K-1/K-2 lined up with McKees*; E Main Ext / West Main Ext / East Lead captions removed; existing CTC levers shifted onto the 20 packed columns. Preview `cats/screenshots/master4/uss_ctc_v62_preview.png`. Reload **USS CTC**. Do not run it with CATS CTC.
+Updated: 2026-08-26 — USS CTC **v62**: 111 crossover on column 12 with its lever; Main West / S-1 occupancy one column west; 100L faces east; EH-1/EH-2 left of their lamps; K-1/K-2 lined up with McKees*; E Main Ext / West Main Ext / East Lead captions removed; existing CTC levers shifted onto the 20 packed columns. Preview `cats/screenshots/master4/uss_ctc_v62_preview.png`. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--all`.
 
 Updated: 2026-08-26 — USS CTC **v61**: switch OS jewels at each plant throat; Brick-Plane / W-1 / W-2 occupancy centered; track labels above the rail. CATS Princess lamps match LE (**115LB**/**114LB** 2-head on McKees Rocks / McKeesport; **115LA**/**114LA** dwarfs on K-1 / K-2). Preview `cats/screenshots/master4/uss_ctc_v61_preview.png`. Reload **CATS CTC** or **CATS ABS**, and **USS CTC**. Do not run them together. Deploy `--all`.
 
