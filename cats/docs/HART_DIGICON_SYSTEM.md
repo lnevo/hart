@@ -73,7 +73,7 @@ python3 cats/scripts/polish_hart_master_header.py --panel all
 
 1. `jmri/layouts/hart/scripts/apply_maintain_mqtt.py` — read MQTT **retain** for sensors/turnouts; JMRI-only paint (`setOwnState` / KnownState); never publishes commands. Then Digicon `IOSpec.refreshScreen()`.
 2. `jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py` — yard-ladder lamp buttons ↔ internal turnouts.
-3. `jmri/scripts/mqtt_signalhead_publisher.py` — listen to SHSM / SML (`Aspect` / `Held` / `Lit` on masts, `Appearance` on listed `IH*` heads) and **publish** those appearances on `track/signalhead/IH###` through JMRI’s MQTT connection. Does not read broker retain, `setAppearance`, or blast at startup/shutdown.
+3. `jmri/scripts/mqtt_signalhead_publisher.py` — listen to SHSM / SML (`Aspect` / `Held` / `Lit` on masts, `Appearance` on listed `IH*` heads) and **publish** those appearances on `track/signalhead/<packed>` (no `IH` in the topic leaf) through JMRI’s MQTT connection. Does not read broker retain, `setAppearance`, or blast at startup/shutdown.
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
 
@@ -127,7 +127,7 @@ Installed Digicon jar includes the `cats-pts-nullguard` overlay so early `SELECT
 
 | Family | JMRI object | Digicon `PHYSIGNAL` | MQTT | Field |
 |--------|-------------|---------------------|------|-------|
-| **Virtual head + SHSM** (all Digicon lamps) | Virtual `IH###` + `IF$shsm:hart-aar:SL-2-digicon` two-head / `IF$shsm:AAR-1946:SL-1-low` dwarf | stock `single` / `double` (native R-codes remapped to AAR names) | `track/signalhead/IH###` | LCOS searchlight ports |
+| **Virtual head + SHSM** (all Digicon lamps) | Virtual `IH###` + `IF$shsm:hart-aar:SL-2-digicon` two-head / `IF$shsm:AAR-1946:SL-1-low` dwarf | stock `single` / `double` (native R-codes remapped to AAR names) | `track/signalhead/<packed>` | LCOS searchlight ports |
 
 Digicon binds by **mast userName** (exact string match). Panel lamps (`LAMP1|2|3`) are Digicon cosmetics; field head count comes from JMRI / LCOS wiring.
 
@@ -135,7 +135,7 @@ Digicon binds by **mast userName** (exact string match). Panel lamps (`LAMP1|2|3
 
 - Digicon internals speak rule codes (`R281` Clear, `R285` Approach, `R292` Stop, `RES_*` Restricting, …).
 - **AAR-1946** SHSM aspects are Clear / Approach / Stop (2-head) or Slow Clear / Restricting / Stop (dwarf). `aar_aspect_bridge.py` remaps Digicon R-codes → those names.
-- Virtual heads get GREEN / YELLOW / RED appearances; `mqtt_signalhead_publisher.py` publishes those names on `track/signalhead/IH###`.
+- Virtual heads get GREEN / YELLOW / RED appearances; `mqtt_signalhead_publisher.py` publishes those names on `track/signalhead/<packed>`.
 
 ### Authority
 
@@ -152,7 +152,7 @@ LCOS addresses searchlights as **packed IDs** on the radio node:
 packed = displayNode * 100 + UID
 UID    = 32 + signal_index     # Signal 0..15 → UID 32..47 (mqtt_serial.h)
 JMRI   = IH<packed>            # e.g. node 4, signal 0 → IH432
-MQTT   = track/signalhead/IH<packed>
+MQTT   = track/signalhead/<packed>   # IH432 → topic …/432 (bean stays IH432)
 Payload = appearance name      # Red / Yellow / Green / Dark / …
 ```
 
@@ -200,11 +200,11 @@ Examples:
 
 `jmri/scripts/mqtt_signalhead_publisher.py` (Start Up; `HEAD_NAMES` refreshed by `build_hart_signal_heads.py`, script body is hand-maintained):
 
-Listens to packed SHSM masts (systemNames encode `(IH###)`) and the listed Virtual heads, then publishes `head.getAppearanceName()` on `track/signalhead/IH###` via `MqttSystemConnectionMemo.getMqttAdapter()`. JMRI’s MQTT connection owns retain and last-will. SML / SHSM own aspects at load and shutdown — this script does not pre-set or post-set heads.
+Listens to packed SHSM masts (systemNames encode `(IH###)`) and the listed Virtual heads, then publishes `head.getAppearanceName()` on `track/signalhead/<packed>` (IH prefix stripped from the topic) via `MqttSystemConnectionMemo.getMqttAdapter()`. JMRI’s MQTT connection owns retain and last-will. SML / SHSM own aspects at load and shutdown — this script does not pre-set or post-set heads.
 
 **LCOS Nano bridge dual path** (`LCOS_ESP32_MQTT_Client`, see `docs/signal_dual_path.md`):
 
-- **Send (Digicon → field):** subscribe `track/signalhead/IH###` → `EVENT_SIGNAL_CMD` (Red→Stop, Yellow→Approach, Green→Clear).
+- **Send (Digicon → field):** subscribe `track/signalhead/<packed>` → `EVENT_SIGNAL_CMD` (Red→Stop, Yellow→Approach, Green→Clear). No optimistic `signalmast` echo while testing (`MQTT_PUBLISH_SIGNALMAST_ON_SET=0`).
 - **Receive (field → JMRI masts):** LCOS `EVENT_SIGNAL` → retained `track/signalmast/<packed>` (`Stop; Lit; Unheld`, …) so traditional MQTT Signal Masts still get aspect reports. Status is **not** published on `signalhead` (avoids looping Digicon).
 
 Mast 2L is the same packed-head path (`IH438`/`IH439` on C4-OU3). JMRI no longer publishes `track/signalmast/432`.
