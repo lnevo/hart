@@ -1,7 +1,5 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-27 — Signal MQTT topics drop the `IH` leaf prefix (`IH432` → `track/signalhead/432`). LCOS bridge signalmast echo off (`MQTT_PUBLISH_SIGNALMAST_ON_SET=0`). Reload **PanelPro** / **CATS**. Flash Nano + restart bridge. Deploy `--pi --win`.
-
 Updated: 2026-08-27 — Track blocks are `Track 1` / `Track S-R` (was `OS …`). Comments keep occupancy/`stop` text with live switch numbers (`Lead Switch 7 to Switch 13`). Occupancy sensors stay `BS …`. Dispatcher MoveTo is `MoveToTrack_Barn_stored`. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-27 — Signal MQTT publisher uses JMRI’s MQTT connection (no `mosquitto_sub`). It listens to SHSM / SML and publishes `track/signalhead/IH###` appearances. No boot retain-paint or `setAppearance` on heads. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.

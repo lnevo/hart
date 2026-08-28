@@ -2,9 +2,8 @@
 #
 # Name kept as mqtt_signalhead_publisher.py for existing profile Start Up entries.
 #
-#   track/signalhead/<packed>  GREEN|YELLOW|RED|DARK|…
+#   track/signalhead/IH###  GREEN|YELLOW|RED|DARK|…
 #
-# Topic uses the packed address only (IH432 → track/signalhead/432). JMRI beans stay IH*.
 # JMRI's MQTT connection is the transport. SML owns aspects at startup and
 # shutdown; this script does not read broker retain or write head appearances.
 # Generated HEAD_NAMES: cats/scripts/build_hart_signal_heads.py
@@ -74,16 +73,6 @@ def _ascii(s):
         return repr(s)
 
 
-def _topic_suffix(sys_name):
-    """MQTT topic leaf: packed digits only (drop IH prefix)."""
-    if sys_name is None:
-        return ""
-    name = str(sys_name)
-    if len(name) > 2 and name[:2].upper() == "IH" and name[2:].isdigit():
-        return name[2:]
-    return name
-
-
 def _mqtt_adapter():
     try:
         memo = jmri.InstanceManager.getDefault(
@@ -119,7 +108,7 @@ def _head_names_on_mast(mast):
 
 
 class HartMqttSignalPublisher(java.beans.PropertyChangeListener):
-    """Push SHSM / SML head appearances onto track/signalhead/<packed> via JMRI MQTT."""
+    """Push SHSM / SML head appearances onto track/signalhead/IH* via JMRI MQTT."""
 
     def __init__(self, topic_prefix, head_names):
         self.topic_prefix = topic_prefix
@@ -151,7 +140,7 @@ class HartMqttSignalPublisher(java.beans.PropertyChangeListener):
                 head.addPropertyChangeListener(self)
                 self._heads.append(head)
         print(
-            "mqtt_signalhead: JMRI MQTT, %d masts, %d heads (topic leaf = packed, no IH)"
+            "mqtt_signalhead: JMRI MQTT, %d masts, %d heads"
             % (len(self._masts), len(self._heads))
         )
 
@@ -178,7 +167,7 @@ class HartMqttSignalPublisher(java.beans.PropertyChangeListener):
         sys_name = head.getSystemName()
         if sys_name not in self.wanted:
             return
-        topic = self.topic_prefix + _topic_suffix(sys_name)
+        topic = self.topic_prefix + sys_name
         data = head.getAppearanceName()
         try:
             self.mqtt.publish(topic, data)

@@ -131,7 +131,7 @@ def build_rows() -> list[dict]:
                     "appearance": APPEAR[nheads],
                     "physignal": lamp,
                     "port_id": ports[idx],
-                    "topic": f"track/signalhead/{pid}",
+                    "topic": f"track/signalhead/IH{pid}",
                 }
             )
     return rows
