@@ -24839,7 +24839,7 @@
     <positionablelabel x="1570" y="340" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="114" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1570" y="220" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="115" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="13" style="1" red="0" green="0" blue="128" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="353" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Brick" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="464" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track Barn" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="464" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Barn" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="325" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Plane" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1308" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="East End" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1510" y="170" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Princess" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="16" style="1" red="255" green="255" blue="255" hasBackground="yes" redBack="0" greenBack="0" blueBack="0" margin="5" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -26195,7 +26195,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToTrack_Scale_stored" x="420" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="Track Scale" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveToTrack_Scale_stored" x="420" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="Scale" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -26209,10 +26209,10 @@
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
-      <activeText text="Track Scale" red="255" green="0" blue="0" />
-      <inactiveText text="Track Scale" red="255" green="255" blue="0" />
-      <unknownText text="Track Scale" red="0" green="0" blue="255" />
-      <inconsistentText text="Track Scale" red="0" green="0" blue="0" />
+      <activeText text="Scale" red="255" green="0" blue="0" />
+      <inactiveText text="Scale" red="255" green="255" blue="0" />
+      <unknownText text="Scale" red="0" green="0" blue="255" />
+      <inconsistentText text="Scale" red="0" green="0" blue="0" />
     </sensoricon>
     <sensoricon sensor="MoveInProgressTrack_Scale" x="410" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
@@ -26244,7 +26244,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="MoveToTrack_Barn_stored" x="500" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="Track Barn" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveToTrack_Barn_stored" x="500" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="Barn" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -26258,10 +26258,10 @@
         <rotation>0</rotation>
       </inconsistent>
       <iconmaps />
-      <activeText text="Track Barn" red="255" green="0" blue="0" />
-      <inactiveText text="Track Barn" red="255" green="255" blue="0" />
-      <unknownText text="Track Barn" red="0" green="0" blue="255" />
-      <inconsistentText text="Track Barn" red="0" green="0" blue="0" />
+      <activeText text="Barn" red="255" green="0" blue="0" />
+      <inactiveText text="Barn" red="255" green="255" blue="0" />
+      <unknownText text="Barn" red="0" green="0" blue="255" />
+      <inconsistentText text="Barn" red="0" green="0" blue="0" />
     </sensoricon>
     <sensoricon sensor="MoveInProgressTrack_Barn" x="490" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">

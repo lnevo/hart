@@ -91,7 +91,7 @@ LABEL_STYLE: dict[str, tuple[str, str]] = {
     "Neville Island": ("28", "1"),
     "Brick": ("16", "1"),
     "Plane": ("16", "1"),
-    "OS Barn": ("16", "1"),
+    "Barn": ("16", "1"),
     "East End": ("16", "1"),
     "Princess": ("16", "1"),
     "West Yard": ("16", "0"),
@@ -101,7 +101,7 @@ LABEL_STYLE: dict[str, tuple[str, str]] = {
 
 LABEL_PLACEMENTS: dict[str, tuple[tuple[int, int], ...]] = {
     "116": ((572, 270),),
-    "OS Barn": ((464, 430),),
+    "Barn": ((464, 430),),
     "Princess": ((1510, 170),),
     "114": ((1570, 340),),
     "115": ((1570, 220),),
