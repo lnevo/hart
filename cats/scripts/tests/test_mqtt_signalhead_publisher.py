@@ -32,6 +32,19 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("subprocess", text)
         self.assertNotIn("import socket", text)
 
+    def test_global_disable_does_not_unheld_from_checkbox_and_button(self) -> None:
+        text = PUBLISHER.read_text(encoding="utf-8")
+        self.assertIn("SUPPRESS_SML_DURING_HANDOFF = True", text)
+        self.assertIn("if self._busy or self._boot_pending:", text)
+        self.assertIn("Always mute checkbox listeners around bulk uncheck", text)
+        off = text.index("def _apply_global_disabled")
+        chunk = text[off : text.index("def _hand_off_disabled")]
+        self.assertLess(
+            chunk.index("self._suppress_sml = True"),
+            chunk.index("_set_all_digicon_sml_destinations(False)"),
+        )
+        self.assertIn("_publish_unheld(head)", chunk)
+
     def test_head_names_match_wiring_csv(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
         begin = text.index("# HEAD_NAMES_BEGIN")

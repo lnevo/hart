@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — SML Disable Unheld once: button owns RELEASE; bulk SML uncheck no longer fires a second one. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
 Updated: 2026-08-28 — Bridge `sml_mode` RELEASE announces **`disabling`** first; live Digicon ACKs `enabled` to abort. Reload **PanelPro** / **CATS**. Restart Windows bridge.
 
 Updated: 2026-08-28 — Digicon SML dests stored **Enabled=no** in tables (`disable_digicon_sml_in_tables.py`; also after Discover). Only the Digicon MQTT script enables them. Reload **PanelPro** / **CATS**. Deploy `--pi`.

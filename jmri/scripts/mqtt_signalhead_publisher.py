@@ -5,7 +5,8 @@
 # Global toggle: SML Enabled / SML Disabled (main window button).
 #   Enabled  -> publish appearances on track/signalhead/<packed> (SET)
 #   Disabled -> apply track/signalmast/<packed> to IH heads; no SET
-# Per-mast SML off (edge) -> immediate Unheld for that mast's heads + mast->IH
+# Per-mast SML off (table checkbox edge) -> Unheld for that mast's heads + mast->IH
+# Global Disable -> one Unheld burst after bulk uncheck (checkbox listener is muted)
 #
 # Boot (read topic only -- no MQTT retain publish):
 #   Hold Digicon SML off until track/bridge/sml_mode is seen (or wait times out).
@@ -31,9 +32,11 @@ MAST_TOPIC_PREFIX = "track/signalmast/"
 SML_MODE_TOPIC = "track/bridge/sml_mode"
 HOLD_WAIT_MS = 3000
 BOOT_MODE_WAIT_MS = 3000
-# TEST: False so Hold/aspect/SML edges still publish during hand-off (see Red before Unheld).
-# Set True in production to avoid Unheld storms from bulk setDisabled.
-SUPPRESS_SML_DURING_HANDOFF = False
+# True: skip Held/Aspect MQTT during Hold wait (production).
+# False: Hold still publishes Red before the explicit Unheld (test).
+# Bulk setDisabled never publishes Unheld from the checkbox listener — the
+# operator Disable path owns that burst. Per-mast table uncheck still does.
+SUPPRESS_SML_DURING_HANDOFF = True
 
 # HEAD_NAMES_BEGIN
 HEAD_NAMES = [
@@ -293,22 +296,36 @@ class DigiconMqttSml(
                 % (("enabled" if enabled else "disabled"), n)
             )
 
+        ran = [False]
         try:
+            from java.util.concurrent import CountDownLatch, TimeUnit
             from jmri.util import ThreadingUtil
 
+            latch = CountDownLatch(1)
+
+            def _run():
+                try:
+                    _do()
+                finally:
+                    ran[0] = True
+                    latch.countDown()
+
             if ThreadingUtil.isLayoutThread():
-                _do()
+                _run()
                 return
 
             # JMRI wants ThreadAction (not bare Runnable).
             class _R(ThreadingUtil.ThreadAction):
                 def run(__self):
-                    _do()
+                    _run()
 
             ThreadingUtil.runOnLayout(_R())
+            if not latch.await(30, TimeUnit.SECONDS):
+                print("mqtt_signalhead: SML bulk set timed out on layout thread")
         except Exception as exc:
             print("mqtt_signalhead: SML bulk set fallback: " + _ascii(exc))
-            _do()
+            if not ran[0]:
+                _do()
 
     def _collect_beans(self):
         mm = _mast_manager()
@@ -590,8 +607,15 @@ class DigiconMqttSml(
                     pass
             Thread.sleep(HOLD_WAIT_MS)
             print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
-            self._set_all_digicon_sml_destinations(False)
-            self._snapshot_mast_sml_state()
+            # Always mute checkbox listeners around bulk uncheck. The TEST
+            # flag only allows Held/Aspect MQTT during the Hold wait.
+            was_suppress = self._suppress_sml
+            self._suppress_sml = True
+            try:
+                self._set_all_digicon_sml_destinations(False)
+                self._snapshot_mast_sml_state()
+            finally:
+                self._suppress_sml = was_suppress
             if release:
                 print(
                     "mqtt_signalhead: publishing Unheld for %d MQTT head(s)"
@@ -629,8 +653,13 @@ class DigiconMqttSml(
                     pass
             Thread.sleep(HOLD_WAIT_MS)
             print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
-            self._set_all_digicon_sml_destinations(True)
-            self._snapshot_mast_sml_state()
+            was_suppress = self._suppress_sml
+            self._suppress_sml = True
+            try:
+                self._set_all_digicon_sml_destinations(True)
+                self._snapshot_mast_sml_state()
+            finally:
+                self._suppress_sml = was_suppress
             for mast in self._masts:
                 try:
                     mast.setHeld(False)
@@ -809,6 +838,10 @@ class DigiconMqttSml(
             self._publish_head_set(source)
 
     def _on_sml_property(self, sml):
+        # Global button / boot bulk setDisabled owns Unheld. If this listener
+        # also fires, LCOS sees two RELEASE cmds for one Disable.
+        if self._busy or self._boot_pending:
+            return
         try:
             mast = sml.getSourceMast()
         except Exception:
