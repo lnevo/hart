@@ -350,10 +350,7 @@ BLOCK_COMMENTS = {
 }
 
 BLOCK_COMMENTS = {
-    ("Track " + key[3:] if key.startswith("OS ") else key): refresh_block_prose(
-        value.replace("OS ", "Track ")
-    )
-    for key, value in BLOCK_COMMENTS.items()
+    key: refresh_block_prose(value) for key, value in BLOCK_COMMENTS.items()
 }
 
 TURNOUT_COMMENTS = {
