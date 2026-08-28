@@ -1,4 +1,4 @@
-# JMRI jython — Digicon MQTT <-> SML hand-off (publisher + receiver + global toggle).
+# JMRI jython -- Digicon MQTT <-> SML hand-off (publisher + receiver + global toggle).
 #
 # Name kept as mqtt_signalhead_publisher.py for existing profile Start Up entries.
 #
@@ -7,7 +7,7 @@
 #   Disabled -> apply track/signalmast/<packed> to IH heads; no SET
 # Per-mast SML off (edge) -> immediate Unheld for that mast's heads + mast->IH
 #
-# Boot (read topic only — no MQTT retain publish):
+# Boot (read topic only -- no MQTT retain publish):
 #   Hold Digicon SML off until track/bridge/sml_mode is seen (or wait times out).
 #   missing / disabled / query / disabling -> take Digicon (enable SML; announce enabled).
 #   enabled -> stay Disabled, no Unheld, no mode publish.
@@ -23,7 +23,6 @@ import jmri
 import re
 from java.beans import PropertyChangeListener
 from java.lang import Runnable, Thread
-from java.util.concurrent import CountDownLatch, TimeUnit
 from javax.swing import JButton, JOptionPane, SwingUtilities
 from jmri.jmrix.mqtt import MqttEventListener
 
@@ -220,7 +219,7 @@ class DigiconMqttSml(
         self._subscribe_mqtt()
         self._add_toggle_button()
         # Boot: force Digicon SML off and keep suppress until mode read.
-        # No MQTT retain publish here — only read broker delivery on subscribe.
+        # No MQTT retain publish here -- only read broker delivery on subscribe.
         self._boot_hold_sml_off()
         self._schedule_boot_check()
         print(
@@ -251,7 +250,7 @@ class DigiconMqttSml(
         Runs on the layout thread and waits so callers can keep _suppress_sml
         until every setEnabled/setDisabled has finished (avoids Unheld storms).
         """
-        # SML may finish discovering after Start Up — refresh before bulk set.
+        # SML may finish discovering after Start Up -- refresh before bulk set.
         self._attach_sml_listeners()
 
         def _do():
@@ -300,18 +299,13 @@ class DigiconMqttSml(
             if ThreadingUtil.isLayoutThread():
                 _do()
                 return
-            latch = CountDownLatch(1)
 
-            class _R(Runnable):
+            # JMRI wants ThreadAction (not bare Runnable).
+            class _R(ThreadingUtil.ThreadAction):
                 def run(__self):
-                    try:
-                        _do()
-                    finally:
-                        latch.countDown()
+                    _do()
 
             ThreadingUtil.runOnLayout(_R())
-            if not latch.await(30, TimeUnit.SECONDS):
-                print("mqtt_signalhead: SML bulk set timed out waiting on layout")
         except Exception as exc:
             print("mqtt_signalhead: SML bulk set fallback: " + _ascii(exc))
             _do()
@@ -454,7 +448,7 @@ class DigiconMqttSml(
                 )
                 if take:
                     print(
-                        "mqtt_signalhead: boot mode=%s — take Digicon (enable)"
+                        "mqtt_signalhead: boot mode=%s -- take Digicon (enable)"
                         % (mode_s if mode_s else "missing")
                     )
                     controller._boot_pending = False
@@ -462,7 +456,7 @@ class DigiconMqttSml(
                     controller._enter_enabled(force=True, from_boot=True)
                     return
                 print(
-                    "mqtt_signalhead: boot mode=enabled — stay SML Disabled "
+                    "mqtt_signalhead: boot mode=enabled -- stay SML Disabled "
                     "(no Unheld, no mode publish)"
                 )
                 controller._boot_pending = False
@@ -524,7 +518,7 @@ class DigiconMqttSml(
         """If sml_mode is already enabled elsewhere, ask before taking control."""
         mode = self._retained_mode
         if mode is not None and str(mode).strip().lower() == "enabled":
-            print("mqtt_signalhead: retain already enabled — asking override")
+            print("mqtt_signalhead: retain already enabled -- asking override")
             return self._ask_force_override_edt()
         # Live probe: another Enabled Digicon answers query with enabled.
         self._probe_saw_enabled = False
@@ -536,9 +530,9 @@ class DigiconMqttSml(
         finally:
             self._probe_active = False
         if self._probe_saw_enabled:
-            print("mqtt_signalhead: probe saw enabled — asking override")
+            print("mqtt_signalhead: probe saw enabled -- asking override")
             return self._ask_force_override_edt()
-        print("mqtt_signalhead: probe clear — enabling without override")
+        print("mqtt_signalhead: probe clear -- enabling without override")
         return True
 
     def _enter_enabled(self, force, from_boot):
@@ -595,7 +589,7 @@ class DigiconMqttSml(
                 except Exception:
                     pass
             Thread.sleep(HOLD_WAIT_MS)
-            print("mqtt_signalhead: Hold wait done — disabling SML pairs")
+            print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
             self._set_all_digicon_sml_destinations(False)
             self._snapshot_mast_sml_state()
             if release:
@@ -634,7 +628,7 @@ class DigiconMqttSml(
                 except Exception:
                     pass
             Thread.sleep(HOLD_WAIT_MS)
-            print("mqtt_signalhead: Hold wait done — enabling SML pairs")
+            print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
             self._set_all_digicon_sml_destinations(True)
             self._snapshot_mast_sml_state()
             for mast in self._masts:
@@ -825,7 +819,7 @@ class DigiconMqttSml(
         was = self._mast_sml_was_enabled.get(mast)
         self._mast_sml_was_enabled[mast] = enabled
         if was is None:
-            # First observation (boot/bulk) — no Unheld.
+            # First observation (boot/bulk) -- no Unheld.
             return
         if was == enabled:
             return
