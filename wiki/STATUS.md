@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — Bridge `sml_mode` RELEASE announces **`disabling`** first; live Digicon ACKs `enabled` to abort. Reload **PanelPro** / **CATS**. Restart Windows bridge.
+
 Updated: 2026-08-28 — Digicon SML dests stored **Enabled=no** in tables (`disable_digicon_sml_in_tables.py`; also after Discover). Only the Digicon MQTT script enables them. Reload **PanelPro** / **CATS**. Deploy `--pi`.
 
 Updated: 2026-08-28 — Digicon SML boot: hold SML off, **read** `track/bridge/sml_mode` only (no retain publish); missing/`disabled` → enable Digicon; `enabled` → stay Disabled with **no Unheld**. Bulk SML set is sync + suppress. Reload **PanelPro** / **CATS**. Deploy `--pi`.
