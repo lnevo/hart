@@ -1,27 +1,27 @@
 current_user_name,public_user_name,cp,role,notes
-Switch 1,Track 1,Brick,os,
-Switch 3,Track 3,Brick,os,
-Switch 5,Track 5,Plane,os,
-Switch 15,Track 15,South Yard,os,
-Switch 17,Track 17,South Yard,os,
-Switch 19,Track 19,South Yard,os,
-Switch 21,Track 21,South Yard,os,
-Switch 25,Track 25,East End,os,
-Switch 27,Track 27,East End,os,
-Switch 29,Track 29,East End,os,
-Switch 31,Track 31,East End,os,
-Switch 111a,Track 23a,East End,os,Crossover leg
-Switch 111b,Track 23b,East End,os,Crossover leg
-Switch 33,Track 33,East End,os,
-Switch 113a,Track 35a,Princess,os,Crossover leg
-Switch 113b,Track 35b,Princess,os,Crossover leg
-Switch 37,Track 37,Princess,os,
-Switch 39,Track 39,Princess,os,
-Switch 13,Track 13,,os,hand-throw
-Switch 7,Track 7,Barn,os,
-Switch 117b,Track 7b,Barn,os,
-Switch 11,Track 11,,os,hand-throw
-Switch 9,Track 9,,os,hand-throw
+Switch 1,OS Switch 1,Brick,os,
+Switch 3,OS Switch 3,Brick,os,
+Switch 5,OS Switch 5,Plane,os,
+Switch 15,OS Switch 15,South Yard,os,
+Switch 17,OS Switch 17,South Yard,os,
+Switch 19,OS Switch 19,South Yard,os,
+Switch 21,OS Switch 21,South Yard,os,
+Switch 25,OS Switch 25,East End,os,
+Switch 27,OS Switch 27,East End,os,
+Switch 29,OS Switch 29,East End,os,
+Switch 31,OS Switch 31,East End,os,
+Switch 111a,OS Switch 23a,East End,os,Crossover leg
+Switch 111b,OS Switch 23b,East End,os,Crossover leg
+Switch 33,OS Switch 33,East End,os,
+Switch 113a,OS Switch 35a,Princess,os,Crossover leg
+Switch 113b,OS Switch 35b,Princess,os,Crossover leg
+Switch 37,OS Switch 37,Princess,os,
+Switch 39,OS Switch 39,Princess,os,
+Switch 13,OS Switch 13,,os,hand-throw
+Switch 7,OS Switch 7,Barn,os,
+Switch 117b,OS Switch 7b,Barn,os,
+Switch 11,OS Switch 11,,os,hand-throw
+Switch 9,OS Switch 9,,os,hand-throw
 Track Main West,Track Main West,,track,
 Track Main East,Track Main East,,track,
 Track West Main Ext,Track West Main Ext,East End,track,

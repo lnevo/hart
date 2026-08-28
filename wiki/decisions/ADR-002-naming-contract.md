@@ -21,8 +21,8 @@ The panel mixes `Switch 10x`, MQTT system names, geography, and station labels. 
 
 | Role | Pattern | Example |
 |------|---------|---------|
-| Switch / plant OS | `OS <n> (<CP>)` | `OS 100 (Brick)` |
-| Crossover leg | `OS <n><a\|b> (<CP>)` | `OS 111a (East End)` |
+| Switch / plant OS | `OS Switch <n>` | `OS Switch 1` (occupancy `BS Switch 1`) |
+| Crossover leg | `OS Switch <n><a\|b>` | `OS Switch 23a` |
 | Main track limit | `<Track> <CP west>–<CP east>` where helpful | `Main East Brick–East End` |
 | Yard body | plate | `W-1`, `S-3`, `EH-1` |
 | Interchange | Geographic name | `McKees Rocks`, `McKeesport`, `PIR` deferred |

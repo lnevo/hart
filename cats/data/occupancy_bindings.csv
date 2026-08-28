@@ -6,31 +6,31 @@ Track Main East,BS Main East,CTC
 Track Main West,BS Main West,CTC
 Track McKees Rocks,BS McKees Rocks,CTC
 Track McKeesport,BS McKeesport,CTC
-Track 1,BS Switch 1,CTC
-Track 3,BS Switch 3,CTC
-Track 5,BS Switch 5,CTC
-Track 15,BS Switch 15,CTC
-Track 17,BS Switch 17,CTC
-Track 19,BS Switch 19,CTC
-Track 21,BS Switch 21,CTC
-Track 25,BS Switch 25,CTC
-Track 27,BS Switch 27,CTC
-Track 29,BS Switch 29,CTC
-Track 31,BS Switch 31,CTC
-Track 23a,BS Switch 23a,CTC
-Track 23b,BS Switch 23b,CTC
-Track 33,BS Switch 33,CTC
-Track 35a,BS Switch 35a,CTC
-Track 35b,BS Switch 35b,CTC
-Track 37,BS Switch 37 / BS K-2,CTC
+OS Switch 1,BS Switch 1,CTC
+OS Switch 3,BS Switch 3,CTC
+OS Switch 5,BS Switch 5,CTC
+OS Switch 15,BS Switch 15,CTC
+OS Switch 17,BS Switch 17,CTC
+OS Switch 19,BS Switch 19,CTC
+OS Switch 21,BS Switch 21,CTC
+OS Switch 25,BS Switch 25,CTC
+OS Switch 27,BS Switch 27,CTC
+OS Switch 29,BS Switch 29,CTC
+OS Switch 31,BS Switch 31,CTC
+OS Switch 23a,BS Switch 23a,CTC
+OS Switch 23b,BS Switch 23b,CTC
+OS Switch 33,BS Switch 33,CTC
+OS Switch 35a,BS Switch 35a,CTC
+OS Switch 35b,BS Switch 35b,CTC
+OS Switch 37,BS Switch 37 / BS K-2,CTC
 Track K-2,BS Switch 37 / BS K-2,YARD
-Track 39,BS Switch 39 / BS K-1,CTC
+OS Switch 39,BS Switch 39 / BS K-1,CTC
 Track K-1,BS Switch 39 / BS K-1,YARD
-Track 13,BS Switch 13,CTC
-Track 7,BS Switch 7,CTC
-Track 7b,BS Switch 7b,CTC
-Track 11,BS Switch 11,CTC
-Track 9,BS Switch 9,CTC
+OS Switch 13,BS Switch 13,CTC
+OS Switch 7,BS Switch 7,CTC
+OS Switch 7b,BS Switch 7b,CTC
+OS Switch 11,BS Switch 11,CTC
+OS Switch 9,BS Switch 9,CTC
 Track West Main Ext,BS West Main Ext,CTC
 Track W-1,BS W-1,YARD
 Track W-2,BS W-2,YARD

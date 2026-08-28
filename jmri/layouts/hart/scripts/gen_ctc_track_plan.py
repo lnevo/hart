@@ -186,29 +186,29 @@ FALLBACK_LABEL_SENSORS = {"Track Main East": ("BS Main East", "Track Main East")
 
 # OS occupancy-cut sits at the frog; lamp goes left/right of the points.
 OS_FROG = {
-    "Track 1": (4, 8),
-    "Track 3": (5, 9),
-    "Track 5": (9, 8),
-    "Track 7": (15, 7),
-    "Track 7b": (15, 8),
-    "Track 9": (24, 8),
-    "Track 11": (26, 8),
-    "Track 13": (27, 7),
-    "Track 15": (30, 7),
-    "Track 17": (31, 8),
-    "Track 19": (32, 9),
-    "Track 21": (33, 10),
-    "Track 23a": (40, 6),
-    "Track 23b": (40, 7),
-    "Track 31": (42, 7),
-    "Track 33": (44, 7),
-    "Track 29": (41, 8),
-    "Track 27": (40, 9),
-    "Track 25": (39, 10),
-    "Track 35b": (52, 6),
-    "Track 35a": (52, 7),
-    "Track 39": (55, 6),
-    "Track 37": (55, 7),
+    "OS Switch 1": (4, 8),
+    "OS Switch 3": (5, 9),
+    "OS Switch 5": (9, 8),
+    "OS Switch 7": (15, 7),
+    "OS Switch 7b": (15, 8),
+    "OS Switch 9": (24, 8),
+    "OS Switch 11": (26, 8),
+    "OS Switch 13": (27, 7),
+    "OS Switch 15": (30, 7),
+    "OS Switch 17": (31, 8),
+    "OS Switch 19": (32, 9),
+    "OS Switch 21": (33, 10),
+    "OS Switch 23a": (40, 6),
+    "OS Switch 23b": (40, 7),
+    "OS Switch 31": (42, 7),
+    "OS Switch 33": (44, 7),
+    "OS Switch 29": (41, 8),
+    "OS Switch 27": (40, 9),
+    "OS Switch 25": (39, 10),
+    "OS Switch 35b": (52, 6),
+    "OS Switch 35a": (52, 7),
+    "OS Switch 39": (55, 6),
+    "OS Switch 37": (55, 7),
 }
 
 # (mast, cats_x, cats_y, facing, kind, IH* or None)
@@ -242,29 +242,29 @@ SIGNALS = [
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 1–119.
 # (slot, plate, [(sensor, tip), ...])
 COLUMNS = [
-    (0, "1", [("Block 4-2", "Track 1")]),
-    (1, "3", [("Block 4-1", "Track 3")]),
-    (2, "5", [("Block 4-5", "Track 5")]),
-    (3, "7", [("Block 13-3", "Track 7 (yard side)"),
-              ("Block 13-4", "Track 7b (main side)")]),
-    (4, "9", [("Block 13-8", "Track 9")]),
-    (5, "11", [("Block 13-2", "Track 11")]),
-    (6, "13", [("Block 3-1", "Track 13")]),
-    (7, "15", [("Block 3-2", "Track 15")]),
-    (8, "17", [("Block 3-3", "Track 17")]),
-    (9, "19", [("Block 3-5", "Track 19")]),
-    (10, "21", [("Block 3-7", "Track 21")]),
-    (11, "23", [("Block 12-4", "Track 23a (Track Main West side)"),
-                ("Block 12-6", "Track 23b (yard side)")]),
-    (12, "25", [("Block 12-1", "Track 25")]),
-    (13, "27", [("Block 12-3", "Track 27")]),
-    (14, "29", [("Block 12-5", "Track 29")]),
-    (15, "31", [("Block 12-7", "Track 31")]),
-    (16, "33", [("Block 12-8", "Track 33")]),
-    (17, "35", [("Block 1-5", "Track 35b (Track Main West side)"),
-                ("Block 1-6", "Track 35a (Track East Lead side)")]),
-    (18, "37", [("Block 1-3", "Track 37")]),
-    (19, "39", [("Block 1-4", "Track 39")]),
+    (0, "1", [("Block 4-2", "OS Switch 1")]),
+    (1, "3", [("Block 4-1", "OS Switch 3")]),
+    (2, "5", [("Block 4-5", "OS Switch 5")]),
+    (3, "7", [("Block 13-3", "OS Switch 7 (yard side)"),
+              ("Block 13-4", "OS Switch 7b (main side)")]),
+    (4, "9", [("Block 13-8", "OS Switch 9")]),
+    (5, "11", [("Block 13-2", "OS Switch 11")]),
+    (6, "13", [("Block 3-1", "OS Switch 13")]),
+    (7, "15", [("Block 3-2", "OS Switch 15")]),
+    (8, "17", [("Block 3-3", "OS Switch 17")]),
+    (9, "19", [("Block 3-5", "OS Switch 19")]),
+    (10, "21", [("Block 3-7", "OS Switch 21")]),
+    (11, "23", [("Block 12-4", "OS Switch 23a (Track Main West side)"),
+                ("Block 12-6", "OS Switch 23b (yard side)")]),
+    (12, "25", [("Block 12-1", "OS Switch 25")]),
+    (13, "27", [("Block 12-3", "OS Switch 27")]),
+    (14, "29", [("Block 12-5", "OS Switch 29")]),
+    (15, "31", [("Block 12-7", "OS Switch 31")]),
+    (16, "33", [("Block 12-8", "OS Switch 33")]),
+    (17, "35", [("Block 1-5", "OS Switch 35b (Track Main West side)"),
+                ("Block 1-6", "OS Switch 35a (Track East Lead side)")]),
+    (18, "37", [("Block 1-3", "OS Switch 37")]),
+    (19, "39", [("Block 1-4", "OS Switch 39")]),
 ]
 COLUMNS = [
     (slot, plate, [(_bs(sensor), tip) for sensor, tip in sensors])
@@ -728,7 +728,7 @@ def parse_cats(path: Path) -> dict:
     return cells
 
 
-_SWITCH_OS_RE = re.compile(r"^(?:OS|Track) \d")
+_SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
 
 
 def _norm_name(name: str | None) -> str:
@@ -739,7 +739,7 @@ def _norm_name(name: str | None) -> str:
 
 
 def _is_switch_os(name: str) -> bool:
-    """Switch occupancy cuts: Track 1 / Track 23a (not Track Scale / Track S-R)."""
+    """Switch occupancy cuts: OS Switch 1 / OS Switch 23a (not Track Scale / Track S-R)."""
     n = _norm_name(name)
     return n in OS_FROG or bool(_SWITCH_OS_RE.match(n))
 

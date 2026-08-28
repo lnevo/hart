@@ -40,6 +40,8 @@ BARN_TURNOUT_BLOCK = frozenset(
         ("block", "OS 7"),
         ("block", "OS 7b"),
         ("block", "OS Barn"),
+        ("block", "OS Switch 7"),
+        ("block", "OS Switch 7b"),
         ("block", "Track 7"),
         ("block", "Track 7b"),
         ("block", "Track Barn"),

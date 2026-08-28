@@ -42,8 +42,8 @@ CTC_MASTS = {
     "Mast 8LB": "Track Barn, Track Barn dwarf westbound; lever 8 Left",
     "Mast 24RA": "East End, Track Main West eastbound; lever 18 Right",
     "Mast 24RB": "East End, Track S-R dwarf eastbound; lever 18 Right",
-    "Mast 24L": "East End, Track 23a westbound; lever 18 Left",
-    "Mast 32R": "East End, Track 31 dwarf eastbound; lever 20 Right",
+    "Mast 24L": "East End, OS Switch 23a westbound; lever 18 Left",
+    "Mast 32R": "East End, OS Switch 31 dwarf eastbound; lever 20 Right",
     "Mast 34R": "East End, Track Main East eastbound; lever 24 Right",
     "Mast 34L": "East End lead westbound; lever 24 Left",
     "Mast 36RA": "Princess, Track Main West eastbound; lever 26 Right",
@@ -109,7 +109,7 @@ NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
     "Mast 24RA": (1095, 242),  # Track Main West into 111
     "Mast 24RB": (1095, 305),  # Track S-R into 111 (aligned with Mast 24RA)
     "Mast 24L": (1248, 242),   # same X as NX Mast 32R
-    "Mast 32R": (1248, 335),   # Track 29 ladder, left of the diagonal
+    "Mast 32R": (1248, 335),   # OS Switch 29 ladder, left of the diagonal
     "Mast 34R": (1312, 338),   # Track Main East, left of the diagonal
     "Mast 34L": (1407, 305),   # Track East Lead into 112
     "Mast 36RA": (1465, 242),  # Track West Main Ext into 113

@@ -14,7 +14,7 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 | Kind | Pattern | Example |
 |------|---------|---------|
 | Switch | `Switch <n>` | `Switch 1` (CTC odd; DCC stays old number in comment) |
-| Track block | `Track <n>[a\|b]` (CP in the bean comment) | `Track 7b` |
+| Switch OS block | `OS Switch <n>[a\|b]` (occupancy `BS Switch <n>`) | `OS Switch 1`, `OS Switch 7b` |
 | Track body | `Track <Name>` | `Track Scale`, `Track S-R` |
 | Occupancy sensor | `BS …` (comment stays `Block n-n`) | `BS Switch 3`, `BS S-R` |
 | Main between CPs | `Track <west>–<east>` | `Track Brick-Plane` |
@@ -30,7 +30,7 @@ Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R
 
 ## Live inventory (2026-08-27)
 
-CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `Track S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; occupancy comments are `Block n-n`. Turnout / head / FB comments are LCOS port wiring (`Node: 4 | OU-1: Port: 1,2 | DCC: 100`). Mast comments are `Brick | Switch 1` (CP plus the switch that lamp protects; Princess intermediates stay CP-only). Track-block comments keep occupancy/`stop` text with live names (`Track Barn`, `Switch 7`). Dispatcher station blocks keep the `stop` contract. USS CTC internals (`IS*:`) keep frozen systemNames; userNames are live (`CTC 1 lever`). Dispatcher MoveTo sensors are `MoveToTrack_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 20 columns / 23 SIDI masts.
+CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS Switch 1`, `Track S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; occupancy comments are `Block n-n`. Turnout / head / FB comments are LCOS port wiring (`Node: 4 | OU-1: Port: 1,2 | DCC: 100`). Mast comments are `Brick | Switch 1` (CP plus the switch that lamp protects; Princess intermediates stay CP-only). Track-block comments keep occupancy/`stop` text with live names (`Track Barn`, `Switch 7`). Dispatcher station blocks keep the `stop` contract. USS CTC internals (`IS*:`) keep frozen systemNames; userNames are live (`CTC 1 lever`). Dispatcher MoveTo sensors are `MoveToTrack_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 20 columns / 23 SIDI masts.
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 
@@ -42,7 +42,7 @@ Live recapture is **2026-08-26**. The 2026-08-20 files locked pre-ADR-005 names;
 | `capture_public_name_baseline.py` | Re-snapshot from `output/tables.xml` + live CATS CTC hold |
 | `validate_le_signalling.py --xml output/tables.xml --dests --compare-stored` | native SML dests vs stored |
 | `audit_panel_contracts.py` | working / deployment / standalone drift = 0 |
-| `check_hart_phase02.py` | Phase 0–2 (public names are live `Track 7b`) |
+| `check_hart_phase02.py` | Phase 0–2 (public names are live `OS Switch 7b`) |
 | `validate_cats_panel.py` | Live masters PASS |
 
 After a rename: `systemName` columns identical; public strings follow the CSV `proposed`; occupancy `Block N-N` unchanged.
@@ -57,7 +57,7 @@ Identity rows are `current` == `proposed` == live userName, with Device-map text
 
 Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. CTC-number convert + SML Discover + NX Discover + CTC Logic smoke + `--pi --win` done 2026-08-27. Node 13 occupancy walk-down stuck (EH-1↔EH-3 swap). Do not change MQTT topics.
 
-1. Walk-down node 13 (done: 1301=Track 11/118, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=Track 9/119). Freeze the CSV.  
+1. Walk-down node 13 (done: 1301=OS Switch 11/118, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9/119). Freeze the CSV.  
 2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
 3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_hart_master4.py` then `build_hart_master_abs_hold.py`.  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  
@@ -82,13 +82,13 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `cats/scripts/add_digicon_le_signal_icons.py` | Same mast keys as polish |
 | `reconcile_dispatcher_stations.py` | Station `Track East Lead` + icon xy |
 | `audit_panel_contracts.py` | `Track East Lead` stop contract |
-| `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `Track 7b`) |
+| `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `OS Switch 7b`) |
 | `panelpro_smoke_test.py` | Station list `Track East Lead` |
-| `jmri/scripts/check_hart_phase02.py` | Requires `Track 7b` |
+| `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
 | `wire_hart_master4.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
 | `apply_sml_cats_pairs.py` | SML pair + block dests |
-| `validate_cats_panel.py` | Required `Track 13` / `Track 9` (was OS 13–119 West Yard) |
+| `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |
 | `sim_hart_train_mqtt.py` | Route step block names |
 | `lcos_mqtt_mimic.py` | Groups by live CP (`Brick`, `Barn`, `Engine House`); turnout keys `Switch 1` |

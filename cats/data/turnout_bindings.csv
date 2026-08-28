@@ -1,21 +1,21 @@
 layout_ident,os_block,turnout_user_or_system,jmri_system_name,cats_role
-TOL3,Track 1,M2T408,M2T408,points_command
-TOR11,Track 25,M2T1208,M2T1208,points_command
-TOL15,Track 17,M2T309,M2T309,points_command
-TOL23,Track 33,M2T1213,M2T1213,points_command
-TOL38,Track 3,M2T409,M2T409,points_command
-TOL42,Track 5,M2T410,M2T410,points_command
-TOR7,Track 29,M2T1210,M2T1210,points_command
-TOL19,Track 21,M2T311,M2T311,points_command
-TOR9,Track 27,M2T1209,M2T1209,points_command
-TO111,Track 23a,Switch 23,Switch 23,points_command
-TOL6,Track 31,M2T1211,M2T1211,points_command
-TOL29,Track 39,M2T110,M2T110,points_command
-TOL17,Track 19,M2T310,M2T310,points_command
-TOR36,Track 37,M2T109,M2T109,points_command
-TOR14,Track 15,M2T308,M2T308,points_command
-TO113,Track 35b,Switch 35,Switch 35,points_command
-TO1,Track 13,Switch 13,Switch 13,points_command
-TO10,Track 9,Switch 9,Switch 9,points_command
-TO117,Track 7,Switch 7,Switch 7,points_command
-TO11,Track 11,Switch 11,Switch 11,points_command
+TOL3,OS Switch 1,M2T408,M2T408,points_command
+TOR11,OS Switch 25,M2T1208,M2T1208,points_command
+TOL15,OS Switch 17,M2T309,M2T309,points_command
+TOL23,OS Switch 33,M2T1213,M2T1213,points_command
+TOL38,OS Switch 3,M2T409,M2T409,points_command
+TOL42,OS Switch 5,M2T410,M2T410,points_command
+TOR7,OS Switch 29,M2T1210,M2T1210,points_command
+TOL19,OS Switch 21,M2T311,M2T311,points_command
+TOR9,OS Switch 27,M2T1209,M2T1209,points_command
+TO111,OS Switch 23a,Switch 23,Switch 23,points_command
+TOL6,OS Switch 31,M2T1211,M2T1211,points_command
+TOL29,OS Switch 39,M2T110,M2T110,points_command
+TOL17,OS Switch 19,M2T310,M2T310,points_command
+TOR36,OS Switch 37,M2T109,M2T109,points_command
+TOR14,OS Switch 15,M2T308,M2T308,points_command
+TO113,OS Switch 35b,Switch 35,Switch 35,points_command
+TO1,OS Switch 13,Switch 13,Switch 13,points_command
+TO10,OS Switch 9,Switch 9,Switch 9,points_command
+TO117,OS Switch 7,Switch 7,Switch 7,points_command
+TO11,OS Switch 11,Switch 11,Switch 11,points_command

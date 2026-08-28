@@ -961,7 +961,7 @@
     <defaultspeed>Normal</defaultspeed>
     <block systemName="IB1" length="0.0" curve="0">
       <systemName>IB1</systemName>
-      <userName>Track 13</userName>
+      <userName>OS Switch 13</userName>
       <comment>Engine House</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 13</occupancysensor>
@@ -996,7 +996,7 @@
     </block>
     <block systemName="IB6" length="0.0" curve="0">
       <systemName>IB6</systemName>
-      <userName>Track 7b</userName>
+      <userName>OS Switch 7b</userName>
       <comment>Barn</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7b</occupancysensor>
@@ -1014,7 +1014,7 @@
     </block>
     <block systemName="IB8" length="0.0" curve="0">
       <systemName>IB8</systemName>
-      <userName>Track 7</userName>
+      <userName>OS Switch 7</userName>
       <comment>Barn</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7</occupancysensor>
@@ -1045,7 +1045,7 @@
     </block>
     <block systemName="IB18" length="0.0" curve="0">
       <systemName>IB18</systemName>
-      <userName>Track 9</userName>
+      <userName>OS Switch 9</userName>
       <comment>Engine House</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 9</occupancysensor>
@@ -1067,7 +1067,7 @@
     </block>
     <block systemName="IB19" length="0.0" curve="0">
       <systemName>IB19</systemName>
-      <userName>Track 11</userName>
+      <userName>OS Switch 11</userName>
       <comment>Engine House</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 11</occupancysensor>
@@ -1295,7 +1295,7 @@
     </block>
     <block systemName="IB:AUTO:0030" length="0.0" curve="0">
       <systemName>IB:AUTO:0030</systemName>
-      <userName>Track 33</userName>
+      <userName>OS Switch 33</userName>
       <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 33</occupancysensor>
@@ -1313,7 +1313,7 @@
     </block>
     <block systemName="IB:AUTO:0031" length="0.0" curve="0">
       <systemName>IB:AUTO:0031</systemName>
-      <userName>Track 5</userName>
+      <userName>OS Switch 5</userName>
       <comment>Plane</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 5</occupancysensor>
@@ -1331,7 +1331,7 @@
     </block>
     <block systemName="IB:AUTO:0032" length="0.0" curve="0">
       <systemName>IB:AUTO:0032</systemName>
-      <userName>Track 37</userName>
+      <userName>OS Switch 37</userName>
       <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37 / BS K-2</occupancysensor>
@@ -1344,7 +1344,7 @@
     </block>
     <block systemName="IB:AUTO:0033" length="0.0" curve="0">
       <systemName>IB:AUTO:0033</systemName>
-      <userName>Track 1</userName>
+      <userName>OS Switch 1</userName>
       <comment>Brick</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
@@ -1362,7 +1362,7 @@
     </block>
     <block systemName="IB:AUTO:0034" length="0.0" curve="0">
       <systemName>IB:AUTO:0034</systemName>
-      <userName>Track 23a</userName>
+      <userName>OS Switch 23a</userName>
       <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23a</occupancysensor>
@@ -1380,7 +1380,7 @@
     </block>
     <block systemName="IB:AUTO:0035" length="0.0" curve="0">
       <systemName>IB:AUTO:0035</systemName>
-      <userName>Track 3</userName>
+      <userName>OS Switch 3</userName>
       <comment>Brick</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 3</occupancysensor>
@@ -1398,7 +1398,7 @@
     </block>
     <block systemName="IB:AUTO:0036" length="0.0" curve="0">
       <systemName>IB:AUTO:0036</systemName>
-      <userName>Track 25</userName>
+      <userName>OS Switch 25</userName>
       <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 25</occupancysensor>
@@ -1420,7 +1420,7 @@
     </block>
     <block systemName="IB:AUTO:0037" length="0.0" curve="0">
       <systemName>IB:AUTO:0037</systemName>
-      <userName>Track 27</userName>
+      <userName>OS Switch 27</userName>
       <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 27</occupancysensor>
@@ -1442,7 +1442,7 @@
     </block>
     <block systemName="IB:AUTO:0038" length="0.0" curve="0">
       <systemName>IB:AUTO:0038</systemName>
-      <userName>Track 21</userName>
+      <userName>OS Switch 21</userName>
       <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 21</occupancysensor>
@@ -1460,7 +1460,7 @@
     </block>
     <block systemName="IB:AUTO:0039" length="0.0" curve="0">
       <systemName>IB:AUTO:0039</systemName>
-      <userName>Track 23b</userName>
+      <userName>OS Switch 23b</userName>
       <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23b</occupancysensor>
@@ -1478,7 +1478,7 @@
     </block>
     <block systemName="IB:AUTO:0040" length="0.0" curve="0">
       <systemName>IB:AUTO:0040</systemName>
-      <userName>Track 39</userName>
+      <userName>OS Switch 39</userName>
       <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39 / BS K-1</occupancysensor>
@@ -1491,7 +1491,7 @@
     </block>
     <block systemName="IB:AUTO:0041" length="0.0" curve="0">
       <systemName>IB:AUTO:0041</systemName>
-      <userName>Track 15</userName>
+      <userName>OS Switch 15</userName>
       <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
@@ -1509,7 +1509,7 @@
     </block>
     <block systemName="IB:AUTO:0042" length="0.0" curve="0">
       <systemName>IB:AUTO:0042</systemName>
-      <userName>Track 31</userName>
+      <userName>OS Switch 31</userName>
       <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
@@ -1531,7 +1531,7 @@
     </block>
     <block systemName="IB:AUTO:0043" length="0.0" curve="0">
       <systemName>IB:AUTO:0043</systemName>
-      <userName>Track 29</userName>
+      <userName>OS Switch 29</userName>
       <comment>East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 29</occupancysensor>
@@ -1553,7 +1553,7 @@
     </block>
     <block systemName="IB:AUTO:0044" length="0.0" curve="0">
       <systemName>IB:AUTO:0044</systemName>
-      <userName>Track 17</userName>
+      <userName>OS Switch 17</userName>
       <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 17</occupancysensor>
@@ -1571,7 +1571,7 @@
     </block>
     <block systemName="IB:AUTO:0045" length="0.0" curve="0">
       <systemName>IB:AUTO:0045</systemName>
-      <userName>Track 19</userName>
+      <userName>OS Switch 19</userName>
       <comment>South Yard</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
@@ -1589,7 +1589,7 @@
     </block>
     <block systemName="IB:AUTO:0046" length="0.0" curve="0">
       <systemName>IB:AUTO:0046</systemName>
-      <userName>Track 35a</userName>
+      <userName>OS Switch 35a</userName>
       <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
@@ -1607,7 +1607,7 @@
     </block>
     <block systemName="IB:AUTO:0047" length="0.0" curve="0">
       <systemName>IB:AUTO:0047</systemName>
-      <userName>Track 35b</userName>
+      <userName>OS Switch 35b</userName>
       <comment>Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35b</occupancysensor>
@@ -1669,12 +1669,12 @@
     <block systemName="IB23" length="609.6" curve="0">
       <systemName>IB23</systemName>
       <userName>Track K-1</userName>
-      <comment>Princess stub east of Switch 39; shares Block 1-4 with Track 39; occupancy Block 1-4 / M2S103; stop</comment>
+      <comment>Princess stub east of Switch 39; shares Block 1-4 with OS Switch 39; occupancy Block 1-4 / M2S103; stop</comment>
     </block>
     <block systemName="IB24" length="609.6" curve="0">
       <systemName>IB24</systemName>
       <userName>Track K-2</userName>
-      <comment>Princess stub east of Switch 37; shares Block 1-3 with Track 37; occupancy Block 1-3 / M2S102; stop</comment>
+      <comment>Princess stub east of Switch 37; shares Block 1-3 with OS Switch 37; occupancy Block 1-3 / M2S102; stop</comment>
     </block>
   <block systemName="IB:AUTO:0052" length="400.0" curve="0"><systemName>IB:AUTO:0052</systemName><userName>Track S-1 West</userName><comment>Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station</comment><permissive>no</permissive><occupancysensor>BS S-1</occupancysensor></block><block systemName="IB:AUTO:0053" length="400.0" curve="0"><systemName>IB:AUTO:0053</systemName><userName>Track S-1 East</userName><comment>Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station</comment><permissive>no</permissive><occupancysensor>BS S-1</occupancysensor></block><block systemName="IB:AUTO:0054" length="400.0" curve="0"><systemName>IB:AUTO:0054</systemName><userName>Track S-2 West</userName><comment>Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station</comment><permissive>no</permissive><occupancysensor>BS S-2</occupancysensor></block><block systemName="IB:AUTO:0055" length="400.0" curve="0"><systemName>IB:AUTO:0055</systemName><userName>Track S-2 East</userName><comment>Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station</comment><permissive>no</permissive><occupancysensor>BS S-2</occupancysensor></block><block systemName="IB:AUTO:0056" length="400.0" curve="0"><systemName>IB:AUTO:0056</systemName><userName>Track S-3 West</userName><comment>Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station</comment><permissive>no</permissive><occupancysensor>BS S-3</occupancysensor></block><block systemName="IB:AUTO:0057" length="400.0" curve="0"><systemName>IB:AUTO:0057</systemName><userName>Track S-3 East</userName><comment>Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station</comment><permissive>no</permissive><occupancysensor>BS S-3</occupancysensor></block><block systemName="IB:AUTO:0058" length="400.0" curve="0"><systemName>IB:AUTO:0058</systemName><userName>Track S-4 West</userName><comment>Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station</comment><permissive>no</permissive><occupancysensor>BS S-4</occupancysensor></block><block systemName="IB:AUTO:0059" length="400.0" curve="0"><systemName>IB:AUTO:0059</systemName><userName>Track S-4 East</userName><comment>Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station</comment><permissive>no</permissive><occupancysensor>BS S-4</occupancysensor></block><block systemName="IB:AUTO:0060" length="400.0" curve="0"><systemName>IB:AUTO:0060</systemName><userName>Track S-R East</userName><comment>Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station</comment><permissive>no</permissive><occupancysensor>BS S-R</occupancysensor></block><block systemName="IB:AUTO:0061" length="400.0" curve="0"><systemName>IB:AUTO:0061</systemName><userName>Track S-R West</userName><comment>Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station</comment><permissive>no</permissive><occupancysensor>BS S-R</occupancysensor></block></blocks>
   <layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml" blockrouting="yes">
@@ -1728,79 +1728,79 @@
     </layoutblock>
     <layoutblock systemName="ILB30" occupancysensor="BS Switch 33" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB30</systemName>
-      <userName>Track 33</userName>
+      <userName>OS Switch 33</userName>
     </layoutblock>
     <layoutblock systemName="ILB31" occupancysensor="BS Switch 5" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB31</systemName>
-      <userName>Track 5</userName>
+      <userName>OS Switch 5</userName>
     </layoutblock>
     <layoutblock systemName="ILB32" occupancysensor="BS Switch 37 / BS K-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB32</systemName>
-      <userName>Track 37</userName>
+      <userName>OS Switch 37</userName>
     </layoutblock>
     <layoutblock systemName="ILB33" occupancysensor="BS Switch 1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB33</systemName>
-      <userName>Track 1</userName>
+      <userName>OS Switch 1</userName>
     </layoutblock>
     <layoutblock systemName="ILB34" occupancysensor="BS Switch 23a" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB34</systemName>
-      <userName>Track 23a</userName>
+      <userName>OS Switch 23a</userName>
     </layoutblock>
     <layoutblock systemName="ILB35" occupancysensor="BS Switch 3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB35</systemName>
-      <userName>Track 3</userName>
+      <userName>OS Switch 3</userName>
     </layoutblock>
     <layoutblock systemName="ILB36" occupancysensor="BS Switch 25" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB36</systemName>
-      <userName>Track 25</userName>
+      <userName>OS Switch 25</userName>
     </layoutblock>
     <layoutblock systemName="ILB37" occupancysensor="BS Switch 27" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB37</systemName>
-      <userName>Track 27</userName>
+      <userName>OS Switch 27</userName>
     </layoutblock>
     <layoutblock systemName="ILB38" occupancysensor="BS Switch 21" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB38</systemName>
-      <userName>Track 21</userName>
+      <userName>OS Switch 21</userName>
     </layoutblock>
     <layoutblock systemName="ILB39" occupancysensor="BS Switch 23b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB39</systemName>
-      <userName>Track 23b</userName>
+      <userName>OS Switch 23b</userName>
     </layoutblock>
     <layoutblock systemName="ILB40" occupancysensor="BS Switch 39 / BS K-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB40</systemName>
-      <userName>Track 39</userName>
+      <userName>OS Switch 39</userName>
     </layoutblock>
     <layoutblock systemName="ILB41" occupancysensor="BS Switch 15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB41</systemName>
-      <userName>Track 15</userName>
+      <userName>OS Switch 15</userName>
     </layoutblock>
     <layoutblock systemName="ILB42" occupancysensor="BS Switch 31" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB42</systemName>
-      <userName>Track 31</userName>
+      <userName>OS Switch 31</userName>
     </layoutblock>
     <layoutblock systemName="ILB43" occupancysensor="BS Switch 29" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB43</systemName>
-      <userName>Track 29</userName>
+      <userName>OS Switch 29</userName>
     </layoutblock>
     <layoutblock systemName="ILB44" occupancysensor="BS Switch 17" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB44</systemName>
-      <userName>Track 17</userName>
+      <userName>OS Switch 17</userName>
     </layoutblock>
     <layoutblock systemName="ILB45" occupancysensor="BS Switch 19" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB45</systemName>
-      <userName>Track 19</userName>
+      <userName>OS Switch 19</userName>
     </layoutblock>
     <layoutblock systemName="ILB46" occupancysensor="BS Switch 35a" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB46</systemName>
-      <userName>Track 35a</userName>
+      <userName>OS Switch 35a</userName>
     </layoutblock>
     <layoutblock systemName="ILB47" occupancysensor="BS Switch 35b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB47</systemName>
-      <userName>Track 35b</userName>
+      <userName>OS Switch 35b</userName>
     </layoutblock>
     <layoutblock systemName="ILB48" occupancysensor="BS Switch 13" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB48</systemName>
-      <userName>Track 13</userName>
+      <userName>OS Switch 13</userName>
     </layoutblock>
     <layoutblock systemName="ILB50" occupancysensor="BS Scale" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB50</systemName>
@@ -1808,11 +1808,11 @@
     </layoutblock>
     <layoutblock systemName="ILB53" occupancysensor="BS Switch 7b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB53</systemName>
-      <userName>Track 7b</userName>
+      <userName>OS Switch 7b</userName>
     </layoutblock>
     <layoutblock systemName="ILB55" occupancysensor="BS Switch 7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB55</systemName>
-      <userName>Track 7</userName>
+      <userName>OS Switch 7</userName>
     </layoutblock>
     <layoutblock systemName="ILB62" occupancysensor="BS Barn" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB62</systemName>
@@ -1820,11 +1820,11 @@
     </layoutblock>
     <layoutblock systemName="ILB65" occupancysensor="BS Switch 9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB65</systemName>
-      <userName>Track 9</userName>
+      <userName>OS Switch 9</userName>
     </layoutblock>
     <layoutblock systemName="ILB66" occupancysensor="BS Switch 11" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB66</systemName>
-      <userName>Track 11</userName>
+      <userName>OS Switch 11</userName>
     </layoutblock>
     <layoutblock systemName="ILB67" occupancysensor="BS EH-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB67</systemName>
@@ -2105,149 +2105,149 @@
     <BlockContentsIcon blockcontents="Track Main West" x="948" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track West Main Ext" x="1360" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track W-1" x="170" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 23a" x="1190" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 35b" x="1530" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 39" x="1655" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 23a" x="1190" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 35b" x="1530" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 39" x="1655" y="260" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track EH-1" x="585" y="251" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track EH-3" x="585" y="269" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 3" x="255" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 1" x="335" y="250" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 3" x="255" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 1" x="335" y="250" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track W-2" x="170" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track EH-2" x="585" y="257" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 9" x="504" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 11" x="580" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 13" x="640" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 31" x="1313" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 9" x="504" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 11" x="580" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 13" x="640" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 31" x="1313" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track East Lead" x="1460" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 15" x="700" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 15" x="700" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-R" x="948" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 23b" x="1235" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 33" x="1384" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 35a" x="1530" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 37" x="1655" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 23b" x="1235" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 33" x="1384" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 35a" x="1530" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 37" x="1655" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Brick-Plane" x="287" y="298" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track McKeesport" x="1755" y="360" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Scale" x="420" y="323" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 5" x="345" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 17" x="771" y="375" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 5" x="345" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 17" x="771" y="375" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-1" x="948" y="374" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 29" x="1244" y="372" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 27" x="1171" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 19" x="842" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 29" x="1244" y="372" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 27" x="1171" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 19" x="842" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-2" x="948" y="421" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 25" x="1103" y="470" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 25" x="1103" y="470" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-4" x="948" y="510" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-3" x="948" y="468" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 21" x="912" y="467" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 21" x="912" y="467" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Main East" x="948" y="558" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track East Main Ext" x="405" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 7" x="505" y="298" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 7" x="505" y="298" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Barn" x="540" y="344" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 7b" x="465" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <signalmasticon signalmast="Mast 4LA" x="40" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 4LB" x="40" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 40RA" x="1740" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 38RA" x="1740" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 12L" x="548" y="250" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LA" x="548" y="261" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LB" x="548" y="273" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18L" x="768" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20L" x="843" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22L" x="910" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26L" x="1050" y="458" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18R" x="1148" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20R" x="1148" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22R" x="1148" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26R" x="1148" y="474" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 16L" x="720" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 32L" x="1145" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="Track 1" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
+    <BlockContentsIcon blockcontents="OS Switch 7b" x="465" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <signalmasticon signalmast="Mast 4LA" x="40" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 4LB" x="40" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 40RA" x="1740" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 38RA" x="1740" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 12L" x="548" y="250" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LA" x="548" y="261" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LB" x="548" y="273" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18L" x="768" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20L" x="843" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22L" x="910" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26L" x="1050" y="458" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18R" x="1148" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20R" x="1148" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22R" x="1148" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26R" x="1148" y="474" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 16L" x="720" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 32L" x="1145" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="OS Switch 1" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
       <signalAMast>Mast 2L</signalAMast>
     </layoutturnout>
-    <layoutturnout ident="TOR11" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1088.5" ycen="459.5" xa="1103.0" ya="451.0" xb="1074.0" yb="468.0" xc="1075.0999755859375" yc="460.0" xd="1103.0" yd="451.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1208" blockname="Track 25" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" />
-    <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="748.5" ycen="366.0" xa="734.5" ya="356.5" xb="762.5" yb="375.5" xc="762.2999877929688" yc="366.0" xd="734.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="Track 17" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15">
+    <layoutturnout ident="TOR11" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1088.5" ycen="459.5" xa="1103.0" ya="451.0" xb="1074.0" yb="468.0" xc="1075.0999755859375" yc="460.0" xd="1103.0" yd="451.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1208" blockname="OS Switch 25" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" />
+    <layoutturnout ident="TOL15" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="748.5" ycen="366.0" xa="734.5" ya="356.5" xb="762.5" yb="375.5" xc="762.2999877929688" yc="366.0" xd="734.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T309" blockname="OS Switch 17" connectaname="T-I-TOL15" connectbname="T-ER-TOL15" connectcname="T-EL-TOL15">
     </layoutturnout>
-    <layoutturnout ident="TOL23" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="1371.5" ycen="315.0" xa="1386.5" ya="315.0" xb="1356.5" yb="315.0" xc="1356.4000244140625" yc="324.79998779296875" xd="1386.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1213" blockname="Track 33" connectaname="T-I-TOL23" connectbname="T-ER-TOL23" connectcname="T-EL-TOL23">
+    <layoutturnout ident="TOL23" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="1371.5" ycen="315.0" xa="1386.5" ya="315.0" xb="1356.5" yb="315.0" xc="1356.4000244140625" yc="324.79998779296875" xd="1386.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1213" blockname="OS Switch 33" connectaname="T-I-TOL23" connectbname="T-ER-TOL23" connectcname="T-EL-TOL23">
       <signalAMast>Mast 34L</signalAMast>
       <signalCMast>Mast 34R</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOL38" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="255.5" ycen="252.0" xa="271.0" ya="252.0" xb="240.0" yb="252.0" xc="243.5" yc="265.3999938964844" xd="271.0" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T409" blockname="Track 3" connectaname="T-I-TOL38" connectbname="T-ER-TOL38" connectcname="T-EL-TOL38">
+    <layoutturnout ident="TOL38" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="255.5" ycen="252.0" xa="271.0" ya="252.0" xb="240.0" yb="252.0" xc="243.5" yc="265.3999938964844" xd="271.0" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T409" blockname="OS Switch 3" connectaname="T-I-TOL38" connectbname="T-ER-TOL38" connectcname="T-EL-TOL38">
       <signalBMast>Mast 4RA</signalBMast>
       <signalCMast>Mast 4RB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOL42" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="342.5" ycen="363.0" xa="327.5" ya="363.0" xb="357.5" yb="363.0" xc="365.6000061035156" yc="315.0" xd="327.5" yd="363.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T410" blockname="Track 5" connectaname="T-I-TOL42" connectbname="T8" connectcname="T1">
+    <layoutturnout ident="TOL42" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="342.5" ycen="363.0" xa="327.5" ya="363.0" xb="357.5" yb="363.0" xc="365.6000061035156" yc="315.0" xd="327.5" yd="363.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T410" blockname="OS Switch 5" connectaname="T-I-TOL42" connectbname="T8" connectcname="T1">
       <signalBMast>Mast 6LB</signalBMast>
       <signalCMast>Mast 6LA</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOR7" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1230.5" ycen="366.0" xa="1244.5" ya="356.5" xb="1216.5" yb="375.5" xc="1221.0999755859375" yc="366.0" xd="1244.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1210" blockname="Track 29" connectaname="T-I-TOR7" connectbname="T-EL-TOR7" connectcname="T-ER-TOR7" />
-    <layoutturnout ident="TOL19" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="891.5" ycen="460.5" xa="879.0" ya="452.0" xb="904.0" yb="469.0" xc="904.9000244140625" yc="460.0" xd="879.0" yd="452.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T311" blockname="Track 21" connectaname="T-I-TOL19" connectbname="T-ER-TOL19" connectcname="T-EL-TOL19" />
-    <layoutturnout ident="TOR9" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1158.5" ycen="414.0" xa="1171.5" ya="405.5" xb="1145.5" yb="422.5" xc="1148.699951171875" yc="414.0" xd="1171.5" yd="405.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1209" blockname="Track 27" connectaname="T-I-TOR9" connectbname="T-EL-TOR9" connectcname="T-ER-TOR9" />
-    <layoutturnout ident="TO111" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1195.0" ycen="283.5" xa="1111.0" ya="252.0" xb="1223.0" yb="252.0" xc="1279.0" yc="315.0" xd="1167.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 23" blockname="Track 23a" blockcname="Track 23b" blockdname="Track 23b" connectaname="T-I-TOR31" connectbname="T-EL-TOR31" connectcname="T-I-TOR32" connectdname="T-EL-TOR32">
+    <layoutturnout ident="TOR7" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1230.5" ycen="366.0" xa="1244.5" ya="356.5" xb="1216.5" yb="375.5" xc="1221.0999755859375" yc="366.0" xd="1244.5" yd="356.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1210" blockname="OS Switch 29" connectaname="T-I-TOR7" connectbname="T-EL-TOR7" connectcname="T-ER-TOR7" />
+    <layoutturnout ident="TOL19" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="891.5" ycen="460.5" xa="879.0" ya="452.0" xb="904.0" yb="469.0" xc="904.9000244140625" yc="460.0" xd="879.0" yd="452.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T311" blockname="OS Switch 21" connectaname="T-I-TOL19" connectbname="T-ER-TOL19" connectcname="T-EL-TOL19" />
+    <layoutturnout ident="TOR9" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1158.5" ycen="414.0" xa="1171.5" ya="405.5" xb="1145.5" yb="422.5" xc="1148.699951171875" yc="414.0" xd="1171.5" yd="405.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1209" blockname="OS Switch 27" connectaname="T-I-TOR9" connectbname="T-EL-TOR9" connectcname="T-ER-TOR9" />
+    <layoutturnout ident="TO111" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1195.0" ycen="283.5" xa="1111.0" ya="252.0" xb="1223.0" yb="252.0" xc="1279.0" yc="315.0" xd="1167.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 23" blockname="OS Switch 23a" blockcname="OS Switch 23b" blockdname="OS Switch 23b" connectaname="T-I-TOR31" connectbname="T-EL-TOR31" connectcname="T-I-TOR32" connectdname="T-EL-TOR32">
       <signalAMast>Mast 24RA</signalAMast>
       <signalBMast>Mast 24L</signalBMast>
       <signalDMast>Mast 24RB</signalDMast>
     </layoutturnout>
-    <layoutturnout ident="TOL6" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1301.0" ycen="315.0" xa="1317.0" ya="315.0" xb="1285.0" yb="315.0" xc="1291.4000244140625" yc="322.20001220703125" xd="1317.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1211" blockname="Track 31" connectaname="T-I-TOL6" connectbname="T-ER-TOL6" connectcname="T-EL-TOL6">
+    <layoutturnout ident="TOL6" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1301.0" ycen="315.0" xa="1317.0" ya="315.0" xb="1285.0" yb="315.0" xc="1291.4000244140625" yc="322.20001220703125" xd="1317.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T1211" blockname="OS Switch 31" connectaname="T-I-TOL6" connectbname="T-ER-TOL6" connectcname="T-EL-TOL6">
       <signalCMast>Mast 32R</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOL29" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1602.5" ycen="252.0" xa="1587.010009765625" ya="252.0" xb="1617.989990234375" yb="252.0" xc="1610.699951171875" yc="244.0" xd="1587.010009765625" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T110" blockname="Track 39" connectaname="T-I-TOL29" connectbname="T-ER-TOL29" connectcname="T-EL-TOL29">
+    <layoutturnout ident="TOL29" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1602.5" ycen="252.0" xa="1587.010009765625" ya="252.0" xb="1617.989990234375" yb="252.0" xc="1610.699951171875" yc="244.0" xd="1587.010009765625" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T110" blockname="OS Switch 39" connectaname="T-I-TOL29" connectbname="T-ER-TOL29" connectcname="T-EL-TOL29">
       <signalBMast>Mast 40LA</signalBMast>
       <signalCMast>Mast 40LB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOL17" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="819.0" ycen="412.0" xa="807.0" ya="404.0" xb="831.0" yb="420.0" xc="834.5999755859375" yc="413.0" xd="807.0" yd="404.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T310" blockname="Track 19" connectaname="T-I-TOL17" connectbname="T-ER-TOL17" connectcname="T-EL-TOL17" />
-    <layoutturnout ident="TOR36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1602.5" ycen="315.0" xa="1586.0" ya="315.0" xb="1619.0" yb="315.0" xc="1612.0999755859375" yc="322.6000061035156" xd="1586.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T109" blockname="Track 37" connectaname="T-I-TOR36" connectbname="T-EL-TOR36" connectcname="T-ER-TOR36">
+    <layoutturnout ident="TOL17" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="819.0" ycen="412.0" xa="807.0" ya="404.0" xb="831.0" yb="420.0" xc="834.5999755859375" yc="413.0" xd="807.0" yd="404.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T310" blockname="OS Switch 19" connectaname="T-I-TOL17" connectbname="T-ER-TOL17" connectcname="T-EL-TOL17" />
+    <layoutturnout ident="TOR36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1602.5" ycen="315.0" xa="1586.0" ya="315.0" xb="1619.0" yb="315.0" xc="1612.0999755859375" yc="322.6000061035156" xd="1586.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T109" blockname="OS Switch 37" connectaname="T-I-TOR36" connectbname="T-EL-TOR36" connectcname="T-ER-TOR36">
       <signalBMast>Mast 38LA</signalBMast>
       <signalCMast>Mast 38LB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="679.5" ycen="315.0" xa="664.5" ya="315.0" xb="694.5" yb="315.0" xc="693.7999877929688" yc="325.8999938964844" xd="664.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="Track 15" connectaname="T-I-TOR14" connectbname="F46-W-0" connectcname="F16-S-0">
+    <layoutturnout ident="TOR14" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="679.5" ycen="315.0" xa="664.5" ya="315.0" xb="694.5" yb="315.0" xc="693.7999877929688" yc="325.8999938964844" xd="664.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T308" blockname="OS Switch 15" connectaname="T-I-TOR14" connectbname="F46-W-0" connectcname="F16-S-0">
     </layoutturnout>
-    <layoutturnout ident="TO113" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1525.199951171875" ycen="283.5" xa="1508.2999843479004" ya="252.0" xb="1575.89990234375" yb="252.0" xc="1542.0999179958496" yc="315.0" xd="1474.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 35" blockname="Track 35b" blockcname="Track 35a" blockdname="Track 35a" connectaname="T-ER-TOL1" connectbname="T-I-TOL1" connectcname="T-ER-TOL2" connectdname="T-I-TOL2">
+    <layoutturnout ident="TO113" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1525.199951171875" ycen="283.5" xa="1508.2999843479004" ya="252.0" xb="1575.89990234375" yb="252.0" xc="1542.0999179958496" yc="315.0" xd="1474.5" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 35" blockname="OS Switch 35b" blockcname="OS Switch 35a" blockdname="OS Switch 35a" connectaname="T-ER-TOL1" connectbname="T-I-TOL1" connectcname="T-ER-TOL2" connectdname="T-I-TOL2">
       <signalAMast>Mast 36RA</signalAMast>
       <signalDMast>Mast 36RB</signalDMast>
     </layoutturnout>
-    <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="645.0" ycen="315.0" xa="652.0" ya="315.0" xb="638.0" yb="315.0" xc="640.0" yc="304.3" xd="652.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 13" blockname="Track 13" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1">
+    <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="645.0" ycen="315.0" xa="652.0" ya="315.0" xb="638.0" yb="315.0" xc="640.0" yc="304.3" xd="652.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 13" blockname="OS Switch 13" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1">
     </layoutturnout>
-    <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="610.9" ycen="289.0" xa="617.9" ya="289.0" xb="603.9" yb="289.0" xc="605.9" yc="278.3" xd="617.9" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 9" blockname="Track 9" connectaname="T-A-TO10" connectbname="T11" connectcname="T10" />
-    <layoutturnout ident="TO117" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="505.0" ycen="339.0" xa="496.0" ya="315.0" xb="532.5" yb="315.0" xc="514.0" yc="363.0" xd="477.5" yd="363.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 7" blockname="Track 7" blockcname="Track 7b" blockdname="Track 7b" connectaname="T3" connectbname="T6" connectcname="T5" connectdname="T8">
+    <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="610.9" ycen="289.0" xa="617.9" ya="289.0" xb="603.9" yb="289.0" xc="605.9" yc="278.3" xd="617.9" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 9" blockname="OS Switch 9" connectaname="T-A-TO10" connectbname="T11" connectcname="T10" />
+    <layoutturnout ident="TO117" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="505.0" ycen="339.0" xa="496.0" ya="315.0" xb="532.5" yb="315.0" xc="514.0" yc="363.0" xd="477.5" yd="363.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 7" blockname="OS Switch 7" blockcname="OS Switch 7b" blockdname="OS Switch 7b" connectaname="T3" connectbname="T6" connectcname="T5" connectdname="T8">
       <signalAMast>Mast 8RA</signalAMast>
       <signalCMast>Mast 8LA</signalCMast>
       <signalDMast>Mast 8RB</signalDMast>
       <signalBMast>Mast 8LB</signalBMast>
     </layoutturnout>
-    <layoutturnout ident="TO11" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="632.9" ycen="289.0" xa="637.1" ya="298.1" xb="628.6" yb="279.9" xc="626.0" yc="289.0" xd="637.1" yd="298.1" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 11" blockname="Track 11" connectaname="T-A-TO11" connectbname="T2" connectcname="T-C-TO11" />
+    <layoutturnout ident="TO11" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="632.9" ycen="289.0" xa="637.1" ya="298.1" xb="628.6" yb="279.9" xc="626.0" yc="289.0" xd="637.1" yd="298.1" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 11" blockname="OS Switch 11" connectaname="T-A-TO11" connectbname="T2" connectcname="T-C-TO11" />
     <tracksegment ident="T6" blockname="Track Barn" connect1name="TO117" type1="TURNOUT_B" connect2name="TO1" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T8" blockname="Track East Main Ext" connect1name="TO117" type1="TURNOUT_D" connect2name="TOL42" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F25-S-0" blockname="Track Main East" connect1name="A13" type1="POS_POINT" connect2name="A69" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL3" blockname="Track Main West" connect1name="TOL3" type1="TURNOUT_A" connect2name="A59" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL3" blockname="Track 1" connect1name="TOL3" type1="TURNOUT_B" connect2name="A29" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL3" blockname="OS Switch 1" connect1name="TOL3" type1="TURNOUT_B" connect2name="A29" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL3" blockname="Track Brick-Plane" connect1name="TOL3" type1="TURNOUT_C" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
       <controlpoints>
         <controlpoint index="0" x="282.5" y="279.0" />
         <controlpoint index="1" x="261.5" y="285.0" />
       </controlpoints>
     </tracksegment>
-    <tracksegment ident="T-I-TOR11" blockname="Track 25" connect1name="TOR11" type1="TURNOUT_A" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR11" blockname="OS Switch 25" connect1name="TOR11" type1="TURNOUT_A" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR11" blockname="Track S-4 East" connect1name="TOR11" type1="TURNOUT_B" connect2name="A12" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOR11" blockname="Track S-3 East" connect1name="TOR11" type1="TURNOUT_C" connect2name="A39" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F55-S-0" blockname="Track McKeesport" connect1name="A67" type1="POS_POINT" connect2name="A48" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <positionablepoint ident="A81" type="ANCHOR" x="720.0" y="315.0" connect1name="F46-W-0" connect2name="F46-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" westboundsignalmast="Mast 16L" /><tracksegment ident="F46-W-0" blockname="Track S-R West" connect1name="TOR14" type1="TURNOUT_B" connect2name="A81" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" /><tracksegment ident="F46-S-0" blockname="Track S-R" connect1name="A37" type1="POS_POINT" connect2name="A81" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F12-S-0" blockname="Track 25" connect1name="A5" type1="POS_POINT" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F12-S-0" blockname="OS Switch 25" connect1name="A5" type1="POS_POINT" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F49-S-0" blockname="Track S-3" connect1name="A39" type1="POS_POINT" connect2name="A41" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F8-S-0" blockname="Track 29" connect1name="A16" type1="POS_POINT" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL15" blockname="Track 15" connect1name="TOL15" type1="TURNOUT_A" connect2name="A6" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL15" blockname="Track 17" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F8-S-0" blockname="OS Switch 29" connect1name="A16" type1="POS_POINT" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL15" blockname="OS Switch 15" connect1name="TOL15" type1="TURNOUT_A" connect2name="A6" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL15" blockname="OS Switch 17" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL15" blockname="Track S-1 West" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F56-S-0" blockname="Track McKees Rocks" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F22-S-0" blockname="Track East Lead" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F41-S-0" blockname="Track West Main Ext" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL23" blockname="Track East Lead" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL23" blockname="Track 31" connect1name="TOL23" type1="TURNOUT_B" connect2name="A35" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL23" blockname="OS Switch 31" connect1name="TOL23" type1="TURNOUT_B" connect2name="A35" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL23" blockname="Track Main East" connect1name="TOL23" type1="TURNOUT_C" connect2name="A47" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F53-S-0" blockname="Track W-1" connect1name="A54" type1="POS_POINT" connect2name="EB70" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F20-S-0" blockname="Track 19" connect1name="A10" type1="POS_POINT" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F20-S-0" blockname="OS Switch 19" connect1name="A10" type1="POS_POINT" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F21-S-0" blockname="Track S-4" connect1name="A15" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F61-S-0" blockname="Track Main West" connect1name="A59" type1="POS_POINT" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL38" blockname="Track 3" connect1name="TOL38" type1="TURNOUT_A" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL38" blockname="OS Switch 3" connect1name="TOL38" type1="TURNOUT_A" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL38" blockname="Track W-1" connect1name="TOL38" type1="TURNOUT_B" connect2name="A54" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL38" blockname="Track W-2" connect1name="TOL38" type1="TURNOUT_C" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL42" blockname="Track Brick-Plane" connect1name="TOL42" type1="TURNOUT_A" connect2name="A65" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOR7" blockname="Track 29" connect1name="TOR7" type1="TURNOUT_A" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOR7" blockname="Track 27" connect1name="TOR7" type1="TURNOUT_B" connect2name="A22" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR7" blockname="OS Switch 29" connect1name="TOR7" type1="TURNOUT_A" connect2name="A19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR7" blockname="OS Switch 27" connect1name="TOR7" type1="TURNOUT_B" connect2name="A22" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOR7" blockname="Track S-1 East" connect1name="TOR7" type1="TURNOUT_C" connect2name="A61" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL19" blockname="Track 19" connect1name="TOL19" type1="TURNOUT_A" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL19" blockname="OS Switch 19" connect1name="TOL19" type1="TURNOUT_A" connect2name="A4" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL19" blockname="Track S-4 West" connect1name="TOL19" type1="TURNOUT_B" connect2name="A15" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL19" blockname="Track S-3 West" connect1name="TOL19" type1="TURNOUT_C" connect2name="A41" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F26-S-0" blockname="Track Main East" connect1name="A3" type1="POS_POINT" connect2name="A23" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F28-S-0" blockname="Track 31" connect1name="A35" type1="POS_POINT" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL1" blockname="Track 35b" connect1name="TO113" type1="TURNOUT_B" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F28-S-0" blockname="OS Switch 31" connect1name="A35" type1="POS_POINT" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL1" blockname="OS Switch 35b" connect1name="TO113" type1="TURNOUT_B" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL1" blockname="Track West Main Ext" connect1name="TO113" type1="TURNOUT_A" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOR9" blockname="Track 27" connect1name="TOR9" type1="TURNOUT_A" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOR9" blockname="Track 25" connect1name="TOR9" type1="TURNOUT_B" connect2name="A5" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR9" blockname="OS Switch 27" connect1name="TOR9" type1="TURNOUT_A" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR9" blockname="OS Switch 25" connect1name="TOR9" type1="TURNOUT_B" connect2name="A5" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOR9" blockname="Track S-2 East" connect1name="TOR9" type1="TURNOUT_C" connect2name="A36" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F18-S-0" blockname="Track 17" connect1name="A42" type1="POS_POINT" connect2name="A31" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F18-S-0" blockname="OS Switch 17" connect1name="A42" type1="POS_POINT" connect2name="A31" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F48-S-0" blockname="Track S-2" connect1name="A36" type1="POS_POINT" connect2name="A46" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F59-S-0" blockname="Track McKees Rocks" connect1name="A58" type1="POS_POINT" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
       <controlpoints>
@@ -2258,7 +2258,7 @@
     <tracksegment ident="F47-S-0" blockname="Track S-1" connect1name="A61" type1="POS_POINT" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F50-S-0" blockname="Track S-4" connect1name="A32" type1="POS_POINT" connect2name="A14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F58-S-0" blockname="Track K-1" connect1name="EB71" type1="POS_POINT" connect2name="A66" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F16-S-0" blockname="Track 15" connect1name="TOR14" type1="TURNOUT_C" connect2name="A6" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F16-S-0" blockname="OS Switch 15" connect1name="TOR14" type1="TURNOUT_C" connect2name="A6" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F60-S-0" blockname="Track McKeesport" connect1name="A67" type1="POS_POINT" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" bezier="yes" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml">
       <controlpoints>
         <controlpoint index="0" x="1695.5" y="385.5" />
@@ -2269,45 +2269,45 @@
     <tracksegment ident="T-EL-TOR31" blockname="Track West Main Ext" connect1name="TO111" type1="TURNOUT_B" connect2name="A7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F57-S-0" blockname="Track K-2" connect1name="EB72" type1="POS_POINT" connect2name="A55" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F62-S-0" blockname="Track Brick-Plane" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F40-S-0" blockname="Track 1" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F40-S-0" blockname="OS Switch 1" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F13-S-0" blockname="Track S-4" connect1name="A12" type1="POS_POINT" connect2name="A32" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F54-S-0" blockname="Track W-2" connect1name="EB73" type1="POS_POINT" connect2name="A21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL6" blockname="Track 31" connect1name="TOL6" type1="TURNOUT_A" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL6" blockname="Track 31" connect1name="TOL6" type1="TURNOUT_B" connect2name="A24" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOL6" blockname="Track 29" connect1name="TOL6" type1="TURNOUT_C" connect2name="A16" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL6" blockname="OS Switch 31" connect1name="TOL6" type1="TURNOUT_A" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL6" blockname="OS Switch 31" connect1name="TOL6" type1="TURNOUT_B" connect2name="A24" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOL6" blockname="OS Switch 29" connect1name="TOL6" type1="TURNOUT_C" connect2name="A16" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F27-S-0" blockname="Track Main East" connect1name="A23" type1="POS_POINT" connect2name="A68" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL29" blockname="Track 39" connect1name="TOL29" type1="TURNOUT_A" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL29" blockname="OS Switch 39" connect1name="TOL29" type1="TURNOUT_A" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL29" blockname="Track K-1" connect1name="TOL29" type1="TURNOUT_B" connect2name="A66" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL29" blockname="Track McKees Rocks" connect1name="TOL29" type1="TURNOUT_C" connect2name="A1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOL17" blockname="Track 17" connect1name="TOL17" type1="TURNOUT_A" connect2name="A31" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL17" blockname="Track 19" connect1name="TOL17" type1="TURNOUT_B" connect2name="A10" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOL17" blockname="OS Switch 17" connect1name="TOL17" type1="TURNOUT_A" connect2name="A31" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL17" blockname="OS Switch 19" connect1name="TOL17" type1="TURNOUT_B" connect2name="A10" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL17" blockname="Track S-2 West" connect1name="TOL17" type1="TURNOUT_C" connect2name="A46" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOR36" blockname="Track 37" connect1name="TOR36" type1="TURNOUT_A" connect2name="A50" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR36" blockname="OS Switch 37" connect1name="TOR36" type1="TURNOUT_A" connect2name="A50" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR36" blockname="Track K-2" connect1name="TOR36" type1="TURNOUT_B" connect2name="A55" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOR36" blockname="Track McKeesport" connect1name="TOR36" type1="TURNOUT_C" connect2name="A62" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F24-S-0" blockname="Track Main East" connect1name="A47" type1="POS_POINT" connect2name="A13" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOR32" blockname="Track 31" connect1name="TO111" type1="TURNOUT_C" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR32" blockname="OS Switch 31" connect1name="TO111" type1="TURNOUT_C" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR32" blockname="Track S-R East" connect1name="TO111" type1="TURNOUT_D" connect2name="A37" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL2" blockname="Track East Lead" connect1name="TO113" type1="TURNOUT_D" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL2" blockname="Track 35a" connect1name="TO113" type1="TURNOUT_C" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F10-S-0" blockname="Track 27" connect1name="A22" type1="POS_POINT" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F37-S-0" blockname="Track 35a" connect1name="A50" type1="POS_POINT" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F34-S-0" blockname="Track 31" connect1name="A24" type1="POS_POINT" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TOR14" blockname="Track 15" connect1name="TOR14" type1="TURNOUT_A" connect2name="A9" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL2" blockname="OS Switch 35a" connect1name="TO113" type1="TURNOUT_C" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F10-S-0" blockname="OS Switch 27" connect1name="A22" type1="POS_POINT" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F37-S-0" blockname="OS Switch 35a" connect1name="A50" type1="POS_POINT" connect2name="A26" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F34-S-0" blockname="OS Switch 31" connect1name="A24" type1="POS_POINT" connect2name="A44" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TOR14" blockname="OS Switch 15" connect1name="TOR14" type1="TURNOUT_A" connect2name="A9" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F68-S-0" blockname="Track Main East" connect1name="A69" type1="POS_POINT" connect2name="A68" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T3" blockname="Track Scale" connect1name="A45" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T5" blockname="Track Main East" connect1name="A3" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_C" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F103-S-0" blockname="Track 15" connect1name="A9" type1="POS_POINT" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-I-TO1" blockname="Track 15" connect1name="TO1" type1="TURNOUT_A" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F103-S-0" blockname="OS Switch 15" connect1name="A9" type1="POS_POINT" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-I-TO1" blockname="OS Switch 15" connect1name="TO1" type1="TURNOUT_A" connect2name="A80" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T9" blockname="Track EH-1" connect1name="EB1" type1="POS_POINT" connect2name="A2" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T10" blockname="Track EH-2" connect1name="EB2" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T11" blockname="Track EH-3" connect1name="EB3" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-A-TO10" blockname="Track 9" connect1name="TO10" type1="TURNOUT_A" connect2name="A76" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F-T12-S-0" blockname="Track 9" connect1name="A76" type1="POS_POINT" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-C-TO11" blockname="Track 9" connect1name="TO11" type1="TURNOUT_C" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-A-TO11" blockname="Track 11" connect1name="TO11" type1="TURNOUT_A" connect2name="A78" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F-T13-S-0" blockname="Track 11" connect1name="A78" type1="POS_POINT" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-C-TO1" blockname="Track 11" connect1name="TO1" type1="TURNOUT_C" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-A-TO10" blockname="OS Switch 9" connect1name="TO10" type1="TURNOUT_A" connect2name="A76" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F-T12-S-0" blockname="OS Switch 9" connect1name="A76" type1="POS_POINT" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-C-TO11" blockname="OS Switch 9" connect1name="TO11" type1="TURNOUT_C" connect2name="A77" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-A-TO11" blockname="OS Switch 11" connect1name="TO11" type1="TURNOUT_A" connect2name="A78" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F-T13-S-0" blockname="OS Switch 11" connect1name="A78" type1="POS_POINT" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-C-TO1" blockname="OS Switch 11" connect1name="TO1" type1="TURNOUT_C" connect2name="A79" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T1" blockname="Track Scale" connect1name="TOL42" type1="TURNOUT_C" connect2name="A45" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T2" blockname="Track EH-1" connect1name="A2" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <positionablepoint ident="A80" type="ANCHOR" x="655" y="315" connect1name="F103-S-0" connect2name="T-I-TO1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />

@@ -44,29 +44,52 @@ turnout,Switch 115,Switch 39,Princess,M2T110,"Node: 1 | OU-1: Port: 5,6 | DCC: 1
 turnout,Switch 102,Switch 5,Plane,M2T410,"Node: 4 | OU-1: Port: 5,6 | DCC: 102",historical alias; CTC Switch 5 (was 102); keep
 turnout,Switch 117,Switch 7,Barn,M2T1308,"Node: 13 | OU-3: Port: 1,2 | DCC: 117",historical alias; CTC Switch 7 (was 117); crossover 117/117b; field still hand-throw
 turnout,Switch 119,Switch 9,,M2T1310,"Node: 13 | OU-3: Port: 5,6 | DCC: 119",historical alias; CTC Switch 9 (was 119); hand-throw; Engine House
-block,Track 1,Track 1,Brick,Block 4-2,Brick,
-block,Track 11,Track 11,Engine House,Block 13-2,Engine House,
-block,Track 13,Track 13,Engine House,Block 3-1,Engine House,
-block,Track 15,Track 15,South Yard,Block 3-2,South Yard,
-block,Track 17,Track 17,South Yard,Block 3-3,South Yard,
-block,Track 19,Track 19,South Yard,Block 3-5,South Yard,
-block,Track 21,Track 21,South Yard,Block 3-7,South Yard,
-block,Track 23a,Track 23a,East End,Block 12-4,East End,
-block,Track 23b,Track 23b,East End,Block 12-6,East End,
-block,Track 25,Track 25,East End,Block 12-1,East End,
-block,Track 27,Track 27,East End,Block 12-3,East End,
-block,Track 29,Track 29,East End,Block 12-5,East End,
-block,Track 3,Track 3,Brick,Block 4-1,Brick,
-block,Track 31,Track 31,East End,Block 12-7,East End,
-block,Track 33,Track 33,East End,Block 12-8,East End,
-block,Track 35a,Track 35a,Princess,Block 1-6,Princess,
-block,Track 35b,Track 35b,Princess,Block 1-5,Princess,
-block,Track 37,Track 37,Princess,Block 1-3,Princess,
-block,Track 39,Track 39,Princess,Block 1-4,Princess,
-block,Track 5,Track 5,Plane,Block 4-5,Plane,
-block,Track 7,Track 7,Barn,Block 13-3,Barn,
-block,Track 7b,Track 7b,Barn,Block 13-4,Barn,
-block,Track 9,Track 9,Engine House,Block 13-8,Engine House,
+block,OS Switch 1,OS Switch 1,Brick,Block 4-2,Brick,
+block,Track 1,OS Switch 1,Brick,Block 4-2,Brick,historical alias
+block,OS Switch 11,OS Switch 11,Engine House,Block 13-2,Engine House,
+block,Track 11,OS Switch 11,Engine House,Block 13-2,Engine House,historical alias
+block,OS Switch 13,OS Switch 13,Engine House,Block 3-1,Engine House,
+block,Track 13,OS Switch 13,Engine House,Block 3-1,Engine House,historical alias
+block,OS Switch 15,OS Switch 15,South Yard,Block 3-2,South Yard,
+block,Track 15,OS Switch 15,South Yard,Block 3-2,South Yard,historical alias
+block,OS Switch 17,OS Switch 17,South Yard,Block 3-3,South Yard,
+block,Track 17,OS Switch 17,South Yard,Block 3-3,South Yard,historical alias
+block,OS Switch 19,OS Switch 19,South Yard,Block 3-5,South Yard,
+block,Track 19,OS Switch 19,South Yard,Block 3-5,South Yard,historical alias
+block,OS Switch 21,OS Switch 21,South Yard,Block 3-7,South Yard,
+block,Track 21,OS Switch 21,South Yard,Block 3-7,South Yard,historical alias
+block,OS Switch 23a,OS Switch 23a,East End,Block 12-4,East End,
+block,Track 23a,OS Switch 23a,East End,Block 12-4,East End,historical alias
+block,OS Switch 23b,OS Switch 23b,East End,Block 12-6,East End,
+block,Track 23b,OS Switch 23b,East End,Block 12-6,East End,historical alias
+block,OS Switch 25,OS Switch 25,East End,Block 12-1,East End,
+block,Track 25,OS Switch 25,East End,Block 12-1,East End,historical alias
+block,OS Switch 27,OS Switch 27,East End,Block 12-3,East End,
+block,Track 27,OS Switch 27,East End,Block 12-3,East End,historical alias
+block,OS Switch 29,OS Switch 29,East End,Block 12-5,East End,
+block,Track 29,OS Switch 29,East End,Block 12-5,East End,historical alias
+block,OS Switch 3,OS Switch 3,Brick,Block 4-1,Brick,
+block,Track 3,OS Switch 3,Brick,Block 4-1,Brick,historical alias
+block,OS Switch 31,OS Switch 31,East End,Block 12-7,East End,
+block,Track 31,OS Switch 31,East End,Block 12-7,East End,historical alias
+block,OS Switch 33,OS Switch 33,East End,Block 12-8,East End,
+block,Track 33,OS Switch 33,East End,Block 12-8,East End,historical alias
+block,OS Switch 35a,OS Switch 35a,Princess,Block 1-6,Princess,
+block,Track 35a,OS Switch 35a,Princess,Block 1-6,Princess,historical alias
+block,OS Switch 35b,OS Switch 35b,Princess,Block 1-5,Princess,
+block,Track 35b,OS Switch 35b,Princess,Block 1-5,Princess,historical alias
+block,OS Switch 37,OS Switch 37,Princess,Block 1-3,Princess,
+block,Track 37,OS Switch 37,Princess,Block 1-3,Princess,historical alias
+block,OS Switch 39,OS Switch 39,Princess,Block 1-4,Princess,
+block,Track 39,OS Switch 39,Princess,Block 1-4,Princess,historical alias
+block,OS Switch 5,OS Switch 5,Plane,Block 4-5,Plane,
+block,Track 5,OS Switch 5,Plane,Block 4-5,Plane,historical alias
+block,OS Switch 7,OS Switch 7,Barn,Block 13-3,Barn,
+block,Track 7,OS Switch 7,Barn,Block 13-3,Barn,historical alias
+block,OS Switch 7b,OS Switch 7b,Barn,Block 13-4,Barn,
+block,Track 7b,OS Switch 7b,Barn,Block 13-4,Barn,historical alias
+block,OS Switch 9,OS Switch 9,Engine House,Block 13-8,Engine House,
+block,Track 9,OS Switch 9,Engine House,Block 13-8,Engine House,historical alias
 block,Track Barn,Track Barn,Barn,Block 13-1,Barn,
 block,Track Brick-Plane,Track Brick-Plane,Brick,Block 4-6,Brick,
 block,Track EH-1,Track EH-1,Engine House,Block 13-7,Engine House,
@@ -89,75 +112,75 @@ block,Track Scale,Track Scale,Plane,Block 4-8,Plane,
 block,Track W-1,Track W-1,Brick,Block 4-4,Brick,
 block,Track W-2,Track W-2,Brick,Block 4-3,Brick,
 block,Track West Main Ext,Track West Main Ext,East End,Block 1-8,East End,
-block,OS 1,Track 1,Brick,Block 4-2,Brick,historical alias
-block,OS 100,Track 1,Brick,Block 4-2,Brick,historical alias; CP in comment
-block,OS 100 (Brick),Track 1,Brick,Block 4-2,Brick,historical alias; CP in comment
-block,OS 11,Track 11,Engine House,Block 13-2,Engine House,historical alias
-block,OS 118,Track 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
-block,OS 118 (West Yard),Track 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
-block,OS 116,Track 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
-block,OS 116 (West Yard),Track 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
-block,OS 13,Track 13,Engine House,Block 3-1,Engine House,historical alias
-block,OS 103,Track 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and S-R
-block,OS 103 (South Yard),Track 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and South Yard 1
-block,OS 15,Track 15,South Yard,Block 3-2,South Yard,historical alias
-block,OS 104,Track 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
-block,OS 104 (South Yard),Track 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
-block,OS 17,Track 17,South Yard,Block 3-3,South Yard,historical alias
-block,OS 105,Track 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
-block,OS 105 (South Yard),Track 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
-block,OS 19,Track 19,South Yard,Block 3-5,South Yard,historical alias
-block,OS 106,Track 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
-block,OS 106 (South Yard),Track 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
-block,OS 21,Track 21,South Yard,Block 3-7,South Yard,historical alias
-block,OS 111a,Track 23a,East End,Block 12-4,East End,historical alias; CP in comment
-block,OS 111a (East End),Track 23a,East End,Block 12-4,East End,historical alias; CP in comment
-block,OS 23a,Track 23a,East End,Block 12-4,East End,historical alias
-block,OS 111b,Track 23b,East End,Block 12-6,East End,historical alias; CP in comment
-block,OS 111b (East End),Track 23b,East End,Block 12-6,East End,historical alias; CP in comment
-block,OS 23b,Track 23b,East End,Block 12-6,East End,historical alias
-block,OS 107,Track 25,East End,Block 12-1,East End,historical alias; CP in comment
-block,OS 107 (East End),Track 25,East End,Block 12-1,East End,historical alias; CP in comment
-block,OS 25,Track 25,East End,Block 12-1,East End,historical alias
-block,OS 108,Track 27,East End,Block 12-3,East End,historical alias; CP in comment
-block,OS 108 (East End),Track 27,East End,Block 12-3,East End,historical alias; CP in comment
-block,OS 27,Track 27,East End,Block 12-3,East End,historical alias
-block,OS 109,Track 29,East End,Block 12-5,East End,historical alias; CP in comment
-block,OS 109 (East End),Track 29,East End,Block 12-5,East End,historical alias; CP in comment
-block,OS 29,Track 29,East End,Block 12-5,East End,historical alias
-block,OS 101,Track 3,Brick,Block 4-1,Brick,historical alias; CP in comment
-block,OS 101 (Brick),Track 3,Brick,Block 4-1,Brick,historical alias; CP in comment
-block,OS 3,Track 3,Brick,Block 4-1,Brick,historical alias
-block,OS 110,Track 31,East End,Block 12-7,East End,historical alias; CP in comment
-block,OS 110 (East End),Track 31,East End,Block 12-7,East End,historical alias; CP in comment
-block,OS 31,Track 31,East End,Block 12-7,East End,historical alias
-block,OS 112,Track 33,East End,Block 12-8,East End,historical alias; CP in comment
-block,OS 112 (East End),Track 33,East End,Block 12-8,East End,historical alias; CP in comment
-block,OS 33,Track 33,East End,Block 12-8,East End,historical alias
-block,OS 113a,Track 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
-block,OS 113a (Princess),Track 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
-block,OS 35a,Track 35a,Princess,Block 1-6,Princess,historical alias
-block,OS 113b,Track 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
-block,OS 113b (Princess),Track 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
-block,OS 35b,Track 35b,Princess,Block 1-5,Princess,historical alias
-block,OS 114,Track 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
-block,OS 114 (Princess),Track 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
-block,OS 37,Track 37,Princess,Block 1-3,Princess,historical alias
-block,OS 115,Track 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
-block,OS 115 (Princess),Track 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
-block,OS 39,Track 39,Princess,Block 1-4,Princess,historical alias
-block,OS 102,Track 5,Plane,Block 4-5,Plane,historical alias; CP in comment
-block,OS 102 (Plane),Track 5,Plane,Block 4-5,Plane,historical alias; CP in comment
-block,OS 5,Track 5,Plane,Block 4-5,Plane,historical alias
-block,OS 117,Track 7,Barn,Block 13-3,Barn,historical alias; Barn CP crossover north/west leg
-block,OS 117 (West Yard),Track 7,Barn,Block 13-3,Barn,historical alias of OS 117
-block,OS 7,Track 7,Barn,Block 13-3,Barn,historical alias
-block,OS 117b,Track 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
-block,OS 117b (West Yard),Track 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
-block,OS 7b,Track 7b,Barn,Block 13-4,Barn,historical alias
-block,OS 119,Track 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
-block,OS 119 (West Yard),Track 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
-block,OS 9,Track 9,Engine House,Block 13-8,Engine House,historical alias
+block,OS 1,OS Switch 1,Brick,Block 4-2,Brick,historical alias
+block,OS 100,OS Switch 1,Brick,Block 4-2,Brick,historical alias; CP in comment
+block,OS 100 (Brick),OS Switch 1,Brick,Block 4-2,Brick,historical alias; CP in comment
+block,OS 11,OS Switch 11,Engine House,Block 13-2,Engine House,historical alias
+block,OS 118,OS Switch 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
+block,OS 118 (West Yard),OS Switch 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
+block,OS 116,OS Switch 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
+block,OS 116 (West Yard),OS Switch 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
+block,OS 13,OS Switch 13,Engine House,Block 3-1,Engine House,historical alias
+block,OS 103,OS Switch 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and S-R
+block,OS 103 (South Yard),OS Switch 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and South Yard 1
+block,OS 15,OS Switch 15,South Yard,Block 3-2,South Yard,historical alias
+block,OS 104,OS Switch 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
+block,OS 104 (South Yard),OS Switch 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
+block,OS 17,OS Switch 17,South Yard,Block 3-3,South Yard,historical alias
+block,OS 105,OS Switch 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
+block,OS 105 (South Yard),OS Switch 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
+block,OS 19,OS Switch 19,South Yard,Block 3-5,South Yard,historical alias
+block,OS 106,OS Switch 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
+block,OS 106 (South Yard),OS Switch 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
+block,OS 21,OS Switch 21,South Yard,Block 3-7,South Yard,historical alias
+block,OS 111a,OS Switch 23a,East End,Block 12-4,East End,historical alias; CP in comment
+block,OS 111a (East End),OS Switch 23a,East End,Block 12-4,East End,historical alias; CP in comment
+block,OS 23a,OS Switch 23a,East End,Block 12-4,East End,historical alias
+block,OS 111b,OS Switch 23b,East End,Block 12-6,East End,historical alias; CP in comment
+block,OS 111b (East End),OS Switch 23b,East End,Block 12-6,East End,historical alias; CP in comment
+block,OS 23b,OS Switch 23b,East End,Block 12-6,East End,historical alias
+block,OS 107,OS Switch 25,East End,Block 12-1,East End,historical alias; CP in comment
+block,OS 107 (East End),OS Switch 25,East End,Block 12-1,East End,historical alias; CP in comment
+block,OS 25,OS Switch 25,East End,Block 12-1,East End,historical alias
+block,OS 108,OS Switch 27,East End,Block 12-3,East End,historical alias; CP in comment
+block,OS 108 (East End),OS Switch 27,East End,Block 12-3,East End,historical alias; CP in comment
+block,OS 27,OS Switch 27,East End,Block 12-3,East End,historical alias
+block,OS 109,OS Switch 29,East End,Block 12-5,East End,historical alias; CP in comment
+block,OS 109 (East End),OS Switch 29,East End,Block 12-5,East End,historical alias; CP in comment
+block,OS 29,OS Switch 29,East End,Block 12-5,East End,historical alias
+block,OS 101,OS Switch 3,Brick,Block 4-1,Brick,historical alias; CP in comment
+block,OS 101 (Brick),OS Switch 3,Brick,Block 4-1,Brick,historical alias; CP in comment
+block,OS 3,OS Switch 3,Brick,Block 4-1,Brick,historical alias
+block,OS 110,OS Switch 31,East End,Block 12-7,East End,historical alias; CP in comment
+block,OS 110 (East End),OS Switch 31,East End,Block 12-7,East End,historical alias; CP in comment
+block,OS 31,OS Switch 31,East End,Block 12-7,East End,historical alias
+block,OS 112,OS Switch 33,East End,Block 12-8,East End,historical alias; CP in comment
+block,OS 112 (East End),OS Switch 33,East End,Block 12-8,East End,historical alias; CP in comment
+block,OS 33,OS Switch 33,East End,Block 12-8,East End,historical alias
+block,OS 113a,OS Switch 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
+block,OS 113a (Princess),OS Switch 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
+block,OS 35a,OS Switch 35a,Princess,Block 1-6,Princess,historical alias
+block,OS 113b,OS Switch 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
+block,OS 113b (Princess),OS Switch 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
+block,OS 35b,OS Switch 35b,Princess,Block 1-5,Princess,historical alias
+block,OS 114,OS Switch 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
+block,OS 114 (Princess),OS Switch 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
+block,OS 37,OS Switch 37,Princess,Block 1-3,Princess,historical alias
+block,OS 115,OS Switch 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
+block,OS 115 (Princess),OS Switch 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
+block,OS 39,OS Switch 39,Princess,Block 1-4,Princess,historical alias
+block,OS 102,OS Switch 5,Plane,Block 4-5,Plane,historical alias; CP in comment
+block,OS 102 (Plane),OS Switch 5,Plane,Block 4-5,Plane,historical alias; CP in comment
+block,OS 5,OS Switch 5,Plane,Block 4-5,Plane,historical alias
+block,OS 117,OS Switch 7,Barn,Block 13-3,Barn,historical alias; Barn CP crossover north/west leg
+block,OS 117 (West Yard),OS Switch 7,Barn,Block 13-3,Barn,historical alias of OS 117
+block,OS 7,OS Switch 7,Barn,Block 13-3,Barn,historical alias
+block,OS 117b,OS Switch 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
+block,OS 117b (West Yard),OS Switch 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
+block,OS 7b,OS Switch 7b,Barn,Block 13-4,Barn,historical alias
+block,OS 119,OS Switch 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
+block,OS 119 (West Yard),OS Switch 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
+block,OS 9,OS Switch 9,Engine House,Block 13-8,Engine House,historical alias
 block,Barn,Track Barn,Barn,Block 13-1,Barn,historical alias; MQTT 1300; 117 to 116; was Yard T6
 block,OS Barn,Track Barn,Barn,Block 13-1,Barn,historical alias
 block,South Yard West,Track Barn,Barn,Block 13-1,Barn,historical alias; alias after Scale/West public names
