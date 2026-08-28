@@ -201,7 +201,7 @@ class PublicNameMapContractTest(unittest.TestCase):
         switch_1 = identity.get("Switch 1")
         self.assertIsNotNone(switch_1)
         self.assertTrue(
-            (switch_1 or {}).get("comment", "").startswith("Node "),
+            (switch_1 or {}).get("comment", "").startswith("Node:"),
             f"Switch 1 comment should be Device-map wiring, got {switch_1}",
         )
 
@@ -442,6 +442,15 @@ class PublicNameMapContractTest(unittest.TestCase):
             if not (row.get("comment") or "").strip():
                 missing.append(f"{row['layer']} {row['current']!r}")
         self.assertEqual(missing, [])
+
+    def test_mast_comments_name_the_protected_switch(self) -> None:
+        by_name = {
+            row["current"]: row
+            for row in self.by_layer["mast"]
+            if row["current"] == row["proposed"]
+        }
+        self.assertEqual(by_name["Mast 2L"]["comment"], "Brick | Switch 1")
+        self.assertEqual(by_name["Mast 2035"]["comment"], "Princess")
 
 
 if __name__ == "__main__":

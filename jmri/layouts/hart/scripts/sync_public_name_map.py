@@ -20,6 +20,9 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from refresh_bean_comments import public_comment
+
 CSV_PATH = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 NEW_TABLES = ROOT / "tables/new_tables.xml"
@@ -81,6 +84,27 @@ def set_comment(body: str, comment: str) -> str:
         if match:
             return body[: match.end()] + insert + body[match.end() :]
     return body.rstrip() + insert + "\n    "
+
+
+def rewrite_canvas_comments(path: Path, devices: list[dict[str, str]]) -> int:
+    text = path.read_text(encoding="utf-8")
+    changed = 0
+    for device in devices:
+        new_comment = public_comment(device["kind"], device["userName"], device["comment"])
+        if new_comment == device["comment"]:
+            continue
+        old = json.dumps(device, separators=(",", ":"))
+        updated = dict(device)
+        updated["comment"] = new_comment
+        new = json.dumps(updated, separators=(",", ":"))
+        if old not in text:
+            raise SystemExit(f"{path}: missing device {device['userName']}")
+        text = text.replace(old, new, 1)
+        changed += 1
+        device["comment"] = new_comment
+    if changed:
+        path.write_text(text, encoding="utf-8")
+    return changed
 
 
 def parse_canvas(path: Path) -> list[dict[str, str]]:
@@ -150,7 +174,7 @@ def cp_for(device: dict[str, str], old_by_proposed: dict[tuple[str, str], dict[s
     user_name = device["userName"].strip()
     kind = device["kind"]
     if kind in {"OS block", "Block", "Signal mast", "Virtual mast"}:
-        return device["comment"].strip()
+        return device["comment"].strip().split("|")[0].strip()
     old = old_by_proposed.get((layer, user_name))
     if old:
         return old.get("cp") or ""
@@ -188,7 +212,7 @@ def rebuild_rows(
             "proposed": live_name,
             "cp": cp_for({**device, "userName": live_name}, old_by_proposed),
             "hardware": hardware_for({**device, "userName": live_name}, old_by_proposed),
-            "comment": device["comment"].strip(),
+            "comment": public_comment(device["kind"], live_name, device["comment"].strip()),
             "notes": "",
         }
         key = (layer, live_name)
@@ -221,7 +245,9 @@ def rebuild_rows(
                 "proposed": ident["proposed"] if ident else proposed,
                 "cp": ident["cp"] if ident else row.get("cp") or "",
                 "hardware": ident["hardware"] if ident else row.get("hardware") or "",
-                "comment": ident["comment"] if ident else (row.get("comment") or ""),
+                "comment": ident["comment"]
+                if ident
+                else public_comment(layer, proposed, row.get("comment") or ""),
                 "notes": notes,
             }
         )
@@ -317,6 +343,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--canvas", type=Path, default=DEFAULT_CANVAS)
     parser.add_argument("--write-csv", action="store_true")
+    parser.add_argument("--write-canvas", action="store_true")
     parser.add_argument("--apply-comments", action="store_true")
     args = parser.parse_args()
     if not args.canvas.is_file():
@@ -324,6 +351,12 @@ def main() -> int:
         return 2
 
     devices = parse_canvas(args.canvas)
+    if args.write_canvas:
+        n_canvas = rewrite_canvas_comments(args.canvas, devices)
+        print(f"canvas comments={n_canvas}")
+    else:
+        print("canvas dry-run (pass --write-canvas)")
+
     old_rows = load_csv(CSV_PATH)
     live = live_usernames_by_system(TABLES)
     rows = rebuild_rows(devices, old_rows, live)

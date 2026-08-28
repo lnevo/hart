@@ -17,6 +17,81 @@ ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from apply_public_names import RenameEntry, apply_renames_to_text
 
+# Old: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
+# New: "Node: 4 | OU-1: Port: 1,2 | DCC: 100"
+_OLD_WIRING_RE = re.compile(
+    r"^Node\s+(\d+)((?:\s*/\s*(?:OU|IN)-\d+\s*/\s*Ports?\s*[\d,\s]+)+)"
+    r"(?:\s*/\s*DCC\s+(\d+))?\s*$",
+    re.I,
+)
+_NEW_WIRING_RE = re.compile(
+    r"^Node:\s*(\d+)((?:\s*\|\s*(?:OU|IN)-\d+:\s*Port:\s*[\d,\s]+)+)"
+    r"(?:\s*\|\s*DCC:\s*(\d+))?\s*$",
+    re.I,
+)
+_OLD_UNIT_RE = re.compile(r"(OU|IN)-(\d+)\s*/\s*Ports?\s*([\d,]+)", re.I)
+_NEW_UNIT_RE = re.compile(r"(OU|IN)-(\d+):\s*Port:\s*([\d,]+)", re.I)
+_MAST_NUM_RE = re.compile(r"^Mast\s+(\d+)[LR]", re.I)
+
+# Signal even → switch odd, except S-4 bumpers (26) sit on the last ladder frog.
+MAST_SWITCH_OVERRIDE = {
+    "Mast 26L": "Switch 21",
+    "Mast 26R": "Switch 21",
+}
+
+
+def format_lcos_comment(comment: str) -> str:
+    """Rewrite Node/OU|IN/Ports[/DCC] comments to labeled pipes."""
+    text = (comment or "").strip()
+    if not text:
+        return text
+    match = _NEW_WIRING_RE.fullmatch(text) or _OLD_WIRING_RE.fullmatch(text)
+    if not match:
+        return text
+    node, body, dcc = match.group(1), match.group(2), match.group(3)
+    unit_re = _NEW_UNIT_RE if "|" in body else _OLD_UNIT_RE
+    units = [(kind.upper(), num, ports.replace(" ", "")) for kind, num, ports in unit_re.findall(body)]
+    if not units:
+        return text
+    parts = [f"Node: {node}"]
+    parts.extend(f"{kind}-{num}: Port: {ports}" for kind, num, ports in units)
+    if dcc:
+        parts.append(f"DCC: {dcc}")
+    return " | ".join(parts)
+
+
+def switch_protected_by_mast(user_name: str) -> str | None:
+    """USS even signal lever protects the odd switch in the same column."""
+    if user_name in MAST_SWITCH_OVERRIDE:
+        return MAST_SWITCH_OVERRIDE[user_name]
+    match = _MAST_NUM_RE.match(user_name or "")
+    if not match:
+        return None
+    number = int(match.group(1))
+    if number >= 2000:
+        return None
+    if number % 2 == 0:
+        return f"Switch {number - 1}"
+    return f"Switch {number}"
+
+
+def mast_protect_comment(user_name: str, existing: str) -> str:
+    """SignalMast comment is `Brick | Switch 1`. Intermediates stay CP-only."""
+    parts = [part.strip() for part in (existing or "").split("|") if part.strip()]
+    cp = next((part for part in parts if not part.startswith("Switch ")), "")
+    switch = switch_protected_by_mast(user_name)
+    if switch:
+        return f"{cp} | {switch}" if cp else switch
+    return cp or existing
+
+
+def public_comment(layer: str, user_name: str, comment: str) -> str:
+    """Device-map / CSV comment as stored on the JMRI bean."""
+    text = format_lcos_comment(comment)
+    if layer in {"mast", "Signal mast", "Virtual mast"}:
+        return mast_protect_comment(user_name, text)
+    return text
+
 RENAMES = [
     RenameEntry("block", "OS Main West Brick–Plane", "OS Brick-Plane"),
     RenameEntry("block", "OS Brick-Plane", "OS Brick-Plane"),
@@ -439,13 +514,14 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
         for row in csv.DictReader(handle):
             current = (row.get("current") or "").strip()
             proposed = (row.get("proposed") or "").strip()
-            comment = (row.get("comment") or "").strip()
+            layer = (row.get("layer") or "").strip()
+            comment = public_comment(layer, proposed, (row.get("comment") or "").strip())
             if not comment or current != proposed:
                 continue
             for token in (row.get("hardware") or "").split():
                 if token.startswith(("M2T", "M2S", "IH", "MTT")):
                     by_sys[token] = comment
-            xml_kind = layer_kind.get((row.get("layer") or "").strip())
+            xml_kind = layer_kind.get(layer)
             if xml_kind:
                 by_user[(xml_kind, proposed)] = comment
                 if xml_kind == "signalmast":
@@ -463,7 +539,9 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
         (kind, user_name)
     )
     if mapped:
-        return mapped
+        if kind in {"signalmast", "virtualsignalmast"}:
+            return public_comment("mast", user_name, mapped)
+        return format_lcos_comment(mapped)
     if kind == "block":
         return BLOCK_COMMENTS.get(user_name)
     # LayoutBlock XSD requires <metric> before <comment>; JMRI omits metric
@@ -533,7 +611,7 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
     if existing:
         return None
     if kind in {"signalmast", "virtualsignalmast"}:
-        return f"Mast {user_name}" if user_name else None
+        return mast_protect_comment(user_name, existing) if user_name else None
     if kind == "signalhead":
         return f"Head {user_name}" if user_name else None
     if kind == "memory":

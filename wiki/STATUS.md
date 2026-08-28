@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-27 — Bean comments: masts are `Brick | Switch 1`; turnout/head/FB wiring is `Node: 4 | OU-1: Port: 1,2 | DCC: 100` (two OUs pipe-separated). Occupancy stays `Block n-n`. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-27 — LCOS mimic (`http://localhost:8765`) uses live names (`Switch 1`, `OS S-R`, `Mast 2L`) and CPs (Brick / Plane / Barn / Engine House / South Yard / East End / Princess). Reload the mimic page. Local only.
 
 Updated: 2026-08-27 — USS **v77**: every plant has an N/R **switch lever**. Yard ladders (9, 11, 13, 15, 17, 19, 21, 25, 27, 29) still **default Local**. Reload **USS CTC** and **Run CTC Logic**. Do not run it with CATS CTC. Deploy `--pi --win`.

@@ -53,32 +53,32 @@
     <sensor inverted="false">
       <systemName>M2S167</systemName>
       <userName>FB Switch 35 N</userName>
-      <comment>Node 1 / IN-1 / Ports 1</comment>
+      <comment>Node: 1 | IN-1: Port: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S168</systemName>
       <userName>FB Switch 35 R</userName>
-      <comment>Node 1 / IN-1 / Ports 2</comment>
+      <comment>Node: 1 | IN-1: Port: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S169</systemName>
       <userName>FB Switch 37 N</userName>
-      <comment>Node 1 / IN-1 / Ports 3</comment>
+      <comment>Node: 1 | IN-1: Port: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S170</systemName>
       <userName>FB Switch 37 R</userName>
-      <comment>Node 1 / IN-1 / Ports 4</comment>
+      <comment>Node: 1 | IN-1: Port: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S171</systemName>
       <userName>FB Switch 39 N</userName>
-      <comment>Node 1 / IN-1 / Ports 5</comment>
+      <comment>Node: 1 | IN-1: Port: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S172</systemName>
       <userName>FB Switch 39 R</userName>
-      <comment>Node 1 / IN-1 / Ports 6</comment>
+      <comment>Node: 1 | IN-1: Port: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S200</systemName>
@@ -153,42 +153,42 @@
     <sensor inverted="false">
       <systemName>M2S367</systemName>
       <userName>FB Switch 15 N</userName>
-      <comment>Node 3 / IN-1 / Ports 1</comment>
+      <comment>Node: 3 | IN-1: Port: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S368</systemName>
       <userName>FB Switch 15 R</userName>
-      <comment>Node 3 / IN-1 / Ports 2</comment>
+      <comment>Node: 3 | IN-1: Port: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S369</systemName>
       <userName>FB Switch 17 N</userName>
-      <comment>Node 3 / IN-1 / Ports 3</comment>
+      <comment>Node: 3 | IN-1: Port: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S370</systemName>
       <userName>FB Switch 17 R</userName>
-      <comment>Node 3 / IN-1 / Ports 4</comment>
+      <comment>Node: 3 | IN-1: Port: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S371</systemName>
       <userName>FB Switch 19 N</userName>
-      <comment>Node 3 / IN-1 / Ports 5</comment>
+      <comment>Node: 3 | IN-1: Port: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S372</systemName>
       <userName>FB Switch 19 R</userName>
-      <comment>Node 3 / IN-1 / Ports 6</comment>
+      <comment>Node: 3 | IN-1: Port: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S373</systemName>
       <userName>FB Switch 21 N</userName>
-      <comment>Node 3 / IN-1 / Ports 7</comment>
+      <comment>Node: 3 | IN-1: Port: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S374</systemName>
       <userName>FB Switch 21 R</userName>
-      <comment>Node 3 / IN-1 / Ports 8</comment>
+      <comment>Node: 3 | IN-1: Port: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S400</systemName>
@@ -233,42 +233,42 @@
     <sensor inverted="false">
       <systemName>M2S470</systemName>
       <userName>FB Switch 1 N</userName>
-      <comment>Node 4 / IN-1 / Ports 1</comment>
+      <comment>Node: 4 | IN-1: Port: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S471</systemName>
       <userName>FB Switch 1 R</userName>
-      <comment>Node 4 / IN-1 / Ports 2</comment>
+      <comment>Node: 4 | IN-1: Port: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S472</systemName>
       <userName>FB Switch 3 N</userName>
-      <comment>Node 4 / IN-1 / Ports 3</comment>
+      <comment>Node: 4 | IN-1: Port: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S473</systemName>
       <userName>FB Switch 3 R</userName>
-      <comment>Node 4 / IN-1 / Ports 4</comment>
+      <comment>Node: 4 | IN-1: Port: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S474</systemName>
       <userName>FB Switch 5 N</userName>
-      <comment>Node 4 / IN-1 / Ports 5</comment>
+      <comment>Node: 4 | IN-1: Port: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S475</systemName>
       <userName>FB Switch 5 R</userName>
-      <comment>Node 4 / IN-1 / Ports 6</comment>
+      <comment>Node: 4 | IN-1: Port: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S476</systemName>
       <userName>FB Switch 13 N</userName>
-      <comment>Node 4 / IN-1 / Ports 7</comment>
+      <comment>Node: 4 | IN-1: Port: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S477</systemName>
       <userName>FB Switch 13 R</userName>
-      <comment>Node 4 / IN-1 / Ports 8</comment>
+      <comment>Node: 4 | IN-1: Port: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1200</systemName>
@@ -308,62 +308,62 @@
     <sensor inverted="false">
       <systemName>M2S1267</systemName>
       <userName>FB Switch 25 N</userName>
-      <comment>Node 12 / IN-1 / Ports 1</comment>
+      <comment>Node: 12 | IN-1: Port: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1268</systemName>
       <userName>FB Switch 25 R</userName>
-      <comment>Node 12 / IN-1 / Ports 2</comment>
+      <comment>Node: 12 | IN-1: Port: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1269</systemName>
       <userName>FB Switch 27 N</userName>
-      <comment>Node 12 / IN-1 / Ports 3</comment>
+      <comment>Node: 12 | IN-1: Port: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1270</systemName>
       <userName>FB Switch 27 R</userName>
-      <comment>Node 12 / IN-1 / Ports 4</comment>
+      <comment>Node: 12 | IN-1: Port: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1271</systemName>
       <userName>FB Switch 29 N</userName>
-      <comment>Node 12 / IN-1 / Ports 5</comment>
+      <comment>Node: 12 | IN-1: Port: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1272</systemName>
       <userName>FB Switch 29 R</userName>
-      <comment>Node 12 / IN-1 / Ports 6</comment>
+      <comment>Node: 12 | IN-1: Port: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1273</systemName>
       <userName>FB Switch 31 N</userName>
-      <comment>Node 12 / IN-1 / Ports 7</comment>
+      <comment>Node: 12 | IN-1: Port: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1274</systemName>
       <userName>FB Switch 31 R</userName>
-      <comment>Node 12 / IN-1 / Ports 8</comment>
+      <comment>Node: 12 | IN-1: Port: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1275</systemName>
       <userName>FB Switch 23 N</userName>
-      <comment>Node 12 / IN-3 / Ports 1</comment>
+      <comment>Node: 12 | IN-3: Port: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1276</systemName>
       <userName>FB Switch 23 R</userName>
-      <comment>Node 12 / IN-3 / Ports 2</comment>
+      <comment>Node: 12 | IN-3: Port: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1277</systemName>
       <userName>FB Switch 33 N</userName>
-      <comment>Node 12 / IN-3 / Ports 3</comment>
+      <comment>Node: 12 | IN-3: Port: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1278</systemName>
       <userName>FB Switch 33 R</userName>
-      <comment>Node 12 / IN-3 / Ports 4</comment>
+      <comment>Node: 12 | IN-3: Port: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1300</systemName>
@@ -408,32 +408,32 @@
     <sensor inverted="false">
       <systemName>M2S1367</systemName>
       <userName>FB Switch 7 N</userName>
-      <comment>Node 13 / IN-1 / Ports 1</comment>
+      <comment>Node: 13 | IN-1: Port: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1368</systemName>
       <userName>FB Switch 7 R</userName>
-      <comment>Node 13 / IN-1 / Ports 2</comment>
+      <comment>Node: 13 | IN-1: Port: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1369</systemName>
       <userName>FB Switch 11 N</userName>
-      <comment>Node 13 / IN-1 / Ports 3</comment>
+      <comment>Node: 13 | IN-1: Port: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1370</systemName>
       <userName>FB Switch 11 R</userName>
-      <comment>Node 13 / IN-1 / Ports 4</comment>
+      <comment>Node: 13 | IN-1: Port: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1371</systemName>
       <userName>FB Switch 9 N</userName>
-      <comment>Node 13 / IN-1 / Ports 5</comment>
+      <comment>Node: 13 | IN-1: Port: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1372</systemName>
       <userName>FB Switch 9 R</userName>
-      <comment>Node 13 / IN-1 / Ports 6</comment>
+      <comment>Node: 13 | IN-1: Port: 6</comment>
     </sensor>
   </sensors>
   <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
@@ -3149,102 +3149,102 @@
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N" inverted="false" automate="Off">
       <systemName>M2T108</systemName>
       <userName>Switch 35</userName>
-      <comment>Node 1 / OU-1 / Ports 1,2 / DCC 113</comment>
+      <comment>Node: 1 | OU-1: Port: 1,2 | DCC: 113</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
       <systemName>M2T109</systemName>
       <userName>Switch 37</userName>
-      <comment>Node 1 / OU-1 / Ports 3,4 / DCC 114</comment>
+      <comment>Node: 1 | OU-1: Port: 3,4 | DCC: 114</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
       <systemName>M2T110</systemName>
       <userName>Switch 39</userName>
-      <comment>Node 1 / OU-1 / Ports 5,6 / DCC 115</comment>
+      <comment>Node: 1 | OU-1: Port: 5,6 | DCC: 115</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 15 R" sensor2="FB Switch 15 N" inverted="false" automate="Off">
       <systemName>M2T308</systemName>
       <userName>Switch 15</userName>
-      <comment>Node 3 / OU-1 / Ports 1,2 / DCC 103</comment>
+      <comment>Node: 3 | OU-1: Port: 1,2 | DCC: 103</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 17 R" sensor2="FB Switch 17 N" inverted="false" automate="Off">
       <systemName>M2T309</systemName>
       <userName>Switch 17</userName>
-      <comment>Node 3 / OU-1 / Ports 3,4 / DCC 104</comment>
+      <comment>Node: 3 | OU-1: Port: 3,4 | DCC: 104</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 19 R" sensor2="FB Switch 19 N" inverted="false" automate="Off">
       <systemName>M2T310</systemName>
       <userName>Switch 19</userName>
-      <comment>Node 3 / OU-1 / Ports 5,6 / DCC 105</comment>
+      <comment>Node: 3 | OU-1: Port: 5,6 | DCC: 105</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 21 R" sensor2="FB Switch 21 N" inverted="false" automate="Off">
       <systemName>M2T311</systemName>
       <userName>Switch 21</userName>
-      <comment>Node 3 / OU-1 / Ports 7,8 / DCC 106</comment>
+      <comment>Node: 3 | OU-1: Port: 7,8 | DCC: 106</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N" inverted="false" automate="Off">
       <systemName>M2T408</systemName>
       <userName>Switch 1</userName>
-      <comment>Node 4 / OU-1 / Ports 1,2 / DCC 100</comment>
+      <comment>Node: 4 | OU-1: Port: 1,2 | DCC: 100</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 3 R" sensor2="FB Switch 3 N" inverted="false" automate="Off">
       <systemName>M2T409</systemName>
       <userName>Switch 3</userName>
-      <comment>Node 4 / OU-1 / Ports 3,4 / DCC 101</comment>
+      <comment>Node: 4 | OU-1: Port: 3,4 | DCC: 101</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 5 R" sensor2="FB Switch 5 N" inverted="false" automate="Off">
       <systemName>M2T410</systemName>
       <userName>Switch 5</userName>
-      <comment>Node 4 / OU-1 / Ports 5,6 / DCC 102</comment>
+      <comment>Node: 4 | OU-1: Port: 5,6 | DCC: 102</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T411</systemName>
       <userName>Switch 13</userName>
-      <comment>Node 4 / OU-1 / Ports 7,8 / DCC 116</comment>
+      <comment>Node: 4 | OU-1: Port: 7,8 | DCC: 116</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 25 R" sensor2="FB Switch 25 N" inverted="false" automate="Off">
       <systemName>M2T1208</systemName>
       <userName>Switch 25</userName>
-      <comment>Node 12 / OU-1 / Ports 1,2 / DCC 107</comment>
+      <comment>Node: 12 | OU-1: Port: 1,2 | DCC: 107</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 27 R" sensor2="FB Switch 27 N" inverted="false" automate="Off">
       <systemName>M2T1209</systemName>
       <userName>Switch 27</userName>
-      <comment>Node 12 / OU-1 / Ports 3,4 / DCC 108</comment>
+      <comment>Node: 12 | OU-1: Port: 3,4 | DCC: 108</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 29 R" sensor2="FB Switch 29 N" inverted="false" automate="Off">
       <systemName>M2T1210</systemName>
       <userName>Switch 29</userName>
-      <comment>Node 12 / OU-1 / Ports 5,6 / DCC 109</comment>
+      <comment>Node: 12 | OU-1: Port: 5,6 | DCC: 109</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 31 R" sensor2="FB Switch 31 N" inverted="false" automate="Off">
       <systemName>M2T1211</systemName>
       <userName>Switch 31</userName>
-      <comment>Node 12 / OU-1 / Ports 7,8 / DCC 110</comment>
+      <comment>Node: 12 | OU-1: Port: 7,8 | DCC: 110</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
       <systemName>M2T1212</systemName>
       <userName>Switch 23</userName>
-      <comment>Node 12 / OU-4 / Ports 1,2 / DCC 111</comment>
+      <comment>Node: 12 | OU-4: Port: 1,2 | DCC: 111</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 33 R" sensor2="FB Switch 33 N" inverted="false" automate="Off">
       <systemName>M2T1213</systemName>
       <userName>Switch 33</userName>
-      <comment>Node 12 / OU-4 / Ports 3,4 / DCC 112</comment>
+      <comment>Node: 12 | OU-4: Port: 3,4 | DCC: 112</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1308</systemName>
       <userName>Switch 7</userName>
-      <comment>Node 13 / OU-3 / Ports 1,2 / DCC 117</comment>
+      <comment>Node: 13 | OU-3: Port: 1,2 | DCC: 117</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1309</systemName>
       <userName>Switch 11</userName>
-      <comment>Node 13 / OU-3 / Ports 3,4 / DCC 118</comment>
+      <comment>Node: 13 | OU-3: Port: 3,4 | DCC: 118</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1310</systemName>
       <userName>Switch 9</userName>
-      <comment>Node 13 / OU-3 / Ports 5,6 / DCC 119</comment>
+      <comment>Node: 13 | OU-3: Port: 5,6 | DCC: 119</comment>
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
@@ -3268,182 +3268,182 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH132</systemName>
       <userName>Head 40LB Top</userName>
-      <comment>Node 1 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 1 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH133</systemName>
       <userName>Head 40LB Bottom</userName>
-      <comment>Node 1 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 1 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
       <userName>Head 2036</userName>
-      <comment>Node 1 / OU-2 / Ports 3</comment>
+      <comment>Node: 1 | OU-2: Port: 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
       <userName>Head 36RA Top</userName>
-      <comment>Node 1 / OU-2 / Ports 4,5</comment>
+      <comment>Node: 1 | OU-2: Port: 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH136</systemName>
       <userName>Head 36RA Bottom</userName>
-      <comment>Node 1 / OU-2 / Ports 4,5</comment>
+      <comment>Node: 1 | OU-2: Port: 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH137</systemName>
       <userName>Head 36RB Top</userName>
-      <comment>Node 1 / OU-2 / Ports 6,7</comment>
+      <comment>Node: 1 | OU-2: Port: 6,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH138</systemName>
       <userName>Head 36RB Bottom</userName>
-      <comment>Node 1 / OU-2 / Ports 6,7</comment>
+      <comment>Node: 1 | OU-2: Port: 6,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH139</systemName>
       <userName>Head 38LB Top</userName>
-      <comment>Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1</comment>
+      <comment>Node: 1 | OU-2: Port: 8 | OU-3: Port: 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH140</systemName>
       <userName>Head 38LB Bottom</userName>
-      <comment>Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1</comment>
+      <comment>Node: 1 | OU-2: Port: 8 | OU-3: Port: 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
       <userName>Head 2035</userName>
-      <comment>Node 1 / OU-3 / Ports 2</comment>
+      <comment>Node: 1 | OU-3: Port: 2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH142</systemName>
       <userName>Head 40LA</userName>
-      <comment>Node 1 / OU-3 / Ports 3</comment>
+      <comment>Node: 1 | OU-3: Port: 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH143</systemName>
       <userName>Head 38LA</userName>
-      <comment>Node 1 / OU-3 / Ports 4</comment>
+      <comment>Node: 1 | OU-3: Port: 4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>Head 6LB Top</userName>
-      <comment>Node 4 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 4 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH433</systemName>
       <userName>Head 6LB Bottom</userName>
-      <comment>Node 4 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 4 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH434</systemName>
       <userName>Head 6LA</userName>
-      <comment>Node 4 / OU-2 / Ports 3</comment>
+      <comment>Node: 4 | OU-2: Port: 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
       <userName>Head 4RA</userName>
-      <comment>Node 4 / OU-2 / Ports 5</comment>
+      <comment>Node: 4 | OU-2: Port: 5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH437</systemName>
       <userName>Head 4RB</userName>
-      <comment>Node 4 / OU-2 / Ports 6</comment>
+      <comment>Node: 4 | OU-2: Port: 6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH438</systemName>
       <userName>Head 2L Top</userName>
-      <comment>Node 4 / OU-3 / Ports 1,2</comment>
+      <comment>Node: 4 | OU-3: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH439</systemName>
       <userName>Head 2L Bottom</userName>
-      <comment>Node 4 / OU-3 / Ports 1,2</comment>
+      <comment>Node: 4 | OU-3: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1232</systemName>
       <userName>Head 24RA Top</userName>
-      <comment>Node 12 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 12 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1233</systemName>
       <userName>Head 24RA Bottom</userName>
-      <comment>Node 12 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 12 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1234</systemName>
       <userName>Head 24L Top</userName>
-      <comment>Node 12 / OU-2 / Ports 3,4</comment>
+      <comment>Node: 12 | OU-2: Port: 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1235</systemName>
       <userName>Head 24L Bottom</userName>
-      <comment>Node 12 / OU-2 / Ports 3,4</comment>
+      <comment>Node: 12 | OU-2: Port: 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1236</systemName>
       <userName>Head 24RB</userName>
-      <comment>Node 12 / OU-2 / Ports 5</comment>
+      <comment>Node: 12 | OU-2: Port: 5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1237</systemName>
       <userName>Head 34L Top</userName>
-      <comment>Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
+      <comment>Node: 12 | OU-2: Port: 6 | OU-3: Port: 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1238</systemName>
       <userName>Head 34L Bottom</userName>
-      <comment>Node 12 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
+      <comment>Node: 12 | OU-2: Port: 6 | OU-3: Port: 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1239</systemName>
       <userName>Head 32R</userName>
-      <comment>Node 12 / OU-3 / Ports 2</comment>
+      <comment>Node: 12 | OU-3: Port: 2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1240</systemName>
       <userName>Head 34R Top</userName>
-      <comment>Node 12 / OU-3 / Ports 3,4</comment>
+      <comment>Node: 12 | OU-3: Port: 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1241</systemName>
       <userName>Head 34R Bottom</userName>
-      <comment>Node 12 / OU-3 / Ports 3,4</comment>
+      <comment>Node: 12 | OU-3: Port: 3,4</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1332</systemName>
       <userName>Head 8RA Top</userName>
-      <comment>Node 13 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 13 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1333</systemName>
       <userName>Head 8RA Bottom</userName>
-      <comment>Node 13 / OU-2 / Ports 1,2</comment>
+      <comment>Node: 13 | OU-2: Port: 1,2</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1334</systemName>
       <userName>Head 8LB</userName>
-      <comment>Node 13 / OU-2 / Ports 3</comment>
+      <comment>Node: 13 | OU-2: Port: 3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1335</systemName>
       <userName>Head 8RB Top</userName>
-      <comment>Node 13 / OU-2 / Ports 4,5</comment>
+      <comment>Node: 13 | OU-2: Port: 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1336</systemName>
       <userName>Head 8RB Bottom</userName>
-      <comment>Node 13 / OU-2 / Ports 4,5</comment>
+      <comment>Node: 13 | OU-2: Port: 4,5</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1337</systemName>
       <userName>Head 8LA Top</userName>
-      <comment>Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
+      <comment>Node: 13 | OU-2: Port: 6 | OU-3: Port: 1</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1338</systemName>
       <userName>Head 8LA Bottom</userName>
-      <comment>Node 13 / OU-2 / Ports 6 / OU-3 / Ports 1</comment>
+      <comment>Node: 13 | OU-2: Port: 6 | OU-3: Port: 1</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -3462,229 +3462,229 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH142)</systemName>
       <userName>Mast 40LA</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH143)</systemName>
       <userName>Mast 38LA</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 37</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH434)</systemName>
       <userName>Mast 6LA</userName>
-      <comment>Plane</comment>
+      <comment>Plane | Switch 5</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH436)</systemName>
       <userName>Mast 4RA</userName>
-      <comment>Brick</comment>
+      <comment>Brick | Switch 3</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH437)</systemName>
       <userName>Mast 4RB</userName>
-      <comment>Brick</comment>
+      <comment>Brick | Switch 3</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1236)</systemName>
       <userName>Mast 24RB</userName>
-      <comment>East End</comment>
+      <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1239)</systemName>
       <userName>Mast 32R</userName>
-      <comment>East End</comment>
+      <comment>East End | Switch 31</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:AAR-1946:SL-1-low(IH1334)</systemName>
       <userName>Mast 8LB</userName>
-      <comment>Barn</comment>
+      <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133)</systemName>
       <userName>Mast 40LB</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136)</systemName>
       <userName>Mast 36RA</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 35</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138)</systemName>
       <userName>Mast 36RB</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 35</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140)</systemName>
       <userName>Mast 38LB</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 37</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433)</systemName>
       <userName>Mast 6LB</userName>
-      <comment>Plane</comment>
+      <comment>Plane | Switch 5</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439)</systemName>
       <userName>Mast 2L</userName>
-      <comment>Brick</comment>
+      <comment>Brick | Switch 1</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233)</systemName>
       <userName>Mast 24RA</userName>
-      <comment>East End</comment>
+      <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235)</systemName>
       <userName>Mast 24L</userName>
-      <comment>East End</comment>
+      <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238)</systemName>
       <userName>Mast 34L</userName>
-      <comment>East End</comment>
+      <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)</systemName>
       <userName>Mast 34R</userName>
-      <comment>East End</comment>
+      <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333)</systemName>
       <userName>Mast 8RA</userName>
-      <comment>Barn</comment>
+      <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336)</systemName>
       <userName>Mast 8RB</userName>
-      <comment>Barn</comment>
+      <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338)</systemName>
       <userName>Mast 8LA</userName>
-      <comment>Barn</comment>
+      <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
     </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
       <userName>Mast 4LA</userName>
-      <comment>Brick</comment>
+      <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
       <userName>Mast 4LB</userName>
-      <comment>Brick</comment>
+      <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1003)</systemName>
       <userName>Mast 40RA</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 39</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1004)</systemName>
       <userName>Mast 38RA</userName>
-      <comment>Princess</comment>
+      <comment>Princess | Switch 37</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1005)</systemName>
       <userName>Mast 12L</userName>
-      <comment>Engine House</comment>
+      <comment>Engine House | Switch 11</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1006)</systemName>
       <userName>Mast 10LA</userName>
-      <comment>Engine House</comment>
+      <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1007)</systemName>
       <userName>Mast 10LB</userName>
-      <comment>Engine House</comment>
+      <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1008)</systemName>
       <userName>Mast 18L</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 17</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1009)</systemName>
       <userName>Mast 20L</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 19</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1010)</systemName>
       <userName>Mast 22L</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1011)</systemName>
       <userName>Mast 26L</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1012)</systemName>
       <userName>Mast 18R</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 17</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1013)</systemName>
       <userName>Mast 20R</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 19</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1014)</systemName>
       <userName>Mast 22R</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1015)</systemName>
       <userName>Mast 26R</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1016)</systemName>
       <userName>Mast 16L</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard | Switch 15</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:AAR-1946:SL-1-low($1017)</systemName>
       <userName>Mast 32L</userName>
-      <comment>East End</comment>
+      <comment>East End | Switch 31</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
