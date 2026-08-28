@@ -182,6 +182,8 @@ class DigiconMqttSml(
         self._retained_mode = None
         self._mode_seen = False
         self._button = None
+        self._probe_active = False
+        self._probe_saw_enabled = False
 
     def start(self):
         self.mqtt = _mqtt_adapter()
@@ -401,6 +403,88 @@ class DigiconMqttSml(
         else:
             self._enter_enabled(force=False, from_boot=False)
 
+    def _ask_force_override_edt(self):
+        """Show override confirm on the EDT. Return True if Yes."""
+        holder = [JOptionPane.NO_OPTION]
+
+        class _Ask(Runnable):
+            def run(_self):
+                try:
+                    from jmri.util.swing import JmriJOptionPane
+
+                    holder[0] = JmriJOptionPane.showConfirmDialog(
+                        None,
+                        "track/bridge/sml_mode is already enabled "
+                        "(another Digicon session or stale retain).\n"
+                        "Force override Digicon control?",
+                        "SML Enabled",
+                        JmriJOptionPane.YES_NO_OPTION,
+                        JmriJOptionPane.WARNING_MESSAGE,
+                    )
+                except Exception:
+                    holder[0] = JOptionPane.showConfirmDialog(
+                        None,
+                        "track/bridge/sml_mode is already enabled "
+                        "(another Digicon session or stale retain).\n"
+                        "Force override Digicon control?",
+                        "SML Enabled",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE,
+                    )
+
+        try:
+            if SwingUtilities.isEventDispatchThread():
+                _Ask().run()
+            else:
+                SwingUtilities.invokeAndWait(_Ask())
+        except Exception as exc:
+            print("mqtt_signalhead: override dialog failed: " + _ascii(exc))
+            return False
+        return holder[0] == JOptionPane.YES_OPTION
+
+    def _probe_and_confirm_override(self):
+        """If sml_mode is already enabled elsewhere, ask before taking control."""
+        mode = self._retained_mode
+        if mode is not None and str(mode).strip().lower() == "enabled":
+            print("mqtt_signalhead: retain already enabled — asking override")
+            return self._ask_force_override_edt()
+        # Live probe: another Enabled Digicon answers query with enabled.
+        self._probe_saw_enabled = False
+        self._probe_active = True
+        try:
+            self._publish(SML_MODE_TOPIC, "query", retain=False)
+            print("mqtt_signalhead: enable probe query (wait for enabled ACK)")
+            Thread.sleep(2000)
+        finally:
+            self._probe_active = False
+        if self._probe_saw_enabled:
+            print("mqtt_signalhead: probe saw enabled — asking override")
+            return self._ask_force_override_edt()
+        print("mqtt_signalhead: probe clear — enabling without override")
+        return True
+
+    def _enter_enabled(self, force, from_boot):
+        if self._busy:
+            return
+        self._busy = True
+        if self._button is not None:
+            self._button.setEnabled(False)
+        controller = self
+
+        class _Run(Runnable):
+            def run(_self):
+                try:
+                    if not force and not from_boot:
+                        if not controller._probe_and_confirm_override():
+                            print("mqtt_signalhead: enable aborted (no override)")
+                            return
+                    controller._hand_off_enabled()
+                finally:
+                    controller._busy = False
+                    controller._set_button_label()
+
+        Thread(_Run(), "digicon-sml-enable").start()
+
     def _enter_disabled(self, release):
         if self._busy:
             return
@@ -418,41 +502,6 @@ class DigiconMqttSml(
                     controller._set_button_label()
 
         Thread(_Run(), "digicon-sml-disable").start()
-
-    def _enter_enabled(self, force, from_boot):
-        if self._busy:
-            return
-        mode = self._retained_mode
-        if (
-            not force
-            and not from_boot
-            and mode is not None
-            and str(mode).strip().lower() == "enabled"
-        ):
-            rc = JOptionPane.showConfirmDialog(
-                None,
-                "track/bridge/sml_mode is already enabled.\nForce override Digicon control?",
-                "SML Enabled",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE,
-            )
-            if rc != JOptionPane.YES_OPTION:
-                print("mqtt_signalhead: enable aborted (no override)")
-                return
-        self._busy = True
-        if self._button is not None:
-            self._button.setEnabled(False)
-        controller = self
-
-        class _Run(Runnable):
-            def run(_self):
-                try:
-                    controller._hand_off_enabled()
-                finally:
-                    controller._busy = False
-                    controller._set_button_label()
-
-        Thread(_Run(), "digicon-sml-enable").start()
 
     def _apply_global_disabled(self, release, publish_mode):
         """Disable Digicon SML in JMRI. RELEASE only when release=True."""
@@ -604,7 +653,14 @@ class DigiconMqttSml(
     def notifyMqttMessage(self, topic, message):
         topic = _ascii(topic)
         message = _ascii(message).strip()
-        if topic == SML_MODE_TOPIC or topic.endswith("/bridge/sml_mode"):
+        # JMRI may deliver full topic or channel-relative leaf.
+        if (
+            topic == SML_MODE_TOPIC
+            or topic.endswith("/bridge/sml_mode")
+            or topic.endswith("bridge/sml_mode")
+            or topic == "bridge/sml_mode"
+            or topic.endswith("sml_mode")
+        ):
             self._on_sml_mode(message)
             return
         # track/signalmast/<packed>
@@ -625,8 +681,12 @@ class DigiconMqttSml(
     def _on_sml_mode(self, message):
         mode = message.strip().lower()
         self._mode_seen = True
+        if mode == "enabled" and self._probe_active:
+            self._probe_saw_enabled = True
         if mode in ("enabled", "disabled", "query"):
-            self._retained_mode = mode
+            # Do not let our probe query wipe a known enabled retain for the fast path.
+            if not (self._probe_active and mode == "query"):
+                self._retained_mode = mode
         if mode == "query" and self._global_enabled and not self._busy:
             self._publish_mode("enabled")
             print("mqtt_signalhead: ACK query -> enabled")
