@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-27 — LCOS mimic (`http://localhost:8765`) uses live names (`Switch 1`, `OS S-R`, `Mast 2L`) and CPs (Brick / Plane / Barn / Engine House / South Yard / East End / Princess). Reload the mimic page. Local only.
+
 Updated: 2026-08-27 — USS CTC internals use live Switch numbers (`CTC 1 lever`, not `CTC 100`). Removed unreferenced 15-col UniqueIDs, OpenLCB leftover sensors, and unused MTT aliases. Occupancy holes `unused Block 2-2` / `3-8` kept. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-27 — `public_name_map.csv` post-convert identity rows + Device-map **comments** applied to Turnouts / Sensors / Heads / Masts / switch-OS Blocks. Occupancy comment is `Block n-n`; wiring comments are `Node # / OU-# / Ports`. Dispatcher `stop` / throat `not a station` kept. Reload **PanelPro**. Deploy `--pi --win`.

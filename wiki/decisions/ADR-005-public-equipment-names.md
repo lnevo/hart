@@ -91,7 +91,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `validate_cats_panel.py` | Required `OS 13–119 (West Yard)` |
 | `build_hart_signal_heads.py` | Mast userNames |
 | `sim_hart_train_mqtt.py` | Route step block names |
-| `lcos_mqtt_mimic.py` | Plant labels 116–119 = West Yard |
+| `lcos_mqtt_mimic.py` | Groups by live CP (`Brick`, `Barn`, `Engine House`); turnout keys `Switch 1` |
 | `jmri_to_cats_digicon.py` | Block aliases |
 
 **Data CSVs (same strings as XML)**

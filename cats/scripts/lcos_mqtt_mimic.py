@@ -34,6 +34,7 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[2]
 TABLES = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
+NAME_MAP = ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = ROOT / "cats" / "data" / "signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")
@@ -49,43 +50,22 @@ _MOSQUITTO = (
 )
 
 SWITCH_TIPS = {
-    100: "THROWN = 100–102 / Plane (BOTTOM); CLOSED = LEFT",
-    102: "THROWN = OS Scale (RIGHT); CLOSED = OS East Main Ext (BOTTOM)",
-    112: "THROWN = OS Barn (BOTTOM); CLOSED = OS110 / OS East Lead (LEFT)",
-    114: "THROWN = OS McKeesport (BOTTOM); CLOSED = OS K-2 (RIGHT)",
-    115: "THROWN = Rocks (TOP); CLOSED = OS K-1 (RIGHT)",
+    1: "THROWN = Switch 5 / Plane (BOTTOM); CLOSED = LEFT",
+    5: "THROWN = OS Scale (RIGHT); CLOSED = OS East Main Ext (BOTTOM)",
+    33: "THROWN = OS Barn (BOTTOM); CLOSED = OS 31 / OS East Lead (LEFT)",
+    37: "THROWN = OS McKeesport (BOTTOM); CLOSED = OS K-2 (RIGHT)",
+    39: "THROWN = OS McKees Rocks (TOP); CLOSED = OS K-1 (RIGHT)",
 }
 
-PLANT_SWITCH = {
-    100: "Brick",
-    101: "Brick",
-    102: "Plane",
-    103: "South Yard",
-    104: "South Yard",
-    105: "South Yard",
-    106: "South Yard",
-    107: "East End",
-    108: "East End",
-    109: "East End",
-    110: "East End",
-    111: "East End",
-    112: "East End",
-    113: "Princess",
-    114: "Princess",
-    115: "Princess",
-    116: "West Yard",
-    117: "West Yard",
-    118: "West Yard",
-    119: "West Yard",
-}
-
+# West → east along the modeled line. Empty map `cp` falls through to infer_plant.
 PLANT_ORDER = [
-    "Princess",
-    "East End",
-    "South Yard",
     "Brick",
     "Plane",
-    "West Yard",
+    "Barn",
+    "Engine House",
+    "South Yard",
+    "East End",
+    "Princess",
     "Main",
     "Other",
 ]
@@ -144,6 +124,7 @@ def load_layout() -> dict:
     if not TABLES.is_file():
         raise SystemExit(f"missing {TABLES}")
     root = ET.parse(TABLES).getroot()
+    cps = load_cps()
 
     sensors: dict[str, dict] = {}
     by_user: dict[str, str] = {}
@@ -176,8 +157,8 @@ def load_layout() -> dict:
         if not un.startswith("BS "):
             continue
         names = occ_names.get(un, [])
-        label = " / ".join(names) if names else (rec["comment"] or un)
-        plant = _plant_for_block(label, rec["comment"], un)
+        label = " / ".join(names) if names else un
+        plant = _plant_for_block(label, rec["comment"], un, cps)
         blocks.append(
             {
                 "addr": addr,
@@ -190,6 +171,7 @@ def load_layout() -> dict:
     blocks.sort(key=lambda b: (PLANT_ORDER.index(b["plant"]) if b["plant"] in PLANT_ORDER else 99, b["userName"]))
 
     turnouts = []
+    turnout_cp = cps.get("turnout") or {}
     for el in root.findall(".//turnout"):
         sn = _txt(el, "systemName")
         addr = _addr(sn, "M2T")
@@ -205,18 +187,15 @@ def load_layout() -> dict:
         fb = (el.get("feedback") or "").upper()
         n_name = el.get("sensor2") or ""
         r_name = el.get("sensor1") or ""
-        n_addr = by_user.get(n_name) if "FB N" in n_name else None
-        r_addr = by_user.get(r_name) if "FB R" in r_name else None
-        # JMRI TWOSENSOR: sensor1 = R, sensor2 = N (confirmed in tables.xml)
-        if fb == "TWOSENSOR" and (not n_addr or not r_addr):
-            n_addr = by_user.get(n_name)
-            r_addr = by_user.get(r_name)
+        n_addr = by_user.get(n_name)
+        r_addr = by_user.get(r_name)
+        plant = turnout_cp.get(un) or infer_plant(un)
         turnouts.append(
             {
                 "addr": addr,
                 "label": un,
                 "num": num,
-                "plant": PLANT_SWITCH.get(num, "Other"),
+                "plant": plant,
                 "feedback": fb,
                 "n_addr": n_addr,
                 "r_addr": r_addr,
@@ -226,47 +205,98 @@ def load_layout() -> dict:
     turnouts.sort(key=lambda t: (PLANT_ORDER.index(t["plant"]) if t["plant"] in PLANT_ORDER else 99, t["num"]))
 
     heads = []
+    mast_cp = cps.get("mast") or {}
     if HEAD_CSV.is_file():
         with HEAD_CSV.open(newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 mast = (row.get("mast_user_name") or "").strip()
+                plant = mast_cp.get(mast) or infer_plant(mast)
                 for h in (row.get("head_system_names") or "").split():
-                    heads.append({"id": h, "mast": mast})
+                    heads.append({"id": h, "mast": mast, "plant": plant})
+    heads.sort(
+        key=lambda h: (
+            PLANT_ORDER.index(h["plant"]) if h["plant"] in PLANT_ORDER else 99,
+            h["mast"],
+            h["id"],
+        )
+    )
 
     return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
 
 
-def _plant_for_block(label: str, comment: str, uname: str) -> str:
-    # Block N-M in the occupancy comment is the stable grouping key.
-    match = re.search(r"Block \d+-\d+", comment or "")
-    if match:
-        uname = match.group(0)
-    if uname.startswith("Block 1-"):
+def infer_plant(name: str, cp: str = "") -> str:
+    """Control point for mimic grouping. Empty map cp is filled from the public name."""
+    if cp:
+        return cp
+    blob = (name or "").lower()
+    if blob.startswith("os eh") or blob.startswith("bs eh") or "engine house" in blob:
+        return "Engine House"
+    if "switch 9" in blob or "switch 11" in blob:
+        return "Engine House"
+    if "barn" in blob:
+        return "Barn"
+    if blob.startswith("os main") or blob.startswith("bs main"):
+        return "Main"
+    if "princess" in blob or "mckees" in blob or blob.startswith("os k-"):
         return "Princess"
-    if uname in ("Block 2-1", "Block 2-3"):
-        return "Main"
-    if uname.startswith("Block 2-"):
+    if "east end" in blob or "east lead" in blob:
         return "East End"
-    if uname == "Block 3-1":
-        return "West Yard"
-    if uname.startswith("Block 3-"):
+    if "south yard" in blob or blob.startswith("os s-") or blob.startswith("bs s-"):
         return "South Yard"
-    if uname in ("Block 4-1", "Block 4-2", "Block 4-6"):
+    if blob.startswith("os w-") or blob.startswith("bs w-") or "brick" in blob:
         return "Brick"
-    if uname == "Block 4-5":
+    if "plane" in blob or "scale" in blob:
         return "Plane"
-    if uname == "Block 4-7":
-        return "Main"
-    if uname.startswith("Block 4-"):
-        return "West Yard"
-    if uname.startswith("Block 12-"):
-        return "East End"
-    if uname.startswith("Block 13-"):
-        return "West Yard"
-    blob = f"{label} {comment} {uname}".lower()
-    if "main" in blob:
-        return "Main"
     return "Other"
+
+
+def load_cps() -> dict[str, dict[str, str]]:
+    """Identity rows from public_name_map.csv: name/hardware → cp."""
+    turnout: dict[str, str] = {}
+    occupancy: dict[str, str] = {}
+    block: dict[str, str] = {}
+    mast: dict[str, str] = {}
+    if not NAME_MAP.is_file():
+        return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
+    with NAME_MAP.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            layer = (row.get("layer") or "").strip()
+            current = (row.get("current") or "").strip()
+            proposed = (row.get("proposed") or "").strip()
+            if current != proposed or not proposed:
+                continue
+            if proposed.endswith(" alias"):
+                continue
+            plant = infer_plant(proposed, (row.get("cp") or "").strip())
+            hardware = (row.get("hardware") or "").strip()
+            if layer == "turnout":
+                turnout[proposed] = plant
+            elif layer == "occupancy":
+                occupancy[proposed] = plant
+                for token in hardware.split():
+                    occupancy[token] = plant
+            elif layer == "block":
+                block[proposed] = plant
+            elif layer == "mast":
+                mast[proposed] = plant
+    return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
+
+
+def _plant_for_block(label: str, comment: str, uname: str, cps: dict[str, dict[str, str]]) -> str:
+    occ = cps.get("occupancy") or {}
+    blocks = cps.get("block") or {}
+    if uname in occ:
+        return occ[uname]
+    for name in (label or "").split(" / "):
+        name = name.strip()
+        if name in blocks:
+            return blocks[name]
+        if name in occ:
+            return occ[name]
+    match = re.search(r"Block \d+-\d+", comment or "")
+    if match and match.group(0) in occ:
+        return occ[match.group(0)]
+    return infer_plant(f"{label} {uname}")
 
 
 class Bus:

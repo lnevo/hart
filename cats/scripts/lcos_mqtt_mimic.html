@@ -156,7 +156,7 @@
   </div>
   <div class="heads">
     <h2>Signal heads (live MQTT)</h2>
-    <div class="lamps" id="heads"></div>
+    <div id="heads"></div>
   </div>
   <footer>
     Mimics LCOS status: <code>track/turnout/{addr}</code> plus FB N/R sensors for TWOSENSOR plants.
@@ -245,20 +245,29 @@
 
       const hRoot = $("heads");
       hRoot.innerHTML = "";
-      const byMast = new Map();
-      for (const h of layout.heads) {
-        if (!byMast.has(h.mast)) byMast.set(h.mast, []);
-        byMast.get(h.mast).push(h);
-      }
-      for (const [mast, heads] of byMast) {
-        const el = document.createElement("div");
-        el.className = "mast";
-        const lamps = heads.map(h => {
-          const aspect = (state.heads[h.id] || "Dark").split(";")[0].trim();
-          return `<i class="lamp ${aspect}" title="${h.id} ${aspect}"></i>`;
-        }).join("");
-        el.innerHTML = `${lamps}<span class="lbl" title="${mast}">${mast}</span>`;
-        hRoot.appendChild(el);
+      for (const [plant, rows] of plantGroups(layout.heads)) {
+        const wrap = document.createElement("div");
+        wrap.className = "plant";
+        wrap.innerHTML = `<h3>${plant}</h3>`;
+        const lamps = document.createElement("div");
+        lamps.className = "lamps";
+        const byMast = new Map();
+        for (const h of rows) {
+          if (!byMast.has(h.mast)) byMast.set(h.mast, []);
+          byMast.get(h.mast).push(h);
+        }
+        for (const [mast, heads] of byMast) {
+          const el = document.createElement("div");
+          el.className = "mast";
+          const lampHtml = heads.map(h => {
+            const aspect = (state.heads[h.id] || "Dark").split(";")[0].trim();
+            return `<i class="lamp ${aspect}" title="${h.id} ${aspect}"></i>`;
+          }).join("");
+          el.innerHTML = `${lampHtml}<span class="lbl" title="${mast}">${mast}</span>`;
+          lamps.appendChild(el);
+        }
+        wrap.appendChild(lamps);
+        hRoot.appendChild(wrap);
       }
     }
 
