@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v76).
+"""Generate the USS CTC track diagram from CATS Master 4 (v77).
 
 20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
 101 is L/N, 102 is L/N, 117 is LNR. Mast 2035 is named L but faces east (into
 the OS McKees Rocks wrap) under Mast 2036. Lever number plates: odd on SWITCH,
-even on SIGNAL (same seats as the first 15-column machine).
+even on SIGNAL (same seats as the first 15-column machine). Every plant has an
+N/R switch lever (yard ladders default Local).
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v76_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v77_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
@@ -19,6 +20,9 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 import csv
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from uss_switch_only_columns import ensure_columns
 
 ROOT = Path(__file__).resolve().parents[4]
 CATS_XML = ROOT / "cats/panels/HART_Master4_wired.xml"
@@ -137,7 +141,7 @@ LABEL_AT = {
     "OS EH-3": (21, 10),
 }
 
-# Existing CTC UniqueIDs → 20-col slot (odd = switch, even = its signal).
+# IS# prefix (SwitchNumber / SignalEtcNumber) → 20-col slot.
 UID_SLOT = {
     1: 1, 2: 1,       # 101
     3: 0, 4: 0,       # 100
@@ -146,18 +150,29 @@ UID_SLOT = {
     9: 6, 10: 6,      # 116 switch-only
     11: 7, 12: 7,     # 103 switch-only
     17: 11, 18: 11,   # 111
-    13: 12, 14: 12,   # 107 (lock in tables.xml; levers added if present)
-    15: 13, 16: 13,   # 108
-    19: 14, 20: 14,   # 109
+    13: 12, 14: 12,   # 107 switch-only
+    15: 13, 16: 13,   # 108 switch-only
+    19: 14, 20: 14,   # 109 switch-only
     21: 15, 22: 15,   # 110
     23: 16, 24: 16,   # 112
     25: 17, 26: 17,   # 113
     27: 18, 28: 18,   # 114
     29: 19, 30: 19,   # 115
+    31: 4, 32: 4,     # 119 switch-only
+    33: 5, 34: 5,     # 118 switch-only
+    35: 8, 36: 8,     # 104 switch-only
+    37: 9, 38: 9,     # 105 switch-only
+    39: 10, 40: 10,   # 106 switch-only
 }
 
-# Even UniqueID that owns LOCKTOGGLE on each packed slot.
-# 32/34/36/38/40 are GUI-only until CTC columns are created (119, 118, 104–106).
+# Odd IS# that owns the N/R switch lever on each packed slot.
+SLOT_SW_NUM = {
+    0: 3, 1: 1, 2: 5, 3: 7, 4: 31, 5: 33, 6: 9, 7: 11,
+    8: 35, 9: 37, 10: 39, 11: 17, 12: 13, 13: 15, 14: 19,
+    15: 21, 16: 23, 17: 25, 18: 27, 19: 29,
+}
+
+# Even IS# that owns LOCKTOGGLE on each packed slot.
 SLOT_LOCK_UID = {
     0: 4, 1: 2, 2: 6, 3: 8,
     4: 32, 5: 34, 6: 10, 7: 12,
@@ -451,6 +466,57 @@ TRACK = """<positionablelabel x="{x}" y="{y}" level="3" forcecontroloff="false" 
 TEXT = """<positionablelabel x="{x}" y="{y}" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="{text}" fontname="Dialog.plain" size="{size}" style="1" red="{red}" green="{green}" blue="{blue}" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>"""
+
+SW_LEVER = """<sensoricon sensor="IS{uid}:LEVER" x="{x}" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS{uid}:LEVER</tooltip>
+      <active url="{u}plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="{u}plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="{u}plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="{u}plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>"""
+
+SW_IND = """<sensoricon sensor="IS{uid}:{kind}" x="{x}" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS{uid}:{kind}</tooltip>
+      <active url="program:resources/icons/USS/sensor/{on}.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/{off}.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>"""
+
+CODE_BTN = """<sensoricon sensor="IS{uid}:CB" x="{x}" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS{uid}:CB</tooltip>
+      <active url="{u}plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="{u}plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="{u}plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="{u}plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>"""
 
 LOCK_TOGGLE = """<sensoricon sensor="IS{uid}:LOCKTOGGLE" x="{x}" y="541" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS{uid}:LOCKTOGGLE</tooltip>
@@ -878,6 +944,12 @@ def build_block(cells: dict) -> str:
             uid=SLOT_LOCK_UID[slot], x=origin + 21, u=U))
         parts.append(LOCK_CAP.format(x=origin + 48, y=536, text="Local"))
         parts.append(LOCK_CAP.format(x=origin + 48, y=560, text="Locked"))
+        sw = SLOT_SW_NUM[slot]
+        sig = SLOT_LOCK_UID[slot]
+        parts.append(SW_IND.format(uid=sw, kind="SWNI", x=origin + 4, on="green-on", off="green-off"))
+        parts.append(SW_IND.format(uid=sw, kind="SWRI", x=origin + 38, on="amber-on", off="amber-off"))
+        parts.append(SW_LEVER.format(uid=sw, x=origin + 8, u=U))
+        parts.append(CODE_BTN.format(uid=sig, x=origin + 21, u=U))
         nx = origin + 29
         parts.append(PLATE_NUM.format(x=nx, y=SWITCH_PLATE_Y, text=str(2 * slot + 1)))
         if slot not in SWITCH_ONLY_SLOTS:
@@ -907,6 +979,10 @@ STRIP = [
     re.compile(r"\s*<signalmasticon\b[^>]*/>", re.S),
     re.compile(r"\s*<signalmasticon\b[^>]*>.*?</signalmasticon>", re.S),
     re.compile(r"\s*<signalheadicon\b[^>]*>.*?</signalheadicon>", re.S),
+    re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:LEVER\".*?</sensoricon>", re.S),
+    re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:SWNI\".*?</sensoricon>", re.S),
+    re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:SWRI\".*?</sensoricon>", re.S),
+    re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:CB\".*?</sensoricon>", re.S),
 ]
 
 
@@ -1178,7 +1254,13 @@ def render_preview(gui_text: str, out: Path) -> None:
         x, y = int(m.group(2)), int(m.group(3))
         if y > H:
             continue
-        p = resolve_icon(U + "sensor/red-off.gif")
+        sensor = m.group(1)
+        if sensor.endswith(":LEVER"):
+            p = resolve_icon(U + "plate/levers/lever-left-wide.gif")
+        elif sensor.endswith(":CB"):
+            p = resolve_icon(U + "plate/levers/code.gif")
+        else:
+            p = resolve_icon(U + "sensor/red-off.gif")
         if p:
             paste(p, x, y)
 
@@ -1261,6 +1343,7 @@ def main() -> None:
             assert m, "no paneleditor in %s" % path
             tables = tables[: m.start()] + pe.group(0) + tables[m.end() :]
         patched = patch_brick_sidi(tables)
+        patched = ensure_columns(patched)
         if patched != tables or replace_panel:
             path.write_text(patched)
             print("%s: %s" % (

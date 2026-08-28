@@ -54,7 +54,7 @@ OS Brick-Plane is Y=8 between 100 and 102 (`Block 4-6`). E Main Ext is Y=8 betwe
 
 ## Remaining gaps
 
-- USS CTC is **v76**: lever number plates back (odd SWITCH 1…39, even SIGNAL where a signal lever exists). Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is LNR. UniqueIDs for 119/118/104–106 (`IS32/34/36/38/40`) are GUI-only — no CTC Logic columns.
+- USS CTC is **v77**: every plant has an N/R switch lever. Yard ladders default Local. Brick column 1 is N/R, 101 is L/N, 102 is L/N, 117 is LNR. UniqueIDs 28–35 are the switch-only columns for 119/118/104–109.
 - CATS Princess lamps match LE: **Mast 40LB** OS McKees Rocks and **Mast 38LB** OS McKeesport are 2-head (`LAMP2` / `double`); **Mast 40LA** OS K-1 and **Mast 38LA** OS K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request Clear on an SL-1-low mast.
 - SML re-Discovered 2026-08-27 (**33 sources / 93 dests**): **Mast 2035→Mast 40LB/Mast 38LB**, **Mast 2036→Mast 40LB/Mast 38LB**. **Mast 2035→Mast 38LB** is disabled; **Mast 2035→Mast 40LB** extra occupancy is **OS McKees Rocks** / **BS McKees Rocks**. **Mast 40LB** dests stay `Mast 24L`/`Mast 34L`; **Mast 38LB** stays `Mast 34L`. Reload **CATS CTC** or **CATS ABS**.
 
@@ -82,7 +82,7 @@ Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. **CATS Master4** (`/A
 
 CATS is the Digicon. The USS lever machine is a **separate** JMRI Panel Editor panel, always titled **USS CTC**. LogixNG `IQC:AUTO:0002` **hides** that panel on CATS start.
 
-The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v73**, 20 packed columns). Lever UniqueIDs and JMRI beans are still the 12-column machine / Switch 1–119; lock toggles on 119/118/104–106 are GUI-only Internal sensors. Production `jmri/layouts/hart/output/tables.xml` embeds this paneleditor.
+The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v77**, 20 packed columns). Every plant has an N/R switch lever. Production `jmri/layouts/hart/output/tables.xml` embeds this paneleditor.
 
 ```bash
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py

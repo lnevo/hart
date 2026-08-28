@@ -18,8 +18,8 @@ this machine: [`../dispatcher/DISPATCHER_GUIDE.md`](../dispatcher/DISPATCHER_GUI
 
 ## 1. Reading the machine
 
-The panel is **15 columns, west → east, left → right**, matching the
-railroad: Brick → Plane → OS Barn → East End → Princess. Each column is one
+The panel is **20 columns, west → east, left → right**, matching the
+railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 **OS section** (interlocking plant) with, top to bottom:
 
 - **Track diagram row** — OS lamp lights **red while a train occupies the
@@ -28,12 +28,14 @@ railroad: Brick → Plane → OS Barn → East End → Princess. Each column is 
   column (Quaker Valley style): two-head homes and one-head dwarfs, facing
   the traffic they govern. They paint the field aspect (red at Hold/Stop,
   yellow Approach / Restricting, green Clear). Hover for the mast name.
-  Switches **116** and **103** have no signal icons — those columns are
-  switch-only.
-- **Switch lever** (odd numbers 1–29) — points **N** (Normal/straight) or
-  **R** (Reverse/diverging), with N/R correspondence indicators.
-- **Signal lever** (even numbers 2–30) — three positions: **L**, **N**, **R** —
-  with L / N / R indicator lamps above it.
+  Yard-ladder plants are **switch-only** (no signal lever) and **default
+  Local**.
+- **Switch lever** (odd numbers 1–39) — **every plant has one**. Points **N**
+  (Normal/straight) or **R** (Reverse/diverging), with N/R correspondence
+  indicators. Take the lock back to **Locked** and code to dispatch from the
+  machine.
+- **Signal lever** (even numbers where a signal exists) — three positions:
+  **L**, **N**, **R** — with L / N / R indicator lamps above it.
 - **Lock toggle** (Locked / Unlocked / Local) — releases the switch for
   hand operation by a field crew; the Unlocked lamp lights while released.
 - **Code button** — nothing you set takes effect until you press it.
@@ -158,11 +160,12 @@ Never fleet a route you may need to take back quickly.
 
 **Machine on:** PanelPro **Tools ▸ CTC ▸ Run CTC Logic**. It does not
 auto-start — until you run it, every lever and lamp shows "?" (sensors
-UNKNOWN). Once started, most switch levers initialize **N**. Switches **100, 112,
-114, and 115** rest Thrown in the field — run
+UNKNOWN). Once started, most switch levers initialize **N**. Switches **1, 33,
+37, and 39** rest Thrown in the field — run
 `jmri/layouts/hart/scripts/ctc_default_reverse_levers.py` after CTC
 starts (or add it as a PanelPro startup action after Run CTC Logic) so
-those selectors sit at **R**, and lock toggles for **116, 103, and 110**
+those selectors sit at **R**, and lock toggles for the **yard ladders**
+(Switches **9, 11, 13, 15, 17, 19, 21, 25, 27, 29, 31**)
 sit at **Local**. Reload CTC re-applies the same defaults.
 The CTC-held masts go to Stop: that is the correct idle state. **Machine off:** there is no stop
 command — quit and relaunch PanelPro without starting the runtime; masts

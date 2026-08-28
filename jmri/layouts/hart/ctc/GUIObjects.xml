@@ -59,70 +59,6 @@
     <positionablelabel x="469" y="664" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="CTC Debug On" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <sensoricon sensor="IS2:CB" x="98" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS2:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS1:SWNI" x="81" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS1:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS1:SWRI" x="115" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS1:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS1:LEVER" x="85" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS1:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="IS2:LDGK" x="81" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS2:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
@@ -178,70 +114,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS4:CB" x="33" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS4:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS3:SWNI" x="16" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS3:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS3:SWRI" x="50" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS3:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS3:LEVER" x="20" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS3:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <positionablelabel x="16" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -297,70 +169,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS6:CB" x="163" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS6:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS5:SWNI" x="146" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS5:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS5:SWRI" x="180" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS5:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS5:LEVER" x="150" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS5:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="IS6:LDGK" x="146" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS6:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
@@ -421,70 +229,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS8:CB" x="228" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS8:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS7:SWNI" x="211" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS7:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS7:SWRI" x="245" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS7:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS7:LEVER" x="215" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS7:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="IS8:LDGK" x="211" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS8:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
@@ -554,198 +298,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS10:CB" x="423" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS10:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS9:SWNI" x="406" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS9:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS9:SWRI" x="440" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS9:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS9:LEVER" x="410" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS9:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS12:CB" x="488" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS12:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS11:SWNI" x="471" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS11:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS11:SWRI" x="505" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS11:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS11:LEVER" x="475" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS11:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS18:CB" x="748" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS18:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS17:SWNI" x="731" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS17:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS17:SWRI" x="765" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS17:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS17:LEVER" x="735" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS17:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="IS18:LDGK" x="731" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS18:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
@@ -815,70 +367,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS22:CB" x="1008" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS22:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS21:SWNI" x="991" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS21:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS21:SWRI" x="1025" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS21:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS21:LEVER" x="995" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS21:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <positionablelabel x="666" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -934,70 +422,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS24:CB" x="1073" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS24:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS23:SWNI" x="1056" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS23:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS23:SWRI" x="1090" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS23:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS23:LEVER" x="1060" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS23:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="IS24:LDGK" x="1056" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS24:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
@@ -1067,70 +491,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS26:CB" x="1138" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS26:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS25:SWNI" x="1121" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS25:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS25:SWRI" x="1155" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS25:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS25:LEVER" x="1125" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS25:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <positionablelabel x="861" y="454" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <icon url="program:resources/icons/USSpanels/Panels/knockout.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -1186,70 +546,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS28:CB" x="1203" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS28:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS27:SWNI" x="1186" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS27:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS27:SWRI" x="1220" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS27:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS27:LEVER" x="1190" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS27:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="IS28:LDGK" x="1186" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS28:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
@@ -1305,70 +601,6 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
-    <sensoricon sensor="IS30:CB" x="1268" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS30:CB</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS29:SWNI" x="1251" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS29:SWNI</tooltip>
-      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS29:SWRI" x="1285" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS29:SWRI</tooltip>
-      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
-    <sensoricon sensor="IS29:LEVER" x="1255" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>IS29:LEVER</tooltip>
-      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <sensoricon sensor="IS30:LDGK" x="1251" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>IS30:LDGK</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
@@ -1424,6 +656,694 @@
         <rotation>0</rotation>
       </inconsistent>
     </multisensoricon>
+    <sensoricon sensor="BS Switch 39 / BS K-1" x="1115" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 39</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Main West" x="-13" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS Main West</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 23a" x="737" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 23a</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS West Main Ext" x="827" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS West Main Ext</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 35b" x="1052" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 35b</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS McKees Rocks" x="1163" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS McKees Rocks</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS McKeesport" x="1163" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS McKeesport</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 5" x="149" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 5</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Scale" x="197" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS Scale</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 7" x="275" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 7</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Barn" x="323" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS Barn</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 13" x="533" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 13</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 15" x="590" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 15</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS S-R" x="617" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS S-R</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 23b" x="737" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 23b</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 31" x="848" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 31</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 33" x="911" y="142" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 33</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS East Lead" x="932" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS East Lead</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 35a" x="1052" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 35a</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 37 / BS K-2" x="1115" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 37</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 1" x="44" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 1</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Brick-Plane" x="71" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS Brick-Plane</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS East Main Ext" x="197" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS East Main Ext</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 7b" x="275" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 7b</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Main East" x="323" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS Main East</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS EH-1" x="407" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS EH-1</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 9" x="470" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 9</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 11" x="512" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 11</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 17" x="611" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 17</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS S-1" x="638" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS S-1</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 29" x="827" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 29</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 3" x="65" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 3</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS W-2" x="113" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS W-2</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS EH-2" x="407" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS EH-2</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS EH-3" x="407" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS EH-3</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 19" x="632" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 19</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS S-2" x="659" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS S-2</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 27" x="806" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 27</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS W-1" x="113" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS W-1</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 21" x="653" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 21</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS S-3" x="680" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS S-3</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS Switch 25" x="785" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS 25</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="BS S-4" x="659" y="199" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>OS S-4</tooltip>
+      <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/red-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <sensoricon sensor="BS Switch 39 / BS K-1" x="1115" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS 39</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
@@ -5219,6 +5139,70 @@
     <positionablelabel x="60" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS3:SWNI" x="16" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS3:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS3:SWRI" x="50" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS3:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS3:LEVER" x="20" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS3:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS4:CB" x="33" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS4:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="41" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="1" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5247,6 +5231,70 @@
     <positionablelabel x="125" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS1:SWNI" x="81" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS1:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS1:SWRI" x="115" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS1:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS1:LEVER" x="85" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS1:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS2:CB" x="98" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS2:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="106" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="3" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5275,6 +5323,70 @@
     <positionablelabel x="190" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS5:SWNI" x="146" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS5:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS5:SWRI" x="180" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS5:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS5:LEVER" x="150" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS5:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS6:CB" x="163" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS6:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="171" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="5" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5303,6 +5415,70 @@
     <positionablelabel x="255" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS7:SWNI" x="211" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS7:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS7:SWRI" x="245" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS7:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS7:LEVER" x="215" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS7:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS8:CB" x="228" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS8:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="236" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="7" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5331,6 +5507,70 @@
     <positionablelabel x="320" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS31:SWNI" x="276" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS31:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS31:SWRI" x="310" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS31:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS31:LEVER" x="280" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS31:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS32:CB" x="293" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS32:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="301" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="9" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5356,6 +5596,70 @@
     <positionablelabel x="385" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS33:SWNI" x="341" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS33:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS33:SWRI" x="375" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS33:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS33:LEVER" x="345" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS33:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS34:CB" x="358" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS34:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="366" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="11" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5381,6 +5685,70 @@
     <positionablelabel x="450" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS9:SWNI" x="406" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS9:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS9:SWRI" x="440" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS9:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS9:LEVER" x="410" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS9:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS10:CB" x="423" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS10:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="431" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="13" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5406,6 +5774,70 @@
     <positionablelabel x="515" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS11:SWNI" x="471" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS11:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS11:SWRI" x="505" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS11:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS11:LEVER" x="475" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS11:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS12:CB" x="488" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS12:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="496" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="15" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5431,6 +5863,70 @@
     <positionablelabel x="580" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS35:SWNI" x="536" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS35:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS35:SWRI" x="570" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS35:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS35:LEVER" x="540" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS35:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS36:CB" x="553" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS36:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="561" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="17" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5456,6 +5952,70 @@
     <positionablelabel x="645" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS37:SWNI" x="601" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS37:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS37:SWRI" x="635" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS37:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS37:LEVER" x="605" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS37:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS38:CB" x="618" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS38:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="626" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="19" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5481,6 +6041,70 @@
     <positionablelabel x="710" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS39:SWNI" x="666" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS39:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS39:SWRI" x="700" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS39:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS39:LEVER" x="670" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS39:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS40:CB" x="683" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS40:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="691" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="21" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5506,6 +6130,70 @@
     <positionablelabel x="775" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS17:SWNI" x="731" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS17:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS17:SWRI" x="765" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS17:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS17:LEVER" x="735" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS17:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS18:CB" x="748" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS18:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="756" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="23" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5534,6 +6222,70 @@
     <positionablelabel x="840" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS13:SWNI" x="796" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS13:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS13:SWRI" x="830" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS13:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS13:LEVER" x="800" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS13:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS14:CB" x="813" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS14:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="821" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="25" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5559,6 +6311,70 @@
     <positionablelabel x="905" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS15:SWNI" x="861" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS15:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS15:SWRI" x="895" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS15:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS15:LEVER" x="865" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS15:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS16:CB" x="878" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS16:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="886" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="27" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5584,6 +6400,70 @@
     <positionablelabel x="970" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS19:SWNI" x="926" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS19:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS19:SWRI" x="960" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS19:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS19:LEVER" x="930" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS19:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS20:CB" x="943" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS20:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="951" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="29" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5609,6 +6489,70 @@
     <positionablelabel x="1035" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS21:SWNI" x="991" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS21:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS21:SWRI" x="1025" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS21:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS21:LEVER" x="995" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS21:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS22:CB" x="1008" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS22:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="1016" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="31" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5637,6 +6581,70 @@
     <positionablelabel x="1100" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS23:SWNI" x="1056" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS23:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS23:SWRI" x="1090" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS23:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS23:LEVER" x="1060" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS23:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS24:CB" x="1073" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS24:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="1081" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="33" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5665,6 +6673,70 @@
     <positionablelabel x="1165" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS25:SWNI" x="1121" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS25:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS25:SWRI" x="1155" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS25:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS25:LEVER" x="1125" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS25:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS26:CB" x="1138" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS26:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="1146" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="35" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5693,6 +6765,70 @@
     <positionablelabel x="1230" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS27:SWNI" x="1186" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS27:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS27:SWRI" x="1220" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS27:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS27:LEVER" x="1190" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS27:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS28:CB" x="1203" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS28:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="1211" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="37" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -5721,6 +6857,70 @@
     <positionablelabel x="1295" y="560" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="Locked" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
+    <sensoricon sensor="IS29:SWNI" x="1251" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS29:SWNI</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS29:SWRI" x="1285" y="340" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS29:SWRI</tooltip>
+      <active url="program:resources/icons/USS/sensor/amber-on.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/sensor/amber-off.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS29:LEVER" x="1255" y="379" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS29:LEVER</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/lever-left-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/lever-right-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/lever-unknown-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/lever-inconsistent-wide.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <sensoricon sensor="IS30:CB" x="1268" y="632" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="true" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>IS30:CB</tooltip>
+      <active url="program:resources/icons/USS/plate/levers/code-press.gif" scale="1.0">
+        <rotation>0</rotation>
+      </active>
+      <inactive url="program:resources/icons/USS/plate/levers/code.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inactive>
+      <unknown url="program:resources/icons/USS/plate/levers/code-unknown.gif" scale="1.0">
+        <rotation>0</rotation>
+      </unknown>
+      <inconsistent url="program:resources/icons/USS/plate/levers/code-inconsistent.gif" scale="1.0">
+        <rotation>0</rotation>
+      </inconsistent>
+      <iconmaps />
+    </sensoricon>
     <positionablelabel x="1276" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" text="39" fontname="Dialog.plain" size="11" style="0" red="255" green="255" blue="255" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>

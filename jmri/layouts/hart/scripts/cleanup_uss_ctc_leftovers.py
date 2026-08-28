@@ -2,8 +2,7 @@
 """Rename USS CTC internals to live Switch N and drop unreferenced leftovers.
 
 IS*: systemNames stay frozen. userNames were still CTC 100/101/… after convert.
-Orphan UniqueIDs 13/15/19 and unused 14/16/20 siblings (except LOCKTOGGLE on
-the packed board), OpenLCB leftover sensors, and unused MTT aliases go away.
+OpenLCB leftover sensors and unused MTT aliases go away.
 """
 
 from __future__ import annotations
@@ -22,7 +21,7 @@ TABLES = [
     ROOT / "jmri/layouts/hart/output/hart_prod.xml",
 ]
 
-# Unreferenced after the 20-col pack. LOCKTOGGLE on 14/16/20 stays (panel Local).
+# Unreferenced after the 20-col pack. OpenLCB leftovers and unused MTT aliases.
 DELETE_SYSTEM_NAMES = frozenset(
     {
         "MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB",
@@ -32,42 +31,6 @@ DELETE_SYSTEM_NAMES = frozenset(
         "MTT113",
         "MTT114",
         "MTT115",
-        "IS13:LEVER",
-        "IS13:SWNI",
-        "IS13:SWRI",
-        "IS15:LEVER",
-        "IS15:SWNI",
-        "IS15:SWRI",
-        "IS19:LEVER",
-        "IS19:SWNI",
-        "IS19:SWRI",
-        "IS14:CALLON",
-        "IS14:CB",
-        "IS14:LDGK",
-        "IS14:LDGL",
-        "IS14:NGK",
-        "IS14:NGL",
-        "IS14:RDGK",
-        "IS14:RDGL",
-        "IS14:UNLOCKEDINDICATOR",
-        "IS16:CALLON",
-        "IS16:CB",
-        "IS16:LDGK",
-        "IS16:LDGL",
-        "IS16:NGK",
-        "IS16:NGL",
-        "IS16:RDGK",
-        "IS16:RDGL",
-        "IS16:UNLOCKEDINDICATOR",
-        "IS20:CALLON",
-        "IS20:CB",
-        "IS20:LDGK",
-        "IS20:LDGL",
-        "IS20:NGK",
-        "IS20:NGL",
-        "IS20:RDGK",
-        "IS20:RDGL",
-        "IS20:UNLOCKEDINDICATOR",
     }
 )
 

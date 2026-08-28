@@ -13,8 +13,8 @@ from javax.swing import SwingUtilities
 from jmri.jmrit.ctc import CtcManager, CtcRunAction
 
 
-# Live machine is 12 interlocking columns; 116/103/110 are local ladder, not CTC.
-EXPECTED_COLUMNS = 12
+# Live machine is 20 packed columns; yard ladders are switch-only (default Local).
+EXPECTED_COLUMNS = 20
 SIDI_MASTS = (
     "Mast 2L",
     "Mast 4RA",
@@ -89,7 +89,7 @@ class CtcLogicSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 handle.write("\n".join(errors))
             else:
                 handle.write("ok\n")
-                handle.write("CTC Logic started; 12 columns; 23 SIDI masts\n")
+                handle.write("CTC Logic started; 20 columns; 23 SIDI masts\n")
         finally:
             handle.close()
 
