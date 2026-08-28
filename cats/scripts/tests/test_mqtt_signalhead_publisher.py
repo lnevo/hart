@@ -25,9 +25,11 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("MqttSystemConnectionMemo", text)
         self.assertIn("getMqttAdapter", text)
         self.assertIn("Aspect", text)
+        self.assertIn("track/bridge/sml_mode", text)
+        self.assertIn("setAppearance", text)
+        self.assertIn("Unheld", text)
         self.assertNotIn("mosquitto", text.lower())
         self.assertNotIn("subprocess", text)
-        self.assertNotIn("head.setAppearance", text)
         self.assertNotIn("import socket", text)
 
     def test_head_names_match_wiring_csv(self) -> None:

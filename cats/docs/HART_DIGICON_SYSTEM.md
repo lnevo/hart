@@ -73,7 +73,7 @@ python3 cats/scripts/polish_hart_master_header.py --panel all
 
 1. `jmri/layouts/hart/scripts/apply_maintain_mqtt.py` — read MQTT **retain** for sensors/turnouts; JMRI-only paint (`setOwnState` / KnownState); never publishes commands. Then Digicon `IOSpec.refreshScreen()`.
 2. `jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py` — yard-ladder lamp buttons ↔ internal turnouts.
-3. `jmri/scripts/mqtt_signalhead_publisher.py` — listen to SHSM / SML (`Aspect` / `Held` / `Lit` on masts, `Appearance` on listed `IH*` heads) and **publish** those appearances on `track/signalhead/<packed>` (no `IH` in the topic leaf) through JMRI’s MQTT connection. Does not read broker retain, `setAppearance`, or blast at startup/shutdown.
+3. `jmri/scripts/mqtt_signalhead_publisher.py` — Digicon SML MQTT bridge: main-window **SML Enabled / SML Disabled** toggle; when Enabled, publish IH appearances on `track/signalhead/<packed>`; when Disabled (global or per-mast SML off), apply `track/signalmast/<packed>` → IH and (on disable transitions) publish `Unheld`. Answers `track/bridge/sml_mode` **query** with **enabled** while globally Enabled. Boots Disabled (no RELEASE), then flips to Enabled unless retain is `disabled`.
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
 
@@ -198,14 +198,14 @@ Examples:
 
 ### JMRI ↔ MQTT for Virtual heads
 
-`jmri/scripts/mqtt_signalhead_publisher.py` (Start Up; `HEAD_NAMES` refreshed by `build_hart_signal_heads.py`, script body is hand-maintained):
+`jmri/scripts/mqtt_signalhead_publisher.py` (Start Up; `HEAD_NAMES` refreshed by `build_hart_signal_heads.py`):
 
-Listens to packed SHSM masts (systemNames encode `(IH###)`) and the listed Virtual heads, then publishes `head.getAppearanceName()` on `track/signalhead/<packed>` (IH prefix stripped from the topic) via `MqttSystemConnectionMemo.getMqttAdapter()`. JMRI’s MQTT connection owns retain and last-will. SML / SHSM own aspects at load and shutdown — this script does not pre-set or post-set heads.
+Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publish when Enabled, mast→IH when SML off, per-mast immediate `Unheld`, `track/bridge/sml_mode` query ACK. SML / SHSM still own aspects while Enabled; Held remains CATS/USS veto.
 
 **LCOS Nano bridge dual path** (`LCOS_ESP32_MQTT_Client`, see `docs/signal_dual_path.md`):
 
-- **Send (Digicon → field):** subscribe `track/signalhead/<packed>` → `EVENT_SIGNAL_CMD` (Red→Stop, Yellow→Approach, Green→Clear). No optimistic `signalmast` echo while testing (`MQTT_PUBLISH_SIGNALMAST_ON_SET=0`).
-- **Receive (field → JMRI masts):** LCOS `EVENT_SIGNAL` → retained `track/signalmast/<packed>` (`Stop; Lit; Unheld`, …) so traditional MQTT Signal Masts still get aspect reports. Status is **not** published on `signalhead` (avoids looping Digicon).
+- **Send (Digicon → field):** when SML Enabled for that mast, `track/signalhead/<packed>` → `EVENT_SIGNAL_CMD` SET (Red→Stop, Yellow→Approach, Green→Clear). Global Disable or per-mast SML off → `Unheld` RELEASE. Bridge `sml_mode` **query** timeout also Red→Unheld if no Digicon **enabled** ACK.
+- **Receive (field → Digicon IH):** when SML is off for that mast (or globally Disabled), LCOS `track/signalmast/<packed>` (`Stop; Lit; Unheld`, …) is applied to the matching `IH*` head. Status is not published on `signalhead` from the field.
 
 Mast 2L is the same packed-head path (`IH438`/`IH439` on C4-OU3). JMRI no longer publishes `track/signalmast/432`.
 
@@ -273,7 +273,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `cats/scripts/windows/install_hart_tables.ps1` | Windows local install helper (tables + jars + web); prefer `sync_hart_package.sh --win` |
 | `jmri/layouts/hart/scripts/apply_maintain_mqtt.py` | Boot retain paint (sensors/turnouts) |
-| `jmri/scripts/mqtt_signalhead_publisher.py` | Publish IH appearances from SML / SHSM via JMRI MQTT |
+| `jmri/scripts/mqtt_signalhead_publisher.py` | Digicon SML MQTT: SET when Enabled, mast→IH when Disabled, sml_mode guard ACK |
 
 ---
 

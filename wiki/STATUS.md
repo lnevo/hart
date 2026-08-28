@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — Digicon SML MQTT guard: main-window **SML Enabled/Disabled** toggle; mast→IH when SML off; bridge `track/bridge/sml_mode` query on start/`track/state` OFFLINE. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
+
 Updated: 2026-08-28 — Cleared retained `_discard/cmd/sensor/*`. JMRI option **11.3** stays a sink so occupancy `setKnownState` cannot hit LCOS; `hart-startup-guard` no longer publishes those topics. Reload **CATS** / **PanelPro**.
 
 Updated: 2026-08-28 — Restored packed signal MQTT (`IH432` → `track/signalhead/432`) and LCOS signalmast echo off; master-node issue fixed. Reload **PanelPro** / **CATS**. Flash Nano + restart bridge. Deploy `--pi --win`.
