@@ -204,7 +204,7 @@ Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publi
 
 **LCOS Nano bridge dual path** (`LCOS_ESP32_MQTT_Client`, see `docs/signal_dual_path.md`):
 
-- **Send (Digicon → field):** when SML Enabled for that mast, `track/signalhead/<packed>` → `EVENT_SIGNAL_CMD` SET (Red→Stop, Yellow→Approach, Green→Clear). Global Disable or per-mast SML off → `Unheld` RELEASE. Bridge `sml_mode` **query** timeout also Red→Unheld if no Digicon **enabled** ACK.
+- **Send (Digicon → field):** when SML Enabled for that mast, `track/signalhead/<packed>` → `EVENT_SIGNAL_CMD` SET (Red→Stop, Yellow→Approach, Green→Clear). Global Disable or per-mast SML off → `Unheld` RELEASE. Bridge `sml_mode` **query** / **disabling** timeout also Red→Unheld if no Digicon **enabled** ACK.
 - **Receive (field → Digicon IH):** when SML is off for that mast (or globally Disabled), LCOS `track/signalmast/<packed>` (`Stop; Lit; Unheld`, …) is applied to the matching `IH*` head. Status is not published on `signalhead` from the field.
 
 Mast 2L is the same packed-head path (`IH438`/`IH439` on C4-OU3). JMRI no longer publishes `track/signalmast/432`.
@@ -265,7 +265,8 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `cats/scripts/aar_aspect_bridge.py` | Digicon R-codes ↔ AAR Clear/Approach/Stop |
 | `cats/scripts/apply_le_sml_facing.py` | AAR SHSM + Layout Editor `signalAMast` / block-boundary facing |
 | `jmri/layouts/hart/scripts/discover_sml.py` | PanelPro one-shot SML Discover (background; do not leave on Start Up) |
-| `cats/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit |
+| `cats/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit; then disable Digicon SML dests |
+| `cats/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no in `tables/new_tables.xml` (boot default) |
 | `cats/scripts/polish_hart_master_header.py` | Publication title row |
 | `cats/scripts/build_hart_signal_heads.py` | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |
 | `cats/scripts/add_yard_ladder_buttons.py` | Ladder lamp buttons on Masters |

@@ -9,9 +9,10 @@
 #
 # Boot (read topic only — no MQTT retain publish):
 #   Hold Digicon SML off until track/bridge/sml_mode is seen (or wait times out).
-#   missing / disabled / query -> take Digicon (enable SML; announce enabled).
+#   missing / disabled / query / disabling -> take Digicon (enable SML; announce enabled).
 #   enabled -> stay Disabled, no Unheld, no mode publish.
-# Operator toggle still announces sml_mode for the bridge. Query ACK when Enabled.
+# Operator toggle still announces sml_mode for the bridge.
+# Query or disabling ACK when Enabled (so bridge can suspend RELEASE).
 #
 # Topic leaf is packed digits only (IH432 -> .../432). Beans stay IH*.
 # Generated HEAD_NAMES: cats/scripts/build_hart_signal_heads.py
@@ -419,7 +420,12 @@ class DigiconMqttSml(
                 Thread.sleep(BOOT_MODE_WAIT_MS)
                 mode = controller._retained_mode
                 mode_s = "" if mode is None else str(mode).strip().lower()
-                take = mode is None or mode_s in ("", "disabled", "query")
+                take = mode is None or mode_s in (
+                    "",
+                    "disabled",
+                    "query",
+                    "disabling",
+                )
                 if take:
                     print(
                         "mqtt_signalhead: boot mode=%s — take Digicon (enable)"
@@ -732,13 +738,18 @@ class DigiconMqttSml(
         self._mode_seen = True
         if mode == "enabled" and self._probe_active:
             self._probe_saw_enabled = True
-        if mode in ("enabled", "disabled", "query"):
+        if mode in ("enabled", "disabled", "query", "disabling"):
             # Do not let our probe query wipe a known enabled retain for the fast path.
             if not (self._probe_active and mode == "query"):
                 self._retained_mode = mode
-        if mode == "query" and self._global_enabled and not self._busy:
+        # Live Digicon: answer query and disabling so the LCOS bridge can abort RELEASE.
+        if (
+            mode in ("query", "disabling")
+            and self._global_enabled
+            and not self._busy
+        ):
             self._publish_mode("enabled")
-            print("mqtt_signalhead: ACK query -> enabled")
+            print("mqtt_signalhead: ACK %s -> enabled" % mode)
 
     def propertyChange(self, event):
         name = event.propertyName
