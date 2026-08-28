@@ -5,8 +5,8 @@
 # Global toggle: SML Enabled / SML Disabled (main window button).
 #   Enabled  -> publish appearances on track/signalhead/<packed> (SET)
 #   Disabled -> apply track/signalmast/<packed> to IH heads; no SET
-# Per-mast SML off (table checkbox edge) -> Unheld for that mast's heads + mast->IH
-# Global Disable -> one Unheld burst after bulk uncheck (checkbox listener is muted)
+# Per-mast SML dest Enable off -> Unheld that source's heads; mast MQTT -> IH + mast.
+# Re-check Enable -> Digicon SET. Global Disable still owns the bulk Unheld burst.
 #
 # Boot (read topic only -- no MQTT retain publish):
 #   Hold Digicon SML off until track/bridge/sml_mode is seen (or wait times out).
@@ -210,6 +210,8 @@ class DigiconMqttSml(
         self._probe_active = False
         self._probe_saw_enabled = False
         self._mast_sml_was_enabled = {}
+        self._source_field_owned = {}
+        self._dest_enable_maps = {}
 
     def start(self):
         self.mqtt = _mqtt_adapter()
@@ -241,11 +243,26 @@ class DigiconMqttSml(
         self._set_button_label()
 
     def _snapshot_mast_sml_state(self):
-        """Baseline for per-mast Enabled edges (Unheld only on true edges)."""
+        """Baseline dest Enabled maps. Bulk/boot must not Unheld from the listener.
+
+        Per-mast field ownership is dest checkboxes only. Global Disable is
+        `_global_enabled` in `_field_owns_mast` — do not fold it in here, or
+        Enable's snapshot (taken before `_global_enabled = True`) would leave
+        every source field-owned and block SET.
+        """
         state = {}
+        owned = {}
+        dest_maps = {}
         for mast in self._masts:
-            state[mast] = self._mast_logic_enabled(mast)
+            on = self._mast_logic_enabled(mast)
+            state[mast] = on
+            owned[mast] = not on
+            sml = self._sml_for_mast(mast)
+            if sml is not None:
+                dest_maps[sml] = self._dest_enable_map(sml)
         self._mast_sml_was_enabled = state
+        self._source_field_owned = owned
+        self._dest_enable_maps = dest_maps
 
     def _set_all_digicon_sml_destinations(self, enabled):
         """Flip Enabled checkbox for every Digicon source→dest pair (SML table).
@@ -716,8 +733,34 @@ class DigiconMqttSml(
             return 0
         return n
 
+    def _dest_enable_map(self, sml):
+        """dest systemName -> isEnabled for one source logic."""
+        out = {}
+        if sml is None:
+            return out
+        try:
+            dests = sml.getDestinationList()
+            if dests is None or dests.isEmpty():
+                return out
+            it = dests.iterator()
+            while it.hasNext():
+                dest = it.next()
+                try:
+                    key = dest.getSystemName()
+                    out[key] = bool(sml.isEnabled(dest))
+                except Exception:
+                    continue
+        except Exception:
+            return out
+        return out
+
     def _field_owns_mast(self, mast):
+        """Field owns heads when global SML is off or this source was unchecked."""
+        if mast is None:
+            return False
         if not self._global_enabled:
+            return True
+        if self._source_field_owned.get(mast):
             return True
         return not self._mast_logic_enabled(mast)
 
@@ -729,16 +772,6 @@ class DigiconMqttSml(
             return
         topic = TOPIC_PREFIX + _topic_suffix(sys_name)
         self._publish(topic, "Unheld", retain=False)
-
-    def _publish_head_red(self, head):
-        """Stop on the wire even when SML is already off (SET path is gated)."""
-        if head is None:
-            return
-        sys_name = head.getSystemName()
-        if sys_name not in self.mqtt_wanted:
-            return
-        topic = TOPIC_PREFIX + _topic_suffix(sys_name)
-        self._publish(topic, "Red", retain=False)
 
     def _mqtt_heads_on_mast(self, mast):
         heads = []
@@ -753,38 +786,39 @@ class DigiconMqttSml(
                 heads.append(head)
         return heads
 
-    def _release_source_mast_to_field(self, mast):
-        """Hand one source mast to LCOS: Hold (desk Stop), Red, Unheld, then drop Hold.
-
-        Hold the SOURCE that is leaving Digicon, not its SML destinations.
-        Dest masts keep their own SML; pinning them Held would fight that.
-        """
-        try:
-            mast.setHeld(True)
-        except Exception:
-            pass
+    def _hand_source_to_field(self, mast):
+        """Uncheck Enable: Unheld this source's heads; field owns until re-enabled."""
+        if self._source_field_owned.get(mast):
+            return
+        self._source_field_owned[mast] = True
         heads = self._mqtt_heads_on_mast(mast)
         if not heads:
             print(
-                "mqtt_signalhead: per-mast SML off %s — no MQTT heads "
+                "mqtt_signalhead: SML dest off %s — no MQTT heads "
                 "(MQTT_HEAD_NAMES=%s)"
                 % (
                     _ascii(mast.getDisplayName()),
                     ",".join(sorted(self.mqtt_wanted)),
                 )
             )
+            return
         for head in heads:
-            self._publish_head_red(head)
             self._publish_unheld(head)
-        try:
-            mast.setHeld(False)
-        except Exception:
-            pass
-        if heads:
-            print(
-                "mqtt_signalhead: per-mast SML off -> Red/Unheld %s"
-                % _ascii(mast.getDisplayName())
-            )
+        print(
+            "mqtt_signalhead: SML dest off -> Unheld %s (field owns)"
+            % _ascii(mast.getDisplayName())
+        )
+
+    def _hand_source_to_sml(self, mast):
+        """Re-check Enable: Digicon SET again."""
+        self._source_field_owned[mast] = False
+        heads = self._mqtt_heads_on_mast(mast)
+        for head in heads:
+            self._publish_head_set(head)
+        print(
+            "mqtt_signalhead: SML dest on -> SET %s (Digicon owns)"
+            % _ascii(mast.getDisplayName())
+        )
 
     def _publish_head_set(self, head):
         if self.mqtt is None or head is None:
@@ -792,7 +826,7 @@ class DigiconMqttSml(
         if not self._global_enabled:
             return
         mast = self._mast_for_head(head)
-        if not self._mast_logic_enabled(mast):
+        if self._field_owns_mast(mast):
             return
         sys_name = head.getSystemName()
         if sys_name not in self.mqtt_wanted:
@@ -802,31 +836,69 @@ class DigiconMqttSml(
         self._publish(topic, data, retain=False)
 
     def _apply_mast_payload_to_head(self, packed, payload):
+        """track/signalmast/<packed> -> IH heads + source SignalMast when field owns."""
         sys_name = "IH" + str(packed)
         if sys_name not in self.mqtt_wanted:
             return
         mast = self._head_to_mast.get(sys_name)
         if not self._field_owns_mast(mast):
             return
+        parts = [p.strip() for p in str(payload).split(";") if p.strip()]
+        if not parts:
+            return
+        aspect = parts[0]
         head = _head_manager().getSignalHead(sys_name)
-        if head is None:
+        if head is not None:
+            mapped = _ASPECT_TO_APPEARANCE.get(aspect.lower())
+            if mapped is None:
+                mapped = aspect
+            const = _appearance_constant(mapped)
+            if const is not None:
+                try:
+                    if head.getAppearance() != const:
+                        head.setAppearance(const)
+                except Exception as exc:
+                    print(
+                        "mqtt_signalhead: setAppearance %s %s: %s"
+                        % (_ascii(sys_name), _ascii(mapped), _ascii(exc))
+                    )
+        if mast is None:
             return
-        aspect = str(payload).split(";")[0].strip()
-        mapped = _ASPECT_TO_APPEARANCE.get(aspect.lower())
-        if mapped is None:
-            mapped = aspect
-        const = _appearance_constant(mapped)
-        if const is None:
-            return
+        mast_aspect = aspect
+        if aspect.lower() in _ASPECT_TO_APPEARANCE:
+            appearance = _ASPECT_TO_APPEARANCE[aspect.lower()]
+            mast_aspect = {
+                "Red": "Stop",
+                "Yellow": "Approach",
+                "Green": "Clear",
+                "Dark": "Dark",
+            }.get(appearance, aspect)
         try:
-            if head.getAppearance() == const:
-                return
-            head.setAppearance(const)
+            current = None
+            try:
+                current = mast.getAspect()
+            except Exception:
+                pass
+            if current != mast_aspect:
+                mast.setAspect(mast_aspect)
         except Exception as exc:
             print(
-                "mqtt_signalhead: setAppearance %s %s: %s"
-                % (_ascii(sys_name), _ascii(mapped), _ascii(exc))
+                "mqtt_signalhead: setAspect %s %s: %s"
+                % (_ascii(mast.getDisplayName()), _ascii(mast_aspect), _ascii(exc))
             )
+        for token in parts[1:]:
+            low = token.lower()
+            try:
+                if low == "lit":
+                    mast.setLit(True)
+                elif low == "unlit":
+                    mast.setLit(False)
+                elif low == "held":
+                    mast.setHeld(True)
+                elif low == "unheld":
+                    mast.setHeld(False)
+            except Exception:
+                pass
 
     def notifyMqttMessage(self, topic, message):
         topic = _ascii(topic)
@@ -898,9 +970,10 @@ class DigiconMqttSml(
             self._publish_head_set(source)
 
     def _on_sml_property(self, sml):
-        # Global button / boot bulk setDisabled owns Unheld. If this listener
-        # also fires, LCOS sees two RELEASE cmds for one Disable.
+        # Global button / boot bulk setDisabled owns Unheld.
         if self._busy or self._boot_pending:
+            return
+        if not self._global_enabled:
             return
         try:
             mast = sml.getSourceMast()
@@ -908,29 +981,37 @@ class DigiconMqttSml(
             return
         if mast not in self._masts:
             return
-        enabled = self._mast_logic_enabled(mast)
-        dests_on = self._enabled_dest_count(mast)
-        was = self._mast_sml_was_enabled.get(mast)
-        self._mast_sml_was_enabled[mast] = enabled
-        if was is None:
-            # First observation (boot/bulk) -- no Unheld.
+        now_map = self._dest_enable_map(sml)
+        was_map = self._dest_enable_maps.get(sml) or {}
+        self._dest_enable_maps[sml] = now_map
+        self._mast_sml_was_enabled[mast] = self._mast_logic_enabled(mast)
+        if not was_map:
             return
-        if was == enabled:
-            if not enabled:
-                return
+        disabled = []
+        enabled = []
+        keys = set(now_map.keys()) | set(was_map.keys())
+        for dest in keys:
+            now_on = now_map.get(dest)
+            was_on = was_map.get(dest)
+            if was_on is None or now_on is None:
+                continue
+            if was_on and not now_on:
+                disabled.append(dest)
+            elif (not was_on) and now_on:
+                enabled.append(dest)
+        if disabled:
             print(
-                "mqtt_signalhead: %s dest Enabled changed; source still "
-                "Digicon (%d dest(s) on) — Unheld when the last dest is off"
-                % (_ascii(mast.getDisplayName()), dests_on)
+                "mqtt_signalhead: dest Enabled off %s -> %s"
+                % (_ascii(mast.getDisplayName()), _ascii(disabled[0]))
             )
+            self._hand_source_to_field(mast)
             return
         if enabled:
-            # Edge to enabled: resume SET, no Unheld.
-            for head in self._mqtt_heads_on_mast(mast):
-                self._publish_head_set(head)
-            return
-        # Last dest off: this source mast reverts to field.
-        self._release_source_mast_to_field(mast)
+            print(
+                "mqtt_signalhead: dest Enabled on %s -> %s"
+                % (_ascii(mast.getDisplayName()), _ascii(enabled[0]))
+            )
+            self._hand_source_to_sml(mast)
 
 
 controller = DigiconMqttSml(HEAD_NAMES)

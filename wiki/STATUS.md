@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — Uncheck one SML dest Enable → Unheld that **source** now (field owns; `track/signalmast` updates IH + mast). Re-check Enable → Digicon SET. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
 Updated: 2026-08-28 — Per-mast SML uncheck Unhelds when that **source** has no dests left Enabled (Hold source, Red, Unheld). Dest masts are not Held. MQTT still limited to `IH432` / Mast 6LB. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 
 Updated: 2026-08-28 — Layout Editor captions **Scale** / **Barn** (was Track Scale / Track Barn). Block userNames stay `Track Scale` / `Track Barn`. Reload **PanelPro**. Deploy `--pi --win`.
