@@ -61,8 +61,11 @@ CTC_SWITCH = {
     "10": "Switch 13 lock",
     "11": "Switch 15",
     "12": "Switch 15 lock",
+    "14": "Switch 25 lock",
+    "16": "Switch 27 lock",
     "17": "Switch 23",
     "18": "Switch 23 signals",
+    "20": "Switch 29 lock",
     "21": "Switch 31",
     "22": "Switch 31 lock",
     "23": "Switch 33",
@@ -73,6 +76,11 @@ CTC_SWITCH = {
     "28": "Switch 37 signals",
     "29": "Switch 39",
     "30": "Switch 39 signals",
+    "32": "Switch 9 lock",
+    "34": "Switch 11 lock",
+    "36": "Switch 17 lock",
+    "38": "Switch 19 lock",
+    "40": "Switch 21 lock",
 }
 
 CTC_SUFFIX = {
@@ -318,12 +326,20 @@ def set_comment(body: str, comment: str) -> str:
     return body.rstrip() + insert + "\n    "
 
 
-def set_user_name(body: str, user_name: str) -> str:
-    if re.search(r"<userName>.*?</userName>", body, re.S):
-        return body
+def set_user_name(body: str, user_name: str, *, replace: bool = False) -> str:
     escaped = (
         user_name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     )
+    if re.search(r"<userName>.*?</userName>", body, re.S):
+        if not replace:
+            return body
+        return re.sub(
+            r"<userName>.*?</userName>",
+            f"<userName>{escaped}</userName>",
+            body,
+            count=1,
+            flags=re.S,
+        )
     insert = f"\n      <userName>{escaped}</userName>"
     match = re.search(r"</systemName>", body)
     if match:
@@ -433,7 +449,7 @@ DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_commen
 
 
 def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> str | None:
-    if existing and re.search(r"(?:unused LCOS|\bstop\b|not a station)", existing, re.I):
+    if existing and re.search(r"(?:\bstop\b|not a station)", existing, re.I):
         return existing
     mapped = DEVICE_MAP_COMMENTS_BY_SYS.get(system_name) or DEVICE_MAP_COMMENTS_BY_USER.get(
         (kind, user_name)
@@ -470,7 +486,10 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
             return existing or f"Points feedback {user_name}"
         ctc = ctc_comment(system_name)
         if ctc:
-            extra = f"; {existing}" if existing and "Default Reverse" in existing else ""
+            extra = ""
+            found = re.search(r"Default Reverse:.*", existing)
+            if found:
+                extra = f"; {found.group(0).strip()}"
             return ctc + extra
         if user_name.startswith("MoveTo") and user_name.endswith("_stored"):
             station = user_name[len("MoveTo") : -len("_stored")].replace("_", " ")
@@ -498,7 +517,7 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
             )
         if system_name.startswith("IS:DS"):
             return existing or f"Dispatcher System {user_name or system_name}"
-        if "unused LCOS" in existing:
+        if "unused LCOS" in existing and user_name.startswith("unused "):
             return existing
         if user_name.startswith("unused ") or user_name.startswith("OLCB leftover"):
             return existing or user_name
@@ -540,6 +559,14 @@ def refresh_comments(text: str) -> tuple[str, int]:
                 user_name = allocate_user_name(candidate, used, system_name)
                 used.add(user_name)
                 body = set_user_name(body, user_name)
+                changed += 1
+        elif kind == "sensor":
+            ctc_name = ctc_user_name(system_name)
+            if ctc_name and ctc_name != user_name:
+                used.discard(user_name)
+                used.add(ctc_name)
+                body = set_user_name(body, ctc_name, replace=True)
+                user_name = ctc_name
                 changed += 1
         comment = comment_for(kind, system_name, user_name, existing)
         if comment and comment != existing:

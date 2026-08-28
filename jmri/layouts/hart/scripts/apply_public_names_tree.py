@@ -27,6 +27,7 @@ SKIP_PARTS = {
     "scripts/apply_public_names_tree.py",
     "scripts/refresh_bean_comments.py",
     "scripts/sync_public_name_map.py",
+    "scripts/cleanup_uss_ctc_leftovers.py",
     "scripts/reconcile_dispatcher_stations.py",
     "scripts/audit_panel_contracts.py",
     "scripts/panelpro_smoke_test.py",

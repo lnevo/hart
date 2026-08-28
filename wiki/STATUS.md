@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-27 — USS CTC internals use live Switch numbers (`CTC 1 lever`, not `CTC 100`). Removed unreferenced 15-col UniqueIDs, OpenLCB leftover sensors, and unused MTT aliases. Occupancy holes `unused Block 2-2` / `3-8` kept. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-27 — `public_name_map.csv` post-convert identity rows + Device-map **comments** applied to Turnouts / Sensors / Heads / Masts / switch-OS Blocks. Occupancy comment is `Block n-n`; wiring comments are `Node # / OU-# / Ports`. Dispatcher `stop` / throat `not a station` kept. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-27 — USS **v76**: lever number plates restored — **odd** on SWITCH (1…39), **even** on SIGNAL (2, 4, 6, 8, 24, 32…40). Switch-only plants have no signal plate. Reload **USS CTC**. Do not run it with CATS CTC. Deploy `--pi --win`.

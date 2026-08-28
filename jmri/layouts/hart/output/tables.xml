@@ -8,16 +8,6 @@
     <modifier />
   </jmriversion>
   <sensors class="jmri.jmrix.openlcb.configurexml.OlcbSensorManagerXml">
-    <sensor inverted="false">
-      <systemName>MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB</systemName>
-      <userName>OLCB leftover 114</userName>
-      <comment>OLCB leftover 114</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED</systemName>
-      <userName>OLCB leftover 115</userName>
-      <comment>OLCB leftover 115</comment>
-    </sensor>
   </sensors>
   <sensors class="jmri.jmrix.mqtt.configurexml.MqttSensorManagerXml">
     <sensor inverted="false">
@@ -98,7 +88,7 @@
     <sensor inverted="false">
       <systemName>M2S201</systemName>
       <userName>unused Block 2-2</userName>
-      <comment>unused LCOS node 2 occupancy ch 1 (would be Block 2-2; no track circuit)</comment>
+      <comment>Block 2-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S202</systemName>
@@ -158,7 +148,7 @@
     <sensor inverted="false">
       <systemName>M2S307</systemName>
       <userName>unused Block 3-8</userName>
-      <comment>unused LCOS node 3 occupancy ch 7 (would be Block 3-8; no track circuit)</comment>
+      <comment>Block 3-8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S367</systemName>
@@ -273,12 +263,12 @@
     <sensor inverted="false">
       <systemName>M2S476</systemName>
       <userName>FB Switch 13 N</userName>
-      <comment>unused LCOS node 4 switch-4 FB (no plant turnout) N</comment>
+      <comment>Node 4 / IN-1 / Ports 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S477</systemName>
       <userName>FB Switch 13 R</userName>
-      <comment>unused LCOS node 4 switch-4 FB (no plant turnout) R</comment>
+      <comment>Node 4 / IN-1 / Ports 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1200</systemName>
@@ -450,993 +440,823 @@
     <defaultInitialState>unknown</defaultInitialState>
     <sensor inverted="false">
       <systemName>IS1:LEVER</systemName>
-      <userName>CTC 101 lever</userName>
+      <userName>CTC 3 lever</userName>
       <comment>USS CTC Switch 3: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS1:SWNI</systemName>
-      <userName>CTC 101 N ind</userName>
+      <userName>CTC 3 N ind</userName>
       <comment>USS CTC Switch 3: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS1:SWRI</systemName>
-      <userName>CTC 101 R ind</userName>
+      <userName>CTC 3 R ind</userName>
       <comment>USS CTC Switch 3: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:CALLON</systemName>
-      <userName>CTC 101 sig call-on</userName>
+      <userName>CTC 3 sig call-on</userName>
       <comment>USS CTC Switch 3 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:CB</systemName>
-      <userName>CTC 101 sig code</userName>
+      <userName>CTC 3 sig code</userName>
       <comment>USS CTC Switch 3 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LDGK</systemName>
-      <userName>CTC 101 sig L lamp</userName>
+      <userName>CTC 3 sig L lamp</userName>
       <comment>USS CTC Switch 3 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LDGL</systemName>
-      <userName>CTC 101 sig L lever</userName>
+      <userName>CTC 3 sig L lever</userName>
       <comment>USS CTC Switch 3 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LOCKTOGGLE</systemName>
-      <userName>CTC 101 sig local</userName>
+      <userName>CTC 3 sig local</userName>
       <comment>USS CTC Switch 3 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:NGK</systemName>
-      <userName>CTC 101 sig N lamp</userName>
+      <userName>CTC 3 sig N lamp</userName>
       <comment>USS CTC Switch 3 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:NGL</systemName>
-      <userName>CTC 101 sig N lever</userName>
+      <userName>CTC 3 sig N lever</userName>
       <comment>USS CTC Switch 3 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:RDGK</systemName>
-      <userName>CTC 101 sig R lamp</userName>
+      <userName>CTC 3 sig R lamp</userName>
       <comment>USS CTC Switch 3 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:RDGL</systemName>
-      <userName>CTC 101 sig R lever</userName>
+      <userName>CTC 3 sig R lever</userName>
       <comment>USS CTC Switch 3 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 101 sig unlocked</userName>
+      <userName>CTC 3 sig unlocked</userName>
       <comment>USS CTC Switch 3 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:LEVER</systemName>
-      <userName>CTC 100 lever</userName>
-      <comment>USS CTC Switch 1: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 1: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 1: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 1 rests Thrown</comment>
+      <userName>CTC 1 lever</userName>
+      <comment>USS CTC Switch 1: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 1 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:SWNI</systemName>
-      <userName>CTC 100 N ind</userName>
+      <userName>CTC 1 N ind</userName>
       <comment>USS CTC Switch 1: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:SWRI</systemName>
-      <userName>CTC 100 R ind</userName>
+      <userName>CTC 1 R ind</userName>
       <comment>USS CTC Switch 1: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:CALLON</systemName>
-      <userName>CTC 100 sig call-on</userName>
+      <userName>CTC 1 sig call-on</userName>
       <comment>USS CTC Switch 1 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:CB</systemName>
-      <userName>CTC 100 sig code</userName>
+      <userName>CTC 1 sig code</userName>
       <comment>USS CTC Switch 1 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LDGK</systemName>
-      <userName>CTC 100 sig L lamp</userName>
+      <userName>CTC 1 sig L lamp</userName>
       <comment>USS CTC Switch 1 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LDGL</systemName>
-      <userName>CTC 100 sig L lever</userName>
+      <userName>CTC 1 sig L lever</userName>
       <comment>USS CTC Switch 1 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LOCKTOGGLE</systemName>
-      <userName>CTC 100 sig local</userName>
+      <userName>CTC 1 sig local</userName>
       <comment>USS CTC Switch 1 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:NGK</systemName>
-      <userName>CTC 100 sig N lamp</userName>
+      <userName>CTC 1 sig N lamp</userName>
       <comment>USS CTC Switch 1 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:NGL</systemName>
-      <userName>CTC 100 sig N lever</userName>
+      <userName>CTC 1 sig N lever</userName>
       <comment>USS CTC Switch 1 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:RDGK</systemName>
-      <userName>CTC 100 sig R lamp</userName>
+      <userName>CTC 1 sig R lamp</userName>
       <comment>USS CTC Switch 1 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:RDGL</systemName>
-      <userName>CTC 100 sig R lever</userName>
+      <userName>CTC 1 sig R lever</userName>
       <comment>USS CTC Switch 1 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 100 sig unlocked</userName>
+      <userName>CTC 1 sig unlocked</userName>
       <comment>USS CTC Switch 1 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS5:LEVER</systemName>
-      <userName>CTC 102 lever</userName>
+      <userName>CTC 5 lever</userName>
       <comment>USS CTC Switch 5: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS5:SWNI</systemName>
-      <userName>CTC 102 N ind</userName>
+      <userName>CTC 5 N ind</userName>
       <comment>USS CTC Switch 5: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS5:SWRI</systemName>
-      <userName>CTC 102 R ind</userName>
+      <userName>CTC 5 R ind</userName>
       <comment>USS CTC Switch 5: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:CALLON</systemName>
-      <userName>CTC 102 sig call-on</userName>
+      <userName>CTC 5 sig call-on</userName>
       <comment>USS CTC Switch 5 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:CB</systemName>
-      <userName>CTC 102 sig code</userName>
+      <userName>CTC 5 sig code</userName>
       <comment>USS CTC Switch 5 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LDGK</systemName>
-      <userName>CTC 102 sig L lamp</userName>
+      <userName>CTC 5 sig L lamp</userName>
       <comment>USS CTC Switch 5 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LDGL</systemName>
-      <userName>CTC 102 sig L lever</userName>
+      <userName>CTC 5 sig L lever</userName>
       <comment>USS CTC Switch 5 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LOCKTOGGLE</systemName>
-      <userName>CTC 102 sig local</userName>
+      <userName>CTC 5 sig local</userName>
       <comment>USS CTC Switch 5 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:NGK</systemName>
-      <userName>CTC 102 sig N lamp</userName>
+      <userName>CTC 5 sig N lamp</userName>
       <comment>USS CTC Switch 5 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:NGL</systemName>
-      <userName>CTC 102 sig N lever</userName>
+      <userName>CTC 5 sig N lever</userName>
       <comment>USS CTC Switch 5 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:RDGK</systemName>
-      <userName>CTC 102 sig R lamp</userName>
+      <userName>CTC 5 sig R lamp</userName>
       <comment>USS CTC Switch 5 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:RDGL</systemName>
-      <userName>CTC 102 sig R lever</userName>
+      <userName>CTC 5 sig R lever</userName>
       <comment>USS CTC Switch 5 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 102 sig unlocked</userName>
+      <userName>CTC 5 sig unlocked</userName>
       <comment>USS CTC Switch 5 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS7:LEVER</systemName>
-      <userName>CTC 117 lever</userName>
+      <userName>CTC 7 lever</userName>
       <comment>USS CTC Switch 7: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS7:SWNI</systemName>
-      <userName>CTC 117 N ind</userName>
+      <userName>CTC 7 N ind</userName>
       <comment>USS CTC Switch 7: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS7:SWRI</systemName>
-      <userName>CTC 117 R ind</userName>
+      <userName>CTC 7 R ind</userName>
       <comment>USS CTC Switch 7: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:CALLON</systemName>
-      <userName>CTC 117 sig call-on</userName>
+      <userName>CTC 7 sig call-on</userName>
       <comment>USS CTC Switch 7 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:CB</systemName>
-      <userName>CTC 117 sig code</userName>
+      <userName>CTC 7 sig code</userName>
       <comment>USS CTC Switch 7 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LDGK</systemName>
-      <userName>CTC 117 sig L lamp</userName>
+      <userName>CTC 7 sig L lamp</userName>
       <comment>USS CTC Switch 7 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LDGL</systemName>
-      <userName>CTC 117 sig L lever</userName>
+      <userName>CTC 7 sig L lever</userName>
       <comment>USS CTC Switch 7 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LOCKTOGGLE</systemName>
-      <userName>CTC 117 sig local</userName>
+      <userName>CTC 7 sig local</userName>
       <comment>USS CTC Switch 7 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:NGK</systemName>
-      <userName>CTC 117 sig N lamp</userName>
+      <userName>CTC 7 sig N lamp</userName>
       <comment>USS CTC Switch 7 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:NGL</systemName>
-      <userName>CTC 117 sig N lever</userName>
+      <userName>CTC 7 sig N lever</userName>
       <comment>USS CTC Switch 7 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:RDGK</systemName>
-      <userName>CTC 117 sig R lamp</userName>
+      <userName>CTC 7 sig R lamp</userName>
       <comment>USS CTC Switch 7 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:RDGL</systemName>
-      <userName>CTC 117 sig R lever</userName>
+      <userName>CTC 7 sig R lever</userName>
       <comment>USS CTC Switch 7 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 117 sig unlocked</userName>
+      <userName>CTC 7 sig unlocked</userName>
       <comment>USS CTC Switch 7 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS9:LEVER</systemName>
-      <userName>CTC 116 lever</userName>
+      <userName>CTC 13 lever</userName>
       <comment>USS CTC Switch 13: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS9:SWNI</systemName>
-      <userName>CTC 116 N ind</userName>
+      <userName>CTC 13 N ind</userName>
       <comment>USS CTC Switch 13: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS9:SWRI</systemName>
-      <userName>CTC 116 R ind</userName>
+      <userName>CTC 13 R ind</userName>
       <comment>USS CTC Switch 13: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:CALLON</systemName>
-      <userName>CTC 116 lock call-on</userName>
+      <userName>CTC 13 lock call-on</userName>
       <comment>USS CTC Switch 13 lock: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:CB</systemName>
-      <userName>CTC 116 lock code</userName>
+      <userName>CTC 13 lock code</userName>
       <comment>USS CTC Switch 13 lock: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LDGK</systemName>
-      <userName>CTC 116 lock L lamp</userName>
+      <userName>CTC 13 lock L lamp</userName>
       <comment>USS CTC Switch 13 lock: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LDGL</systemName>
-      <userName>CTC 116 lock L lever</userName>
+      <userName>CTC 13 lock L lever</userName>
       <comment>USS CTC Switch 13 lock: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LOCKTOGGLE</systemName>
-      <userName>CTC 116 lock local</userName>
+      <userName>CTC 13 lock local</userName>
       <comment>USS CTC Switch 13 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:NGK</systemName>
-      <userName>CTC 116 lock N lamp</userName>
+      <userName>CTC 13 lock N lamp</userName>
       <comment>USS CTC Switch 13 lock: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:NGL</systemName>
-      <userName>CTC 116 lock N lever</userName>
+      <userName>CTC 13 lock N lever</userName>
       <comment>USS CTC Switch 13 lock: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:RDGK</systemName>
-      <userName>CTC 116 lock R lamp</userName>
+      <userName>CTC 13 lock R lamp</userName>
       <comment>USS CTC Switch 13 lock: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:RDGL</systemName>
-      <userName>CTC 116 lock R lever</userName>
+      <userName>CTC 13 lock R lever</userName>
       <comment>USS CTC Switch 13 lock: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 116 lock unlocked</userName>
+      <userName>CTC 13 lock unlocked</userName>
       <comment>USS CTC Switch 13 lock: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS11:LEVER</systemName>
-      <userName>CTC 103 lever</userName>
+      <userName>CTC 15 lever</userName>
       <comment>USS CTC Switch 15: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS11:SWNI</systemName>
-      <userName>CTC 103 N ind</userName>
+      <userName>CTC 15 N ind</userName>
       <comment>USS CTC Switch 15: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS11:SWRI</systemName>
-      <userName>CTC 103 R ind</userName>
+      <userName>CTC 15 R ind</userName>
       <comment>USS CTC Switch 15: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:CALLON</systemName>
-      <userName>CTC 103 lock call-on</userName>
+      <userName>CTC 15 lock call-on</userName>
       <comment>USS CTC Switch 15 lock: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:CB</systemName>
-      <userName>CTC 103 lock code</userName>
+      <userName>CTC 15 lock code</userName>
       <comment>USS CTC Switch 15 lock: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LDGK</systemName>
-      <userName>CTC 103 lock L lamp</userName>
+      <userName>CTC 15 lock L lamp</userName>
       <comment>USS CTC Switch 15 lock: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LDGL</systemName>
-      <userName>CTC 103 lock L lever</userName>
+      <userName>CTC 15 lock L lever</userName>
       <comment>USS CTC Switch 15 lock: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LOCKTOGGLE</systemName>
-      <userName>CTC 103 lock local</userName>
+      <userName>CTC 15 lock local</userName>
       <comment>USS CTC Switch 15 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:NGK</systemName>
-      <userName>CTC 103 lock N lamp</userName>
+      <userName>CTC 15 lock N lamp</userName>
       <comment>USS CTC Switch 15 lock: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:NGL</systemName>
-      <userName>CTC 103 lock N lever</userName>
+      <userName>CTC 15 lock N lever</userName>
       <comment>USS CTC Switch 15 lock: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:RDGK</systemName>
-      <userName>CTC 103 lock R lamp</userName>
+      <userName>CTC 15 lock R lamp</userName>
       <comment>USS CTC Switch 15 lock: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:RDGL</systemName>
-      <userName>CTC 103 lock R lever</userName>
+      <userName>CTC 15 lock R lever</userName>
       <comment>USS CTC Switch 15 lock: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 103 lock unlocked</userName>
+      <userName>CTC 15 lock unlocked</userName>
       <comment>USS CTC Switch 15 lock: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
-      <systemName>IS13:LEVER</systemName>
-      <userName>CTC leftover 13 lever</userName>
-      <comment>USS CTC CTC column 13: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS13:SWNI</systemName>
-      <userName>CTC leftover 13 N ind</userName>
-      <comment>USS CTC CTC column 13: switch normal indicator</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS13:SWRI</systemName>
-      <userName>CTC leftover 13 R ind</userName>
-      <comment>USS CTC CTC column 13: switch reverse indicator</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:CALLON</systemName>
-      <userName>CTC leftover 14 call-on</userName>
-      <comment>USS CTC CTC column 14: call-on toggle</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:CB</systemName>
-      <userName>CTC leftover 14 code</userName>
-      <comment>USS CTC CTC column 14: code button</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:LDGK</systemName>
-      <userName>CTC leftover 14 L lamp</userName>
-      <comment>USS CTC CTC column 14: left signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:LDGL</systemName>
-      <userName>CTC leftover 14 L lever</userName>
-      <comment>USS CTC CTC column 14: left signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
       <systemName>IS14:LOCKTOGGLE</systemName>
-      <userName>CTC leftover 14 local</userName>
-      <comment>USS CTC CTC column 14: Local/Locked (ACTIVE=Local)</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:NGK</systemName>
-      <userName>CTC leftover 14 N lamp</userName>
-      <comment>USS CTC CTC column 14: normal signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:NGL</systemName>
-      <userName>CTC leftover 14 N lever</userName>
-      <comment>USS CTC CTC column 14: normal signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:RDGK</systemName>
-      <userName>CTC leftover 14 R lamp</userName>
-      <comment>USS CTC CTC column 14: right signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:RDGL</systemName>
-      <userName>CTC leftover 14 R lever</userName>
-      <comment>USS CTC CTC column 14: right signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS14:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC leftover 14 unlocked</userName>
-      <comment>USS CTC CTC column 14: unlocked indicator</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS15:LEVER</systemName>
-      <userName>CTC leftover 15 lever</userName>
-      <comment>USS CTC CTC column 15: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS15:SWNI</systemName>
-      <userName>CTC leftover 15 N ind</userName>
-      <comment>USS CTC CTC column 15: switch normal indicator</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS15:SWRI</systemName>
-      <userName>CTC leftover 15 R ind</userName>
-      <comment>USS CTC CTC column 15: switch reverse indicator</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:CALLON</systemName>
-      <userName>CTC leftover 16 call-on</userName>
-      <comment>USS CTC CTC column 16: call-on toggle</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:CB</systemName>
-      <userName>CTC leftover 16 code</userName>
-      <comment>USS CTC CTC column 16: code button</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:LDGK</systemName>
-      <userName>CTC leftover 16 L lamp</userName>
-      <comment>USS CTC CTC column 16: left signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:LDGL</systemName>
-      <userName>CTC leftover 16 L lever</userName>
-      <comment>USS CTC CTC column 16: left signal lever</comment>
+      <userName>CTC 25 lock local</userName>
+      <comment>USS CTC Switch 25 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:LOCKTOGGLE</systemName>
-      <userName>CTC leftover 16 local</userName>
-      <comment>USS CTC CTC column 16: Local/Locked (ACTIVE=Local)</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:NGK</systemName>
-      <userName>CTC leftover 16 N lamp</userName>
-      <comment>USS CTC CTC column 16: normal signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:NGL</systemName>
-      <userName>CTC leftover 16 N lever</userName>
-      <comment>USS CTC CTC column 16: normal signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:RDGK</systemName>
-      <userName>CTC leftover 16 R lamp</userName>
-      <comment>USS CTC CTC column 16: right signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:RDGL</systemName>
-      <userName>CTC leftover 16 R lever</userName>
-      <comment>USS CTC CTC column 16: right signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS16:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC leftover 16 unlocked</userName>
-      <comment>USS CTC CTC column 16: unlocked indicator</comment>
+      <userName>CTC 27 lock local</userName>
+      <comment>USS CTC Switch 27 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS17:LEVER</systemName>
-      <userName>CTC 111 lever</userName>
+      <userName>CTC 23 lever</userName>
       <comment>USS CTC Switch 23: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS17:SWNI</systemName>
-      <userName>CTC 111 N ind</userName>
+      <userName>CTC 23 N ind</userName>
       <comment>USS CTC Switch 23: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS17:SWRI</systemName>
-      <userName>CTC 111 R ind</userName>
+      <userName>CTC 23 R ind</userName>
       <comment>USS CTC Switch 23: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:CALLON</systemName>
-      <userName>CTC 111 sig call-on</userName>
+      <userName>CTC 23 sig call-on</userName>
       <comment>USS CTC Switch 23 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:CB</systemName>
-      <userName>CTC 111 sig code</userName>
+      <userName>CTC 23 sig code</userName>
       <comment>USS CTC Switch 23 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LDGK</systemName>
-      <userName>CTC 111 sig L lamp</userName>
+      <userName>CTC 23 sig L lamp</userName>
       <comment>USS CTC Switch 23 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LDGL</systemName>
-      <userName>CTC 111 sig L lever</userName>
+      <userName>CTC 23 sig L lever</userName>
       <comment>USS CTC Switch 23 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LOCKTOGGLE</systemName>
-      <userName>CTC 111 sig local</userName>
+      <userName>CTC 23 sig local</userName>
       <comment>USS CTC Switch 23 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:NGK</systemName>
-      <userName>CTC 111 sig N lamp</userName>
+      <userName>CTC 23 sig N lamp</userName>
       <comment>USS CTC Switch 23 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:NGL</systemName>
-      <userName>CTC 111 sig N lever</userName>
+      <userName>CTC 23 sig N lever</userName>
       <comment>USS CTC Switch 23 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:RDGK</systemName>
-      <userName>CTC 111 sig R lamp</userName>
+      <userName>CTC 23 sig R lamp</userName>
       <comment>USS CTC Switch 23 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:RDGL</systemName>
-      <userName>CTC 111 sig R lever</userName>
+      <userName>CTC 23 sig R lever</userName>
       <comment>USS CTC Switch 23 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 111 sig unlocked</userName>
+      <userName>CTC 23 sig unlocked</userName>
       <comment>USS CTC Switch 23 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
-      <systemName>IS19:LEVER</systemName>
-      <userName>CTC leftover 19 lever</userName>
-      <comment>USS CTC CTC column 19: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS19:SWNI</systemName>
-      <userName>CTC leftover 19 N ind</userName>
-      <comment>USS CTC CTC column 19: switch normal indicator</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS19:SWRI</systemName>
-      <userName>CTC leftover 19 R ind</userName>
-      <comment>USS CTC CTC column 19: switch reverse indicator</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:CALLON</systemName>
-      <userName>CTC leftover 20 call-on</userName>
-      <comment>USS CTC CTC column 20: call-on toggle</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:CB</systemName>
-      <userName>CTC leftover 20 code</userName>
-      <comment>USS CTC CTC column 20: code button</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:LDGK</systemName>
-      <userName>CTC leftover 20 L lamp</userName>
-      <comment>USS CTC CTC column 20: left signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:LDGL</systemName>
-      <userName>CTC leftover 20 L lever</userName>
-      <comment>USS CTC CTC column 20: left signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
       <systemName>IS20:LOCKTOGGLE</systemName>
-      <userName>CTC leftover 20 local</userName>
-      <comment>USS CTC CTC column 20: Local/Locked (ACTIVE=Local)</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:NGK</systemName>
-      <userName>CTC leftover 20 N lamp</userName>
-      <comment>USS CTC CTC column 20: normal signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:NGL</systemName>
-      <userName>CTC leftover 20 N lever</userName>
-      <comment>USS CTC CTC column 20: normal signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:RDGK</systemName>
-      <userName>CTC leftover 20 R lamp</userName>
-      <comment>USS CTC CTC column 20: right signal indicator lamp</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:RDGL</systemName>
-      <userName>CTC leftover 20 R lever</userName>
-      <comment>USS CTC CTC column 20: right signal lever</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS20:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC leftover 20 unlocked</userName>
-      <comment>USS CTC CTC column 20: unlocked indicator</comment>
+      <userName>CTC 29 lock local</userName>
+      <comment>USS CTC Switch 29 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS21:LEVER</systemName>
-      <userName>CTC 110 lever</userName>
+      <userName>CTC 31 lever</userName>
       <comment>USS CTC Switch 31: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS21:SWNI</systemName>
-      <userName>CTC 110 N ind</userName>
+      <userName>CTC 31 N ind</userName>
       <comment>USS CTC Switch 31: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS21:SWRI</systemName>
-      <userName>CTC 110 R ind</userName>
+      <userName>CTC 31 R ind</userName>
       <comment>USS CTC Switch 31: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:CALLON</systemName>
-      <userName>CTC 110 lock call-on</userName>
+      <userName>CTC 31 lock call-on</userName>
       <comment>USS CTC Switch 31 lock: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:CB</systemName>
-      <userName>CTC 110 lock code</userName>
+      <userName>CTC 31 lock code</userName>
       <comment>USS CTC Switch 31 lock: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LDGK</systemName>
-      <userName>CTC 110 lock L lamp</userName>
+      <userName>CTC 31 lock L lamp</userName>
       <comment>USS CTC Switch 31 lock: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LDGL</systemName>
-      <userName>CTC 110 lock L lever</userName>
+      <userName>CTC 31 lock L lever</userName>
       <comment>USS CTC Switch 31 lock: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LOCKTOGGLE</systemName>
-      <userName>CTC 110 lock local</userName>
+      <userName>CTC 31 lock local</userName>
       <comment>USS CTC Switch 31 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:NGK</systemName>
-      <userName>CTC 110 lock N lamp</userName>
+      <userName>CTC 31 lock N lamp</userName>
       <comment>USS CTC Switch 31 lock: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:NGL</systemName>
-      <userName>CTC 110 lock N lever</userName>
+      <userName>CTC 31 lock N lever</userName>
       <comment>USS CTC Switch 31 lock: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:RDGK</systemName>
-      <userName>CTC 110 lock R lamp</userName>
+      <userName>CTC 31 lock R lamp</userName>
       <comment>USS CTC Switch 31 lock: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:RDGL</systemName>
-      <userName>CTC 110 lock R lever</userName>
+      <userName>CTC 31 lock R lever</userName>
       <comment>USS CTC Switch 31 lock: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 110 lock unlocked</userName>
+      <userName>CTC 31 lock unlocked</userName>
       <comment>USS CTC Switch 31 lock: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:LEVER</systemName>
-      <userName>CTC 112 lever</userName>
-      <comment>USS CTC Switch 33: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 33: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 33: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 33 rests Thrown</comment>
+      <userName>CTC 33 lever</userName>
+      <comment>USS CTC Switch 33: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 33 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:SWNI</systemName>
-      <userName>CTC 112 N ind</userName>
+      <userName>CTC 33 N ind</userName>
       <comment>USS CTC Switch 33: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:SWRI</systemName>
-      <userName>CTC 112 R ind</userName>
+      <userName>CTC 33 R ind</userName>
       <comment>USS CTC Switch 33: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:CALLON</systemName>
-      <userName>CTC 112 sig call-on</userName>
+      <userName>CTC 33 sig call-on</userName>
       <comment>USS CTC Switch 33 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:CB</systemName>
-      <userName>CTC 112 sig code</userName>
+      <userName>CTC 33 sig code</userName>
       <comment>USS CTC Switch 33 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LDGK</systemName>
-      <userName>CTC 112 sig L lamp</userName>
+      <userName>CTC 33 sig L lamp</userName>
       <comment>USS CTC Switch 33 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LDGL</systemName>
-      <userName>CTC 112 sig L lever</userName>
+      <userName>CTC 33 sig L lever</userName>
       <comment>USS CTC Switch 33 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LOCKTOGGLE</systemName>
-      <userName>CTC 112 sig local</userName>
+      <userName>CTC 33 sig local</userName>
       <comment>USS CTC Switch 33 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:NGK</systemName>
-      <userName>CTC 112 sig N lamp</userName>
+      <userName>CTC 33 sig N lamp</userName>
       <comment>USS CTC Switch 33 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:NGL</systemName>
-      <userName>CTC 112 sig N lever</userName>
+      <userName>CTC 33 sig N lever</userName>
       <comment>USS CTC Switch 33 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:RDGK</systemName>
-      <userName>CTC 112 sig R lamp</userName>
+      <userName>CTC 33 sig R lamp</userName>
       <comment>USS CTC Switch 33 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:RDGL</systemName>
-      <userName>CTC 112 sig R lever</userName>
+      <userName>CTC 33 sig R lever</userName>
       <comment>USS CTC Switch 33 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 112 sig unlocked</userName>
+      <userName>CTC 33 sig unlocked</userName>
       <comment>USS CTC Switch 33 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS25:LEVER</systemName>
-      <userName>CTC 113 lever</userName>
+      <userName>CTC 35 lever</userName>
       <comment>USS CTC Switch 35: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS25:SWNI</systemName>
-      <userName>CTC 113 N ind</userName>
+      <userName>CTC 35 N ind</userName>
       <comment>USS CTC Switch 35: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS25:SWRI</systemName>
-      <userName>CTC 113 R ind</userName>
+      <userName>CTC 35 R ind</userName>
       <comment>USS CTC Switch 35: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:CALLON</systemName>
-      <userName>CTC 113 sig call-on</userName>
+      <userName>CTC 35 sig call-on</userName>
       <comment>USS CTC Switch 35 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:CB</systemName>
-      <userName>CTC 113 sig code</userName>
+      <userName>CTC 35 sig code</userName>
       <comment>USS CTC Switch 35 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LDGK</systemName>
-      <userName>CTC 113 sig L lamp</userName>
+      <userName>CTC 35 sig L lamp</userName>
       <comment>USS CTC Switch 35 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LDGL</systemName>
-      <userName>CTC 113 sig L lever</userName>
+      <userName>CTC 35 sig L lever</userName>
       <comment>USS CTC Switch 35 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LOCKTOGGLE</systemName>
-      <userName>CTC 113 sig local</userName>
+      <userName>CTC 35 sig local</userName>
       <comment>USS CTC Switch 35 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:NGK</systemName>
-      <userName>CTC 113 sig N lamp</userName>
+      <userName>CTC 35 sig N lamp</userName>
       <comment>USS CTC Switch 35 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:NGL</systemName>
-      <userName>CTC 113 sig N lever</userName>
+      <userName>CTC 35 sig N lever</userName>
       <comment>USS CTC Switch 35 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:RDGK</systemName>
-      <userName>CTC 113 sig R lamp</userName>
+      <userName>CTC 35 sig R lamp</userName>
       <comment>USS CTC Switch 35 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:RDGL</systemName>
-      <userName>CTC 113 sig R lever</userName>
+      <userName>CTC 35 sig R lever</userName>
       <comment>USS CTC Switch 35 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 113 sig unlocked</userName>
+      <userName>CTC 35 sig unlocked</userName>
       <comment>USS CTC Switch 35 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:LEVER</systemName>
-      <userName>CTC 114 lever</userName>
-      <comment>USS CTC Switch 37: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 37: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 37: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 37 rests Thrown</comment>
+      <userName>CTC 37 lever</userName>
+      <comment>USS CTC Switch 37: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 37 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:SWNI</systemName>
-      <userName>CTC 114 N ind</userName>
+      <userName>CTC 37 N ind</userName>
       <comment>USS CTC Switch 37: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:SWRI</systemName>
-      <userName>CTC 114 R ind</userName>
+      <userName>CTC 37 R ind</userName>
       <comment>USS CTC Switch 37: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:CALLON</systemName>
-      <userName>CTC 114 sig call-on</userName>
+      <userName>CTC 37 sig call-on</userName>
       <comment>USS CTC Switch 37 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:CB</systemName>
-      <userName>CTC 114 sig code</userName>
+      <userName>CTC 37 sig code</userName>
       <comment>USS CTC Switch 37 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LDGK</systemName>
-      <userName>CTC 114 sig L lamp</userName>
+      <userName>CTC 37 sig L lamp</userName>
       <comment>USS CTC Switch 37 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LDGL</systemName>
-      <userName>CTC 114 sig L lever</userName>
+      <userName>CTC 37 sig L lever</userName>
       <comment>USS CTC Switch 37 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LOCKTOGGLE</systemName>
-      <userName>CTC 114 sig local</userName>
+      <userName>CTC 37 sig local</userName>
       <comment>USS CTC Switch 37 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:NGK</systemName>
-      <userName>CTC 114 sig N lamp</userName>
+      <userName>CTC 37 sig N lamp</userName>
       <comment>USS CTC Switch 37 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:NGL</systemName>
-      <userName>CTC 114 sig N lever</userName>
+      <userName>CTC 37 sig N lever</userName>
       <comment>USS CTC Switch 37 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:RDGK</systemName>
-      <userName>CTC 114 sig R lamp</userName>
+      <userName>CTC 37 sig R lamp</userName>
       <comment>USS CTC Switch 37 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:RDGL</systemName>
-      <userName>CTC 114 sig R lever</userName>
+      <userName>CTC 37 sig R lever</userName>
       <comment>USS CTC Switch 37 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 114 sig unlocked</userName>
+      <userName>CTC 37 sig unlocked</userName>
       <comment>USS CTC Switch 37 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:LEVER</systemName>
-      <userName>CTC 115 lever</userName>
-      <comment>USS CTC Switch 39: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 39: switch lever (ACTIVE=Normal, INACTIVE=Reverse); USS CTC Switch 39: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 39 rests Thrown</comment>
+      <userName>CTC 39 lever</userName>
+      <comment>USS CTC Switch 39: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 39 rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:SWNI</systemName>
-      <userName>CTC 115 N ind</userName>
+      <userName>CTC 39 N ind</userName>
       <comment>USS CTC Switch 39: switch normal indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:SWRI</systemName>
-      <userName>CTC 115 R ind</userName>
+      <userName>CTC 39 R ind</userName>
       <comment>USS CTC Switch 39: switch reverse indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:CALLON</systemName>
-      <userName>CTC 115 sig call-on</userName>
+      <userName>CTC 39 sig call-on</userName>
       <comment>USS CTC Switch 39 signals: call-on toggle</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:CB</systemName>
-      <userName>CTC 115 sig code</userName>
+      <userName>CTC 39 sig code</userName>
       <comment>USS CTC Switch 39 signals: code button</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LDGK</systemName>
-      <userName>CTC 115 sig L lamp</userName>
+      <userName>CTC 39 sig L lamp</userName>
       <comment>USS CTC Switch 39 signals: left signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LDGL</systemName>
-      <userName>CTC 115 sig L lever</userName>
+      <userName>CTC 39 sig L lever</userName>
       <comment>USS CTC Switch 39 signals: left signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LOCKTOGGLE</systemName>
-      <userName>CTC 115 sig local</userName>
+      <userName>CTC 39 sig local</userName>
       <comment>USS CTC Switch 39 signals: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:NGK</systemName>
-      <userName>CTC 115 sig N lamp</userName>
+      <userName>CTC 39 sig N lamp</userName>
       <comment>USS CTC Switch 39 signals: normal signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:NGL</systemName>
-      <userName>CTC 115 sig N lever</userName>
+      <userName>CTC 39 sig N lever</userName>
       <comment>USS CTC Switch 39 signals: normal signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:RDGK</systemName>
-      <userName>CTC 115 sig R lamp</userName>
+      <userName>CTC 39 sig R lamp</userName>
       <comment>USS CTC Switch 39 signals: right signal indicator lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:RDGL</systemName>
-      <userName>CTC 115 sig R lever</userName>
+      <userName>CTC 39 sig R lever</userName>
       <comment>USS CTC Switch 39 signals: right signal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:UNLOCKEDINDICATOR</systemName>
-      <userName>CTC 115 sig unlocked</userName>
+      <userName>CTC 39 sig unlocked</userName>
       <comment>USS CTC Switch 39 signals: unlocked indicator</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:LOCKTOGGLE</systemName>
+      <userName>CTC 9 lock local</userName>
+      <comment>USS CTC Switch 9 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:LOCKTOGGLE</systemName>
+      <userName>CTC 11 lock local</userName>
+      <comment>USS CTC Switch 11 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:LOCKTOGGLE</systemName>
+      <userName>CTC 17 lock local</userName>
+      <comment>USS CTC Switch 17 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:LOCKTOGGLE</systemName>
+      <userName>CTC 19 lock local</userName>
+      <comment>USS CTC Switch 19 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:LOCKTOGGLE</systemName>
+      <userName>CTC 21 lock local</userName>
+      <comment>USS CTC Switch 21 lock: Local/Locked (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DEBUGCTC</systemName>
@@ -1451,98 +1271,122 @@
     <sensor inverted="false">
       <systemName>IS:DSCT:1</systemName>
       <userName>startDispatcherSensor</userName>
+      <comment>Dispatcher System startDispatcherSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:2</systemName>
       <userName>stopMasterSensor</userName>
+      <comment>Dispatcher System stopMasterSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:3</systemName>
       <userName>modifyMasterSensor</userName>
+      <comment>Dispatcher System modifyMasterSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:4</systemName>
       <userName>Express</userName>
+      <comment>Dispatcher System Express</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:5</systemName>
       <userName>newTrainSensor</userName>
+      <comment>Dispatcher System newTrainSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:6</systemName>
       <userName>soundSensor</userName>
+      <comment>Dispatcher System soundSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:7</systemName>
       <userName>simulateSensor</userName>
+      <comment>Dispatcher System simulateSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:8</systemName>
       <userName>checkRouteSensor</userName>
+      <comment>Dispatcher System checkRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:9</systemName>
       <userName>stopAtStopSensor</userName>
+      <comment>Dispatcher System stopAtStopSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:10</systemName>
       <userName>setDispatchSensor</userName>
+      <comment>Dispatcher System setDispatchSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:11</systemName>
       <userName>setRouteSensor</userName>
+      <comment>Dispatcher System setRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:12</systemName>
       <userName>setStoppingDistanceSensor</userName>
+      <comment>Dispatcher System setStoppingDistanceSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:13</systemName>
       <userName>setStopSensor</userName>
+      <comment>Dispatcher System setStopSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:14</systemName>
       <userName>setStationWaitTimeSensor</userName>
+      <comment>Dispatcher System setStationWaitTimeSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:15</systemName>
       <userName>setStationDirectionSensor</userName>
+      <comment>Dispatcher System setStationDirectionSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:16</systemName>
       <userName>setTransitBlockRestrictionSensor</userName>
+      <comment>Dispatcher System setTransitBlockRestrictionSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:17</systemName>
       <userName>runRouteSensor</userName>
+      <comment>Dispatcher System runRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:18</systemName>
       <userName>editRoutesSensor</userName>
+      <comment>Dispatcher System editRoutesSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:19</systemName>
       <userName>viewScheduledSensor</userName>
+      <comment>Dispatcher System viewScheduledSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:20</systemName>
       <userName>showClockSensor</userName>
+      <comment>Dispatcher System showClockSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:21</systemName>
       <userName>startSchedulerSensor</userName>
+      <comment>Dispatcher System startSchedulerSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:22</systemName>
       <userName>timetableSensor</userName>
+      <comment>Dispatcher System timetableSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:23</systemName>
       <userName>departureTimeSensor</userName>
+      <comment>Dispatcher System departureTimeSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:24</systemName>
       <userName>helpSensor</userName>
+      <comment>Dispatcher System helpSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCTA:0</systemName>
@@ -1552,178 +1396,222 @@
     <sensor inverted="false">
       <systemName>IS:DSMP:1</systemName>
       <userName>MoveInProgressOS_Barn</userName>
+      <comment>Dispatcher System move-in-progress for OS Barn</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:2</systemName>
       <userName>MoveInProgressOS_Brick-Plane</userName>
+      <comment>Dispatcher System move-in-progress for OS Brick-Plane</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:3</systemName>
       <userName>MoveInProgressOS_EH-1</userName>
+      <comment>Dispatcher System move-in-progress for OS EH-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:4</systemName>
       <userName>MoveInProgressOS_EH-2</userName>
+      <comment>Dispatcher System move-in-progress for OS EH-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:5</systemName>
       <userName>MoveInProgressOS_EH-3</userName>
+      <comment>Dispatcher System move-in-progress for OS EH-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:6</systemName>
       <userName>MoveInProgressOS_East_Lead</userName>
+      <comment>Dispatcher System move-in-progress for OS East Lead</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:7</systemName>
       <userName>MoveInProgressOS_East_Main_Ext</userName>
+      <comment>Dispatcher System move-in-progress for OS East Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:8</systemName>
       <userName>MoveInProgressOS_K-1</userName>
+      <comment>Dispatcher System move-in-progress for OS K-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:9</systemName>
       <userName>MoveInProgressOS_K-2</userName>
+      <comment>Dispatcher System move-in-progress for OS K-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:10</systemName>
       <userName>MoveInProgressOS_Main_East</userName>
+      <comment>Dispatcher System move-in-progress for OS Main East</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:11</systemName>
       <userName>MoveInProgressOS_Main_West</userName>
+      <comment>Dispatcher System move-in-progress for OS Main West</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:12</systemName>
       <userName>MoveInProgressOS_McKees_Rocks</userName>
+      <comment>Dispatcher System move-in-progress for OS McKees Rocks</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:13</systemName>
       <userName>MoveInProgressOS_McKeesport</userName>
+      <comment>Dispatcher System move-in-progress for OS McKeesport</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:14</systemName>
       <userName>MoveInProgressOS_S-R</userName>
+      <comment>Dispatcher System move-in-progress for OS S-R</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:15</systemName>
       <userName>MoveInProgressOS_S-1</userName>
+      <comment>Dispatcher System move-in-progress for OS S-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:16</systemName>
       <userName>MoveInProgressOS_S-2</userName>
+      <comment>Dispatcher System move-in-progress for OS S-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:17</systemName>
       <userName>MoveInProgressOS_S-3</userName>
+      <comment>Dispatcher System move-in-progress for OS S-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:18</systemName>
       <userName>MoveInProgressOS_S-4</userName>
+      <comment>Dispatcher System move-in-progress for OS S-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:19</systemName>
       <userName>MoveInProgressOS_Scale</userName>
+      <comment>Dispatcher System move-in-progress for OS Scale</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:20</systemName>
       <userName>MoveInProgressOS_W-1</userName>
+      <comment>Dispatcher System move-in-progress for OS W-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:21</systemName>
       <userName>MoveInProgressOS_W-2</userName>
+      <comment>Dispatcher System move-in-progress for OS W-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:22</systemName>
       <userName>MoveInProgressOS_West_Main_Ext</userName>
+      <comment>Dispatcher System move-in-progress for OS West Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:1</systemName>
       <userName>MoveToOS_Barn_stored</userName>
+      <comment>Dispatcher System MoveTo for OS Barn</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:2</systemName>
       <userName>MoveToOS_Brick-Plane_stored</userName>
+      <comment>Dispatcher System MoveTo for OS Brick-Plane</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:3</systemName>
       <userName>MoveToOS_EH-1_stored</userName>
+      <comment>Dispatcher System MoveTo for OS EH-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:4</systemName>
       <userName>MoveToOS_EH-2_stored</userName>
+      <comment>Dispatcher System MoveTo for OS EH-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:5</systemName>
       <userName>MoveToOS_EH-3_stored</userName>
+      <comment>Dispatcher System MoveTo for OS EH-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:6</systemName>
       <userName>MoveToOS_East_Lead_stored</userName>
+      <comment>Dispatcher System MoveTo for OS East Lead</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:7</systemName>
       <userName>MoveToOS_East_Main_Ext_stored</userName>
+      <comment>Dispatcher System MoveTo for OS East Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:8</systemName>
       <userName>MoveToOS_K-1_stored</userName>
+      <comment>Dispatcher System MoveTo for OS K-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:9</systemName>
       <userName>MoveToOS_K-2_stored</userName>
+      <comment>Dispatcher System MoveTo for OS K-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:10</systemName>
       <userName>MoveToOS_Main_East_stored</userName>
+      <comment>Dispatcher System MoveTo for OS Main East</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:11</systemName>
       <userName>MoveToOS_Main_West_stored</userName>
+      <comment>Dispatcher System MoveTo for OS Main West</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:12</systemName>
       <userName>MoveToOS_McKees_Rocks_stored</userName>
+      <comment>Dispatcher System MoveTo for OS McKees Rocks</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:13</systemName>
       <userName>MoveToOS_McKeesport_stored</userName>
+      <comment>Dispatcher System MoveTo for OS McKeesport</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:14</systemName>
       <userName>MoveToOS_S-R_stored</userName>
+      <comment>Dispatcher System MoveTo for OS S-R</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:15</systemName>
       <userName>MoveToOS_S-1_stored</userName>
+      <comment>Dispatcher System MoveTo for OS S-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:16</systemName>
       <userName>MoveToOS_S-2_stored</userName>
+      <comment>Dispatcher System MoveTo for OS S-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:17</systemName>
       <userName>MoveToOS_S-3_stored</userName>
+      <comment>Dispatcher System MoveTo for OS S-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:18</systemName>
       <userName>MoveToOS_S-4_stored</userName>
+      <comment>Dispatcher System MoveTo for OS S-4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:19</systemName>
       <userName>MoveToOS_Scale_stored</userName>
+      <comment>Dispatcher System MoveTo for OS Scale</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:20</systemName>
       <userName>MoveToOS_W-1_stored</userName>
+      <comment>Dispatcher System MoveTo for OS W-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:21</systemName>
       <userName>MoveToOS_W-2_stored</userName>
+      <comment>Dispatcher System MoveTo for OS W-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:22</systemName>
       <userName>MoveToOS_West_Main_Ext_stored</userName>
+      <comment>Dispatcher System MoveTo for OS West Main Ext</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:FLEETING</systemName>
@@ -1733,674 +1621,842 @@
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0288:forward</systemName>
       <userName>IY:AUTO:0288:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0288:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0288:reverse</systemName>
       <userName>IY:AUTO:0288:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0288:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0289:forward</systemName>
       <userName>IY:AUTO:0289:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0289:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0289:reverse</systemName>
       <userName>IY:AUTO:0289:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0289:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0290:forward</systemName>
       <userName>IY:AUTO:0290:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0290:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0290:reverse</systemName>
       <userName>IY:AUTO:0290:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0290:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0291:forward</systemName>
       <userName>IY:AUTO:0291:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0291:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0291:reverse</systemName>
       <userName>IY:AUTO:0291:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0291:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0292:forward</systemName>
       <userName>IY:AUTO:0292:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0292:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0292:reverse</systemName>
       <userName>IY:AUTO:0292:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0292:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0293:forward</systemName>
       <userName>IY:AUTO:0293:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0293:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0293:reverse</systemName>
       <userName>IY:AUTO:0293:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0293:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0294:forward</systemName>
       <userName>IY:AUTO:0294:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0294:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0294:reverse</systemName>
       <userName>IY:AUTO:0294:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0294:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0295:forward</systemName>
       <userName>IY:AUTO:0295:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0295:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0295:reverse</systemName>
       <userName>IY:AUTO:0295:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0295:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0296:forward</systemName>
       <userName>IY:AUTO:0296:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0296:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0296:reverse</systemName>
       <userName>IY:AUTO:0296:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0296:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0297:forward</systemName>
       <userName>IY:AUTO:0297:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0297:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0297:reverse</systemName>
       <userName>IY:AUTO:0297:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0297:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0298:forward</systemName>
       <userName>IY:AUTO:0298:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0298:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0298:reverse</systemName>
       <userName>IY:AUTO:0298:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0298:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0299:forward</systemName>
       <userName>IY:AUTO:0299:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0299:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0299:reverse</systemName>
       <userName>IY:AUTO:0299:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0299:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0300:forward</systemName>
       <userName>IY:AUTO:0300:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0300:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0300:reverse</systemName>
       <userName>IY:AUTO:0300:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0300:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0301:forward</systemName>
       <userName>IY:AUTO:0301:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0301:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0301:reverse</systemName>
       <userName>IY:AUTO:0301:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0301:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0302:forward</systemName>
       <userName>IY:AUTO:0302:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0302:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0302:reverse</systemName>
       <userName>IY:AUTO:0302:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0302:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0303:forward</systemName>
       <userName>IY:AUTO:0303:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0303:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0303:reverse</systemName>
       <userName>IY:AUTO:0303:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0303:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0304:forward</systemName>
       <userName>IY:AUTO:0304:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0304:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0304:reverse</systemName>
       <userName>IY:AUTO:0304:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0304:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0305:forward</systemName>
       <userName>IY:AUTO:0305:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0305:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0305:reverse</systemName>
       <userName>IY:AUTO:0305:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0305:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0306:forward</systemName>
       <userName>IY:AUTO:0306:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0306:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0306:reverse</systemName>
       <userName>IY:AUTO:0306:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0306:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0307:forward</systemName>
       <userName>IY:AUTO:0307:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0307:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0307:reverse</systemName>
       <userName>IY:AUTO:0307:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0307:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0308:forward</systemName>
       <userName>IY:AUTO:0308:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0308:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0308:reverse</systemName>
       <userName>IY:AUTO:0308:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0308:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0309:forward</systemName>
       <userName>IY:AUTO:0309:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0309:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0309:reverse</systemName>
       <userName>IY:AUTO:0309:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0309:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0310:forward</systemName>
       <userName>IY:AUTO:0310:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0310:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0310:reverse</systemName>
       <userName>IY:AUTO:0310:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0310:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0311:forward</systemName>
       <userName>IY:AUTO:0311:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0311:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0311:reverse</systemName>
       <userName>IY:AUTO:0311:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0311:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0312:forward</systemName>
       <userName>IY:AUTO:0312:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0312:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0312:reverse</systemName>
       <userName>IY:AUTO:0312:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0312:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0313:forward</systemName>
       <userName>IY:AUTO:0313:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0313:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0313:reverse</systemName>
       <userName>IY:AUTO:0313:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0313:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0314:forward</systemName>
       <userName>IY:AUTO:0314:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0314:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0314:reverse</systemName>
       <userName>IY:AUTO:0314:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0314:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0315:forward</systemName>
       <userName>IY:AUTO:0315:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0315:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0315:reverse</systemName>
       <userName>IY:AUTO:0315:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0315:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0316:forward</systemName>
       <userName>IY:AUTO:0316:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0316:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0316:reverse</systemName>
       <userName>IY:AUTO:0316:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0316:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0317:forward</systemName>
       <userName>IY:AUTO:0317:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0317:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0317:reverse</systemName>
       <userName>IY:AUTO:0317:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0317:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0318:forward</systemName>
       <userName>IY:AUTO:0318:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0318:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0318:reverse</systemName>
       <userName>IY:AUTO:0318:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0318:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0319:forward</systemName>
       <userName>IY:AUTO:0319:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0319:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0319:reverse</systemName>
       <userName>IY:AUTO:0319:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0319:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0320:forward</systemName>
       <userName>IY:AUTO:0320:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0320:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0320:reverse</systemName>
       <userName>IY:AUTO:0320:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0320:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0321:forward</systemName>
       <userName>IY:AUTO:0321:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0321:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0321:reverse</systemName>
       <userName>IY:AUTO:0321:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0321:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0322:forward</systemName>
       <userName>IY:AUTO:0322:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0322:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0322:reverse</systemName>
       <userName>IY:AUTO:0322:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0322:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0323:forward</systemName>
       <userName>IY:AUTO:0323:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0323:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0323:reverse</systemName>
       <userName>IY:AUTO:0323:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0323:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0324:forward</systemName>
       <userName>IY:AUTO:0324:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0324:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0324:reverse</systemName>
       <userName>IY:AUTO:0324:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0324:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0325:forward</systemName>
       <userName>IY:AUTO:0325:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0325:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0325:reverse</systemName>
       <userName>IY:AUTO:0325:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0325:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0326:forward</systemName>
       <userName>IY:AUTO:0326:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0326:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0326:reverse</systemName>
       <userName>IY:AUTO:0326:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0326:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0327:forward</systemName>
       <userName>IY:AUTO:0327:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0327:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0327:reverse</systemName>
       <userName>IY:AUTO:0327:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0327:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0328:forward</systemName>
       <userName>IY:AUTO:0328:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0328:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0328:reverse</systemName>
       <userName>IY:AUTO:0328:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0328:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0329:forward</systemName>
       <userName>IY:AUTO:0329:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0329:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0329:reverse</systemName>
       <userName>IY:AUTO:0329:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0329:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0337:forward</systemName>
       <userName>IY:AUTO:0337:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0337:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0337:reverse</systemName>
       <userName>IY:AUTO:0337:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0337:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0338:forward</systemName>
       <userName>IY:AUTO:0338:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0338:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0338:reverse</systemName>
       <userName>IY:AUTO:0338:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0338:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0339:forward</systemName>
       <userName>IY:AUTO:0339:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0339:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0339:reverse</systemName>
       <userName>IY:AUTO:0339:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0339:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0340:forward</systemName>
       <userName>IY:AUTO:0340:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0340:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0340:reverse</systemName>
       <userName>IY:AUTO:0340:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0340:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0341:forward</systemName>
       <userName>IY:AUTO:0341:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0341:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0341:reverse</systemName>
       <userName>IY:AUTO:0341:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0341:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0342:forward</systemName>
       <userName>IY:AUTO:0342:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0342:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0342:reverse</systemName>
       <userName>IY:AUTO:0342:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0342:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0343:forward</systemName>
       <userName>IY:AUTO:0343:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0343:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0343:reverse</systemName>
       <userName>IY:AUTO:0343:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0343:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0344:forward</systemName>
       <userName>IY:AUTO:0344:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0344:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0344:reverse</systemName>
       <userName>IY:AUTO:0344:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0344:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0345:forward</systemName>
       <userName>IY:AUTO:0345:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0345:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0345:reverse</systemName>
       <userName>IY:AUTO:0345:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0345:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0346:forward</systemName>
       <userName>IY:AUTO:0346:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0346:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0346:reverse</systemName>
       <userName>IY:AUTO:0346:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0346:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0347:forward</systemName>
       <userName>IY:AUTO:0347:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0347:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0347:reverse</systemName>
       <userName>IY:AUTO:0347:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0347:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0348:forward</systemName>
       <userName>IY:AUTO:0348:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0348:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0348:reverse</systemName>
       <userName>IY:AUTO:0348:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0348:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0349:forward</systemName>
       <userName>IY:AUTO:0349:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0349:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0349:reverse</systemName>
       <userName>IY:AUTO:0349:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0349:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0350:forward</systemName>
       <userName>IY:AUTO:0350:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0350:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0350:reverse</systemName>
       <userName>IY:AUTO:0350:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0350:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0351:forward</systemName>
       <userName>IY:AUTO:0351:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0351:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0351:reverse</systemName>
       <userName>IY:AUTO:0351:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0351:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0352:forward</systemName>
       <userName>IY:AUTO:0352:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0352:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0352:reverse</systemName>
       <userName>IY:AUTO:0352:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0352:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0353:forward</systemName>
       <userName>IY:AUTO:0353:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0353:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0353:reverse</systemName>
       <userName>IY:AUTO:0353:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0353:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0354:forward</systemName>
       <userName>IY:AUTO:0354:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0354:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0354:reverse</systemName>
       <userName>IY:AUTO:0354:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0354:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0355:forward</systemName>
       <userName>IY:AUTO:0355:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0355:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0355:reverse</systemName>
       <userName>IY:AUTO:0355:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0355:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0356:forward</systemName>
       <userName>IY:AUTO:0356:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0356:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0356:reverse</systemName>
       <userName>IY:AUTO:0356:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0356:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0357:forward</systemName>
       <userName>IY:AUTO:0357:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0357:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0357:reverse</systemName>
       <userName>IY:AUTO:0357:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0357:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0358:forward</systemName>
       <userName>IY:AUTO:0358:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0358:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0358:reverse</systemName>
       <userName>IY:AUTO:0358:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0358:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0359:forward</systemName>
       <userName>IY:AUTO:0359:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0359:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0359:reverse</systemName>
       <userName>IY:AUTO:0359:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0359:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0360:forward</systemName>
       <userName>IY:AUTO:0360:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0360:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0360:reverse</systemName>
       <userName>IY:AUTO:0360:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0360:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0361:forward</systemName>
       <userName>IY:AUTO:0361:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0361:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0361:reverse</systemName>
       <userName>IY:AUTO:0361:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0361:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0362:forward</systemName>
       <userName>IY:AUTO:0362:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0362:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0362:reverse</systemName>
       <userName>IY:AUTO:0362:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0362:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0363:forward</systemName>
       <userName>IY:AUTO:0363:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0363:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0363:reverse</systemName>
       <userName>IY:AUTO:0363:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0363:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0364:forward</systemName>
       <userName>IY:AUTO:0364:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0364:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0364:reverse</systemName>
       <userName>IY:AUTO:0364:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0364:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0365:forward</systemName>
       <userName>IY:AUTO:0365:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0365:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0365:reverse</systemName>
       <userName>IY:AUTO:0365:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0365:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0366:forward</systemName>
       <userName>IY:AUTO:0366:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0366:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0366:reverse</systemName>
       <userName>IY:AUTO:0366:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0366:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0367:forward</systemName>
       <userName>IY:AUTO:0367:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0367:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0367:reverse</systemName>
       <userName>IY:AUTO:0367:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0367:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0368:forward</systemName>
       <userName>IY:AUTO:0368:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0368:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0368:reverse</systemName>
       <userName>IY:AUTO:0368:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0368:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0369:forward</systemName>
       <userName>IY:AUTO:0369:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0369:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0369:reverse</systemName>
       <userName>IY:AUTO:0369:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0369:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0370:forward</systemName>
       <userName>IY:AUTO:0370:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0370:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0370:reverse</systemName>
       <userName>IY:AUTO:0370:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0370:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0371:forward</systemName>
       <userName>IY:AUTO:0371:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0371:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0371:reverse</systemName>
       <userName>IY:AUTO:0371:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0371:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0372:forward</systemName>
       <userName>IY:AUTO:0372:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0372:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0372:reverse</systemName>
       <userName>IY:AUTO:0372:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0372:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0373:forward</systemName>
       <userName>IY:AUTO:0373:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0373:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0373:reverse</systemName>
       <userName>IY:AUTO:0373:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0373:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0374:forward</systemName>
       <userName>IY:AUTO:0374:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0374:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0374:reverse</systemName>
       <userName>IY:AUTO:0374:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0374:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0375:forward</systemName>
       <userName>IY:AUTO:0375:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0375:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0375:reverse</systemName>
       <userName>IY:AUTO:0375:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0375:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0376:forward</systemName>
       <userName>IY:AUTO:0376:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0376:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0376:reverse</systemName>
       <userName>IY:AUTO:0376:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0376:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0377:forward</systemName>
       <userName>IY:AUTO:0377:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0377:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0377:reverse</systemName>
       <userName>IY:AUTO:0377:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0377:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0378:forward</systemName>
       <userName>IY:AUTO:0378:forward</userName>
+      <comment>Auto warrant direction IY:AUTO:0378:forward</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0378:reverse</systemName>
       <userName>IY:AUTO:0378:reverse</userName>
+      <comment>Auto warrant direction IY:AUTO:0378:reverse</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:PRECONDITIONING_ENABLED</systemName>
@@ -2541,31 +2597,6 @@
     </operations>
     <defaultclosedspeed>Normal</defaultclosedspeed>
     <defaultthrownspeed>Restricted</defaultthrownspeed>
-    <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N" inverted="false" automate="Off">
-      <systemName>MTT100</systemName>
-      <userName>Switch 1 alias</userName>
-      <comment>Node 4 / OU-1 / Ports 1,2</comment>
-    </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
-      <systemName>MTT111</systemName>
-      <userName>Switch 23 alias</userName>
-      <comment>Node 12 / OU-4 / Ports 1,2</comment>
-    </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N" inverted="false" automate="Off">
-      <systemName>MTT113</systemName>
-      <userName>Switch 35 alias</userName>
-      <comment>Node 1 / OU-1 / Ports 1,2</comment>
-    </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
-      <systemName>MTT114</systemName>
-      <userName>Switch 37 alias</userName>
-      <comment>Node 1 / OU-1 / Ports 3,4</comment>
-    </turnout>
-    <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
-      <systemName>MTT115</systemName>
-      <userName>Switch 39 alias</userName>
-      <comment>Node 1 / OU-1 / Ports 5,6</comment>
-    </turnout>
   </turnouts>
   <turnouts class="jmri.jmrix.internal.configurexml.InternalTurnoutManagerXml">
     <operations automate="false">
@@ -3187,222 +3218,277 @@
     <block systemName="IB1">
       <systemName>IB1</systemName>
       <userName>OS 13</userName>
+      <comment>Engine House</comment>
     </block>
     <block systemName="IB3">
       <systemName>IB3</systemName>
       <userName>OS Scale</userName>
+      <comment>Plane</comment>
     </block>
     <block systemName="IB6">
       <systemName>IB6</systemName>
       <userName>OS 7b</userName>
+      <comment>Barn</comment>
     </block>
     <block systemName="IB8">
       <systemName>IB8</systemName>
       <userName>OS 7</userName>
+      <comment>Barn</comment>
     </block>
     <block systemName="IB15">
       <systemName>IB15</systemName>
       <userName>OS Barn</userName>
+      <comment>Barn</comment>
     </block>
     <block systemName="IB18">
       <systemName>IB18</systemName>
       <userName>OS 9</userName>
+      <comment>Engine House</comment>
     </block>
     <block systemName="IB19">
       <systemName>IB19</systemName>
       <userName>OS 11</userName>
+      <comment>Engine House</comment>
     </block>
     <block systemName="IB20">
       <systemName>IB20</systemName>
       <userName>OS EH-1</userName>
+      <comment>Engine House</comment>
     </block>
     <block systemName="IB21">
       <systemName>IB21</systemName>
       <userName>OS EH-2</userName>
+      <comment>Engine House</comment>
     </block>
     <block systemName="IB22">
       <systemName>IB22</systemName>
       <userName>OS EH-3</userName>
+      <comment>Engine House</comment>
     </block>
     <block systemName="IB23">
       <systemName>IB23</systemName>
       <userName>OS K-1</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB24">
       <systemName>IB24</systemName>
       <userName>OS K-2</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB:AUTO:0001">
       <systemName>IB:AUTO:0001</systemName>
       <userName>OS Main East</userName>
+      <comment>Main east of East End; occupancy Block 2-3 / M2S202; stop</comment>
     </block>
     <block systemName="IB:AUTO:0003">
       <systemName>IB:AUTO:0003</systemName>
       <userName>OS Main West</userName>
+      <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop</comment>
     </block>
     <block systemName="IB:AUTO:0005">
       <systemName>IB:AUTO:0005</systemName>
       <userName>OS Brick-Plane</userName>
+      <comment>Brick</comment>
     </block>
     <block systemName="IB:AUTO:0007">
       <systemName>IB:AUTO:0007</systemName>
       <userName>OS S-4</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0008">
       <systemName>IB:AUTO:0008</systemName>
       <userName>OS S-3</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0010">
       <systemName>IB:AUTO:0010</systemName>
       <userName>OS McKees Rocks</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB:AUTO:0012">
       <systemName>IB:AUTO:0012</systemName>
       <userName>OS S-R</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0016">
       <systemName>IB:AUTO:0016</systemName>
       <userName>OS S-1</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0017">
       <systemName>IB:AUTO:0017</systemName>
       <userName>OS East Lead</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0020">
       <systemName>IB:AUTO:0020</systemName>
       <userName>OS W-1</userName>
+      <comment>Brick</comment>
     </block>
     <block systemName="IB:AUTO:0022">
       <systemName>IB:AUTO:0022</systemName>
       <userName>OS W-2</userName>
+      <comment>Brick</comment>
     </block>
     <block systemName="IB:AUTO:0026">
       <systemName>IB:AUTO:0026</systemName>
       <userName>OS S-2</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0030">
       <systemName>IB:AUTO:0030</systemName>
       <userName>OS 33</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0031">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS 5</userName>
+      <comment>Plane</comment>
     </block>
     <block systemName="IB:AUTO:0032">
       <systemName>IB:AUTO:0032</systemName>
       <userName>OS 37</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB:AUTO:0033">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS 1</userName>
+      <comment>Brick</comment>
     </block>
     <block systemName="IB:AUTO:0034">
       <systemName>IB:AUTO:0034</systemName>
       <userName>OS 23a</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0035">
       <systemName>IB:AUTO:0035</systemName>
       <userName>OS 3</userName>
+      <comment>Brick</comment>
     </block>
     <block systemName="IB:AUTO:0036">
       <systemName>IB:AUTO:0036</systemName>
       <userName>OS 25</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0037">
       <systemName>IB:AUTO:0037</systemName>
       <userName>OS 27</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0038">
       <systemName>IB:AUTO:0038</systemName>
       <userName>OS 21</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0039">
       <systemName>IB:AUTO:0039</systemName>
       <userName>OS 23b</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0040">
       <systemName>IB:AUTO:0040</systemName>
       <userName>OS 39</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB:AUTO:0041">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS 15</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0042">
       <systemName>IB:AUTO:0042</systemName>
       <userName>OS 31</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0043">
       <systemName>IB:AUTO:0043</systemName>
       <userName>OS 29</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0044">
       <systemName>IB:AUTO:0044</systemName>
       <userName>OS 17</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0045">
       <systemName>IB:AUTO:0045</systemName>
       <userName>OS 19</userName>
+      <comment>South Yard</comment>
     </block>
     <block systemName="IB:AUTO:0046">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS 35a</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB:AUTO:0047">
       <systemName>IB:AUTO:0047</systemName>
       <userName>OS 35b</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB:AUTO:0048">
       <systemName>IB:AUTO:0048</systemName>
       <userName>OS McKeesport</userName>
+      <comment>Princess</comment>
     </block>
     <block systemName="IB:AUTO:0050">
       <systemName>IB:AUTO:0050</systemName>
       <userName>OS West Main Ext</userName>
+      <comment>East End</comment>
     </block>
     <block systemName="IB:AUTO:0051">
       <systemName>IB:AUTO:0051</systemName>
       <userName>OS East Main Ext</userName>
+      <comment>Plane</comment>
     </block>
     <block systemName="IB:AUTO:0052">
       <systemName>IB:AUTO:0052</systemName>
       <userName>OS S-1 West</userName>
+      <comment>Hidden OS S-1 throat (same detector as OS S-1); occupancy Block 2-7 / M2S206; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0053">
       <systemName>IB:AUTO:0053</systemName>
       <userName>OS S-1 East</userName>
+      <comment>Hidden OS S-1 throat (same detector as OS S-1); occupancy Block 2-7 / M2S206; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0054">
       <systemName>IB:AUTO:0054</systemName>
       <userName>OS S-2 West</userName>
+      <comment>Hidden OS S-2 throat (same detector as OS S-2); occupancy Block 2-6 / M2S205; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0055">
       <systemName>IB:AUTO:0055</systemName>
       <userName>OS S-2 East</userName>
+      <comment>Hidden OS S-2 throat (same detector as OS S-2); occupancy Block 2-6 / M2S205; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0056">
       <systemName>IB:AUTO:0056</systemName>
       <userName>OS S-3 West</userName>
+      <comment>Hidden OS S-3 throat (same detector as OS S-3); occupancy Block 2-5 / M2S204; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0057">
       <systemName>IB:AUTO:0057</systemName>
       <userName>OS S-3 East</userName>
+      <comment>Hidden OS S-3 throat (same detector as OS S-3); occupancy Block 2-5 / M2S204; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0058">
       <systemName>IB:AUTO:0058</systemName>
       <userName>OS S-4 West</userName>
+      <comment>Hidden OS S-4 throat (same detector as OS S-4); occupancy Block 2-4 / M2S203; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0059">
       <systemName>IB:AUTO:0059</systemName>
       <userName>OS S-4 East</userName>
+      <comment>Hidden OS S-4 throat (same detector as OS S-4); occupancy Block 2-4 / M2S203; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0060">
       <systemName>IB:AUTO:0060</systemName>
       <userName>OS S-R East</userName>
+      <comment>Hidden OS S-R throat (same detector as OS S-R); occupancy Block 2-8 / M2S207; not a station</comment>
     </block>
     <block systemName="IB:AUTO:0061">
       <systemName>IB:AUTO:0061</systemName>
       <userName>OS S-R West</userName>
+      <comment>Hidden OS S-R throat (same detector as OS S-R); occupancy Block 2-8 / M2S207; not a station</comment>
     </block>
     <block systemName="IB1" length="254.0" curve="0">
       <systemName>IB1</systemName>
