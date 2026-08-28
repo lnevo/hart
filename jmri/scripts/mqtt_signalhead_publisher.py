@@ -205,15 +205,70 @@ class DigiconMqttSml(
         """JMRI/SML/receiver state only — field RELEASE is the bridge's job."""
         self._suppress_sml = True
         try:
-            for sml in self._smls:
-                try:
-                    sml.setDisabled()
-                except Exception as exc:
-                    print("mqtt_signalhead: boot setDisabled: " + _ascii(exc))
+            self._set_all_digicon_sml_destinations(False)
             self._global_enabled = False
             self._set_button_label()
         finally:
             self._suppress_sml = False
+
+    def _set_all_digicon_sml_destinations(self, enabled):
+        """Flip Enabled checkbox for every Digicon source→dest pair (SML table)."""
+        # SML may finish discovering after Start Up — refresh before bulk set.
+        self._attach_sml_listeners()
+
+        def _do():
+            n = 0
+            for sml in self._smls:
+                try:
+                    dests = sml.getDestinationList()
+                except Exception as exc:
+                    print(
+                        "mqtt_signalhead: getDestinationList: " + _ascii(exc)
+                    )
+                    continue
+                if dests is None:
+                    continue
+                try:
+                    empty = dests.isEmpty()
+                except Exception:
+                    empty = len(dests) == 0
+                if empty:
+                    continue
+                try:
+                    it = dests.iterator()
+                    while it.hasNext():
+                        dest = it.next()
+                        try:
+                            if enabled:
+                                sml.setEnabled(dest)
+                            else:
+                                sml.setDisabled(dest)
+                            n += 1
+                        except Exception as exc:
+                            print(
+                                "mqtt_signalhead: setEnabled/Disabled(%s): %s"
+                                % (_ascii(dest), _ascii(exc))
+                            )
+                except Exception as exc:
+                    print("mqtt_signalhead: dest iterate: " + _ascii(exc))
+            print(
+                "mqtt_signalhead: SML pairs %s (%d)"
+                % (("enabled" if enabled else "disabled"), n)
+            )
+
+        try:
+            from jmri.util import ThreadingUtil
+
+            class _R(Runnable):
+                def run(__self):
+                    _do()
+
+            if ThreadingUtil.isLayoutThread():
+                _do()
+            else:
+                ThreadingUtil.runOnLayout(_R())
+        except Exception:
+            _do()
 
     def _collect_beans(self):
         mm = _mast_manager()
@@ -248,6 +303,11 @@ class DigiconMqttSml(
         smlm = _sml_manager()
         if smlm is None:
             return
+        for sml in self._smls:
+            try:
+                sml.removePropertyChangeListener(self)
+            except Exception:
+                pass
         self._smls = []
         digicon = set(self._masts)
         for sml in smlm.getSignalMastLogicList():
@@ -259,6 +319,10 @@ class DigiconMqttSml(
                 continue
             sml.addPropertyChangeListener(self)
             self._smls.append(sml)
+        print(
+            "mqtt_signalhead: watching %d Digicon SignalMastLogic sources"
+            % len(self._smls)
+        )
 
     def _subscribe_mqtt(self):
         try:
@@ -400,11 +464,7 @@ class DigiconMqttSml(
                 except Exception:
                     pass
             Thread.sleep(HOLD_WAIT_MS)
-            for sml in self._smls:
-                try:
-                    sml.setDisabled()
-                except Exception as exc:
-                    print("mqtt_signalhead: setDisabled: " + _ascii(exc))
+            self._set_all_digicon_sml_destinations(False)
             if release:
                 for head in self._heads:
                     self._publish_unheld(head)
@@ -433,11 +493,7 @@ class DigiconMqttSml(
                 except Exception:
                     pass
             Thread.sleep(HOLD_WAIT_MS)
-            for sml in self._smls:
-                try:
-                    sml.setEnabled()
-                except Exception as exc:
-                    print("mqtt_signalhead: setEnabled: " + _ascii(exc))
+            self._set_all_digicon_sml_destinations(True)
             for mast in self._masts:
                 try:
                     mast.setHeld(False)
@@ -467,21 +523,16 @@ class DigiconMqttSml(
         return None
 
     def _mast_logic_enabled(self, mast):
-        """True if Digicon source mast SML is driving (any dest enabled / not disabled)."""
+        """True if Digicon source mast has any destination Enabled in the SML table."""
         if mast is None:
             return False
         sml = self._sml_for_mast(mast)
         if sml is None:
             return False
         try:
-            if hasattr(sml, "isDisabled") and sml.isDisabled():
-                return False
-        except Exception:
-            pass
-        try:
             dests = sml.getDestinationList()
             if dests is None or dests.isEmpty():
-                return True
+                return False
             it = dests.iterator()
             while it.hasNext():
                 dest = it.next()
@@ -492,10 +543,7 @@ class DigiconMqttSml(
                     continue
             return False
         except Exception:
-            try:
-                return bool(sml.isEnabled())
-            except Exception:
-                return True
+            return False
 
     def _field_owns_mast(self, mast):
         if not self._global_enabled:
