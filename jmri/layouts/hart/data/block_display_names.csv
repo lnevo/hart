@@ -1,54 +1,54 @@
 current_user_name,public_user_name,cp,role,notes
-Switch 1,OS 1,Brick,os,
-Switch 3,OS 3,Brick,os,
-Switch 5,OS 5,Plane,os,
-Switch 15,OS 15,South Yard,os,
-Switch 17,OS 17,South Yard,os,
-Switch 19,OS 19,South Yard,os,
-Switch 21,OS 21,South Yard,os,
-Switch 25,OS 25,East End,os,
-Switch 27,OS 27,East End,os,
-Switch 29,OS 29,East End,os,
-Switch 31,OS 31,East End,os,
-Switch 111a,OS 23a,East End,os,Crossover leg
-Switch 111b,OS 23b,East End,os,Crossover leg
-Switch 33,OS 33,East End,os,
-Switch 113a,OS 35a,Princess,os,Crossover leg
-Switch 113b,OS 35b,Princess,os,Crossover leg
-Switch 37,OS 37,Princess,os,
-Switch 39,OS 39,Princess,os,
-Switch 13,OS 13,,os,hand-throw
-Switch 7,OS 7,OS Barn,os,
-Switch 117b,OS 7b,OS Barn,os,
-Switch 11,OS 11,,os,hand-throw
-Switch 9,OS 9,,os,hand-throw
-OS Main West,OS Main West,,track,
-OS Main East,OS Main East,,track,
-OS West Main Ext,OS West Main Ext,East End,track,
-OS East Main Ext,OS East Main Ext,Plane,track,
-OS East Lead,OS East Lead,East End,track,
-OS Brick-Plane,OS Brick-Plane,Brick,track,CP limit Brick–Plane
-OS W-1,OS W-1,Brick,yard,West Yard plate; access Switch 3 only
-OS W-2,OS W-2,Brick,yard,West Yard plate; access Switch 3 only
-OS Scale,OS Scale,Plane,yard,Plane diverging to 117
-OS Barn,OS Barn,OS Barn,yard,117 to 116
-OS EH-1,OS EH-1,,yard,occupancy Block 13-7 / M2S1306
-OS EH-2,OS EH-2,,yard,occupancy Block 13-6 / M2S1305
-OS EH-3,OS EH-3,,yard,occupancy Block 13-5 / M2S1304
-OS S-R,S-R,South Yard,yard,run-through east of 103
-OS S-R West,S-R West,South Yard,yard,hidden throat; same occupancy as S-R
-OS S-R East,S-R East,South Yard,yard,hidden throat; same occupancy as S-R
-OS S-1,OS S-R,South Yard,yard,
-OS S-1 West,OS S-R West,South Yard,yard,hidden throat; same occupancy as OS S-R
-OS S-1 East,OS S-R East,South Yard,yard,hidden throat; same occupancy as OS S-R
-OS S-2,OS S-1,South Yard,yard,
-OS S-2 West,OS S-1 West,South Yard,yard,hidden throat; same occupancy as OS S-1
-OS S-2 East,OS S-1 East,South Yard,yard,hidden throat; same occupancy as OS S-1
-OS S-3,OS S-2,South Yard,yard,
-OS S-3 West,OS S-2 West,South Yard,yard,hidden throat; same occupancy as OS S-2
-OS S-3 East,OS S-2 East,South Yard,yard,hidden throat; same occupancy as OS S-2
-OS S-4,OS S-3,South Yard,yard,
-OS S-4 West,OS S-3 West,South Yard,yard,hidden throat; same occupancy as OS S-3
-OS S-4 East,OS S-3 East,South Yard,yard,hidden throat; same occupancy as OS S-3
-OS McKees Rocks,OS McKees Rocks,Princess,interchange,
-OS McKeesport,OS McKeesport,Princess,interchange,
+Switch 1,Track 1,Brick,os,
+Switch 3,Track 3,Brick,os,
+Switch 5,Track 5,Plane,os,
+Switch 15,Track 15,South Yard,os,
+Switch 17,Track 17,South Yard,os,
+Switch 19,Track 19,South Yard,os,
+Switch 21,Track 21,South Yard,os,
+Switch 25,Track 25,East End,os,
+Switch 27,Track 27,East End,os,
+Switch 29,Track 29,East End,os,
+Switch 31,Track 31,East End,os,
+Switch 111a,Track 23a,East End,os,Crossover leg
+Switch 111b,Track 23b,East End,os,Crossover leg
+Switch 33,Track 33,East End,os,
+Switch 113a,Track 35a,Princess,os,Crossover leg
+Switch 113b,Track 35b,Princess,os,Crossover leg
+Switch 37,Track 37,Princess,os,
+Switch 39,Track 39,Princess,os,
+Switch 13,Track 13,,os,hand-throw
+Switch 7,Track 7,Barn,os,
+Switch 117b,Track 7b,Barn,os,
+Switch 11,Track 11,,os,hand-throw
+Switch 9,Track 9,,os,hand-throw
+Track Main West,Track Main West,,track,
+Track Main East,Track Main East,,track,
+Track West Main Ext,Track West Main Ext,East End,track,
+Track East Main Ext,Track East Main Ext,Plane,track,
+Track East Lead,Track East Lead,East End,track,
+Track Brick-Plane,Track Brick-Plane,Brick,track,CP limit Brick–Plane
+Track W-1,Track W-1,Brick,yard,West Yard plate; access Switch 3 only
+Track W-2,Track W-2,Brick,yard,West Yard plate; access Switch 3 only
+Track Scale,Track Scale,Plane,yard,Plane diverging to Switch 7
+Track Barn,Track Barn,Barn,yard,Switch 7 to Switch 13
+Track EH-1,Track EH-1,,yard,occupancy Block 13-7 / M2S1306
+Track EH-2,Track EH-2,,yard,occupancy Block 13-6 / M2S1305
+Track EH-3,Track EH-3,,yard,occupancy Block 13-5 / M2S1304
+Track S-R,Track S-R,South Yard,yard,run-through east of Switch 15
+Track S-R West,Track S-R West,South Yard,yard,hidden throat; same occupancy as Track S-R
+Track S-R East,Track S-R East,South Yard,yard,hidden throat; same occupancy as Track S-R
+Track S-1,Track S-1,South Yard,yard,
+Track S-1 West,Track S-1 West,South Yard,yard,hidden throat; same occupancy as Track S-1
+Track S-1 East,Track S-1 East,South Yard,yard,hidden throat; same occupancy as Track S-1
+Track S-2,Track S-2,South Yard,yard,
+Track S-2 West,Track S-2 West,South Yard,yard,hidden throat; same occupancy as Track S-2
+Track S-2 East,Track S-2 East,South Yard,yard,hidden throat; same occupancy as Track S-2
+Track S-3,Track S-3,South Yard,yard,
+Track S-3 West,Track S-3 West,South Yard,yard,hidden throat; same occupancy as Track S-3
+Track S-3 East,Track S-3 East,South Yard,yard,hidden throat; same occupancy as Track S-3
+Track S-4,Track S-4,South Yard,yard,
+Track S-4 West,Track S-4 West,South Yard,yard,hidden throat; same occupancy as Track S-4
+Track S-4 East,Track S-4 East,South Yard,yard,hidden throat; same occupancy as Track S-4
+Track McKees Rocks,Track McKees Rocks,Princess,interchange,
+Track McKeesport,Track McKeesport,Princess,interchange,

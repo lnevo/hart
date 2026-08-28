@@ -10,9 +10,9 @@ startup Jython twin was removed from the Mac and Pi profiles.
 PAIRS below is the CATS-derived list this workaround used to apply. It is
 imported by validate_le_signalling.py as a historical comparison oracle.
 Known defects in PAIRS (why it is only historical):
-- opposing-face pairs (Plane EME <-> OS Barn D, the OS 7 plant pairs) that
+- opposing-face pairs (Plane EME <-> Track Barn D, the Track 7 plant pairs) that
   SML never models; replaced by true next-mast-down-the-line pairs
-- Mast 38LB / OS K-2 -> 111a rows are geometrically impossible
+- Mast 38LB / Track K-2 -> 111a rows are geometrically impossible
   (LH crossover 113 cannot route bottom-east to top-west)
 - balloon A48 rows had source/dest direction swapped
 
@@ -35,184 +35,184 @@ JYTHON = ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py"
 # source, dest, blocks (must be unoccupied), turnouts [(userName, closed|thrown)]
 # Turnout polarity: TURNOUT_STATE_SOURCES.md / SIGNAL_FACING.md.
 PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
-    # South line: Plane EME ↔ OS Barn D across OS East Main Ext (not East End OS Main West).
+    # South line: Plane EME ↔ Track Barn D across Track East Main Ext (not East End Track Main West).
     (
         "Mast 6LB",
         "Mast 8RB",
-        ["OS East Main Ext"],
+        ["Track East Main Ext"],
         [],
     ),
     (
         "Mast 8RB",
         "Mast 6LB",
-        ["OS East Main Ext"],
+        ["Track East Main Ext"],
         [],
     ),
     (
         "Mast 8RB",
         "Mast 34R",
-        ["OS 7b", "OS Main East"],
+        ["Track 7b", "Track Main East"],
         [("Switch 7", "closed")],
     ),
     (
         "Mast 8RB",
         "Mast 8RA",
-        ["OS 7"],
+        ["Track 7"],
         [("Switch 7", "thrown")],
     ),
     (
         "Mast 8LA",
         "Mast 6LB",
-        ["OS East Main Ext"],
+        ["Track East Main Ext"],
         [("Switch 7", "closed")],
     ),
     (
         "Mast 6LA",
         "Mast 8RA",
-        ["OS Scale"],
+        ["Track Scale"],
         [("Switch 5", "thrown")],
     ),
     (
         "Mast 8RA",
         "Mast 8LB",
-        ["OS 7", "OS Barn"],
+        ["Track 7", "Track Barn"],
         [("Switch 7", "closed")],
     ),
     (
         "Mast 2L",
         "Mast 8RB",
-        ["OS 5", "OS East Main Ext"],
+        ["Track 5", "Track East Main Ext"],
         [("Switch 1", "thrown"), ("Switch 5", "closed")],
     ),
     (
         "Mast 2L",
         "Mast 8RA",
-        ["OS 5", "OS Scale"],
+        ["Track 5", "Track Scale"],
         [("Switch 1", "thrown"), ("Switch 5", "thrown")],
     ),
     (
         "Mast 24L",
         "Mast 2L",
-        ["OS Main West"],
+        ["Track Main West"],
         [("Switch 23", "closed")],
     ),
     (
         "Mast 34L",
         "Mast 8LA",
-        ["OS 33", "OS Main East"],
+        ["Track 33", "Track Main East"],
         [("Switch 33", "thrown")],
     ),
     (
         "Mast 34R",
         "Mast 36RB",
-        ["OS East Lead"],
+        ["Track East Lead"],
         [("Switch 33", "thrown")],
     ),
     (
         "Mast 32R",
         "Mast 36RB",
-        ["OS 31", "OS East Lead"],
+        ["Track 31", "Track East Lead"],
         [("Switch 31", "thrown"), ("Switch 33", "closed")],
     ),
     (
         "Mast 24RA",
         "Mast 36RA",
-        ["OS West Main Ext"],
+        ["Track West Main Ext"],
         [("Switch 23", "closed")],
     ),
     (
         "Mast 24RB",
         "Mast 36RB",
-        ["OS S-R", "OS East Lead"],
+        ["Track S-R", "Track East Lead"],
         [("Switch 23", "closed"), ("Switch 33", "closed")],
     ),
     (
         "Mast 8LB",
         "Mast 8RA",
-        ["OS Barn", "OS 7"],
+        ["Track Barn", "Track 7"],
         [("Switch 7", "closed")],
     ),
     (
         "Mast 8LB",
         "Mast 6LA",
-        ["OS Barn", "OS Scale"],
+        ["Track Barn", "Track Scale"],
         [("Switch 7", "thrown")],
     ),
-    # 114/115 C homes face west. Dest 111a (113 closed) or OS East Lead (113 thrown).
+    # 114/115 C homes face west. Dest 111a (113 closed) or Track East Lead (113 thrown).
     (
         "Mast 40LB",
         "Mast 24L",
-        ["OS 39", "OS West Main Ext"],
+        ["Track 39", "Track West Main Ext"],
         [("Switch 39", "thrown"), ("Switch 35", "closed")],
     ),
     (
         "Mast 40LB",
         "Mast 34L",
-        ["OS 39", "OS East Lead"],
+        ["Track 39", "Track East Lead"],
         [("Switch 39", "thrown"), ("Switch 35", "thrown")],
     ),
     (
         "Mast 38LB",
         "Mast 24L",
-        ["OS 37", "OS West Main Ext"],
+        ["Track 37", "Track West Main Ext"],
         [("Switch 37", "thrown"), ("Switch 35", "closed")],
     ),
     (
         "Mast 38LB",
         "Mast 34L",
-        ["OS 37", "OS East Lead"],
+        ["Track 37", "Track East Lead"],
         [("Switch 37", "thrown"), ("Switch 35", "thrown")],
     ),
     (
         "Mast 40LA",
         "Mast 24L",
-        ["OS 39", "OS West Main Ext"],
+        ["Track 39", "Track West Main Ext"],
         [("Switch 39", "closed"), ("Switch 35", "closed")],
     ),
     (
         "Mast 40LA",
         "Mast 34L",
-        ["OS 39", "OS East Lead"],
+        ["Track 39", "Track East Lead"],
         [("Switch 39", "closed"), ("Switch 35", "thrown")],
     ),
     (
         "Mast 38LA",
         "Mast 24L",
-        ["OS 37", "OS West Main Ext"],
+        ["Track 37", "Track West Main Ext"],
         [("Switch 37", "closed"), ("Switch 35", "closed")],
     ),
     (
         "Mast 38LA",
         "Mast 34L",
-        ["OS 37", "OS East Lead"],
+        ["Track 37", "Track East Lead"],
         [("Switch 37", "closed"), ("Switch 35", "thrown")],
     ),
     (
         "Mast 36RA",
         "Mast 2035",
-        ["OS 35b", "OS 39"],
+        ["Track 35b", "Track 39"],
         [("Switch 35", "closed"), ("Switch 39", "thrown")],
     ),
     (
         "Mast 36RA",
         "Mast 40LA",
-        ["OS 35b", "OS 39"],
+        ["Track 35b", "Track 39"],
         [("Switch 35", "closed"), ("Switch 39", "closed")],
     ),
     (
         "Mast 36RB",
         "Mast 2036",
-        ["OS 35a", "OS 37"],
+        ["Track 35a", "Track 37"],
         [("Switch 35", "closed"), ("Switch 37", "thrown")],
     ),
     (
         "Mast 36RB",
         "Mast 38LA",
-        ["OS 35a", "OS 37"],
+        ["Track 35a", "Track 37"],
         [("Switch 35", "closed"), ("Switch 37", "closed")],
     ),
     # Balloon: dest each other across A48. Adjacent CPs — no intermediate
-    # occupancy. (Old shared 1-1/1-2 circuit stuffed OS McKees Rocks onto
+    # occupancy. (Old shared 1-1/1-2 circuit stuffed Track McKees Rocks onto
     # Mast 2035→Mast 2036 so either track occupied Stopped both; sensors are independent now.)
     (
         "Mast 2036",
@@ -229,13 +229,13 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 4RA",
         "Mast 24RA",
-        ["OS W-1", "OS 3", "OS Main West"],
+        ["Track W-1", "Track 3", "Track Main West"],
         [("Switch 3", "closed")],
     ),
     (
         "Mast 4RB",
         "Mast 24RA",
-        ["OS W-2", "OS 3", "OS Main West"],
+        ["Track W-2", "Track 3", "Track Main West"],
         [("Switch 3", "thrown")],
     ),
 ]

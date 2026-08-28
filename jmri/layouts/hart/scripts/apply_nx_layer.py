@@ -32,28 +32,28 @@ DEFAULTS = [
 # CTC plant only (100–115 / 117). Not 116/118/119 or yard stubs.
 CTC_MASTS = {
     "Mast 2L": "Brick east main westbound; lever 4 Left",
-    "Mast 4RA": "Brick OS W-1 dwarf eastbound; lever 2 Right",
-    "Mast 4RB": "Brick OS W-2 dwarf eastbound; lever 2 Right",
-    "Mast 6LA": "Plane, OS Scale westbound; lever 6 Left",
-    "Mast 6LB": "Plane, OS East Main Ext westbound; lever 6 Left",
-    "Mast 8RA": "OS Barn, yard eastbound; lever 8 Right",
-    "Mast 8RB": "OS Barn, OS East Main Ext eastbound; lever 8 Right",
-    "Mast 8LA": "OS Barn, OS East Main Ext westbound; lever 8 Left",
-    "Mast 8LB": "OS Barn, OS Barn dwarf westbound; lever 8 Left",
-    "Mast 24RA": "East End, OS Main West eastbound; lever 18 Right",
-    "Mast 24RB": "East End, OS S-R dwarf eastbound; lever 18 Right",
-    "Mast 24L": "East End, OS 23a westbound; lever 18 Left",
-    "Mast 32R": "East End, OS 31 dwarf eastbound; lever 20 Right",
-    "Mast 34R": "East End, OS Main East eastbound; lever 24 Right",
+    "Mast 4RA": "Brick Track W-1 dwarf eastbound; lever 2 Right",
+    "Mast 4RB": "Brick Track W-2 dwarf eastbound; lever 2 Right",
+    "Mast 6LA": "Plane, Track Scale westbound; lever 6 Left",
+    "Mast 6LB": "Plane, Track East Main Ext westbound; lever 6 Left",
+    "Mast 8RA": "Track Barn, yard eastbound; lever 8 Right",
+    "Mast 8RB": "Track Barn, Track East Main Ext eastbound; lever 8 Right",
+    "Mast 8LA": "Track Barn, Track East Main Ext westbound; lever 8 Left",
+    "Mast 8LB": "Track Barn, Track Barn dwarf westbound; lever 8 Left",
+    "Mast 24RA": "East End, Track Main West eastbound; lever 18 Right",
+    "Mast 24RB": "East End, Track S-R dwarf eastbound; lever 18 Right",
+    "Mast 24L": "East End, Track 23a westbound; lever 18 Left",
+    "Mast 32R": "East End, Track 31 dwarf eastbound; lever 20 Right",
+    "Mast 34R": "East End, Track Main East eastbound; lever 24 Right",
     "Mast 34L": "East End lead westbound; lever 24 Left",
-    "Mast 36RA": "Princess, OS Main West eastbound; lever 26 Right",
-    "Mast 36RB": "Princess, OS East Lead eastbound; lever 26 Right",
-    "Mast 2036": "Princess, OS McKeesport dwarf eastbound; lever 28 Right",
-    "Mast 38LA": "Princess, OS K-2 dwarf westbound; lever 28 Left",
-    "Mast 38LB": "Princess, OS McKeesport westbound; lever 28 Left",
-    "Mast 2035": "Princess, OS McKees Rocks dwarf eastbound; lever 30 Right",
-    "Mast 40LA": "Princess, OS K-1 dwarf westbound; lever 30 Left",
-    "Mast 40LB": "Princess, OS McKees Rocks westbound; lever 30 Left",
+    "Mast 36RA": "Princess, Track Main West eastbound; lever 26 Right",
+    "Mast 36RB": "Princess, Track East Lead eastbound; lever 26 Right",
+    "Mast 2036": "Princess, Track McKeesport dwarf eastbound; lever 28 Right",
+    "Mast 38LA": "Princess, Track K-2 dwarf westbound; lever 28 Left",
+    "Mast 38LB": "Princess, Track McKeesport westbound; lever 28 Left",
+    "Mast 2035": "Princess, Track McKees Rocks dwarf eastbound; lever 30 Right",
+    "Mast 40LA": "Princess, Track K-1 dwarf westbound; lever 30 Left",
+    "Mast 40LB": "Princess, Track McKees Rocks westbound; lever 30 Left",
 }
 
 INTERNAL_CLOSE = "  </sensors>\n  <turnouts class=\"jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml\">"
@@ -97,29 +97,29 @@ def sensor_xml(mast: str) -> str:
 # 21×21 USS lamp, centered on the approach rail into the switch (not the
 # frog, not the mast heads). y = rail − 10. Paired A/B ends share x.
 NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
-    "Mast 2L": (382, 242),    # OS Main West into 100, left of the mast cluster
-    "Mast 4RA": (198, 242),   # OS W-1, even with 100 / 111 / 113
-    "Mast 4RB": (198, 293),   # OS W-2, left+up off the rail
-    "Mast 6LA": (374, 305),   # OS Scale into 102
-    "Mast 6LB": (378, 353),   # OS East Main Ext into 102
-    "Mast 8RA": (462, 305),   # OS Scale into 117
-    "Mast 8LB": (548, 305),   # OS Barn into 117; same X as Mast 8LA
-    "Mast 8RB": (445, 353),   # OS East Main Ext into 117; same Y as NX Mast 6LB
-    "Mast 8LA": (548, 353),   # OS Main East into 117
-    "Mast 24RA": (1095, 242),  # OS Main West into 111
-    "Mast 24RB": (1095, 305),  # OS S-R into 111 (aligned with Mast 24RA)
+    "Mast 2L": (382, 242),    # Track Main West into 100, left of the mast cluster
+    "Mast 4RA": (198, 242),   # Track W-1, even with 100 / 111 / 113
+    "Mast 4RB": (198, 293),   # Track W-2, left+up off the rail
+    "Mast 6LA": (374, 305),   # Track Scale into 102
+    "Mast 6LB": (378, 353),   # Track East Main Ext into 102
+    "Mast 8RA": (462, 305),   # Track Scale into 117
+    "Mast 8LB": (548, 305),   # Track Barn into 117; same X as Mast 8LA
+    "Mast 8RB": (445, 353),   # Track East Main Ext into 117; same Y as NX Mast 6LB
+    "Mast 8LA": (548, 353),   # Track Main East into 117
+    "Mast 24RA": (1095, 242),  # Track Main West into 111
+    "Mast 24RB": (1095, 305),  # Track S-R into 111 (aligned with Mast 24RA)
     "Mast 24L": (1248, 242),   # same X as NX Mast 32R
-    "Mast 32R": (1248, 335),   # OS 29 ladder, left of the diagonal
-    "Mast 34R": (1312, 338),   # OS Main East, left of the diagonal
-    "Mast 34L": (1407, 305),   # OS East Lead into 112
-    "Mast 36RA": (1465, 242),  # OS West Main Ext into 113
-    "Mast 36RB": (1465, 305),  # OS East Lead into 113
-    "Mast 38LA": (1675, 305),  # OS K-2 stub toward the balloon
-    "Mast 38LB": (1695, 367),  # OS McKeesport bezier
-    "Mast 40LA": (1675, 242),  # OS K-1 stub toward the balloon
+    "Mast 32R": (1248, 335),   # Track 29 ladder, left of the diagonal
+    "Mast 34R": (1312, 338),   # Track Main East, left of the diagonal
+    "Mast 34L": (1407, 305),   # Track East Lead into 112
+    "Mast 36RA": (1465, 242),  # Track West Main Ext into 113
+    "Mast 36RB": (1465, 305),  # Track East Lead into 113
+    "Mast 38LA": (1675, 305),  # Track K-2 stub toward the balloon
+    "Mast 38LB": (1695, 367),  # Track McKeesport bezier
+    "Mast 40LA": (1675, 242),  # Track K-1 stub toward the balloon
     "Mast 40LB": (1695, 162),  # Rocks bezier; same X as Mast 38LB
     "Mast 2035": (1826, 245),   # Rocks arc; same X as Mast 2036
-    "Mast 2036": (1826, 291),   # OS McKeesport arc; same X as Mast 2035
+    "Mast 2036": (1826, 291),   # Track McKeesport arc; same X as Mast 2035
 }
 
 # Mast shifts so heads clear the approach lamps and share Mast 2L's height.

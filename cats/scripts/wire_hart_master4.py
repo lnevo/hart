@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import shutil
 import subprocess
 import sys
@@ -38,40 +39,40 @@ LIVE_ABS_HOLD = ROOT / "cats/panels/HART_Master_ABS_hold.xml"
 # that NORMAL route (JMRI Thrown = mainline): 100, 114, 115.
 #
 # Untwisted 63×16 board (Designer 2026-08-26).
-# Y=6 OS Main West → OS West Main Ext → OS McKees Rocks (OS K-1 above).
-# Y=7 OS Scale / OS Barn / OS S-R / OS East Lead / OS McKeesport (OS K-2 below).
-# Y=8 Brick 100 / Plane 102 / E Main Ext / EH / OS S-1.
-# Y=12 OS Main East under the south-yard ladders.
-# SHARED: (1,6) LEFT ↔ (1,8) LEFT OS Main West; (63,6) RIGHT ↔ (63,7) RIGHT OS McKeesport.
+# Y=6 Track Main West → Track West Main Ext → Track McKees Rocks (Track K-1 above).
+# Y=7 Track Scale / Track Barn / Track S-R / Track East Lead / Track McKeesport (Track K-2 below).
+# Y=8 Brick 100 / Plane 102 / E Main Ext / EH / Track S-1.
+# Y=12 Track Main East under the south-yard ladders.
+# SHARED: (1,6) LEFT ↔ (1,8) LEFT Track Main West; (63,6) RIGHT ↔ (63,7) RIGHT Track McKeesport.
 PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
-    (4, 8): ("OS 1", "RIGHT", "TOL3"),  # Brick. Thrown = through E Main Ext; Closed BOTTOM = yard
-    (5, 9): ("OS 3", "BOTTOM", "TOL38"),  # Closed = OS W-1 (BOTTOM); Thrown RIGHT = OS W-2
-    (9, 8): ("OS 5", "RIGHT", "TOL42"),  # Closed = through E Main Ext; Thrown TOP = OS Scale
-    (15, 8): ("OS 7b", "RIGHT", "TO117"),
-    (15, 7): ("OS 7", "LEFT", "TO117"),
-    (24, 8): ("OS 9", "LEFT", "TO10"),  # Closed LEFT = OS EH-1; Thrown BOTTOM = OS EH-2
-    (26, 8): ("OS 11", "LEFT", "TO11"),  # Closed LEFT = from 119; Thrown BOTTOM = OS EH-3
-    (27, 7): ("OS 13", "LEFT", "TO1"),  # Thrown BOTTOM is a stub; does not join 118
-    (30, 7): ("OS 15", "RIGHT", "TOR14"),  # Thrown BOTTOM geographic into 104 approach
-    (31, 8): ("OS 17", "BOTTOM", "TOL15"),
-    (32, 9): ("OS 19", "BOTTOM", "TOL17"),
-    (33, 10): ("OS 21", "BOTTOM", "TOL19"),
-    (40, 6): ("OS 23a", "RIGHT", "TO111"),  # OS Main West
-    (40, 7): ("OS 23b", "LEFT", "TO111"),  # OS S-R
-    (42, 7): ("OS 31", "LEFT", "TOL6"),  # Closed LEFT = OS S-R/111; Thrown BOTTOM = 109
-    (44, 7): ("OS 33", "LEFT", "TOL23"),  # Closed LEFT = 110; Thrown BOTTOM = OS Main East
-    (41, 8): ("OS 29", "BOTTOM", "TOR7"),
-    (40, 9): ("OS 27", "BOTTOM", "TOR9"),
-    (39, 10): ("OS 25", "BOTTOM", "TOR11"),
-    (52, 6): ("OS 35b", "LEFT", "TO113"),  # OS West Main Ext
-    (52, 7): ("OS 35a", "RIGHT", "TO113"),  # OS East Lead
-    (55, 6): ("OS 39", "RIGHT", "TOL29"),  # Thrown = OS McKees Rocks; Closed TOP = OS K-1
-    (55, 7): ("OS 37", "RIGHT", "TOR36"),  # Thrown = OS McKeesport; Closed BOTTOM = OS K-2
+    (4, 8): ("Track 1", "RIGHT", "TOL3"),  # Brick. Thrown = through E Main Ext; Closed BOTTOM = yard
+    (5, 9): ("Track 3", "BOTTOM", "TOL38"),  # Closed = Track W-1 (BOTTOM); Thrown RIGHT = Track W-2
+    (9, 8): ("Track 5", "RIGHT", "TOL42"),  # Closed = through E Main Ext; Thrown TOP = Track Scale
+    (15, 8): ("Track 7b", "RIGHT", "TO117"),
+    (15, 7): ("Track 7", "LEFT", "TO117"),
+    (24, 8): ("Track 9", "LEFT", "TO10"),  # Closed LEFT = Track EH-1; Thrown BOTTOM = Track EH-2
+    (26, 8): ("Track 11", "LEFT", "TO11"),  # Closed LEFT = from 119; Thrown BOTTOM = Track EH-3
+    (27, 7): ("Track 13", "LEFT", "TO1"),  # Thrown BOTTOM is a stub; does not join 118
+    (30, 7): ("Track 15", "RIGHT", "TOR14"),  # Thrown BOTTOM geographic into 104 approach
+    (31, 8): ("Track 17", "BOTTOM", "TOL15"),
+    (32, 9): ("Track 19", "BOTTOM", "TOL17"),
+    (33, 10): ("Track 21", "BOTTOM", "TOL19"),
+    (40, 6): ("Track 23a", "RIGHT", "TO111"),  # Track Main West
+    (40, 7): ("Track 23b", "LEFT", "TO111"),  # Track S-R
+    (42, 7): ("Track 31", "LEFT", "TOL6"),  # Closed LEFT = Track S-R/111; Thrown BOTTOM = 109
+    (44, 7): ("Track 33", "LEFT", "TOL23"),  # Closed LEFT = 110; Thrown BOTTOM = Track Main East
+    (41, 8): ("Track 29", "BOTTOM", "TOR7"),
+    (40, 9): ("Track 27", "BOTTOM", "TOR9"),
+    (39, 10): ("Track 25", "BOTTOM", "TOR11"),
+    (52, 6): ("Track 35b", "LEFT", "TO113"),  # Track West Main Ext
+    (52, 7): ("Track 35a", "RIGHT", "TO113"),  # Track East Lead
+    (55, 6): ("Track 39", "RIGHT", "TOL29"),  # Thrown = Track McKees Rocks; Closed TOP = Track K-1
+    (55, 7): ("Track 37", "RIGHT", "TOR36"),  # Thrown = Track McKeesport; Closed BOTTOM = Track K-2
 }
 
 # CATS NORMAL = drawn through. These three are JMRI Thrown when lined
 # for that through route (Designer “differs from JMRI settings”).
-# 112 is no longer inverted: LEFT is the 110/OS S-R closed leg, BOTTOM is OS Main East.
+# 112 is no longer inverted: LEFT is the 110/Track S-R closed leg, BOTTOM is Track Main East.
 INVERT_VS_JMRI = {"TOL3", "TOR36", "TOL29"}  # 100, 114, 115
 
 # Do not add rails. Designer already drew every frog.
@@ -79,138 +80,138 @@ EXTRA_TRACKS: dict[tuple[int, int], str] = {}
 
 # Named BLOCK only on Designer occupancy cuts (do not add/remove gaps).
 ANCHORS: list[tuple[int, int, str, str]] = [
-    # OS K-1 | OS 39
-    (56, 5, "RIGHT", "OS 39"),  # Mast 40LA (OS K-1 dwarf)
-    (57, 5, "LEFT", "OS K-1"),
-    # OS Main West west rim (Y=6) SHARED-joins west-of-Brick (Y=8) for N/X.
-    (1, 6, "LEFT", "OS Main West"),
-    (1, 8, "LEFT", "OS Main West"),
-    (2, 8, "RIGHT", "OS Main West"),
-    (3, 8, "LEFT", "OS 1"),  # Mast 2L
-    # OS Main West | OS 23a
-    (38, 6, "RIGHT", "OS Main West"),
-    (39, 6, "LEFT", "OS 23a"),  # Mast 24RA
-    (40, 6, "RIGHT", "OS 23a"),
-    (41, 6, "LEFT", "OS West Main Ext"),
-    (40, 6, "BOTTOM", "OS 23a"),
-    (40, 7, "TOP", "OS 23b"),
-    # Mast 24L sits mid OS West Main Ext (same name both faces — lamp gap only).
-    (45, 6, "RIGHT", "OS West Main Ext"),  # Mast 24L
-    (46, 6, "LEFT", "OS West Main Ext"),
-    (50, 6, "RIGHT", "OS West Main Ext"),
-    (51, 6, "LEFT", "OS 35b"),  # Mast 36RA
-    (52, 6, "BOTTOM", "OS 35b"),
-    (52, 7, "TOP", "OS 35a"),
-    (53, 6, "RIGHT", "OS 35b"),
-    (54, 6, "LEFT", "OS 39"),
-    (56, 6, "RIGHT", "OS 39"),  # Mast 40LB (OS McKees Rocks 2-head)
-    (57, 6, "LEFT", "OS McKees Rocks"),
-    (60, 6, "RIGHT", "OS McKees Rocks"),  # Mast 2035
-    (61, 6, "LEFT", "OS McKeesport"),  # Mast 2036
-    (63, 6, "RIGHT", "OS McKeesport"),  # SHARED wrap to (63,7)
-    # OS Scale / 117 / OS Barn / 116 / 103 / OS S-R
-    (10, 7, "RIGHT", "OS 5"),  # Mast 6LA
-    (11, 7, "LEFT", "OS Scale"),
-    (13, 7, "RIGHT", "OS Scale"),
-    (14, 7, "LEFT", "OS 7"),  # Mast 8RA
-    (15, 7, "BOTTOM", "OS 7"),
-    (15, 8, "TOP", "OS 7b"),
-    (16, 7, "RIGHT", "OS 7"),  # Mast 8LB
-    (17, 7, "LEFT", "OS Barn"),
-    (26, 7, "RIGHT", "OS Barn"),
-    (27, 7, "LEFT", "OS 13"),
-    (27, 7, "BOTTOM", "OS 13"),
-    (27, 8, "TOP", "OS 11"),  # 116 Thrown stub | 118 (no jump)
-    (28, 7, "RIGHT", "OS 13"),
-    (29, 7, "LEFT", "OS 15"),
-    (30, 7, "RIGHT", "OS 15"),
-    (31, 7, "LEFT", "OS S-R"),
-    (30, 7, "BOTTOM", "OS 15"),
-    (30, 8, "TOP", "OS 17"),
-    (38, 7, "RIGHT", "OS S-R"),
-    (39, 7, "LEFT", "OS 23b"),  # Mast 24RB
-    (41, 7, "RIGHT", "OS 23b"),
-    (42, 7, "LEFT", "OS 31"),  # OS 31 | OS 23b
-    (42, 7, "BOTTOM", "OS 31"),  # Mast 32R — OS 31 | OS 29
-    (42, 8, "TOP", "OS 29"),
-    (43, 7, "RIGHT", "OS 31"),
-    (44, 7, "LEFT", "OS 33"),
-    (45, 7, "RIGHT", "OS 33"),  # Mast 34L
-    (43, 8, "RIGHT", "OS Main East"),
-    (44, 8, "LEFT", "OS 33"),  # Mast 34R (CATS name only; no field mast yet)
-    (46, 7, "LEFT", "OS East Lead"),
-    (50, 7, "RIGHT", "OS East Lead"),
-    (51, 7, "LEFT", "OS 35a"),  # Mast 36RB
-    (53, 7, "RIGHT", "OS 35a"),
-    (54, 7, "LEFT", "OS 37"),
-    (56, 7, "RIGHT", "OS 37"),  # Mast 38LB (OS McKeesport 2-head)
-    (57, 7, "LEFT", "OS McKeesport"),
-    (63, 7, "RIGHT", "OS McKeesport"),
+    # Track K-1 | Track 39
+    (56, 5, "RIGHT", "Track 39"),  # Mast 40LA (Track K-1 dwarf)
+    (57, 5, "LEFT", "Track K-1"),
+    # Track Main West west rim (Y=6) SHARED-joins west-of-Brick (Y=8) for N/X.
+    (1, 6, "LEFT", "Track Main West"),
+    (1, 8, "LEFT", "Track Main West"),
+    (2, 8, "RIGHT", "Track Main West"),
+    (3, 8, "LEFT", "Track 1"),  # Mast 2L
+    # Track Main West | Track 23a
+    (38, 6, "RIGHT", "Track Main West"),
+    (39, 6, "LEFT", "Track 23a"),  # Mast 24RA
+    (40, 6, "RIGHT", "Track 23a"),
+    (41, 6, "LEFT", "Track West Main Ext"),
+    (40, 6, "BOTTOM", "Track 23a"),
+    (40, 7, "TOP", "Track 23b"),
+    # Mast 24L sits mid Track West Main Ext (same name both faces — lamp gap only).
+    (45, 6, "RIGHT", "Track West Main Ext"),  # Mast 24L
+    (46, 6, "LEFT", "Track West Main Ext"),
+    (50, 6, "RIGHT", "Track West Main Ext"),
+    (51, 6, "LEFT", "Track 35b"),  # Mast 36RA
+    (52, 6, "BOTTOM", "Track 35b"),
+    (52, 7, "TOP", "Track 35a"),
+    (53, 6, "RIGHT", "Track 35b"),
+    (54, 6, "LEFT", "Track 39"),
+    (56, 6, "RIGHT", "Track 39"),  # Mast 40LB (Track McKees Rocks 2-head)
+    (57, 6, "LEFT", "Track McKees Rocks"),
+    (60, 6, "RIGHT", "Track McKees Rocks"),  # Mast 2035
+    (61, 6, "LEFT", "Track McKeesport"),  # Mast 2036
+    (63, 6, "RIGHT", "Track McKeesport"),  # SHARED wrap to (63,7)
+    # Track Scale / 117 / Track Barn / 116 / 103 / Track S-R
+    (10, 7, "RIGHT", "Track 5"),  # Mast 6LA
+    (11, 7, "LEFT", "Track Scale"),
+    (13, 7, "RIGHT", "Track Scale"),
+    (14, 7, "LEFT", "Track 7"),  # Mast 8RA
+    (15, 7, "BOTTOM", "Track 7"),
+    (15, 8, "TOP", "Track 7b"),
+    (16, 7, "RIGHT", "Track 7"),  # Mast 8LB
+    (17, 7, "LEFT", "Track Barn"),
+    (26, 7, "RIGHT", "Track Barn"),
+    (27, 7, "LEFT", "Track 13"),
+    (27, 7, "BOTTOM", "Track 13"),
+    (27, 8, "TOP", "Track 11"),  # 116 Thrown stub | 118 (no jump)
+    (28, 7, "RIGHT", "Track 13"),
+    (29, 7, "LEFT", "Track 15"),
+    (30, 7, "RIGHT", "Track 15"),
+    (31, 7, "LEFT", "Track S-R"),
+    (30, 7, "BOTTOM", "Track 15"),
+    (30, 8, "TOP", "Track 17"),
+    (38, 7, "RIGHT", "Track S-R"),
+    (39, 7, "LEFT", "Track 23b"),  # Mast 24RB
+    (41, 7, "RIGHT", "Track 23b"),
+    (42, 7, "LEFT", "Track 31"),  # Track 31 | Track 23b
+    (42, 7, "BOTTOM", "Track 31"),  # Mast 32R — Track 31 | Track 29
+    (42, 8, "TOP", "Track 29"),
+    (43, 7, "RIGHT", "Track 31"),
+    (44, 7, "LEFT", "Track 33"),
+    (45, 7, "RIGHT", "Track 33"),  # Mast 34L
+    (43, 8, "RIGHT", "Track Main East"),
+    (44, 8, "LEFT", "Track 33"),  # Mast 34R (CATS name only; no field mast yet)
+    (46, 7, "LEFT", "Track East Lead"),
+    (50, 7, "RIGHT", "Track East Lead"),
+    (51, 7, "LEFT", "Track 35a"),  # Mast 36RB
+    (53, 7, "RIGHT", "Track 35a"),
+    (54, 7, "LEFT", "Track 37"),
+    (56, 7, "RIGHT", "Track 37"),  # Mast 38LB (Track McKeesport 2-head)
+    (57, 7, "LEFT", "Track McKeesport"),
+    (63, 7, "RIGHT", "Track McKeesport"),
     # Brick / Plane / E Main Ext / 117b
-    (4, 8, "RIGHT", "OS 1"),
-    (5, 8, "LEFT", "OS Brick-Plane"),
-    (4, 8, "BOTTOM", "OS 1"),
-    (4, 9, "TOP", "OS 3"),
-    (7, 8, "RIGHT", "OS Brick-Plane"),
-    (8, 8, "LEFT", "OS 5"),
-    (10, 8, "RIGHT", "OS 5"),  # Mast 6LB
-    (11, 8, "LEFT", "OS East Main Ext"),
-    (13, 8, "RIGHT", "OS East Main Ext"),
-    (14, 8, "LEFT", "OS 7b"),  # Mast 8RB
-    (16, 8, "RIGHT", "OS 7b"),  # Mast 8LA
-    (17, 8, "LEFT", "OS Main East"),
+    (4, 8, "RIGHT", "Track 1"),
+    (5, 8, "LEFT", "Track Brick-Plane"),
+    (4, 8, "BOTTOM", "Track 1"),
+    (4, 9, "TOP", "Track 3"),
+    (7, 8, "RIGHT", "Track Brick-Plane"),
+    (8, 8, "LEFT", "Track 5"),
+    (10, 8, "RIGHT", "Track 5"),  # Mast 6LB
+    (11, 8, "LEFT", "Track East Main Ext"),
+    (13, 8, "RIGHT", "Track East Main Ext"),
+    (14, 8, "LEFT", "Track 7b"),  # Mast 8RB
+    (16, 8, "RIGHT", "Track 7b"),  # Mast 8LA
+    (17, 8, "LEFT", "Track Main East"),
     # Engine House
-    (21, 8, "LEFT", "OS EH-1"),
-    (23, 8, "RIGHT", "OS EH-1"),
-    (24, 8, "LEFT", "OS 9"),
-    (24, 8, "BOTTOM", "OS 9"),
-    (24, 9, "TOP", "OS EH-2"),
-    (25, 8, "RIGHT", "OS 9"),
-    (26, 8, "LEFT", "OS 11"),
-    (26, 8, "BOTTOM", "OS 11"),
-    (26, 9, "TOP", "OS EH-3"),
-    (21, 9, "LEFT", "OS EH-2"),
-    (21, 10, "LEFT", "OS EH-3"),
+    (21, 8, "LEFT", "Track EH-1"),
+    (23, 8, "RIGHT", "Track EH-1"),
+    (24, 8, "LEFT", "Track 9"),
+    (24, 8, "BOTTOM", "Track 9"),
+    (24, 9, "TOP", "Track EH-2"),
+    (25, 8, "RIGHT", "Track 9"),
+    (26, 8, "LEFT", "Track 11"),
+    (26, 8, "BOTTOM", "Track 11"),
+    (26, 9, "TOP", "Track EH-3"),
+    (21, 9, "LEFT", "Track EH-2"),
+    (21, 10, "LEFT", "Track EH-3"),
     # South yard ladders
-    (31, 8, "RIGHT", "OS 17"),
-    (32, 8, "LEFT", "OS S-1"),
-    (31, 8, "BOTTOM", "OS 17"),
-    (31, 9, "TOP", "OS 19"),
-    (40, 8, "RIGHT", "OS S-1"),
-    (41, 8, "LEFT", "OS 29"),
-    (41, 8, "BOTTOM", "OS 29"),
-    (41, 9, "TOP", "OS 27"),
-    (32, 9, "RIGHT", "OS 19"),
-    (33, 9, "LEFT", "OS S-2"),
-    (32, 9, "BOTTOM", "OS 19"),
-    (32, 10, "TOP", "OS 21"),
-    (39, 9, "RIGHT", "OS S-2"),
-    (40, 9, "LEFT", "OS 27"),
-    (40, 9, "BOTTOM", "OS 27"),
-    (40, 10, "TOP", "OS 25"),
-    (33, 10, "RIGHT", "OS 21"),
-    (34, 10, "LEFT", "OS S-3"),
-    (33, 10, "BOTTOM", "OS 21"),
-    (33, 11, "TOP", "OS S-4"),
-    (38, 10, "RIGHT", "OS S-3"),
-    (39, 10, "LEFT", "OS 25"),
-    (39, 10, "BOTTOM", "OS 25"),
-    (39, 11, "TOP", "OS S-4"),
-    # OS W-1 / OS W-2
-    (6, 9, "RIGHT", "OS 3"),  # Mast 4RB
-    (7, 9, "LEFT", "OS W-2"),
-    (9, 9, "RIGHT", "OS W-2"),
-    (6, 10, "RIGHT", "OS 3"),  # Mast 4RA
-    (7, 10, "LEFT", "OS W-1"),
-    (9, 10, "RIGHT", "OS W-1"),
-    # OS K-2
-    (56, 8, "RIGHT", "OS 37"),  # Mast 38LA (OS K-2 dwarf)
-    (57, 8, "LEFT", "OS K-2"),
+    (31, 8, "RIGHT", "Track 17"),
+    (32, 8, "LEFT", "Track S-1"),
+    (31, 8, "BOTTOM", "Track 17"),
+    (31, 9, "TOP", "Track 19"),
+    (40, 8, "RIGHT", "Track S-1"),
+    (41, 8, "LEFT", "Track 29"),
+    (41, 8, "BOTTOM", "Track 29"),
+    (41, 9, "TOP", "Track 27"),
+    (32, 9, "RIGHT", "Track 19"),
+    (33, 9, "LEFT", "Track S-2"),
+    (32, 9, "BOTTOM", "Track 19"),
+    (32, 10, "TOP", "Track 21"),
+    (39, 9, "RIGHT", "Track S-2"),
+    (40, 9, "LEFT", "Track 27"),
+    (40, 9, "BOTTOM", "Track 27"),
+    (40, 10, "TOP", "Track 25"),
+    (33, 10, "RIGHT", "Track 21"),
+    (34, 10, "LEFT", "Track S-3"),
+    (33, 10, "BOTTOM", "Track 21"),
+    (33, 11, "TOP", "Track S-4"),
+    (38, 10, "RIGHT", "Track S-3"),
+    (39, 10, "LEFT", "Track 25"),
+    (39, 10, "BOTTOM", "Track 25"),
+    (39, 11, "TOP", "Track S-4"),
+    # Track W-1 / Track W-2
+    (6, 9, "RIGHT", "Track 3"),  # Mast 4RB
+    (7, 9, "LEFT", "Track W-2"),
+    (9, 9, "RIGHT", "Track W-2"),
+    (6, 10, "RIGHT", "Track 3"),  # Mast 4RA
+    (7, 10, "LEFT", "Track W-1"),
+    (9, 10, "RIGHT", "Track W-1"),
+    # Track K-2
+    (56, 8, "RIGHT", "Track 37"),  # Mast 38LA (Track K-2 dwarf)
+    (57, 8, "LEFT", "Track K-2"),
 ]
 # Name existing lamps only (keep Designer PANELSIGNAL).
 SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
-    (6, 10, "RIGHT"): "Mast 4RA",  # OS W-1
-    (6, 9, "RIGHT"): "Mast 4RB",  # OS W-2
+    (6, 10, "RIGHT"): "Mast 4RA",  # Track W-1
+    (6, 9, "RIGHT"): "Mast 4RB",  # Track W-2
     (3, 8, "LEFT"): "Mast 2L",
     (10, 8, "RIGHT"): "Mast 6LB",
     (10, 7, "RIGHT"): "Mast 6LA",
@@ -222,8 +223,8 @@ SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
     (45, 6, "RIGHT"): "Mast 24L",
     (51, 6, "LEFT"): "Mast 36RA",
     (51, 7, "LEFT"): "Mast 36RB",
-    (56, 6, "RIGHT"): "Mast 40LB",  # OS McKees Rocks
-    (56, 5, "RIGHT"): "Mast 40LA",  # OS K-1
+    (56, 6, "RIGHT"): "Mast 40LB",  # Track McKees Rocks
+    (56, 5, "RIGHT"): "Mast 40LA",  # Track K-1
     # Balloon pair sits on 61 RIGHT | 62 LEFT (Designer; was 60|61).
     (61, 6, "RIGHT"): "Mast 2035",
     (62, 6, "LEFT"): "Mast 2036",
@@ -231,48 +232,48 @@ SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
     (42, 7, "BOTTOM"): "Mast 32R",
     (45, 7, "RIGHT"): "Mast 34L",
     (44, 8, "LEFT"): "Mast 34R",  # panel CP name; no JMRI mast yet
-    (56, 7, "RIGHT"): "Mast 38LB",  # OS McKeesport
-    (56, 8, "RIGHT"): "Mast 38LA",  # OS K-2
+    (56, 7, "RIGHT"): "Mast 38LB",  # Track McKeesport
+    (56, 8, "RIGHT"): "Mast 38LA",  # Track K-2
 }
 
 # Designer captions are in the right cells; do not relocate them.
 LABEL_FIXES: dict[tuple[int, int], str] = {}
 LABEL_ALIGN: dict[tuple[int, int], str] = {}
 
-# Mast 32R is on OS 31 BOTTOM (110|109). A CP on OS 29 would stop 109→110 N/X.
+# Mast 32R is on Track 31 BOTTOM (110|109). A CP on Track 29 would stop 109→110 N/X.
 SIGNAL_MOVES: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = []
 SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {}
 
 # Panel-edge wraps. Paint stays gapped; N/X routes through. Same BLOCK
-# name so occupancy merges: OS Main West west stubs; Princess OS McKeesport.
+# name so occupancy merges: Track Main West west stubs; Princess Track McKeesport.
 SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = [
     ((1, 6, "LEFT"), (1, 8, "LEFT")),
     ((63, 6, "RIGHT"), (63, 7, "RIGHT")),
 ]
 
 STATIONS = {
-    "OS W-1": "OS W-1",
-    "OS W-2": "OS W-2",
-    "OS EH-1": "OS EH-1",
-    "OS EH-2": "OS EH-2",
-    "OS EH-3": "OS EH-3",
-    "OS Scale": "West Lead",
-    "OS Barn": "West Lead",
-    "OS S-R": "OS S-R",
-    "OS S-1": "OS S-1",
-    "OS S-2": "OS S-2",
-    "OS S-3": "OS S-3",
-    "OS S-4": "OS S-4",
-    "OS K-1": "OS K-1",
-    "OS K-2": "OS K-2",
-    "OS McKees Rocks": "OS McKees Rocks",
-    "OS McKeesport": "OS McKeesport",
-    "OS East Lead": "OS East Lead",
-    "OS Main West": "OS Main West",
-    "OS West Main Ext": "OS Main West",
-    "OS Main East": "OS Main East",
-    "OS East Main Ext": "OS Main East",
-    "OS Brick-Plane": "OS Brick-Plane",
+    "Track W-1": "Track W-1",
+    "Track W-2": "Track W-2",
+    "Track EH-1": "Track EH-1",
+    "Track EH-2": "Track EH-2",
+    "Track EH-3": "Track EH-3",
+    "Track Scale": "West Lead",
+    "Track Barn": "West Lead",
+    "Track S-R": "Track S-R",
+    "Track S-1": "Track S-1",
+    "Track S-2": "Track S-2",
+    "Track S-3": "Track S-3",
+    "Track S-4": "Track S-4",
+    "Track K-1": "Track K-1",
+    "Track K-2": "Track K-2",
+    "Track McKees Rocks": "Track McKees Rocks",
+    "Track McKeesport": "Track McKeesport",
+    "Track East Lead": "Track East Lead",
+    "Track Main West": "Track Main West",
+    "Track West Main Ext": "Track Main West",
+    "Track Main East": "Track Main East",
+    "Track East Main Ext": "Track Main East",
+    "Track Brick-Plane": "Track Brick-Plane",
 }
 
 
@@ -284,6 +285,40 @@ TRACK_ENDS = {
     "UPPERBACKSLASH": frozenset({"RIGHT", "TOP"}),
     "LOWERBACKSLASH": frozenset({"LEFT", "BOTTOM"}),
 }
+
+_SWITCH_OS_RE = re.compile(r"^(?:OS|Track) \d")
+
+# Designer Digicon plates stay 100-series even though block userNames are Track 1…39.
+SWITCH_OS_PLATES = {
+    "Track 1": "100",
+    "Track 3": "101",
+    "Track 5": "102",
+    "Track 15": "103",
+    "Track 17": "104",
+    "Track 19": "105",
+    "Track 21": "106",
+    "Track 25": "107",
+    "Track 27": "108",
+    "Track 29": "109",
+    "Track 31": "110",
+    "Track 23a": "111",
+    "Track 23b": "111",
+    "Track 33": "112",
+    "Track 35a": "113",
+    "Track 35b": "113",
+    "Track 37": "114",
+    "Track 39": "115",
+    "Track 13": "116",
+    "Track 7": "117",
+    "Track 7b": "117",
+    "Track 11": "118",
+    "Track 9": "119",
+}
+
+
+def _is_switch_os(name: str | None) -> bool:
+    """Switch occupancy cuts: Track 1 / Track 23a (not Track Scale / Track S-R)."""
+    return bool(_SWITCH_OS_RE.match(name or ""))
 
 
 def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
@@ -358,7 +393,7 @@ def insert_ladder_os_gaps(root: ET.Element, tp: ET.Element) -> int:
     """No-op: Designer now staggers the H+slash ladders.
 
     Spine BOTTOM of each frog faces a plain slash cell, not the next
-    SWITCHPOINTS, so OS 17–109 already separate without inserted VERTICALs.
+    SWITCHPOINTS, so Track 17–109 already separate without inserted VERTICALs.
     """
     return 0
 
@@ -401,9 +436,11 @@ def name_blocks(tp: ET.Element) -> int:
         if blk is None:
             blk = ET.SubElement(se, "BLOCK")
         blk.set("NAME", name)
-        blk.set("STATION", STATIONS.get(name, name.split()[0] if name.startswith("OS") else name))
-        if name.startswith("OS"):
-            blk.set("STATION", name.replace("OS ", "").split()[0])
+        if _is_switch_os(name):
+            plate = SWITCH_OS_PLATES.get(name) or name.split(None, 1)[-1].split()[0]
+            blk.set("STATION", STATIONS.get(name, plate))
+        else:
+            blk.set("STATION", STATIONS.get(name, name))
         blk.set("DISCIPLINE", disc.get(name, "CTC"))
         blk.set("VISIBLE", "true")
         n += 1
@@ -415,7 +452,7 @@ def add_shared_jumps(tp: ET.Element) -> int:
     the geographic neighbor (paint stays gapped; N/X routes).
 
     Both ends must point at each other. Same-name jumps merge occupancy:
-    west-edge OS Main West wrap and Princess OS McKeesport wrap.
+    west-edge Track Main West wrap and Princess Track McKeesport wrap.
     """
     keep_blk = {(x, y, e) for x, y, e, _ in ANCHORS}
     secs = {
@@ -755,11 +792,11 @@ def break_dual_named_tracks(tp: ET.Element) -> int:
             nb = bb.get("NAME") if bb is not None else None
             if not na or not nb or na == nb:
                 continue
-            # Keep OS occupancy; drop the body-track name on the same frog.
+            # Keep switch-OS occupancy; drop the body-track name on the same frog.
             drop_e, drop_b = (ea, ba)
-            if str(na).startswith("OS ") and not str(nb).startswith("OS "):
+            if _is_switch_os(na) and not _is_switch_os(nb):
                 drop_e, drop_b = eb, bb
-            elif str(nb).startswith("OS ") and not str(na).startswith("OS "):
+            elif _is_switch_os(nb) and not _is_switch_os(na):
                 drop_e, drop_b = ea, ba
             drop_e.remove(drop_b)
             n += 1

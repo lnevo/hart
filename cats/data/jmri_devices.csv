@@ -72,9 +72,9 @@ sensor,M2S1300,Block 13-1,occupancy_or_feedback,
 sensor,M2S1301,Block 13-2,occupancy_or_feedback,
 sensor,M2S1302,Block 13-3,occupancy_or_feedback,
 sensor,M2S1303,Block 13-4,occupancy_or_feedback,
-sensor,M2S1304,Block 13-5,occupancy_or_feedback,occupancy OS EH-3
-sensor,M2S1305,Block 13-6,occupancy_or_feedback,occupancy OS EH-2
-sensor,M2S1306,Block 13-7,occupancy_or_feedback,occupancy OS EH-1
+sensor,M2S1304,Block 13-5,occupancy_or_feedback,occupancy Track EH-3
+sensor,M2S1305,Block 13-6,occupancy_or_feedback,occupancy Track EH-2
+sensor,M2S1306,Block 13-7,occupancy_or_feedback,occupancy Track EH-1
 sensor,M2S1307,Block 13-8,occupancy_or_feedback,
 sensor,M2S1367,Switch 13-1 FB N,occupancy_or_feedback,
 sensor,M2S1368,Switch 13-1 FB R,occupancy_or_feedback,
@@ -189,23 +189,23 @@ turnout,M2T109,,points_command,
 turnout,Switch 23,,points_command,
 turnout,Switch 35,,points_command,
 turnout,M2T410,,points_command,
-layout_os,TOL3,OS 1,os_block,turnoutname=M2T408
-layout_os,TOR11,OS 25,os_block,turnoutname=M2T1208
-layout_os,TOL15,OS 17,os_block,turnoutname=M2T309
-layout_os,TOL23,OS 33,os_block,turnoutname=M2T1213
-layout_os,TOL38,OS 3,os_block,turnoutname=M2T409
-layout_os,TOL42,OS 5,os_block,turnoutname=M2T410
-layout_os,TOR7,OS 29,os_block,turnoutname=M2T1210
-layout_os,TOL19,OS 21,os_block,turnoutname=M2T311
-layout_os,TOR9,OS 27,os_block,turnoutname=M2T1209
-layout_os,TO111,OS 23a,os_block,turnoutname=Switch 23
-layout_os,TOL6,OS 31,os_block,turnoutname=M2T1211
-layout_os,TOL29,OS 39,os_block,turnoutname=M2T110
-layout_os,TOL17,OS 19,os_block,turnoutname=M2T310
-layout_os,TOR36,OS 37,os_block,turnoutname=M2T109
-layout_os,TOR14,OS 15,os_block,turnoutname=M2T308
-layout_os,TO113,OS 35b,os_block,turnoutname=Switch 35
-layout_os,TO1,OS 13,os_block,turnoutname=Switch 13
-layout_os,TO10,OS 9,os_block,turnoutname=Switch 9
-layout_os,TO117,OS 7,os_block,turnoutname=Switch 7
-layout_os,TO11,OS 11,os_block,turnoutname=Switch 11
+layout_os,TOL3,Track 1,os_block,turnoutname=M2T408
+layout_os,TOR11,Track 25,os_block,turnoutname=M2T1208
+layout_os,TOL15,Track 17,os_block,turnoutname=M2T309
+layout_os,TOL23,Track 33,os_block,turnoutname=M2T1213
+layout_os,TOL38,Track 3,os_block,turnoutname=M2T409
+layout_os,TOL42,Track 5,os_block,turnoutname=M2T410
+layout_os,TOR7,Track 29,os_block,turnoutname=M2T1210
+layout_os,TOL19,Track 21,os_block,turnoutname=M2T311
+layout_os,TOR9,Track 27,os_block,turnoutname=M2T1209
+layout_os,TO111,Track 23a,os_block,turnoutname=Switch 23
+layout_os,TOL6,Track 31,os_block,turnoutname=M2T1211
+layout_os,TOL29,Track 39,os_block,turnoutname=M2T110
+layout_os,TOL17,Track 19,os_block,turnoutname=M2T310
+layout_os,TOR36,Track 37,os_block,turnoutname=M2T109
+layout_os,TOR14,Track 15,os_block,turnoutname=M2T308
+layout_os,TO113,Track 35b,os_block,turnoutname=Switch 35
+layout_os,TO1,Track 13,os_block,turnoutname=Switch 13
+layout_os,TO10,Track 9,os_block,turnoutname=Switch 9
+layout_os,TO117,Track 7,os_block,turnoutname=Switch 7
+layout_os,TO11,Track 11,os_block,turnoutname=Switch 11

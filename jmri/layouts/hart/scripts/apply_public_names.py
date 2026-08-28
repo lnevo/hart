@@ -60,7 +60,7 @@ OPTIONAL_MISSING = frozenset(
 )
 
 def _dispatcher_os_sensor_renames() -> tuple[tuple[str, str], ...]:
-    """MoveTo / MoveInProgress follow station.replace(" ","_") including OS_.
+    """MoveTo / MoveInProgress follow station.replace(" ","_") including Track_.
 
     Word-boundary plate replace cannot rewrite MoveToBarn (Barn is inside the
     identifier). S-yard cascade matches the plate map: S-1→S-R … S-5→S-4.
@@ -88,12 +88,19 @@ def _dispatcher_os_sensor_renames() -> tuple[tuple[str, str], ...]:
     for key in simple:
         pairs.append((f"MoveTo{key}_stored", f"MoveToOS_{key}_stored"))
         pairs.append((f"MoveInProgress{key}", f"MoveInProgressOS_{key}"))
+        pairs.append((f"MoveToOS_{key}_stored", f"MoveToTrack_{key}_stored"))
+        pairs.append((f"MoveInProgressOS_{key}", f"MoveInProgressTrack_{key}"))
     for old, new in (
         ("S-1", "OS_S-R"),
         ("S-2", "OS_S-1"),
         ("S-3", "OS_S-2"),
         ("S-4", "OS_S-3"),
         ("S-5", "OS_S-4"),
+        ("OS_S-R", "Track_S-R"),
+        ("OS_S-1", "Track_S-1"),
+        ("OS_S-2", "Track_S-2"),
+        ("OS_S-3", "Track_S-3"),
+        ("OS_S-4", "Track_S-4"),
     ):
         pairs.append((f"MoveTo{old}_stored", f"MoveTo{new}_stored"))
         pairs.append((f"MoveInProgress{old}", f"MoveInProgress{new}"))
@@ -179,6 +186,9 @@ def load_rename_map(csv_path: Path | str) -> list[RenameEntry]:
             current = (row.get("current") or "").strip()
             proposed = (row.get("proposed") or "").strip()
             if layer not in RENAME_LAYERS or not current or current == proposed:
+                continue
+            if layer == "block" and not current.startswith(("OS ", "Track ")):
+                # Bare leftovers (Barn, S-1, East Lead) must not whole-file-replace.
                 continue
             notes = (row.get("notes") or "").strip().lower()
             optional = current in OPTIONAL_MISSING or notes.startswith("historical alias")

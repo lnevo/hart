@@ -44,157 +44,202 @@ turnout,Switch 115,Switch 39,Princess,M2T110,"Node: 1 | OU-1: Port: 5,6 | DCC: 1
 turnout,Switch 102,Switch 5,Plane,M2T410,"Node: 4 | OU-1: Port: 5,6 | DCC: 102",historical alias; CTC Switch 5 (was 102); keep
 turnout,Switch 117,Switch 7,Barn,M2T1308,"Node: 13 | OU-3: Port: 1,2 | DCC: 117",historical alias; CTC Switch 7 (was 117); crossover 117/117b; field still hand-throw
 turnout,Switch 119,Switch 9,,M2T1310,"Node: 13 | OU-3: Port: 5,6 | DCC: 119",historical alias; CTC Switch 9 (was 119); hand-throw; Engine House
-block,OS 1,OS 1,Brick,Block 4-2,Brick,
-block,OS 11,OS 11,Engine House,Block 13-2,Engine House,
-block,OS 13,OS 13,Engine House,Block 3-1,Engine House,
-block,OS 15,OS 15,South Yard,Block 3-2,South Yard,
-block,OS 17,OS 17,South Yard,Block 3-3,South Yard,
-block,OS 19,OS 19,South Yard,Block 3-5,South Yard,
-block,OS 21,OS 21,South Yard,Block 3-7,South Yard,
-block,OS 23a,OS 23a,East End,Block 12-4,East End,
-block,OS 23b,OS 23b,East End,Block 12-6,East End,
-block,OS 25,OS 25,East End,Block 12-1,East End,
-block,OS 27,OS 27,East End,Block 12-3,East End,
-block,OS 29,OS 29,East End,Block 12-5,East End,
-block,OS 3,OS 3,Brick,Block 4-1,Brick,
-block,OS 31,OS 31,East End,Block 12-7,East End,
-block,OS 33,OS 33,East End,Block 12-8,East End,
-block,OS 35a,OS 35a,Princess,Block 1-6,Princess,
-block,OS 35b,OS 35b,Princess,Block 1-5,Princess,
-block,OS 37,OS 37,Princess,Block 1-3,Princess,
-block,OS 39,OS 39,Princess,Block 1-4,Princess,
-block,OS 5,OS 5,Plane,Block 4-5,Plane,
-block,OS 7,OS 7,Barn,Block 13-3,Barn,
-block,OS 7b,OS 7b,Barn,Block 13-4,Barn,
-block,OS 9,OS 9,Engine House,Block 13-8,Engine House,
-block,OS Barn,OS Barn,Barn,Block 13-1,Barn,
-block,OS Brick-Plane,OS Brick-Plane,Brick,Block 4-6,Brick,
-block,OS EH-1,OS EH-1,Engine House,Block 13-7,Engine House,
-block,OS EH-2,OS EH-2,Engine House,Block 13-6,Engine House,
-block,OS EH-3,OS EH-3,Engine House,Block 13-5,Engine House,
-block,OS East Lead,OS East Lead,East End,Block 1-7,East End,
-block,OS East Main Ext,OS East Main Ext,Plane,Block 4-7,Plane,
-block,OS K-1,OS K-1,Princess,Block 1-4,Princess,
-block,OS K-2,OS K-2,Princess,Block 1-3,Princess,
-block,OS Main East,OS Main East,,Block 2-3,,
-block,OS Main West,OS Main West,,Block 2-1,,
-block,OS McKees Rocks,OS McKees Rocks,Princess,Block 1-1,Princess,
-block,OS McKeesport,OS McKeesport,Princess,Block 1-2,Princess,
-block,OS S-1,OS S-1,South Yard,Block 2-7,South Yard,
-block,OS S-2,OS S-2,South Yard,Block 2-6,South Yard,
-block,OS S-3,OS S-3,South Yard,Block 2-5,South Yard,
-block,OS S-4,OS S-4,South Yard,Block 2-4,South Yard,
-block,OS S-R,OS S-R,South Yard,Block 2-8,South Yard,
-block,OS Scale,OS Scale,Plane,Block 4-8,Plane,
-block,OS W-1,OS W-1,Brick,Block 4-4,Brick,
-block,OS W-2,OS W-2,Brick,Block 4-3,Brick,
-block,OS West Main Ext,OS West Main Ext,East End,Block 1-8,East End,
-block,OS 100,OS 1,Brick,Block 4-2,Brick,historical alias; CP in comment
-block,OS 100 (Brick),OS 1,Brick,Block 4-2,Brick,historical alias; CP in comment
-block,OS 118,OS 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
-block,OS 118 (West Yard),OS 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
-block,OS 116,OS 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
-block,OS 116 (West Yard),OS 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
-block,OS 103,OS 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and S-R
-block,OS 103 (South Yard),OS 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and South Yard 1
-block,OS 104,OS 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
-block,OS 104 (South Yard),OS 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
-block,OS 105,OS 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
-block,OS 105 (South Yard),OS 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
-block,OS 106,OS 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
-block,OS 106 (South Yard),OS 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
-block,OS 111a,OS 23a,East End,Block 12-4,East End,historical alias; CP in comment
-block,OS 111a (East End),OS 23a,East End,Block 12-4,East End,historical alias; CP in comment
-block,OS 111b,OS 23b,East End,Block 12-6,East End,historical alias; CP in comment
-block,OS 111b (East End),OS 23b,East End,Block 12-6,East End,historical alias; CP in comment
-block,OS 107,OS 25,East End,Block 12-1,East End,historical alias; CP in comment
-block,OS 107 (East End),OS 25,East End,Block 12-1,East End,historical alias; CP in comment
-block,OS 108,OS 27,East End,Block 12-3,East End,historical alias; CP in comment
-block,OS 108 (East End),OS 27,East End,Block 12-3,East End,historical alias; CP in comment
-block,OS 109,OS 29,East End,Block 12-5,East End,historical alias; CP in comment
-block,OS 109 (East End),OS 29,East End,Block 12-5,East End,historical alias; CP in comment
-block,OS 101,OS 3,Brick,Block 4-1,Brick,historical alias; CP in comment
-block,OS 101 (Brick),OS 3,Brick,Block 4-1,Brick,historical alias; CP in comment
-block,OS 110,OS 31,East End,Block 12-7,East End,historical alias; CP in comment
-block,OS 110 (East End),OS 31,East End,Block 12-7,East End,historical alias; CP in comment
-block,OS 112,OS 33,East End,Block 12-8,East End,historical alias; CP in comment
-block,OS 112 (East End),OS 33,East End,Block 12-8,East End,historical alias; CP in comment
-block,OS 113a,OS 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
-block,OS 113a (Princess),OS 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
-block,OS 113b,OS 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
-block,OS 113b (Princess),OS 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
-block,OS 114,OS 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
-block,OS 114 (Princess),OS 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
-block,OS 115,OS 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
-block,OS 115 (Princess),OS 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
-block,OS 102,OS 5,Plane,Block 4-5,Plane,historical alias; CP in comment
-block,OS 102 (Plane),OS 5,Plane,Block 4-5,Plane,historical alias; CP in comment
-block,OS 117,OS 7,Barn,Block 13-3,Barn,historical alias; Barn CP crossover north/west leg
-block,OS 117 (West Yard),OS 7,Barn,Block 13-3,Barn,historical alias of OS 117
-block,OS 117b,OS 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
-block,OS 117b (West Yard),OS 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
-block,OS 119,OS 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
-block,OS 119 (West Yard),OS 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
-block,Barn,OS Barn,Barn,Block 13-1,Barn,historical alias; MQTT 1300; 117 to 116; was Yard T6
-block,South Yard West,OS Barn,Barn,Block 13-1,Barn,historical alias; alias after Scale/West public names
-block,Yard T6,OS Barn,Barn,Block 13-1,Barn,historical alias; MQTT 1300; 117 to 116; was South Yard West
-block,Block 100-102,OS Brick-Plane,Brick,Block 4-6,Brick,historical alias; alias retire
-block,Brick-Plane,OS Brick-Plane,Brick,Block 4-6,Brick,historical alias; also listed as Block 100-102
-block,Main West Brick-Plane,OS Brick-Plane,Brick,Block 4-6,Brick,historical alias; also listed as Block 100-102
-block,EH-1,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; top house; MQTT 1306 (swapped vs plate order vs EH-3)
-block,ET-3,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; CATS station alias
-block,Engine House 1,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; was Engine House 1; plate EH-1
-block,Yard T9,OS EH-1,Engine House,Block 13-7,Engine House,historical alias; MQTT 1306
-block,EH-2,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; MQTT 1305
-block,ET-2,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; CATS station alias
-block,Engine House 2,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; was Engine House 2; plate EH-2
-block,Yard T10,OS EH-2,Engine House,Block 13-6,Engine House,historical alias; MQTT 1305
-block,EH-3,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; bottom house; MQTT 1304 (swapped vs plate order vs EH-1)
-block,ET-1,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; CATS station alias
-block,Engine House 3,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; was Engine House 3; plate EH-3
-block,Yard T11,OS EH-3,Engine House,Block 13-5,Engine House,historical alias; MQTT 1304
-block,East Lead,OS East Lead,East End,Block 1-7,East End,historical alias; east of 110/112 toward Princess
-block,South Yard East,OS East Lead,East End,Block 1-7,East End,historical alias; was South Yard East; dest East Lead
-block,East Main Ext,OS East Main Ext,Plane,Block 4-7,Plane,historical alias; keep
-block,K-1,OS K-1,Princess,Block 1-4,Princess,historical alias; keep; same sensor as OS 115
-block,K-2,OS K-2,Princess,Block 1-3,Princess,historical alias; keep; same sensor as OS 114
-block,Main East,OS Main East,,Block 2-3,,historical alias; keep
-block,Main West,OS Main West,,Block 2-1,,historical alias; keep
-block,McKees Rocks,OS McKees Rocks,Princess,Block 1-1,Princess,historical alias; keep
-block,McKeesport,OS McKeesport,Princess,Block 1-2,Princess,historical alias; keep
-block,S-2,OS S-1,South Yard,Block 2-7,South Yard,historical alias; plate S-1
-block,South Yard 2,OS S-1,South Yard,Block 2-7,South Yard,historical alias; was South Yard 2; plate S-1
-block,Yard Track 2,OS S-1,South Yard,Block 2-7,South Yard,historical alias; plate S-1
-block,S-2 East,OS S-1 East,South Yard,Block 2-7,,historical alias; hidden S-1 east throat; same occupancy as S-1 (Block 2-7)
-block,S-2 West,OS S-1 West,South Yard,Block 2-7,,historical alias; hidden S-1 west throat; same occupancy as S-1 (Block 2-7)
-block,S-3,OS S-2,South Yard,Block 2-6,South Yard,historical alias; plate S-2
-block,South Yard 3,OS S-2,South Yard,Block 2-6,South Yard,historical alias; was South Yard 3; plate S-2
-block,Yard Track 3,OS S-2,South Yard,Block 2-6,South Yard,historical alias; plate S-2
-block,S-3 East,OS S-2 East,South Yard,Block 2-6,,historical alias; hidden S-2 east throat; same occupancy as S-2 (Block 2-6)
-block,S-3 West,OS S-2 West,South Yard,Block 2-6,,historical alias; hidden S-2 west throat; same occupancy as S-2 (Block 2-6)
-block,S-4,OS S-3,South Yard,Block 2-5,South Yard,historical alias; plate S-3
-block,South Yard 4,OS S-3,South Yard,Block 2-5,South Yard,historical alias; was South Yard 4; plate S-3
-block,Yard Track 4,OS S-3,South Yard,Block 2-5,South Yard,historical alias; plate S-3
-block,S-4 East,OS S-3 East,South Yard,Block 2-5,,historical alias; hidden S-3 east throat; same occupancy as S-3 (Block 2-5)
-block,S-4 West,OS S-3 West,South Yard,Block 2-5,,historical alias; hidden S-3 west throat; same occupancy as S-3 (Block 2-5)
-block,S-5,OS S-4,South Yard,Block 2-4,South Yard,historical alias; plate S-4
-block,South Yard 5,OS S-4,South Yard,Block 2-4,South Yard,historical alias; was South Yard 5; plate S-4
-block,Yard Track 5,OS S-4,South Yard,Block 2-4,South Yard,historical alias; plate S-4
-block,S-5 East,OS S-4 East,South Yard,Block 2-4,,historical alias; hidden S-4 east throat; same occupancy as S-4 (Block 2-4)
-block,S-5 West,OS S-4 West,South Yard,Block 2-4,,historical alias; hidden S-4 west throat; same occupancy as S-4 (Block 2-4)
-block,S-1,OS S-R,South Yard,Block 2-8,South Yard,historical alias; run-through east of 103 to 110/112; plate S-R
-block,South Yard 1,OS S-R,South Yard,Block 2-8,South Yard,historical alias; was South Yard 1; plate S-R
-block,Yard Track 1,OS S-R,South Yard,Block 2-8,South Yard,historical alias; run-through east of 103 to 110/112; plate S-R
-block,S-1 East,OS S-R East,South Yard,Block 2-8,,historical alias; hidden S-R east throat; same occupancy as S-R (Block 2-8)
-block,S-1 West,OS S-R West,South Yard,Block 2-8,,historical alias; hidden S-R west throat; same occupancy as S-R (Block 2-8)
-block,Scale,OS Scale,Plane,Block 4-8,Plane,historical alias; Plane diverging to 117; was Yard T1
-block,South Yard Scale,OS Scale,Plane,Block 4-8,Plane,historical alias; alias after Scale/West public names
-block,Yard T1,OS Scale,Plane,Block 4-8,Plane,historical alias; Plane diverging to 117; was South Yard Scale
-block,W-1,OS W-1,Brick,Block 4-4,Brick,historical alias; yard body; access Switch 101 only; plate W-1
-block,West Yard 1,OS W-1,Brick,Block 4-4,Brick,historical alias; yard body; access Switch 101 only; plate W-1
-block,W-2,OS W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 101 only; plate W-2
-block,West Yard 2,OS W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 101 only; plate W-2
-block,West Main Ext,OS West Main Ext,East End,Block 1-8,East End,historical alias; keep
+block,Track 1,Track 1,Brick,Block 4-2,Brick,
+block,Track 11,Track 11,Engine House,Block 13-2,Engine House,
+block,Track 13,Track 13,Engine House,Block 3-1,Engine House,
+block,Track 15,Track 15,South Yard,Block 3-2,South Yard,
+block,Track 17,Track 17,South Yard,Block 3-3,South Yard,
+block,Track 19,Track 19,South Yard,Block 3-5,South Yard,
+block,Track 21,Track 21,South Yard,Block 3-7,South Yard,
+block,Track 23a,Track 23a,East End,Block 12-4,East End,
+block,Track 23b,Track 23b,East End,Block 12-6,East End,
+block,Track 25,Track 25,East End,Block 12-1,East End,
+block,Track 27,Track 27,East End,Block 12-3,East End,
+block,Track 29,Track 29,East End,Block 12-5,East End,
+block,Track 3,Track 3,Brick,Block 4-1,Brick,
+block,Track 31,Track 31,East End,Block 12-7,East End,
+block,Track 33,Track 33,East End,Block 12-8,East End,
+block,Track 35a,Track 35a,Princess,Block 1-6,Princess,
+block,Track 35b,Track 35b,Princess,Block 1-5,Princess,
+block,Track 37,Track 37,Princess,Block 1-3,Princess,
+block,Track 39,Track 39,Princess,Block 1-4,Princess,
+block,Track 5,Track 5,Plane,Block 4-5,Plane,
+block,Track 7,Track 7,Barn,Block 13-3,Barn,
+block,Track 7b,Track 7b,Barn,Block 13-4,Barn,
+block,Track 9,Track 9,Engine House,Block 13-8,Engine House,
+block,Track Barn,Track Barn,Barn,Block 13-1,Barn,
+block,Track Brick-Plane,Track Brick-Plane,Brick,Block 4-6,Brick,
+block,Track EH-1,Track EH-1,Engine House,Block 13-7,Engine House,
+block,Track EH-2,Track EH-2,Engine House,Block 13-6,Engine House,
+block,Track EH-3,Track EH-3,Engine House,Block 13-5,Engine House,
+block,Track East Lead,Track East Lead,East End,Block 1-7,East End,
+block,Track East Main Ext,Track East Main Ext,Plane,Block 4-7,Plane,
+block,Track K-1,Track K-1,Princess,Block 1-4,Princess,
+block,Track K-2,Track K-2,Princess,Block 1-3,Princess,
+block,Track Main East,Track Main East,,Block 2-3,,
+block,Track Main West,Track Main West,,Block 2-1,,
+block,Track McKees Rocks,Track McKees Rocks,Princess,Block 1-1,Princess,
+block,Track McKeesport,Track McKeesport,Princess,Block 1-2,Princess,
+block,Track S-1,Track S-1,South Yard,Block 2-7,South Yard,
+block,Track S-2,Track S-2,South Yard,Block 2-6,South Yard,
+block,Track S-3,Track S-3,South Yard,Block 2-5,South Yard,
+block,Track S-4,Track S-4,South Yard,Block 2-4,South Yard,
+block,Track S-R,Track S-R,South Yard,Block 2-8,South Yard,
+block,Track Scale,Track Scale,Plane,Block 4-8,Plane,
+block,Track W-1,Track W-1,Brick,Block 4-4,Brick,
+block,Track W-2,Track W-2,Brick,Block 4-3,Brick,
+block,Track West Main Ext,Track West Main Ext,East End,Block 1-8,East End,
+block,OS 1,Track 1,Brick,Block 4-2,Brick,historical alias
+block,OS 100,Track 1,Brick,Block 4-2,Brick,historical alias; CP in comment
+block,OS 100 (Brick),Track 1,Brick,Block 4-2,Brick,historical alias; CP in comment
+block,OS 11,Track 11,Engine House,Block 13-2,Engine House,historical alias
+block,OS 118,Track 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
+block,OS 118 (West Yard),Track 11,Engine House,Block 13-2,Engine House,historical alias; MQTT 1301
+block,OS 116,Track 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
+block,OS 116 (West Yard),Track 13,Engine House,Block 3-1,Engine House,historical alias; hand-throw
+block,OS 13,Track 13,Engine House,Block 3-1,Engine House,historical alias
+block,OS 103,Track 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and S-R
+block,OS 103 (South Yard),Track 15,South Yard,Block 3-2,South Yard,historical alias; CP in comment; between Barn and South Yard 1
+block,OS 15,Track 15,South Yard,Block 3-2,South Yard,historical alias
+block,OS 104,Track 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
+block,OS 104 (South Yard),Track 17,South Yard,Block 3-3,South Yard,historical alias; CP in comment
+block,OS 17,Track 17,South Yard,Block 3-3,South Yard,historical alias
+block,OS 105,Track 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
+block,OS 105 (South Yard),Track 19,South Yard,Block 3-5,South Yard,historical alias; CP in comment
+block,OS 19,Track 19,South Yard,Block 3-5,South Yard,historical alias
+block,OS 106,Track 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
+block,OS 106 (South Yard),Track 21,South Yard,Block 3-7,South Yard,historical alias; CP in comment
+block,OS 21,Track 21,South Yard,Block 3-7,South Yard,historical alias
+block,OS 111a,Track 23a,East End,Block 12-4,East End,historical alias; CP in comment
+block,OS 111a (East End),Track 23a,East End,Block 12-4,East End,historical alias; CP in comment
+block,OS 23a,Track 23a,East End,Block 12-4,East End,historical alias
+block,OS 111b,Track 23b,East End,Block 12-6,East End,historical alias; CP in comment
+block,OS 111b (East End),Track 23b,East End,Block 12-6,East End,historical alias; CP in comment
+block,OS 23b,Track 23b,East End,Block 12-6,East End,historical alias
+block,OS 107,Track 25,East End,Block 12-1,East End,historical alias; CP in comment
+block,OS 107 (East End),Track 25,East End,Block 12-1,East End,historical alias; CP in comment
+block,OS 25,Track 25,East End,Block 12-1,East End,historical alias
+block,OS 108,Track 27,East End,Block 12-3,East End,historical alias; CP in comment
+block,OS 108 (East End),Track 27,East End,Block 12-3,East End,historical alias; CP in comment
+block,OS 27,Track 27,East End,Block 12-3,East End,historical alias
+block,OS 109,Track 29,East End,Block 12-5,East End,historical alias; CP in comment
+block,OS 109 (East End),Track 29,East End,Block 12-5,East End,historical alias; CP in comment
+block,OS 29,Track 29,East End,Block 12-5,East End,historical alias
+block,OS 101,Track 3,Brick,Block 4-1,Brick,historical alias; CP in comment
+block,OS 101 (Brick),Track 3,Brick,Block 4-1,Brick,historical alias; CP in comment
+block,OS 3,Track 3,Brick,Block 4-1,Brick,historical alias
+block,OS 110,Track 31,East End,Block 12-7,East End,historical alias; CP in comment
+block,OS 110 (East End),Track 31,East End,Block 12-7,East End,historical alias; CP in comment
+block,OS 31,Track 31,East End,Block 12-7,East End,historical alias
+block,OS 112,Track 33,East End,Block 12-8,East End,historical alias; CP in comment
+block,OS 112 (East End),Track 33,East End,Block 12-8,East End,historical alias; CP in comment
+block,OS 33,Track 33,East End,Block 12-8,East End,historical alias
+block,OS 113a,Track 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
+block,OS 113a (Princess),Track 35a,Princess,Block 1-6,Princess,historical alias; CP in comment
+block,OS 35a,Track 35a,Princess,Block 1-6,Princess,historical alias
+block,OS 113b,Track 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
+block,OS 113b (Princess),Track 35b,Princess,Block 1-5,Princess,historical alias; CP in comment
+block,OS 35b,Track 35b,Princess,Block 1-5,Princess,historical alias
+block,OS 114,Track 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
+block,OS 114 (Princess),Track 37,Princess,Block 1-3,Princess,historical alias; CP in comment; same circuit as K-2
+block,OS 37,Track 37,Princess,Block 1-3,Princess,historical alias
+block,OS 115,Track 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
+block,OS 115 (Princess),Track 39,Princess,Block 1-4,Princess,historical alias; CP in comment; same circuit as K-1
+block,OS 39,Track 39,Princess,Block 1-4,Princess,historical alias
+block,OS 102,Track 5,Plane,Block 4-5,Plane,historical alias; CP in comment
+block,OS 102 (Plane),Track 5,Plane,Block 4-5,Plane,historical alias; CP in comment
+block,OS 5,Track 5,Plane,Block 4-5,Plane,historical alias
+block,OS 117,Track 7,Barn,Block 13-3,Barn,historical alias; Barn CP crossover north/west leg
+block,OS 117 (West Yard),Track 7,Barn,Block 13-3,Barn,historical alias of OS 117
+block,OS 7,Track 7,Barn,Block 13-3,Barn,historical alias
+block,OS 117b,Track 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
+block,OS 117b (West Yard),Track 7b,Barn,Block 13-4,Barn,historical alias; MQTT 1303
+block,OS 7b,Track 7b,Barn,Block 13-4,Barn,historical alias
+block,OS 119,Track 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
+block,OS 119 (West Yard),Track 9,Engine House,Block 13-8,Engine House,historical alias; MQTT 1307
+block,OS 9,Track 9,Engine House,Block 13-8,Engine House,historical alias
+block,Barn,Track Barn,Barn,Block 13-1,Barn,historical alias; MQTT 1300; 117 to 116; was Yard T6
+block,OS Barn,Track Barn,Barn,Block 13-1,Barn,historical alias
+block,South Yard West,Track Barn,Barn,Block 13-1,Barn,historical alias; alias after Scale/West public names
+block,Yard T6,Track Barn,Barn,Block 13-1,Barn,historical alias; MQTT 1300; 117 to 116; was South Yard West
+block,Block 100-102,Track Brick-Plane,Brick,Block 4-6,Brick,historical alias; alias retire
+block,Brick-Plane,Track Brick-Plane,Brick,Block 4-6,Brick,historical alias; also listed as Block 100-102
+block,Main West Brick-Plane,Track Brick-Plane,Brick,Block 4-6,Brick,historical alias; also listed as Block 100-102
+block,OS Brick-Plane,Track Brick-Plane,Brick,Block 4-6,Brick,historical alias
+block,EH-1,Track EH-1,Engine House,Block 13-7,Engine House,historical alias; top house; MQTT 1306 (swapped vs plate order vs EH-3)
+block,ET-3,Track EH-1,Engine House,Block 13-7,Engine House,historical alias; CATS station alias
+block,Engine House 1,Track EH-1,Engine House,Block 13-7,Engine House,historical alias; was Engine House 1; plate EH-1
+block,OS EH-1,Track EH-1,Engine House,Block 13-7,Engine House,historical alias
+block,Yard T9,Track EH-1,Engine House,Block 13-7,Engine House,historical alias; MQTT 1306
+block,EH-2,Track EH-2,Engine House,Block 13-6,Engine House,historical alias; MQTT 1305
+block,ET-2,Track EH-2,Engine House,Block 13-6,Engine House,historical alias; CATS station alias
+block,Engine House 2,Track EH-2,Engine House,Block 13-6,Engine House,historical alias; was Engine House 2; plate EH-2
+block,OS EH-2,Track EH-2,Engine House,Block 13-6,Engine House,historical alias
+block,Yard T10,Track EH-2,Engine House,Block 13-6,Engine House,historical alias; MQTT 1305
+block,EH-3,Track EH-3,Engine House,Block 13-5,Engine House,historical alias; bottom house; MQTT 1304 (swapped vs plate order vs EH-1)
+block,ET-1,Track EH-3,Engine House,Block 13-5,Engine House,historical alias; CATS station alias
+block,Engine House 3,Track EH-3,Engine House,Block 13-5,Engine House,historical alias; was Engine House 3; plate EH-3
+block,OS EH-3,Track EH-3,Engine House,Block 13-5,Engine House,historical alias
+block,Yard T11,Track EH-3,Engine House,Block 13-5,Engine House,historical alias; MQTT 1304
+block,East Lead,Track East Lead,East End,Block 1-7,East End,historical alias; east of 110/112 toward Princess
+block,OS East Lead,Track East Lead,East End,Block 1-7,East End,historical alias
+block,South Yard East,Track East Lead,East End,Block 1-7,East End,historical alias; was South Yard East; dest East Lead
+block,East Main Ext,Track East Main Ext,Plane,Block 4-7,Plane,historical alias; keep
+block,OS East Main Ext,Track East Main Ext,Plane,Block 4-7,Plane,historical alias
+block,K-1,Track K-1,Princess,Block 1-4,Princess,historical alias; keep; same sensor as OS 115
+block,OS K-1,Track K-1,Princess,Block 1-4,Princess,historical alias
+block,K-2,Track K-2,Princess,Block 1-3,Princess,historical alias; keep; same sensor as OS 114
+block,OS K-2,Track K-2,Princess,Block 1-3,Princess,historical alias
+block,Main East,Track Main East,,Block 2-3,,historical alias; keep
+block,OS Main East,Track Main East,,Block 2-3,,historical alias
+block,Main West,Track Main West,,Block 2-1,,historical alias; keep
+block,OS Main West,Track Main West,,Block 2-1,,historical alias
+block,McKees Rocks,Track McKees Rocks,Princess,Block 1-1,Princess,historical alias; keep
+block,OS McKees Rocks,Track McKees Rocks,Princess,Block 1-1,Princess,historical alias
+block,McKeesport,Track McKeesport,Princess,Block 1-2,Princess,historical alias; keep
+block,OS McKeesport,Track McKeesport,Princess,Block 1-2,Princess,historical alias
+block,OS S-1,Track S-1,South Yard,Block 2-7,South Yard,historical alias
+block,S-2,Track S-1,South Yard,Block 2-7,South Yard,historical alias; plate S-1
+block,South Yard 2,Track S-1,South Yard,Block 2-7,South Yard,historical alias; was South Yard 2; plate S-1
+block,Yard Track 2,Track S-1,South Yard,Block 2-7,South Yard,historical alias; plate S-1
+block,S-2 East,Track S-1 East,South Yard,Block 2-7,,historical alias; hidden S-1 east throat; same occupancy as S-1 (Block 2-7)
+block,S-2 West,Track S-1 West,South Yard,Block 2-7,,historical alias; hidden S-1 west throat; same occupancy as S-1 (Block 2-7)
+block,OS S-2,Track S-2,South Yard,Block 2-6,South Yard,historical alias
+block,S-3,Track S-2,South Yard,Block 2-6,South Yard,historical alias; plate S-2
+block,South Yard 3,Track S-2,South Yard,Block 2-6,South Yard,historical alias; was South Yard 3; plate S-2
+block,Yard Track 3,Track S-2,South Yard,Block 2-6,South Yard,historical alias; plate S-2
+block,S-3 East,Track S-2 East,South Yard,Block 2-6,,historical alias; hidden S-2 east throat; same occupancy as S-2 (Block 2-6)
+block,S-3 West,Track S-2 West,South Yard,Block 2-6,,historical alias; hidden S-2 west throat; same occupancy as S-2 (Block 2-6)
+block,OS S-3,Track S-3,South Yard,Block 2-5,South Yard,historical alias
+block,S-4,Track S-3,South Yard,Block 2-5,South Yard,historical alias; plate S-3
+block,South Yard 4,Track S-3,South Yard,Block 2-5,South Yard,historical alias; was South Yard 4; plate S-3
+block,Yard Track 4,Track S-3,South Yard,Block 2-5,South Yard,historical alias; plate S-3
+block,S-4 East,Track S-3 East,South Yard,Block 2-5,,historical alias; hidden S-3 east throat; same occupancy as S-3 (Block 2-5)
+block,S-4 West,Track S-3 West,South Yard,Block 2-5,,historical alias; hidden S-3 west throat; same occupancy as S-3 (Block 2-5)
+block,OS S-4,Track S-4,South Yard,Block 2-4,South Yard,historical alias
+block,S-5,Track S-4,South Yard,Block 2-4,South Yard,historical alias; plate S-4
+block,South Yard 5,Track S-4,South Yard,Block 2-4,South Yard,historical alias; was South Yard 5; plate S-4
+block,Yard Track 5,Track S-4,South Yard,Block 2-4,South Yard,historical alias; plate S-4
+block,S-5 East,Track S-4 East,South Yard,Block 2-4,,historical alias; hidden S-4 east throat; same occupancy as S-4 (Block 2-4)
+block,S-5 West,Track S-4 West,South Yard,Block 2-4,,historical alias; hidden S-4 west throat; same occupancy as S-4 (Block 2-4)
+block,OS S-R,Track S-R,South Yard,Block 2-8,South Yard,historical alias
+block,S-1,Track S-R,South Yard,Block 2-8,South Yard,historical alias; run-through east of 103 to 110/112; plate S-R
+block,South Yard 1,Track S-R,South Yard,Block 2-8,South Yard,historical alias; was South Yard 1; plate S-R
+block,Yard Track 1,Track S-R,South Yard,Block 2-8,South Yard,historical alias; run-through east of 103 to 110/112; plate S-R
+block,S-1 East,Track S-R East,South Yard,Block 2-8,,historical alias; hidden S-R east throat; same occupancy as S-R (Block 2-8)
+block,S-1 West,Track S-R West,South Yard,Block 2-8,,historical alias; hidden S-R west throat; same occupancy as S-R (Block 2-8)
+block,OS Scale,Track Scale,Plane,Block 4-8,Plane,historical alias
+block,Scale,Track Scale,Plane,Block 4-8,Plane,historical alias; Plane diverging to 117; was Yard T1
+block,South Yard Scale,Track Scale,Plane,Block 4-8,Plane,historical alias; alias after Scale/West public names
+block,Yard T1,Track Scale,Plane,Block 4-8,Plane,historical alias; Plane diverging to 117; was South Yard Scale
+block,OS W-1,Track W-1,Brick,Block 4-4,Brick,historical alias
+block,W-1,Track W-1,Brick,Block 4-4,Brick,historical alias; yard body; access Switch 101 only; plate W-1
+block,West Yard 1,Track W-1,Brick,Block 4-4,Brick,historical alias; yard body; access Switch 101 only; plate W-1
+block,OS W-2,Track W-2,Brick,Block 4-3,Brick,historical alias
+block,W-2,Track W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 101 only; plate W-2
+block,West Yard 2,Track W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 101 only; plate W-2
+block,OS West Main Ext,Track West Main Ext,East End,Block 1-8,East End,historical alias
+block,West Main Ext,Track West Main Ext,East End,Block 1-8,East End,historical alias; keep
 occupancy,BS Barn,BS Barn,Barn,M2S1300,Block 13-1,
 occupancy,BS Brick-Plane,BS Brick-Plane,Brick,M2S405,Block 4-6,
 occupancy,BS EH-1,BS EH-1,,M2S1306,Block 13-7,

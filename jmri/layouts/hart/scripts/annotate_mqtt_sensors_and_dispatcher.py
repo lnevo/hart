@@ -58,48 +58,48 @@ UNUSED_OCC = {
 }
 
 # 2091 circuit. Tuple: (block, enter-from along lap, enter-from opposite).
-# FORWARD = lap direction (WME west → Brick → Plane → OS Barn → OS Main East →
-# 112 → OS East Lead → 113a → 114 → OS McKeesport → Rocks → 115 → 113b → WME).
+# FORWARD = lap direction (WME west → Brick → Plane → Track Barn → Track Main East →
+# 112 → Track East Lead → 113a → 114 → Track McKeesport → Rocks → 115 → 113b → WME).
 LAP_SECTIONS = [
-    ("OS West Main Ext", "OS 35b", "OS 23a"),
-    ("OS 23a", "OS West Main Ext", "OS Main West"),
-    ("OS Main West", "OS 23a", "OS 1"),
-    ("OS 1", "OS Main West", "OS Brick-Plane"),
-    ("OS Brick-Plane", "OS 1", "OS 5"),
-    ("OS 5", "OS Brick-Plane", "OS East Main Ext"),
-    ("OS East Main Ext", "OS 5", "OS 7b"),
-    ("OS 7b", "OS East Main Ext", "OS Main East"),
-    ("OS Main East", "OS 7b", "OS 33"),
-    ("OS 33", "OS Main East", "OS East Lead"),
-    ("OS East Lead", "OS 33", "OS 35a"),
-    ("OS 35a", "OS East Lead", "OS 37"),
-    ("OS 37", "OS 35a", "OS McKeesport"),
-    ("OS McKeesport", "OS 37", "OS McKees Rocks"),
-    ("OS McKees Rocks", "OS McKeesport", "OS 39"),
-    ("OS 39", "OS McKees Rocks", "OS 35b"),
-    ("OS 35b", "OS 39", "OS West Main Ext"),
+    ("Track West Main Ext", "Track 35b", "Track 23a"),
+    ("Track 23a", "Track West Main Ext", "Track Main West"),
+    ("Track Main West", "Track 23a", "Track 1"),
+    ("Track 1", "Track Main West", "Track Brick-Plane"),
+    ("Track Brick-Plane", "Track 1", "Track 5"),
+    ("Track 5", "Track Brick-Plane", "Track East Main Ext"),
+    ("Track East Main Ext", "Track 5", "Track 7b"),
+    ("Track 7b", "Track East Main Ext", "Track Main East"),
+    ("Track Main East", "Track 7b", "Track 33"),
+    ("Track 33", "Track Main East", "Track East Lead"),
+    ("Track East Lead", "Track 33", "Track 35a"),
+    ("Track 35a", "Track East Lead", "Track 37"),
+    ("Track 37", "Track 35a", "Track McKeesport"),
+    ("Track McKeesport", "Track 37", "Track McKees Rocks"),
+    ("Track McKees Rocks", "Track McKeesport", "Track 39"),
+    ("Track 39", "Track McKees Rocks", "Track 35b"),
+    ("Track 35b", "Track 39", "Track West Main Ext"),
 ]
 
 # First and last section are the same (continuous lap).
 TRANSIT_SEQ = [
-    ("OS West Main Ext", FORWARD),
-    ("OS 23a", FORWARD),
-    ("OS Main West", FORWARD),
-    ("OS 1", FORWARD),
-    ("OS Brick-Plane", FORWARD),
-    ("OS 5", FORWARD),
-    ("OS East Main Ext", FORWARD),
-    ("OS 7b", FORWARD),
-    ("OS Main East", FORWARD),
-    ("OS 33", FORWARD),
-    ("OS East Lead", FORWARD),
-    ("OS 35a", FORWARD),
-    ("OS 37", FORWARD),
-    ("OS McKeesport", FORWARD),
-    ("OS McKees Rocks", FORWARD),
-    ("OS 39", FORWARD),
-    ("OS 35b", FORWARD),
-    ("OS West Main Ext", FORWARD),
+    ("Track West Main Ext", FORWARD),
+    ("Track 23a", FORWARD),
+    ("Track Main West", FORWARD),
+    ("Track 1", FORWARD),
+    ("Track Brick-Plane", FORWARD),
+    ("Track 5", FORWARD),
+    ("Track East Main Ext", FORWARD),
+    ("Track 7b", FORWARD),
+    ("Track Main East", FORWARD),
+    ("Track 33", FORWARD),
+    ("Track East Lead", FORWARD),
+    ("Track 35a", FORWARD),
+    ("Track 37", FORWARD),
+    ("Track McKeesport", FORWARD),
+    ("Track McKees Rocks", FORWARD),
+    ("Track 39", FORWARD),
+    ("Track 35b", FORWARD),
+    ("Track West Main Ext", FORWARD),
 ]
 
 
@@ -271,10 +271,10 @@ def build_transits_xml() -> str:
     sys_by_user = section_sys_by_user()
     lines = [
         '  <transits class="jmri.configurexml.TransitManagerXml">',
-        '    <transit systemName="IZ:HART:2091" userName="2091 OS West Main Ext lap">',
+        '    <transit systemName="IZ:HART:2091" userName="2091 Track West Main Ext lap">',
         "      <systemName>IZ:HART:2091</systemName>",
-        "      <userName>2091 OS West Main Ext lap</userName>",
-        "      <comment>WME → 111 → Brick → Plane → OS Barn 117 → OS Main East → 112 → OS East Lead → 113a → 114 → OS McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
+        "      <userName>2091 Track West Main Ext lap</userName>",
+        "      <comment>WME → 111 → Brick → Plane → Track Barn 117 → Track Main East → 112 → Track East Lead → 113a → 114 → Track McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
     ]
     for seq, (name, direction) in enumerate(TRANSIT_SEQ, start=1):
         iy = sys_by_user[name]
@@ -290,16 +290,16 @@ def build_transits_xml() -> str:
 
 def write_traininfo() -> Path:
     TRAININFO_DIR.mkdir(parents=True, exist_ok=True)
-    path = TRAININFO_DIR / "2091_WME_to_OS McKeesport.xml"
+    path = TRAININFO_DIR / "2091_WME_to_Track McKeesport.xml"
     blocks = {
-        "OS West Main Ext": "IB:AUTO:0050",
-        "OS McKeesport": "IB:AUTO:0048",
+        "Track West Main Ext": "IB:AUTO:0050",
+        "Track McKeesport": "IB:AUTO:0048",
     }
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="/xml/XSLT/dispatcher-traininfo.xsl" type="text/xsl"?>
 <traininfofile>
   <traininfo version="8"
-    transitname="2091 OS West Main Ext lap"
+    transitname="2091 Track West Main Ext lap"
     transitid="IZ:HART:2091"
     dynamictransit="no"
     trainname="2091"
@@ -307,11 +307,11 @@ def write_traininfo() -> Path:
     rosterid="2091"
     dccaddress="2091"
     trainintransit="yes"
-    startblockname="OS West Main Ext-1"
-    startblockid="{blocks['OS West Main Ext']}"
+    startblockname="Track West Main Ext-1"
+    startblockid="{blocks['Track West Main Ext']}"
     startblockseq="1"
-    endblockname="OS West Main Ext-18"
-    endblockid="{blocks['OS West Main Ext']}"
+    endblockname="Track West Main Ext-18"
+    endblockid="{blocks['Track West Main Ext']}"
     endblockseq="18"
     viablockname=""
     trainfromroster="yes"

@@ -1,7 +1,7 @@
 cp_id,cp_name,switches,notes
-brick,Brick,"100,101",Switch 3 is the only access to OS W-1/2
-plane,Plane,102,West diverge; west limit of OS Scale
-barn,OS Barn,"117,117b",Crossover only
+brick,Brick,"100,101",Switch 3 is the only access to Track W-1/2
+plane,Plane,102,West diverge; west limit of Track Scale
+barn,Track Barn,"117,117b",Crossover only
 south_yard,South Yard,"103,104,105,106",South Yard ladder
 east_end,East End,"107,108,109,110,111a,111b,112",Includes 111 crossover legs
-princess,Princess,"113a,113b,114,115",East plant toward OS McKees Rocks / OS McKeesport
+princess,Princess,"113a,113b,114,115",East plant toward Track McKees Rocks / Track McKeesport

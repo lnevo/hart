@@ -47,6 +47,25 @@ class BeanCommentFormatTest(unittest.TestCase):
         self.assertEqual(mast("Mast 2035", "Princess"), "Princess")
         self.assertEqual(mast("Mast 2L", "Brick | Switch 1"), "Brick | Switch 1")
 
+    def test_block_prose_keeps_occupancy_and_stop(self) -> None:
+        refresh = self.m.refresh_block_prose
+        self.assertEqual(
+            refresh("Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop"),
+            "Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300; stop",
+        )
+        self.assertEqual(
+            refresh("Run-through east of 103; occupancy Block 2-8 / M2S207; stop"),
+            "Run-through east of Switch 15; occupancy Block 2-8 / M2S207; stop",
+        )
+        self.assertEqual(
+            self.m.BLOCK_COMMENTS["Track Barn"],
+            "Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300; stop",
+        )
+        self.assertEqual(
+            self.m.BLOCK_COMMENTS["Track Scale"],
+            "Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

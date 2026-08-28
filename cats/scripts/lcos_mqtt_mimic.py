@@ -51,10 +51,10 @@ _MOSQUITTO = (
 
 SWITCH_TIPS = {
     1: "THROWN = Switch 5 / Plane (BOTTOM); CLOSED = LEFT",
-    5: "THROWN = OS Scale (RIGHT); CLOSED = OS East Main Ext (BOTTOM)",
-    33: "THROWN = OS Barn (BOTTOM); CLOSED = OS 31 / OS East Lead (LEFT)",
-    37: "THROWN = OS McKeesport (BOTTOM); CLOSED = OS K-2 (RIGHT)",
-    39: "THROWN = OS McKees Rocks (TOP); CLOSED = OS K-1 (RIGHT)",
+    5: "THROWN = Track Scale (RIGHT); CLOSED = Track East Main Ext (BOTTOM)",
+    33: "THROWN = Track Barn (BOTTOM); CLOSED = Track 31 / Track East Lead (LEFT)",
+    37: "THROWN = Track McKeesport (BOTTOM); CLOSED = Track K-2 (RIGHT)",
+    39: "THROWN = Track McKees Rocks (TOP); CLOSED = Track K-1 (RIGHT)",
 }
 
 # West → east along the modeled line. Empty map `cp` falls through to infer_plant.
@@ -229,21 +229,21 @@ def infer_plant(name: str, cp: str = "") -> str:
     if cp:
         return cp
     blob = (name or "").lower()
-    if blob.startswith("os eh") or blob.startswith("bs eh") or "engine house" in blob:
+    if blob.startswith("os eh") or blob.startswith("track eh") or blob.startswith("bs eh") or "engine house" in blob:
         return "Engine House"
     if "switch 9" in blob or "switch 11" in blob:
         return "Engine House"
     if "barn" in blob:
         return "Barn"
-    if blob.startswith("os main") or blob.startswith("bs main"):
+    if blob.startswith("os main") or blob.startswith("track main") or blob.startswith("bs main"):
         return "Main"
-    if "princess" in blob or "mckees" in blob or blob.startswith("os k-"):
+    if "princess" in blob or "mckees" in blob or blob.startswith("os k-") or blob.startswith("track k-"):
         return "Princess"
     if "east end" in blob or "east lead" in blob:
         return "East End"
-    if "south yard" in blob or blob.startswith("os s-") or blob.startswith("bs s-"):
+    if "south yard" in blob or blob.startswith("os s-") or blob.startswith("track s-") or blob.startswith("bs s-"):
         return "South Yard"
-    if blob.startswith("os w-") or blob.startswith("bs w-") or "brick" in blob:
+    if blob.startswith("os w-") or blob.startswith("track w-") or blob.startswith("bs w-") or "brick" in blob:
         return "Brick"
     if "plane" in blob or "scale" in blob:
         return "Plane"

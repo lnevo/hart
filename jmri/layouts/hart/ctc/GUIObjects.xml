@@ -657,7 +657,7 @@
       </inconsistent>
     </multisensoricon>
     <sensoricon sensor="BS Switch 39 / BS K-1" x="1115" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 39</tooltip>
+      <tooltip>Track 39</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -673,7 +673,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Main West" x="-13" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Main West</tooltip>
+      <tooltip>Track Main West</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -689,7 +689,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 23a" x="737" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 23a</tooltip>
+      <tooltip>Track 23a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -705,7 +705,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS West Main Ext" x="827" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS West Main Ext</tooltip>
+      <tooltip>Track West Main Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -721,7 +721,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 35b" x="1052" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 35b</tooltip>
+      <tooltip>Track 35b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -737,7 +737,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS McKees Rocks" x="1163" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS McKees Rocks</tooltip>
+      <tooltip>Track McKees Rocks</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -753,7 +753,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS McKeesport" x="1163" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS McKeesport</tooltip>
+      <tooltip>Track McKeesport</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -769,7 +769,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 5" x="149" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 5</tooltip>
+      <tooltip>Track 5</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -785,7 +785,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Scale" x="197" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Scale</tooltip>
+      <tooltip>Track Scale</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -801,7 +801,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 7" x="275" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 7</tooltip>
+      <tooltip>Track 7</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -817,7 +817,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Barn" x="323" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Barn</tooltip>
+      <tooltip>Track Barn</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -833,7 +833,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 13" x="533" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 13</tooltip>
+      <tooltip>Track 13</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -849,7 +849,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 15" x="590" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 15</tooltip>
+      <tooltip>Track 15</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -865,7 +865,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-R" x="617" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-R</tooltip>
+      <tooltip>Track S-R</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -881,7 +881,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 23b" x="737" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 23b</tooltip>
+      <tooltip>Track 23b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -897,7 +897,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 31" x="848" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 31</tooltip>
+      <tooltip>Track 31</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -913,7 +913,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 33" x="911" y="142" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 33</tooltip>
+      <tooltip>Track 33</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -929,7 +929,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS East Lead" x="932" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS East Lead</tooltip>
+      <tooltip>Track East Lead</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -945,7 +945,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 35a" x="1052" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 35a</tooltip>
+      <tooltip>Track 35a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -961,7 +961,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 37 / BS K-2" x="1115" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 37</tooltip>
+      <tooltip>Track 37</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -977,7 +977,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 1" x="44" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 1</tooltip>
+      <tooltip>Track 1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -993,7 +993,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Brick-Plane" x="71" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Brick-Plane</tooltip>
+      <tooltip>Track Brick-Plane</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1009,7 +1009,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS East Main Ext" x="197" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS East Main Ext</tooltip>
+      <tooltip>Track East Main Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1025,7 +1025,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 7b" x="275" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 7b</tooltip>
+      <tooltip>Track 7b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1041,7 +1041,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Main East" x="323" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Main East</tooltip>
+      <tooltip>Track Main East</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1057,7 +1057,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-1" x="407" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-1</tooltip>
+      <tooltip>Track EH-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1073,7 +1073,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 9" x="470" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 9</tooltip>
+      <tooltip>Track 9</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1089,7 +1089,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 11" x="512" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 11</tooltip>
+      <tooltip>Track 11</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1105,7 +1105,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 17" x="611" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 17</tooltip>
+      <tooltip>Track 17</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1121,7 +1121,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-1" x="638" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-1</tooltip>
+      <tooltip>Track S-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1137,7 +1137,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 29" x="827" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 29</tooltip>
+      <tooltip>Track 29</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1153,7 +1153,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 3" x="65" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 3</tooltip>
+      <tooltip>Track 3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1169,7 +1169,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS W-2" x="113" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS W-2</tooltip>
+      <tooltip>Track W-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1185,7 +1185,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-2" x="407" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-2</tooltip>
+      <tooltip>Track EH-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1201,7 +1201,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-3" x="407" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-3</tooltip>
+      <tooltip>Track EH-3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1217,7 +1217,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 19" x="632" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 19</tooltip>
+      <tooltip>Track 19</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1233,7 +1233,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-2" x="659" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-2</tooltip>
+      <tooltip>Track S-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1249,7 +1249,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 27" x="806" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 27</tooltip>
+      <tooltip>Track 27</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1265,7 +1265,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS W-1" x="113" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS W-1</tooltip>
+      <tooltip>Track W-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1281,7 +1281,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 21" x="653" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 21</tooltip>
+      <tooltip>Track 21</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1297,7 +1297,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-3" x="680" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-3</tooltip>
+      <tooltip>Track S-3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1313,7 +1313,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 25" x="785" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 25</tooltip>
+      <tooltip>Track 25</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1329,7 +1329,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-4" x="659" y="199" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-4</tooltip>
+      <tooltip>Track S-4</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1345,7 +1345,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 39 / BS K-1" x="1115" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 39</tooltip>
+      <tooltip>Track 39</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1361,7 +1361,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Main West" x="-13" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Main West</tooltip>
+      <tooltip>Track Main West</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1377,7 +1377,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 23a" x="737" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 23a</tooltip>
+      <tooltip>Track 23a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1393,7 +1393,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS West Main Ext" x="827" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS West Main Ext</tooltip>
+      <tooltip>Track West Main Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1409,7 +1409,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 35b" x="1052" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 35b</tooltip>
+      <tooltip>Track 35b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1425,7 +1425,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS McKees Rocks" x="1163" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS McKees Rocks</tooltip>
+      <tooltip>Track McKees Rocks</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1441,7 +1441,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS McKeesport" x="1163" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS McKeesport</tooltip>
+      <tooltip>Track McKeesport</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1457,7 +1457,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 5" x="149" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 5</tooltip>
+      <tooltip>Track 5</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1473,7 +1473,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Scale" x="197" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Scale</tooltip>
+      <tooltip>Track Scale</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1489,7 +1489,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 7" x="275" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 7</tooltip>
+      <tooltip>Track 7</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1505,7 +1505,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Barn" x="323" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Barn</tooltip>
+      <tooltip>Track Barn</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1521,7 +1521,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 13" x="533" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 13</tooltip>
+      <tooltip>Track 13</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1537,7 +1537,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 15" x="590" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 15</tooltip>
+      <tooltip>Track 15</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1553,7 +1553,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-R" x="617" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-R</tooltip>
+      <tooltip>Track S-R</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1569,7 +1569,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 23b" x="737" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 23b</tooltip>
+      <tooltip>Track 23b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1585,7 +1585,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 31" x="848" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 31</tooltip>
+      <tooltip>Track 31</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1601,7 +1601,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 33" x="911" y="142" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 33</tooltip>
+      <tooltip>Track 33</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1617,7 +1617,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS East Lead" x="932" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS East Lead</tooltip>
+      <tooltip>Track East Lead</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1633,7 +1633,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 35a" x="1052" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 35a</tooltip>
+      <tooltip>Track 35a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1649,7 +1649,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 37 / BS K-2" x="1115" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 37</tooltip>
+      <tooltip>Track 37</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1665,7 +1665,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 1" x="44" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 1</tooltip>
+      <tooltip>Track 1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1681,7 +1681,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Brick-Plane" x="71" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Brick-Plane</tooltip>
+      <tooltip>Track Brick-Plane</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1697,7 +1697,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS East Main Ext" x="197" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS East Main Ext</tooltip>
+      <tooltip>Track East Main Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1713,7 +1713,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 7b" x="275" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 7b</tooltip>
+      <tooltip>Track 7b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1729,7 +1729,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Main East" x="323" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Main East</tooltip>
+      <tooltip>Track Main East</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1745,7 +1745,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-1" x="407" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-1</tooltip>
+      <tooltip>Track EH-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1761,7 +1761,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 9" x="470" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 9</tooltip>
+      <tooltip>Track 9</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1777,7 +1777,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 11" x="512" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 11</tooltip>
+      <tooltip>Track 11</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1793,7 +1793,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 17" x="611" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 17</tooltip>
+      <tooltip>Track 17</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1809,7 +1809,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-1" x="638" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-1</tooltip>
+      <tooltip>Track S-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1825,7 +1825,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 29" x="827" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 29</tooltip>
+      <tooltip>Track 29</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1841,7 +1841,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 3" x="65" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 3</tooltip>
+      <tooltip>Track 3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1857,7 +1857,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS W-2" x="113" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS W-2</tooltip>
+      <tooltip>Track W-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1873,7 +1873,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-2" x="407" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-2</tooltip>
+      <tooltip>Track EH-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1889,7 +1889,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-3" x="407" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-3</tooltip>
+      <tooltip>Track EH-3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1905,7 +1905,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 19" x="632" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 19</tooltip>
+      <tooltip>Track 19</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1921,7 +1921,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-2" x="659" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-2</tooltip>
+      <tooltip>Track S-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1937,7 +1937,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 27" x="806" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 27</tooltip>
+      <tooltip>Track 27</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1953,7 +1953,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS W-1" x="113" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS W-1</tooltip>
+      <tooltip>Track W-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1969,7 +1969,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 21" x="653" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 21</tooltip>
+      <tooltip>Track 21</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -1985,7 +1985,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-3" x="680" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-3</tooltip>
+      <tooltip>Track S-3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2001,7 +2001,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 25" x="785" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 25</tooltip>
+      <tooltip>Track 25</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2017,7 +2017,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-4" x="659" y="199" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-4</tooltip>
+      <tooltip>Track S-4</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2483,7 +2483,7 @@
       <iconmaps />
     </turnouticon>
     <sensoricon sensor="BS Switch 39 / BS K-1" x="1115" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 39</tooltip>
+      <tooltip>Track 39</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2499,7 +2499,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Main West" x="-13" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Main West</tooltip>
+      <tooltip>Track Main West</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2515,7 +2515,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 23a" x="737" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 23a</tooltip>
+      <tooltip>Track 23a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2531,7 +2531,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS West Main Ext" x="827" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS West Main Ext</tooltip>
+      <tooltip>Track West Main Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2547,7 +2547,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 35b" x="1052" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 35b</tooltip>
+      <tooltip>Track 35b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2563,7 +2563,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS McKees Rocks" x="1163" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS McKees Rocks</tooltip>
+      <tooltip>Track McKees Rocks</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2579,7 +2579,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS McKeesport" x="1163" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS McKeesport</tooltip>
+      <tooltip>Track McKeesport</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2595,7 +2595,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 5" x="149" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 5</tooltip>
+      <tooltip>Track 5</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2611,7 +2611,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Scale" x="197" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Scale</tooltip>
+      <tooltip>Track Scale</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2627,7 +2627,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 7" x="275" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 7</tooltip>
+      <tooltip>Track 7</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2643,7 +2643,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Barn" x="323" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Barn</tooltip>
+      <tooltip>Track Barn</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2659,7 +2659,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 13" x="533" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 13</tooltip>
+      <tooltip>Track 13</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2675,7 +2675,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 15" x="590" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 15</tooltip>
+      <tooltip>Track 15</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2691,7 +2691,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-R" x="617" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-R</tooltip>
+      <tooltip>Track S-R</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2707,7 +2707,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 23b" x="737" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 23b</tooltip>
+      <tooltip>Track 23b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2723,7 +2723,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 31" x="848" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 31</tooltip>
+      <tooltip>Track 31</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2739,7 +2739,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 33" x="911" y="142" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 33</tooltip>
+      <tooltip>Track 33</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2755,7 +2755,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS East Lead" x="932" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS East Lead</tooltip>
+      <tooltip>Track East Lead</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2771,7 +2771,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 35a" x="1052" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 35a</tooltip>
+      <tooltip>Track 35a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2787,7 +2787,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 37 / BS K-2" x="1115" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 37</tooltip>
+      <tooltip>Track 37</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2803,7 +2803,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 1" x="44" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 1</tooltip>
+      <tooltip>Track 1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2819,7 +2819,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Brick-Plane" x="71" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Brick-Plane</tooltip>
+      <tooltip>Track Brick-Plane</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2835,7 +2835,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS East Main Ext" x="197" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS East Main Ext</tooltip>
+      <tooltip>Track East Main Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2851,7 +2851,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 7b" x="275" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 7b</tooltip>
+      <tooltip>Track 7b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2867,7 +2867,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Main East" x="323" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS Main East</tooltip>
+      <tooltip>Track Main East</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2883,7 +2883,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-1" x="407" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-1</tooltip>
+      <tooltip>Track EH-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2899,7 +2899,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 9" x="470" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 9</tooltip>
+      <tooltip>Track 9</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2915,7 +2915,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 11" x="512" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 11</tooltip>
+      <tooltip>Track 11</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2931,7 +2931,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 17" x="611" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 17</tooltip>
+      <tooltip>Track 17</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2947,7 +2947,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-1" x="638" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-1</tooltip>
+      <tooltip>Track S-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2963,7 +2963,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 29" x="827" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 29</tooltip>
+      <tooltip>Track 29</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2979,7 +2979,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 3" x="65" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 3</tooltip>
+      <tooltip>Track 3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -2995,7 +2995,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS W-2" x="113" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS W-2</tooltip>
+      <tooltip>Track W-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3011,7 +3011,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-2" x="407" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-2</tooltip>
+      <tooltip>Track EH-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3027,7 +3027,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS EH-3" x="407" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS EH-3</tooltip>
+      <tooltip>Track EH-3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3043,7 +3043,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 19" x="632" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 19</tooltip>
+      <tooltip>Track 19</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3059,7 +3059,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-2" x="659" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-2</tooltip>
+      <tooltip>Track S-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3075,7 +3075,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 27" x="806" y="157" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 27</tooltip>
+      <tooltip>Track 27</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3091,7 +3091,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS W-1" x="113" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS W-1</tooltip>
+      <tooltip>Track W-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3107,7 +3107,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 21" x="653" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 21</tooltip>
+      <tooltip>Track 21</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3123,7 +3123,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-3" x="680" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-3</tooltip>
+      <tooltip>Track S-3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3139,7 +3139,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS Switch 25" x="785" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS 25</tooltip>
+      <tooltip>Track 25</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -3155,7 +3155,7 @@
       <iconmaps />
     </sensoricon>
     <sensoricon sensor="BS S-4" x="659" y="199" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>OS S-4</tooltip>
+      <tooltip>Track S-4</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -4598,52 +4598,52 @@
     <positionablelabel x="1100" y="51" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="PRINCESS" fontname="Dialog.plain" size="12" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1227" y="67" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS K-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="67" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track K-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1206" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS McKees Rocks" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1206" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track McKees Rocks" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="240" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS Scale" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="240" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track Scale" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="429" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS Barn" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track Barn" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="744" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS S-R" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track S-R" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1206" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS McKeesport" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1206" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track McKeesport" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="429" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS EH-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track EH-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="744" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS S-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track S-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="1227" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS K-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="1227" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track K-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="156" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS W-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="156" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track W-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="429" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS EH-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track EH-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="744" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS S-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="151" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track S-2" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="156" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS W-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="156" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track W-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="429" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS EH-3" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="429" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track EH-3" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="744" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS S-3" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track S-3" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="744" y="193" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="OS S-4" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="744" y="193" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Track S-4" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="597" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Main" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Rename public labels and write meaningful JMRI comments.
 
-- OS Main West Brick–Plane → OS Brick-Plane
-- OS n (CP) → OS n, CP goes in the comment
+- Track Main West Brick–Plane → Track Brick-Plane
+- Track n (CP) → Track n, CP goes in the comment
 - Blocks, occupancy/FB sensors, CTC internals, and plant turnouts get comments
 """
 
@@ -91,6 +91,64 @@ def public_comment(layer: str, user_name: str, comment: str) -> str:
     if layer in {"mast", "Signal mast", "Virtual mast"}:
         return mast_protect_comment(user_name, text)
     return text
+
+
+# Old 100-series plant numbers in prose. Never touch Block n-n or M2S*.
+_PLANT_PHRASES = (
+    ("110/112", "Switch 31/33"),
+    ("117/117b", "Switch 7/7b"),
+    ("111a/111b", "Switch 23a/23b"),
+    ("113a/113b", "Switch 35a/35b"),
+    ("117b", "Switch 7b"),
+    ("111a", "Switch 23a"),
+    ("111b", "Switch 23b"),
+    ("113a", "Switch 35a"),
+    ("113b", "Switch 35b"),
+)
+_PLANT_NUMBERS = {
+    "100": "Switch 1",
+    "101": "Switch 3",
+    "102": "Switch 5",
+    "103": "Switch 15",
+    "104": "Switch 17",
+    "105": "Switch 19",
+    "106": "Switch 21",
+    "107": "Switch 25",
+    "108": "Switch 27",
+    "109": "Switch 29",
+    "110": "Switch 31",
+    "111": "Switch 23",
+    "112": "Switch 33",
+    "113": "Switch 35",
+    "114": "Switch 37",
+    "115": "Switch 39",
+    "116": "Switch 13",
+    "117": "Switch 7",
+    "118": "Switch 11",
+    "119": "Switch 9",
+}
+_PROTECT_PROSE_RE = re.compile(r"(Block \d+-\d+|M2S\d+|Node:\s*\d+|DCC:\s*\d+)")
+_PLANT_NUM_RE = re.compile(r"\b(1(?:0[0-9]|1[0-9]))\b")
+
+
+def refresh_block_prose(comment: str) -> str:
+    """Keep occupancy/stop text; swap leftover OS names and 100-series plants."""
+    text = (comment or "").strip()
+    if not text:
+        return text
+    stashed: list[str] = []
+
+    def stash(match: re.Match[str]) -> str:
+        stashed.append(match.group(0))
+        return f"__HART_PROSE_{len(stashed) - 1}__"
+
+    work = _PROTECT_PROSE_RE.sub(stash, text)
+    for old, new in _PLANT_PHRASES:
+        work = work.replace(old, new)
+    work = _PLANT_NUM_RE.sub(lambda m: _PLANT_NUMBERS.get(m.group(1), m.group(0)), work)
+    for index, original in enumerate(stashed):
+        work = work.replace(f"__HART_PROSE_{index}__", original)
+    return work
 
 RENAMES = [
     RenameEntry("block", "OS Main West Brick–Plane", "OS Brick-Plane"),
@@ -291,6 +349,13 @@ BLOCK_COMMENTS = {
     "OS K-2": "Princess stub east of Switch 37; shares Block 1-3 with OS 37; occupancy Block 1-3 / M2S102; stop",
 }
 
+BLOCK_COMMENTS = {
+    ("Track " + key[3:] if key.startswith("OS ") else key): refresh_block_prose(
+        value.replace("OS ", "Track ")
+    )
+    for key, value in BLOCK_COMMENTS.items()
+}
+
 TURNOUT_COMMENTS = {
     "Switch 1": "Brick CP; MQTT M2T408; FB Switch 4-1; rests Thrown",
     "Switch 3": "Brick CP, West Yard access; MQTT M2T409; FB Switch 4-2",
@@ -314,50 +379,55 @@ TURNOUT_COMMENTS = {
     "Switch 9": "Hand-throw Engine House; MQTT M2T1310",
 }
 
+TURNOUT_COMMENTS = {
+    key: refresh_block_prose(value.replace("OS ", "Track "))
+    for key, value in TURNOUT_COMMENTS.items()
+}
+
 OCC_SENSOR = {
-    "Block 1-1": "Occupancy OS McKees Rocks; MQTT M2S100",
-    "Block 1-2": "Occupancy OS McKeesport; MQTT M2S101",
-    "Block 1-3": "Occupancy OS 37 / OS K-2; MQTT M2S102",
-    "Block 1-4": "Occupancy OS 39 / OS K-1; MQTT M2S103",
-    "Block 1-5": "Occupancy OS 35b; MQTT M2S104",
-    "Block 1-6": "Occupancy OS 35a; MQTT M2S105",
-    "Block 1-7": "Occupancy OS East Lead; MQTT M2S106",
-    "Block 1-8": "Occupancy OS West Main Ext; MQTT M2S107",
-    "Block 2-1": "Occupancy OS Main West; MQTT M2S200",
-    "Block 2-3": "Occupancy OS Main East; MQTT M2S202",
-    "Block 2-4": "Occupancy OS S-4 (and hidden OS S-4 West/East throats); MQTT M2S203",
-    "Block 2-5": "Occupancy OS S-3 (and hidden OS S-3 West/East throats); MQTT M2S204",
-    "Block 2-6": "Occupancy OS S-2 (and hidden OS S-2 West/East throats); MQTT M2S205",
-    "Block 2-7": "Occupancy OS S-1 (and hidden OS S-1 West/East throats); MQTT M2S206",
-    "Block 2-8": "Occupancy OS S-R (and hidden OS S-R West/East throats); MQTT M2S207",
-    "Block 3-1": "Occupancy OS 13; MQTT M2S300",
-    "Block 3-2": "Occupancy OS 15; MQTT M2S301",
-    "Block 3-3": "Occupancy OS 17; MQTT M2S302",
-    "Block 3-5": "Occupancy OS 19; MQTT M2S304",
-    "Block 3-7": "Occupancy OS 21; MQTT M2S306",
-    "Block 4-1": "Occupancy OS 3; MQTT M2S400",
-    "Block 4-2": "Occupancy OS 1; MQTT M2S401",
-    "Block 4-3": "Occupancy OS W-2; MQTT M2S402",
-    "Block 4-4": "Occupancy OS W-1; MQTT M2S403",
-    "Block 4-5": "Occupancy OS 5; MQTT M2S404",
-    "Block 4-6": "Occupancy OS Brick-Plane; MQTT M2S405",
-    "Block 4-7": "Occupancy OS East Main Ext; MQTT M2S406",
-    "Block 4-8": "Occupancy OS Scale; MQTT M2S407",
-    "Block 12-1": "Occupancy OS 25; MQTT M2S1200",
-    "Block 12-3": "Occupancy OS 27; MQTT M2S1202",
-    "Block 12-4": "Occupancy OS 23a; MQTT M2S1203",
-    "Block 12-5": "Occupancy OS 29; MQTT M2S1204",
-    "Block 12-6": "Occupancy OS 23b; MQTT M2S1205",
-    "Block 12-7": "Occupancy OS 31; MQTT M2S1206",
-    "Block 12-8": "Occupancy OS 33; MQTT M2S1207",
-    "Block 13-1": "Occupancy OS Barn; MQTT M2S1300",
-    "Block 13-2": "Occupancy OS 11; MQTT M2S1301",
-    "Block 13-3": "Occupancy OS 7; MQTT M2S1302",
-    "Block 13-4": "Occupancy OS 7b; MQTT M2S1303",
-    "Block 13-5": "Occupancy OS EH-3; MQTT M2S1304",
-    "Block 13-6": "Occupancy OS EH-2; MQTT M2S1305",
-    "Block 13-7": "Occupancy OS EH-1; MQTT M2S1306",
-    "Block 13-8": "Occupancy OS 9; MQTT M2S1307",
+    "Block 1-1": "Occupancy Track McKees Rocks; MQTT M2S100",
+    "Block 1-2": "Occupancy Track McKeesport; MQTT M2S101",
+    "Block 1-3": "Occupancy Track 37 / Track K-2; MQTT M2S102",
+    "Block 1-4": "Occupancy Track 39 / Track K-1; MQTT M2S103",
+    "Block 1-5": "Occupancy Track 35b; MQTT M2S104",
+    "Block 1-6": "Occupancy Track 35a; MQTT M2S105",
+    "Block 1-7": "Occupancy Track East Lead; MQTT M2S106",
+    "Block 1-8": "Occupancy Track West Main Ext; MQTT M2S107",
+    "Block 2-1": "Occupancy Track Main West; MQTT M2S200",
+    "Block 2-3": "Occupancy Track Main East; MQTT M2S202",
+    "Block 2-4": "Occupancy Track S-4 (and hidden Track S-4 West/East throats); MQTT M2S203",
+    "Block 2-5": "Occupancy Track S-3 (and hidden Track S-3 West/East throats); MQTT M2S204",
+    "Block 2-6": "Occupancy Track S-2 (and hidden Track S-2 West/East throats); MQTT M2S205",
+    "Block 2-7": "Occupancy Track S-1 (and hidden Track S-1 West/East throats); MQTT M2S206",
+    "Block 2-8": "Occupancy Track S-R (and hidden Track S-R West/East throats); MQTT M2S207",
+    "Block 3-1": "Occupancy Track 13; MQTT M2S300",
+    "Block 3-2": "Occupancy Track 15; MQTT M2S301",
+    "Block 3-3": "Occupancy Track 17; MQTT M2S302",
+    "Block 3-5": "Occupancy Track 19; MQTT M2S304",
+    "Block 3-7": "Occupancy Track 21; MQTT M2S306",
+    "Block 4-1": "Occupancy Track 3; MQTT M2S400",
+    "Block 4-2": "Occupancy Track 1; MQTT M2S401",
+    "Block 4-3": "Occupancy Track W-2; MQTT M2S402",
+    "Block 4-4": "Occupancy Track W-1; MQTT M2S403",
+    "Block 4-5": "Occupancy Track 5; MQTT M2S404",
+    "Block 4-6": "Occupancy Track Brick-Plane; MQTT M2S405",
+    "Block 4-7": "Occupancy Track East Main Ext; MQTT M2S406",
+    "Block 4-8": "Occupancy Track Scale; MQTT M2S407",
+    "Block 12-1": "Occupancy Track 25; MQTT M2S1200",
+    "Block 12-3": "Occupancy Track 27; MQTT M2S1202",
+    "Block 12-4": "Occupancy Track 23a; MQTT M2S1203",
+    "Block 12-5": "Occupancy Track 29; MQTT M2S1204",
+    "Block 12-6": "Occupancy Track 23b; MQTT M2S1205",
+    "Block 12-7": "Occupancy Track 31; MQTT M2S1206",
+    "Block 12-8": "Occupancy Track 33; MQTT M2S1207",
+    "Block 13-1": "Occupancy Track Barn; MQTT M2S1300",
+    "Block 13-2": "Occupancy Track 11; MQTT M2S1301",
+    "Block 13-3": "Occupancy Track 7; MQTT M2S1302",
+    "Block 13-4": "Occupancy Track 7b; MQTT M2S1303",
+    "Block 13-5": "Occupancy Track EH-3; MQTT M2S1304",
+    "Block 13-6": "Occupancy Track EH-2; MQTT M2S1305",
+    "Block 13-7": "Occupancy Track EH-1; MQTT M2S1306",
+    "Block 13-8": "Occupancy Track 9; MQTT M2S1307",
 }
 
 SKIP_DIRS = (

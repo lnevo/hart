@@ -1,6 +1,6 @@
 train_name,train_symbol,engine,font,runs_job,notes
 Route 23 AM,R23A,4501,East,true,DS-01 lineup #1 — timetable through
-D749,D749,1993,East,true,DS-01 #2 — Demmler/OS McKeesport CSX turn (CI-D749 CR 1993)
+D749,D749,1993,East,true,DS-01 #2 — Demmler/Track McKeesport CSX turn (CI-D749 CR 1993)
 OCS-1,OCS1,4536,FONT_TRAIN,true,DS-01 #3 — highest priority when scheduled
 NVL,NVL,2091,West,true,DS-01 #4 — Scully local (CI-NVL POHC 2091)
 CK1,CK1,9602,FONT_TRAIN,true,DS-01 #5 — Shenango coke / scale (CI-CK1)

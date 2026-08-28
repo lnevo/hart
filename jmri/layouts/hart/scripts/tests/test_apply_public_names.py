@@ -30,7 +30,7 @@ FIXTURE_XML = """<?xml version='1.0' encoding='UTF-8'?>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <block systemName="IB:TEST1">
       <systemName>IB:TEST1</systemName>
-      <userName>South Yard East</userName>
+      <userName>OS East Lead</userName>
     </block>
   </blocks>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -68,9 +68,11 @@ class ApplyPublicNamesTest(unittest.TestCase):
         renames = apply_public_names.load_rename_map(MAP)
         self.assertTrue(all(entry.current != entry.proposed for entry in renames))
         currents = {entry.current for entry in renames}
-        self.assertIn("South Yard East", currents)
-        self.assertIn("West Yard 1", currents)
+        self.assertIn("OS 1", currents)
+        self.assertIn("OS East Lead", currents)
         self.assertIn("Switch 100", currents)
+        self.assertNotIn("Barn", currents)
+        self.assertNotIn("S-1", currents)
 
     def test_apply_renames_preserves_system_names_and_sensor_usernames(self):
         renames = apply_public_names.load_rename_map(MAP)
@@ -81,7 +83,7 @@ class ApplyPublicNamesTest(unittest.TestCase):
                 target, renames, apply=True
             )
             self.assertTrue(system_names_ok)
-            self.assertGreater(counts[("South Yard East", "OS East Lead")], 0)
+            self.assertGreater(counts[("OS East Lead", "Track East Lead")], 0)
             self.assertGreater(counts[("East End East Lead", "Mast 34L")], 0)
 
             root = ET.parse(target).getroot()
@@ -101,7 +103,7 @@ class ApplyPublicNamesTest(unittest.TestCase):
             self.assertIsNotNone(sml_source)
             self.assertIsNotNone(sidi_signal)
 
-            self.assertEqual("OS East Lead", block_user.text)
+            self.assertEqual("Track East Lead", block_user.text)
             self.assertEqual("Mast 34L", mast_user.text)
             self.assertEqual("Block 13-5", sensor_user.text)
             self.assertEqual("M2S1304", sensor_system.text)
@@ -114,17 +116,17 @@ class ApplyPublicNamesTest(unittest.TestCase):
         text = "Hand-throw west of South Yard 103; occupancy Block 3-1"
         updated, counts = apply_public_names.apply_renames_to_text(text, renames)
         self.assertEqual(text, updated)
-        self.assertEqual(counts[("South Yard 1", "OS S-R")], 0)
+        self.assertEqual(counts[("South Yard 1", "Track S-R")], 0)
 
     def test_south_yard_cascade_uses_placeholders(self):
         renames = apply_public_names.load_rename_map(MAP)
-        text = "S-5 East and S-2 West and S-1 stay distinct"
+        text = "OS S-4 East and OS S-1 West and OS S-R stay distinct"
         updated, _counts = apply_public_names.apply_renames_to_text(text, renames)
-        self.assertIn("OS S-4 East", updated)
-        self.assertIn("OS S-1 West", updated)
-        self.assertIn("OS S-R", updated)
-        self.assertNotIn("S-5", updated)
-        self.assertNotIn("S-2 West", updated)
+        self.assertIn("Track S-4 East", updated)
+        self.assertIn("Track S-1 West", updated)
+        self.assertIn("Track S-R", updated)
+        self.assertNotIn("OS S-4", updated)
+        self.assertNotIn("OS S-1 West", updated)
 
     def test_isnx_system_names_are_frozen(self):
         renames = apply_public_names.load_rename_map(MAP)
@@ -152,9 +154,10 @@ class ApplyPublicNamesTest(unittest.TestCase):
 
     def test_dispatcher_os_prefix_and_south_yard_cascade(self):
         renames = apply_public_names.load_rename_map(MAP)
-        text = "MoveToBarn_stored MoveToS-1_stored MoveToS-2_stored MoveToS-5_stored"
+        text = "MoveToBarn_stored MoveToS-1_stored MoveToS-2_stored MoveToS-5_stored MoveToOS_Barn_stored"
         updated, _counts = apply_public_names.apply_renames_to_text(text, renames)
         self.assertIn("MoveToOS_Barn_stored", updated)
+        self.assertIn("MoveToTrack_Barn_stored", updated)
         self.assertIn("MoveToOS_S-R_stored", updated)
         self.assertIn("MoveToOS_S-1_stored", updated)
         self.assertIn("MoveToOS_S-4_stored", updated)
@@ -165,7 +168,10 @@ class ApplyPublicNamesTest(unittest.TestCase):
         renames = apply_public_names.load_rename_map(MAP)
         text = "OS McKeesport and OS S-1 and OS Barn and OS S-R"
         updated, _counts = apply_public_names.apply_renames_to_text(text, renames)
-        self.assertEqual(text, updated)
+        self.assertEqual(
+            "Track McKeesport and Track S-1 and Track Barn and Track S-R",
+            updated,
+        )
 
     def test_occupancy_refs_follow_bs_usernames(self):
         mapping = apply_public_names.load_sensor_username_map(MAP)

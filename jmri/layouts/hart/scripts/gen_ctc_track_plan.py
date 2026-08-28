@@ -3,7 +3,7 @@
 
 20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
 101 is L/N, 102 is L/N, 117 is LNR. Mast 2035 is named L but faces east (into
-the OS McKees Rocks wrap) under Mast 2036. Lever number plates: odd on SWITCH,
+the Track McKees Rocks wrap) under Mast 2036. Lever number plates: odd on SWITCH,
 even on SIGNAL (same seats as the first 15-column machine). Every plant has an
 N/R switch lever (yard ladders default Local).
 
@@ -115,11 +115,11 @@ CELL_GIF = {
 }
 # Occupancy jewels centered on these named segments (CATS cell).
 CENTER_OCC = {
-    "OS Brick-Plane": (6, 8),
-    "OS W-1": (8, 10),
-    "OS W-2": (8, 9),
-    "OS Main West": (33, 6),
-    "OS S-R": (33, 7),
+    "Track Brick-Plane": (6, 8),
+    "Track W-1": (8, 10),
+    "Track W-2": (8, 9),
+    "Track Main West": (33, 6),
+    "Track S-R": (33, 7),
 }
 
 # 111 crossover (Y=6/7 around the frog) shifts 3 CATS cells west onto
@@ -128,17 +128,17 @@ SHIFT_WEST = 3
 SHIFT_CELLS = {(x, y) for x in range(38, 41) for y in (6, 7)}
 
 HIDE_TRACK_LABELS = {
-    "E Main Ext", "OS East Main Ext", "OS West Main Ext", "OS East Lead",
-    "OS Main West", "OS Main East",
+    "E Main Ext", "Track East Main Ext", "Track West Main Ext", "Track East Lead",
+    "Track Main West", "Track Main East",
 }
-LABEL_LEFT = {"OS EH-1", "OS EH-2", "OS EH-3", "OS Barn"}
+LABEL_LEFT = {"Track EH-1", "Track EH-2", "Track EH-3", "Track Barn"}
 LABEL_AT = {
-    "OS K-1": (59, 5),
-    "OS K-2": (59, 8),
-    "OS Barn": (21, 7),
-    "OS EH-1": (21, 8),
-    "OS EH-2": (21, 9),
-    "OS EH-3": (21, 10),
+    "Track K-1": (59, 5),
+    "Track K-2": (59, 8),
+    "Track Barn": (21, 7),
+    "Track EH-1": (21, 8),
+    "Track EH-2": (21, 9),
+    "Track EH-3": (21, 10),
 }
 
 # IS# prefix (SwitchNumber / SignalEtcNumber) → 20-col slot.
@@ -181,34 +181,34 @@ SLOT_LOCK_UID = {
     15: 22, 16: 24, 17: 26, 18: 28, 19: 30,
 }
 
-# CATS has no occupancy edge on OS Main East; JMRI sensor is BS Main East.
-FALLBACK_LABEL_SENSORS = {"OS Main East": ("BS Main East", "OS Main East")}
+# CATS has no occupancy edge on Track Main East; JMRI sensor is BS Main East.
+FALLBACK_LABEL_SENSORS = {"Track Main East": ("BS Main East", "Track Main East")}
 
 # OS occupancy-cut sits at the frog; lamp goes left/right of the points.
 OS_FROG = {
-    "OS 1": (4, 8),
-    "OS 3": (5, 9),
-    "OS 5": (9, 8),
-    "OS 7": (15, 7),
-    "OS 7b": (15, 8),
-    "OS 9": (24, 8),
-    "OS 11": (26, 8),
-    "OS 13": (27, 7),
-    "OS 15": (30, 7),
-    "OS 17": (31, 8),
-    "OS 19": (32, 9),
-    "OS 21": (33, 10),
-    "OS 23a": (40, 6),
-    "OS 23b": (40, 7),
-    "OS 31": (42, 7),
-    "OS 33": (44, 7),
-    "OS 29": (41, 8),
-    "OS 27": (40, 9),
-    "OS 25": (39, 10),
-    "OS 35b": (52, 6),
-    "OS 35a": (52, 7),
-    "OS 39": (55, 6),
-    "OS 37": (55, 7),
+    "Track 1": (4, 8),
+    "Track 3": (5, 9),
+    "Track 5": (9, 8),
+    "Track 7": (15, 7),
+    "Track 7b": (15, 8),
+    "Track 9": (24, 8),
+    "Track 11": (26, 8),
+    "Track 13": (27, 7),
+    "Track 15": (30, 7),
+    "Track 17": (31, 8),
+    "Track 19": (32, 9),
+    "Track 21": (33, 10),
+    "Track 23a": (40, 6),
+    "Track 23b": (40, 7),
+    "Track 31": (42, 7),
+    "Track 33": (44, 7),
+    "Track 29": (41, 8),
+    "Track 27": (40, 9),
+    "Track 25": (39, 10),
+    "Track 35b": (52, 6),
+    "Track 35a": (52, 7),
+    "Track 39": (55, 6),
+    "Track 37": (55, 7),
 }
 
 # (mast, cats_x, cats_y, facing, kind, IH* or None)
@@ -235,36 +235,36 @@ SIGNALS = [
     ("Mast 40LA", 56, 5, "W", "d1", "IH142"),
     ("Mast 38LB", 56, 7, "W", "h2", None),
     ("Mast 38LA", 56, 8, "W", "d1", "IH143"),
-    # Mast 2035 is named L but faces east into the OS McKees Rocks wrap (exception).
+    # Mast 2035 is named L but faces east into the Track McKees Rocks wrap (exception).
     ("Mast 2035", 62, 7, "E", "d1", "IH141"),
 ]
 
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 1–119.
 # (slot, plate, [(sensor, tip), ...])
 COLUMNS = [
-    (0, "1", [("Block 4-2", "OS 1")]),
-    (1, "3", [("Block 4-1", "OS 3")]),
-    (2, "5", [("Block 4-5", "OS 5")]),
-    (3, "7", [("Block 13-3", "OS 7 (yard side)"),
-              ("Block 13-4", "OS 7b (main side)")]),
-    (4, "9", [("Block 13-8", "OS 9")]),
-    (5, "11", [("Block 13-2", "OS 11")]),
-    (6, "13", [("Block 3-1", "OS 13")]),
-    (7, "15", [("Block 3-2", "OS 15")]),
-    (8, "17", [("Block 3-3", "OS 17")]),
-    (9, "19", [("Block 3-5", "OS 19")]),
-    (10, "21", [("Block 3-7", "OS 21")]),
-    (11, "23", [("Block 12-4", "OS 23a (OS Main West side)"),
-                ("Block 12-6", "OS 23b (yard side)")]),
-    (12, "25", [("Block 12-1", "OS 25")]),
-    (13, "27", [("Block 12-3", "OS 27")]),
-    (14, "29", [("Block 12-5", "OS 29")]),
-    (15, "31", [("Block 12-7", "OS 31")]),
-    (16, "33", [("Block 12-8", "OS 33")]),
-    (17, "35", [("Block 1-5", "OS 35b (OS Main West side)"),
-                ("Block 1-6", "OS 35a (OS East Lead side)")]),
-    (18, "37", [("Block 1-3", "OS 37")]),
-    (19, "39", [("Block 1-4", "OS 39")]),
+    (0, "1", [("Block 4-2", "Track 1")]),
+    (1, "3", [("Block 4-1", "Track 3")]),
+    (2, "5", [("Block 4-5", "Track 5")]),
+    (3, "7", [("Block 13-3", "Track 7 (yard side)"),
+              ("Block 13-4", "Track 7b (main side)")]),
+    (4, "9", [("Block 13-8", "Track 9")]),
+    (5, "11", [("Block 13-2", "Track 11")]),
+    (6, "13", [("Block 3-1", "Track 13")]),
+    (7, "15", [("Block 3-2", "Track 15")]),
+    (8, "17", [("Block 3-3", "Track 17")]),
+    (9, "19", [("Block 3-5", "Track 19")]),
+    (10, "21", [("Block 3-7", "Track 21")]),
+    (11, "23", [("Block 12-4", "Track 23a (Track Main West side)"),
+                ("Block 12-6", "Track 23b (yard side)")]),
+    (12, "25", [("Block 12-1", "Track 25")]),
+    (13, "27", [("Block 12-3", "Track 27")]),
+    (14, "29", [("Block 12-5", "Track 29")]),
+    (15, "31", [("Block 12-7", "Track 31")]),
+    (16, "33", [("Block 12-8", "Track 33")]),
+    (17, "35", [("Block 1-5", "Track 35b (Track Main West side)"),
+                ("Block 1-6", "Track 35a (Track East Lead side)")]),
+    (18, "37", [("Block 1-3", "Track 37")]),
+    (19, "39", [("Block 1-4", "Track 39")]),
 ]
 COLUMNS = [
     (slot, plate, [(_bs(sensor), tip) for sensor, tip in sensors])
@@ -728,11 +728,20 @@ def parse_cats(path: Path) -> dict:
     return cells
 
 
+_SWITCH_OS_RE = re.compile(r"^(?:OS|Track) \d")
+
+
 def _norm_name(name: str | None) -> str:
     s = name or ""
     if s.endswith(", PA"):
         s = s[:-4]
-    return {"E Main Ext": "OS East Main Ext"}.get(s, s)
+    return {"E Main Ext": "Track East Main Ext"}.get(s, s)
+
+
+def _is_switch_os(name: str) -> bool:
+    """Switch occupancy cuts: Track 1 / Track 23a (not Track Scale / Track S-R)."""
+    n = _norm_name(name)
+    return n in OS_FROG or bool(_SWITCH_OS_RE.match(n))
 
 
 def _jewel_xy(cx: int, cy: int) -> tuple[int, int]:
@@ -819,12 +828,12 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
                 continue
             occ[sensor].append((x, y, bname or ""))
             n = _norm_name(bname)
-            if n and not n.startswith("OS "):
+            if n and not _is_switch_os(n):
                 name_sensor[n] = sensor
 
     placed: set[str] = set()
     for sensor, hits in occ.items():
-        os_hits = [(x, y, n) for x, y, n in hits if n.startswith("OS ")]
+        os_hits = [(x, y, n) for x, y, n in hits if _is_switch_os(n)]
         if not os_hits:
             continue
         os_name = os_hits[0][2]
@@ -856,7 +865,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
     for sensor, hits in occ.items():
         if sensor in placed:
             continue
-        non_os = [(x, y, n) for x, y, n in hits if not n.startswith("OS ")]
+        non_os = [(x, y, n) for x, y, n in hits if not _is_switch_os(n)]
         if not non_os:
             continue
         ys = sorted(h[1] for h in non_os)

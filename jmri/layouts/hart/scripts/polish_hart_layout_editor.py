@@ -77,7 +77,14 @@ OS_OCCUPANCY_ICONS = {
     "Block 1-5": (1568, 262),
     "Block 1-6": (1523, 325),
 }
-REMOVED_LABELS = {"OS East Lead", "OS Main East", "OS Main West"}
+REMOVED_LABELS = {
+    "OS East Lead",
+    "OS Main East",
+    "OS Main West",
+    "Track East Lead",
+    "Track Main East",
+    "Track Main West",
+}
 
 # ADR-002 visible hierarchy.
 LABEL_STYLE: dict[str, tuple[str, str]] = {

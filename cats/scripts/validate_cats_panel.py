@@ -11,25 +11,55 @@ FORBIDDEN = {
     "ROUTEFEEDBACK",  # not a CATS 3 element; use SELECTEDREPORT
 }
 
-# Gate 1 SoR — must appear on Designer primary (cats/panels/HART.xml).
+# Gate 1 SoR — live Track names, or the pre-convert Gate 1 fragment names.
 GATE1_BLOCKS = {
-    "OS Main West",
-    "OS 1",
-    "OS 3",
-    "OS Brick-Plane",
-    "OS 5",
-    "OS East Main Ext",
+    "Track Main West",
+    "Track 1",
+    "Track 3",
+    "Track Brick-Plane",
+    "Track 5",
+    "Track East Main Ext",
+}
+GATE1_BLOCKS_LEGACY = {
+    "Main West",
+    "OS 100",
+    "OS 101",
+    "Brick-Plane",
+    "OS 102",
+    "East Main Ext",
 }
 
 # Gate 2 SoR — required on LE WIP (cats/panels/HART_le.xml) once built.
 GATE2_BLOCKS = {
-    "OS 13",
-    "OS 7",
-    "OS 7b",
-    "OS 11",
-    "OS 9",
-    "OS Main East",
+    "Track 13",
+    "Track 7",
+    "Track 7b",
+    "Track 11",
+    "Track 9",
+    "Track Main East",
 }
+GATE2_BLOCKS_LEGACY = {
+    "OS 116",
+    "OS 117",
+    "OS 117b",
+    "OS 118",
+    "OS 119",
+    "Main East",
+}
+
+
+def _has_required(blocks: set[str], *required: set[str]) -> set[str] | None:
+    """Return None if any required set is present; else missing from the live set."""
+    if any(req <= blocks for req in required):
+        return None
+    return required[0] - blocks
+
+
+def _brick_plane_kinds(kinds_by_name: dict[str, set[str]]) -> set[str]:
+    for name in ("Track Brick-Plane", "OS Brick-Plane", "Brick-Plane"):
+        if name in kinds_by_name:
+            return kinds_by_name[name]
+    return set()
 
 
 def named_blocks(root: ET.Element) -> set[str]:
@@ -96,29 +126,29 @@ def check(path: Path) -> list[str]:
     blocks = named_blocks(root)
 
     if name in {"HART.xml", "HART_magnet.xml", "HART_designer_wired.xml"}:
-        missing = sorted(GATE1_BLOCKS - blocks)
+        missing = _has_required(blocks, GATE1_BLOCKS, GATE1_BLOCKS_LEGACY)
         if missing:
-            errs.append(f"Gate1 missing named blocks: {', '.join(missing)}")
+            errs.append(f"Gate1 missing named blocks: {', '.join(sorted(missing))}")
         # Designer Gate 1 places 100-102 on the Brick→Plane diagonal (slash cells).
         # LE WIP must keep 100-102 on a HORIZONTAL spine cell (continuing route).
-        kinds = block_track_kinds(root).get("OS Brick-Plane", set())
+        kinds = _brick_plane_kinds(block_track_kinds(root))
         if kinds and "HORIZONTAL" not in kinds and name.startswith("HART_le"):
             errs.append(
-                "OS Brick-Plane has no HORIZONTAL cell "
+                "Track Brick-Plane has no HORIZONTAL cell "
                 f"(tracks={sorted(kinds)}) — continuing route must be HORIZONTAL"
             )
 
     if name in {"HART_le.xml", "HART_le_magnet.xml"}:
-        missing1 = sorted(GATE1_BLOCKS - blocks)
+        missing1 = _has_required(blocks, GATE1_BLOCKS, GATE1_BLOCKS_LEGACY)
         if missing1:
-            errs.append(f"LE Gate1 missing named blocks: {', '.join(missing1)}")
-        missing2 = sorted(GATE2_BLOCKS - blocks)
+            errs.append(f"LE Gate1 missing named blocks: {', '.join(sorted(missing1))}")
+        missing2 = _has_required(blocks, GATE2_BLOCKS, GATE2_BLOCKS_LEGACY)
         if missing2:
-            errs.append(f"LE Gate2 missing named blocks: {', '.join(missing2)}")
-        kinds = block_track_kinds(root).get("OS Brick-Plane", set())
+            errs.append(f"LE Gate2 missing named blocks: {', '.join(sorted(missing2))}")
+        kinds = _brick_plane_kinds(block_track_kinds(root))
         if "HORIZONTAL" not in kinds:
             errs.append(
-                "LE OS Brick-Plane must sit on HORIZONTAL "
+                "LE Track Brick-Plane must sit on HORIZONTAL "
                 f"(tracks={sorted(kinds) or 'none'})"
             )
         # Occupancy wiring expected on MQTT LE panel
@@ -128,9 +158,9 @@ def check(path: Path) -> list[str]:
                 for b in root.iter("BLOCK")
                 if b.get("NAME") and b.find("OCCUPIEDSPEC") is not None
             }
-            unwired = sorted(GATE1_BLOCKS - wired)
+            unwired = _has_required(wired, GATE1_BLOCKS, GATE1_BLOCKS_LEGACY)
             if unwired:
-                errs.append(f"LE MQTT missing OCCUPIEDSPEC: {', '.join(unwired)}")
+                errs.append(f"LE MQTT missing OCCUPIEDSPEC: {', '.join(sorted(unwired))}")
 
     if name == "HART.xml":
         wired = {
@@ -138,9 +168,9 @@ def check(path: Path) -> list[str]:
             for b in root.iter("BLOCK")
             if b.get("NAME") and b.find("OCCUPIEDSPEC") is not None
         }
-        unwired = sorted(GATE1_BLOCKS - wired)
+        unwired = _has_required(wired, GATE1_BLOCKS, GATE1_BLOCKS_LEGACY)
         if unwired:
-            errs.append(f"Gate1 MQTT missing OCCUPIEDSPEC: {', '.join(unwired)}")
+            errs.append(f"Gate1 MQTT missing OCCUPIEDSPEC: {', '.join(sorted(unwired))}")
 
     return errs
 

@@ -40,7 +40,7 @@ Switch / MQTT / DCC IDs remain in turnout table comments and mapping CSVs — no
 | East End | 107, 108, 109, 110, 111a, 111b, 112 |
 | Princess | 113a, 113b, 114, 115 |
 
-Source of truth for this pass: [`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv) (ADR-005). `block_display_names.csv` is historical.
+Source of truth for this pass: [`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv) (ADR-005). `block_display_names.csv` is a live-name index (not the apply script).
 
 ## Consequences
 

@@ -26,31 +26,36 @@ DISPATCHER_START_SCRIPT = "preference:jython/hart_dispatcher_startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
 # Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
-STATION_COMMENTS = {
-    "OS East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
-    "OS East Main Ext": "Main east of Plane toward OS Barn; occupancy Block 4-7 / M2S406; stop",
-    "OS Main East": "Main east of East End; occupancy Block 2-3 / M2S202; stop",
-    "OS Main West": "Main west of Brick toward East End; occupancy Block 2-1 / M2S200; stop",
-    "OS Brick-Plane": "OS Main West between Brick and Plane; occupancy Block 4-6 / M2S405; stop",
-    "OS McKees Rocks": "Princess balloon, OS McKees Rocks; occupancy Block 1-1 / M2S100; stop",
-    "OS McKeesport": "Princess balloon, OS McKeesport; occupancy Block 1-2 / M2S101; stop",
-    "OS West Main Ext": "OS Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
-    "OS EH-1": "Top house track; occupancy Block 13-7 / M2S1306; stop",
-    "OS EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
-    "OS EH-3": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
-    "OS S-R": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
-    "OS S-1": "South Yard body; occupancy Block 2-7 / M2S206; stop",
-    "OS S-2": "South Yard body; occupancy Block 2-6 / M2S205; stop",
-    "OS S-3": "South Yard body; occupancy Block 2-5 / M2S204; stop",
-    "OS S-4": "South Yard body; occupancy Block 2-4 / M2S203; stop",
-    "OS Scale": "Plane diverging lead to OS Barn; occupancy Block 4-8 / M2S407; stop",
-    "OS Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
-    "OS W-1": "Brick yard OS W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop",
-    "OS W-2": "Brick yard OS W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop",
-    "OS K-1": "Princess stub east of Switch 39; shares Block 1-4 with OS 39; occupancy Block 1-4 / M2S103; stop",
-    "OS K-2": "Princess stub east of Switch 37; shares Block 1-3 with OS 37; occupancy Block 1-3 / M2S102; stop",
-}
+sys.path.insert(0, str(REPO_ROOT / "jmri" / "layouts" / "hart" / "scripts"))
+from refresh_bean_comments import BLOCK_COMMENTS
 
+STATION_COMMENTS = {
+    name: BLOCK_COMMENTS[name]
+    for name in (
+        "Track East Lead",
+        "Track East Main Ext",
+        "Track Main East",
+        "Track Main West",
+        "Track Brick-Plane",
+        "Track McKees Rocks",
+        "Track McKeesport",
+        "Track West Main Ext",
+        "Track EH-1",
+        "Track EH-2",
+        "Track EH-3",
+        "Track S-R",
+        "Track S-1",
+        "Track S-2",
+        "Track S-3",
+        "Track S-4",
+        "Track Scale",
+        "Track Barn",
+        "Track W-1",
+        "Track W-2",
+        "Track K-1",
+        "Track K-2",
+    )
+}
 
 def text(element: ET.Element | None, child: str) -> str:
     if element is None:
