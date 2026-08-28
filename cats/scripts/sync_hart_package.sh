@@ -189,7 +189,13 @@ stage_package() {
     "$stage/ctc/icons" \
     "$stage/jmri/layouts/hart/scripts" \
     "$stage/jmri/layouts/hart/dispatcher" \
-    "$stage/jmri/scripts"
+    "$stage/jmri/scripts" \
+    "$stage/tools/jmri/patches"
+
+  local guard="$ROOT/tools/jmri/patches/hart-startup-guard.jar"
+  if [[ -f "$guard" ]]; then
+    cp -f "$guard" "$stage/tools/jmri/patches/"
+  fi
 
   local p
   for p in "${LIVE_PANELS[@]}"; do

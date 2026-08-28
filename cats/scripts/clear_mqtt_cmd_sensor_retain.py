@@ -75,11 +75,14 @@ def main() -> int:
         for t, p in _sub("+")
         if t.isdigit() and p.upper() in ("ACTIVE", "INACTIVE")
     ]
+    left_discard = [
+        t for t, _ in _sub("_discard/cmd/sensor/#") if t.startswith("_discard/cmd/sensor/")
+    ]
     print(
-        "cleared=%d remaining_cmd=%d remaining_root_numeric=%d host=%s"
-        % (len(cleared), len(left_cmd), len(left_root), MQTT_HOST)
+        "cleared=%d remaining_cmd=%d remaining_root_numeric=%d remaining_discard=%d host=%s"
+        % (len(cleared), len(left_cmd), len(left_root), len(left_discard), MQTT_HOST)
     )
-    return 0 if not left_cmd and not left_root else 1
+    return 0 if not left_cmd and not left_root and not left_discard else 1
 
 
 if __name__ == "__main__":

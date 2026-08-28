@@ -12,7 +12,8 @@ HART never commands field sensors over MQTT.
 ## JMRI
 
 - Option **11.5** (receive): `track/sensor/{0}`
-- Option **11.3** (send): do **not** point at `_discard/cmd/sensor/{0}`. That was a trash-can so `MqttSensor.setKnownState` would not hit LCOS. An **empty** send template is worse: JMRI published `ACTIVE`/`INACTIVE` to topic `{addr}` at the broker root.
+- Option **11.3** (send): keep `_discard/cmd/sensor/{0}` so `MqttSensor.setKnownState` cannot hit LCOS. Do **not** empty it: JMRI then publishes `ACTIVE`/`INACTIVE` to bare `{addr}` at the broker root.
+- `hart-startup-guard.jar` **swallows** publishes whose topic starts with `_discard`, so that sink is not retained on the broker.
 - `apply_maintain_mqtt.py` uses **`setOwnState`** (JMRI-only paint). Never `setKnownState` for MQTT sensors from scripts.
 
 Turnouts still use `track/cmd/turnout/{0}` and `track/turnout/{0}`.

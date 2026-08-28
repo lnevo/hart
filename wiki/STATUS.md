@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — Cleared retained `_discard/cmd/sensor/*`. JMRI option **11.3** stays a sink so occupancy `setKnownState` cannot hit LCOS; `hart-startup-guard` no longer publishes those topics. Reload **CATS** / **PanelPro**.
+
 Updated: 2026-08-28 — Restored packed signal MQTT (`IH432` → `track/signalhead/432`) and LCOS signalmast echo off; master-node issue fixed. Reload **PanelPro** / **CATS**. Flash Nano + restart bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-27 — Track blocks are `Track 1` / `Track S-R` (was `OS …`). Comments keep occupancy/`stop` text with live switch numbers (`Lead Switch 7 to Switch 13`). Occupancy sensors stay `BS …`. Dispatcher MoveTo is `MoveToTrack_Barn_stored`. Reload **PanelPro**. Deploy `--pi --win`.

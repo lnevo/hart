@@ -94,9 +94,24 @@ class HideCatsChromeSource(unittest.TestCase):
         self.assertIn("Apps.handleQuit()", text)
         self.assertNotIn('JMenuItem("Quit")', text)
         self.assertIn("CTC Panel", text)
-        self.assertIn("Dispatcher Panel", text)
+        self.assertIn("decorate_dispatcher_panel", text)
+        self.assertNotIn("HART: CATS Help/Quit on Dispatcher Panel", text)
         self.assertIn("HelpUtil.displayHelpRef", text)
         self.assertNotIn("\u2014", text)
+
+
+class DiscardSensorPublish(unittest.TestCase):
+    def test_overlay_skips_discard_topics(self) -> None:
+        src = (
+            Path(__file__).resolve().parents[3]
+            / "tools"
+            / "jmri"
+            / "patches"
+            / "PatchMqttCme.java"
+        )
+        text = src.read_text(encoding="utf-8")
+        self.assertIn("_discard", text)
+        self.assertIn("insertBefore", text)
 
 
 if __name__ == "__main__":
