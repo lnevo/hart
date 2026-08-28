@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Clear MQTT junk that must never be on this broker.
 
-1) track/cmd/sensor/#     — sensors are status-only (never commanded)
-2) bare "{addr}" topics   — ACTIVE|INACTIVE at broker root (bug from
+1) track/cmd/sensor/#          — sensors are status-only (never commanded)
+2) bare "{addr}" topics        — ACTIVE|INACTIVE at broker root (bug from
    MqttSensor.setKnownState with an empty JMRI send-topic template)
+3) _discard/cmd/sensor/#       — retired 11.3 sink retain
+4) track/signalhead/IH*        — legacy leaf; live is track/signalhead/<packed>
 
-Does not touch track/sensor/{addr} or track/turnout/{addr} status retain.
+Does not touch track/sensor/{addr}, track/turnout/{addr}, or packed
+track/signalhead/<digits> status/set retain.
 
     MQTT_HOST=minipc-e5h6x.local python3 cats/scripts/clear_mqtt_cmd_sensor_retain.py
 """
@@ -69,6 +72,13 @@ def main() -> int:
             _clear(t)
             cleared.append(t)
 
+    # Legacy Digicon SET leaf (IH in the topic). Live publisher uses packed digits.
+    for t, _p in _sub("track/signalhead/#"):
+        leaf = t[len("track/signalhead/") :] if t.startswith("track/signalhead/") else ""
+        if leaf.upper().startswith("IH") and leaf[2:].isdigit():
+            _clear(t)
+            cleared.append(t)
+
     left_cmd = [t for t, _ in _sub("track/cmd/sensor/#") if t.startswith("track/cmd/sensor/")]
     left_root = [
         t
@@ -78,11 +88,23 @@ def main() -> int:
     left_discard = [
         t for t, _ in _sub("_discard/cmd/sensor/#") if t.startswith("_discard/cmd/sensor/")
     ]
+    left_ih = [
+        t
+        for t, _ in _sub("track/signalhead/#")
+        if t.startswith("track/signalhead/IH") or t.startswith("track/signalhead/ih")
+    ]
     print(
-        "cleared=%d remaining_cmd=%d remaining_root_numeric=%d remaining_discard=%d host=%s"
-        % (len(cleared), len(left_cmd), len(left_root), len(left_discard), MQTT_HOST)
+        "cleared=%d remaining_cmd=%d remaining_root_numeric=%d remaining_discard=%d remaining_ih_leaf=%d host=%s"
+        % (
+            len(cleared),
+            len(left_cmd),
+            len(left_root),
+            len(left_discard),
+            len(left_ih),
+            MQTT_HOST,
+        )
     )
-    return 0 if not left_cmd and not left_root and not left_discard else 1
+    return 0 if not left_cmd and not left_root and not left_discard and not left_ih else 1
 
 
 if __name__ == "__main__":

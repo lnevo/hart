@@ -110,6 +110,7 @@ class DiscardSensorPublish(unittest.TestCase):
             / "PatchMqttCme.java"
         )
         text = src.read_text(encoding="utf-8")
+        self.assertIn("track/signalhead/IH", text)
         self.assertIn("_discard", text)
         self.assertIn("insertBefore", text)
 

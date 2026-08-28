@@ -12,7 +12,8 @@ so PanelPro.app gets the MQTT overlay. Rebuild:
   `ConcurrentModificationException` on the Paho thread, drop the broker
   connection, then log `ERROR Can't subscribe` for every remaining bean.
   Also **does not publish** to `_discard/**` (retired JMRI sensor send
-  template `11.3`). Clear leftover retain with
+  template `11.3`) or legacy `track/signalhead/IH*` (packed leaf is
+  `track/signalhead/<digits>`). Clear leftover retain with
   `python3 cats/scripts/clear_mqtt_cmd_sensor_retain.py`.
 - **BlkEdge / Track** — stock CATS keeps the first Block and warns on a second
   (occupancy cuts, plant frogs). Skip the warn; do not change which Block wins.

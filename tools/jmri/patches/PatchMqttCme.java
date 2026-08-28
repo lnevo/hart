@@ -86,7 +86,9 @@ public class PatchMqttCme {
     CtMethod[] pubs = cc.getDeclaredMethods("publish");
     for (int i = 0; i < pubs.length; i++) {
       if (pubs[i].getParameterTypes().length == 3) {
-        pubs[i].insertBefore("if ($1 != null && $1.startsWith(\"_discard\")) { return; }");
+        pubs[i].insertBefore(
+            "if ($1 != null && ($1.startsWith(\"_discard\")"
+                + " || $1.startsWith(\"track/signalhead/IH\"))) { return; }");
       }
     }
     return cc;

@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — Cleared leftover `track/signalhead/IH*` retain. Live SET is packed (`…/1334`). Overlay drops IH-leaf publishes. Reload **CATS** / **PanelPro**.
+
 Updated: 2026-08-28 — Digicon SML MQTT guard: main-window **SML Enabled/Disabled** toggle; mast→IH when SML off; bridge `track/bridge/sml_mode` query on start/`track/state` OFFLINE. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-28 — Cleared retained `_discard/cmd/sensor/*`. JMRI option **11.3** stays a sink so occupancy `setKnownState` cannot hit LCOS; `hart-startup-guard` no longer publishes those topics. Reload **CATS** / **PanelPro**.
