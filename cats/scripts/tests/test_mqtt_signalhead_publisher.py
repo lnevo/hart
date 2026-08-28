@@ -45,6 +45,16 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         )
         self.assertIn("_publish_unheld(head)", chunk)
 
+    def test_per_mast_release_holds_source_not_destinations(self) -> None:
+        text = PUBLISHER.read_text(encoding="utf-8")
+        self.assertIn("def _release_source_mast_to_field", text)
+        self.assertIn("Hold the SOURCE that is leaving Digicon", text)
+        self.assertIn("_publish_head_red(head)", text)
+        off = text.index("def _on_sml_property")
+        chunk = text[off:]
+        self.assertIn("_release_source_mast_to_field(mast)", chunk)
+        self.assertIn("last dest is off", chunk)
+
     def test_head_names_match_wiring_csv(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
         begin = text.index("# HEAD_NAMES_BEGIN")

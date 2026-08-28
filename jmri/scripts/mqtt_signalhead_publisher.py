@@ -691,26 +691,30 @@ class DigiconMqttSml(
 
     def _mast_logic_enabled(self, mast):
         """True if Digicon source mast has any destination Enabled in the SML table."""
+        return self._enabled_dest_count(mast) > 0
+
+    def _enabled_dest_count(self, mast):
         if mast is None:
-            return False
+            return 0
         sml = self._sml_for_mast(mast)
         if sml is None:
-            return False
+            return 0
+        n = 0
         try:
             dests = sml.getDestinationList()
             if dests is None or dests.isEmpty():
-                return False
+                return 0
             it = dests.iterator()
             while it.hasNext():
                 dest = it.next()
                 try:
                     if sml.isEnabled(dest):
-                        return True
+                        n += 1
                 except Exception:
                     continue
-            return False
         except Exception:
-            return False
+            return 0
+        return n
 
     def _field_owns_mast(self, mast):
         if not self._global_enabled:
@@ -725,6 +729,62 @@ class DigiconMqttSml(
             return
         topic = TOPIC_PREFIX + _topic_suffix(sys_name)
         self._publish(topic, "Unheld", retain=False)
+
+    def _publish_head_red(self, head):
+        """Stop on the wire even when SML is already off (SET path is gated)."""
+        if head is None:
+            return
+        sys_name = head.getSystemName()
+        if sys_name not in self.mqtt_wanted:
+            return
+        topic = TOPIC_PREFIX + _topic_suffix(sys_name)
+        self._publish(topic, "Red", retain=False)
+
+    def _mqtt_heads_on_mast(self, mast):
+        heads = []
+        hm = _head_manager()
+        if hm is None or mast is None:
+            return heads
+        for sys_name in _head_names_on_mast(mast):
+            if sys_name not in self.mqtt_wanted:
+                continue
+            head = hm.getSignalHead(sys_name)
+            if head is not None:
+                heads.append(head)
+        return heads
+
+    def _release_source_mast_to_field(self, mast):
+        """Hand one source mast to LCOS: Hold (desk Stop), Red, Unheld, then drop Hold.
+
+        Hold the SOURCE that is leaving Digicon, not its SML destinations.
+        Dest masts keep their own SML; pinning them Held would fight that.
+        """
+        try:
+            mast.setHeld(True)
+        except Exception:
+            pass
+        heads = self._mqtt_heads_on_mast(mast)
+        if not heads:
+            print(
+                "mqtt_signalhead: per-mast SML off %s — no MQTT heads "
+                "(MQTT_HEAD_NAMES=%s)"
+                % (
+                    _ascii(mast.getDisplayName()),
+                    ",".join(sorted(self.mqtt_wanted)),
+                )
+            )
+        for head in heads:
+            self._publish_head_red(head)
+            self._publish_unheld(head)
+        try:
+            mast.setHeld(False)
+        except Exception:
+            pass
+        if heads:
+            print(
+                "mqtt_signalhead: per-mast SML off -> Red/Unheld %s"
+                % _ascii(mast.getDisplayName())
+            )
 
     def _publish_head_set(self, head):
         if self.mqtt is None or head is None:
@@ -849,33 +909,28 @@ class DigiconMqttSml(
         if mast not in self._masts:
             return
         enabled = self._mast_logic_enabled(mast)
+        dests_on = self._enabled_dest_count(mast)
         was = self._mast_sml_was_enabled.get(mast)
         self._mast_sml_was_enabled[mast] = enabled
         if was is None:
             # First observation (boot/bulk) -- no Unheld.
             return
         if was == enabled:
+            if not enabled:
+                return
+            print(
+                "mqtt_signalhead: %s dest Enabled changed; source still "
+                "Digicon (%d dest(s) on) — Unheld when the last dest is off"
+                % (_ascii(mast.getDisplayName()), dests_on)
+            )
             return
         if enabled:
             # Edge to enabled: resume SET, no Unheld.
-            for sys_name in _head_names_on_mast(mast):
-                if sys_name not in self.mqtt_wanted:
-                    continue
-                head = _head_manager().getSignalHead(sys_name)
-                if head is not None:
-                    self._publish_head_set(head)
+            for head in self._mqtt_heads_on_mast(mast):
+                self._publish_head_set(head)
             return
-        # Edge to disabled: immediate Unheld for this mast's MQTT heads.
-        for sys_name in _head_names_on_mast(mast):
-            if sys_name not in self.mqtt_wanted:
-                continue
-            head = _head_manager().getSignalHead(sys_name)
-            if head is not None:
-                self._publish_unheld(head)
-        print(
-            "mqtt_signalhead: per-mast SML off -> Unheld %s"
-            % _ascii(mast.getDisplayName())
-        )
+        # Last dest off: this source mast reverts to field.
+        self._release_source_mast_to_field(mast)
 
 
 controller = DigiconMqttSml(HEAD_NAMES)
