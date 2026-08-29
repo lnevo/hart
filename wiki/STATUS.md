@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — Pin 8 of the first 5V OU on every block-sensor node is occupancy-detector calibration (not a lamp). Digicon heads moved off C2/C4/C11/C12 those pins. Wiring CSVs + v85; no `tables.xml`. Docs-only, not deployed.
+
 Updated: 2026-08-29 — Digicon heads on the plant cabinets: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess 36+38, **C11** Princess 40 + balloon. Packed = radio (`12xx` on C12). Wiring CSVs + v85; no `tables.xml`. Docs-only, not deployed.
 
 Updated: 2026-08-29 — Shuffled Digicon pins so each 2-head mast lives on one DNOU8 (place that board next to the mast). Neighbor dwarfs take leftover pins. Packed MQTT unchanged. Wiring CSVs + v85; no `tables.xml`. Docs-only, not deployed.

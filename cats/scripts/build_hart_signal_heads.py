@@ -44,7 +44,7 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     # C4 radio 4 — Brick + Plane (motors 100–102, 116 on OU1). Packed 4xx.
     ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 432, "C4-OU2-1", "C4-OU2-2", "C4-OU2-3", "T", "S3-6 G/Y/R"),
     ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 433, "C4-OU2-4", "C4-OU2-5", "C4-OU2-6", "B", "with 6LB T on OU2"),
-    ("Mast 6LA", 4, "C4", "West - Lower (Plane)", 434, "C4-OU2-7", "C4-OU2-8", "C4-OU3-7", "S", "G/Y on Plane OU2; R spills to 2L OU3"),
+    ("Mast 6LA", 4, "C4", "West - Lower (Plane)", 434, "C4-OU2-7", "C4-OU3-8", "C4-OU3-7", "S", "G on Plane OU2; Y/R on 2L OU3 (OU2-8 is BS cal)"),
     ("Mast 2L", 4, "C4", "West - Lower (Brick east)", 438, "C4-OU3-1", "C4-OU3-2", "C4-OU3-3", "T", "S3-8 G/Y/R"),
     ("Mast 2L", 4, "C4", "West - Lower (Brick east)", 439, "C4-OU3-4", "C4-OU3-5", "C4-OU3-6", "B", "with 2L T on OU3"),
     ("Mast 4RA", 4, "C4", "West - Lower (Brick west)", 436, "C4-OU4-1", "C4-OU4-2", "C4-OU4-3", "S", "Brick west OU4 with 4RB"),
@@ -60,13 +60,13 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     # C2 radio 2 — East End west overflow (24). C2 sits on the west end of East End.
     ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 232, "C2-OU1-1", "C2-OU1-2", "C2-OU1-3", "T", "C2-OU1 5V"),
     ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 238, "C2-OU1-4", "C2-OU1-5", "C2-OU1-6", "B", "with 24RA T on OU1"),
-    ("Mast 24RB", 2, "C2", "North - Lower (East End west 24)", 234, "C2-OU1-7", "C2-OU1-8", "C2-OU2-7", "S", "G/Y with 24RA; R spills to 24L OU2"),
+    ("Mast 24RB", 2, "C2", "North - Lower (East End west 24)", 234, "C2-OU1-7", "C2-OU3-8", "C2-OU2-7", "S", "G with 24RA; Y on OU3 (OU1-8 is BS cal); R with 24L"),
     ("Mast 24L", 2, "C2", "North - Lower (East End west 24)", 233, "C2-OU2-1", "C2-OU2-2", "C2-OU2-3", "T", "with 24RA cluster"),
     ("Mast 24L", 2, "C2", "North - Lower (East End west 24)", 239, "C2-OU2-4", "C2-OU2-5", "C2-OU2-6", "B", "with 24L T on OU2"),
     # C12 radio 12 — East End 34 + turnout motors 107–112. Packed 12xx.
     ("Mast 34L", 12, "C12", "North - Lower (East End 34)", 1232, "C12-OU2-1", "C12-OU2-2", "C12-OU2-3", "T", "was C2 235"),
     ("Mast 34L", 12, "C12", "North - Lower (East End 34)", 1233, "C12-OU2-4", "C12-OU2-5", "C12-OU2-6", "B", "with 34L T on OU2"),
-    ("Mast 32R", 12, "C12", "North - Lower (East End 34)", 1234, "C12-OU2-7", "C12-OU2-8", "C12-OU3-7", "S", "G/Y with 34L; R spills to 34R OU3"),
+    ("Mast 32R", 12, "C12", "North - Lower (East End 34)", 1234, "C12-OU2-7", "C12-OU3-8", "C12-OU3-7", "S", "G with 34L; Y/R on 34R OU3 (OU2-8 is BS cal)"),
     ("Mast 34R", 12, "C12", "North - Lower (East End 34)", 1235, "C12-OU3-1", "C12-OU3-2", "C12-OU3-3", "T", "was C2 237"),
     ("Mast 34R", 12, "C12", "North - Lower (East End 34)", 1236, "C12-OU3-4", "C12-OU3-5", "C12-OU3-6", "B", "with 34R T on OU3"),
     # C1 radio 1 — Princess west (36 @ SW35, 38 @ SW37). 40 and balloon on C11.
@@ -80,7 +80,7 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     # C11 radio 11 — Princess east (40 @ SW39) + balloon.
     ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1132, "C11-OU2-1", "C11-OU2-2", "C11-OU2-3", "T", "was C1 132"),
     ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1135, "C11-OU2-4", "C11-OU2-5", "C11-OU2-6", "B", "with 40LB T on OU2"),
-    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1136, "C11-OU2-7", "C11-OU2-8", "C11-OU3-7", "S", "G/Y with 40LB; R spills to balloon OU3"),
+    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1136, "C11-OU2-7", "C11-OU3-8", "C11-OU3-7", "S", "G with 40LB; Y/R on balloon OU3 (OU2-8 is BS cal)"),
     ("Mast 2036", 11, "C11", "Helix (balloon 114)", 1133, "C11-OU3-1", "C11-OU3-2", "C11-OU3-3", "S", "S1-6; sequential G/Y/R"),
     ("Mast 2035", 11, "C11", "Helix (balloon 115)", 1134, "C11-OU3-4", "C11-OU3-5", "C11-OU3-6", "S", "S4-6; sequential G/Y/R"),
 ]
@@ -90,6 +90,23 @@ SYSTEM_BY_HEADS = {1: "AAR-1946", 2: "hart-aar", 3: "AAR-1946"}
 DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
 PIN_ORDER = (("G", "g_port"), ("Y", "y_port"), ("R", "r_port"))
+
+# Pin 8 of the first 5V DNOU8 on every node that has block sensors.
+# Occupancy-detector calibration current; never a lamp or relay.
+BLOCK_CAL_PORTS = {
+    "C1-OU2-8",
+    "C2-OU1-8",
+    "C3-OU2-8",
+    "C4-OU2-8",
+    "C11-OU2-8",
+    "C12-OU2-8",
+    "C13-OU1-8",
+    "C14-OU2-8",
+    "C21-OU2-8",
+    "C22-OU2-8",
+    "C23-OU2-8",
+    "C24-OU2-8",
+}
 
 
 def packed(node: int, signal_index: int) -> int:
@@ -117,6 +134,11 @@ def build_rows() -> list[dict]:
         label = f"{short} {disc}" if disc in ("T", "B") else short
         for color, _key in PIN_ORDER:
             port = ports[color]
+            if port in BLOCK_CAL_PORTS:
+                raise SystemExit(
+                    f"{port} is block-sensor calibration on the first 5V OU; "
+                    f"cannot assign {mast} {disc} {color}"
+                )
             if port in seen_ports:
                 raise SystemExit(f"duplicate port {port}: {seen_ports[port]} and {mast}")
             seen_ports[port] = f"{mast} {disc} {color}"

@@ -16,7 +16,9 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34 (motors 107–112 on the same box), **C2** East End west overflow (24 — C2 is the west end of East End), **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is 103–106 motors only (no Digicon heads). Packed MQTT = radio (`4xx` on C4, `12xx` on C12, `2xx` on C2). Never **D5**.
+**Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is 103–106 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
+
+**Block-sensor calibration:** every node that has occupancy detectors reserves **pin 8 of its first 5V DNOU8** for detector calibration current (not a lamp, not a relay). First 5V board is the lowest-numbered OU on the 5V rail (OU1 when that board is 5V; otherwise OU2).
 
 ## Digicon heads and OU boards
 
@@ -31,15 +33,15 @@ OU1 stays 12V motors 100–102 / 116 (this box is already at the plant). Place *
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 100–102, 116 motors |
-| OU2 | 5V | 6LB T+B, 6LA G/Y |
-| OU3 | 5V | 2L T+B, 6LA R; OU3-8 leftover (move C4 relay here) |
+| OU2 | 5V | 6LB T+B, 6LA G; **OU2-8 block-sensor cal** |
+| OU3 | 5V | 2L T+B, 6LA Y/R |
 | **OU4** | 5V **new** | 4RA, 4RB; OU4-7/8 spare |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
 | 6LB | T | `IH432` | OU2-1 | OU2-2 | OU2-3 |
 | 6LB | B | `IH433` | OU2-4 | OU2-5 | OU2-6 |
-| 6LA | | `IH434` | OU2-7 | OU2-8 | OU3-7 |
+| 6LA | | `IH434` | OU2-7 | OU3-8 | OU3-7 |
 | 2L | T | `IH438` | OU3-1 | OU3-2 | OU3-3 |
 | 2L | B | `IH439` | OU3-4 | OU3-5 | OU3-6 |
 | 4RA | | `IH436` | OU4-1 | OU4-2 | OU4-3 |
@@ -53,7 +55,7 @@ Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU2** with 8LA+8LB (ri
 
 | Board | Rail | Assignment |
 |-------|------|------------|
-| OU1 | 5V | 8RA T+B; OU1-7/8 leftover S3-14 G/R |
+| OU1 | 5V | 8RA T+B; OU1-7 leftover S3-14 G; **OU1-8 block-sensor cal** |
 | OU2 | 5V | 8LA T+B, 8LB G/Y |
 | OU3 | 12V | Switch 117–119 motors; OU3-7/8 spare |
 | **OU4** | 5V **new** | 8RB T+B, 8LB R; OU4-8 spare |
@@ -75,15 +77,15 @@ Same box as turnout motors 107–112. Place **OU2+OU3** at 34. 32R leftover sits
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 107–110 motors |
-| OU2 | 5V | 34L T+B, 32R G/Y |
-| OU3 | 5V | 34R T+B, 32R R; OU3-8 leftover (move C12 relay here) |
+| OU2 | 5V | 34L T+B, 32R G; **OU2-8 block-sensor cal** |
+| OU3 | 5V | 34R T+B, 32R Y/R |
 | OU4 | 12V | Switch 111–112 motors |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
 | 34L | T | `IH1232` | OU2-1 | OU2-2 | OU2-3 |
 | 34L | B | `IH1233` | OU2-4 | OU2-5 | OU2-6 |
-| 32R | | `IH1234` | OU2-7 | OU2-8 | OU3-7 |
+| 32R | | `IH1234` | OU2-7 | OU3-8 | OU3-7 |
 | 34R | T | `IH1235` | OU3-1 | OU3-2 | OU3-3 |
 | 34R | B | `IH1236` | OU3-4 | OU3-5 | OU3-6 |
 
@@ -95,15 +97,15 @@ C2 sits on the **west end of East End** — 24RA / 24L / 24RB only. OU3 stays le
 
 | Board | Rail | Assignment |
 |-------|------|------------|
-| OU1 | 5V | 24RA T+B, 24RB G/Y |
+| OU1 | 5V | 24RA T+B, 24RB G; **OU1-8 block-sensor cal** |
 | OU2 | 5V | 24L T+B, 24RB R; **OU2-8 relay** |
-| OU3 | 5V | leftover S2 RGB (no Digicon) |
+| OU3 | 5V | leftover S2 RGB; 24RB Y |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
 | 24RA | T | `IH232` | OU1-1 | OU1-2 | OU1-3 |
 | 24RA | B | `IH238` | OU1-4 | OU1-5 | OU1-6 |
-| 24RB | | `IH234` | OU1-7 | OU1-8 | OU2-7 |
+| 24RB | | `IH234` | OU1-7 | OU3-8 | OU2-7 |
 | 24L | T | `IH233` | OU2-1 | OU2-2 | OU2-3 |
 | 24L | B | `IH239` | OU2-4 | OU2-5 | OU2-6 |
 
@@ -114,7 +116,7 @@ Place **OU2+OU3** at SW35 (36RA / 36RB), **OU4** at SW37 (38). 38LA R spills to 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 113–115 motors; OU1-7/8 reserved |
-| OU2 | 5V | 36RA T+B, 38LA R; OU2-8 spare |
+| OU2 | 5V | 36RA T+B, 38LA R; **OU2-8 block-sensor cal** |
 | OU3 | 5V | 36RB T+B; OU3-7/8 spare |
 | **OU4** | 5V **new** | 38LB T+B, 38LA G/Y |
 
@@ -135,18 +137,37 @@ Place **OU2** at SW39 (40), **OU3** at the balloon. 40LA R spills to the balloon
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Helix turnout motors; OU1-7/8 spare |
-| OU2 | 5V | 40LB T+B, 40LA G/Y |
-| OU3 | 5V | 2036, 2035, 40LA R; OU3-8 leftover (move C11 relay here) |
+| OU2 | 5V | 40LB T+B, 40LA G; **OU2-8 block-sensor cal** |
+| OU3 | 5V | 2036, 2035, 40LA Y/R |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
 | 40LB | T | `IH1132` | OU2-1 | OU2-2 | OU2-3 |
 | 40LB | B | `IH1135` | OU2-4 | OU2-5 | OU2-6 |
-| 40LA | | `IH1136` | OU2-7 | OU2-8 | OU3-7 |
+| 40LA | | `IH1136` | OU2-7 | OU3-8 | OU3-7 |
 | 2036 | | `IH1133` | OU3-1 | OU3-2 | OU3-3 |
 | 2035 | | `IH1134` | OU3-4 | OU3-5 | OU3-6 |
 
 `signals_split_v8.xlsx` stays the frozen RGB plan.
+
+Block-sensor calibration pin (first 5V OU, channel 8):
+
+| Node | Port |
+|------|------|
+| C1 | C1-OU2-8 |
+| C2 | C2-OU1-8 |
+| C3 | C3-OU2-8 |
+| C4 | C4-OU2-8 |
+| C11 | C11-OU2-8 |
+| C12 | C12-OU2-8 |
+| C13 | C13-OU1-8 |
+| C14 | C14-OU2-8 |
+| C21 | C21-OU2-8 |
+| C22 | C22-OU2-8 |
+| C23 | C23-OU2-8 |
+| C24 | C24-OU2-8 |
+
+Relays that used to sit on those pins (C3, C14, C21–C24) need a different 5V channel.
 
 ### Other cabinets (no Digicon 3-pin heads)
 
@@ -154,7 +175,7 @@ These OUs stay motors / planned RGB (`S*-*`) / relays. Do not overlay Digicon se
 
 | Node | Radio | Plant | Boards |
 |------|------:|-------|--------|
-| C3 | 3 | West lower | OU1 12V motors 103–106; OU2/OU3 5V leftover RGB |
+| C3 | 3 | West lower | OU1 12V motors 103–106; OU2/OU3 5V leftover RGB; **OU2-8 BS cal** |
 | C14 | 14 | West upper | OU1 12V 10044–10047; OU2/OU3 5V S6-* + relay |
 | C21 | 21 | Helix upper | OU1 12V NIX; OU2/OU3 5V S4-* + relay |
 | C22 | 22 | North upper | OU1 12V DJE/DJW; OU2/OU3 5V S5-1…5 + relay |

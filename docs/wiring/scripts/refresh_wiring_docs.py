@@ -292,7 +292,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     },
     "Switch 102": {
         "entry": "6LA",
-        "entry_ports": ("C4-OU3-7", "C4-OU2-8", "C4-OU2-7"),
+        "entry_ports": ("C4-OU3-7", "C4-OU3-8", "C4-OU2-7"),
         "normal": None,
         "reverse": "6LB",
         "reverse_ports": ("C4-OU2-3", "C4-OU2-2", "C4-OU2-1"),
@@ -303,11 +303,11 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "normal": "24RA",
         "normal_ports": ("C2-OU1-3", "C2-OU1-2", "C2-OU1-1"),
         "reverse": "24RB",
-        "reverse_ports": ("C2-OU2-7", "C2-OU1-8", "C2-OU1-7"),
+        "reverse_ports": ("C2-OU2-7", "C2-OU3-8", "C2-OU1-7"),
     },
     "Switch 110": {
         "entry": "32R",
-        "entry_ports": ("C12-OU3-7", "C12-OU2-8", "C12-OU2-7"),
+        "entry_ports": ("C12-OU3-7", "C12-OU3-8", "C12-OU2-7"),
         "normal": None,
         "reverse": None,
     },
@@ -339,7 +339,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "normal": "40LB",
         "normal_ports": ("C11-OU2-3", "C11-OU2-2", "C11-OU2-1"),
         "reverse": "40LA",
-        "reverse_ports": ("C11-OU3-7", "C11-OU2-8", "C11-OU2-7"),
+        "reverse_ports": ("C11-OU3-7", "C11-OU3-8", "C11-OU2-7"),
     },
     "Switch 117": {
         "entry": "8RA",
@@ -459,6 +459,79 @@ def overlay_dnou8(ws: Worksheet, wiring: list[dict[str, str]]) -> list[str]:
         else:
             ws.append(vals)
             log.append(f"append {port}: {r['user_name']}")
+    return log
+
+
+def first_5v_cal_ports(dnou_ws: Worksheet, bs_ws: Worksheet) -> dict[str, str]:
+    """Pin 8 of the lowest-numbered 5V OU on each node that has block sensors."""
+    nodes: set[str] = set()
+    nidx = header_index(bs_ws)
+    ncol = nidx.get("Node ID")
+    if ncol:
+        for row in range(2, bs_ws.max_row + 1):
+            nid = bs_ws.cell(row, ncol).value
+            if nid:
+                nodes.add(str(nid))
+    fives: dict[str, set[int]] = defaultdict(set)
+    for row in range(2, dnou_ws.max_row + 1):
+        port = dnou_ws.cell(row, 1).value
+        parent = dnou_ws.cell(row, 2).value
+        rail = dnou_ws.cell(row, 7).value
+        if not port or str(parent) not in nodes or str(rail) != "5V":
+            continue
+        parts = str(port).split("-")
+        if len(parts) < 2 or not parts[1].startswith("OU"):
+            continue
+        try:
+            fives[str(parent)].add(int(parts[1][2:]))
+        except ValueError:
+            continue
+    return {nid: f"{nid}-OU{min(ous)}-8" for nid, ous in fives.items() if ous}
+
+
+def stamp_block_sensor_cal(
+    ws: Worksheet, cal_ports: dict[str, str]
+) -> list[str]:
+    """Reserve first-5V-OU pin 8 for occupancy detector calibration current."""
+    log: list[str] = []
+    by_port: dict[str, int] = {}
+    loc_by_node: dict[str, str] = {}
+    for row in range(2, ws.max_row + 1):
+        pid = ws.cell(row, 1).value
+        parent = ws.cell(row, 2).value
+        loc = ws.cell(row, 3).value
+        if pid:
+            by_port[str(pid)] = row
+        if parent and loc and str(parent) not in loc_by_node:
+            loc_by_node[str(parent)] = str(loc)
+    for nid, port in sorted(cal_ports.items()):
+        prev = None
+        channel = 8
+        loc = loc_by_node.get(nid, "")
+        note = "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+        if port in by_port:
+            prev = ws.cell(by_port[port], 5).value
+            if prev:
+                note += f"; was {prev}"
+            loc = ws.cell(by_port[port], 3).value or loc
+        vals = (
+            port,
+            nid,
+            loc,
+            channel,
+            "Block sensor calibration",
+            "Block Sensor Cal",
+            "5V",
+            note,
+        )
+        if port in by_port:
+            rr = by_port[port]
+            for col, v in enumerate(vals, start=1):
+                ws.cell(rr, col, v)
+            log.append(f"cal {port}: {prev!r} → Block sensor calibration")
+        else:
+            ws.append(vals)
+            log.append(f"cal add {port}")
     return log
 
 
@@ -713,6 +786,14 @@ def refresh_inventory() -> Path:
     bs_log = refresh_block_sensors(wb["BlockSensors"], occ)
     ou4_log = ensure_ou4_boards(wb["DNOU8"])
     dnou_log = overlay_dnou8(wb["DNOU8"], wiring)
+    cal_ports = first_5v_cal_ports(wb["DNOU8"], wb["BlockSensors"])
+    used = {r["port_id"] for r in wiring}
+    clash = sorted(p for p in cal_ports.values() if p in used)
+    if clash:
+        raise SystemExit(
+            "Digicon heads on block-sensor calibration pins: " + ", ".join(clash)
+        )
+    cal_log = stamp_block_sensor_cal(wb["DNOU8"], cal_ports)
     ts_log = refresh_turnout_summary(wb["TurnoutSummary"])
     refresh_nodes(wb["Nodes"])
     add_digicon_sheet(wb, wiring, heads)
@@ -739,6 +820,9 @@ def refresh_inventory() -> Path:
         print(f"    {line}")
     print(f"  DNOU8 overlays: {len(dnou_log)}")
     for line in dnou_log:
+        print(f"    {line}")
+    print(f"  DNOU8 block-sensor cal: {len(cal_log)}")
+    for line in cal_log:
         print(f"    {line}")
     print(f"  TurnoutSummary Digicon: {len(ts_log)}")
     for line in ts_log:

@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-08-29 — Block-sensor calibration on first 5V OU pin 8
+
+Every node with occupancy detectors reserves pin 8 of its first 5V DNOU8 for detector calibration current. Digicon lamps that were on C2-OU1-8, C4-OU2-8, C11-OU2-8, and C12-OU2-8 moved to the next leftover pin. Relays on C3/C14/C21–C24 first-5V-OU-8 need a new channel. `tables.xml` not patched.
+
 ## 2026-08-29 — Cabinets follow plants
 
 Digicon heads move onto the box already at the plant: **C4** Brick+Plane (packed `4xx` now matches radio 4), **C13** Barn, **C12** East End 34 (`12xx`) with motors 107–112, **C2** west-end overflow (24 only), **C1** Princess 36+38, **C11** Princess 40 + balloon. **C3** is 103–106 motors, no heads. New 5V OU4 on C1/C4/C13 only. `tables.xml` not patched.
