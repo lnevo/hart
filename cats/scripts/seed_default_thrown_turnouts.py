@@ -2,8 +2,9 @@
 """Diagnose Digicon turnout MQTT vs FB (read-only by default).
 
 Rules (SoR):
-  - Live Digicon state follows **FB** for all turnouts except 116–119.
-  - Digicon SEL+CMD share one polarity. 112/114/115: inverted motors — Digicon
+  - Live Digicon state follows **FB** for all turnouts except Switch 13/7/11/9
+    (DCC 116–119; yard / engine-house, not FB-driven Digicon SoR).
+  - Digicon SEL+CMD share one polarity. Switch 33/37/39: inverted motors — Digicon
     throw frog = rest tip (Barn / McKeesport / Rocks); keep MQTT THROWN.
   - Wrong Digicon direction → flip **that one plant only** in
     `wire_hart_master4.py` PLANTS. Do not command MQTT/JMRI.
@@ -13,7 +14,7 @@ Rules (SoR):
     python3 cats/scripts/seed_default_thrown_turnouts.py --diagnose
 
 Writes (MQTT retain only — never JMRI turnout commands) require --write and
-are for unknown retain on 100/112/114/115 defaults only. Prefer FB→MQTT via
+are for unknown retain on Switch 1/33/37/39 defaults only. Prefer FB→MQTT via
 sync_mqtt_turnouts_from_fb.py only when Digicon must track FB for non-inverted plants.
 """
 
@@ -30,16 +31,17 @@ import urllib.request
 JMRI_JSON = os.environ.get("JMRI_JSON", "http://minipc-e5h6x.local:12080/json")
 MQTT_HOST = os.environ.get("MQTT_HOST", "minipc-e5h6x.local")
 
-# THROWN retain keeps Digicon throw-frog rest tips for inverted 112/114/115 + Brick 100.
+# THROWN retain keeps Digicon throw-frog rest tips for inverted Switch 33/37/39 + Brick Switch 1.
+# Keys are CTC plant numbers (userName "Switch N"), values are MQTT packed addrs.
 DEFAULT_THROWN = {
-    100: 408,
-    112: 1213,
-    114: 109,
-    115: 110,
+    1: 408,    # DCC 100
+    33: 1213,  # DCC 112
+    37: 109,   # DCC 114
+    39: 110,   # DCC 115
 }
 
-# Yard ladder — Digicon not driven by FB SoR for these.
-SKIP_FB = {116, 117, 118, 119}
+# Yard / engine-house — Digicon not driven by FB SoR (DCC 116–119).
+SKIP_FB = {13, 7, 11, 9}
 
 STATE = {0: "UNKNOWN", 1: "UNKNOWN", 2: "CLOSED", 4: "THROWN", 8: "INCONSISTENT"}
 SENS = {2: "inactive", 4: "active"}
@@ -117,7 +119,7 @@ def _fb_implied(d: dict) -> str | None:
 
 
 def _switch_num_from_uname(un: str) -> int | None:
-    # "Switch 114" / "Switch 100"
+    # "Switch 37" / "Switch 1"
     parts = (un or "").split()
     if len(parts) >= 2 and parts[0] == "Switch" and parts[1].isdigit():
         return int(parts[1])
@@ -159,7 +161,7 @@ def diagnose(by_name: dict) -> int:
             note += "mqtt≠fb "
         print(f"{sw_s:>4} {name:8} {mqtt:8} {jmri:12} {fb:8} {mode_s:12}  {note}")
     print()
-    print("Digicon paints MQTT retain. Live SoR = FB (except 116–119).")
+    print("Digicon paints MQTT retain. Live SoR = FB (except Switch 13/7/11/9).")
     print("Wrong Digicon frog → flip that one PLANTS entry only — do not command points.")
     print("mqtt≠fb → Digicon disagrees with field until broker retain matches FB.")
     return 0

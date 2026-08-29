@@ -11,11 +11,15 @@ from __future__ import annotations
 import csv
 import re
 import sys
+from collections import OrderedDict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from apply_public_names import RenameEntry, apply_renames_to_text
+
+SIGNAL_WIRING = ROOT / "cats/data/signal_wiring.csv"
+PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 # Old: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
 # New: "Node: 4 | OU-1: Port: 1,2 | DCC: 100"
@@ -32,6 +36,7 @@ _NEW_WIRING_RE = re.compile(
 _OLD_UNIT_RE = re.compile(r"(OU|IN)-(\d+)\s*/\s*Ports?\s*([\d,]+)", re.I)
 _NEW_UNIT_RE = re.compile(r"(OU|IN)-(\d+):\s*Port:\s*([\d,]+)", re.I)
 _MAST_NUM_RE = re.compile(r"^Mast\s+(\d+)[LR]", re.I)
+_PORT_ID_RE = re.compile(r"^C(\d+)-(OU|IN)(\d+)-(\d+)$", re.I)
 
 # Signal even → switch odd, except S-4 bumpers (26) sit on the last ladder frog.
 MAST_SWITCH_OVERRIDE = {
@@ -58,6 +63,101 @@ def format_lcos_comment(comment: str) -> str:
     if dcc:
         parts.append(f"DCC: {dcc}")
     return " | ".join(parts)
+
+
+def comment_from_port_ids(port_ids: list[str], dcc: str | None = None) -> str:
+    """Build `Node: 4 | OU-2: Port: 1,2,3` from C4-OU2-1 style port ids.
+
+    Consecutive ports on the same OU stay comma-separated (G/Y/R order).
+    Leftover discs that spill (6LA, 32R, 38LA, 8LB, 2035) get extra `| OU-n:` groups.
+    """
+    groups: list[tuple[str, str, str, list[str]]] = []
+    for pid in port_ids:
+        match = _PORT_ID_RE.match((pid or "").strip())
+        if not match:
+            continue
+        node, kind, num, port = (
+            match.group(1),
+            match.group(2).upper(),
+            match.group(3),
+            match.group(4),
+        )
+        if groups and groups[-1][0] == node and groups[-1][1] == kind and groups[-1][2] == num:
+            groups[-1][3].append(port)
+        else:
+            groups.append((node, kind, num, [port]))
+    if not groups:
+        return ""
+    parts = [f"Node: {groups[0][0]}"]
+    parts.extend(f"{kind}-{num}: Port: {','.join(ports)}" for _, kind, num, ports in groups)
+    if dcc:
+        parts.append(f"DCC: {dcc}")
+    return " | ".join(parts)
+
+
+def jmri_head_user_name(mast_user_name: str, disc_role: str) -> str:
+    """Wiring `Head 6LB T G` → JMRI `Head 6LB Top`."""
+    base = (mast_user_name or "").replace("Mast ", "Head ", 1).strip()
+    role = (disc_role or "").strip().upper()
+    if role == "T":
+        return f"{base} Top"
+    if role == "B":
+        return f"{base} Bottom"
+    return base
+
+
+def load_wiring_head_comments(path: Path | None = None) -> dict[str, str]:
+    """JMRI head userName → LCOS port comment from signal_wiring.csv.
+
+    Match by public head name, not packed IH. Wiring packed IDs moved with
+    cabinets (40LB is IH1132 on C11); live tables still use the old IH beans.
+    """
+    csv_path = path or SIGNAL_WIRING
+    grouped: OrderedDict[str, list[str]] = OrderedDict()
+    if not csv_path.is_file():
+        return {}
+    with csv_path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            uname = jmri_head_user_name(
+                row.get("mast_user_name") or "",
+                row.get("disc_role") or "",
+            )
+            if not uname:
+                continue
+            grouped.setdefault(uname, []).append((row.get("port_id") or "").strip())
+    return {
+        name: comment_from_port_ids(ports)
+        for name, ports in grouped.items()
+        if comment_from_port_ids(ports)
+    }
+
+
+def sync_map_head_comments(path: Path | None = None) -> int:
+    """Write wiring comments onto public_name_map.csv head rows (identity + aliases)."""
+    csv_path = path or PUBLIC_NAME_MAP
+    comments = load_wiring_head_comments()
+    if not csv_path.is_file() or not comments:
+        return 0
+    with csv_path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        fieldnames = list(reader.fieldnames or [])
+        rows = list(reader)
+    changed = 0
+    for row in rows:
+        if (row.get("layer") or "").strip() != "head":
+            continue
+        proposed = (row.get("proposed") or "").strip()
+        want = comments.get(proposed)
+        if not want or (row.get("comment") or "").strip() == want:
+            continue
+        row["comment"] = want
+        changed += 1
+    if changed:
+        with csv_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(rows)
+    return changed
 
 
 def switch_protected_by_mast(user_name: str) -> str | None:
@@ -597,11 +697,16 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
 
 
 DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
+WIRING_HEAD_COMMENTS = load_wiring_head_comments()
 
 
 def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> str | None:
     if existing and re.search(r"(?:\bstop\b|not a station)", existing, re.I):
         return existing
+    if kind == "signalhead":
+        wired = WIRING_HEAD_COMMENTS.get(user_name)
+        if wired:
+            return wired
     mapped = DEVICE_MAP_COMMENTS_BY_SYS.get(system_name) or DEVICE_MAP_COMMENTS_BY_USER.get(
         (kind, user_name)
     )
@@ -731,6 +836,11 @@ def refresh_comments(text: str) -> tuple[str, int]:
 
 
 def main() -> int:
+    n_map = sync_map_head_comments()
+    if n_map:
+        print(f"public_name_map.csv: {n_map} head comments from signal_wiring.csv")
+        global DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER
+        DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
     targets = [
         ROOT / "jmri/layouts/hart/output/tables.xml",
         ROOT / "tables/new_tables.xml",

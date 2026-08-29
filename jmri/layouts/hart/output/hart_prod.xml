@@ -567,182 +567,182 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>Head 6LB Top</userName>
-      <comment>Node: 4 | OU-2: Port: 1,2</comment>
+      <comment>Node: 4 | OU-2: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH433</systemName>
       <userName>Head 6LB Bottom</userName>
-      <comment>Node: 4 | OU-2: Port: 1,2</comment>
+      <comment>Node: 4 | OU-2: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH434</systemName>
       <userName>Head 6LA</userName>
-      <comment>Node: 4 | OU-2: Port: 3</comment>
+      <comment>Node: 4 | OU-2: Port: 7 | OU-3: Port: 8,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
       <userName>Head 4RA</userName>
-      <comment>Node: 4 | OU-2: Port: 5</comment>
+      <comment>Node: 4 | OU-4: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH437</systemName>
       <userName>Head 4RB</userName>
-      <comment>Node: 4 | OU-2: Port: 6</comment>
+      <comment>Node: 4 | OU-4: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH438</systemName>
       <userName>Head 2L Top</userName>
-      <comment>Node: 4 | OU-3: Port: 1,2</comment>
+      <comment>Node: 4 | OU-3: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH439</systemName>
       <userName>Head 2L Bottom</userName>
-      <comment>Node: 4 | OU-3: Port: 1,2</comment>
+      <comment>Node: 4 | OU-3: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1332</systemName>
       <userName>Head 8RA Top</userName>
-      <comment>Node: 13 | OU-2: Port: 1,2</comment>
+      <comment>Node: 13 | OU-1: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1333</systemName>
       <userName>Head 8RA Bottom</userName>
-      <comment>Node: 13 | OU-2: Port: 1,2</comment>
+      <comment>Node: 13 | OU-1: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1334</systemName>
       <userName>Head 8LB</userName>
-      <comment>Node: 13 | OU-2: Port: 3</comment>
+      <comment>Node: 13 | OU-2: Port: 7,8 | OU-4: Port: 7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1335</systemName>
       <userName>Head 8RB Top</userName>
-      <comment>Node: 13 | OU-2: Port: 4,5</comment>
+      <comment>Node: 13 | OU-4: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1336</systemName>
       <userName>Head 8RB Bottom</userName>
-      <comment>Node: 13 | OU-2: Port: 4,5</comment>
+      <comment>Node: 13 | OU-4: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1337</systemName>
       <userName>Head 8LA Top</userName>
-      <comment>Node: 13 | OU-2: Port: 6 | OU-3: Port: 1</comment>
+      <comment>Node: 13 | OU-2: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1338</systemName>
       <userName>Head 8LA Bottom</userName>
-      <comment>Node: 13 | OU-2: Port: 6 | OU-3: Port: 1</comment>
+      <comment>Node: 13 | OU-2: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1232</systemName>
       <userName>Head 24RA Top</userName>
-      <comment>Node: 12 | OU-2: Port: 1,2</comment>
+      <comment>Node: 2 | OU-1: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1233</systemName>
       <userName>Head 24RA Bottom</userName>
-      <comment>Node: 12 | OU-2: Port: 1,2</comment>
+      <comment>Node: 2 | OU-1: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1234</systemName>
       <userName>Head 24L Top</userName>
-      <comment>Node: 12 | OU-2: Port: 3,4</comment>
+      <comment>Node: 2 | OU-2: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1235</systemName>
       <userName>Head 24L Bottom</userName>
-      <comment>Node: 12 | OU-2: Port: 3,4</comment>
+      <comment>Node: 2 | OU-2: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1236</systemName>
       <userName>Head 24RB</userName>
-      <comment>Node: 12 | OU-2: Port: 5</comment>
+      <comment>Node: 2 | OU-3: Port: 6,7,8</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1237</systemName>
       <userName>Head 34L Top</userName>
-      <comment>Node: 12 | OU-2: Port: 6 | OU-3: Port: 1</comment>
+      <comment>Node: 12 | OU-2: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1238</systemName>
       <userName>Head 34L Bottom</userName>
-      <comment>Node: 12 | OU-2: Port: 6 | OU-3: Port: 1</comment>
+      <comment>Node: 12 | OU-2: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1239</systemName>
       <userName>Head 32R</userName>
-      <comment>Node: 12 | OU-3: Port: 2</comment>
+      <comment>Node: 12 | OU-2: Port: 7 | OU-3: Port: 8,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1240</systemName>
       <userName>Head 34R Top</userName>
-      <comment>Node: 12 | OU-3: Port: 3,4</comment>
+      <comment>Node: 12 | OU-3: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1241</systemName>
       <userName>Head 34R Bottom</userName>
-      <comment>Node: 12 | OU-3: Port: 3,4</comment>
+      <comment>Node: 12 | OU-3: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH132</systemName>
       <userName>Head 40LB Top</userName>
-      <comment>Node: 1 | OU-2: Port: 1,2</comment>
+      <comment>Node: 11 | OU-2: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH133</systemName>
       <userName>Head 40LB Bottom</userName>
-      <comment>Node: 1 | OU-2: Port: 1,2</comment>
+      <comment>Node: 11 | OU-2: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
       <userName>Head 2036</userName>
-      <comment>Node: 1 | OU-2: Port: 3</comment>
+      <comment>Node: 11 | OU-3: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
       <userName>Head 36RA Top</userName>
-      <comment>Node: 1 | OU-2: Port: 4,5</comment>
+      <comment>Node: 1 | OU-2: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH136</systemName>
       <userName>Head 36RA Bottom</userName>
-      <comment>Node: 1 | OU-2: Port: 4,5</comment>
+      <comment>Node: 1 | OU-2: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH137</systemName>
       <userName>Head 36RB Top</userName>
-      <comment>Node: 1 | OU-2: Port: 6,7</comment>
+      <comment>Node: 1 | OU-3: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH138</systemName>
       <userName>Head 36RB Bottom</userName>
-      <comment>Node: 1 | OU-2: Port: 6,7</comment>
+      <comment>Node: 1 | OU-3: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH139</systemName>
       <userName>Head 38LB Top</userName>
-      <comment>Node: 1 | OU-2: Port: 8 | OU-3: Port: 1</comment>
+      <comment>Node: 1 | OU-4: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH140</systemName>
       <userName>Head 38LB Bottom</userName>
-      <comment>Node: 1 | OU-2: Port: 8 | OU-3: Port: 1</comment>
+      <comment>Node: 1 | OU-4: Port: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
       <userName>Head 2035</userName>
-      <comment>Node: 1 | OU-3: Port: 2</comment>
+      <comment>Node: 11 | OU-3: Port: 7,8 | OU-2: Port: 7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH142</systemName>
       <userName>Head 40LA</userName>
-      <comment>Node: 1 | OU-3: Port: 3</comment>
+      <comment>Node: 11 | OU-3: Port: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH143</systemName>
       <userName>Head 38LA</userName>
-      <comment>Node: 1 | OU-3: Port: 4</comment>
+      <comment>Node: 1 | OU-3: Port: 7,8 | OU-2: Port: 7</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">

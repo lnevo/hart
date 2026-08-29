@@ -4,15 +4,15 @@
 # track board (SIGNALS_ON_PANEL.NONE) - signal state shows on the lever lamps.
 #
 # Columns west-to-east (levers odd switch / even signal):
-#   col  4  SW  7/8    Switch 107  RH   OS 107 (yard ladder, switch-only)
-#   col  5  SW  9/10   Switch 108  RH   OS 108 (yard ladder, switch-only)
-#   col  6  SW 11/12   Switch 111  RH XOVER  OS 111a + OS 111b
-#   col  7  SW 13/14   Switch 109  RH   OS 109 (yard ladder, switch-only)
-#   col  8  SW 15/16   Switch 110  LH   OS 110
-#   col  9  SW 17/18   Switch 112  LH   OS 112
-#   col 10  SW 19/20   Switch 113  LH XOVER  OS 113b + OS 113a
-#   col 11  SW 21/22   Switch 114  RH   OS 114
-#   col 12  SW 23/24   Switch 115  LH   OS 115
+#   col  4  SW  7/8    Switch 25  RH   OS Switch 25 (yard ladder, switch-only)
+#   col  5  SW  9/10   Switch 27  RH   OS Switch 27 (yard ladder, switch-only)
+#   col  6  SW 11/12   Switch 23  RH XOVER  OS Switch 23a + OS Switch 23b
+#   col  7  SW 13/14   Switch 29  RH   OS Switch 29 (yard ladder, switch-only)
+#   col  8  SW 15/16   Switch 31  LH   OS Switch 31
+#   col  9  SW 17/18   Switch 33  LH   OS Switch 33
+#   col 10  SW 19/20   Switch 35  LH XOVER  OS Switch 35b + OS Switch 35a
+#   col 11  SW 21/22   Switch 37  RH   OS Switch 37
+#   col 12  SW 23/24   Switch 39  LH   OS Switch 39
 #
 # Run inside PanelPro. Refuses to run if these switch numbers already exist.
 
@@ -74,25 +74,25 @@ else:
         return c
 
     # East End
-    add_os(7, 4, "Block 12-1", "Switch 107", [], [])
-    add_os(9, 5, "Block 12-3", "Switch 108", [], [])
-    add_os(11, 6, "Block 12-4", "Switch 111",
-           ["111RA", "111RB"],
-           ["111L"],
+    add_os(7, 4, "Block 12-1", "Switch 25", [], [])
+    add_os(9, 5, "Block 12-3", "Switch 27", [], [])
+    add_os(11, 6, "Block 12-4", "Switch 23",
+           ["Mast 24RA", "Mast 24RB"],
+           ["Mast 24L"],
            secondary="Block 12-6", ttype=CROSSOVER)
-    add_os(13, 7, "Block 12-5", "Switch 109", [], [])
-    add_os(15, 8, "Block 12-7", "Switch 110",
-           ["110R"], [], left_hand=True)
-    add_os(17, 9, "Block 12-8", "Switch 112",
-           ["112R"], ["112L"], left_hand=True)
+    add_os(13, 7, "Block 12-5", "Switch 29", [], [])
+    add_os(15, 8, "Block 12-7", "Switch 31",
+           ["Mast 32R"], [], left_hand=True)
+    add_os(17, 9, "Block 12-8", "Switch 33",
+           ["Mast 34R"], ["Mast 34L"], left_hand=True)
     # Princess
-    add_os(19, 10, "Block 1-5", "Switch 113",
-           ["113RA", "113RB"], [],
+    add_os(19, 10, "Block 1-5", "Switch 35",
+           ["Mast 36RA", "Mast 36RB"], [],
            secondary="Block 1-6", ttype=CROSSOVER, left_hand=True)
-    add_os(21, 11, "Block 1-3", "Switch 114",
-           [], ["114LA", "114LB"])
-    add_os(23, 12, "Block 1-4", "Switch 115",
-           [], ["115LA", "115LB"], left_hand=True)
+    add_os(21, 11, "Block 1-3", "Switch 37",
+           [], ["Mast 38LA", "Mast 38LB"])
+    add_os(23, 12, "Block 1-4", "Switch 39",
+           [], ["Mast 40LA", "Mast 40LB"], left_hand=True)
 
     # Traffic locking auto-generate for every signal-equipped column
     for i in range(data.getCodeButtonHandlerDataSize()):

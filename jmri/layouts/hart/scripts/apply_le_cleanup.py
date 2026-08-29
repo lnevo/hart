@@ -56,10 +56,10 @@ YARD_BOUNDARY_MASTS = [
 YARD_VIRTUAL_UNAMES = {row[3] for row in YARD_BOUNDARY_MASTS}
 
 MTT_FB = {
-    "MTT100": ("Switch 4-1 FB R", "Switch 4-1 FB N", "Switch 100"),
-    "MTT113": ("Switch 1-1 FB R", "Switch 1-1 FB N", "Switch 113"),
-    "MTT114": ("Switch 1-2 FB R", "Switch 1-2 FB N", "Switch 114"),
-    "MTT115": ("Switch 1-3 FB R", "Switch 1-3 FB N", "Switch 115"),
+    "MTT100": ("FB Switch 1 R", "FB Switch 1 N", "Switch 1"),
+    "MTT113": ("FB Switch 35 R", "FB Switch 35 N", "Switch 35"),
+    "MTT114": ("FB Switch 37 R", "FB Switch 37 N", "Switch 37"),
+    "MTT115": ("FB Switch 39 R", "FB Switch 39 N", "Switch 39"),
 }
 
 
@@ -91,7 +91,7 @@ def patch_mtt(root: ET.Element) -> int:
             turnout.set("sensor2", sensor2)
             n += 1
         comment = turnout.find("comment")
-        want = f"OpenLCB alias of {switch}; same FB as MQTT hardware ({sensor2.split()[0]} {sensor2.split()[1]})"
+        want = f"OpenLCB alias of {switch}; same FB as MQTT hardware ({switch})"
         if comment is None:
             comment = ET.SubElement(turnout, "comment")
             comment.text = want

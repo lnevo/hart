@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — JMRI head comments rebuilt from `signal_wiring.csv` (3 pins per disc; 40LB on C11, 24RA on C2). Leftover Switch 100–119 names in live scripts/indexes use CTC numbers (MQTT `DCC: NNN` kept). Packed IH beans unchanged. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-29 — Upper-deck motors/heads are Switch 61+ / 62L… (odd switch, even signal). Leftover C2 `S2-6`/`S2-7` RGB cleared; C2-OU3 kept for 24RB. Docs-only, not deployed.
 
 Updated: 2026-08-29 — C3 leftover S3 RGB cleared and **OU3** removed (OU2-8 stays BS cal). Switch 15–21 motors only. Upper-deck `S4/S5/S6` labeled as CP4/CP5/CP6 defined heads; v8 switch columns use CTC names. Docs-only, not deployed.

@@ -4,10 +4,10 @@
 # Keep this for manual Script Entry if a turnout is UNKNOWN with no retain.
 
 DEFAULT_THROWN = (
-    "M2T408",   # Switch 100
-    "M2T1213",  # Switch 112
-    "M2T109",   # Switch 114
-    "M2T110",   # Switch 115
+    "M2T408",   # Switch 1 (DCC 100)
+    "M2T1213",  # Switch 33 (DCC 112)
+    "M2T109",   # Switch 37 (DCC 114)
+    "M2T110",   # Switch 39 (DCC 115)
 )
 
 for name in DEFAULT_THROWN:

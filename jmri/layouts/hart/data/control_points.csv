@@ -1,7 +1,7 @@
 cp_id,cp_name,switches,notes
-brick,Brick,"100,101",Switch 101 is the only access to W-1/2
-plane,Plane,102,West diverge; west limit of Scale
-barn,Barn,"117,117b",Crossover only
-south_yard,South Yard,"103,104,105,106",South Yard ladder
-east_end,East End,"107,108,109,110,111a,111b,112",Includes 111 crossover legs
-princess,Princess,"113a,113b,114,115",East plant toward McKees Rocks / McKeesport
+brick,Brick,"1,3",Switch 3 is the only access to W-1/2
+plane,Plane,5,West diverge; west limit of Scale
+barn,Barn,"7,7b",Crossover only
+south_yard,South Yard,"15,17,19,21",South Yard ladder
+east_end,East End,"25,27,29,31,23a,23b,33",Includes 23 crossover legs
+princess,Princess,"35a,35b,37,39",East plant toward McKees Rocks / McKeesport

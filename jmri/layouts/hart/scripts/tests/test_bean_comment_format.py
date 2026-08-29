@@ -66,6 +66,36 @@ class BeanCommentFormatTest(unittest.TestCase):
             "Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop",
         )
 
+    def test_comment_from_port_ids_groups_and_spills(self) -> None:
+        from_ports = self.m.comment_from_port_ids
+        self.assertEqual(
+            from_ports(["C4-OU2-1", "C4-OU2-2", "C4-OU2-3"]),
+            "Node: 4 | OU-2: Port: 1,2,3",
+        )
+        self.assertEqual(
+            from_ports(["C4-OU2-7", "C4-OU3-8", "C4-OU3-7"]),
+            "Node: 4 | OU-2: Port: 7 | OU-3: Port: 8,7",
+        )
+        self.assertEqual(
+            from_ports(["C11-OU3-7", "C11-OU3-8", "C11-OU2-7"]),
+            "Node: 11 | OU-3: Port: 7,8 | OU-2: Port: 7",
+        )
+
+    def test_wiring_head_comments_match_live_user_names(self) -> None:
+        comments = self.m.load_wiring_head_comments()
+        self.assertEqual(comments["Head 6LB Top"], "Node: 4 | OU-2: Port: 1,2,3")
+        self.assertEqual(comments["Head 6LB Bottom"], "Node: 4 | OU-2: Port: 4,5,6")
+        self.assertEqual(comments["Head 6LA"], "Node: 4 | OU-2: Port: 7 | OU-3: Port: 8,7")
+        self.assertEqual(comments["Head 40LB Top"], "Node: 11 | OU-2: Port: 1,2,3")
+        self.assertEqual(comments["Head 24RA Top"], "Node: 2 | OU-1: Port: 1,2,3")
+        self.assertEqual(comments["Head 34L Top"], "Node: 12 | OU-2: Port: 1,2,3")
+        self.assertEqual(comments["Head 38LA"], "Node: 1 | OU-3: Port: 7,8 | OU-2: Port: 7")
+        self.assertEqual(comments["Head 2035"], "Node: 11 | OU-3: Port: 7,8 | OU-2: Port: 7")
+        self.assertEqual(
+            self.m.comment_for("signalhead", "IH432", "Head 6LB Top", "Node: 4 | OU-2: Port: 1,2"),
+            "Node: 4 | OU-2: Port: 1,2,3",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -10,16 +10,16 @@ Switch 25,OS Switch 25,East End,os,
 Switch 27,OS Switch 27,East End,os,
 Switch 29,OS Switch 29,East End,os,
 Switch 31,OS Switch 31,East End,os,
-Switch 111a,OS Switch 23a,East End,os,Crossover leg
-Switch 111b,OS Switch 23b,East End,os,Crossover leg
+Switch 23a,OS Switch 23a,East End,os,Crossover leg
+Switch 23b,OS Switch 23b,East End,os,Crossover leg
 Switch 33,OS Switch 33,East End,os,
-Switch 113a,OS Switch 35a,Princess,os,Crossover leg
-Switch 113b,OS Switch 35b,Princess,os,Crossover leg
+Switch 35a,OS Switch 35a,Princess,os,Crossover leg
+Switch 35b,OS Switch 35b,Princess,os,Crossover leg
 Switch 37,OS Switch 37,Princess,os,
 Switch 39,OS Switch 39,Princess,os,
 Switch 13,OS Switch 13,,os,hand-throw
 Switch 7,OS Switch 7,Barn,os,
-Switch 117b,OS Switch 7b,Barn,os,
+Switch 7b,OS Switch 7b,Barn,os,
 Switch 11,OS Switch 11,,os,hand-throw
 Switch 9,OS Switch 9,,os,hand-throw
 Track Main West,Track Main West,,track,

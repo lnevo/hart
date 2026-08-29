@@ -8,7 +8,7 @@ TWOSENSOR convention in hart_prod:
 Digicon SELECTEDREPORT follows track/turnout/{addr}. This updates broker
 retain from sensors only — it does not command turnout motors.
 
-Skips switches 116–119 (yard — not FB-driven Digicon SoR).
+Skips Switch 13/7/11/9 (DCC 116–119 — yard / engine-house, not FB-driven Digicon SoR).
 
     python3 cats/scripts/sync_mqtt_turnouts_from_fb.py
     python3 cats/scripts/sync_mqtt_turnouts_from_fb.py --dry-run
@@ -27,8 +27,8 @@ import urllib.request
 JMRI_JSON = os.environ.get("JMRI_JSON", "http://minipc-e5h6x.local:12080/json")
 MQTT_HOST = os.environ.get("MQTT_HOST", "minipc-e5h6x.local")
 
-# Yard ladder — Digicon not FB-SoR for these.
-SKIP_SWITCH = {116, 117, 118, 119}
+# Yard / engine-house — Digicon not FB-SoR (DCC 116–119 → Switch 13/7/11/9).
+SKIP_SWITCH = {13, 7, 11, 9}
 
 def _get(url: str):
     with urllib.request.urlopen(url, timeout=15) as r:
