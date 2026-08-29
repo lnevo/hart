@@ -21,9 +21,9 @@
 # Operator Enable when sml_mode is already enabled: force-override popup;
 #   Yes publishes enabling (same abort for other agents) then enabled.
 # Query or disabling ACK when Enabled (so bridge can suspend RELEASE).
-# Quit (ShutDownTask): if this instance still owns Digicon (Enabled, or
-#   enabling in flight), Hold / wait / Unheld then sml_mode disabled.
-#   Abort does not RELEASE — another agent owns the field.
+# Quit (ShutDownTask.call + main-window close): if this instance still owns
+#   Digicon, Hold / wait / Unheld then sml_mode disabled. Work is in call()
+#   because JMRI run() is after windows close. Abort does not RELEASE.
 #
 # Topic leaf is packed digits only (IH432 -> .../432). Beans stay IH*.
 # Generated HEAD_NAMES: cats/scripts/build_hart_signal_heads.py
@@ -225,6 +225,7 @@ class DigiconMqttSml(
         self._abort_in_progress = False
         self._enabling_wait_scheduled = False
         self._shutting_down = False
+        self._shutdown_released = False
 
     def start(self):
         self.mqtt = _mqtt_adapter()
@@ -256,47 +257,107 @@ class DigiconMqttSml(
         )
 
     def _register_shutdown_task(self):
-        """Hold/wait/Unheld/disabled on File->Quit if we still own Digicon."""
-        controller = self
-
-        class _Quit(jmri.implementation.AbstractShutDownTask):
-            def __init__(_self):
-                jmri.implementation.AbstractShutDownTask.__init__(
-                    _self, "Digicon SML quit"
-                )
-
-            def call(_self):
-                return True
-
-            def run(_self):
-                controller._on_jmri_shutdown()
-
+        """Register before windows/MQTT close. Work runs in call(), not run()."""
         try:
-            jmri.InstanceManager.getDefault(jmri.ShutDownManager).register(_Quit())
+            task = DigiconSmlQuitTask("Digicon SML quit")
+            jmri.InstanceManager.getDefault(jmri.ShutDownManager).register(task)
             print("mqtt_signalhead: registered ShutDownTask")
         except Exception as exc:
             print("mqtt_signalhead: ShutDownTask register failed: " + _ascii(exc))
+        self._add_quit_window_hook()
+
+    def _add_quit_window_hook(self):
+        """WINDOW_CLOSING still has MQTT; File->Exit / window X both hit this."""
+        try:
+            from apps import Apps
+            from java.awt.event import WindowAdapter
+
+            space = Apps.buttonSpace()
+            frame = space.getTopLevelAncestor() if space is not None else None
+            if frame is None:
+                print("mqtt_signalhead: no main frame for window close hook")
+                return
+            hook = self
+
+            class _Close(WindowAdapter):
+                def windowClosing(_self, event):
+                    print("mqtt_signalhead: main window closing")
+                    hook._on_jmri_shutdown()
+
+            frame.addWindowListener(_Close())
+            print(
+                "mqtt_signalhead: window close hook on %s"
+                % _ascii(frame.getTitle())
+            )
+        except Exception as exc:
+            print("mqtt_signalhead: window close hook failed: " + _ascii(exc))
+
+    def _owns_digicon_now(self):
+        if self._global_enabled or self._enabling_originator:
+            return True
+        try:
+            for mast in self._masts:
+                if self._enabled_dest_count(mast) > 0:
+                    return True
+        except Exception:
+            pass
+        return False
 
     def _on_jmri_shutdown(self):
-        """Quit: if we own Digicon, Hold/wait/Unheld then sml_mode disabled."""
+        """Quit: Hold/wait/Unheld then sml_mode disabled. Idempotent."""
+        if self._shutdown_released:
+            return
         self._shutting_down = True
         try:
             if self._abort_in_progress:
                 print(
                     "mqtt_signalhead: shutdown skip (abort; other agent owns Digicon)"
                 )
+                self._shutdown_released = True
                 return
-            if not self._global_enabled and not self._enabling_originator:
+            if not self._owns_digicon_now():
                 print("mqtt_signalhead: shutdown skip (SML not enabled)")
+                self._shutdown_released = True
                 return
             print("mqtt_signalhead: shutdown Hold/wait/Unheld then disabled")
             self._busy = True
             try:
-                self._hand_off_disabled(release=True)
+                self._release_on_quit()
             finally:
                 self._busy = False
+            self._shutdown_released = True
         except Exception as exc:
             print("mqtt_signalhead: shutdown task failed: " + _ascii(exc))
+
+    def _release_on_quit(self):
+        """MQTT Unheld + disabled before dest uncheck so a layout hang cannot skip RELEASE."""
+        print(
+            "mqtt_signalhead: Hold Digicon masts, wait %d ms before Unheld / disabled"
+            % HOLD_WAIT_MS
+        )
+        for mast in self._masts:
+            try:
+                mast.setHeld(True)
+            except Exception:
+                pass
+        Thread.sleep(HOLD_WAIT_MS)
+        print(
+            "mqtt_signalhead: shutdown publishing Unheld for %d MQTT head(s)"
+            % len(self._heads)
+        )
+        for head in self._heads:
+            self._publish_unheld(head)
+        self._publish_mode("disabled")
+        print("mqtt_signalhead: shutdown sml_mode disabled -- unchecking SML pairs")
+        self._set_all_digicon_sml_destinations(False)
+        self._snapshot_mast_sml_state()
+        for mast in self._masts:
+            try:
+                mast.setHeld(False)
+            except Exception:
+                pass
+        self._global_enabled = False
+        self._enabling_originator = False
 
     def _stored_enabled_source_names(self):
         """UserNames of Digicon sources that loaded with any dest Enabled."""
@@ -496,6 +557,10 @@ class DigiconMqttSml(
                 "mqtt_signalhead: SML pairs %s (%d)"
                 % (("enabled" if enabled else "disabled"), n)
             )
+
+        if self._shutting_down:
+            _do()
+            return
 
         ran = [False]
         try:
@@ -1226,6 +1291,26 @@ class DigiconMqttSml(
                 % (_ascii(mast.getDisplayName()), _ascii(enabled[0]))
             )
             self._hand_source_to_sml(mast)
+
+
+class DigiconSmlQuitTask(jmri.implementation.AbstractShutDownTask):
+    """JMRI calls call() before closing windows; run() is after MQTT may be gone."""
+
+    def call(self):
+        self.setDoRun(True)
+        print("mqtt_signalhead: ShutDownTask call()")
+        try:
+            controller._on_jmri_shutdown()
+        except Exception as exc:
+            print("mqtt_signalhead: ShutDownTask call failed: " + _ascii(exc))
+        return True
+
+    def run(self):
+        print("mqtt_signalhead: ShutDownTask run()")
+        try:
+            controller._on_jmri_shutdown()
+        except Exception as exc:
+            print("mqtt_signalhead: ShutDownTask run failed: " + _ascii(exc))
 
 
 controller = DigiconMqttSml(HEAD_NAMES)

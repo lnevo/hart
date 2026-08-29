@@ -41,6 +41,8 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("_announce_enabling", text)
         self.assertIn("AbstractShutDownTask", text)
         self.assertIn("_on_jmri_shutdown", text)
+        self.assertIn("DigiconSmlQuitTask", text)
+        self.assertIn("setDoRun(True)", text)
         self.assertNotIn("mosquitto", text.lower())
         self.assertNotIn("subprocess", text)
         self.assertNotIn("import socket", text)
@@ -72,15 +74,22 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         text = PUBLISHER.read_text(encoding="utf-8")
         start = text[text.index("def start") : text.index("def _stored_enabled")]
         self.assertIn("_register_shutdown_task()", start)
-        self.assertIn("AbstractShutDownTask", start)
+        self.assertIn("DigiconSmlQuitTask", start)
         quit = text[
             text.index("def _on_jmri_shutdown") : text.index(
                 "def _stored_enabled_source_names"
             )
         ]
-        self.assertIn("_hand_off_disabled(release=True)", quit)
+        self.assertIn("_release_on_quit()", quit)
+        self.assertIn("_publish_unheld(head)", quit)
+        self.assertLess(quit.index("_publish_unheld"), quit.index('_publish_mode("disabled")'))
+        self.assertIn("HOLD_WAIT_MS", quit)
         self.assertIn("self._abort_in_progress", quit)
         self.assertNotIn("_abort_sml_immediate", quit)
+        task = text[text.index("class DigiconSmlQuitTask") :]
+        self.assertIn("def call(self):", task)
+        self.assertLess(task.index("def call(self):"), task.index("def run(self):"))
+        self.assertIn("controller._on_jmri_shutdown()", task)
         enable = text[
             text.index("def _enter_enabled") : text.index("def _enter_disabled")
         ]
