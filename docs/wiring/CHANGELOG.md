@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-08-29 — Mast-local pin shuffle
+
+Each 2-head mast now occupies 6 consecutive pins on one DNOU8 so that board can sit next to the mast. Neighbor dwarfs use leftover pins (one-pin spill to the adjacent cluster when a plant needs 9). Packed MQTT IDs unchanged. C3 relay leaves OU2-8 (now 6LA Y); relocate to OU3-8. C2-OU2-8 and C11-OU2-8 stay relays. Full table: [`README.md`](README.md#digicon-heads-and-ou-boards). `tables.xml` not patched.
+
 ## 2026-08-29 — Second discs + four 5V OU4 boards
 
 Two-head masts are two 3-pin LCOS objects (T + B) on the same radio. New **5V DNOU8 OU4** on **C1, C2, C3, C13**. C1 also reuses OU2-8 (was relay) so 24 pins cover 24 lamps. C11 36RB Bottom uses leftover OU3 (no new board). Dwarfs stay one 3-pin disc. Packed MQTT: bottoms use the historical adjacent UID (433, 439, 1333, …). Full disc × OU × G/Y/R table: [`README.md`](README.md#digicon-heads-and-ou-boards). `tables.xml` not patched.

@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — Shuffled Digicon pins so each 2-head mast lives on one DNOU8 (place that board next to the mast). Neighbor dwarfs take leftover pins. Packed MQTT unchanged. Wiring CSVs + v85; no `tables.xml`. Docs-only, not deployed.
+
 Updated: 2026-08-29 — Full Digicon disc × OU × G/Y/R map (all 36 discs + every DNOU8, including motors/relays/RGB leftovers) in [`docs/wiring/README.md`](../docs/wiring/README.md#digicon-heads-and-ou-boards). Docs-only, not deployed.
 
 Updated: 2026-08-29 — Second searchlight discs: **+4 5V DNOU8 (OU4)** on C1 / C2 / C3 / C13; 2-head masts are two 3-pin objects (T+B) on the same radio. C1-OU2-8 reused as LED. C11 36RB Bottom on leftover OU3. Dwarfs stay 1 disc. Wiring CSVs + v85; no `tables.xml`. Docs-only, not deployed.
