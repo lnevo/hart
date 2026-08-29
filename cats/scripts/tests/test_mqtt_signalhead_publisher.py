@@ -43,18 +43,28 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("subprocess", text)
         self.assertNotIn("import socket", text)
 
-    def test_global_disable_does_not_unheld_from_checkbox_and_button(self) -> None:
+    def test_global_disable_hold_publishes_then_button_unheld(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
-        self.assertIn("SUPPRESS_SML_DURING_HANDOFF = True", text)
+        self.assertNotIn("SUPPRESS_SML_DURING_HANDOFF", text)
         self.assertIn("if self._busy or self._boot_pending:", text)
-        self.assertIn("Always mute checkbox listeners around bulk uncheck", text)
         off = text.index("def _apply_global_disabled")
         chunk = text[off : text.index("def _hand_off_disabled")]
-        self.assertLess(
-            chunk.index("self._suppress_sml = True"),
-            chunk.index("_set_all_digicon_sml_destinations(False)"),
-        )
+        self.assertIn("mast.setHeld(True)", chunk)
+        self.assertNotIn("_suppress_sml", chunk)
         self.assertIn("_publish_unheld(head)", chunk)
+        on = text[text.index("def _hand_off_enabled") : text.index("def _mast_for_head")]
+        self.assertIn("mast.setHeld(True)", on)
+        self.assertNotIn("_suppress_sml", on)
+        abort = text[
+            text.index("def _abort_sml_immediate") : text.index("def _announce_enabling")
+        ]
+        self.assertIn("self._suppress_sml = True", abort)
+        self.assertLess(
+            abort.index("self._suppress_sml = True"),
+            abort.index("_set_all_digicon_sml_destinations(False)"),
+        )
+        self.assertNotIn("setHeld", abort)
+        self.assertNotIn("_publish_unheld", abort)
 
     def test_per_mast_dest_uncheck_unhelds_immediately(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")

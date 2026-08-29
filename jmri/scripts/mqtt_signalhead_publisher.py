@@ -41,11 +41,8 @@ HOLD_WAIT_MS = 3000
 BOOT_MODE_WAIT_MS = 3000
 # After enabling, originator waits then announces sml_mode enabled.
 SML_ABORT_RESUME_MS = 3000
-# True: skip Held/Aspect MQTT during Hold wait (production).
-# False: Hold still publishes Red before the explicit Unheld (test).
-# Bulk setDisabled never publishes Unheld from the checkbox listener — the
-# operator Disable path owns that burst. Per-mast table uncheck still does.
-SUPPRESS_SML_DURING_HANDOFF = True
+# Only abort mutes bean MQTT: dests uncheck without Hold/Red/Unheld because
+# another agent owns Digicon. Operator Enable/Disable Hold wait publishes.
 
 # HEAD_NAMES_BEGIN
 HEAD_NAMES = [
@@ -243,7 +240,7 @@ class DigiconMqttSml(
             self._announce_enabling("stored dests")
             self._schedule_enabled_after_enabling()
         else:
-            # Boot: force Digicon SML off and keep suppress until mode read.
+            # Boot: force Digicon SML off until mode read. Hold/Aspect still publish.
             # No MQTT retain publish here -- only read broker delivery on subscribe.
             self._boot_hold_sml_off()
             self._schedule_boot_check()
@@ -321,13 +318,13 @@ class DigiconMqttSml(
         self._abort_in_progress = True
         self._boot_pending = False
         self._busy = True
+        self._global_enabled = False
         self._suppress_sml = True
         try:
             print("mqtt_signalhead: sml_mode aborting (immediate uncheck, no RELEASE)")
             self._publish_mode("aborting")
             self._set_all_digicon_sml_destinations(False)
             self._snapshot_mast_sml_state()
-            self._global_enabled = False
             self._publish_mode("aborted")
             print("mqtt_signalhead: sml_mode aborted")
         finally:
@@ -367,9 +364,8 @@ class DigiconMqttSml(
         Thread(_Resume(), "digicon-sml-enabling").start()
 
     def _boot_hold_sml_off(self):
-        """Force Digicon SML pairs off; leave suppress on until boot check finishes."""
+        """Force Digicon SML pairs off until boot check finishes. No MQTT mute."""
         self._boot_pending = True
-        self._suppress_sml = SUPPRESS_SML_DURING_HANDOFF
         self._set_all_digicon_sml_destinations(False)
         self._global_enabled = False
         self._snapshot_mast_sml_state()
@@ -401,8 +397,8 @@ class DigiconMqttSml(
     def _set_all_digicon_sml_destinations(self, enabled):
         """Flip Enabled checkbox for every Digicon source→dest pair (SML table).
 
-        Runs on the layout thread and waits so callers can keep _suppress_sml
-        until every setEnabled/setDisabled has finished (avoids Unheld storms).
+        Runs on the layout thread and waits. Abort holds `_suppress_sml` until
+        that wait returns so dest uncheck does not publish (another agent owns SET).
         """
         # SML may finish discovering after Start Up -- refresh before bulk set.
         self._attach_sml_listeners()
@@ -625,7 +621,6 @@ class DigiconMqttSml(
                         % (mode_s if mode_s else "missing")
                     )
                     controller._boot_pending = False
-                    # suppress stays True until _hand_off_enabled finishes
                     controller._enter_enabled(force=True, from_boot=True)
                     return
                 print(
@@ -636,7 +631,6 @@ class DigiconMqttSml(
                 controller._boot_pending = False
                 controller._global_enabled = False
                 controller._snapshot_mast_sml_state()
-                controller._suppress_sml = False
                 controller._set_button_label()
 
         Thread(_Boot(), "digicon-sml-boot").start()
@@ -765,45 +759,34 @@ class DigiconMqttSml(
 
     def _apply_global_disabled(self, release, publish_mode):
         """Disable Digicon SML in JMRI. RELEASE only when release=True."""
-        self._suppress_sml = SUPPRESS_SML_DURING_HANDOFF
-        try:
-            print(
-                "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML off / Unheld"
-                % HOLD_WAIT_MS
-            )
-            for mast in self._masts:
-                try:
-                    mast.setHeld(True)
-                except Exception:
-                    pass
-            Thread.sleep(HOLD_WAIT_MS)
-            print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
-            # Always mute checkbox listeners around bulk uncheck. The TEST
-            # flag only allows Held/Aspect MQTT during the Hold wait.
-            was_suppress = self._suppress_sml
-            self._suppress_sml = True
+        print(
+            "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML off / Unheld"
+            % HOLD_WAIT_MS
+        )
+        for mast in self._masts:
             try:
-                self._set_all_digicon_sml_destinations(False)
-                self._snapshot_mast_sml_state()
-            finally:
-                self._suppress_sml = was_suppress
-            if release:
-                print(
-                    "mqtt_signalhead: publishing Unheld for %d MQTT head(s)"
-                    % len(self._heads)
-                )
-                for head in self._heads:
-                    self._publish_unheld(head)
-            for mast in self._masts:
-                try:
-                    mast.setHeld(False)
-                except Exception:
-                    pass
-            self._global_enabled = False
-            if publish_mode:
-                self._publish_mode("disabled")
-        finally:
-            self._suppress_sml = False
+                mast.setHeld(True)
+            except Exception:
+                pass
+        Thread.sleep(HOLD_WAIT_MS)
+        print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
+        self._set_all_digicon_sml_destinations(False)
+        self._snapshot_mast_sml_state()
+        if release:
+            print(
+                "mqtt_signalhead: publishing Unheld for %d MQTT head(s)"
+                % len(self._heads)
+            )
+            for head in self._heads:
+                self._publish_unheld(head)
+        for mast in self._masts:
+            try:
+                mast.setHeld(False)
+            except Exception:
+                pass
+        self._global_enabled = False
+        if publish_mode:
+            self._publish_mode("disabled")
 
     def _hand_off_disabled(self, release):
         print("mqtt_signalhead: global -> SML Disabled (release=%s)" % release)
@@ -811,41 +794,32 @@ class DigiconMqttSml(
 
     def _hand_off_enabled(self):
         print("mqtt_signalhead: global -> SML Enabled")
-        self._suppress_sml = SUPPRESS_SML_DURING_HANDOFF
-        try:
-            print(
-                "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML on"
-                % HOLD_WAIT_MS
-            )
-            for mast in self._masts:
-                try:
-                    mast.setHeld(True)
-                except Exception:
-                    pass
-            Thread.sleep(HOLD_WAIT_MS)
-            print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
-            was_suppress = self._suppress_sml
-            self._suppress_sml = True
+        print(
+            "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML on"
+            % HOLD_WAIT_MS
+        )
+        for mast in self._masts:
             try:
-                self._set_all_digicon_sml_destinations(True)
-                self._snapshot_mast_sml_state()
-            finally:
-                self._suppress_sml = was_suppress
-            for mast in self._masts:
-                try:
-                    mast.setHeld(False)
-                except Exception:
-                    pass
-            self._global_enabled = True
-            # Ownership announce for the bridge (not a boot retain republish).
-            self._publish_mode("enabled")
-            self._enabling_originator = False
-            # Push current appearances once Digicon owns SET again.
-            for head in self._heads:
-                if self._mast_logic_enabled(self._mast_for_head(head)):
-                    self._publish_head_set(head)
-        finally:
-            self._suppress_sml = False
+                mast.setHeld(True)
+            except Exception:
+                pass
+        Thread.sleep(HOLD_WAIT_MS)
+        print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
+        self._set_all_digicon_sml_destinations(True)
+        self._snapshot_mast_sml_state()
+        for mast in self._masts:
+            try:
+                mast.setHeld(False)
+            except Exception:
+                pass
+        self._global_enabled = True
+        # Ownership announce for the bridge (not a boot retain republish).
+        self._publish_mode("enabled")
+        self._enabling_originator = False
+        # Push current appearances once Digicon owns SET again.
+        for head in self._heads:
+            if self._mast_logic_enabled(self._mast_for_head(head)):
+                self._publish_head_set(head)
 
     def _mast_for_head(self, head):
         if head is None:
@@ -1118,6 +1092,7 @@ class DigiconMqttSml(
     def propertyChange(self, event):
         name = event.propertyName
         source = event.source
+        # Abort only: dests off without Hold; do not publish SET/Unheld.
         if self._suppress_sml:
             return
         # SML enable/disable (table checkbox or our setEnabled/Disabled)
