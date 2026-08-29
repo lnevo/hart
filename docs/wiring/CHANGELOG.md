@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-08-29 — Restore mangled upper-deck SW1xx names
+
+v84 “renamed for linear6” concatenated `1` or `100` onto helix/upper-deck plant IDs (`SW127` → `Switch 1127`, `SW138` → `Switch 10038`). Restored to `SW124`–`SW129`, `SW138`–`SW150`. Those are not CTC numbers (Switch 27/29 stay East End). Lower-deck DCC 100–119 unchanged. `tables.xml` not patched.
+
 ## 2026-08-29 — Block-sensor calibration on first 5V OU pin 8
 
 Every node with occupancy detectors reserves pin 8 of its first 5V DNOU8 for detector calibration current. Digicon lamps that were on C2-OU1-8, C4-OU2-8, C11-OU2-8, and C12-OU2-8 moved to the next leftover pin. Relays on C3/C14/C21–C24 first-5V-OU-8 need a new channel. `tables.xml` not patched.

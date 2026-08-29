@@ -208,6 +208,36 @@ LEGACY_NODE_IDS: dict[str, str] = {
 NODE_ID_TOKEN = re.compile(r"(?<![A-Za-z0-9])([CD]\d+)(?![0-9])")
 DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
+# v84 "renamed for linear6" concatenated radio/100 onto upper-deck SW1xx plant
+# IDs (SW127 → Switch 1127, SW138 → Switch 10038). Restore SW*. Do not write
+# "Switch 127" — that is CTC East End Switch 27.
+MANGLED_SWITCH_FIXES: list[tuple[str, str]] = [
+    ("Switch 1125,Switch 1126,139,Switch 10040", "SW125, SW126, SW139, SW140"),
+    ("Switch 1121,Switch 1123", "SW121, SW123"),
+    ("SW,120,Switch 1122", "SW120, SW122"),
+    ("Switch 10041,Switch 10042", "SW141, SW142"),
+    ("Switch 10050", "SW150"),
+    ("Switch 10049", "SW149"),
+    ("Switch 10048", "SW148"),
+    ("Switch 10047", "SW147"),
+    ("Switch 10046", "SW146"),
+    ("Switch 10045", "SW145"),
+    ("Switch 10044", "SW144"),
+    ("Switch 10043", "SW143"),
+    ("Switch 10042", "SW142"),
+    ("Switch 10041", "SW141"),
+    ("Switch 10040", "SW140"),
+    ("Switch 10038", "SW138"),
+    ("Switch 1129", "SW129"),
+    ("Switch 1127", "SW127"),
+    ("Switch 1126", "SW126"),
+    ("Switch 1125", "SW125"),
+    ("Switch 1124", "SW124"),
+    ("Switch 1123", "SW123"),
+    ("Switch 1122", "SW122"),
+    ("Switch 1121", "SW121"),
+]
+
 
 def rewrite_legacy_node_ids(value):
     """Rewrite C12/C3/… tokens; longest match is the full number (C12 ≠ C1)."""
@@ -219,6 +249,14 @@ def rewrite_legacy_node_ids(value):
         return LEGACY_NODE_IDS.get(tok, tok)
 
     return NODE_ID_TOKEN.sub(repl, value)
+
+
+def fix_mangled_switch_names(wb) -> int:
+    """Undo v84 10038/1127 concatenations on every sheet."""
+    n = 0
+    for ws in wb.worksheets:
+        n += walk_replace(ws, MANGLED_SWITCH_FIXES)
+    return n
 
 
 def remap_workbook_node_ids(wb) -> dict[int, str]:
@@ -775,6 +813,7 @@ def refresh_inventory() -> Path:
     shutil.copy2(src, dest)
     wb = load_workbook(dest)
     legacy_by_row = remap_workbook_node_ids(wb)
+    mangled_n = fix_mangled_switch_names(wb)
     add_legacy_node_column(wb["Nodes"], legacy_by_row)
     sort_nodes_by_address(wb["Nodes"])
     occ = occupancy_by_hw()
@@ -812,6 +851,7 @@ def refresh_inventory() -> Path:
     wb.save(dest)
 
     print(f"wrote {dest}")
+    print(f"  Mangled SW1xx restorations (cells): {mangled_n}")
     print(f"  BlockSensors renames: {len(bs_log)}")
     for line in bs_log:
         print(f"    {line}")

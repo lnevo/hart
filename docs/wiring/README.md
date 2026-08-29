@@ -136,7 +136,7 @@ Place **OU2** at SW39 (40), **OU3** at the balloon. 40LA R spills to the balloon
 
 | Board | Rail | Assignment |
 |-------|------|------------|
-| OU1 | 12V | Helix turnout motors; OU1-7/8 spare |
+| OU1 | 12V | SW129, SW127, SW138 motors; OU1-7/8 spare |
 | OU2 | 5V | 40LB T+B, 40LA G; **OU2-8 block-sensor cal** |
 | OU3 | 5V | 2036, 2035, 40LA Y/R |
 
@@ -176,12 +176,12 @@ These OUs stay motors / planned RGB (`S*-*`) / relays. Do not overlay Digicon se
 | Node | Radio | Plant | Boards |
 |------|------:|-------|--------|
 | C3 | 3 | West lower | OU1 12V motors 103–106; OU2/OU3 5V leftover RGB; **OU2-8 BS cal** |
-| C14 | 14 | West upper | OU1 12V 10044–10047; OU2/OU3 5V S6-* + relay |
-| C21 | 21 | Helix upper | OU1 12V NIX; OU2/OU3 5V S4-* + relay |
-| C22 | 22 | North upper | OU1 12V DJE/DJW; OU2/OU3 5V S5-1…5 + relay |
-| C23 | 23 | West upper | OU1 12V 10043 / CBX; OU2/OU3 5V S6-* + relay |
-| C24 | 24 | Peninsula upper | OU1 12V 10048–10050 + S6-10 G/R; OU2/OU3 5V S6-* + relay |
-| C32 | 32 | North upper | OU1 12V 1124; OU2 5V S5-6/7 |
+| C14 | 14 | West upper | OU1 12V SW144–SW147; OU2/OU3 5V S6-* + relay |
+| C21 | 21 | Helix upper | OU1 12V NIX (SW125/126/139/140); OU2/OU3 5V S4-* + relay |
+| C22 | 22 | North upper | OU1 12V DJE/DJW (SW120–123); OU2/OU3 5V S5-1…5 + relay |
+| C23 | 23 | West upper | OU1 12V SW143 / CBX (SW141/142); OU2/OU3 5V S6-* + relay |
+| C24 | 24 | Peninsula upper | OU1 12V SW148–SW150 + S6-10 G/R; OU2/OU3 5V S6-* + relay |
+| C32 | 32 | North upper | OU1 12V SW124; OU2 5V S5-6/7 |
 
 Copy the three current workbooks **and** `Wiring_Schematic.pptx` back to `~/Desktop/HART/Wiring Documentation/` after a refresh (and after XML apply) so the bench copy matches git.
 
