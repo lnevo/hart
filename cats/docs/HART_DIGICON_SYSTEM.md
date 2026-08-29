@@ -156,15 +156,9 @@ MQTT   = track/signalhead/<packed>   # IH432 → topic …/432 (bean stays IH432
 Payload = appearance name      # Red / Yellow / Green / Dark / …
 ```
 
-| Area | MQTT node (radio) | Parent board | Packed heads | Example ports |
-|------|-------------------|--------------|--------------|---------------|
-| Plane + OS W-1 / OS W-2 + Brick east | **4** (LCOS display 4; radio **3**) | **C3** + new **OU4** | `IH432`/`433` (6LB), `IH438`/`439` (2L) | existing OU2/OU3 + OU4 |
-| OS Barn / W-117 | **13** | **C13** + new **OU4** | `IH1332`/`1333`, `1335`/`1336`, `1337`/`1338` | existing OU1/OU2 + OU4 |
-| East End | **2** | **C2** + new **OU4** | `IH232`/`238` … `237`/`241` | OU1–OU3 5V + OU4 |
-| Princess interlocking | **1** | **C1** + new **OU4** (OU2-8 as LED) | `IH132`/`133`, `135`/`136`, `139`/`140` | OU2/OU3 + OU4 |
-| Princess overflow + 2035/2036 | **11** | **C11** (no new board) | `IH1132`/`1135` (36RB) | OU2 + OU3 leftover |
+Full disc × board × G/Y/R map (every mast, every OU including 12V motors and spare/relay pins): [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards).
 
-Head roles on multi-head masts: **T** top, **M** middle, **B** bottom, **S** single.
+Head roles: **T** top, **B** bottom; dwarfs are a single 3-pin disc.
 
 Appearances for SHSM:
 
@@ -180,17 +174,7 @@ Full table: [`cats/data/signal_mast_plan.csv`](../data/signal_mast_plan.csv)
 Port / topic / LCOS inventory: [`cats/data/signal_wiring.csv`](../data/signal_wiring.csv)  
 Head plan: [`cats/data/signal_head_plan.csv`](../data/signal_head_plan.csv)
 
-Examples (current wiring is **one 3-pin head per mast**; see the CSVs):
-
-| Digicon mast userName | Packed | Binding |
-|-----------------------|--------|---------|
-| Mast 2L | `IH438` | LCOS C3-OU3 |
-| Mast 6LB | `IH432` | LCOS C3-OU2 |
-| Mast 6LA | `IH434` | LCOS C3-OU2-4 |
-| Mast 8RA | `IH1332` | C13 radio 13 |
-| Mast 34L | `IH235` | C2 radio 2 |
-| Mast 40LB | `IH132` | C1 radio 1 |
-| Mast 2036 | `IH1133` | C11 radio 11 overflow |
+Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards) · CSVs above.
 
 ### JMRI ↔ MQTT for Virtual heads
 
