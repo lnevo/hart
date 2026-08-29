@@ -159,9 +159,10 @@ Payload = appearance name      # Red / Yellow / Green / Dark / …
 | Area | MQTT node (radio) | Parent board | Packed heads | Example ports |
 |------|-------------------|--------------|--------------|---------------|
 | Plane + OS W-1 / OS W-2 + Brick east | **4** | C4 | `IH432`–`IH439` | C4-OU2-1 … OU2-6, C4-OU3-1/2 |
-| OS Barn / W-117 | **13** (`013`) | C1 | `IH1332`–`IH1338` | C1-OU2-1 … OU3-1 |
-| East End | **12** (`012`) | C7 | `IH1232`–`IH1241` | C7-OU2-1 … OU3-4 |
-| Princess | **1** | D1 | `IH132`–`IH143` | D1-OU2-1 … OU3-4 |
+| OS Barn / W-117 | **13** | **C5** (next refresh; live CSV still C1) | `IH1332`–`IH1338` | C5 5V OU |
+| East End | **2** (next refresh; live CSV still mqtt **12** / C7) | **C3** | packed `2xx` | C3-OU2/OU3 |
+| Princess interlocking | **1** | **C1** (never D1 / radio 5 DCC) | `IH132`… | C1-OU2/OU3 |
+| Princess overflow + 2035/2036 | **11** | **C7** | packed `11xx` | C7-OU2/OU3 |
 
 Head roles on multi-head masts: **T** top, **M** middle, **B** bottom, **S** single.
 
@@ -187,14 +188,14 @@ Examples:
 | Mast 6LB | 2 | `…cats-virtual-2(IH432)(IH433)` | LCOS C4 |
 | Mast 6LA | 1 | `…SL-1-low(IH434)` | LCOS C4-OU2-3 |
 | Mast 4RA / 2 | 1 | `IH436` / `IH437` | LCOS C4 |
-| Mast 8RA | 2 | `IH1332`/`IH1333` | LCOS C1 |
-| Mast 34L | 2 | `IH1237`/`IH1238` | LCOS C7 |
-| Mast 40LB | 2 | `…cats-virtual-2(IH132)(IH133)` | LCOS D1 |
-| Mast 2036 | 1 | `IH134` | LCOS D1-OU2-3 (was 114R) |
-| Mast 36RA / 113a | 2 | `IH135`–`IH138` | LCOS D1 |
-| Mast 38LB | 2 | `IH139`/`IH140` | LCOS D1 |
-| Mast 2035 | 1 | `IH141` | LCOS D1-OU3-2 (was 115R) |
-| Mast 40LA / OS K-2 | 1 | `IH142` / `IH143` | LCOS D1 dwarfs |
+| Mast 8RA | 2 | `IH1332`/`IH1333` | live C1; next refresh C5 radio 13 |
+| Mast 34L | 2 | `IH1237`/`IH1238` | live C7 mqtt 12; next refresh C3 radio 2 |
+| Mast 40LB | 2 | `…(IH132)(IH133)` | live D1 overlay; next refresh C1 radio 1 |
+| Mast 2036 | 1 | `IH134` | next refresh C7 radio 11 overflow |
+| Mast 36RA / 113a | 2 | `IH135`–`IH138` | next refresh C1 or C7 overflow |
+| Mast 38LB | 2 | `IH139`/`IH140` | next refresh C1 radio 1 |
+| Mast 2035 | 1 | `IH141` | next refresh C7 radio 11 overflow |
+| Mast 40LA / OS K-2 | 1 | `IH142` / `IH143` | next refresh C1 radio 1 |
 
 ### JMRI ↔ MQTT for Virtual heads
 

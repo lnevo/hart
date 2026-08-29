@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 """Build HART Digicon→JMRI virtual signal heads (LCOS packed MQTT numbers).
 
-Allocation (MQTT display node = radio addr octal-digits-as-decimal):
-  node 4  — Plane faces + Brick OS W-1/OS W-2 + Mast 2L (IH438/IH439 on C4-OU3)
-  node 13 — OS Barn / W-117–117b  (radio 013 → display 13)
-  node 12 — East End                 (radio 012 → display 12)
-  node 1  — Princess                 (radio 1   → display 1)
+MQTT packed node == RF24 radio Address (Nodes sheet). Never assign signal
+heads to D1 (radio 5, helix DCC). Enclosure C# is not the radio address.
 
-Each physical lamp = one LCOS signal UID (32+index) → packed = node*100 + uid.
+Next refresh (one 3-pin head per mast, STOP/APPROACH/CLEAR):
+  radio 1  C1  Princess interlocking (C1-OU2/OU3 5V). Overflow + 2035/2036
+             onto C7 radio 11 — those objects pack as node 11, not 1.
+  radio 2  C3  East End (all six faces). Packed 2xx, not today's 12xx.
+  radio 3  C4  Plane / Brick
+  radio 11 C7  Princess overflow (after East End leaves C7)
+  radio 13 C5  Barn / 117
+  radio 5  D1  DCC only — no DNOU8 signal ports
+
+Live CSVs below still have the old 1-pin overlay (Princess on D1, Barn on C1,
+East End on C7 as mqtt 12). Do not regenerate from NODE_PORTS until the
+3-pin remap is written.
+
+Each physical head = one LCOS signal UID (32+index) → packed = node*100 + uid.
 Writes:
   cats/data/signal_wiring.csv
   cats/data/signal_head_plan.csv
@@ -77,10 +87,8 @@ ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
 APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}
 SYSTEM_BY_HEADS = {1: "AAR-1946", 2: "hart-aar", 3: "AAR-1946"}
 
-# DNOU8 Parent Node ID + board for each MQTT display node (LCOS inventory v85).
-# mqtt 13 ← RF24/LCOS 11 (%o → "13"); hardware Parent Node C1 (Helix Lower).
-# mqtt 12 ← radio "012" (East End); hardware Parent Node C7 (North Upper, sheet addr 12).
-# mqtt 4  ← C4 West Lower; mqtt 1 ← D1 (Princess — OU boards added for Digicon).
+# LIVE overlay (wrong; 1 pin per head). Next refresh must not use D1 or
+# put Barn on C1 / East End on C7. See module docstring.
 NODE_PORTS: dict[int, list[str]] = {
     4: [f"C4-OU2-{i}" for i in range(1, 7)] + ["C4-OU3-1", "C4-OU3-2"],  # 8 heads
     13: [f"C1-OU2-{i}" for i in range(1, 7)] + ["C1-OU3-1"],  # 7 heads
@@ -94,6 +102,7 @@ NODE_BOARD_LOC: dict[int, str] = {
     1: "Princess / Helix DCC node",
 }
 NODE_PARENT: dict[int, str] = {4: "C4", 13: "C1", 12: "C7", 1: "D1"}
+# Next refresh parents (radio Address): 1→C1, 2→C3, 3→C4, 11→C7, 13→C5. Never D1.
 
 
 def packed(node: int, signal_index: int) -> int:

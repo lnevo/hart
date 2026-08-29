@@ -342,21 +342,31 @@ def refresh_nodes(ws: Worksheet) -> None:
     id_col = idx["Node ID"]
     for row in range(2, ws.max_row + 1):
         nid = ws.cell(row, id_col).value
+        # D1 is helix DCC (radio 5). Do not invent 5V signal boards there.
         if nid == "D1":
             if loc_col:
-                ws.cell(row, loc_col).value = "Princess / Helix DCC node"
+                ws.cell(row, loc_col).value = "Helix DCC (radio 5; no Digicon DNOU8)"
             if boards_5v_col:
-                ws.cell(row, boards_5v_col).value = 2
+                ws.cell(row, boards_5v_col).value = 0
             if num_5v_col:
-                ws.cell(row, num_5v_col).value = 2
+                ws.cell(row, num_5v_col).value = 0
             if leds_col:
-                ws.cell(row, leds_col).value = 12
+                ws.cell(row, leds_col).value = 0
         if nid == "C1" and loc_col:
-            ws.cell(row, loc_col).value = "Helix - Lower (Barn / West Yard)"
-        if nid == "C7" and loc_col:
+            ws.cell(row, loc_col).value = "Helix - Lower (Princess / radio 1)"
+        if nid == "C3" and loc_col:
             current = ws.cell(row, loc_col).value or ""
             if "East End" not in str(current):
-                ws.cell(row, loc_col).value = f"{current} (Digicon East End heads on OU2/OU3)"
+                ws.cell(row, loc_col).value = f"{current} (Digicon East End / radio 2)"
+        if nid == "C5" and loc_col:
+            current = ws.cell(row, loc_col).value or ""
+            if "Barn" not in str(current):
+                ws.cell(row, loc_col).value = f"{current} (Barn / radio 13)"
+        if nid == "C7" and loc_col:
+            current = ws.cell(row, loc_col).value or ""
+            loc = str(current).replace(" (Digicon East End heads on OU2/OU3)", "")
+            if "Princess overflow" not in loc:
+                ws.cell(row, loc_col).value = f"{loc} (Princess overflow / radio 11)"
 
 
 def refresh_turnout_summary(ws: Worksheet) -> list[str]:

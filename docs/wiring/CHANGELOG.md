@@ -16,6 +16,6 @@ C5-B3-1 (`Block 13-5` / M2S1304) is **EH-3** (track T11). C5-B4-1 (`Block 13-7` 
 - **signals_asbuilt_abs_v2.xlsx** rebuilt from the same CSVs (Digicon names, Scale/Barn, new Princess dwarfs). **Princess** / **all_logic** now include 114LA, 115LA, 114R, 115R (K-1/K-2 westbound + A48 balloon). **signals_split_v8.xlsx** kept as the frozen RGB plan (README sheet added).
 
 ## Still true from v84b
-- **C# ≠ radio address.** Client IDs are enclosure/board groups; MQTT packed IDs use the Nodes **Address**. **Queued:** rename Node IDs to match Address (do not one-off swap C3↔C2; C2 is radio 12).
+- **C# ≠ radio address.** Client IDs are enclosure/board groups; MQTT packed IDs use the Nodes **Address**. **Queued:** rename Node IDs to match Address (do not one-off swap C3↔C2; C2 is radio 12). Next signal refresh: Princess on C1 (radio 1), never D1 (radio 5); East End on C3 (radio 2); Barn on C5 (radio 13); Princess overflow on C7 (radio 11).
 - Confirm physical board IDs for C5 yard motors/FB (ASSUMED in v84).
 - Upper-deck RGB (`S4-*`…`S6-*`) is still the planned matrix, not Digicon.

@@ -1,8 +1,8 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-28 — **Queued (not applied):** rename LCOS inventory Node IDs so the label matches the radio **Address** (today `C# ≠` address: C1=1, C3=2, C4=3, C5=13, C2=12, C7=11). Packed MQTT already uses Address; enclosure names should too. Do not swap C3↔C2 as a one-off — C2 is radio 12.
+Updated: 2026-08-28 — Next signal refresh: MQTT node = radio Address. **C1 radio 1** = Princess (never D1 radio 5 / DCC). **C3 radio 2** = all East End faces (packed 2xx, not 12xx). **C5 radio 13** = Barn. **C7 radio 11** = Princess overflow + 2035/2036. One 3-pin head per mast. Princess needs **no new DNOU8** if C7 overflow (C1 16 + C7 16 ≥ 24). C3 East End 18 pins vs ~15 5V — likely **+1 5V board** there. CSVs not rebuilt yet.
 
-Updated: 2026-08-28 — Signal wiring proposal (docs only): **one 3-pin head per mast** (`STOP/APPROACH/CLEAR`). Barn on radio **13** (C5). Princess interlocking **six** faces on radio **1** (C1); skip 2035/2036. East End **east-facing** (24RA, 24RB, 34R) on radio **2** (C3). Not applied to CSVs.
+Updated: 2026-08-28 — **Queued (not applied):** rename LCOS inventory Node IDs so the label matches the radio **Address** (today `C# ≠` address: C1=1, C3=2, C4=3, C5=13, C2=12, C7=11). Packed MQTT already uses Address; enclosure names should too. Do not swap C3↔C2 as a one-off — C2 is radio 12.
 
 Updated: 2026-08-28 — LCOS mimic lamps look up packed `track/signalhead/432` (was still keyed `IH432`, so they stayed Dark). Reload `http://127.0.0.1:8765/`. SET is still only **IH432**; other heads stay Unheld. Local mimic; not deployed.
 
