@@ -275,27 +275,27 @@ def sort_nodes_by_address(ws: Worksheet) -> None:
 
 
 # TurnoutSummary: one 3-pin head per face. R/Y/G columns are lamp colors again.
-# Ports use C{radio Address} (Plane C3, East End C2, Barn C13, overflow C11).
+# Ports use C{radio Address} (Plane/Brick C4, East End 24 on C2 / 34 on C12).
 TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     "Switch 100": {
         "entry": "2L",
-        "entry_ports": ("C3-OU3-3", "C3-OU3-2", "C3-OU3-1"),
+        "entry_ports": ("C4-OU3-3", "C4-OU3-2", "C4-OU3-1"),
         "normal": None,
         "reverse": None,
     },
     "Switch 101": {
         "entry": None,
         "normal": "4RA",
-        "normal_ports": ("C3-OU4-3", "C3-OU4-2", "C3-OU4-1"),
+        "normal_ports": ("C4-OU4-3", "C4-OU4-2", "C4-OU4-1"),
         "reverse": "4RB",
-        "reverse_ports": ("C3-OU4-6", "C3-OU4-5", "C3-OU4-4"),
+        "reverse_ports": ("C4-OU4-6", "C4-OU4-5", "C4-OU4-4"),
     },
     "Switch 102": {
         "entry": "6LA",
-        "entry_ports": ("C3-OU3-7", "C3-OU2-8", "C3-OU2-7"),
+        "entry_ports": ("C4-OU3-7", "C4-OU2-8", "C4-OU2-7"),
         "normal": None,
         "reverse": "6LB",
-        "reverse_ports": ("C3-OU2-3", "C3-OU2-2", "C3-OU2-1"),
+        "reverse_ports": ("C4-OU2-3", "C4-OU2-2", "C4-OU2-1"),
     },
     "Switch 111": {
         "entry": "24L",
@@ -307,23 +307,23 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     },
     "Switch 110": {
         "entry": "32R",
-        "entry_ports": ("C2-OU4-7", "C2-OU3-8", "C2-OU3-7"),
+        "entry_ports": ("C12-OU3-7", "C12-OU2-8", "C12-OU2-7"),
         "normal": None,
         "reverse": None,
     },
     "Switch 112": {
         "entry": "34L",
-        "entry_ports": ("C2-OU3-3", "C2-OU3-2", "C2-OU3-1"),
+        "entry_ports": ("C12-OU2-3", "C12-OU2-2", "C12-OU2-1"),
         "normal": None,
         "reverse": "34R",
-        "reverse_ports": ("C2-OU4-3", "C2-OU4-2", "C2-OU4-1"),
+        "reverse_ports": ("C12-OU3-3", "C12-OU3-2", "C12-OU3-1"),
     },
     "Switch 113": {
         "entry": "36RA",
         "entry_ports": ("C1-OU2-3", "C1-OU2-2", "C1-OU2-1"),
         "normal": None,
         "reverse": "36RB",
-        "reverse_ports": ("C11-OU2-3", "C11-OU2-2", "C11-OU2-1"),
+        "reverse_ports": ("C1-OU3-3", "C1-OU3-2", "C1-OU3-1"),
     },
     "Switch 114": {
         "entry": "2036",
@@ -331,15 +331,15 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "normal": "38LB",
         "normal_ports": ("C1-OU4-3", "C1-OU4-2", "C1-OU4-1"),
         "reverse": "38LA",
-        "reverse_ports": ("C1-OU2-8", "C1-OU4-8", "C1-OU4-7"),
+        "reverse_ports": ("C1-OU2-7", "C1-OU4-8", "C1-OU4-7"),
     },
     "Switch 115": {
         "entry": "2035",
         "entry_ports": ("C11-OU3-6", "C11-OU3-5", "C11-OU3-4"),
         "normal": "40LB",
-        "normal_ports": ("C1-OU3-3", "C1-OU3-2", "C1-OU3-1"),
+        "normal_ports": ("C11-OU2-3", "C11-OU2-2", "C11-OU2-1"),
         "reverse": "40LA",
-        "reverse_ports": ("C1-OU2-7", "C1-OU3-8", "C1-OU3-7"),
+        "reverse_ports": ("C11-OU3-7", "C11-OU2-8", "C11-OU2-7"),
     },
     "Switch 117": {
         "entry": "8RA",
@@ -380,8 +380,9 @@ def refresh_block_sensors(ws: Worksheet, occ: dict[str, str]) -> list[str]:
     return log
 
 
-# New 5V DNOU8 for second searchlight discs (C11 uses leftover OU3 instead).
-NEW_5V_OU4 = ("C1", "C2", "C3", "C13")
+# New 5V DNOU8: C1 Princess 38, C4 Brick west 4R, C13 Barn 8RB.
+# C2 west-24 and C11/C12 use existing 5V boards (no new OU4).
+NEW_5V_OU4 = ("C1", "C4", "C13")
 
 
 def ensure_ou4_boards(ws: Worksheet) -> list[str]:
@@ -494,21 +495,24 @@ def refresh_nodes(ws: Worksheet) -> None:
                 ws.cell(row, dnou).value = "OU1, OU2, OU3, OU4"
         if nid == "C2":
             if loc_col:
-                ws.cell(row, loc_col).value = "North - Lower (East End signals)"
+                ws.cell(row, loc_col).value = "North - Lower (East End west 24)"
             if boards_12:
                 ws.cell(row, boards_12).value = 0
             if num_12:
                 ws.cell(row, num_12).value = 0
             if boards_5v_col:
-                ws.cell(row, boards_5v_col).value = 4
+                ws.cell(row, boards_5v_col).value = 3
             if num_5v_col:
-                ws.cell(row, num_5v_col).value = 32
+                ws.cell(row, num_5v_col).value = 24
             dnou = idx.get("DNOU8")
             if dnou:
-                ws.cell(row, dnou).value = "OU1, OU2, OU3, OU4"
+                ws.cell(row, dnou).value = "OU1, OU2, OU3"
         if nid == "C3":
             if loc_col:
-                ws.cell(row, loc_col).value = "West - Lower (Plane / Brick)"
+                ws.cell(row, loc_col).value = "West - Lower (103–106 motors)"
+        if nid == "C4":
+            if loc_col:
+                ws.cell(row, loc_col).value = "West - Lower (Brick / Plane)"
             if boards_5v_col:
                 ws.cell(row, boards_5v_col).value = 3
             if num_5v_col:
@@ -516,14 +520,10 @@ def refresh_nodes(ws: Worksheet) -> None:
             dnou = idx.get("DNOU8")
             if dnou:
                 ws.cell(row, dnou).value = "OU1, OU2, OU3, OU4"
-        if nid == "C4" and loc_col:
-            current = str(ws.cell(row, loc_col).value or "")
-            if "Peninsula" not in current:
-                ws.cell(row, loc_col).value = "Peninsula - Lower"
         if nid == "C11" and loc_col:
-            ws.cell(row, loc_col).value = "Helix (Princess overflow)"
+            ws.cell(row, loc_col).value = "Helix (Princess east 40 + balloon)"
         if nid == "C12" and loc_col:
-            ws.cell(row, loc_col).value = "North - Lower (East End turnouts 107–112)"
+            ws.cell(row, loc_col).value = "North - Lower (East End 34 + turnouts 107–112)"
         if nid == "C13":
             if loc_col:
                 ws.cell(row, loc_col).value = "West - Lower (Barn)"

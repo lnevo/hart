@@ -16,21 +16,23 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**Enclosure = radio Address.** Two-head masts are two 3-pin discs (T+B) on the **same DNOU8** so that board can sit next to the mast. Neighbor dwarf uses the leftover 2 pins; the 3rd dwarf pin spills to the adjacent cluster when a plant needs 9 pins (8-channel board). Packed MQTT unchanged (Plane/Brick stay `4xx` on **C3**). Princess **C1** (never **D5**). East End signals **C2**; turnouts **C12**. Barn **C13**. Overflow **C11**.
+**Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34 (motors 107–112 on the same box), **C2** East End west overflow (24 — C2 is the west end of East End), **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is 103–106 motors only (no Digicon heads). Packed MQTT = radio (`4xx` on C4, `12xx` on C12, `2xx` on C2). Never **D5**.
 
 ## Digicon heads and OU boards
 
-Pin-level source: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). G/Y/R is lamp color of one 3-pin `STOP/APPROACH/CLEAR` object. **T** = top disc, **B** = bottom, blank = single dwarf. Packed IDs did not change; only ports did.
+Pin-level source: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). G/Y/R is one 3-pin `STOP/APPROACH/CLEAR` object. **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
 
-### C3 — Plane / Brick (radio 3, packed `4xx`)
+New 5V **OU4** on C1 / C4 / C13 only.
 
-Place **OU2** at Plane, **OU3** at Brick east (2L, next to Plane), **OU4** at Brick west (4RA/4RB). 6LA R is the one-pin spill from Plane onto the 2L board.
+### C4 — Brick + Plane (radio 4, packed `4xx`)
+
+OU1 stays 12V motors 100–102 / 116 (this box is already at the plant). Place **OU2** at Plane, **OU3** at Brick east (2L), **OU4** at Brick west (4RA/4RB).
 
 | Board | Rail | Assignment |
 |-------|------|------------|
-| OU1 | 12V | Switch 103–106 motors |
+| OU1 | 12V | Switch 100–102, 116 motors |
 | OU2 | 5V | 6LB T+B, 6LA G/Y |
-| OU3 | 5V | 2L T+B, 6LA R; OU3-8 leftover S3-11 R (move C3 relay here from OU2-8) |
+| OU3 | 5V | 2L T+B, 6LA R; OU3-8 leftover (move C4 relay here) |
 | **OU4** | 5V **new** | 4RA, 4RB; OU4-7/8 spare |
 
 | Mast | Disc | Packed | G | Y | R |
@@ -43,7 +45,7 @@ Place **OU2** at Plane, **OU3** at Brick east (2L, next to Plane), **OU4** at Br
 | 4RA | | `IH436` | OU4-1 | OU4-2 | OU4-3 |
 | 4RB | | `IH437` | OU4-4 | OU4-5 | OU4-6 |
 
-`IH435` (old 6LA Bottom) stays an unused packed hole.
+`IH435` stays an unused packed hole.
 
 ### C13 — Barn (radio 13)
 
@@ -66,16 +68,36 @@ Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU2** with 8LA+8LB (ri
 | 8LA | B | `IH1338` | OU2-4 | OU2-5 | OU2-6 |
 | 8LB | | `IH1334` | OU2-7 | OU2-8 | OU4-7 |
 
-### C2 — East End signals (radio 2)
+### C12 — East End 34 (radio 12, packed `12xx`)
 
-Place **OU1+OU2** at 24 (SW111), **OU3+OU4** at 34 (SW112). 32R leftover sits on the 34 boards. **OU2-8 relay**.
+Same box as turnout motors 107–112. Place **OU2+OU3** at 34. 32R leftover sits on these boards.
+
+| Board | Rail | Assignment |
+|-------|------|------------|
+| OU1 | 12V | Switch 107–110 motors |
+| OU2 | 5V | 34L T+B, 32R G/Y |
+| OU3 | 5V | 34R T+B, 32R R; OU3-8 leftover (move C12 relay here) |
+| OU4 | 12V | Switch 111–112 motors |
+
+| Mast | Disc | Packed | G | Y | R |
+|------|------|--------|---|---|---|
+| 34L | T | `IH1232` | OU2-1 | OU2-2 | OU2-3 |
+| 34L | B | `IH1233` | OU2-4 | OU2-5 | OU2-6 |
+| 32R | | `IH1234` | OU2-7 | OU2-8 | OU3-7 |
+| 34R | T | `IH1235` | OU3-1 | OU3-2 | OU3-3 |
+| 34R | B | `IH1236` | OU3-4 | OU3-5 | OU3-6 |
+
+Old East End `2xx` holes `IH235`–`IH237` / `IH240`–`IH241` are unused.
+
+### C2 — East End west overflow (radio 2, packed `2xx`)
+
+C2 sits on the **west end of East End** — 24RA / 24L / 24RB only. OU3 stays leftover RGB (no new OU4).
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 5V | 24RA T+B, 24RB G/Y |
 | OU2 | 5V | 24L T+B, 24RB R; **OU2-8 relay** |
-| OU3 | 5V | 34L T+B, 32R G/Y |
-| **OU4** | 5V **new** | 34R T+B, 32R R; OU4-8 spare |
+| OU3 | 5V | leftover S2 RGB (no Digicon) |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
@@ -84,50 +106,43 @@ Place **OU1+OU2** at 24 (SW111), **OU3+OU4** at 34 (SW112). 32R leftover sits on
 | 24RB | | `IH234` | OU1-7 | OU1-8 | OU2-7 |
 | 24L | T | `IH233` | OU2-1 | OU2-2 | OU2-3 |
 | 24L | B | `IH239` | OU2-4 | OU2-5 | OU2-6 |
-| 34L | T | `IH235` | OU3-1 | OU3-2 | OU3-3 |
-| 34L | B | `IH240` | OU3-4 | OU3-5 | OU3-6 |
-| 32R | | `IH236` | OU3-7 | OU3-8 | OU4-7 |
-| 34R | T | `IH237` | OU4-1 | OU4-2 | OU4-3 |
-| 34R | B | `IH241` | OU4-4 | OU4-5 | OU4-6 |
 
-East End turnout motors stay on **C12** (radio 12), not C2.
+### C1 — Princess west (radio 1, packed `1xx`)
 
-### C1 — Princess interlocking (radio 1)
-
-Place **OU2** at SW35 (36RA), **OU3** at SW39 (40L), **OU4** at SW37 (38L). 40LA R and 38LA R spill onto the 36RA board. 36RB stays on C11.
+Place **OU2+OU3** at SW35 (36RA / 36RB), **OU4** at SW37 (38). 38LA R spills to the 36RA board.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 113–115 motors; OU1-7/8 reserved |
-| OU2 | 5V | 36RA T+B, 40LA R, 38LA R |
-| OU3 | 5V | 40LB T+B, 40LA G/Y |
+| OU2 | 5V | 36RA T+B, 38LA R; OU2-8 spare |
+| OU3 | 5V | 36RB T+B; OU3-7/8 spare |
 | **OU4** | 5V **new** | 38LB T+B, 38LA G/Y |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
 | 36RA | T | `IH135` | OU2-1 | OU2-2 | OU2-3 |
 | 36RA | B | `IH136` | OU2-4 | OU2-5 | OU2-6 |
-| 40LB | T | `IH132` | OU3-1 | OU3-2 | OU3-3 |
-| 40LB | B | `IH133` | OU3-4 | OU3-5 | OU3-6 |
-| 40LA | | `IH142` | OU3-7 | OU3-8 | OU2-7 |
+| 36RB | T | `IH132` | OU3-1 | OU3-2 | OU3-3 |
+| 36RB | B | `IH133` | OU3-4 | OU3-5 | OU3-6 |
 | 38LB | T | `IH139` | OU4-1 | OU4-2 | OU4-3 |
 | 38LB | B | `IH140` | OU4-4 | OU4-5 | OU4-6 |
-| 38LA | | `IH143` | OU4-7 | OU4-8 | OU2-8 |
+| 38LA | | `IH143` | OU4-7 | OU4-8 | OU2-7 |
 
-### C11 — Princess overflow (radio 11)
+### C11 — Princess east + balloon (radio 11, packed `11xx`)
 
-No new board. Place **OU2** near Princess (36RB T+B); **OU3** at the balloon (2036 + 2035).
+Place **OU2** at SW39 (40), **OU3** at the balloon. 40LA R spills to the balloon board. Balloon packed IDs stay `1133` / `1134`.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Helix turnout motors; OU1-7/8 spare |
-| OU2 | 5V | 36RB T+B; OU2-7 spare; **OU2-8 relay** |
-| OU3 | 5V | 2036, 2035; OU3-7/8 spare |
+| OU2 | 5V | 40LB T+B, 40LA G/Y |
+| OU3 | 5V | 2036, 2035, 40LA R; OU3-8 leftover (move C11 relay here) |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
-| 36RB | T | `IH1132` | OU2-1 | OU2-2 | OU2-3 |
-| 36RB | B | `IH1135` | OU2-4 | OU2-5 | OU2-6 |
+| 40LB | T | `IH1132` | OU2-1 | OU2-2 | OU2-3 |
+| 40LB | B | `IH1135` | OU2-4 | OU2-5 | OU2-6 |
+| 40LA | | `IH1136` | OU2-7 | OU2-8 | OU3-7 |
 | 2036 | | `IH1133` | OU3-1 | OU3-2 | OU3-3 |
 | 2035 | | `IH1134` | OU3-4 | OU3-5 | OU3-6 |
 
@@ -139,8 +154,7 @@ These OUs stay motors / planned RGB (`S*-*`) / relays. Do not overlay Digicon se
 
 | Node | Radio | Plant | Boards |
 |------|------:|-------|--------|
-| C4 | 4 | Peninsula lower | OU1 12V motors 100–102, 116; OU2/OU3 5V S3-1/2/3/13 + relay |
-| C12 | 12 | East End turnouts | OU1 12V 107–110; OU4 12V 111–112; OU2/OU3 5V S2-* + relay |
+| C3 | 3 | West lower | OU1 12V motors 103–106; OU2/OU3 5V leftover RGB |
 | C14 | 14 | West upper | OU1 12V 10044–10047; OU2/OU3 5V S6-* + relay |
 | C21 | 21 | Helix upper | OU1 12V NIX; OU2/OU3 5V S4-* + relay |
 | C22 | 22 | North upper | OU1 12V DJE/DJW; OU2/OU3 5V S5-1…5 + relay |
@@ -166,4 +180,4 @@ Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_s
 - **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB `S3-6 G` etc. on those ports). Previous RGB label is kept in Notes.
 - **D1-OU2/OU3** Princess rows were a mistaken overlay (D1 is DCC radio 5, now labeled **D5**). Princess is on C1; do not recreate D5 signal boards.
 - Upper-deck RGB (`S4-*` / `S5-*` / `S6-*`) left as planned.
-- **Node ID = radio Address** (`C2` is radio 2 / East End signals; old C2 tape is **C12**). v84 sequential C1–C13 IDs live in **Legacy Node ID** and `imported/`.
+- **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `imported/`.

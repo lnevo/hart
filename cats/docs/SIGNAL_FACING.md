@@ -99,7 +99,7 @@ All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts: tw
 
 Every disc, OU board (including 12V motors / relays / spares), and G/Y/R port: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards).
 
-Princess east exits are **2-head** (main vs OS K-1/OS K-2 restricting). Balloon intermediates **Mast 2035** / **Mast 2036** (was 115R / 114R) stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, OS S-R, OS 31, OS W-1/OS W-2, OS K-1/OS K-2). Packed IDs: Mast 2036 `IH1133` / Mast 2035 `IH1134`; Princess dwarfs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
+Princess east exits are **2-head** (main vs OS K-1/OS K-2 restricting). Balloon intermediates **Mast 2035** / **Mast 2036** (was 115R / 114R) stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, OS S-R, OS 31, OS W-1/OS W-2, OS K-1/OS K-2). Packed IDs: Mast 2036 `IH1133` / Mast 2035 `IH1134`; east Princess dwarfs `IH1136` (40LA) on C11; west Princess `IH143` (38LA) on C1.
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: custom `hart-aar` `SL-2-digicon` two-head / stock `AAR-1946` `SL-1-low` dwarfs (not `cats-masts`)

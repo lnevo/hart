@@ -8,14 +8,15 @@ Each physical searchlight disc is one 3-pin LCOS object (STOP/APPROACH/CLEAR =
 G/Y/R). Two-head masts are two objects (T + B) on the **same DNOU8** (6 pins)
 so a module can sit next to its mast. A neighboring dwarf uses the leftover 2
 pins; the 3rd dwarf pin spills to the adjacent cluster board when the plant
-needs 9 pins. New 5V **OU4** on C1 / C2 / C3 / C13. C11 has no new board.
+needs 9 pins. New 5V **OU4** on C1 / C4 / C13 (C12 and C11 use existing 5V OUs).
 
-  radio 1  C1  Princess: OU2@36RA, OU3@40, OU4@38
-  radio 2  C2  East End: OU1/OU2@24, OU3/OU4@34. Packed 2xx.
-  radio 3  C3  Plane OU2 / Brick-east OU3 (2L) / Brick-west OU4 (4R). Packed 4xx.
-  radio 11 C11 36RB on OU2; balloon 2035/2036 on OU3. Packed 11xx.
-  radio 12 C12 East End turnouts 107–112 (no Digicon heads)
-  radio 13 C13 Barn: OU1@8RA, OU4@8RB, OU2@8LA+8LB
+  radio 1  C1  Princess west (36 + 38). Packed 1xx.
+  radio 2  C2  East End west overflow (24). Packed 2xx.
+  radio 4  C4  Brick + Plane (motors 100–102/116 on OU1). Packed 4xx.
+  radio 11 C11 Princess east (40) + balloon 2035/2036. Packed 11xx.
+  radio 12 C12 East End 34 + turnout motors 107–112. Packed 12xx.
+  radio 13 C13 Barn. Packed 13xx.
+  radio 3  C3  Motors 103–106 only — no Digicon heads.
   radio 5  D5  DCC only — no signal ports
 
 `--wiring-only` writes CSVs only (no tables.xml / publisher).
@@ -36,21 +37,19 @@ SKIP_HEAD: set[str] = set()
 SKIP_MAST: set[str] = set()
 
 # One 3-pin STOP/APPROACH/CLEAR object per physical disc. A 2-head mast owns
-# 6 consecutive pins on one board (T then B). Packed IDs unchanged.
+# 6 consecutive pins on one board (T then B). Packed = radio*100 + UID.
 # disc: T top, B bottom, S single.
 # mast, node, parent, location, packed, g, y, r, disc, v84_was
 HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
-    # C3 radio 3 — Plane / Brick. Packed stays 4xx.
-    # OU2 at Plane (6LB + 6LA G/Y). OU3 at Brick east (2L + 6LA R; OU3-8 relay).
-    # OU4 at Brick west (4RA + 4RB; OU4-7/8 spare).
-    ("Mast 6LB", 4, "C3", "West - Lower (Plane)", 432, "C3-OU2-1", "C3-OU2-2", "C3-OU2-3", "T", "S3-6 G/Y/R"),
-    ("Mast 6LB", 4, "C3", "West - Lower (Plane)", 433, "C3-OU2-4", "C3-OU2-5", "C3-OU2-6", "B", "with 6LB T on OU2"),
-    ("Mast 6LA", 4, "C3", "West - Lower (Plane)", 434, "C3-OU2-7", "C3-OU2-8", "C3-OU3-7", "S", "G/Y on Plane OU2; R spills to 2L OU3"),
-    ("Mast 2L", 4, "C3", "West - Lower (Brick east)", 438, "C3-OU3-1", "C3-OU3-2", "C3-OU3-3", "T", "S3-8 G/Y/R"),
-    ("Mast 2L", 4, "C3", "West - Lower (Brick east)", 439, "C3-OU3-4", "C3-OU3-5", "C3-OU3-6", "B", "with 2L T on OU3"),
-    ("Mast 4RA", 4, "C3", "West - Lower (Brick west)", 436, "C3-OU4-1", "C3-OU4-2", "C3-OU4-3", "S", "Brick west OU4 with 4RB"),
-    ("Mast 4RB", 4, "C3", "West - Lower (Brick west)", 437, "C3-OU4-4", "C3-OU4-5", "C3-OU4-6", "S", "Brick west OU4 with 4RA"),
-    # C13 radio 13 — Barn. OU1 left 8RA; OU4 left 8RB + 8LB R; OU2 right 8LA + 8LB G/Y.
+    # C4 radio 4 — Brick + Plane (motors 100–102, 116 on OU1). Packed 4xx.
+    ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 432, "C4-OU2-1", "C4-OU2-2", "C4-OU2-3", "T", "S3-6 G/Y/R"),
+    ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 433, "C4-OU2-4", "C4-OU2-5", "C4-OU2-6", "B", "with 6LB T on OU2"),
+    ("Mast 6LA", 4, "C4", "West - Lower (Plane)", 434, "C4-OU2-7", "C4-OU2-8", "C4-OU3-7", "S", "G/Y on Plane OU2; R spills to 2L OU3"),
+    ("Mast 2L", 4, "C4", "West - Lower (Brick east)", 438, "C4-OU3-1", "C4-OU3-2", "C4-OU3-3", "T", "S3-8 G/Y/R"),
+    ("Mast 2L", 4, "C4", "West - Lower (Brick east)", 439, "C4-OU3-4", "C4-OU3-5", "C4-OU3-6", "B", "with 2L T on OU3"),
+    ("Mast 4RA", 4, "C4", "West - Lower (Brick west)", 436, "C4-OU4-1", "C4-OU4-2", "C4-OU4-3", "S", "Brick west OU4 with 4RB"),
+    ("Mast 4RB", 4, "C4", "West - Lower (Brick west)", 437, "C4-OU4-4", "C4-OU4-5", "C4-OU4-6", "S", "Brick west OU4 with 4RA"),
+    # C13 radio 13 — Barn.
     ("Mast 8RA", 13, "C13", "West - Lower (Barn left)", 1332, "C13-OU1-1", "C13-OU1-2", "C13-OU1-3", "T", "S3-10 G/Y/R"),
     ("Mast 8RA", 13, "C13", "West - Lower (Barn left)", 1333, "C13-OU1-4", "C13-OU1-5", "C13-OU1-6", "B", "with 8RA T on OU1"),
     ("Mast 8RB", 13, "C13", "West - Lower (Barn left)", 1335, "C13-OU4-1", "C13-OU4-2", "C13-OU4-3", "T", "S3-12; sequential G/Y/R"),
@@ -58,29 +57,30 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     ("Mast 8LA", 13, "C13", "West - Lower (Barn right)", 1337, "C13-OU2-1", "C13-OU2-2", "C13-OU2-3", "T", "S3-5 G/Y/R"),
     ("Mast 8LA", 13, "C13", "West - Lower (Barn right)", 1338, "C13-OU2-4", "C13-OU2-5", "C13-OU2-6", "B", "with 8LA T on OU2"),
     ("Mast 8LB", 13, "C13", "West - Lower (Barn right)", 1334, "C13-OU2-7", "C13-OU2-8", "C13-OU4-7", "S", "G/Y with 8LA; R spills to 8RB OU4"),
-    # C2 radio 2 — East End. OU1/OU2 at 24; OU3/OU4 at 34; 32R leftover on 34 boards.
-    ("Mast 24RA", 2, "C2", "North - Lower (East End 24)", 232, "C2-OU1-1", "C2-OU1-2", "C2-OU1-3", "T", "C2-OU1 5V"),
-    ("Mast 24RA", 2, "C2", "North - Lower (East End 24)", 238, "C2-OU1-4", "C2-OU1-5", "C2-OU1-6", "B", "with 24RA T on OU1"),
-    ("Mast 24RB", 2, "C2", "North - Lower (East End 24)", 234, "C2-OU1-7", "C2-OU1-8", "C2-OU2-7", "S", "G/Y with 24RA; R spills to 24L OU2"),
-    ("Mast 24L", 2, "C2", "North - Lower (East End 24)", 233, "C2-OU2-1", "C2-OU2-2", "C2-OU2-3", "T", "moved from OU1 with 24RA"),
-    ("Mast 24L", 2, "C2", "North - Lower (East End 24)", 239, "C2-OU2-4", "C2-OU2-5", "C2-OU2-6", "B", "with 24L T on OU2"),
-    ("Mast 34L", 2, "C2", "North - Lower (East End 34)", 235, "C2-OU3-1", "C2-OU3-2", "C2-OU3-3", "T", "was S2-5/S2-3 mix"),
-    ("Mast 34L", 2, "C2", "North - Lower (East End 34)", 240, "C2-OU3-4", "C2-OU3-5", "C2-OU3-6", "B", "with 34L T on OU3"),
-    ("Mast 32R", 2, "C2", "North - Lower (East End 34)", 236, "C2-OU3-7", "C2-OU3-8", "C2-OU4-7", "S", "G/Y with 34L; R spills to 34R OU4"),
-    ("Mast 34R", 2, "C2", "North - Lower (East End 34)", 237, "C2-OU4-1", "C2-OU4-2", "C2-OU4-3", "T", "was S4-6 G/R/Y"),
-    ("Mast 34R", 2, "C2", "North - Lower (East End 34)", 241, "C2-OU4-4", "C2-OU4-5", "C2-OU4-6", "B", "with 34R T on OU4"),
-    # C1 radio 1 — Princess. OU2@SW35 36RA; OU3@SW39 40; OU4@SW37 38. 36RB on C11.
+    # C2 radio 2 — East End west overflow (24). C2 sits on the west end of East End.
+    ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 232, "C2-OU1-1", "C2-OU1-2", "C2-OU1-3", "T", "C2-OU1 5V"),
+    ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 238, "C2-OU1-4", "C2-OU1-5", "C2-OU1-6", "B", "with 24RA T on OU1"),
+    ("Mast 24RB", 2, "C2", "North - Lower (East End west 24)", 234, "C2-OU1-7", "C2-OU1-8", "C2-OU2-7", "S", "G/Y with 24RA; R spills to 24L OU2"),
+    ("Mast 24L", 2, "C2", "North - Lower (East End west 24)", 233, "C2-OU2-1", "C2-OU2-2", "C2-OU2-3", "T", "with 24RA cluster"),
+    ("Mast 24L", 2, "C2", "North - Lower (East End west 24)", 239, "C2-OU2-4", "C2-OU2-5", "C2-OU2-6", "B", "with 24L T on OU2"),
+    # C12 radio 12 — East End 34 + turnout motors 107–112. Packed 12xx.
+    ("Mast 34L", 12, "C12", "North - Lower (East End 34)", 1232, "C12-OU2-1", "C12-OU2-2", "C12-OU2-3", "T", "was C2 235"),
+    ("Mast 34L", 12, "C12", "North - Lower (East End 34)", 1233, "C12-OU2-4", "C12-OU2-5", "C12-OU2-6", "B", "with 34L T on OU2"),
+    ("Mast 32R", 12, "C12", "North - Lower (East End 34)", 1234, "C12-OU2-7", "C12-OU2-8", "C12-OU3-7", "S", "G/Y with 34L; R spills to 34R OU3"),
+    ("Mast 34R", 12, "C12", "North - Lower (East End 34)", 1235, "C12-OU3-1", "C12-OU3-2", "C12-OU3-3", "T", "was C2 237"),
+    ("Mast 34R", 12, "C12", "North - Lower (East End 34)", 1236, "C12-OU3-4", "C12-OU3-5", "C12-OU3-6", "B", "with 34R T on OU3"),
+    # C1 radio 1 — Princess west (36 @ SW35, 38 @ SW37). 40 and balloon on C11.
     ("Mast 36RA", 1, "C1", "Helix - Lower (Princess SW35)", 135, "C1-OU2-1", "C1-OU2-2", "C1-OU2-3", "T", "S1-2 G/Y/R"),
     ("Mast 36RA", 1, "C1", "Helix - Lower (Princess SW35)", 136, "C1-OU2-4", "C1-OU2-5", "C1-OU2-6", "B", "with 36RA T on OU2"),
-    ("Mast 40LA", 1, "C1", "Helix - Lower (Princess SW39)", 142, "C1-OU3-7", "C1-OU3-8", "C1-OU2-7", "S", "G/Y with 40LB; R spills to 36RA OU2"),
-    ("Mast 40LB", 1, "C1", "Helix - Lower (Princess SW39)", 132, "C1-OU3-1", "C1-OU3-2", "C1-OU3-3", "T", "S1-1 G/Y/R"),
-    ("Mast 40LB", 1, "C1", "Helix - Lower (Princess SW39)", 133, "C1-OU3-4", "C1-OU3-5", "C1-OU3-6", "B", "with 40LB T on OU3"),
-    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess SW37)", 143, "C1-OU4-7", "C1-OU4-8", "C1-OU2-8", "S", "G/Y with 38LB; R spills to 36RA OU2"),
+    ("Mast 36RB", 1, "C1", "Helix - Lower (Princess SW35)", 132, "C1-OU3-1", "C1-OU3-2", "C1-OU3-3", "T", "was C11 1132"),
+    ("Mast 36RB", 1, "C1", "Helix - Lower (Princess SW35)", 133, "C1-OU3-4", "C1-OU3-5", "C1-OU3-6", "B", "with 36RB T on OU3"),
     ("Mast 38LB", 1, "C1", "Helix - Lower (Princess SW37)", 139, "C1-OU4-1", "C1-OU4-2", "C1-OU4-3", "T", "S1-3 G/Y/R"),
     ("Mast 38LB", 1, "C1", "Helix - Lower (Princess SW37)", 140, "C1-OU4-4", "C1-OU4-5", "C1-OU4-6", "B", "with 38LB T on OU4"),
-    # C11 radio 11 — 36RB together on OU2 (place near Princess); balloon dwarfs on OU3.
-    ("Mast 36RB", 11, "C11", "Helix (Princess overflow)", 1132, "C11-OU2-1", "C11-OU2-2", "C11-OU2-3", "T", "S1-5; sequential G/Y/R"),
-    ("Mast 36RB", 11, "C11", "Helix (Princess overflow)", 1135, "C11-OU2-4", "C11-OU2-5", "C11-OU2-6", "B", "with 36RB T on OU2"),
+    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess SW37)", 143, "C1-OU4-7", "C1-OU4-8", "C1-OU2-7", "S", "G/Y with 38LB; R spills to 36RA OU2"),
+    # C11 radio 11 — Princess east (40 @ SW39) + balloon.
+    ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1132, "C11-OU2-1", "C11-OU2-2", "C11-OU2-3", "T", "was C1 132"),
+    ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1135, "C11-OU2-4", "C11-OU2-5", "C11-OU2-6", "B", "with 40LB T on OU2"),
+    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1136, "C11-OU2-7", "C11-OU2-8", "C11-OU3-7", "S", "G/Y with 40LB; R spills to balloon OU3"),
     ("Mast 2036", 11, "C11", "Helix (balloon 114)", 1133, "C11-OU3-1", "C11-OU3-2", "C11-OU3-3", "S", "S1-6; sequential G/Y/R"),
     ("Mast 2035", 11, "C11", "Helix (balloon 115)", 1134, "C11-OU3-4", "C11-OU3-5", "C11-OU3-6", "S", "S4-6; sequential G/Y/R"),
 ]
