@@ -70,7 +70,7 @@ Designer captions stay as saved. Wire lifts `FONT_LABEL` on operating rows (`Y�
 python3 cats/scripts/wire_hart_master4.py --live   # after a Designer save
 ```
 
-Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. **CATS Master4** (`/Applications/CATS Master4.app`) → `HART_Master4_wired.xml` for schematic testing. Do not run it with CATS CTC or USS CTC. Designer saves belong in `HART_Master4.xml` (not `_wired.xml`). The wire script `--live` copies the wired board onto `HART_Master.xml` and rebuilds both HOLD copies. Do not save Designer over `_hold.xml`.
+Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. There is no **CATS Master4** Applications icon. Designer saves belong in `HART_Master4.xml` (not `_wired.xml`). The wire script `--live` copies the wired board onto `HART_Master.xml` and rebuilds both HOLD copies. Do not save Designer over `_hold.xml`.
 
 **Load rule:** a named `BLOCK` edge must face another `BlkEdge`. Occupancy cuts use **different** names (that is the only intended rail gap). Interior cells stay plain — occupancy flows through turnouts (`PtsEdge.propagateBlock`). Same-name `BlkEdge` pairs still paint a gap; they exist only where a Designer lamp sits mid-block. A `BlkEdge` facing a plain `SecEdge` ClassCasts in `discoverAdvanceVitalLogic` and leaves the Dispatcher Panel blank. Anonymous `<BLOCK />` then NPEs (`MyBlock` is null). Do not put two names on one Track. Do not put BLOCK on the edge facing SWITCHPOINTS.
 
