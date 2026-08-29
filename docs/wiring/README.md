@@ -36,4 +36,4 @@ Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_s
 - **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB `S3-6 G` etc. on those ports). Previous RGB label is kept in Notes.
 - **D1-OU2/OU3** Princess heads appended (114LA / 115LA and the split 2-head + dwarf faces).
 - Upper-deck RGB (`S4-*` / `S5-*` / `S6-*`) left as planned.
-- C# vs radio address is unchanged from v84b: client IDs are enclosure groups; MQTT packed IDs use the radio address (`C# ≠ node`).
+- C# vs radio address is unchanged from v84b: client IDs are enclosure groups; MQTT packed IDs use the radio address (`C# ≠ node`). **Queued:** rename Node IDs to the radio Address so enclosure labels match packed MQTT (see `wiki/STATUS.md`).

@@ -1,5 +1,9 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — **Queued (not applied):** rename LCOS inventory Node IDs so the label matches the radio **Address** (today `C# ≠` address: C1=1, C3=2, C4=3, C5=13, C2=12, C7=11). Packed MQTT already uses Address; enclosure names should too. Do not swap C3↔C2 as a one-off — C2 is radio 12.
+
+Updated: 2026-08-28 — Signal wiring proposal (docs only): **one 3-pin head per mast** (`STOP/APPROACH/CLEAR`). Barn on radio **13** (C5). Princess interlocking **six** faces on radio **1** (C1); skip 2035/2036. East End **east-facing** (24RA, 24RB, 34R) on radio **2** (C3). Not applied to CSVs.
+
 Updated: 2026-08-28 — LCOS mimic lamps look up packed `track/signalhead/432` (was still keyed `IH432`, so they stayed Dark). Reload `http://127.0.0.1:8765/`. SET is still only **IH432**; other heads stay Unheld. Local mimic; not deployed.
 
 Updated: 2026-08-28 — Removed **CATS Master4** from `/Applications`. Live desks are **CATS CTC** / **CATS ABS**. Mac-only; not deployed.
