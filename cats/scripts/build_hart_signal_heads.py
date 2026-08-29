@@ -12,7 +12,7 @@ needs 9 pins. New 5V **OU4** on C1 / C4 / C13 (C12 and C11 use existing 5V OUs).
 
   radio 1  C1  Princess west (36 + 38). Packed 1xx.
   radio 2  C2  East End west overflow (24). Packed 2xx.
-  radio 4  C4  Brick + Plane (motors 100–102/116 on OU1). Packed 4xx.
+  radio 4  C4  Brick + Plane (motors Switch 1/3/5/13 on OU1). Packed 4xx.
   radio 11 C11 Princess east (40) + balloon 2035/2036. Packed 11xx.
   radio 12 C12 East End 34 + turnout motors 107–112. Packed 12xx.
   radio 13 C13 Barn. Packed 13xx.
@@ -41,7 +41,7 @@ SKIP_MAST: set[str] = set()
 # disc: T top, B bottom, S single.
 # mast, node, parent, location, packed, g, y, r, disc, v84_was
 HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
-    # C4 radio 4 — Brick + Plane (motors 100–102, 116 on OU1). Packed 4xx.
+    # C4 radio 4 — Brick + Plane (motors Switch 1/3/5/13 on OU1). Packed 4xx.
     ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 432, "C4-OU2-1", "C4-OU2-2", "C4-OU2-3", "T", "S3-6 G/Y/R"),
     ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 433, "C4-OU2-4", "C4-OU2-5", "C4-OU2-6", "B", "with 6LB T on OU2"),
     ("Mast 6LA", 4, "C4", "West - Lower (Plane)", 434, "C4-OU2-7", "C4-OU3-8", "C4-OU3-7", "S", "G on Plane OU2; Y/R on 2L OU3 (OU2-8 is BS cal)"),
@@ -60,7 +60,7 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     # C2 radio 2 — East End west overflow (24). C2 sits on the west end of East End.
     ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 232, "C2-OU1-1", "C2-OU1-2", "C2-OU1-3", "T", "C2-OU1 5V"),
     ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 238, "C2-OU1-4", "C2-OU1-5", "C2-OU1-6", "B", "with 24RA T on OU1"),
-    ("Mast 24RB", 2, "C2", "North - Lower (East End west 24)", 234, "C2-OU1-7", "C2-OU3-8", "C2-OU2-7", "S", "G with 24RA; Y on OU3 (OU1-8 is BS cal); R with 24L"),
+    ("Mast 24RB", 2, "C2", "North - Lower (East End west 24)", 234, "C2-OU3-6", "C2-OU3-7", "C2-OU3-8", "S", "whole dwarf on leftover OU3 (OU1-8 is BS cal)"),
     ("Mast 24L", 2, "C2", "North - Lower (East End west 24)", 233, "C2-OU2-1", "C2-OU2-2", "C2-OU2-3", "T", "with 24RA cluster"),
     ("Mast 24L", 2, "C2", "North - Lower (East End west 24)", 239, "C2-OU2-4", "C2-OU2-5", "C2-OU2-6", "B", "with 24L T on OU2"),
     # C12 radio 12 — East End 34 + turnout motors 107–112. Packed 12xx.
@@ -76,7 +76,7 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     ("Mast 36RB", 1, "C1", "Helix - Lower (Princess SW35)", 133, "C1-OU3-4", "C1-OU3-5", "C1-OU3-6", "B", "with 36RB T on OU3"),
     ("Mast 38LB", 1, "C1", "Helix - Lower (Princess SW37)", 139, "C1-OU4-1", "C1-OU4-2", "C1-OU4-3", "T", "S1-3 G/Y/R"),
     ("Mast 38LB", 1, "C1", "Helix - Lower (Princess SW37)", 140, "C1-OU4-4", "C1-OU4-5", "C1-OU4-6", "B", "with 38LB T on OU4"),
-    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess SW37)", 143, "C1-OU4-7", "C1-OU4-8", "C1-OU2-7", "S", "G/Y with 38LB; R spills to 36RA OU2"),
+    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess SW37)", 143, "C1-OU3-7", "C1-OU3-8", "C1-OU2-7", "S", "leftover trio on 36 boards; 38LB keeps OU4"),
     # C11 radio 11 — Princess east (40 @ SW39) + balloon.
     ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1132, "C11-OU2-1", "C11-OU2-2", "C11-OU2-3", "T", "was C1 132"),
     ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1135, "C11-OU2-4", "C11-OU2-5", "C11-OU2-6", "B", "with 40LB T on OU2"),

@@ -238,6 +238,54 @@ MANGLED_SWITCH_FIXES: list[tuple[str, str]] = [
     ("Switch 1121", "SW121"),
 ]
 
+# v84 DCC Switch 100–119 → live CTC numbers (ADR-005). Longest first so
+# Switch 113a becomes Switch 35a. Do not emit "Switch 127" (that is SW127).
+DCC_SWITCH_TO_CTC: list[tuple[str, str]] = [
+    ("Switch 119", "Switch 9"),
+    ("Switch 118", "Switch 11"),
+    ("Switch 117", "Switch 7"),
+    ("Switch 116", "Switch 13"),
+    ("Switch 115", "Switch 39"),
+    ("Switch 114", "Switch 37"),
+    ("Switch 113", "Switch 35"),
+    ("Switch 112", "Switch 33"),
+    ("Switch 111", "Switch 23"),
+    ("Switch 110", "Switch 31"),
+    ("Switch 109", "Switch 29"),
+    ("Switch 108", "Switch 27"),
+    ("Switch 107", "Switch 25"),
+    ("Switch 106", "Switch 21"),
+    ("Switch 105", "Switch 19"),
+    ("Switch 104", "Switch 17"),
+    ("Switch 103", "Switch 15"),
+    ("Switch 102", "Switch 5"),
+    ("Switch 101", "Switch 3"),
+    ("Switch 100", "Switch 1"),
+]
+
+# Pre-linear6 SW1–SW18 / SCX* tokens still on the Nodes summary columns.
+# Digit-bounded so SW12 does not eat SW124.
+_SW_TOKEN_CTC: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"(?<![A-Za-z0-9])SCXB(?![A-Za-z0-9])"), "Switch 35"),
+    (re.compile(r"(?<![A-Za-z0-9])SCXA(?![A-Za-z0-9])"), "Switch 23"),
+    (re.compile(r"(?<![A-Za-z0-9])SW18(?![0-9])"), "Switch 39"),
+    (re.compile(r"(?<![A-Za-z0-9])SW17(?![0-9])"), "Switch 37"),
+    (re.compile(r"(?<![A-Za-z0-9])SW12(?![0-9])"), "Switch 23"),
+    (re.compile(r"(?<![A-Za-z0-9])SW11(?![0-9])"), "Switch 31"),
+    (re.compile(r"(?<![A-Za-z0-9])SW10(?![0-9])"), "Switch 29"),
+    (re.compile(r"(?<![A-Za-z0-9])SW9(?![0-9])"), "Switch 27"),
+    (re.compile(r"(?<![A-Za-z0-9])SW8(?![0-9])"), "Switch 25"),
+    (re.compile(r"(?<![A-Za-z0-9])SW7(?![0-9])"), "Switch 21"),
+    (re.compile(r"(?<![A-Za-z0-9])SW6(?![0-9])"), "Switch 19"),
+    (re.compile(r"(?<![A-Za-z0-9])SW5(?![0-9])"), "Switch 17"),
+    (re.compile(r"(?<![A-Za-z0-9])SW4(?![0-9])"), "Switch 15"),
+    (re.compile(r"(?<![A-Za-z0-9])SW3(?![0-9])"), "Switch 5"),
+    (re.compile(r"(?<![A-Za-z0-9])SW2(?![0-9])"), "Switch 3"),
+    (re.compile(r"(?<![A-Za-z0-9])SW1(?![0-9])"), "Switch 1"),
+]
+HEAD_MAST_RE = re.compile(r"^Head (\S+)")
+LED_NAME_RE = re.compile(r"^S\d+-\d+")
+
 
 def rewrite_legacy_node_ids(value):
     """Rewrite C12/C3/… tokens; longest match is the full number (C12 ≠ C1)."""
@@ -257,6 +305,93 @@ def fix_mangled_switch_names(wb) -> int:
     for ws in wb.worksheets:
         n += walk_replace(ws, MANGLED_SWITCH_FIXES)
     return n
+
+
+def apply_ctc_switch_names(wb) -> int:
+    """Switch 113 → Switch 35 (and the rest of DCC 100–119)."""
+    n = 0
+    for ws in wb.worksheets:
+        n += walk_replace(ws, DCC_SWITCH_TO_CTC)
+    return n
+
+
+def apply_legacy_sw_tokens(wb) -> int:
+    """SCXB / SW17 / … on Nodes summaries (digit-bounded)."""
+    n = 0
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                if not isinstance(cell.value, str) or not cell.value:
+                    continue
+                out = cell.value
+                for pat, repl in _SW_TOKEN_CTC:
+                    out = pat.sub(repl, out)
+                if out != cell.value:
+                    cell.value = out
+                    n += 1
+    return n
+
+
+def _unique_keep_order(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in items:
+        if item and item not in seen:
+            seen.add(item)
+            out.append(item)
+    return out
+
+
+def summarize_node_labels(nodes: Worksheet, dnou: Worksheet, dnin: Worksheet) -> None:
+    """Rebuild Turnout / button / FB / signal summary columns from live ports."""
+    motors: dict[str, list[str]] = defaultdict(list)
+    signals: dict[str, list[str]] = defaultdict(list)
+    buttons: dict[str, list[str]] = defaultdict(list)
+    fbs: dict[str, list[str]] = defaultdict(list)
+    for row in range(2, dnou.max_row + 1):
+        nid = dnou.cell(row, 2).value
+        dev = dnou.cell(row, 5).value
+        dtype = str(dnou.cell(row, 6).value or "")
+        if not nid or not isinstance(dev, str):
+            continue
+        nid = str(nid)
+        if dtype == "Turnout Motor":
+            name = re.sub(r" [NR]$", "", dev).strip()
+            motors[nid].append(name)
+        elif dtype == "Searchlight Signal Head":
+            m = HEAD_MAST_RE.match(dev)
+            signals[nid].append(m.group(1) if m else dev)
+        elif LED_NAME_RE.match(dev.split()[0] if dev else ""):
+            signals[nid].append(dev.split()[0])
+    for row in range(2, dnin.max_row + 1):
+        nid = dnin.cell(row, 2).value
+        dev = dnin.cell(row, 5).value
+        if not nid or not isinstance(dev, str):
+            continue
+        nid = str(nid)
+        if dev.endswith(" BTN"):
+            buttons[nid].append(dev)
+        elif " FB" in dev:
+            fbs[nid].append(dev)
+    idx = header_index(nodes)
+    id_col = idx["Node ID"]
+    for row in range(2, nodes.max_row + 1):
+        nid = nodes.cell(row, id_col).value
+        if not nid:
+            continue
+        nid = str(nid)
+        if "Turnout Names" in idx:
+            names = _unique_keep_order(motors.get(nid, []))
+            nodes.cell(row, idx["Turnout Names"]).value = ", ".join(names) or None
+        if "Button Devices" in idx:
+            names = _unique_keep_order(buttons.get(nid, []))
+            nodes.cell(row, idx["Button Devices"]).value = ", ".join(names) or None
+        if "Turnout Feedback Devices" in idx:
+            names = _unique_keep_order(fbs.get(nid, []))
+            nodes.cell(row, idx["Turnout Feedback Devices"]).value = ", ".join(names) or None
+        if "Signal Names" in idx:
+            names = _unique_keep_order(signals.get(nid, []))
+            nodes.cell(row, idx["Signal Names"]).value = ", ".join(names) or None
 
 
 def remap_workbook_node_ids(wb) -> dict[int, str]:
@@ -341,7 +476,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "normal": "24RA",
         "normal_ports": ("C2-OU1-3", "C2-OU1-2", "C2-OU1-1"),
         "reverse": "24RB",
-        "reverse_ports": ("C2-OU2-7", "C2-OU3-8", "C2-OU1-7"),
+        "reverse_ports": ("C2-OU3-8", "C2-OU3-7", "C2-OU3-6"),
     },
     "Switch 110": {
         "entry": "32R",
@@ -369,7 +504,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "normal": "38LB",
         "normal_ports": ("C1-OU4-3", "C1-OU4-2", "C1-OU4-1"),
         "reverse": "38LA",
-        "reverse_ports": ("C1-OU2-7", "C1-OU4-8", "C1-OU4-7"),
+        "reverse_ports": ("C1-OU2-7", "C1-OU3-8", "C1-OU3-7"),
     },
     "Switch 115": {
         "entry": "2035",
@@ -620,7 +755,7 @@ def refresh_nodes(ws: Worksheet) -> None:
                 ws.cell(row, dnou).value = "OU1, OU2, OU3"
         if nid == "C3":
             if loc_col:
-                ws.cell(row, loc_col).value = "West - Lower (103–106 motors)"
+                ws.cell(row, loc_col).value = "West - Lower (Switch 15–21 motors)"
         if nid == "C4":
             if loc_col:
                 ws.cell(row, loc_col).value = "West - Lower (Brick / Plane)"
@@ -634,7 +769,7 @@ def refresh_nodes(ws: Worksheet) -> None:
         if nid == "C11" and loc_col:
             ws.cell(row, loc_col).value = "Helix (Princess east 40 + balloon)"
         if nid == "C12" and loc_col:
-            ws.cell(row, loc_col).value = "North - Lower (East End 34 + turnouts 107–112)"
+            ws.cell(row, loc_col).value = "North - Lower (East End 34 + Switch 25–33)"
         if nid == "C13":
             if loc_col:
                 ws.cell(row, loc_col).value = "West - Lower (Barn)"
@@ -660,15 +795,19 @@ def refresh_turnout_summary(ws: Worksheet) -> list[str]:
 
         def set_group(prefix: str, signal_key: str, ports_key: str) -> None:
             sig = proposed(spec.get(signal_key)) or spec.get(signal_key)
-            if not sig:
-                return
-            ws.cell(row, idx[prefix]).value = sig
-            ports = spec.get(ports_key) or (None, None, None)
             r_key, y_key, g_key = (
                 f"{prefix} R Port",
                 f"{prefix} Y Port",
                 f"{prefix} G Port",
             )
+            if not sig:
+                ws.cell(row, idx[prefix]).value = None
+                for key in (r_key, y_key, g_key):
+                    if key in idx:
+                        ws.cell(row, idx[key]).value = None
+                return
+            ws.cell(row, idx[prefix]).value = sig
+            ports = spec.get(ports_key) or (None, None, None)
             # R/Y/G columns are lamp colors of one 3-pin head.
             if r_key in idx:
                 ws.cell(row, idx[r_key]).value = ports[0]
@@ -834,7 +973,10 @@ def refresh_inventory() -> Path:
         )
     cal_log = stamp_block_sensor_cal(wb["DNOU8"], cal_ports)
     ts_log = refresh_turnout_summary(wb["TurnoutSummary"])
+    ctc_n = apply_ctc_switch_names(wb)
+    sw_n = apply_legacy_sw_tokens(wb)
     refresh_nodes(wb["Nodes"])
+    summarize_node_labels(wb["Nodes"], wb["DNOU8"], wb["DNIN8"])
     add_digicon_sheet(wb, wiring, heads)
     mismatches = []
     nidx = header_index(wb["Nodes"])
@@ -852,6 +994,8 @@ def refresh_inventory() -> Path:
 
     print(f"wrote {dest}")
     print(f"  Mangled SW1xx restorations (cells): {mangled_n}")
+    print(f"  DCC Switch 100–119 → CTC (cells): {ctc_n}")
+    print(f"  Legacy SW/SCX tokens (cells): {sw_n}")
     print(f"  BlockSensors renames: {len(bs_log)}")
     for line in bs_log:
         print(f"    {line}")

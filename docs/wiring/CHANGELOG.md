@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-08-29 — CTC switch names + keep dwarfs on leftover pins
+
+Inventory Switch 100–119 labels are live CTC numbers (Switch 35 not 113). 38LA G/Y move off C1-OU4 onto unused OU3-7/8 (R stays OU2-7). 24RB is three consecutive pins on C2-OU3. `tables.xml` not patched.
+
 ## 2026-08-29 — Restore mangled upper-deck SW1xx names
 
 v84 “renamed for linear6” concatenated `1` or `100` onto helix/upper-deck plant IDs (`SW127` → `Switch 1127`, `SW138` → `Switch 10038`). Restored to `SW124`–`SW129`, `SW138`–`SW150`. Those are not CTC numbers (Switch 27/29 stay East End). Lower-deck DCC 100–119 unchanged. `tables.xml` not patched.
