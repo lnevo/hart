@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — Removed DCC≥14 OpenLCB workaround routes **Switch 37/39 Closed+Thrown** (`IO:AUTO:0001`–`0004`). MQTT comments still `DCC: 114` / `DCC: 115`. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-29 — Restored v84 mangled upper-deck motors (`Switch 10038`/`1127`/…) to `SW138`/`SW127`/…. Inventory only; no `tables.xml`. Docs-only, not deployed.
 
 Updated: 2026-08-29 — Pin 8 of the first 5V OU on every block-sensor node is occupancy-detector calibration (not a lamp). Digicon heads moved off C2/C4/C11/C12 those pins. Wiring CSVs + v85; no `tables.xml`. Docs-only, not deployed.

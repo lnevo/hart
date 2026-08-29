@@ -1860,34 +1860,6 @@
     </layoutblock>
   <layoutblock systemName="ILB78" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB78</systemName><userName>Track S-1 West</userName></layoutblock><layoutblock systemName="ILB79" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB79</systemName><userName>Track S-1 East</userName></layoutblock><layoutblock systemName="ILB80" occupancysensor="BS S-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB80</systemName><userName>Track S-2 West</userName></layoutblock><layoutblock systemName="ILB81" occupancysensor="BS S-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB81</systemName><userName>Track S-2 East</userName></layoutblock><layoutblock systemName="ILB82" occupancysensor="BS S-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB82</systemName><userName>Track S-3 West</userName></layoutblock><layoutblock systemName="ILB83" occupancysensor="BS S-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB83</systemName><userName>Track S-3 East</userName></layoutblock><layoutblock systemName="ILB84" occupancysensor="BS S-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB84</systemName><userName>Track S-4 West</userName></layoutblock><layoutblock systemName="ILB85" occupancysensor="BS S-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB85</systemName><userName>Track S-4 East</userName></layoutblock><layoutblock systemName="ILB86" occupancysensor="BS S-R" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB86</systemName><userName>Track S-R East</userName></layoutblock><layoutblock systemName="ILB87" occupancysensor="BS S-R" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white"><systemName>ILB87</systemName><userName>Track S-R West</userName></layoutblock></layoutblocks>
   <routes class="jmri.managers.configurexml.DefaultRouteManagerXml">
-    <route userName="Switch 37 Closed">
-      <systemName>IO:AUTO:0001</systemName>
-      <userName>Switch 37 Closed</userName>
-      <comment>Route Switch 37 Closed</comment>
-      <routeOutputTurnout systemName="M2T109" state="CLOSED" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onInactive" />
-    </route>
-    <route userName="Switch 37 Thrown">
-      <systemName>IO:AUTO:0002</systemName>
-      <userName>Switch 37 Thrown</userName>
-      <comment>Route Switch 37 Thrown</comment>
-      <routeOutputTurnout systemName="M2T109" state="THROWN" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onActive" />
-    </route>
-    <route userName="Switch 39 Closed">
-      <systemName>IO:AUTO:0003</systemName>
-      <userName>Switch 39 Closed</userName>
-      <comment>Route Switch 39 Closed</comment>
-      <routeOutputTurnout systemName="M2T110" state="CLOSED" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onInactive" />
-    </route>
-    <route userName="Switch 39 Thrown">
-      <systemName>IO:AUTO:0004</systemName>
-      <userName>Switch 39 Thrown</userName>
-      <comment>Route Switch 39 Thrown</comment>
-      <routeOutputTurnout systemName="M2T110" state="THROWN" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onActive" />
-    </route>
   </routes>
   <signalmastlogics class="jmri.managers.configurexml.DefaultSignalMastLogicManagerXml">
     <logicDelay>500</logicDelay>

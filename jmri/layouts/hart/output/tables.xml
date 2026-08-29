@@ -14132,34 +14132,6 @@
     </transit>
   </transits>
   <routes class="jmri.managers.configurexml.DefaultRouteManagerXml">
-    <route userName="Switch 37 Closed">
-      <systemName>IO:AUTO:0001</systemName>
-      <userName>Switch 37 Closed</userName>
-      <comment>Route Switch 37 Closed</comment>
-      <routeOutputTurnout systemName="M2T109" state="CLOSED" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onInactive" />
-    </route>
-    <route userName="Switch 37 Thrown">
-      <systemName>IO:AUTO:0002</systemName>
-      <userName>Switch 37 Thrown</userName>
-      <comment>Route Switch 37 Thrown</comment>
-      <routeOutputTurnout systemName="M2T109" state="THROWN" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB" mode="onActive" />
-    </route>
-    <route userName="Switch 39 Closed">
-      <systemName>IO:AUTO:0003</systemName>
-      <userName>Switch 39 Closed</userName>
-      <comment>Route Switch 39 Closed</comment>
-      <routeOutputTurnout systemName="M2T110" state="CLOSED" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onInactive" />
-    </route>
-    <route userName="Switch 39 Thrown">
-      <systemName>IO:AUTO:0004</systemName>
-      <userName>Switch 39 Thrown</userName>
-      <comment>Route Switch 39 Thrown</comment>
-      <routeOutputTurnout systemName="M2T110" state="THROWN" />
-      <routeSensor systemName="MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED" mode="onActive" />
-    </route>
     <route userName="Left Track S-R ladder" controlTurnout="IT:HART:YL:L1" controlTurnoutState="THROWN">
       <systemName>IO:AUTO:0201</systemName>
       <userName>Left Track S-R ladder</userName>
