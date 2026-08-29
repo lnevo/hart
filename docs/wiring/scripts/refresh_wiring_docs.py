@@ -916,7 +916,7 @@ def clear_retired_s3_rgb(ws: Worksheet) -> list[str]:
             if prev and str(prev).startswith("S2-"):
                 ws.cell(row, 5).value = None
                 ws.cell(row, 6).value = None
-                ws.cell(row, 8).value = f"spare (CP2 leftover RGB removed; was {prev})"
+                ws.cell(row, 8).value = "spare"
                 log.append(f"clear {pid}: {prev!r}")
     for row in reversed(drop_rows):
         pid = ws.cell(row, 1).value
