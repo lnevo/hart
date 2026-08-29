@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """Build HART Digicon→JMRI virtual signal heads (LCOS packed MQTT numbers).
 
-MQTT packed node == RF24 radio Address. Never assign heads to D1 (radio 5, DCC).
+MQTT packed node == RF24 radio Address. Enclosure ID is C{Address} (D{Address}
+for the helix DCC client). Never assign heads to D5 (radio 5, DCC).
 
 One 3-pin head per mast (LCOS STOP/APPROACH/CLEAR = R/Y/G). Wiring CSV has
 three rows per mast (G, Y, R pins of the same UID).
 
   radio 1  C1  Princess interlocking (5 faces; 15 5V pins). 36RB overflows.
-  radio 2  C3  East End (6 faces). OU1 run as 5V (no turnouts). Packed 2xx.
-  radio 3  C4  Plane / Brick
-  radio 11 C7  Princess overflow: 36RB + 2035/2036. Packed 11xx.
-  radio 13 C5  Barn / 117
-  radio 5  D1  DCC only — no signal ports
+  radio 2  C2  East End signals (6 faces). OU1 run as 5V (no turnouts). Packed 2xx.
+  radio 3  C3  Plane / Brick (packed 4xx — LCOS display node still 4)
+  radio 11 C11 Princess overflow: 36RB + 2035/2036. Packed 11xx.
+  radio 12 C12 East End turnouts 107–112 (no Digicon heads)
+  radio 13 C13 Barn / 117
+  radio 5  D5  DCC only — no signal ports
 
 `--wiring-only` writes CSVs only (no tables.xml / publisher).
 """
@@ -31,39 +33,39 @@ SKIP_HEAD: set[str] = set()
 SKIP_MAST: set[str] = set()
 
 # One 3-pin STOP/APPROACH/CLEAR head per mast. Packed keeps the old surviving
-# mast ID where the radio node did not change; East End moves 12→2, Princess
-# overflow is radio 11. G/Y/R follow v84 trio order (G then Y then R on C1/C4/C5;
-# C3-OU1 is new 5V consecutive G/Y/R).
+# mast ID where the radio node did not change; East End is radio 2, Princess
+# overflow is radio 11. G/Y/R follow v84 trio order (G then Y then R on C1/C3/C13;
+# C2-OU1 is 5V consecutive G/Y/R). Enclosure IDs match radio Address.
 # mast, node, parent, location, packed, g, y, r, v84_was
 MASTS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str]] = [
-    # C4 radio 3 — Plane / Brick (v84 S3-6…S3-11, 15 LED pins)
-    ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 432, "C4-OU2-1", "C4-OU2-2", "C4-OU2-3", "S3-6 G/Y/R"),
-    ("Mast 6LA", 4, "C4", "West - Lower (Plane)", 434, "C4-OU2-4", "C4-OU2-5", "C4-OU2-6", "S3-7 G/Y/R"),
-    ("Mast 4RA", 4, "C4", "West - Lower (Brick)", 436, "C4-OU3-4", "C4-OU3-5", "C4-OU3-6", "S3-9 G/Y/R"),
-    ("Mast 4RB", 4, "C4", "West - Lower (Brick)", 437, "C4-OU3-7", "C4-OU2-7", "C4-OU3-8", "S3-11 G/Y/R (Y on OU2-7)"),
-    ("Mast 2L", 4, "C4", "West - Lower (Brick)", 438, "C4-OU3-1", "C4-OU3-2", "C4-OU3-3", "S3-8 G/Y/R"),
-    # C5 radio 13 — Barn (v84 S3-10, S3-12, S3-4, S3-5)
-    ("Mast 8RA", 13, "C5", "West - Lower (Barn)", 1332, "C5-OU1-1", "C5-OU1-2", "C5-OU1-3", "S3-10 G/Y/R"),
-    ("Mast 8RB", 13, "C5", "West - Lower (Barn)", 1335, "C5-OU1-4", "C5-OU1-6", "C5-OU1-5", "S3-12 G/R/Y silk"),
-    ("Mast 8LB", 13, "C5", "West - Lower (Barn)", 1334, "C5-OU2-1", "C5-OU2-2", "C5-OU2-3", "S3-4 G/Y/R"),
-    ("Mast 8LA", 13, "C5", "West - Lower (Barn)", 1337, "C5-OU2-4", "C5-OU2-5", "C5-OU2-6", "S3-5 G/Y/R"),
-    # C3 radio 2 — East End (OU1 as 5V; OU2-8 stays relay)
-    ("Mast 24RA", 2, "C3", "North - Lower (East End)", 232, "C3-OU1-1", "C3-OU1-2", "C3-OU1-3", "C3-OU1 new 5V"),
-    ("Mast 24L", 2, "C3", "North - Lower (East End)", 233, "C3-OU1-4", "C3-OU1-5", "C3-OU1-6", "C3-OU1 new 5V"),
-    ("Mast 24RB", 2, "C3", "North - Lower (East End)", 234, "C3-OU1-7", "C3-OU1-8", "C3-OU2-1", "OU1-7/8 + OU2-1"),
-    ("Mast 34L", 2, "C3", "North - Lower (East End)", 235, "C3-OU2-2", "C3-OU2-3", "C3-OU2-4", "was S2-5/S2-3 mix"),
-    ("Mast 32R", 2, "C3", "North - Lower (East End)", 236, "C3-OU2-5", "C3-OU2-6", "C3-OU2-7", "OU2-8 is relay"),
-    ("Mast 34R", 2, "C3", "North - Lower (East End)", 237, "C3-OU3-1", "C3-OU3-2", "C3-OU3-3", "was S4-6 G/R/Y"),
-    # C1 radio 1 — Princess interlocking (15 5V pins = 5 trios; 36RB on C7)
+    # C3 radio 3 — Plane / Brick (was C4). Packed stays 4xx (LCOS display node 4).
+    ("Mast 6LB", 4, "C3", "West - Lower (Plane)", 432, "C3-OU2-1", "C3-OU2-2", "C3-OU2-3", "S3-6 G/Y/R"),
+    ("Mast 6LA", 4, "C3", "West - Lower (Plane)", 434, "C3-OU2-4", "C3-OU2-5", "C3-OU2-6", "S3-7 G/Y/R"),
+    ("Mast 4RA", 4, "C3", "West - Lower (Brick)", 436, "C3-OU3-4", "C3-OU3-5", "C3-OU3-6", "S3-9 G/Y/R"),
+    ("Mast 4RB", 4, "C3", "West - Lower (Brick)", 437, "C3-OU3-7", "C3-OU2-7", "C3-OU3-8", "S3-11 G/Y/R (Y on OU2-7)"),
+    ("Mast 2L", 4, "C3", "West - Lower (Brick)", 438, "C3-OU3-1", "C3-OU3-2", "C3-OU3-3", "S3-8 G/Y/R"),
+    # C13 radio 13 — Barn (v84 S3-10, S3-12, S3-4, S3-5; was C5)
+    ("Mast 8RA", 13, "C13", "West - Lower (Barn)", 1332, "C13-OU1-1", "C13-OU1-2", "C13-OU1-3", "S3-10 G/Y/R"),
+    ("Mast 8RB", 13, "C13", "West - Lower (Barn)", 1335, "C13-OU1-4", "C13-OU1-6", "C13-OU1-5", "S3-12 G/R/Y silk"),
+    ("Mast 8LB", 13, "C13", "West - Lower (Barn)", 1334, "C13-OU2-1", "C13-OU2-2", "C13-OU2-3", "S3-4 G/Y/R"),
+    ("Mast 8LA", 13, "C13", "West - Lower (Barn)", 1337, "C13-OU2-4", "C13-OU2-5", "C13-OU2-6", "S3-5 G/Y/R"),
+    # C2 radio 2 — East End (OU1 as 5V; OU2-8 stays relay; was C3)
+    ("Mast 24RA", 2, "C2", "North - Lower (East End)", 232, "C2-OU1-1", "C2-OU1-2", "C2-OU1-3", "C2-OU1 5V (was C3)"),
+    ("Mast 24L", 2, "C2", "North - Lower (East End)", 233, "C2-OU1-4", "C2-OU1-5", "C2-OU1-6", "C2-OU1 5V (was C3)"),
+    ("Mast 24RB", 2, "C2", "North - Lower (East End)", 234, "C2-OU1-7", "C2-OU1-8", "C2-OU2-1", "OU1-7/8 + OU2-1"),
+    ("Mast 34L", 2, "C2", "North - Lower (East End)", 235, "C2-OU2-2", "C2-OU2-3", "C2-OU2-4", "was S2-5/S2-3 mix"),
+    ("Mast 32R", 2, "C2", "North - Lower (East End)", 236, "C2-OU2-5", "C2-OU2-6", "C2-OU2-7", "OU2-8 is relay"),
+    ("Mast 34R", 2, "C2", "North - Lower (East End)", 237, "C2-OU3-1", "C2-OU3-2", "C2-OU3-3", "was S4-6 G/R/Y"),
+    # C1 radio 1 — Princess interlocking (15 5V pins = 5 trios; 36RB on C11)
     ("Mast 40LB", 1, "C1", "Helix - Lower (Princess)", 132, "C1-OU2-1", "C1-OU2-2", "C1-OU2-3", "S1-1 G/Y/R"),
     ("Mast 36RA", 1, "C1", "Helix - Lower (Princess)", 135, "C1-OU2-4", "C1-OU2-5", "C1-OU2-6", "S1-2 G/Y/R"),
     ("Mast 38LB", 1, "C1", "Helix - Lower (Princess)", 139, "C1-OU3-1", "C1-OU3-2", "C1-OU3-3", "S1-3 G/Y/R"),
     ("Mast 40LA", 1, "C1", "Helix - Lower (Princess)", 142, "C1-OU3-4", "C1-OU3-5", "C1-OU3-6", "S1-4 G/Y/R"),
     ("Mast 38LA", 1, "C1", "Helix - Lower (Princess)", 143, "C1-OU2-7", "C1-OU3-7", "C1-OU3-8", "spares G/Y/R"),
-    # C7 radio 11 — Princess overflow + balloon intermediates
-    ("Mast 36RB", 11, "C7", "Helix (Princess overflow)", 1132, "C7-OU2-1", "C7-OU2-3", "C7-OU2-2", "S1-5 G/R/Y silk"),
-    ("Mast 2036", 11, "C7", "Helix (Princess overflow)", 1133, "C7-OU2-4", "C7-OU2-6", "C7-OU2-5", "S1-6 G/R/Y silk"),
-    ("Mast 2035", 11, "C7", "Helix (Princess overflow)", 1134, "C7-OU3-1", "C7-OU3-3", "C7-OU3-2", "S4-6 G/R/Y silk"),
+    # C11 radio 11 — Princess overflow + balloon intermediates (was C7)
+    ("Mast 36RB", 11, "C11", "Helix (Princess overflow)", 1132, "C11-OU2-1", "C11-OU2-3", "C11-OU2-2", "S1-5 G/R/Y silk"),
+    ("Mast 2036", 11, "C11", "Helix (Princess overflow)", 1133, "C11-OU2-4", "C11-OU2-6", "C11-OU2-5", "S1-6 G/R/Y silk"),
+    ("Mast 2035", 11, "C11", "Helix (Princess overflow)", 1134, "C11-OU3-1", "C11-OU3-3", "C11-OU3-2", "S4-6 G/R/Y silk"),
 ]
 
 APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}

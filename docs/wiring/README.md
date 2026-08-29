@@ -8,17 +8,17 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 | File | Role |
 |------|------|
-| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `cats/data/signal_wiring.csv`. |
+| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `cats/data/signal_wiring.csv`. **Node ID = C{radio Address}** (helix DCC is **D5**). **Legacy Node ID** is the old sequential C1–C13 / D1 label. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v85. |
 | [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | Live lower-deck Digicon ABS matrix (100L, 117LA, 114LA, …). |
 | [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix (`S1-1`…`S6-15`). Upper deck still uses this plan. Do not rename those IDs to Digicon 11x names. |
-| [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). |
+| [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). Sequential C1–C13 IDs. |
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**Next refresh (not in live CSVs yet):** packed MQTT node = radio Address. Princess heads on **C1** (radio 1), never **D1** (radio 5, DCC). East End on **C3** (radio 2); C3 has no turnouts so **OU1 is 5V** with OU2/OU3 (24 channels for 18 pins). Barn on **C5** (radio 13). Princess overflow + intermediates **2035/2036** on **C7** (radio 11). One 3-pin `STOP/APPROACH/CLEAR` head per mast. No new DNOU8 for Princess or East End.
+**Enclosure = radio Address.** Packed MQTT already uses Address except Plane/Brick heads, which stay `4xx` (LCOS display node 4) on **C3** (radio 3). Princess on **C1**, never **D5**. East End signals **C2** (radio 2; OU1 as 5V); East End turnouts **C12** (radio 12). Barn **C13**. Princess overflow + **2035/2036** on **C11**. One 3-pin `STOP/APPROACH/CLEAR` head per mast.
 
-**102LA** is a 1-head dwarf on `C4-OU2-3` / `IH434`. `C4-OU2-4` is an unused packed hole (old 102LA Bottom / IH435); do not reuse it for 101RA. Live overlay still lists 2035/2036 on invented D1 ports — that goes away on refresh. `signals_split_v8.xlsx` stays the frozen RGB plan.
+**6LA** (was documented as 102LA) is a 1-head dwarf on `C3-OU2-4` / `IH434`. `C3-OU2` packed hole for old 102LA Bottom / IH435 is unused; do not reuse it for 101RA. `signals_split_v8.xlsx` stays the frozen RGB plan.
 
 Copy the three current workbooks **and** `Wiring_Schematic.pptx` back to `~/Desktop/HART/Wiring Documentation/` after a refresh (and after XML apply) so the bench copy matches git.
 
@@ -36,6 +36,6 @@ Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_s
 
 - Lower-deck **BlockSensors** names follow the panel: Scale, Barn, S-1…S-5, W-1/W-2, EH-1…EH-3, OS 100… (MQTT `Block n-n` stays in Notes).
 - **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB `S3-6 G` etc. on those ports). Previous RGB label is kept in Notes.
-- **D1-OU2/OU3** Princess rows were a mistaken overlay (D1 is DCC radio 5). Next refresh puts Princess on C1 radio 1 and must not recreate D1 signal boards.
+- **D1-OU2/OU3** Princess rows were a mistaken overlay (D1 is DCC radio 5, now labeled **D5**). Princess is on C1; do not recreate D5 signal boards.
 - Upper-deck RGB (`S4-*` / `S5-*` / `S6-*`) left as planned.
-- C# vs radio address is unchanged from v84b: client IDs are enclosure groups; MQTT packed IDs use the radio address (`C# ≠ node`). **Queued:** rename Node IDs to the radio Address so enclosure labels match packed MQTT (see `wiki/STATUS.md`).
+- **Node ID = radio Address** (`C2` is radio 2 / East End signals; old C2 tape is **C12**). v84 sequential C1–C13 IDs live in **Legacy Node ID** and `imported/`.

@@ -82,7 +82,7 @@ Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code 
 
 - Digicon name `Mast 2L` @ Brick east main face  
 - `LAMP2` + `double` — same Virtual-head + AAR-1946 SHSM path as the other homes  
-- Packed heads `IH438` / `IH439` on C4-OU3-1 / C4-OU3-2 (`track/signalhead/IH438`, `track/signalhead/IH439`)  
+- Packed heads `IH438` / `IH439` on C3-OU3-1 / C3-OU3-2 (`track/signalhead/IH438`, `track/signalhead/IH439`)  
 - JMRI does **not** publish `track/signalmast/432` (old MQTT mast retired; that topic collided with LCOS status for Plane `IH432`)
 
 **Do not use Digicon `SPUR="true"` on Brick SW100/101** without a coded switch-unlock. Spur makes only the Normal route clear `CONFLICTINGSIGNALLOCK` on the points; that lock is in `GUISwitchLocks`, so the dispatcher cannot throw the turnout (especially once lined reverse). Westbound “priority” needs a different approach than Spur on this plant.
@@ -99,10 +99,11 @@ All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts: tw
 
 | Area | Radio → MQTT node | Parent board | Packed heads |
 |------|-------------------|--------------|--------------|
-| Plane + OS W-1 / OS W-2 + Brick east | `4` | C4 | `IH432`–`IH439` |
-| OS Barn / W-117 | `013` → **13** | C1 | `IH1332`–`IH1338` |
-| East End | `012` → **12** | C7 | `IH1232`–`IH1241` |
-| Princess | `1` | D1 | `IH132`–`IH143` |
+| Plane + OS W-1 / OS W-2 + Brick east | `4` (radio **3**; packed 4xx) | **C3** (was C4) | `IH432`–`IH439` |
+| OS Barn / W-117 | **13** | **C13** (was C5) | `IH1332`–`IH1338` |
+| East End | **2** | **C2** (was C3) | `IH232`–`IH237` |
+| Princess interlocking | `1` | **C1** (never D5) | `IH132`–`IH143` |
+| Princess overflow | **11** | **C11** (was C7) | `IH1132`–`IH1134` |
 
 Princess east exits are **2-head** (main vs OS K-1/OS K-2 restricting). Balloon intermediates **Mast 2035** / **Mast 2036** (was 115R / 114R) stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, OS S-R, OS 31, OS W-1/OS W-2, OS K-1/OS K-2). Packed IDs: Mast 2036 `IH134` / Mast 2035 `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
 

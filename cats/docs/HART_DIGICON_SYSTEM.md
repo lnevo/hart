@@ -158,11 +158,11 @@ Payload = appearance name      # Red / Yellow / Green / Dark / …
 
 | Area | MQTT node (radio) | Parent board | Packed heads | Example ports |
 |------|-------------------|--------------|--------------|---------------|
-| Plane + OS W-1 / OS W-2 + Brick east | **4** | C4 | `IH432`–`IH439` | C4-OU2-1 … OU2-6, C4-OU3-1/2 |
-| OS Barn / W-117 | **13** | **C5** (next refresh; live CSV still C1) | `IH1332`–`IH1338` | C5 5V OU |
-| East End | **2** (next refresh; live CSV still mqtt **12** / C7) | **C3** | packed `2xx` | C3-OU1/OU2/OU3 (OU1 as 5V; no turnouts) |
-| Princess interlocking | **1** | **C1** (never D1 / radio 5 DCC) | `IH132`… | C1-OU2/OU3 |
-| Princess overflow + 2035/2036 | **11** | **C7** | packed `11xx` | C7-OU2/OU3 |
+| Plane + OS W-1 / OS W-2 + Brick east | **4** (LCOS display 4; radio **3**) | **C3** (was C4) | `IH432`–`IH439` | C3-OU2-1 … OU2-6, C3-OU3-1/2 |
+| OS Barn / W-117 | **13** | **C13** (was C5) | `IH1332`–`IH1338` | C13 5V OU |
+| East End | **2** | **C2** (was C3) | packed `2xx` | C2-OU1/OU2/OU3 (OU1 as 5V; no turnouts) |
+| Princess interlocking | **1** | **C1** (never D5 / radio 5 DCC) | `IH132`… | C1-OU2/OU3 |
+| Princess overflow + 2035/2036 | **11** | **C11** (was C7) | packed `11xx` | C11-OU2/OU3 |
 
 Head roles on multi-head masts: **T** top, **M** middle, **B** bottom, **S** single.
 
@@ -180,22 +180,17 @@ Full table: [`cats/data/signal_mast_plan.csv`](../data/signal_mast_plan.csv)
 Port / topic / LCOS inventory: [`cats/data/signal_wiring.csv`](../data/signal_wiring.csv)  
 Head plan: [`cats/data/signal_head_plan.csv`](../data/signal_head_plan.csv)
 
-Examples:
+Examples (current wiring is **one 3-pin head per mast**; see the CSVs):
 
-| Digicon mast userName | Heads | System name (abbrev) | Binding |
-|-----------------------|-------|----------------------|---------|
-| Mast 2L | 2 | `…(IH438)(IH439)` | LCOS C4-OU3 |
-| Mast 6LB | 2 | `…cats-virtual-2(IH432)(IH433)` | LCOS C4 |
-| Mast 6LA | 1 | `…SL-1-low(IH434)` | LCOS C4-OU2-3 |
-| Mast 4RA / 2 | 1 | `IH436` / `IH437` | LCOS C4 |
-| Mast 8RA | 2 | `IH1332`/`IH1333` | live C1; next refresh C5 radio 13 |
-| Mast 34L | 2 | `IH1237`/`IH1238` | live C7 mqtt 12; next refresh C3 radio 2 |
-| Mast 40LB | 2 | `…(IH132)(IH133)` | live D1 overlay; next refresh C1 radio 1 |
-| Mast 2036 | 1 | `IH134` | next refresh C7 radio 11 overflow |
-| Mast 36RA / 113a | 2 | `IH135`–`IH138` | next refresh C1 or C7 overflow |
-| Mast 38LB | 2 | `IH139`/`IH140` | next refresh C1 radio 1 |
-| Mast 2035 | 1 | `IH141` | next refresh C7 radio 11 overflow |
-| Mast 40LA / OS K-2 | 1 | `IH142` / `IH143` | next refresh C1 radio 1 |
+| Digicon mast userName | Packed | Binding |
+|-----------------------|--------|---------|
+| Mast 2L | `IH438` | LCOS C3-OU3 |
+| Mast 6LB | `IH432` | LCOS C3-OU2 |
+| Mast 6LA | `IH434` | LCOS C3-OU2-4 |
+| Mast 8RA | `IH1332` | C13 radio 13 |
+| Mast 34L | `IH235` | C2 radio 2 |
+| Mast 40LB | `IH132` | C1 radio 1 |
+| Mast 2036 | `IH1133` | C11 radio 11 overflow |
 
 ### JMRI ↔ MQTT for Virtual heads
 
@@ -208,7 +203,7 @@ Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publi
 - **Send (Digicon → field):** when SML Enabled for that mast, `track/signalhead/<packed>` → `EVENT_SIGNAL_CMD` SET (Red→Stop, Yellow→Approach, Green→Clear). Global Disable or per-mast SML off → `Unheld` RELEASE. Bridge `sml_mode` **query** / **disabling** timeout also Red→Unheld if no Digicon **enabled** ACK.
 - **Receive (field → Digicon IH):** when SML is off for that mast (or globally Disabled), LCOS `track/signalmast/<packed>` (`Stop; Lit; Unheld`, …) is applied to the matching `IH*` head. Status is not published on `signalhead` from the field.
 
-Mast 2L is the same packed-head path (`IH438`/`IH439` on C4-OU3). JMRI no longer publishes `track/signalmast/432`.
+Mast 2L is the same packed-head path (`IH438`/`IH439` on C3-OU3). JMRI no longer publishes `track/signalmast/432`.
 
 Rebuild heads + tables + publisher:
 

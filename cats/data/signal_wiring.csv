@@ -1,49 +1,49 @@
 port_id,parent_node_id,mqtt_node,board_location,signal_index,uid,packed,system_name,user_name,mast_user_name,head_role,lamp_color,topic,device_type,voltage_rail,notes
-C4-OU2-1,C4,4,West - Lower (Plane),0,32,432,IH432,Head 6LB G,Mast 6LB,G,G,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S3-6 G/Y/R
-C4-OU2-2,C4,4,West - Lower (Plane),0,32,432,IH432,Head 6LB Y,Mast 6LB,Y,Y,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S3-6 G/Y/R
-C4-OU2-3,C4,4,West - Lower (Plane),0,32,432,IH432,Head 6LB R,Mast 6LB,R,R,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S3-6 G/Y/R
-C4-OU2-4,C4,4,West - Lower (Plane),2,34,434,IH434,Head 6LA G,Mast 6LA,G,G,track/signalhead/434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was S3-7 G/Y/R
-C4-OU2-5,C4,4,West - Lower (Plane),2,34,434,IH434,Head 6LA Y,Mast 6LA,Y,Y,track/signalhead/434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was S3-7 G/Y/R
-C4-OU2-6,C4,4,West - Lower (Plane),2,34,434,IH434,Head 6LA R,Mast 6LA,R,R,track/signalhead/434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was S3-7 G/Y/R
-C4-OU3-4,C4,4,West - Lower (Brick),4,36,436,IH436,Head 4RA G,Mast 4RA,G,G,track/signalhead/436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp G; was S3-9 G/Y/R
-C4-OU3-5,C4,4,West - Lower (Brick),4,36,436,IH436,Head 4RA Y,Mast 4RA,Y,Y,track/signalhead/436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp Y; was S3-9 G/Y/R
-C4-OU3-6,C4,4,West - Lower (Brick),4,36,436,IH436,Head 4RA R,Mast 4RA,R,R,track/signalhead/436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp R; was S3-9 G/Y/R
-C4-OU3-7,C4,4,West - Lower (Brick),5,37,437,IH437,Head 4RB G,Mast 4RB,G,G,track/signalhead/437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp G; was S3-11 G/Y/R (Y on OU2-7)
-C4-OU2-7,C4,4,West - Lower (Brick),5,37,437,IH437,Head 4RB Y,Mast 4RB,Y,Y,track/signalhead/437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp Y; was S3-11 G/Y/R (Y on OU2-7)
-C4-OU3-8,C4,4,West - Lower (Brick),5,37,437,IH437,Head 4RB R,Mast 4RB,R,R,track/signalhead/437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp R; was S3-11 G/Y/R (Y on OU2-7)
-C4-OU3-1,C4,4,West - Lower (Brick),6,38,438,IH438,Head 2L G,Mast 2L,G,G,track/signalhead/438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; STOP/APPROACH/CLEAR; lamp G; was S3-8 G/Y/R
-C4-OU3-2,C4,4,West - Lower (Brick),6,38,438,IH438,Head 2L Y,Mast 2L,Y,Y,track/signalhead/438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; STOP/APPROACH/CLEAR; lamp Y; was S3-8 G/Y/R
-C4-OU3-3,C4,4,West - Lower (Brick),6,38,438,IH438,Head 2L R,Mast 2L,R,R,track/signalhead/438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; STOP/APPROACH/CLEAR; lamp R; was S3-8 G/Y/R
-C5-OU1-1,C5,13,West - Lower (Barn),0,32,1332,IH1332,Head 8RA G,Mast 8RA,G,G,track/signalhead/1332,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S3-10 G/Y/R
-C5-OU1-2,C5,13,West - Lower (Barn),0,32,1332,IH1332,Head 8RA Y,Mast 8RA,Y,Y,track/signalhead/1332,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S3-10 G/Y/R
-C5-OU1-3,C5,13,West - Lower (Barn),0,32,1332,IH1332,Head 8RA R,Mast 8RA,R,R,track/signalhead/1332,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S3-10 G/Y/R
-C5-OU1-4,C5,13,West - Lower (Barn),3,35,1335,IH1335,Head 8RB G,Mast 8RB,G,G,track/signalhead/1335,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp G; was S3-12 G/R/Y silk
-C5-OU1-6,C5,13,West - Lower (Barn),3,35,1335,IH1335,Head 8RB Y,Mast 8RB,Y,Y,track/signalhead/1335,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp Y; was S3-12 G/R/Y silk
-C5-OU1-5,C5,13,West - Lower (Barn),3,35,1335,IH1335,Head 8RB R,Mast 8RB,R,R,track/signalhead/1335,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp R; was S3-12 G/R/Y silk
-C5-OU2-1,C5,13,West - Lower (Barn),2,34,1334,IH1334,Head 8LB G,Mast 8LB,G,G,track/signalhead/1334,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was S3-4 G/Y/R
-C5-OU2-2,C5,13,West - Lower (Barn),2,34,1334,IH1334,Head 8LB Y,Mast 8LB,Y,Y,track/signalhead/1334,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was S3-4 G/Y/R
-C5-OU2-3,C5,13,West - Lower (Barn),2,34,1334,IH1334,Head 8LB R,Mast 8LB,R,R,track/signalhead/1334,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was S3-4 G/Y/R
-C5-OU2-4,C5,13,West - Lower (Barn),5,37,1337,IH1337,Head 8LA G,Mast 8LA,G,G,track/signalhead/1337,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp G; was S3-5 G/Y/R
-C5-OU2-5,C5,13,West - Lower (Barn),5,37,1337,IH1337,Head 8LA Y,Mast 8LA,Y,Y,track/signalhead/1337,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp Y; was S3-5 G/Y/R
-C5-OU2-6,C5,13,West - Lower (Barn),5,37,1337,IH1337,Head 8LA R,Mast 8LA,R,R,track/signalhead/1337,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp R; was S3-5 G/Y/R
-C3-OU1-1,C3,2,North - Lower (East End),0,32,232,IH232,Head 24RA G,Mast 24RA,G,G,track/signalhead/232,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was C3-OU1 new 5V
-C3-OU1-2,C3,2,North - Lower (East End),0,32,232,IH232,Head 24RA Y,Mast 24RA,Y,Y,track/signalhead/232,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was C3-OU1 new 5V
-C3-OU1-3,C3,2,North - Lower (East End),0,32,232,IH232,Head 24RA R,Mast 24RA,R,R,track/signalhead/232,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was C3-OU1 new 5V
-C3-OU1-4,C3,2,North - Lower (East End),1,33,233,IH233,Head 24L G,Mast 24L,G,G,track/signalhead/233,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp G; was C3-OU1 new 5V
-C3-OU1-5,C3,2,North - Lower (East End),1,33,233,IH233,Head 24L Y,Mast 24L,Y,Y,track/signalhead/233,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp Y; was C3-OU1 new 5V
-C3-OU1-6,C3,2,North - Lower (East End),1,33,233,IH233,Head 24L R,Mast 24L,R,R,track/signalhead/233,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp R; was C3-OU1 new 5V
-C3-OU1-7,C3,2,North - Lower (East End),2,34,234,IH234,Head 24RB G,Mast 24RB,G,G,track/signalhead/234,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was OU1-7/8 + OU2-1
-C3-OU1-8,C3,2,North - Lower (East End),2,34,234,IH234,Head 24RB Y,Mast 24RB,Y,Y,track/signalhead/234,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was OU1-7/8 + OU2-1
-C3-OU2-1,C3,2,North - Lower (East End),2,34,234,IH234,Head 24RB R,Mast 24RB,R,R,track/signalhead/234,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was OU1-7/8 + OU2-1
-C3-OU2-2,C3,2,North - Lower (East End),3,35,235,IH235,Head 34L G,Mast 34L,G,G,track/signalhead/235,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp G; was was S2-5/S2-3 mix
-C3-OU2-3,C3,2,North - Lower (East End),3,35,235,IH235,Head 34L Y,Mast 34L,Y,Y,track/signalhead/235,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp Y; was was S2-5/S2-3 mix
-C3-OU2-4,C3,2,North - Lower (East End),3,35,235,IH235,Head 34L R,Mast 34L,R,R,track/signalhead/235,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp R; was was S2-5/S2-3 mix
-C3-OU2-5,C3,2,North - Lower (East End),4,36,236,IH236,Head 32R G,Mast 32R,G,G,track/signalhead/236,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp G; was OU2-8 is relay
-C3-OU2-6,C3,2,North - Lower (East End),4,36,236,IH236,Head 32R Y,Mast 32R,Y,Y,track/signalhead/236,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp Y; was OU2-8 is relay
-C3-OU2-7,C3,2,North - Lower (East End),4,36,236,IH236,Head 32R R,Mast 32R,R,R,track/signalhead/236,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp R; was OU2-8 is relay
-C3-OU3-1,C3,2,North - Lower (East End),5,37,237,IH237,Head 34R G,Mast 34R,G,G,track/signalhead/237,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp G; was was S4-6 G/R/Y
-C3-OU3-2,C3,2,North - Lower (East End),5,37,237,IH237,Head 34R Y,Mast 34R,Y,Y,track/signalhead/237,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp Y; was was S4-6 G/R/Y
-C3-OU3-3,C3,2,North - Lower (East End),5,37,237,IH237,Head 34R R,Mast 34R,R,R,track/signalhead/237,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp R; was was S4-6 G/R/Y
+C3-OU2-1,C3,4,West - Lower (Plane),0,32,432,IH432,Head 6LB G,Mast 6LB,G,G,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S3-6 G/Y/R
+C3-OU2-2,C3,4,West - Lower (Plane),0,32,432,IH432,Head 6LB Y,Mast 6LB,Y,Y,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S3-6 G/Y/R
+C3-OU2-3,C3,4,West - Lower (Plane),0,32,432,IH432,Head 6LB R,Mast 6LB,R,R,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S3-6 G/Y/R
+C3-OU2-4,C3,4,West - Lower (Plane),2,34,434,IH434,Head 6LA G,Mast 6LA,G,G,track/signalhead/434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was S3-7 G/Y/R
+C3-OU2-5,C3,4,West - Lower (Plane),2,34,434,IH434,Head 6LA Y,Mast 6LA,Y,Y,track/signalhead/434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was S3-7 G/Y/R
+C3-OU2-6,C3,4,West - Lower (Plane),2,34,434,IH434,Head 6LA R,Mast 6LA,R,R,track/signalhead/434,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was S3-7 G/Y/R
+C3-OU3-4,C3,4,West - Lower (Brick),4,36,436,IH436,Head 4RA G,Mast 4RA,G,G,track/signalhead/436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp G; was S3-9 G/Y/R
+C3-OU3-5,C3,4,West - Lower (Brick),4,36,436,IH436,Head 4RA Y,Mast 4RA,Y,Y,track/signalhead/436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp Y; was S3-9 G/Y/R
+C3-OU3-6,C3,4,West - Lower (Brick),4,36,436,IH436,Head 4RA R,Mast 4RA,R,R,track/signalhead/436,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp R; was S3-9 G/Y/R
+C3-OU3-7,C3,4,West - Lower (Brick),5,37,437,IH437,Head 4RB G,Mast 4RB,G,G,track/signalhead/437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp G; was S3-11 G/Y/R (Y on OU2-7)
+C3-OU2-7,C3,4,West - Lower (Brick),5,37,437,IH437,Head 4RB Y,Mast 4RB,Y,Y,track/signalhead/437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp Y; was S3-11 G/Y/R (Y on OU2-7)
+C3-OU3-8,C3,4,West - Lower (Brick),5,37,437,IH437,Head 4RB R,Mast 4RB,R,R,track/signalhead/437,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp R; was S3-11 G/Y/R (Y on OU2-7)
+C3-OU3-1,C3,4,West - Lower (Brick),6,38,438,IH438,Head 2L G,Mast 2L,G,G,track/signalhead/438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; STOP/APPROACH/CLEAR; lamp G; was S3-8 G/Y/R
+C3-OU3-2,C3,4,West - Lower (Brick),6,38,438,IH438,Head 2L Y,Mast 2L,Y,Y,track/signalhead/438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; STOP/APPROACH/CLEAR; lamp Y; was S3-8 G/Y/R
+C3-OU3-3,C3,4,West - Lower (Brick),6,38,438,IH438,Head 2L R,Mast 2L,R,R,track/signalhead/438,Searchlight Signal Head,5V,LCOS Signal 6 UID 38; STOP/APPROACH/CLEAR; lamp R; was S3-8 G/Y/R
+C13-OU1-1,C13,13,West - Lower (Barn),0,32,1332,IH1332,Head 8RA G,Mast 8RA,G,G,track/signalhead/1332,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S3-10 G/Y/R
+C13-OU1-2,C13,13,West - Lower (Barn),0,32,1332,IH1332,Head 8RA Y,Mast 8RA,Y,Y,track/signalhead/1332,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S3-10 G/Y/R
+C13-OU1-3,C13,13,West - Lower (Barn),0,32,1332,IH1332,Head 8RA R,Mast 8RA,R,R,track/signalhead/1332,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S3-10 G/Y/R
+C13-OU1-4,C13,13,West - Lower (Barn),3,35,1335,IH1335,Head 8RB G,Mast 8RB,G,G,track/signalhead/1335,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp G; was S3-12 G/R/Y silk
+C13-OU1-6,C13,13,West - Lower (Barn),3,35,1335,IH1335,Head 8RB Y,Mast 8RB,Y,Y,track/signalhead/1335,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp Y; was S3-12 G/R/Y silk
+C13-OU1-5,C13,13,West - Lower (Barn),3,35,1335,IH1335,Head 8RB R,Mast 8RB,R,R,track/signalhead/1335,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp R; was S3-12 G/R/Y silk
+C13-OU2-1,C13,13,West - Lower (Barn),2,34,1334,IH1334,Head 8LB G,Mast 8LB,G,G,track/signalhead/1334,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was S3-4 G/Y/R
+C13-OU2-2,C13,13,West - Lower (Barn),2,34,1334,IH1334,Head 8LB Y,Mast 8LB,Y,Y,track/signalhead/1334,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was S3-4 G/Y/R
+C13-OU2-3,C13,13,West - Lower (Barn),2,34,1334,IH1334,Head 8LB R,Mast 8LB,R,R,track/signalhead/1334,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was S3-4 G/Y/R
+C13-OU2-4,C13,13,West - Lower (Barn),5,37,1337,IH1337,Head 8LA G,Mast 8LA,G,G,track/signalhead/1337,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp G; was S3-5 G/Y/R
+C13-OU2-5,C13,13,West - Lower (Barn),5,37,1337,IH1337,Head 8LA Y,Mast 8LA,Y,Y,track/signalhead/1337,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp Y; was S3-5 G/Y/R
+C13-OU2-6,C13,13,West - Lower (Barn),5,37,1337,IH1337,Head 8LA R,Mast 8LA,R,R,track/signalhead/1337,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp R; was S3-5 G/Y/R
+C2-OU1-1,C2,2,North - Lower (East End),0,32,232,IH232,Head 24RA G,Mast 24RA,G,G,track/signalhead/232,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was C2-OU1 5V (was C3)
+C2-OU1-2,C2,2,North - Lower (East End),0,32,232,IH232,Head 24RA Y,Mast 24RA,Y,Y,track/signalhead/232,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was C2-OU1 5V (was C3)
+C2-OU1-3,C2,2,North - Lower (East End),0,32,232,IH232,Head 24RA R,Mast 24RA,R,R,track/signalhead/232,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was C2-OU1 5V (was C3)
+C2-OU1-4,C2,2,North - Lower (East End),1,33,233,IH233,Head 24L G,Mast 24L,G,G,track/signalhead/233,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp G; was C2-OU1 5V (was C3)
+C2-OU1-5,C2,2,North - Lower (East End),1,33,233,IH233,Head 24L Y,Mast 24L,Y,Y,track/signalhead/233,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp Y; was C2-OU1 5V (was C3)
+C2-OU1-6,C2,2,North - Lower (East End),1,33,233,IH233,Head 24L R,Mast 24L,R,R,track/signalhead/233,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp R; was C2-OU1 5V (was C3)
+C2-OU1-7,C2,2,North - Lower (East End),2,34,234,IH234,Head 24RB G,Mast 24RB,G,G,track/signalhead/234,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was OU1-7/8 + OU2-1
+C2-OU1-8,C2,2,North - Lower (East End),2,34,234,IH234,Head 24RB Y,Mast 24RB,Y,Y,track/signalhead/234,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was OU1-7/8 + OU2-1
+C2-OU2-1,C2,2,North - Lower (East End),2,34,234,IH234,Head 24RB R,Mast 24RB,R,R,track/signalhead/234,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was OU1-7/8 + OU2-1
+C2-OU2-2,C2,2,North - Lower (East End),3,35,235,IH235,Head 34L G,Mast 34L,G,G,track/signalhead/235,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp G; was was S2-5/S2-3 mix
+C2-OU2-3,C2,2,North - Lower (East End),3,35,235,IH235,Head 34L Y,Mast 34L,Y,Y,track/signalhead/235,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp Y; was was S2-5/S2-3 mix
+C2-OU2-4,C2,2,North - Lower (East End),3,35,235,IH235,Head 34L R,Mast 34L,R,R,track/signalhead/235,Searchlight Signal Head,5V,LCOS Signal 3 UID 35; STOP/APPROACH/CLEAR; lamp R; was was S2-5/S2-3 mix
+C2-OU2-5,C2,2,North - Lower (East End),4,36,236,IH236,Head 32R G,Mast 32R,G,G,track/signalhead/236,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp G; was OU2-8 is relay
+C2-OU2-6,C2,2,North - Lower (East End),4,36,236,IH236,Head 32R Y,Mast 32R,Y,Y,track/signalhead/236,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp Y; was OU2-8 is relay
+C2-OU2-7,C2,2,North - Lower (East End),4,36,236,IH236,Head 32R R,Mast 32R,R,R,track/signalhead/236,Searchlight Signal Head,5V,LCOS Signal 4 UID 36; STOP/APPROACH/CLEAR; lamp R; was OU2-8 is relay
+C2-OU3-1,C2,2,North - Lower (East End),5,37,237,IH237,Head 34R G,Mast 34R,G,G,track/signalhead/237,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp G; was was S4-6 G/R/Y
+C2-OU3-2,C2,2,North - Lower (East End),5,37,237,IH237,Head 34R Y,Mast 34R,Y,Y,track/signalhead/237,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp Y; was was S4-6 G/R/Y
+C2-OU3-3,C2,2,North - Lower (East End),5,37,237,IH237,Head 34R R,Mast 34R,R,R,track/signalhead/237,Searchlight Signal Head,5V,LCOS Signal 5 UID 37; STOP/APPROACH/CLEAR; lamp R; was was S4-6 G/R/Y
 C1-OU2-1,C1,1,Helix - Lower (Princess),0,32,132,IH132,Head 40LB G,Mast 40LB,G,G,track/signalhead/132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S1-1 G/Y/R
 C1-OU2-2,C1,1,Helix - Lower (Princess),0,32,132,IH132,Head 40LB Y,Mast 40LB,Y,Y,track/signalhead/132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S1-1 G/Y/R
 C1-OU2-3,C1,1,Helix - Lower (Princess),0,32,132,IH132,Head 40LB R,Mast 40LB,R,R,track/signalhead/132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S1-1 G/Y/R
@@ -59,12 +59,12 @@ C1-OU3-6,C1,1,Helix - Lower (Princess),10,42,142,IH142,Head 40LA R,Mast 40LA,R,R
 C1-OU2-7,C1,1,Helix - Lower (Princess),11,43,143,IH143,Head 38LA G,Mast 38LA,G,G,track/signalhead/143,Searchlight Signal Head,5V,LCOS Signal 11 UID 43; STOP/APPROACH/CLEAR; lamp G; was spares G/Y/R
 C1-OU3-7,C1,1,Helix - Lower (Princess),11,43,143,IH143,Head 38LA Y,Mast 38LA,Y,Y,track/signalhead/143,Searchlight Signal Head,5V,LCOS Signal 11 UID 43; STOP/APPROACH/CLEAR; lamp Y; was spares G/Y/R
 C1-OU3-8,C1,1,Helix - Lower (Princess),11,43,143,IH143,Head 38LA R,Mast 38LA,R,R,track/signalhead/143,Searchlight Signal Head,5V,LCOS Signal 11 UID 43; STOP/APPROACH/CLEAR; lamp R; was spares G/Y/R
-C7-OU2-1,C7,11,Helix (Princess overflow),0,32,1132,IH1132,Head 36RB G,Mast 36RB,G,G,track/signalhead/1132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S1-5 G/R/Y silk
-C7-OU2-3,C7,11,Helix (Princess overflow),0,32,1132,IH1132,Head 36RB Y,Mast 36RB,Y,Y,track/signalhead/1132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S1-5 G/R/Y silk
-C7-OU2-2,C7,11,Helix (Princess overflow),0,32,1132,IH1132,Head 36RB R,Mast 36RB,R,R,track/signalhead/1132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S1-5 G/R/Y silk
-C7-OU2-4,C7,11,Helix (Princess overflow),1,33,1133,IH1133,Head 2036 G,Mast 2036,G,G,track/signalhead/1133,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp G; was S1-6 G/R/Y silk
-C7-OU2-6,C7,11,Helix (Princess overflow),1,33,1133,IH1133,Head 2036 Y,Mast 2036,Y,Y,track/signalhead/1133,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp Y; was S1-6 G/R/Y silk
-C7-OU2-5,C7,11,Helix (Princess overflow),1,33,1133,IH1133,Head 2036 R,Mast 2036,R,R,track/signalhead/1133,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp R; was S1-6 G/R/Y silk
-C7-OU3-1,C7,11,Helix (Princess overflow),2,34,1134,IH1134,Head 2035 G,Mast 2035,G,G,track/signalhead/1134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was S4-6 G/R/Y silk
-C7-OU3-3,C7,11,Helix (Princess overflow),2,34,1134,IH1134,Head 2035 Y,Mast 2035,Y,Y,track/signalhead/1134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was S4-6 G/R/Y silk
-C7-OU3-2,C7,11,Helix (Princess overflow),2,34,1134,IH1134,Head 2035 R,Mast 2035,R,R,track/signalhead/1134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was S4-6 G/R/Y silk
+C11-OU2-1,C11,11,Helix (Princess overflow),0,32,1132,IH1132,Head 36RB G,Mast 36RB,G,G,track/signalhead/1132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S1-5 G/R/Y silk
+C11-OU2-3,C11,11,Helix (Princess overflow),0,32,1132,IH1132,Head 36RB Y,Mast 36RB,Y,Y,track/signalhead/1132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S1-5 G/R/Y silk
+C11-OU2-2,C11,11,Helix (Princess overflow),0,32,1132,IH1132,Head 36RB R,Mast 36RB,R,R,track/signalhead/1132,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S1-5 G/R/Y silk
+C11-OU2-4,C11,11,Helix (Princess overflow),1,33,1133,IH1133,Head 2036 G,Mast 2036,G,G,track/signalhead/1133,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp G; was S1-6 G/R/Y silk
+C11-OU2-6,C11,11,Helix (Princess overflow),1,33,1133,IH1133,Head 2036 Y,Mast 2036,Y,Y,track/signalhead/1133,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp Y; was S1-6 G/R/Y silk
+C11-OU2-5,C11,11,Helix (Princess overflow),1,33,1133,IH1133,Head 2036 R,Mast 2036,R,R,track/signalhead/1133,Searchlight Signal Head,5V,LCOS Signal 1 UID 33; STOP/APPROACH/CLEAR; lamp R; was S1-6 G/R/Y silk
+C11-OU3-1,C11,11,Helix (Princess overflow),2,34,1134,IH1134,Head 2035 G,Mast 2035,G,G,track/signalhead/1134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp G; was S4-6 G/R/Y silk
+C11-OU3-3,C11,11,Helix (Princess overflow),2,34,1134,IH1134,Head 2035 Y,Mast 2035,Y,Y,track/signalhead/1134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp Y; was S4-6 G/R/Y silk
+C11-OU3-2,C11,11,Helix (Princess overflow),2,34,1134,IH1134,Head 2035 R,Mast 2035,R,R,track/signalhead/1134,Searchlight Signal Head,5V,LCOS Signal 2 UID 34; STOP/APPROACH/CLEAR; lamp R; was S4-6 G/R/Y silk

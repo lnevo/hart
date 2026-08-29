@@ -1,8 +1,8 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-28 — Rebuilt wiring CSVs + v85 inventory (no `tables.xml`): one 3-pin head per mast. Princess on **C1** (radio 1; 36RB+2035/2036 overflow **C7** radio 11). East End on **C3** radio 2 (OU1 as 5V). Barn on **C5** radio 13. Packed East End is `2xx` (was `12xx`). Review before JMRI tables.
+Updated: 2026-08-29 — LCOS **Node ID = radio Address** (East End signals **C2**, turnouts **C12**; Plane/Brick **C3**; Barn **C13**; Princess overflow **C11**; helix DCC **D5**). Legacy sequential C1–C13 kept on the Nodes sheet. Packed MQTT unchanged (Plane still `4xx`). Wiring CSVs + v85 inventory; no `tables.xml`. Docs-only, not deployed.
 
-Updated: 2026-08-28 — **Queued (not applied):** rename LCOS inventory Node IDs so the label matches the radio **Address** (today `C# ≠` address: C1=1, C3=2, C4=3, C5=13, C2=12, C7=11). Packed MQTT already uses Address; enclosure names should too. Do not swap C3↔C2 as a one-off — C2 is radio 12.
+Updated: 2026-08-28 — Rebuilt wiring CSVs + v85 inventory (no `tables.xml`): one 3-pin head per mast. Princess on **C1** (36RB+2035/2036 overflow **C11**). East End on **C2** (OU1 as 5V). Barn on **C13**. Packed East End is `2xx` (was `12xx`). Review before JMRI tables.
 
 Updated: 2026-08-28 — LCOS mimic lamps look up packed `track/signalhead/432` (was still keyed `IH432`, so they stayed Dark). Reload `http://127.0.0.1:8765/`. SET is still only **IH432**; other heads stay Unheld. Local mimic; not deployed.
 

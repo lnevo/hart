@@ -187,59 +187,146 @@ NAME_REPLACEMENTS: list[tuple[str, str]] = [
 ]
 
 
+# v84 sequential enclosure IDs → C{radio Address} (D{Address} for helix DCC).
+# Imported v84 snapshot keeps the old labels; refresh remaps every cell.
+LEGACY_NODE_IDS: dict[str, str] = {
+    "C1": "C1",
+    "C2": "C12",
+    "C3": "C2",
+    "C4": "C3",
+    "C5": "C13",
+    "C6": "C4",
+    "C7": "C11",
+    "C8": "C21",
+    "C9": "C22",
+    "C10": "C32",
+    "C11": "C23",
+    "C12": "C14",
+    "C13": "C24",
+    "D1": "D5",
+}
+NODE_ID_TOKEN = re.compile(r"(?<![A-Za-z0-9])([CD]\d+)(?![0-9])")
+
+
+def rewrite_legacy_node_ids(value):
+    """Rewrite C12/C3/… tokens; longest match is the full number (C12 ≠ C1)."""
+    if not isinstance(value, str) or not value:
+        return value
+
+    def repl(match: re.Match[str]) -> str:
+        tok = match.group(1)
+        return LEGACY_NODE_IDS.get(tok, tok)
+
+    return NODE_ID_TOKEN.sub(repl, value)
+
+
+def remap_workbook_node_ids(wb) -> dict[int, str]:
+    """Rewrite every C#/D1 token. Returns Nodes-sheet row → legacy Node ID."""
+    nodes = wb["Nodes"]
+    idx = header_index(nodes)
+    id_col = idx["Node ID"]
+    legacy_by_row: dict[int, str] = {}
+    for row in range(2, nodes.max_row + 1):
+        nid = nodes.cell(row, id_col).value
+        if nid:
+            legacy_by_row[row] = str(nid)
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                new = rewrite_legacy_node_ids(cell.value)
+                if new != cell.value:
+                    cell.value = new
+    return legacy_by_row
+
+
+def add_legacy_node_column(ws: Worksheet, legacy_by_row: dict[int, str]) -> None:
+    if "Legacy Node ID" in header_index(ws):
+        return
+    ws.insert_cols(2)
+    ws.cell(1, 2).value = "Legacy Node ID"
+    ws.cell(1, 2).font = Font(bold=True)
+    for row, old in legacy_by_row.items():
+        ws.cell(row, 2).value = old
+
+
+def sort_nodes_by_address(ws: Worksheet) -> None:
+    idx = header_index(ws)
+    addr_col = idx["Address"]
+    rows: list[tuple[int, list]] = []
+    max_col = ws.max_column
+    for row in range(2, ws.max_row + 1):
+        vals = [ws.cell(row, c).value for c in range(1, max_col + 1)]
+        if not any(v is not None for v in vals):
+            continue
+        addr = ws.cell(row, addr_col).value
+        try:
+            key = int(addr)
+        except (TypeError, ValueError):
+            key = 999
+        rows.append((key, vals))
+    rows.sort(key=lambda item: item[0])
+    for i, (_, vals) in enumerate(rows, start=2):
+        for c, v in enumerate(vals, start=1):
+            ws.cell(i, c).value = v
+    extra = ws.max_row - (1 + len(rows))
+    if extra > 0:
+        ws.delete_rows(2 + len(rows), extra)
+
+
 # TurnoutSummary: one 3-pin head per face. R/Y/G columns are lamp colors again.
+# Ports use C{radio Address} (Plane C3, East End C2, Barn C13, overflow C11).
 TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     "Switch 100": {
         "entry": "2L",
-        "entry_ports": ("C4-OU3-3", "C4-OU3-2", "C4-OU3-1"),
+        "entry_ports": ("C3-OU3-3", "C3-OU3-2", "C3-OU3-1"),
         "normal": None,
         "reverse": None,
     },
     "Switch 101": {
         "entry": None,
         "normal": "4RA",
-        "normal_ports": ("C4-OU3-6", "C4-OU3-5", "C4-OU3-4"),
+        "normal_ports": ("C3-OU3-6", "C3-OU3-5", "C3-OU3-4"),
         "reverse": "4RB",
-        "reverse_ports": ("C4-OU3-8", "C4-OU2-7", "C4-OU3-7"),
+        "reverse_ports": ("C3-OU3-8", "C3-OU2-7", "C3-OU3-7"),
     },
     "Switch 102": {
         "entry": "6LA",
-        "entry_ports": ("C4-OU2-6", "C4-OU2-5", "C4-OU2-4"),
+        "entry_ports": ("C3-OU2-6", "C3-OU2-5", "C3-OU2-4"),
         "normal": None,
         "reverse": "6LB",
-        "reverse_ports": ("C4-OU2-3", "C4-OU2-2", "C4-OU2-1"),
+        "reverse_ports": ("C3-OU2-3", "C3-OU2-2", "C3-OU2-1"),
     },
     "Switch 111": {
         "entry": "24L",
-        "entry_ports": ("C3-OU1-6", "C3-OU1-5", "C3-OU1-4"),
+        "entry_ports": ("C2-OU1-6", "C2-OU1-5", "C2-OU1-4"),
         "normal": "24RA",
-        "normal_ports": ("C3-OU1-3", "C3-OU1-2", "C3-OU1-1"),
+        "normal_ports": ("C2-OU1-3", "C2-OU1-2", "C2-OU1-1"),
         "reverse": "24RB",
-        "reverse_ports": ("C3-OU2-1", "C3-OU1-8", "C3-OU1-7"),
+        "reverse_ports": ("C2-OU2-1", "C2-OU1-8", "C2-OU1-7"),
     },
     "Switch 110": {
         "entry": "32R",
-        "entry_ports": ("C3-OU2-7", "C3-OU2-6", "C3-OU2-5"),
+        "entry_ports": ("C2-OU2-7", "C2-OU2-6", "C2-OU2-5"),
         "normal": None,
         "reverse": None,
     },
     "Switch 112": {
         "entry": "34L",
-        "entry_ports": ("C3-OU2-4", "C3-OU2-3", "C3-OU2-2"),
+        "entry_ports": ("C2-OU2-4", "C2-OU2-3", "C2-OU2-2"),
         "normal": None,
         "reverse": "34R",
-        "reverse_ports": ("C3-OU3-3", "C3-OU3-2", "C3-OU3-1"),
+        "reverse_ports": ("C2-OU3-3", "C2-OU3-2", "C2-OU3-1"),
     },
     "Switch 113": {
         "entry": "36RA",
         "entry_ports": ("C1-OU2-6", "C1-OU2-5", "C1-OU2-4"),
         "normal": None,
         "reverse": "36RB",
-        "reverse_ports": ("C7-OU2-2", "C7-OU2-3", "C7-OU2-1"),
+        "reverse_ports": ("C11-OU2-2", "C11-OU2-3", "C11-OU2-1"),
     },
     "Switch 114": {
         "entry": "2036",
-        "entry_ports": ("C7-OU2-5", "C7-OU2-6", "C7-OU2-4"),
+        "entry_ports": ("C11-OU2-5", "C11-OU2-6", "C11-OU2-4"),
         "normal": "38LB",
         "normal_ports": ("C1-OU3-3", "C1-OU3-2", "C1-OU3-1"),
         "reverse": "38LA",
@@ -247,7 +334,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     },
     "Switch 115": {
         "entry": "2035",
-        "entry_ports": ("C7-OU3-2", "C7-OU3-3", "C7-OU3-1"),
+        "entry_ports": ("C11-OU3-2", "C11-OU3-3", "C11-OU3-1"),
         "normal": "40LB",
         "normal_ports": ("C1-OU2-3", "C1-OU2-2", "C1-OU2-1"),
         "reverse": "40LA",
@@ -255,11 +342,11 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     },
     "Switch 117": {
         "entry": "8RA",
-        "entry_ports": ("C5-OU1-3", "C5-OU1-2", "C5-OU1-1"),
+        "entry_ports": ("C13-OU1-3", "C13-OU1-2", "C13-OU1-1"),
         "normal": "8LA",
-        "normal_ports": ("C5-OU2-6", "C5-OU2-5", "C5-OU2-4"),
+        "normal_ports": ("C13-OU2-6", "C13-OU2-5", "C13-OU2-4"),
         "reverse": "8LB / 8RB",
-        "reverse_ports": ("C5-OU2-3", "C5-OU2-2", "C5-OU2-1"),
+        "reverse_ports": ("C13-OU2-3", "C13-OU2-2", "C13-OU2-1"),
     },
 }
 
@@ -341,10 +428,12 @@ def refresh_nodes(ws: Worksheet) -> None:
     num_5v_col = idx.get("Num 5V")
     leds_col = idx.get("Num Signal LEDs")
     id_col = idx["Node ID"]
+    boards_12 = idx.get("12V Boards")
+    num_12 = idx.get("Num 12V")
     for row in range(2, ws.max_row + 1):
         nid = ws.cell(row, id_col).value
-        # D1 is helix DCC (radio 5). Do not invent 5V signal boards there.
-        if nid == "D1":
+        # D5 is helix DCC (radio 5). Do not invent 5V signal boards there.
+        if nid == "D5":
             if loc_col:
                 ws.cell(row, loc_col).value = "Helix DCC (radio 5; no Digicon DNOU8)"
             if boards_5v_col:
@@ -354,14 +443,10 @@ def refresh_nodes(ws: Worksheet) -> None:
             if leds_col:
                 ws.cell(row, leds_col).value = 0
         if nid == "C1" and loc_col:
-            ws.cell(row, loc_col).value = "Helix - Lower (Princess / radio 1)"
-        if nid == "C3":
+            ws.cell(row, loc_col).value = "Helix - Lower (Princess)"
+        if nid == "C2":
             if loc_col:
-                current = ws.cell(row, loc_col).value or ""
-                if "East End" not in str(current):
-                    ws.cell(row, loc_col).value = f"{current} (Digicon East End / radio 2)"
-            boards_12 = idx.get("12V Boards")
-            num_12 = idx.get("Num 12V")
+                ws.cell(row, loc_col).value = "North - Lower (East End signals)"
             if boards_12:
                 ws.cell(row, boards_12).value = 0
             if num_12:
@@ -370,15 +455,18 @@ def refresh_nodes(ws: Worksheet) -> None:
                 ws.cell(row, boards_5v_col).value = 3
             if num_5v_col:
                 ws.cell(row, num_5v_col).value = 24
-        if nid == "C5" and loc_col:
-            current = ws.cell(row, loc_col).value or ""
-            if "Barn" not in str(current):
-                ws.cell(row, loc_col).value = f"{current} (Barn / radio 13)"
-        if nid == "C7" and loc_col:
-            current = ws.cell(row, loc_col).value or ""
-            loc = str(current).replace(" (Digicon East End heads on OU2/OU3)", "")
-            if "Princess overflow" not in loc:
-                ws.cell(row, loc_col).value = f"{loc} (Princess overflow / radio 11)"
+        if nid == "C3" and loc_col:
+            ws.cell(row, loc_col).value = "West - Lower (Plane / Brick)"
+        if nid == "C4" and loc_col:
+            current = str(ws.cell(row, loc_col).value or "")
+            if "Peninsula" not in current:
+                ws.cell(row, loc_col).value = "Peninsula - Lower"
+        if nid == "C11" and loc_col:
+            ws.cell(row, loc_col).value = "Helix (Princess overflow)"
+        if nid == "C12" and loc_col:
+            ws.cell(row, loc_col).value = "North - Lower (East End turnouts 107–112)"
+        if nid == "C13" and loc_col:
+            ws.cell(row, loc_col).value = "West - Lower (Barn)"
 
 
 def refresh_turnout_summary(ws: Worksheet) -> list[str]:
@@ -527,6 +615,9 @@ def refresh_inventory() -> Path:
     dest = WIRING / "LCOS_Layout_Inventory_v85.xlsx"
     shutil.copy2(src, dest)
     wb = load_workbook(dest)
+    legacy_by_row = remap_workbook_node_ids(wb)
+    add_legacy_node_column(wb["Nodes"], legacy_by_row)
+    sort_nodes_by_address(wb["Nodes"])
     occ = occupancy_by_hw()
     wiring = load_csv(CATS / "signal_wiring.csv")
     apply_proposed_to_wiring(wiring)
@@ -538,6 +629,18 @@ def refresh_inventory() -> Path:
     ts_log = refresh_turnout_summary(wb["TurnoutSummary"])
     refresh_nodes(wb["Nodes"])
     add_digicon_sheet(wb, wiring, heads)
+    mismatches = []
+    nidx = header_index(wb["Nodes"])
+    for row in range(2, wb["Nodes"].max_row + 1):
+        nid = wb["Nodes"].cell(row, nidx["Node ID"]).value
+        addr = wb["Nodes"].cell(row, nidx["Address"]).value
+        if not nid or str(nid)[0] not in ("C", "D") or addr is None:
+            continue
+        expect = f"{str(nid)[0]}{int(addr)}"
+        if str(nid) != expect:
+            mismatches.append(f"{nid} address {addr} (expected {expect})")
+    if mismatches:
+        raise SystemExit("Node ID != C/D{Address}: " + "; ".join(mismatches))
     wb.save(dest)
 
     print(f"wrote {dest}")
