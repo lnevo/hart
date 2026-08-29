@@ -214,17 +214,16 @@ class DigiconMqttSml(
         self._suppress_sml = False
         self._boot_pending = False
         self._retained_mode = None
-        self._mode_seen = False
         self._button = None
         self._probe_active = False
         self._probe_saw_enabled = False
         self._mast_sml_was_enabled = {}
         self._source_field_owned = {}
         self._dest_enable_maps = {}
-        self._stored_sml_was_enabled = False
+        self._sml_by_mast = {}
         self._enabling_originator = False
         self._abort_in_progress = False
-        self._resume_after_abort_scheduled = False
+        self._enabling_wait_scheduled = False
 
     def start(self):
         self.mqtt = _mqtt_adapter()
@@ -237,7 +236,6 @@ class DigiconMqttSml(
         # Snapshot before subscribe so our own enabling echo cannot abort us.
         stored_on = self._warn_if_stored_sml_enabled()
         if stored_on:
-            self._stored_sml_was_enabled = True
             self._enabling_originator = True
         self._subscribe_mqtt()
         self._add_toggle_button()
@@ -349,15 +347,15 @@ class DigiconMqttSml(
 
     def _schedule_enabled_after_enabling(self):
         """Originator only: dests stay on; after a short wait announce enabled."""
-        if self._resume_after_abort_scheduled:
+        if self._enabling_wait_scheduled:
             return
-        self._resume_after_abort_scheduled = True
+        self._enabling_wait_scheduled = True
         controller = self
 
         class _Resume(Runnable):
             def run(_self):
                 Thread.sleep(SML_ABORT_RESUME_MS)
-                controller._resume_after_abort_scheduled = False
+                controller._enabling_wait_scheduled = False
                 if controller._global_enabled and str(
                     controller._retained_mode or ""
                 ).strip().lower() == "enabled":
@@ -389,12 +387,13 @@ class DigiconMqttSml(
         owned = {}
         dest_maps = {}
         for mast in self._masts:
-            on = self._mast_logic_enabled(mast)
+            sml = self._sml_for_mast(mast)
+            dmap = self._dest_enable_map(sml) if sml is not None else {}
+            if sml is not None:
+                dest_maps[sml] = dmap
+            on = any(dmap.values())
             state[mast] = on
             owned[mast] = not on
-            sml = self._sml_for_mast(mast)
-            if sml is not None:
-                dest_maps[sml] = self._dest_enable_map(sml)
         self._mast_sml_was_enabled = state
         self._source_field_owned = owned
         self._dest_enable_maps = dest_maps
@@ -431,6 +430,9 @@ class DigiconMqttSml(
                     while it.hasNext():
                         dest = it.next()
                         try:
+                            already = bool(sml.isEnabled(dest))
+                            if enabled == already:
+                                continue
                             if enabled:
                                 sml.setEnabled(dest)
                             else:
@@ -525,6 +527,7 @@ class DigiconMqttSml(
             except Exception:
                 pass
         self._smls = []
+        self._sml_by_mast = {}
         digicon = set(self._masts)
         for sml in smlm.getSignalMastLogicList():
             try:
@@ -535,6 +538,7 @@ class DigiconMqttSml(
                 continue
             sml.addPropertyChangeListener(self)
             self._smls.append(sml)
+            self._sml_by_mast[src] = sml
         print(
             "mqtt_signalhead: watching %d Digicon SignalMastLogic sources"
             % len(self._smls)
@@ -648,6 +652,12 @@ class DigiconMqttSml(
     def _ask_force_override_edt(self):
         """Show override confirm on the EDT. Return True if Yes."""
         holder = [JOptionPane.NO_OPTION]
+        msg = (
+            "track/bridge/sml_mode is already enabled "
+            "(another Digicon session or stale retain).\n"
+            "Force override Digicon control?"
+        )
+        title = "SML Enabled"
 
         class _Ask(Runnable):
             def run(_self):
@@ -656,20 +666,16 @@ class DigiconMqttSml(
 
                     holder[0] = JmriJOptionPane.showConfirmDialog(
                         None,
-                        "track/bridge/sml_mode is already enabled "
-                        "(another Digicon session or stale retain).\n"
-                        "Force override Digicon control?",
-                        "SML Enabled",
+                        msg,
+                        title,
                         JmriJOptionPane.YES_NO_OPTION,
                         JmriJOptionPane.WARNING_MESSAGE,
                     )
                 except Exception:
                     holder[0] = JOptionPane.showConfirmDialog(
                         None,
-                        "track/bridge/sml_mode is already enabled "
-                        "(another Digicon session or stale retain).\n"
-                        "Force override Digicon control?",
-                        "SML Enabled",
+                        msg,
+                        title,
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE,
                     )
@@ -847,13 +853,9 @@ class DigiconMqttSml(
         return self._head_to_mast.get(head.getSystemName())
 
     def _sml_for_mast(self, mast):
-        for sml in self._smls:
-            try:
-                if sml.getSourceMast() == mast:
-                    return sml
-            except Exception:
-                continue
-        return None
+        if mast is None:
+            return None
+        return self._sml_by_mast.get(mast)
 
     def _mast_logic_enabled(self, mast):
         """True if Digicon source mast has any destination Enabled in the SML table."""
@@ -1079,7 +1081,6 @@ class DigiconMqttSml(
 
     def _on_sml_mode(self, message):
         mode = message.strip().lower()
-        self._mode_seen = True
         if mode == "enabled" and self._probe_active:
             self._probe_saw_enabled = True
         if mode in (
@@ -1152,7 +1153,7 @@ class DigiconMqttSml(
         now_map = self._dest_enable_map(sml)
         was_map = self._dest_enable_maps.get(sml) or {}
         self._dest_enable_maps[sml] = now_map
-        self._mast_sml_was_enabled[mast] = self._mast_logic_enabled(mast)
+        self._mast_sml_was_enabled[mast] = any(now_map.values())
         if not was_map:
             return
         disabled = []
