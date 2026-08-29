@@ -31,6 +31,11 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("_warn_if_stored_sml_enabled", text)
         self.assertIn("showMessageDialog", text)
         self.assertIn("Digicon SML stored Enabled", text)
+        self.assertIn("enabled_on_boot", text)
+        self.assertIn("_abort_sml_immediate", text)
+        self.assertIn("SML_ABORT_RESUME_MS", text)
+        self.assertIn('"aborting"', text)
+        self.assertIn('"aborted"', text)
         self.assertNotIn("mosquitto", text.lower())
         self.assertNotIn("subprocess", text)
         self.assertNotIn("import socket", text)
@@ -62,6 +67,17 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("_hand_source_to_field(mast)", chunk)
         self.assertIn("_hand_source_to_sml(mast)", chunk)
         self.assertNotIn("last dest is off", chunk)
+
+    def test_boot_abort_unchecks_without_hold_or_unheld(self) -> None:
+        text = PUBLISHER.read_text(encoding="utf-8")
+        off = text.index("def _abort_sml_immediate")
+        chunk = text[off : text.index("def _schedule_resume_after_abort")]
+        self.assertIn('_publish_mode("aborting")', chunk)
+        self.assertIn("_set_all_digicon_sml_destinations(False)", chunk)
+        self.assertIn('_publish_mode("aborted")', chunk)
+        self.assertNotIn("_publish_unheld", chunk)
+        self.assertNotIn("HOLD_WAIT", chunk)
+        self.assertIn("from_boot=True", text[text.index("def _schedule_resume_after_abort") :])
 
     def test_head_names_match_wiring_csv(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")

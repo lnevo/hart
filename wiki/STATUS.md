@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — Stored-Enabled Digicon boot: `sml_mode` **enabled_on_boot** → every agent **aborting** (immediate uncheck, no Red/wait/hold) → **aborted**; Digicon resumes **enabled** after ~3s. If that never completes, the Windows bridge challenges to **disabled**. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
+
 Updated: 2026-08-29 — Digicon publisher popup if tables loaded SML Enabled; startup continues. Store with SML Disabled to clear it. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — JMRI head comments rebuilt from `signal_wiring.csv` (3 pins per disc; 40LB on C11, 24RA on C2). Leftover Switch 100–119 names in live scripts/indexes use CTC numbers (MQTT `DCC: NNN` kept). Packed IH beans unchanged. Reload **PanelPro**. Deploy `--pi --win`.
