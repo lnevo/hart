@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-28 — Next signal refresh: MQTT node = radio Address. **C1 radio 1** = Princess (never D1 radio 5 / DCC). **C3 radio 2** = all East End faces (packed 2xx). C3 has no turnouts — treat **OU1 as 5V** with OU2/OU3 (24 ch ≥ 18). **C5 radio 13** = Barn. **C7 radio 11** = Princess overflow + 2035/2036. One 3-pin head per mast. **No new DNOU8** for Princess (C7 overflow) or East End (C3 OU1 as 5V). CSVs not rebuilt yet.
+Updated: 2026-08-28 — Rebuilt wiring CSVs + v85 inventory (no `tables.xml`): one 3-pin head per mast. Princess on **C1** (radio 1; 36RB+2035/2036 overflow **C7** radio 11). East End on **C3** radio 2 (OU1 as 5V). Barn on **C5** radio 13. Packed East End is `2xx` (was `12xx`). Review before JMRI tables.
 
 Updated: 2026-08-28 — **Queued (not applied):** rename LCOS inventory Node IDs so the label matches the radio **Address** (today `C# ≠` address: C1=1, C3=2, C4=3, C5=13, C2=12, C7=11). Packed MQTT already uses Address; enclosure names should too. Do not swap C3↔C2 as a one-off — C2 is radio 12.
 

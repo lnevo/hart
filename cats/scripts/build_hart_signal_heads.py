@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
 """Build HART Digicon→JMRI virtual signal heads (LCOS packed MQTT numbers).
 
-MQTT packed node == RF24 radio Address (Nodes sheet). Never assign signal
-heads to D1 (radio 5, helix DCC). Enclosure C# is not the radio address.
+MQTT packed node == RF24 radio Address. Never assign heads to D1 (radio 5, DCC).
 
-Next refresh (one 3-pin head per mast, STOP/APPROACH/CLEAR):
-  radio 1  C1  Princess interlocking (C1-OU2/OU3 5V). Overflow + 2035/2036
-             onto C7 radio 11 — those objects pack as node 11, not 1.
-  radio 2  C3  East End (all six faces). Packed 2xx, not today's 12xx.
-             C3 has no turnouts; run OU1 as 5V with OU2/OU3 (24 ch, 18 used).
+One 3-pin head per mast (LCOS STOP/APPROACH/CLEAR = R/Y/G). Wiring CSV has
+three rows per mast (G, Y, R pins of the same UID).
+
+  radio 1  C1  Princess interlocking (5 faces; 15 5V pins). 36RB overflows.
+  radio 2  C3  East End (6 faces). OU1 run as 5V (no turnouts). Packed 2xx.
   radio 3  C4  Plane / Brick
-  radio 11 C7  Princess overflow (after East End leaves C7)
+  radio 11 C7  Princess overflow: 36RB + 2035/2036. Packed 11xx.
   radio 13 C5  Barn / 117
-  radio 5  D1  DCC only — no DNOU8 signal ports
+  radio 5  D1  DCC only — no signal ports
 
-Live CSVs below still have the old 1-pin overlay (Princess on D1, Barn on C1,
-East End on C7 as mqtt 12). Do not regenerate from NODE_PORTS until the
-3-pin remap is written.
-
-Each physical head = one LCOS signal UID (32+index) → packed = node*100 + uid.
-Writes:
-  cats/data/signal_wiring.csv
-  cats/data/signal_head_plan.csv
-  patches tables/new_tables.xml + hart output tables/hart_prod
-  updates HEAD_NAMES in jmri/scripts/mqtt_signalhead_publisher.py
+`--wiring-only` writes CSVs only (no tables.xml / publisher).
 """
 
 from __future__ import annotations
@@ -37,73 +27,49 @@ ROOT = Path(__file__).resolve().parents[2]
 CATS_MASTS = ROOT / "cats/resources/signals/cats-masts"
 DATA = ROOT / "cats/data"
 
-# (mast_userName, heads, mqtt_node, digicon_lamp) — heads count 1/2/3
-# Order within a node = signal_index assignment (top→bottom / high→low).
-MASTS: list[tuple[str, int, int, str]] = [
-    # node 4 — Plane + W-Y stubs + Brick east main (OU3 after OU2-1..6)
-    ("Mast 6LB", 2, 4, "double"),
-    ("Mast 6LA", 1, 4, "single"),
-    # Skip C4-OU2-4 / packed IH435 (was Mast 6LA Bottom) so Mast 4RA stays IH436.
-    # No JMRI head, no wiring row — see SKIP_HEAD.
-    ("SPARE-C4-OU2-4", 1, 4, "single"),
-    ("Mast 4RA", 1, 4, "single"),
-    ("Mast 4RB", 1, 4, "single"),
-    ("Mast 2L", 2, 4, "double"),
-    # node 13 — OS Barn
-    ("Mast 8RA", 2, 13, "double"),
-    ("Mast 8LB", 1, 13, "single"),
-    ("Mast 8RB", 2, 13, "double"),
-    ("Mast 8LA", 2, 13, "double"),
-    # node 12 — East End
-    ("Mast 24RA", 2, 12, "double"),
-    ("Mast 24L", 2, 12, "double"),
-    ("Mast 24RB", 1, 12, "single"),
-    ("Mast 34L", 2, 12, "double"),
-    ("Mast 32R", 1, 12, "single"),
-    ("Mast 34R", 2, 12, "double"),
-    # node 1 — Princess (keep packed IH132–141 stable: 2-head exits, connector singles reuse old middles)
-    ("Mast 40LB", 2, 1, "double"),
-    ("Mast 2036", 1, 1, "single"),
-    ("Mast 36RA", 2, 1, "double"),
-    ("Mast 36RB", 2, 1, "double"),
-    ("Mast 38LB", 2, 1, "double"),
-    ("Mast 2035", 1, 1, "single"),
-    ("Mast 40LA", 1, 1, "single"),
-    ("Mast 38LA", 1, 1, "single"),
+SKIP_HEAD: set[str] = set()
+SKIP_MAST: set[str] = set()
+
+# One 3-pin STOP/APPROACH/CLEAR head per mast. Packed keeps the old surviving
+# mast ID where the radio node did not change; East End moves 12→2, Princess
+# overflow is radio 11. G/Y/R follow v84 trio order (G then Y then R on C1/C4/C5;
+# C3-OU1 is new 5V consecutive G/Y/R).
+# mast, node, parent, location, packed, g, y, r, v84_was
+MASTS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str]] = [
+    # C4 radio 3 — Plane / Brick (v84 S3-6…S3-11, 15 LED pins)
+    ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 432, "C4-OU2-1", "C4-OU2-2", "C4-OU2-3", "S3-6 G/Y/R"),
+    ("Mast 6LA", 4, "C4", "West - Lower (Plane)", 434, "C4-OU2-4", "C4-OU2-5", "C4-OU2-6", "S3-7 G/Y/R"),
+    ("Mast 4RA", 4, "C4", "West - Lower (Brick)", 436, "C4-OU3-4", "C4-OU3-5", "C4-OU3-6", "S3-9 G/Y/R"),
+    ("Mast 4RB", 4, "C4", "West - Lower (Brick)", 437, "C4-OU3-7", "C4-OU2-7", "C4-OU3-8", "S3-11 G/Y/R (Y on OU2-7)"),
+    ("Mast 2L", 4, "C4", "West - Lower (Brick)", 438, "C4-OU3-1", "C4-OU3-2", "C4-OU3-3", "S3-8 G/Y/R"),
+    # C5 radio 13 — Barn (v84 S3-10, S3-12, S3-4, S3-5)
+    ("Mast 8RA", 13, "C5", "West - Lower (Barn)", 1332, "C5-OU1-1", "C5-OU1-2", "C5-OU1-3", "S3-10 G/Y/R"),
+    ("Mast 8RB", 13, "C5", "West - Lower (Barn)", 1335, "C5-OU1-4", "C5-OU1-6", "C5-OU1-5", "S3-12 G/R/Y silk"),
+    ("Mast 8LB", 13, "C5", "West - Lower (Barn)", 1334, "C5-OU2-1", "C5-OU2-2", "C5-OU2-3", "S3-4 G/Y/R"),
+    ("Mast 8LA", 13, "C5", "West - Lower (Barn)", 1337, "C5-OU2-4", "C5-OU2-5", "C5-OU2-6", "S3-5 G/Y/R"),
+    # C3 radio 2 — East End (OU1 as 5V; OU2-8 stays relay)
+    ("Mast 24RA", 2, "C3", "North - Lower (East End)", 232, "C3-OU1-1", "C3-OU1-2", "C3-OU1-3", "C3-OU1 new 5V"),
+    ("Mast 24L", 2, "C3", "North - Lower (East End)", 233, "C3-OU1-4", "C3-OU1-5", "C3-OU1-6", "C3-OU1 new 5V"),
+    ("Mast 24RB", 2, "C3", "North - Lower (East End)", 234, "C3-OU1-7", "C3-OU1-8", "C3-OU2-1", "OU1-7/8 + OU2-1"),
+    ("Mast 34L", 2, "C3", "North - Lower (East End)", 235, "C3-OU2-2", "C3-OU2-3", "C3-OU2-4", "was S2-5/S2-3 mix"),
+    ("Mast 32R", 2, "C3", "North - Lower (East End)", 236, "C3-OU2-5", "C3-OU2-6", "C3-OU2-7", "OU2-8 is relay"),
+    ("Mast 34R", 2, "C3", "North - Lower (East End)", 237, "C3-OU3-1", "C3-OU3-2", "C3-OU3-3", "was S4-6 G/R/Y"),
+    # C1 radio 1 — Princess interlocking (15 5V pins = 5 trios; 36RB on C7)
+    ("Mast 40LB", 1, "C1", "Helix - Lower (Princess)", 132, "C1-OU2-1", "C1-OU2-2", "C1-OU2-3", "S1-1 G/Y/R"),
+    ("Mast 36RA", 1, "C1", "Helix - Lower (Princess)", 135, "C1-OU2-4", "C1-OU2-5", "C1-OU2-6", "S1-2 G/Y/R"),
+    ("Mast 38LB", 1, "C1", "Helix - Lower (Princess)", 139, "C1-OU3-1", "C1-OU3-2", "C1-OU3-3", "S1-3 G/Y/R"),
+    ("Mast 40LA", 1, "C1", "Helix - Lower (Princess)", 142, "C1-OU3-4", "C1-OU3-5", "C1-OU3-6", "S1-4 G/Y/R"),
+    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess)", 143, "C1-OU2-7", "C1-OU3-7", "C1-OU3-8", "spares G/Y/R"),
+    # C7 radio 11 — Princess overflow + balloon intermediates
+    ("Mast 36RB", 11, "C7", "Helix (Princess overflow)", 1132, "C7-OU2-1", "C7-OU2-3", "C7-OU2-2", "S1-5 G/R/Y silk"),
+    ("Mast 2036", 11, "C7", "Helix (Princess overflow)", 1133, "C7-OU2-4", "C7-OU2-6", "C7-OU2-5", "S1-6 G/R/Y silk"),
+    ("Mast 2035", 11, "C7", "Helix (Princess overflow)", 1134, "C7-OU3-1", "C7-OU3-3", "C7-OU3-2", "S4-6 G/R/Y silk"),
 ]
 
-# Packed holes: increment the node index, emit no head/mast/wiring row.
-SKIP_HEAD = {"SPARE-C4-OU2-4"}
-SKIP_MAST = set()
-
-ROLE = {1: ("",), 2: ("T", "B"), 3: ("T", "M", "B")}
-ROLE_NAME = {"": "", "T": " Top", "M": " Middle", "B": " Bottom"}
-
-# Dwarfs: stock AAR-1946 SL-1-low (Slow Clear / Restricting / Stop).
-# Two-head homes: custom hart-aar SL-2-digicon (Clear / Approach + Medium Clear /
-# Medium Approach on the bottom head, Stop). Stock SL-2-high-abs is unusable here:
-# its "Approach" mapping only offers Advance Approach / Approach Medium, so with
-# those aspects undisplayable the mast pins at Stop behind any Approach.
-# hart-aar lives in cats/resources/signals/hart-aar (deployed by sync_hart_package.sh).
 APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}
 SYSTEM_BY_HEADS = {1: "AAR-1946", 2: "hart-aar", 3: "AAR-1946"}
 
-# LIVE overlay (wrong; 1 pin per head). Next refresh must not use D1 or
-# put Barn on C1 / East End on C7. See module docstring.
-NODE_PORTS: dict[int, list[str]] = {
-    4: [f"C4-OU2-{i}" for i in range(1, 7)] + ["C4-OU3-1", "C4-OU3-2"],  # 8 heads
-    13: [f"C1-OU2-{i}" for i in range(1, 7)] + ["C1-OU3-1"],  # 7 heads
-    12: [f"C7-OU2-{i}" for i in range(1, 7)] + [f"C7-OU3-{i}" for i in range(1, 5)],  # 10
-    1: [f"D1-OU2-{i}" for i in range(1, 9)] + [f"D1-OU3-{i}" for i in range(1, 5)],  # 12
-}
-NODE_BOARD_LOC: dict[int, str] = {
-    4: "West - Lower",
-    13: "Helix - Lower (OS Barn / West Yard)",
-    12: "North - Upper (East End)",
-    1: "Princess / Helix DCC node",
-}
-NODE_PARENT: dict[int, str] = {4: "C4", 13: "C1", 12: "C7", 1: "D1"}
-# Next refresh parents (radio Address): 1→C1, 2→C3, 3→C4, 11→C7, 13→C5. Never D1.
+PIN_ORDER = (("G", "g_port"), ("Y", "y_port"), ("R", "r_port"))
 
 
 def packed(node: int, signal_index: int) -> int:
@@ -111,36 +77,40 @@ def packed(node: int, signal_index: int) -> int:
 
 
 def build_rows() -> list[dict]:
-    per_node: dict[int, int] = {}
     rows: list[dict] = []
-    for mast, nheads, node, lamp in MASTS:
-        if mast in SKIP_HEAD:
-            per_node[node] = per_node.get(node, 0) + nheads
-            continue
-        roles = ROLE[nheads]
-        ports = NODE_PORTS[node]
-        for role in roles:
-            idx = per_node.get(node, 0)
-            per_node[node] = idx + 1
-            if idx >= len(ports):
-                raise SystemExit(f"node {node}: need port for signal_index {idx}")
-            pid = packed(node, idx)
+    seen_ports: dict[str, str] = {}
+    for mast, node, parent, loc, pid, g, y, r, was in MASTS_3PIN:
+        uid = pid - node * 100
+        idx = uid - 32
+        short = mast[5:] if mast.startswith("Mast ") else mast
+        ports = {"G": g, "Y": y, "R": r}
+        for color, _key in PIN_ORDER:
+            port = ports[color]
+            if port in seen_ports:
+                raise SystemExit(f"duplicate port {port}: {seen_ports[port]} and {mast}")
+            seen_ports[port] = mast
             rows.append(
                 {
                     "mqtt_node": node,
-                    "parent_node_id": NODE_PARENT[node],
-                    "board_location": NODE_BOARD_LOC[node],
+                    "parent_node_id": parent,
+                    "board_location": loc,
                     "signal_index": idx,
-                    "uid": 32 + idx,
+                    "uid": uid,
                     "packed": pid,
                     "system_name": f"IH{pid}",
-                    "user_name": f"{mast}{ROLE_NAME[role]}".strip(),
+                    "user_name": f"Head {short} {color}",
                     "mast_user_name": mast,
-                    "head_role": role or "S",
-                    "heads": nheads,
-                    "appearance": APPEAR[nheads],
-                    "physignal": lamp,
-                    "port_id": ports[idx],
+                    "head_role": color,
+                    "lamp_color": color,
+                    "heads": 1,
+                    "appearance": APPEAR[1],
+                    "physignal": "single",
+                    "port_id": ports[color],
+                    "g_port": g,
+                    "y_port": y,
+                    "r_port": r,
+                    "v84_was": was,
+                    "lcos_recipe": "STOP/APPROACH/CLEAR",
                     "topic": f"track/signalhead/{pid}",
                 }
             )
@@ -149,10 +119,8 @@ def build_rows() -> list[dict]:
 
 def mast_system_name(mast: str, rows: list[dict]) -> str:
     heads = [r for r in rows if r["mast_user_name"] == mast]
-    n = heads[0]["heads"]
-    appear = heads[0]["appearance"]
-    ids = "".join(f"({r['system_name']})" for r in heads)
-    return f"IF$shsm:{SYSTEM_BY_HEADS[n]}:{appear}{ids}"
+    r = heads[0]
+    return f"IF$shsm:{SYSTEM_BY_HEADS[1]}:{APPEAR[1]}({r['system_name']})"
 
 
 def write_csvs(rows: list[dict]) -> None:
@@ -169,6 +137,7 @@ def write_csvs(rows: list[dict]) -> None:
         "user_name",
         "mast_user_name",
         "head_role",
+        "lamp_color",
         "topic",
         "device_type",
         "voltage_rail",
@@ -185,7 +154,8 @@ def write_csvs(rows: list[dict]) -> None:
                     "voltage_rail": "5V",
                     "notes": (
                         f"LCOS Signal {r['signal_index']} UID {r['uid']}; "
-                        f"Digicon mast '{r['mast_user_name']}'"
+                        f"{r['lcos_recipe']}; lamp {r['lamp_color']}; "
+                        f"was {r['v84_was']}"
                     ),
                 }
             )
@@ -215,12 +185,12 @@ def write_csvs(rows: list[dict]) -> None:
                 "mast_user_name": m,
                 "mqtt_node": r["mqtt_node"],
                 "parent_node_id": r["parent_node_id"],
-                "heads": r["heads"],
+                "heads": 1,
                 "appearance": r["appearance"],
                 "physignal": r["physignal"],
                 "mast_system_name": mast_system_name(m, rows),
-                "head_system_names": " ".join(x["system_name"] for x in hs),
-                "packed_ids": " ".join(str(x["packed"]) for x in hs),
+                "head_system_names": hs[0]["system_name"],
+                "packed_ids": str(hs[0]["packed"]),
                 "port_ids": " ".join(x["port_id"] for x in hs),
             }
         )
@@ -237,6 +207,7 @@ def write_csvs(rows: list[dict]) -> None:
         by_name = {m["mast_user_name"]: m for m in masts}
         out_fields = list(old[0].keys())
         for col in (
+            "heads",
             "mqtt_node",
             "parent_node_id",
             "packed_ids",
@@ -253,6 +224,7 @@ def write_csvs(rows: list[dict]) -> None:
                 m = by_name[name]
                 row = {
                     **row,
+                    "heads": 1,
                     "mqtt_node": str(m["mqtt_node"]),
                     "parent_node_id": m["parent_node_id"],
                     "packed_ids": m["packed_ids"],
@@ -267,7 +239,7 @@ def write_csvs(rows: list[dict]) -> None:
             w.writerows(enriched)
         print(f"updated {plan_src}")
 
-    print(f"wrote {DATA / 'signal_wiring.csv'} ({len(rows)} heads)")
+    print(f"wrote {DATA / 'signal_wiring.csv'} ({len(rows)} pin rows, {len(masts)} masts)")
     print(f"wrote {DATA / 'signal_head_plan.csv'} ({len(masts)} masts)")
 
 
@@ -523,21 +495,25 @@ def write_publisher(rows: list[dict]) -> None:
 
 
 def main() -> int:
+    wiring_only = "--wiring-only" in sys.argv
     rows = build_rows()
     write_csvs(rows)
-    update_lcos_inventory(rows)
-    write_cats_virtual_3()
-    patch_tables(rows)
-    write_publisher(rows)
-    # summary by node
+    if wiring_only:
+        print("wiring-only: skipped inventory xlsx, tables.xml, publisher")
+    else:
+        update_lcos_inventory(rows)
+        write_cats_virtual_3()
+        patch_tables(rows)
+        write_publisher(rows)
     by: dict[int, list] = {}
     for r in rows:
         by.setdefault(r["mqtt_node"], []).append(r)
     for node in sorted(by):
+        pins = by[node]
+        masts = {p["mast_user_name"] for p in pins}
         print(
-            f"node {node}: {len(by[node])} heads "
-            f"packed {by[node][0]['packed']}…{by[node][-1]['packed']} "
-            f"ports {by[node][0]['port_id']}…{by[node][-1]['port_id']}"
+            f"node {node} {pins[0]['parent_node_id']}: {len(masts)} heads / {len(pins)} pins "
+            f"packed {sorted({p['packed'] for p in pins})}"
         )
     return 0
 

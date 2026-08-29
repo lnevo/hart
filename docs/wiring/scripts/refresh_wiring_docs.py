@@ -187,80 +187,79 @@ NAME_REPLACEMENTS: list[tuple[str, str]] = [
 ]
 
 
-# TurnoutSummary Digicon faces (searchlight heads, not RGB R/Y/G).
-# Entry / Normal Exit / Reverse Exit columns keep the old 3-slot shape.
+# TurnoutSummary: one 3-pin head per face. R/Y/G columns are lamp colors again.
 TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     "Switch 100": {
-        "entry": "100L",
-        "entry_ports": ("C4-OU3-1", "C4-OU3-2", None),
+        "entry": "2L",
+        "entry_ports": ("C4-OU3-3", "C4-OU3-2", "C4-OU3-1"),
         "normal": None,
         "reverse": None,
     },
     "Switch 101": {
         "entry": None,
-        "normal": "101RA",
-        "normal_ports": ("C4-OU2-5", None, None),
-        "reverse": "101RB",
-        "reverse_ports": ("C4-OU2-6", None, None),
+        "normal": "4RA",
+        "normal_ports": ("C4-OU3-6", "C4-OU3-5", "C4-OU3-4"),
+        "reverse": "4RB",
+        "reverse_ports": ("C4-OU3-8", "C4-OU2-7", "C4-OU3-7"),
     },
     "Switch 102": {
-        "entry": "102LA",
-        "entry_ports": ("C4-OU2-3", None, None),
+        "entry": "6LA",
+        "entry_ports": ("C4-OU2-6", "C4-OU2-5", "C4-OU2-4"),
         "normal": None,
-        "reverse": "102LB",
-        "reverse_ports": ("C4-OU2-1", "C4-OU2-2", None),
+        "reverse": "6LB",
+        "reverse_ports": ("C4-OU2-3", "C4-OU2-2", "C4-OU2-1"),
     },
     "Switch 111": {
-        "entry": "111L",
-        "entry_ports": ("C7-OU2-3", "C7-OU2-4", None),
-        "normal": "111RA",
-        "normal_ports": ("C7-OU2-1", "C7-OU2-2", None),
-        "reverse": "111RB",
-        "reverse_ports": ("C7-OU2-5", None, None),
+        "entry": "24L",
+        "entry_ports": ("C3-OU1-6", "C3-OU1-5", "C3-OU1-4"),
+        "normal": "24RA",
+        "normal_ports": ("C3-OU1-3", "C3-OU1-2", "C3-OU1-1"),
+        "reverse": "24RB",
+        "reverse_ports": ("C3-OU2-1", "C3-OU1-8", "C3-OU1-7"),
     },
     "Switch 110": {
-        "entry": "110R",
-        "entry_ports": ("C7-OU3-2", None, None),
+        "entry": "32R",
+        "entry_ports": ("C3-OU2-7", "C3-OU2-6", "C3-OU2-5"),
         "normal": None,
         "reverse": None,
     },
     "Switch 112": {
-        "entry": "112L",
-        "entry_ports": ("C7-OU2-6", "C7-OU3-1", None),
+        "entry": "34L",
+        "entry_ports": ("C3-OU2-4", "C3-OU2-3", "C3-OU2-2"),
         "normal": None,
-        "reverse": "112R",
-        "reverse_ports": ("C7-OU3-3", "C7-OU3-4", None),
+        "reverse": "34R",
+        "reverse_ports": ("C3-OU3-3", "C3-OU3-2", "C3-OU3-1"),
     },
     "Switch 113": {
-        "entry": "113RA",
-        "entry_ports": ("D1-OU2-4", "D1-OU2-5", None),
+        "entry": "36RA",
+        "entry_ports": ("C1-OU2-6", "C1-OU2-5", "C1-OU2-4"),
         "normal": None,
-        "reverse": "113RB",
-        "reverse_ports": ("D1-OU2-6", "D1-OU2-7", None),
+        "reverse": "36RB",
+        "reverse_ports": ("C7-OU2-2", "C7-OU2-3", "C7-OU2-1"),
     },
     "Switch 114": {
-        "entry": "120R",
-        "entry_ports": ("D1-OU2-3", None, None),
-        "normal": "114LB",
-        "normal_ports": ("D1-OU2-8", "D1-OU3-1", None),
-        "reverse": "114LA",
-        "reverse_ports": ("D1-OU3-4", None, None),
+        "entry": "2036",
+        "entry_ports": ("C7-OU2-5", "C7-OU2-6", "C7-OU2-4"),
+        "normal": "38LB",
+        "normal_ports": ("C1-OU3-3", "C1-OU3-2", "C1-OU3-1"),
+        "reverse": "38LA",
+        "reverse_ports": ("C1-OU3-8", "C1-OU3-7", "C1-OU2-7"),
     },
     "Switch 115": {
-        "entry": "120L",
-        "entry_ports": ("D1-OU3-2", None, None),
-        "normal": "115LB",
-        "normal_ports": ("D1-OU2-1", "D1-OU2-2", None),
-        "reverse": "115LA",
-        "reverse_ports": ("D1-OU3-3", None, None),
+        "entry": "2035",
+        "entry_ports": ("C7-OU3-2", "C7-OU3-3", "C7-OU3-1"),
+        "normal": "40LB",
+        "normal_ports": ("C1-OU2-3", "C1-OU2-2", "C1-OU2-1"),
+        "reverse": "40LA",
+        "reverse_ports": ("C1-OU3-6", "C1-OU3-5", "C1-OU3-4"),
     },
     "Switch 117": {
-        "entry": "117RA",
-        "entry_ports": ("C1-OU2-1", "C1-OU2-2", None),
-        "normal": "117LA",
-        "normal_ports": ("C1-OU2-6", "C1-OU3-1", None),
-        "reverse": "117LB / 117RB",
-        "reverse_ports": ("C1-OU2-3", "C1-OU2-4", "C1-OU2-5"),
+        "entry": "8RA",
+        "entry_ports": ("C5-OU1-3", "C5-OU1-2", "C5-OU1-1"),
+        "normal": "8LA",
+        "normal_ports": ("C5-OU2-6", "C5-OU2-5", "C5-OU2-4"),
+        "reverse": "8LB / 8RB",
+        "reverse_ports": ("C5-OU2-3", "C5-OU2-2", "C5-OU2-1"),
     },
 }
 
@@ -307,8 +306,10 @@ def overlay_dnou8(ws: Worksheet, wiring: list[dict[str, str]]) -> list[str]:
         if port in by_port:
             prev = ws.cell(by_port[port], 5).value
         note = (
-            f"HART Digicon searchlight; MQTT {r['topic']}; "
-            f"packed {r['packed']} (node {r['mqtt_node']} sig {r['signal_index']})"
+            f"HART Digicon {r.get('lcos_recipe', 'STOP/APPROACH/CLEAR')}; "
+            f"lamp {r.get('lamp_color') or r.get('head_role')}; "
+            f"MQTT {r['topic']}; packed {r['packed']} "
+            f"(node {r['mqtt_node']} sig {r['signal_index']})"
         )
         if prev and str(prev) != r["user_name"]:
             note += f"; was {prev}"
@@ -354,10 +355,21 @@ def refresh_nodes(ws: Worksheet) -> None:
                 ws.cell(row, leds_col).value = 0
         if nid == "C1" and loc_col:
             ws.cell(row, loc_col).value = "Helix - Lower (Princess / radio 1)"
-        if nid == "C3" and loc_col:
-            current = ws.cell(row, loc_col).value or ""
-            if "East End" not in str(current):
-                ws.cell(row, loc_col).value = f"{current} (Digicon East End / radio 2)"
+        if nid == "C3":
+            if loc_col:
+                current = ws.cell(row, loc_col).value or ""
+                if "East End" not in str(current):
+                    ws.cell(row, loc_col).value = f"{current} (Digicon East End / radio 2)"
+            boards_12 = idx.get("12V Boards")
+            num_12 = idx.get("Num 12V")
+            if boards_12:
+                ws.cell(row, boards_12).value = 0
+            if num_12:
+                ws.cell(row, num_12).value = 0
+            if boards_5v_col:
+                ws.cell(row, boards_5v_col).value = 3
+            if num_5v_col:
+                ws.cell(row, num_5v_col).value = 24
         if nid == "C5" and loc_col:
             current = ws.cell(row, loc_col).value or ""
             if "Barn" not in str(current):
@@ -391,7 +403,7 @@ def refresh_turnout_summary(ws: Worksheet) -> list[str]:
                 f"{prefix} Y Port",
                 f"{prefix} G Port",
             )
-            # Reuse RGB port columns as head 1/2/3 (searchlights, not lamp colors).
+            # R/Y/G columns are lamp colors of one 3-pin head.
             if r_key in idx:
                 ws.cell(row, idx[r_key]).value = ports[0]
             if y_key in idx:
@@ -455,29 +467,29 @@ def rebuild_asbuilt_inventory(ws: Worksheet, wiring: list[dict[str, str]], masts
     if ws.max_row > 1:
         ws.delete_rows(2, ws.max_row - 1)
     plan_by_name = {r["proposed_mast_name"]: r for r in masts}
-    for mast, head_rows in heads_by_mast.items():
-        head_rows = sorted(head_rows, key=lambda r: int(r["signal_index"]))
+    for mast, pin_rows in heads_by_mast.items():
+        pin_rows = sorted(pin_rows, key=lambda r: (r.get("lamp_color") or r["head_role"] or ""))
         plan = plan_by_name.get(mast, {})
-        packed = " ".join(r["packed"] for r in head_rows)
-        ports = " ".join(r["port_id"] for r in head_rows)
-        topics = " ".join(r["topic"] for r in head_rows)
+        packed = pin_rows[0]["packed"]
+        ports = " ".join(r["port_id"] for r in pin_rows)
+        topics = pin_rows[0]["topic"]
         ws.append(
             [
-                plan.get("cp") or head_rows[0].get("board_location"),
+                plan.get("cp") or pin_rows[0].get("board_location"),
                 mast,
-                len(head_rows),
+                1,
                 plan.get("direction") or "",
                 f"({plan.get('panel_x')},{plan.get('panel_y')}) {plan.get('edge')}" if plan else "",
                 plan.get("protects_switch") or "",
-                head_rows[0]["mqtt_node"],
-                head_rows[0]["parent_node_id"],
+                pin_rows[0]["mqtt_node"],
+                pin_rows[0]["parent_node_id"],
                 packed,
                 ports,
                 topics,
                 plan.get("mast_system_name") or "",
-                "double" if len(head_rows) == 2 else "single",
-                "hart-aar SL-2-digicon" if len(head_rows) == 2 else "AAR-1946 SL-1-low",
-                head_rows[0].get("notes") or "",
+                "single",
+                "AAR-1946 SL-1-low (3-pin STOP/APPROACH/CLEAR)",
+                pin_rows[0].get("notes") or "",
             ]
         )
 
