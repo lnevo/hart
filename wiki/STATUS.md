@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — PanelPro/CATS quit: if Digicon SML is Enabled (or enabling), Hold / wait / Unheld then `sml_mode` **disabled**. Abort still skips RELEASE. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
 Updated: 2026-08-29 — Digicon Enable/Disable Hold publishes Held/Aspect (no MQTT mute). Only **abort** mutes SET/Unheld: dests off without Hold because another agent owns Digicon. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — Cleared retained `track/signalhead/*` and `track/signalmast/*` except packed **432** and **433**. Broker-only; not deployed.

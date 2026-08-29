@@ -39,6 +39,8 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn('"aborted"', text)
         self.assertIn("_schedule_enabled_after_enabling", text)
         self.assertIn("_announce_enabling", text)
+        self.assertIn("AbstractShutDownTask", text)
+        self.assertIn("_on_jmri_shutdown", text)
         self.assertNotIn("mosquitto", text.lower())
         self.assertNotIn("subprocess", text)
         self.assertNotIn("import socket", text)
@@ -65,6 +67,24 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         )
         self.assertNotIn("setHeld", abort)
         self.assertNotIn("_publish_unheld", abort)
+
+    def test_shutdown_hold_release_then_disabled(self) -> None:
+        text = PUBLISHER.read_text(encoding="utf-8")
+        start = text[text.index("def start") : text.index("def _stored_enabled")]
+        self.assertIn("_register_shutdown_task()", start)
+        self.assertIn("AbstractShutDownTask", start)
+        quit = text[
+            text.index("def _on_jmri_shutdown") : text.index(
+                "def _stored_enabled_source_names"
+            )
+        ]
+        self.assertIn("_hand_off_disabled(release=True)", quit)
+        self.assertIn("self._abort_in_progress", quit)
+        self.assertNotIn("_abort_sml_immediate", quit)
+        enable = text[
+            text.index("def _enter_enabled") : text.index("def _enter_disabled")
+        ]
+        self.assertIn("self._shutting_down", enable)
 
     def test_per_mast_dest_uncheck_unhelds_immediately(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
