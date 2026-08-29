@@ -80,9 +80,9 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     # C11 radio 11 — Princess east (40 @ SW39) + balloon.
     ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1132, "C11-OU2-1", "C11-OU2-2", "C11-OU2-3", "T", "was C1 132"),
     ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1135, "C11-OU2-4", "C11-OU2-5", "C11-OU2-6", "B", "with 40LB T on OU2"),
-    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1136, "C11-OU2-7", "C11-OU3-8", "C11-OU3-7", "S", "G with 40LB; Y/R on balloon OU3 (OU2-8 is BS cal)"),
-    ("Mast 2036", 11, "C11", "Helix (balloon 114)", 1133, "C11-OU3-1", "C11-OU3-2", "C11-OU3-3", "S", "S1-6; sequential G/Y/R"),
-    ("Mast 2035", 11, "C11", "Helix (balloon 115)", 1134, "C11-OU3-4", "C11-OU3-5", "C11-OU3-6", "S", "S4-6; sequential G/Y/R"),
+    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1136, "C11-OU3-1", "C11-OU3-2", "C11-OU3-3", "S", "whole dwarf on OU3; 2035/2036 can sit apart"),
+    ("Mast 2036", 11, "C11", "Helix (balloon 114)", 1133, "C11-OU3-4", "C11-OU3-5", "C11-OU3-6", "S", "balloon; sequential G/Y/R"),
+    ("Mast 2035", 11, "C11", "Helix (balloon 115)", 1134, "C11-OU3-7", "C11-OU3-8", "C11-OU2-7", "S", "leftover trio (OU2-8 is BS cal)"),
 ]
 
 APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}

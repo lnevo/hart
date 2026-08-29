@@ -500,7 +500,7 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     },
     "Switch 114": {
         "entry": "2036",
-        "entry_ports": ("C11-OU3-3", "C11-OU3-2", "C11-OU3-1"),
+        "entry_ports": ("C11-OU3-6", "C11-OU3-5", "C11-OU3-4"),
         "normal": "38LB",
         "normal_ports": ("C1-OU4-3", "C1-OU4-2", "C1-OU4-1"),
         "reverse": "38LA",
@@ -508,11 +508,11 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     },
     "Switch 115": {
         "entry": "2035",
-        "entry_ports": ("C11-OU3-6", "C11-OU3-5", "C11-OU3-4"),
+        "entry_ports": ("C11-OU2-7", "C11-OU3-8", "C11-OU3-7"),
         "normal": "40LB",
         "normal_ports": ("C11-OU2-3", "C11-OU2-2", "C11-OU2-1"),
         "reverse": "40LA",
-        "reverse_ports": ("C11-OU3-7", "C11-OU3-8", "C11-OU2-7"),
+        "reverse_ports": ("C11-OU3-3", "C11-OU3-2", "C11-OU3-1"),
     },
     "Switch 117": {
         "entry": "8RA",

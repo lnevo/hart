@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-08-29 — 40LA together; 2035/2036 apart
+
+40LA is three consecutive pins on C11-OU3. Balloon dwarfs 2035/2036 are separate objects; 2035 takes the leftover trio. Desktop wiring pack refreshed so C1-OU1 shows Switch 35/37/39 (not 113–115). `tables.xml` not patched.
+
 ## 2026-08-29 — CTC switch names + keep dwarfs on leftover pins
 
 Inventory Switch 100–119 labels are live CTC numbers (Switch 35 not 113). 38LA G/Y move off C1-OU4 onto unused OU3-7/8 (R stays OU2-7). 24RB is three consecutive pins on C2-OU3. `tables.xml` not patched.

@@ -16,7 +16,7 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is 103–106 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
+**Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is Switch 15–21 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
 
 **Block-sensor calibration:** every node that has occupancy detectors reserves **pin 8 of its first 5V DNOU8** for detector calibration current (not a lamp, not a relay). First 5V board is the lowest-numbered OU on the 5V rail (OU1 when that board is 5V; otherwise OU2).
 
@@ -132,21 +132,21 @@ Place **OU2+OU3** at Switch 35 (36RA / 36RB), **OU4** at Switch 37 (38LB). 38LA 
 
 ### C11 — Princess east + balloon (radio 11, packed `11xx`)
 
-Place **OU2** at SW39 (40), **OU3** at the balloon. 40LA R spills to the balloon board. Balloon packed IDs stay `1133` / `1134`.
+Place **OU2** at Switch 39 (40LB), **OU3** at 40LA + balloon. 2035/2036 are separate dwarfs; 2035 takes the leftover trio.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | SW129, SW127, SW138 motors; OU1-7/8 spare |
-| OU2 | 5V | 40LB T+B, 40LA G; **OU2-8 block-sensor cal** |
-| OU3 | 5V | 2036, 2035, 40LA Y/R |
+| OU2 | 5V | 40LB T+B, 2035 R; **OU2-8 block-sensor cal** |
+| OU3 | 5V | 40LA, 2036, 2035 G/Y |
 
 | Mast | Disc | Packed | G | Y | R |
 |------|------|--------|---|---|---|
 | 40LB | T | `IH1132` | OU2-1 | OU2-2 | OU2-3 |
 | 40LB | B | `IH1135` | OU2-4 | OU2-5 | OU2-6 |
-| 40LA | | `IH1136` | OU2-7 | OU3-8 | OU3-7 |
-| 2036 | | `IH1133` | OU3-1 | OU3-2 | OU3-3 |
-| 2035 | | `IH1134` | OU3-4 | OU3-5 | OU3-6 |
+| 40LA | | `IH1136` | OU3-1 | OU3-2 | OU3-3 |
+| 2036 | | `IH1133` | OU3-4 | OU3-5 | OU3-6 |
+| 2035 | | `IH1134` | OU3-7 | OU3-8 | OU2-7 |
 
 `signals_split_v8.xlsx` stays the frozen RGB plan.
 

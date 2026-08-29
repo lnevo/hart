@@ -2,6 +2,8 @@
 
 Updated: 2026-08-29 — Removed DCC≥14 OpenLCB workaround routes **Switch 37/39 Closed+Thrown** (`IO:AUTO:0001`–`0004`). MQTT comments still `DCC: 114` / `DCC: 115`. Reload **PanelPro**. Deploy `--pi --win`.
 
+Updated: 2026-08-29 — 40LA is together on C11-OU3; 2035/2036 sit apart (2035 leftover). Desktop wiring pack copied so Switch 35/37/39 show on C1-OU1. Docs-only, not deployed.
+
 Updated: 2026-08-29 — Inventory uses CTC switch numbers; 38LA occupies C1 leftover OU3-7/8+OU2-7; 24RB is together on C2-OU3. Docs-only, not deployed.
 
 Updated: 2026-08-29 — Restored v84 mangled upper-deck motors (`Switch 10038`/`1127`/…) to `SW138`/`SW127`/…. Inventory only; no `tables.xml`. Docs-only, not deployed.
