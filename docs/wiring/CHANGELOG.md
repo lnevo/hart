@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-08-29 — Upper deck Switch 61+ / clear leftover S2
+
+Upper plants are Switch 61, 63, 65… with even signal numbers 62L, 64R, 66RA… (same odd/even split as the lower deck). Old SW127/NIX/S4-1 labels are gone from the inventory. Leftover East End `S2-6`/`S2-7` RGB on C2 is cleared; C2-OU3 stays because 24RB needs three pins. `tables.xml` not patched.
+
 ## 2026-08-29 — Drop C3 leftover S3; CP4–CP6 heads
 
 C3 leftover CP3 RGB is gone; **C3-OU3** removed (OU2 stays for block-sensor cal). Switch 15–21 have no signal faces. `signals_split_v8` switch columns use CTC names. Remaining `S4-*`/`S5-*`/`S6-*` LEDs are defined heads on CP4/CP5/CP6; S4-4+S4-5 share SW138, S5-6 is DJE reverse, S5-7 is SW124 reverse. `tables.xml` not patched.

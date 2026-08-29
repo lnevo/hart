@@ -288,14 +288,77 @@ HEAD_MAST_RE = re.compile(r"^Head (\S+)")
 LED_NAME_RE = re.compile(r"^S\d+-\d+")
 RGB_LED_RE = re.compile(r"^(S([4-6])-(\d+))\s+([GYR])$")
 
+# Upper deck continues the lower-deck odd-switch / even-signal pattern from 61/62.
+# CP4 (helix) first, then CP5 (north), then CP6 (peninsula/west). v8 column order
+# inside each CP. Compound plants keep a/b/c/d on the physical machines.
+UPPER_SWITCH_NUM: dict[str, str] = {
+    "NIX": "Switch 61",
+    "SW127": "Switch 63",
+    "SW138": "Switch 65",
+    "SW129": "Switch 67",
+    "DJE": "Switch 69",
+    "DJW": "Switch 71",
+    "SW124": "Switch 73",
+    "CBX": "Switch 75",
+    "SW143": "Switch 77",
+    "SW144": "Switch 79",
+    "SW145": "Switch 81",
+    "SW146": "Switch 83",
+    "SW147": "Switch 85",
+    "SW148": "Switch 87",
+    "SW149": "Switch 89",
+    "SW150": "Switch 91",
+    "SW125": "Switch 61a",
+    "SW126": "Switch 61b",
+    "SW139": "Switch 61c",
+    "SW140": "Switch 61d",
+    "SW121": "Switch 69a",
+    "SW123": "Switch 69b",
+    "SW120": "Switch 71a",
+    "SW122": "Switch 71b",
+    "SW141": "Switch 75a",
+    "SW142": "Switch 75b",
+}
+
+# Planned RGB head → even mast id (switch+1, L/R/A/B like 24L / 36RA).
+UPPER_HEAD_NAME: dict[str, str] = {
+    "S4-6": "62L",
+    "S4-3": "64L",
+    "S4-1": "64R",
+    "S4-4": "66RA",
+    "S4-5": "66RB",
+    "S4-2": "68L",
+    "S4-7": "68R",
+    "S5-1": "70L",
+    "S5-5": "70RA",
+    "S5-6": "70RB",
+    "S5-2": "72L",
+    "S5-3": "74L",
+    "S5-4": "74RA",
+    "S5-7": "74RB",
+    "S6-1": "76L",
+    "S6-2": "76R",
+    "S6-3": "78L",
+    "S6-6": "78R",
+    "S6-4": "78RA",
+    "S6-5": "78RB",
+    "S6-10": "82L",
+    "S6-11": "84RA",
+    "S6-12": "84RB",
+    "S6-13": "86L",
+    "S6-7": "88L",
+    "S6-8": "88R",
+    "S6-9": "88RA",
+    "S6-14": "90L",
+    "S6-15": "92L",
+}
+
 # v8 heads that are clearly extra discs on an existing plant (not a new mast).
-# S4-4/S4-5 share SW138 and both go Closet Inner. S5-6/S5-7 are reverse exits
-# already listed on DJE / SW124. Everything else stays a defined head.
 V8_MAST_HINT: dict[str, str] = {
-    "S4-4": "SW138 (with S4-5)",
-    "S4-5": "SW138 (with S4-4)",
-    "S5-6": "DJE reverse",
-    "S5-7": "SW124 reverse",
+    "S4-4": "Switch 65 (with 66RB)",
+    "S4-5": "Switch 65 (with 66RA)",
+    "S5-6": "Switch 69 reverse",
+    "S5-7": "Switch 73 reverse",
 }
 
 UPPER_TURNOUT_CP: dict[str, str] = {
@@ -317,7 +380,29 @@ UPPER_TURNOUT_CP: dict[str, str] = {
     "SW150": "CP6 (Peninsula - Upper)",
 }
 
+
+def _build_upper_name_tokens() -> list[tuple[re.Pattern[str], str]]:
+    """Longest-first regexes: S6-15 before S6-1, SW150 before SW124, NIX last."""
+    out: list[tuple[re.Pattern[str], str]] = []
+    for old, new in sorted(
+        UPPER_HEAD_NAME.items(), key=lambda kv: (-len(kv[0]), kv[0])
+    ):
+        out.append(
+            (re.compile(rf"(?<!was )(?<![A-Za-z0-9]){re.escape(old)}(?![0-9])"), new)
+        )
+    for old, new in sorted(
+        UPPER_SWITCH_NUM.items(), key=lambda kv: (-len(kv[0]), kv[0])
+    ):
+        out.append(
+            (re.compile(rf"(?<![A-Za-z0-9]){re.escape(old)}(?![A-Za-z0-9])"), new)
+        )
+    return out
+
+
+_UPPER_NAME_TOKENS = _build_upper_name_tokens()
+
 RETIRED_S3_TURNOUTS = ("Switch 15", "Switch 17", "Switch 19", "Switch 21")
+RETIRED_S2_TURNOUTS = ("Switch 25", "Switch 27", "Switch 29")
 TURNOUT_SIGNAL_COLS = (
     "Entry Signal",
     "Entry Signal R Port",
@@ -372,6 +457,23 @@ def apply_legacy_sw_tokens(wb) -> int:
                     continue
                 out = cell.value
                 for pat, repl in _SW_TOKEN_CTC:
+                    out = pat.sub(repl, out)
+                if out != cell.value:
+                    cell.value = out
+                    n += 1
+    return n
+
+
+def apply_upper_deck_names(wb) -> int:
+    """SW127/NIX/S4-1 → Switch 63 / Switch 61 / 64R (upper CTC 61+)."""
+    n = 0
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                if not isinstance(cell.value, str) or not cell.value:
+                    continue
+                out = cell.value
+                for pat, repl in _UPPER_NAME_TOKENS:
                     out = pat.sub(repl, out)
                 if out != cell.value:
                     cell.value = out
@@ -787,7 +889,7 @@ def load_v8_signal_info() -> dict[str, dict[str, str]]:
 
 
 def clear_retired_s3_rgb(ws: Worksheet) -> list[str]:
-    """Drop leftover CP3 RGB on C3 (and the stray S3-14 G on C13). Remove C3-OU3."""
+    """Drop leftover CP3 RGB on C3, stray S3-14 on C13, leftover S2 on C2. Remove C3-OU3."""
     log: list[str] = []
     drop_rows: list[int] = []
     for row in range(2, ws.max_row + 1):
@@ -806,6 +908,16 @@ def clear_retired_s3_rgb(ws: Worksheet) -> list[str]:
             ws.cell(row, 6).value = None
             ws.cell(row, 8).value = f"spare (CP3 leftover RGB removed; was {prev})"
             log.append(f"clear {pid}: {prev!r}")
+        elif pid in ("C2-OU2-7",) or pid.startswith("C2-OU3-"):
+            ch = int(pid.rsplit("-", 1)[-1])
+            # 24RB lives on C2-OU3-6/7/8 — keep that dwarf; drop leftover S2 only.
+            if pid.startswith("C2-OU3-") and ch >= 6:
+                continue
+            if prev and str(prev).startswith("S2-"):
+                ws.cell(row, 5).value = None
+                ws.cell(row, 6).value = None
+                ws.cell(row, 8).value = f"spare (CP2 leftover RGB removed; was {prev})"
+                log.append(f"clear {pid}: {prev!r}")
     for row in reversed(drop_rows):
         pid = ws.cell(row, 1).value
         ws.delete_rows(row)
@@ -827,7 +939,8 @@ def annotate_upper_rgb_heads(ws: Worksheet) -> list[str]:
         sig, color = m.group(1), m.group(4)
         meta = info.get(sig, {})
         cp = meta.get("cp") or f"CP{m.group(2)}"
-        new_name = f"Head {sig} {color}"
+        mast_id = UPPER_HEAD_NAME.get(sig, sig)
+        new_name = f"Head {mast_id} {color}"
         bits = [cp]
         if meta.get("from") or meta.get("to"):
             bits.append(f"{meta.get('from') or '?'} → {meta.get('to') or '?'}")
@@ -838,6 +951,7 @@ def annotate_upper_rgb_heads(ws: Worksheet) -> list[str]:
             bits.append(f"mast {mast}")
         else:
             bits.append("defined head")
+        bits.append(f"was {sig}")
         note = " | ".join(bits)
         ws.cell(row, 5).value = new_name
         prev_note = ws.cell(row, 8).value
@@ -849,13 +963,14 @@ def annotate_upper_rgb_heads(ws: Worksheet) -> list[str]:
 
 
 def clear_s3_turnout_signals(ws: Worksheet) -> list[str]:
-    """Switch 15–21 no longer have leftover S3 RGB faces."""
+    """Switch 15–21 / 25–29 no longer have leftover S3/S2 RGB faces."""
     log: list[str] = []
     idx = header_index(ws)
     tcol = idx["Turnout"]
+    retired = set(RETIRED_S3_TURNOUTS + RETIRED_S2_TURNOUTS)
     for row in range(2, ws.max_row + 1):
         name = str(ws.cell(row, tcol).value or "")
-        if name not in RETIRED_S3_TURNOUTS:
+        if name not in retired:
             continue
         changed = False
         for col_name in TURNOUT_SIGNAL_COLS:
@@ -866,7 +981,7 @@ def clear_s3_turnout_signals(ws: Worksheet) -> list[str]:
                 ws.cell(row, col).value = None
                 changed = True
         if changed:
-            log.append(f"{name}: cleared leftover S3 faces")
+            log.append(f"{name}: cleared leftover S2/S3 faces")
     return log
 
 
@@ -1129,8 +1244,8 @@ def add_split_readme(path: Path) -> None:
         ("", False),
         ("This workbook is the Nov 2025 RGB LED plan (S1-1 … S6-15).", False),
         ("Lower-deck switch columns use live CTC names (Switch 1, Switch 35, …).", False),
-        ("S4-* = CP4, S5-* = CP5, S6-* = CP6. Mast is filled only when v8 routes", False),
-        ("make a 2-head grouping obvious; otherwise the row is a defined head.", False),
+        ("Upper-deck plants are Switch 61, 63, 65…; heads are 62L, 64R, 66RA….", False),
+        ("S4-* = CP4, S5-* = CP5, S6-* = CP6 (historical IDs kept in Notes as was S4-1).", False),
         ("Lower-deck Digicon searchlights (6LB, 8RA, 36RA, …) are NOT in this file.", False),
         ("", False),
         ("Live lower-deck signal matrix:", False),
@@ -1187,8 +1302,9 @@ def add_v8_mast_column(path: Path) -> int:
                 if out != cell.value:
                     cell.value = out
                     sw_n += 1
+    upper_n = apply_upper_deck_names(wb)
     wb.save(path)
-    print(f"  v8 Mast cells: {n}; CTC switch tokens: {sw_n}")
+    print(f"  v8 Mast cells: {n}; CTC switch tokens: {sw_n}; upper 61+ names: {upper_n}")
     return n
 
 
@@ -1225,6 +1341,7 @@ def refresh_inventory() -> Path:
     sw_n = apply_legacy_sw_tokens(wb)
     s3_ts_log = clear_s3_turnout_signals(wb["TurnoutSummary"])
     cp_ts_log = tag_upper_turnouts_cp(wb["TurnoutSummary"])
+    upper_n = apply_upper_deck_names(wb)
     refresh_nodes(wb["Nodes"])
     summarize_node_labels(wb["Nodes"], wb["DNOU8"], wb["DNIN8"])
     add_digicon_sheet(wb, wiring, heads)
@@ -1246,6 +1363,7 @@ def refresh_inventory() -> Path:
     print(f"  Mangled SW1xx restorations (cells): {mangled_n}")
     print(f"  DCC Switch 100–119 → CTC (cells): {ctc_n}")
     print(f"  Legacy SW/SCX tokens (cells): {sw_n}")
+    print(f"  Upper-deck 61+ names (cells): {upper_n}")
     print(f"  BlockSensors renames: {len(bs_log)}")
     for line in bs_log:
         print(f"    {line}")
