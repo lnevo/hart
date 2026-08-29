@@ -64,7 +64,12 @@ fi
 
 SML_GATE="$ROOT/cats/scripts/disable_digicon_sml_in_tables.py"
 if [[ -n "$TABLES" && -f "$SML_GATE" ]]; then
-  python3 "$SML_GATE" --check --panel "$TABLES"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    python3 "$SML_GATE" --dry-run --panel "$TABLES"
+  else
+    # Flip Digicon MQTT dests to Enabled=no in the file we ship; do not copy over the other tables file.
+    python3 "$SML_GATE" --panel "$TABLES" --no-sync
+  fi
 fi
 
 JYTHON_STARTUP_SCRIPTS=(

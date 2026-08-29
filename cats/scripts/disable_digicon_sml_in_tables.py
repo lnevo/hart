@@ -7,11 +7,12 @@ Non-Digicon SML sources (yard / approach without LCOS IH heads) are left alone.
 
 Edits tables/new_tables.xml then copies to jmri/layouts/hart/output/tables.xml.
 Re-run after cats/scripts/run_sml_discover.sh (Discover writes enabled=yes).
+Deploy (`sync_hart_package.sh`) calls this with `--panel` on the shipped tables
+and `--no-sync` so Digicon dests are Disabled without replacing the other file.
 
 Usage:
   python3 cats/scripts/disable_digicon_sml_in_tables.py
   python3 cats/scripts/disable_digicon_sml_in_tables.py --dry-run
-  python3 cats/scripts/disable_digicon_sml_in_tables.py --check
   python3 cats/scripts/disable_digicon_sml_in_tables.py --check --panel path/to/tables.xml
 """
 
