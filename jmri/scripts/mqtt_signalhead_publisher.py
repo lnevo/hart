@@ -10,15 +10,16 @@
 #
 # Boot (read topic only -- no MQTT retain publish, except stored-Enabled):
 #   If Digicon dests loaded Enabled (stored tables): popup, publish
-#   enabled_on_boot. That instance does not abort -- dests stay on. Other
+#   enabling. That instance does not abort -- dests stay on. Other
 #   agents that see the token publish aborting, uncheck immediately
 #   (no Hold/Red/Unheld), then aborted, and stay Disabled. Solo boot has
 #   nobody to abort (correct). After SML_ABORT_RESUME_MS the originator
 #   publishes enabled. If that never happens, the LCOS bridge challenges.
 #   Clean boot: hold Digicon SML off until track/bridge/sml_mode is seen.
 #   missing / disabled / query / disabling -> take Digicon (enable SML; announce enabled).
-#   enabled / enabled_on_boot / aborting / aborted -> stay Disabled (originator owns resume).
-# Operator toggle still announces sml_mode for the bridge.
+#   enabled / enabling / aborting / aborted -> stay Disabled (originator owns resume).
+# Operator Enable when sml_mode is already enabled: force-override popup;
+#   Yes publishes enabling (same abort for other agents) then enabled.
 # Query or disabling ACK when Enabled (so bridge can suspend RELEASE).
 #
 # Topic leaf is packed digits only (IH432 -> .../432). Beans stay IH*.
@@ -38,7 +39,7 @@ MAST_TOPIC_PREFIX = "track/signalmast/"
 SML_MODE_TOPIC = "track/bridge/sml_mode"
 HOLD_WAIT_MS = 3000
 BOOT_MODE_WAIT_MS = 3000
-# After enabled_on_boot, originator waits then announces sml_mode enabled.
+# After enabling, originator waits then announces sml_mode enabled.
 SML_ABORT_RESUME_MS = 3000
 # True: skip Held/Aspect MQTT during Hold wait (production).
 # False: Hold still publishes Red before the explicit Unheld (test).
@@ -221,6 +222,7 @@ class DigiconMqttSml(
         self._source_field_owned = {}
         self._dest_enable_maps = {}
         self._stored_sml_was_enabled = False
+        self._enabling_originator = False
         self._abort_in_progress = False
         self._resume_after_abort_scheduled = False
 
@@ -232,16 +234,16 @@ class DigiconMqttSml(
         self._collect_beans()
         self._attach_bean_listeners()
         self._attach_sml_listeners()
-        # Snapshot before subscribe so our own enabled_on_boot echo cannot abort us.
+        # Snapshot before subscribe so our own enabling echo cannot abort us.
         stored_on = self._warn_if_stored_sml_enabled()
         if stored_on:
             self._stored_sml_was_enabled = True
+            self._enabling_originator = True
         self._subscribe_mqtt()
         self._add_toggle_button()
         if stored_on:
-            self._publish_mode("enabled_on_boot")
-            print("mqtt_signalhead: sml_mode enabled_on_boot (this instance does not abort)")
-            self._schedule_enabled_after_boot_announce()
+            self._announce_enabling("stored dests")
+            self._schedule_enabled_after_enabling()
         else:
             # Boot: force Digicon SML off and keep suppress until mode read.
             # No MQTT retain publish here -- only read broker delivery on subscribe.
@@ -336,7 +338,16 @@ class DigiconMqttSml(
             self._busy = False
             self._set_button_label()
 
-    def _schedule_enabled_after_boot_announce(self):
+    def _announce_enabling(self, reason):
+        """Publish enabling; this instance does not abort. Other agents must."""
+        self._enabling_originator = True
+        self._publish_mode("enabling")
+        print(
+            "mqtt_signalhead: sml_mode enabling (%s; this instance does not abort)"
+            % reason
+        )
+
+    def _schedule_enabled_after_enabling(self):
         """Originator only: dests stay on; after a short wait announce enabled."""
         if self._resume_after_abort_scheduled:
             return
@@ -350,12 +361,12 @@ class DigiconMqttSml(
                 if controller._global_enabled and str(
                     controller._retained_mode or ""
                 ).strip().lower() == "enabled":
-                    print("mqtt_signalhead: boot announce skipped (already enabled)")
+                    print("mqtt_signalhead: enabling announce skipped (already enabled)")
                     return
-                print("mqtt_signalhead: enabled_on_boot -- take Digicon (enabled)")
+                print("mqtt_signalhead: enabling -- take Digicon (enabled)")
                 controller._enter_enabled(force=True, from_boot=True)
 
-        Thread(_Resume(), "digicon-sml-boot-announce").start()
+        Thread(_Resume(), "digicon-sml-enabling").start()
 
     def _boot_hold_sml_off(self):
         """Force Digicon SML pairs off; leave suppress on until boot check finishes."""
@@ -674,11 +685,17 @@ class DigiconMqttSml(
         return holder[0] == JOptionPane.YES_OPTION
 
     def _probe_and_confirm_override(self):
-        """If sml_mode is already enabled elsewhere, ask before taking control."""
+        """If sml_mode is already enabled elsewhere, ask before taking control.
+
+        Return "ok" (take Digicon now), "force" (publish enabling so others
+        abort), or "cancel".
+        """
         mode = self._retained_mode
         if mode is not None and str(mode).strip().lower() == "enabled":
             print("mqtt_signalhead: retain already enabled -- asking override")
-            return self._ask_force_override_edt()
+            if self._ask_force_override_edt():
+                return "force"
+            return "cancel"
         # Live probe: another Enabled Digicon answers query with enabled.
         self._probe_saw_enabled = False
         self._probe_active = True
@@ -690,9 +707,11 @@ class DigiconMqttSml(
             self._probe_active = False
         if self._probe_saw_enabled:
             print("mqtt_signalhead: probe saw enabled -- asking override")
-            return self._ask_force_override_edt()
+            if self._ask_force_override_edt():
+                return "force"
+            return "cancel"
         print("mqtt_signalhead: probe clear -- enabling without override")
-        return True
+        return "ok"
 
     def _enter_enabled(self, force, from_boot):
         if self._busy:
@@ -706,9 +725,13 @@ class DigiconMqttSml(
             def run(_self):
                 try:
                     if not force and not from_boot:
-                        if not controller._probe_and_confirm_override():
+                        result = controller._probe_and_confirm_override()
+                        if result == "cancel":
                             print("mqtt_signalhead: enable aborted (no override)")
                             return
+                        if result == "force":
+                            controller._announce_enabling("force override")
+                            Thread.sleep(SML_ABORT_RESUME_MS)
                     controller._hand_off_enabled()
                 finally:
                     controller._busy = False
@@ -810,6 +833,7 @@ class DigiconMqttSml(
             self._global_enabled = True
             # Ownership announce for the bridge (not a boot retain republish).
             self._publish_mode("enabled")
+            self._enabling_originator = False
             # Push current appearances once Digicon owns SET again.
             for head in self._heads:
                 if self._mast_logic_enabled(self._mast_for_head(head)):
@@ -1063,20 +1087,20 @@ class DigiconMqttSml(
             "disabled",
             "query",
             "disabling",
-            "enabled_on_boot",
+            "enabling",
             "aborting",
             "aborted",
         ):
             # Do not let our probe query wipe a known enabled retain for the fast path.
             if not (self._probe_active and mode == "query"):
                 self._retained_mode = mode
-        if mode == "enabled_on_boot":
-            if self._stored_sml_was_enabled:
+        if mode == "enabling":
+            if self._enabling_originator:
                 print(
-                    "mqtt_signalhead: own enabled_on_boot -- leave SML on, wait to announce enabled"
+                    "mqtt_signalhead: own enabling -- leave SML, wait to announce enabled"
                 )
                 return
-            print("mqtt_signalhead: saw enabled_on_boot -- abort SML")
+            print("mqtt_signalhead: saw enabling -- abort SML")
             self._abort_sml_immediate()
             return
         # Live Digicon: answer query and disabling so the LCOS bridge can abort RELEASE.

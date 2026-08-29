@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-29 — Stored-Enabled Digicon boot: that instance publishes `sml_mode` **enabled_on_boot** and does **not** abort. Other agents **aborting** (immediate uncheck, no Red/wait/hold) → **aborted**. Originator announces **enabled** after ~3s. Solo boot has nobody to abort; if `enabled` never arrives, the Windows bridge challenges to **disabled**. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
+Updated: 2026-08-29 — `sml_mode` **enabling** (was enabled_on_boot): stored-Enabled boot and Force override. Originator does **not** abort; other agents **aborting** → **aborted**. Originator announces **enabled** after ~3s. If that never arrives, the Windows bridge challenges to **disabled**. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — Digicon publisher popup if tables loaded SML Enabled; startup continues. Store with SML Disabled to clear it. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 

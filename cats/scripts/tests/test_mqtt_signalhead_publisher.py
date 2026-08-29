@@ -31,12 +31,14 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("_warn_if_stored_sml_enabled", text)
         self.assertIn("showMessageDialog", text)
         self.assertIn("Digicon SML stored Enabled", text)
-        self.assertIn("enabled_on_boot", text)
+        self.assertIn('_publish_mode("enabling")', text)
+        self.assertNotIn("enabled_on_boot", text)
         self.assertIn("_abort_sml_immediate", text)
         self.assertIn("SML_ABORT_RESUME_MS", text)
         self.assertIn('"aborting"', text)
         self.assertIn('"aborted"', text)
-        self.assertIn("_schedule_enabled_after_boot_announce", text)
+        self.assertIn("_schedule_enabled_after_enabling", text)
+        self.assertIn("_announce_enabling", text)
         self.assertNotIn("mosquitto", text.lower())
         self.assertNotIn("subprocess", text)
         self.assertNotIn("import socket", text)
@@ -72,20 +74,23 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
     def test_boot_abort_unchecks_without_hold_or_unheld(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
         start = text[text.index("def start") : text.index("def _stored_enabled")]
-        self.assertIn('_publish_mode("enabled_on_boot")', start)
-        self.assertIn("_schedule_enabled_after_boot_announce", start)
+        self.assertIn('_announce_enabling("stored dests")', start)
+        self.assertIn("_schedule_enabled_after_enabling", start)
         self.assertNotIn("_abort_sml_immediate()", start)
         off = text.index("def _abort_sml_immediate")
-        chunk = text[off : text.index("def _schedule_enabled_after_boot_announce")]
+        chunk = text[off : text.index("def _announce_enabling")]
         self.assertIn('_publish_mode("aborting")', chunk)
         self.assertIn("_set_all_digicon_sml_destinations(False)", chunk)
         self.assertIn('_publish_mode("aborted")', chunk)
         self.assertNotIn("_publish_unheld", chunk)
         self.assertNotIn("HOLD_WAIT", chunk)
-        self.assertNotIn("_schedule_enabled_after_boot_announce()", chunk)
+        enable = text[text.index("def _enter_enabled") : text.index("def _enter_disabled")]
+        self.assertIn('_announce_enabling("force override")', enable)
+        self.assertIn('result == "force"', enable)
         on_mode = text[text.index("def _on_sml_mode") :]
-        self.assertIn("own enabled_on_boot", on_mode)
-        self.assertIn("if self._stored_sml_was_enabled:", on_mode)
+        self.assertIn("own enabling", on_mode)
+        self.assertIn("if self._enabling_originator:", on_mode)
+        self.assertIn('_publish_mode("enabling")', text[text.index("def _announce_enabling") :])
 
     def test_head_names_match_wiring_csv(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
