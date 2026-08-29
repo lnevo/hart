@@ -16,7 +16,7 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**Next refresh (not in live CSVs yet):** packed MQTT node = radio Address. Princess heads on **C1** (radio 1), never **D1** (radio 5, DCC). East End on **C3** (radio 2). Barn on **C5** (radio 13). Princess overflow + intermediates **2035/2036** on **C7** (radio 11). One 3-pin `STOP/APPROACH/CLEAR` head per mast.
+**Next refresh (not in live CSVs yet):** packed MQTT node = radio Address. Princess heads on **C1** (radio 1), never **D1** (radio 5, DCC). East End on **C3** (radio 2); C3 has no turnouts so **OU1 is 5V** with OU2/OU3 (24 channels for 18 pins). Barn on **C5** (radio 13). Princess overflow + intermediates **2035/2036** on **C7** (radio 11). One 3-pin `STOP/APPROACH/CLEAR` head per mast. No new DNOU8 for Princess or East End.
 
 **102LA** is a 1-head dwarf on `C4-OU2-3` / `IH434`. `C4-OU2-4` is an unused packed hole (old 102LA Bottom / IH435); do not reuse it for 101RA. Live overlay still lists 2035/2036 on invented D1 ports — that goes away on refresh. `signals_split_v8.xlsx` stays the frozen RGB plan.
 

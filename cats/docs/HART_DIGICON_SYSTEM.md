@@ -160,7 +160,7 @@ Payload = appearance name      # Red / Yellow / Green / Dark / …
 |------|-------------------|--------------|--------------|---------------|
 | Plane + OS W-1 / OS W-2 + Brick east | **4** | C4 | `IH432`–`IH439` | C4-OU2-1 … OU2-6, C4-OU3-1/2 |
 | OS Barn / W-117 | **13** | **C5** (next refresh; live CSV still C1) | `IH1332`–`IH1338` | C5 5V OU |
-| East End | **2** (next refresh; live CSV still mqtt **12** / C7) | **C3** | packed `2xx` | C3-OU2/OU3 |
+| East End | **2** (next refresh; live CSV still mqtt **12** / C7) | **C3** | packed `2xx` | C3-OU1/OU2/OU3 (OU1 as 5V; no turnouts) |
 | Princess interlocking | **1** | **C1** (never D1 / radio 5 DCC) | `IH132`… | C1-OU2/OU3 |
 | Princess overflow + 2035/2036 | **11** | **C7** | packed `11xx` | C7-OU2/OU3 |
 

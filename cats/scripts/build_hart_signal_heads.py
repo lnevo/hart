@@ -8,6 +8,7 @@ Next refresh (one 3-pin head per mast, STOP/APPROACH/CLEAR):
   radio 1  C1  Princess interlocking (C1-OU2/OU3 5V). Overflow + 2035/2036
              onto C7 radio 11 — those objects pack as node 11, not 1.
   radio 2  C3  East End (all six faces). Packed 2xx, not today's 12xx.
+             C3 has no turnouts; run OU1 as 5V with OU2/OU3 (24 ch, 18 used).
   radio 3  C4  Plane / Brick
   radio 11 C7  Princess overflow (after East End leaves C7)
   radio 13 C5  Barn / 117
