@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — Deploy gate: `sync_hart_package.sh` fails if Digicon (MQTT) SML dests are still Enabled in the tables file being pushed. Working `tables/new_tables.xml` is already Disabled; `jmri/layouts/hart/output/tables.xml` currently is not. Docs-only until that file is cleaned. Not deployed.
+
 Updated: 2026-08-29 — `sml_mode` **enabling** (was enabled_on_boot): stored-Enabled boot and Force override. Originator does **not** abort; other agents **aborting** → **aborted**. Originator announces **enabled** after ~3s. If that never arrives, the Windows bridge challenges to **disabled**. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — Digicon publisher popup if tables loaded SML Enabled; startup continues. Store with SML Disabled to clear it. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.

@@ -11,6 +11,8 @@ Re-run after cats/scripts/run_sml_discover.sh (Discover writes enabled=yes).
 Usage:
   python3 cats/scripts/disable_digicon_sml_in_tables.py
   python3 cats/scripts/disable_digicon_sml_in_tables.py --dry-run
+  python3 cats/scripts/disable_digicon_sml_in_tables.py --check
+  python3 cats/scripts/disable_digicon_sml_in_tables.py --check --panel path/to/tables.xml
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ import argparse
 import csv
 import re
 import shutil
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,6 +31,10 @@ SYNC_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 _LOGIC_RE = re.compile(
     r'<signalmastlogic source="([^"]+)">.*?</signalmastlogic>',
+    re.DOTALL,
+)
+_DEST_ENABLED_RE = re.compile(
+    r'<destinationMast destination="([^"]+)">.*?<enabled>(yes|no)</enabled>',
     re.DOTALL,
 )
 
@@ -68,6 +75,19 @@ def disable_digicon_destinations(text: str, digicon: set[str]) -> tuple[str, int
     return out, flipped, already
 
 
+def enabled_digicon_pairs(text: str, digicon: set[str]) -> list[tuple[str, str]]:
+    """Digicon source -> dest pairs still stored Enabled=yes."""
+    pairs: list[tuple[str, str]] = []
+    for m in _LOGIC_RE.finditer(text):
+        src = m.group(1)
+        if src not in digicon:
+            continue
+        for dm in _DEST_ENABLED_RE.finditer(m.group(0)):
+            if dm.group(2) == "yes":
+                pairs.append((src, dm.group(1)))
+    return pairs
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
@@ -86,10 +106,47 @@ def main() -> None:
         action="store_true",
         help="Do not copy to jmri/layouts/hart/output/tables.xml",
     )
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help="Fail if any Digicon (MQTT) SML dest is still Enabled=yes; do not write",
+    )
     args = ap.parse_args()
+
+    if not args.panel.is_file():
+        print("missing tables file: %s" % args.panel, file=sys.stderr)
+        raise SystemExit(1)
 
     digicon = digicon_mast_names()
     text = args.panel.read_text(encoding="utf-8")
+    if args.check:
+        pairs = enabled_digicon_pairs(text, digicon)
+        rel = args.panel
+        try:
+            rel = args.panel.relative_to(ROOT)
+        except ValueError:
+            pass
+        if pairs:
+            print(
+                "ERROR: %s has %d Digicon SML dest(s) Enabled=yes "
+                "(MQTT masts must boot Disabled):"
+                % (rel, len(pairs)),
+                file=sys.stderr,
+            )
+            for src, dest in pairs[:24]:
+                print("  %s -> %s" % (src, dest), file=sys.stderr)
+            if len(pairs) > 24:
+                print("  ... (%d more)" % (len(pairs) - 24), file=sys.stderr)
+            print(
+                "Fix: python3 cats/scripts/disable_digicon_sml_in_tables.py",
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
+        print(
+            "ok: %s Digicon SML dests Enabled=no (masts=%d)"
+            % (rel, len(digicon))
+        )
+        return
     out, flipped, already = disable_digicon_destinations(text, digicon)
     print(
         "digicon masts=%d  flipped yes->no=%d  already no=%d"

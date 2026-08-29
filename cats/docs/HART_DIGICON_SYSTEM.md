@@ -246,11 +246,11 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `cats/scripts/apply_le_sml_facing.py` | AAR SHSM + Layout Editor `signalAMast` / block-boundary facing |
 | `jmri/layouts/hart/scripts/discover_sml.py` | PanelPro one-shot SML Discover (background; do not leave on Start Up) |
 | `cats/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit; then disable Digicon SML dests |
-| `cats/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no in `tables/new_tables.xml` (boot default) |
+| `cats/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no in `tables/new_tables.xml` (boot default). `--check` is the deploy gate |
 | `cats/scripts/polish_hart_master_header.py` | Publication title row |
 | `cats/scripts/build_hart_signal_heads.py` | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |
 | `cats/scripts/add_yard_ladder_buttons.py` | Ladder lamp buttons on Masters |
-| `cats/scripts/sync_hart_package.sh` | Stage `~/hart` package; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run` |
+| `cats/scripts/sync_hart_package.sh` | Stage `~/hart` package; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run`. Refuses to push if deployed `tables.xml` still has Digicon (MQTT) SML dests Enabled |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `cats/scripts/windows/install_hart_tables.ps1` | Windows local install helper (tables + jars + web); prefer `sync_hart_package.sh --win` |
 | `jmri/layouts/hart/scripts/apply_maintain_mqtt.py` | Boot retain paint (sensors/turnouts) |

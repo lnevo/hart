@@ -62,6 +62,11 @@ if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
   python3 "$PANEL_AUDIT" --strict
 fi
 
+SML_GATE="$ROOT/cats/scripts/disable_digicon_sml_in_tables.py"
+if [[ -n "$TABLES" && -f "$SML_GATE" ]]; then
+  python3 "$SML_GATE" --check --panel "$TABLES"
+fi
+
 JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
