@@ -9,6 +9,7 @@
 # Re-check Enable -> Digicon SET. Global Disable still owns the bulk Unheld burst.
 #
 # Boot (read topic only -- no MQTT retain publish):
+#   If Digicon dests loaded Enabled (stored tables), popup warning; startup continues.
 #   Hold Digicon SML off until track/bridge/sml_mode is seen (or wait times out).
 #   missing / disabled / query / disabling -> take Digicon (enable SML; announce enabled).
 #   enabled -> stay Disabled, no Unheld, no mode publish.
@@ -223,6 +224,8 @@ class DigiconMqttSml(
         self._attach_sml_listeners()
         self._subscribe_mqtt()
         self._add_toggle_button()
+        # Snapshot stored Enabled flags before boot hold flips them off.
+        self._warn_if_stored_sml_enabled()
         # Boot: force Digicon SML off and keep suppress until mode read.
         # No MQTT retain publish here -- only read broker delivery on subscribe.
         self._boot_hold_sml_off()
@@ -232,6 +235,66 @@ class DigiconMqttSml(
             "(of %d Digicon; packed topics)"
             % (len(self._masts), len(self._heads), len(self.wanted))
         )
+
+    def _stored_enabled_source_names(self):
+        """UserNames of Digicon sources that loaded with any dest Enabled."""
+        names = []
+        n = 0
+        for mast in self._masts:
+            c = self._enabled_dest_count(mast)
+            if c <= 0:
+                continue
+            n += c
+            try:
+                name = mast.getUserName() or mast.getSystemName()
+            except Exception:
+                name = "?"
+            names.append(_ascii(name))
+        return n, names
+
+    def _warn_if_stored_sml_enabled(self):
+        """Popup if tables.xml stored Digicon SML Enabled. Does not stop boot."""
+        n, sources = self._stored_enabled_source_names()
+        if n == 0:
+            return
+        preview = ", ".join(sources[:8])
+        if len(sources) > 8:
+            preview += ", ..."
+        print(
+            "mqtt_signalhead: stored SML Enabled "
+            "(%d dests on %d sources) -- warning popup"
+            % (n, len(sources))
+        )
+        msg = (
+            "Digicon SML was stored Enabled in tables.xml "
+            "(%d destination(s) on %d source(s)).\n"
+            "This warning returns at every start until you Store "
+            "with SML Disabled.\n\n"
+            "Sources: %s\n\n"
+            "Startup continues."
+            % (n, len(sources), preview)
+        )
+
+        class _Warn(Runnable):
+            def run(_self):
+                try:
+                    from jmri.util.swing import JmriJOptionPane
+
+                    JmriJOptionPane.showMessageDialog(
+                        None,
+                        msg,
+                        "Digicon SML stored Enabled",
+                        JmriJOptionPane.WARNING_MESSAGE,
+                    )
+                except Exception:
+                    JOptionPane.showMessageDialog(
+                        None,
+                        msg,
+                        "Digicon SML stored Enabled",
+                        JOptionPane.WARNING_MESSAGE,
+                    )
+
+        SwingUtilities.invokeLater(_Warn())
 
     def _boot_hold_sml_off(self):
         """Force Digicon SML pairs off; leave suppress on until boot check finishes."""
