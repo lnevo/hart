@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-28 — LCOS mimic lamps look up packed `track/signalhead/432` (was still keyed `IH432`, so they stayed Dark). Reload `http://127.0.0.1:8765/`. SET is still only **IH432**; other heads stay Unheld. Local mimic; not deployed.
+
 Updated: 2026-08-28 — Removed **CATS Master4** from `/Applications`. Live desks are **CATS CTC** / **CATS ABS**. Mac-only; not deployed.
 
 Updated: 2026-08-28 — Uncheck one SML dest Enable → Unheld that **source** now (field owns; `track/signalmast` updates IH + mast). Re-check Enable → Digicon SET. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.

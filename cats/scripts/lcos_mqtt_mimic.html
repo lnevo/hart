@@ -126,7 +126,7 @@
     .lamp.Yellow, .lamp.FlashingYellow { background: var(--yellow); }
     .lamp.Green { background: var(--green); }
     .lamp.Lunar, .lamp.FlashingLunar { background: var(--lunar); }
-    .lamp.Dark { background: #222; }
+    .lamp.Dark, .lamp.Unheld, .lamp.Held { background: #222; }
     footer {
       padding: 8px 16px 16px;
       color: var(--muted);
@@ -260,8 +260,10 @@
           const el = document.createElement("div");
           el.className = "mast";
           const lampHtml = heads.map(h => {
-            const aspect = (state.heads[h.id] || "Dark").split(";")[0].trim();
-            return `<i class="lamp ${aspect}" title="${h.id} ${aspect}"></i>`;
+            const packed = (h.id || "").replace(/^IH/i, "");
+            const aspect = (state.heads[packed] || state.heads[h.id] || "Dark").split(";")[0].trim();
+            const sys = h.systemName || h.id;
+            return `<i class="lamp ${aspect}" title="${sys} ${aspect}"></i>`;
           }).join("");
           el.innerHTML = `${lampHtml}<span class="lbl" title="${mast}">${mast}</span>`;
           lamps.appendChild(el);

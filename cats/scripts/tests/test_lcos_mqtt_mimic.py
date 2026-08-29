@@ -50,6 +50,16 @@ class LcosMimicNamingTest(unittest.TestCase):
         self.assertEqual(by_mast["Mast 8LA"], "Barn")
         self.assertEqual(by_mast["Mast 2035"], "Princess")
 
+    def test_head_ids_are_packed_mqtt_leaves(self) -> None:
+        ids = {h["id"] for h in self.layout["heads"]}
+        self.assertIn("432", ids)
+        self.assertIn("438", ids)
+        self.assertNotIn("IH432", ids)
+        by_id = {h["id"]: h for h in self.layout["heads"]}
+        self.assertEqual(by_id["432"]["systemName"], "IH432")
+        self.assertEqual(self.m._head_leaf("IH432"), "432")
+        self.assertEqual(self.m._head_leaf("432"), "432")
+
 
 if __name__ == "__main__":
     unittest.main()

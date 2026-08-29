@@ -120,6 +120,14 @@ def _addr(sysname: str, prefix: str) -> str | None:
     return None
 
 
+def _head_leaf(name: str) -> str:
+    """MQTT topic leaf: packed digits (IH432 → 432)."""
+    name = (name or "").strip()
+    if len(name) > 2 and name[:2].upper() == "IH" and name[2:].isdigit():
+        return name[2:]
+    return name
+
+
 def load_layout() -> dict:
     if not TABLES.is_file():
         raise SystemExit(f"missing {TABLES}")
@@ -212,7 +220,15 @@ def load_layout() -> dict:
                 mast = (row.get("mast_user_name") or "").strip()
                 plant = mast_cp.get(mast) or infer_plant(mast)
                 for h in (row.get("head_system_names") or "").split():
-                    heads.append({"id": h, "mast": mast, "plant": plant})
+                    packed = _head_leaf(h)
+                    heads.append(
+                        {
+                            "id": packed,
+                            "systemName": h,
+                            "mast": mast,
+                            "plant": plant,
+                        }
+                    )
     heads.sort(
         key=lambda h: (
             PLANT_ORDER.index(h["plant"]) if h["plant"] in PLANT_ORDER else 99,
@@ -391,7 +407,7 @@ class Bus:
                 self.turnouts[addr] = payload
                 kind = "turnout"
             elif topic.startswith("track/signalhead/"):
-                addr = topic.rsplit("/", 1)[-1]
+                addr = _head_leaf(topic.rsplit("/", 1)[-1])
                 self.heads[addr] = payload
                 kind = "head"
             else:
