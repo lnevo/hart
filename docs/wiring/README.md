@@ -11,7 +11,7 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 | [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `cats/data/signal_wiring.csv`. **Node ID = C{radio Address}** (helix DCC is **D5**). **Legacy Node ID** is the old sequential C1–C13 / D1 label. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v85. |
 | [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | Live lower-deck Digicon ABS matrix (100L, 117LA, 114LA, …). |
-| [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix (`S1-1`…`S6-15`). Upper deck still uses this plan. Do not rename those IDs to Digicon 11x names. |
+| [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix (`S1-1`…`S6-15`). Lower-deck switch columns use CTC names. `S4-*` = CP4, `S5-*` = CP5, `S6-*` = CP6. Do not rename those IDs to Digicon 11x names. |
 | [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). Sequential C1–C13 IDs. |
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
@@ -55,7 +55,7 @@ Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU2** with 8LA+8LB (ri
 
 | Board | Rail | Assignment |
 |-------|------|------------|
-| OU1 | 5V | 8RA T+B; OU1-7 leftover S3-14 G; **OU1-8 block-sensor cal** |
+| OU1 | 5V | 8RA T+B; OU1-7 spare; **OU1-8 block-sensor cal** |
 | OU2 | 5V | 8LA T+B, 8LB G/Y |
 | OU3 | 12V | Switch 7, 11, 9 motors; OU3-7/8 spare |
 | **OU4** | 5V **new** | 8RB T+B, 8LB R; OU4-8 spare |
@@ -171,17 +171,17 @@ Relays that used to sit on those pins (C3, C14, C21–C24) need a different 5V c
 
 ### Other cabinets (no Digicon 3-pin heads)
 
-These OUs stay motors / planned RGB (`S*-*`) / relays. Do not overlay Digicon searchlights here. **D5** is helix DCC (no DNOU8).
+These OUs stay motors / planned RGB heads (`Head S4-1` …) / relays. Do not overlay Digicon searchlights here. **D5** is helix DCC (no DNOU8).
 
 | Node | Radio | Plant | Boards |
 |------|------:|-------|--------|
-| C3 | 3 | West lower | OU1 12V Switch 15–21 motors; OU2/OU3 5V leftover RGB; **OU2-8 BS cal** |
-| C14 | 14 | West upper | OU1 12V SW144–SW147; OU2/OU3 5V S6-* + relay |
-| C21 | 21 | Helix upper | OU1 12V NIX (SW125/126/139/140); OU2/OU3 5V S4-* + relay |
-| C22 | 22 | North upper | OU1 12V DJE/DJW (SW120–123); OU2/OU3 5V S5-1…5 + relay |
-| C23 | 23 | West upper | OU1 12V SW143 / CBX (SW141/142); OU2/OU3 5V S6-* + relay |
-| C24 | 24 | Peninsula upper | OU1 12V SW148–SW150 + S6-10 G/R; OU2/OU3 5V S6-* + relay |
-| C32 | 32 | North upper | OU1 12V SW124; OU2 5V S5-6/7 |
+| C3 | 3 | West lower | OU1 12V Switch 15–21 motors; OU2 5V spare + **OU2-8 BS cal** (OU3 removed) |
+| C14 | 14 | West upper | OU1 12V SW144–SW147; OU2/OU3 5V CP6 heads (S6-*) + relay |
+| C21 | 21 | Helix upper / CP4 | OU1 12V NIX (SW125/126/139/140); OU2/OU3 5V CP4 heads (S4-1…5) + relay |
+| C22 | 22 | North upper / CP5 | OU1 12V DJE/DJW (SW120–123); OU2/OU3 5V CP5 heads (S5-1…5) + relay |
+| C23 | 23 | West upper / CP6 | OU1 12V SW143 / CBX (SW141/142); OU2/OU3 5V CP6 heads (S6-*) + relay |
+| C24 | 24 | Peninsula upper / CP6 | OU1 12V SW148–SW150 + S6-10 G/R; OU2/OU3 5V CP6 heads (S6-*) + relay |
+| C32 | 32 | North upper / CP5 | OU1 12V SW124; OU2 5V CP5 heads S5-6 (DJE reverse) / S5-7 (SW124 reverse) |
 
 Copy the three current workbooks **and** `Wiring_Schematic.pptx` back to `~/Desktop/HART/Wiring Documentation/` after a refresh (and after XML apply) so the bench copy matches git.
 
@@ -198,7 +198,7 @@ Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_s
 ## What v85 changed vs Desktop v84
 
 - Lower-deck **BlockSensors** names follow the panel: Scale, Barn, S-1…S-5, W-1/W-2, EH-1…EH-3, OS 100… (MQTT `Block n-n` stays in Notes).
-- **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB `S3-6 G` etc. on those ports). Previous RGB label is kept in Notes.
+- **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB on those ports). Previous RGB label is kept in Notes.
 - **D1-OU2/OU3** Princess rows were a mistaken overlay (D1 is DCC radio 5, now labeled **D5**). Princess is on C1; do not recreate D5 signal boards.
-- Upper-deck RGB (`S4-*` / `S5-*` / `S6-*`) left as planned.
+- Upper-deck RGB (`S4-*` / `S5-*` / `S6-*`) is labeled as defined heads on CP4 / CP5 / CP6. S5-6 and S5-7 are reverse heads on DJE / SW124. S4-4 and S4-5 share SW138.
 - **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `imported/`.

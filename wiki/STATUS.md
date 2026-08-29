@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — C3 leftover S3 RGB cleared and **OU3** removed (OU2-8 stays BS cal). Switch 15–21 motors only. Upper-deck `S4/S5/S6` labeled as CP4/CP5/CP6 defined heads; v8 switch columns use CTC names. Docs-only, not deployed.
+
 Updated: 2026-08-29 — Removed DCC≥14 OpenLCB workaround routes **Switch 37/39 Closed+Thrown** (`IO:AUTO:0001`–`0004`). MQTT comments still `DCC: 114` / `DCC: 115`. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — 40LA is together on C11-OU3; 2035/2036 sit apart (2035 leftover). Desktop wiring pack copied so Switch 35/37/39 show on C1-OU1. Docs-only, not deployed.

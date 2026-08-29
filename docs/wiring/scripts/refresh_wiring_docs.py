@@ -270,6 +270,7 @@ _SW_TOKEN_CTC: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"(?<![A-Za-z0-9])SCXA(?![A-Za-z0-9])"), "Switch 23"),
     (re.compile(r"(?<![A-Za-z0-9])SW18(?![0-9])"), "Switch 39"),
     (re.compile(r"(?<![A-Za-z0-9])SW17(?![0-9])"), "Switch 37"),
+    (re.compile(r"(?<![A-Za-z0-9])SW13(?![0-9])"), "Switch 13"),
     (re.compile(r"(?<![A-Za-z0-9])SW12(?![0-9])"), "Switch 23"),
     (re.compile(r"(?<![A-Za-z0-9])SW11(?![0-9])"), "Switch 31"),
     (re.compile(r"(?<![A-Za-z0-9])SW10(?![0-9])"), "Switch 29"),
@@ -285,6 +286,52 @@ _SW_TOKEN_CTC: list[tuple[re.Pattern[str], str]] = [
 ]
 HEAD_MAST_RE = re.compile(r"^Head (\S+)")
 LED_NAME_RE = re.compile(r"^S\d+-\d+")
+RGB_LED_RE = re.compile(r"^(S([4-6])-(\d+))\s+([GYR])$")
+
+# v8 heads that are clearly extra discs on an existing plant (not a new mast).
+# S4-4/S4-5 share SW138 and both go Closet Inner. S5-6/S5-7 are reverse exits
+# already listed on DJE / SW124. Everything else stays a defined head.
+V8_MAST_HINT: dict[str, str] = {
+    "S4-4": "SW138 (with S4-5)",
+    "S4-5": "SW138 (with S4-4)",
+    "S5-6": "DJE reverse",
+    "S5-7": "SW124 reverse",
+}
+
+UPPER_TURNOUT_CP: dict[str, str] = {
+    "SW127": "CP4 (Helix - Upper)",
+    "SW129": "CP4 (Helix - Upper)",
+    "SW138": "CP4 (Helix - Upper)",
+    "NIX": "CP4 (Helix - Upper)",
+    "SW124": "CP5 (North - Upper)",
+    "DJE": "CP5 (North - Upper)",
+    "DJW": "CP5 (North - Upper)",
+    "CBX": "CP6 (Peninsula - Upper)",
+    "SW143": "CP6 (West - Upper)",
+    "SW144": "CP6 (West - Upper)",
+    "SW145": "CP6 (West - Upper)",
+    "SW146": "CP6 (West - Upper)",
+    "SW147": "CP6 (West - Upper)",
+    "SW148": "CP6 (Peninsula - Upper)",
+    "SW149": "CP6 (Peninsula - Upper)",
+    "SW150": "CP6 (Peninsula - Upper)",
+}
+
+RETIRED_S3_TURNOUTS = ("Switch 15", "Switch 17", "Switch 19", "Switch 21")
+TURNOUT_SIGNAL_COLS = (
+    "Entry Signal",
+    "Entry Signal R Port",
+    "Entry Signal Y Port",
+    "Entry Signal G Port",
+    "Normal Exit Signal",
+    "Normal Exit R Port",
+    "Normal Exit Y Port",
+    "Normal Exit G Port",
+    "Reverse Exit Signal",
+    "Reverse Exit R Port",
+    "Reverse Exit Y Port",
+    "Reverse Exit G Port",
+)
 
 
 def rewrite_legacy_node_ids(value):
@@ -361,8 +408,12 @@ def summarize_node_labels(nodes: Worksheet, dnou: Worksheet, dnin: Worksheet) ->
         elif dtype == "Searchlight Signal Head":
             m = HEAD_MAST_RE.match(dev)
             signals[nid].append(m.group(1) if m else dev)
-        elif LED_NAME_RE.match(dev.split()[0] if dev else ""):
-            signals[nid].append(dev.split()[0])
+        elif dtype in ("Signal LED", "Dwarf Upgrade"):
+            m = HEAD_MAST_RE.match(dev)
+            if m:
+                signals[nid].append(m.group(1))
+            elif LED_NAME_RE.match(dev.split()[0] if dev else ""):
+                signals[nid].append(dev.split()[0])
     for row in range(2, dnin.max_row + 1):
         nid = dnin.cell(row, 2).value
         dev = dnin.cell(row, 5).value
@@ -708,6 +759,137 @@ def stamp_block_sensor_cal(
     return log
 
 
+def load_v8_signal_info() -> dict[str, dict[str, str]]:
+    """Route / block text from the frozen RGB workbook (imported snapshot)."""
+    src = IMPORTED / "signals_split_v8.xlsx"
+    wb = load_workbook(src, data_only=True)
+    out: dict[str, dict[str, str]] = {}
+    for name in wb.sheetnames:
+        if not name.startswith("control_point_"):
+            continue
+        cp = "CP" + name.rsplit("_", 1)[-1]
+        ws = wb[name]
+        headers = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            d = dict(zip(headers, row))
+            sig = d.get("Signal")
+            if not sig or str(sig) in out:
+                continue
+            out[str(sig)] = {
+                "cp": cp,
+                "from": str(d.get("Route_From") or ""),
+                "to": str(d.get("Route_To") or ""),
+                "block": str(d.get("Signal_Block") or ""),
+                "location": str(d.get("Location") or ""),
+            }
+    wb.close()
+    return out
+
+
+def clear_retired_s3_rgb(ws: Worksheet) -> list[str]:
+    """Drop leftover CP3 RGB on C3 (and the stray S3-14 G on C13). Remove C3-OU3."""
+    log: list[str] = []
+    drop_rows: list[int] = []
+    for row in range(2, ws.max_row + 1):
+        pid = str(ws.cell(row, 1).value or "")
+        if pid.startswith("C3-OU3-"):
+            drop_rows.append(row)
+            continue
+        prev = ws.cell(row, 5).value
+        if pid.startswith("C3-OU2-") and pid != "C3-OU2-8" and prev:
+            ws.cell(row, 5).value = None
+            ws.cell(row, 6).value = None
+            ws.cell(row, 8).value = f"spare (CP3 leftover RGB removed; was {prev})"
+            log.append(f"clear {pid}: {prev!r}")
+        elif pid == "C13-OU1-7" and prev and str(prev).startswith("S3-"):
+            ws.cell(row, 5).value = None
+            ws.cell(row, 6).value = None
+            ws.cell(row, 8).value = f"spare (CP3 leftover RGB removed; was {prev})"
+            log.append(f"clear {pid}: {prev!r}")
+    for row in reversed(drop_rows):
+        pid = ws.cell(row, 1).value
+        ws.delete_rows(row)
+        log.append(f"drop {pid}")
+    return log
+
+
+def annotate_upper_rgb_heads(ws: Worksheet) -> list[str]:
+    """Label remaining S4/S5/S6 LEDs as defined heads on CP4/CP5/CP6."""
+    info = load_v8_signal_info()
+    log: list[str] = []
+    for row in range(2, ws.max_row + 1):
+        dev = ws.cell(row, 5).value
+        if not isinstance(dev, str):
+            continue
+        m = RGB_LED_RE.match(dev.strip())
+        if not m:
+            continue
+        sig, color = m.group(1), m.group(4)
+        meta = info.get(sig, {})
+        cp = meta.get("cp") or f"CP{m.group(2)}"
+        new_name = f"Head {sig} {color}"
+        bits = [cp]
+        if meta.get("from") or meta.get("to"):
+            bits.append(f"{meta.get('from') or '?'} → {meta.get('to') or '?'}")
+        if meta.get("block"):
+            bits.append(meta["block"])
+        mast = V8_MAST_HINT.get(sig)
+        if mast:
+            bits.append(f"mast {mast}")
+        else:
+            bits.append("defined head")
+        note = " | ".join(bits)
+        ws.cell(row, 5).value = new_name
+        prev_note = ws.cell(row, 8).value
+        if prev_note and str(prev_note) not in note:
+            note = f"{note}; was {prev_note}"
+        ws.cell(row, 8).value = note
+        log.append(f"{ws.cell(row, 1).value}: {dev!r} → {new_name!r}")
+    return log
+
+
+def clear_s3_turnout_signals(ws: Worksheet) -> list[str]:
+    """Switch 15–21 no longer have leftover S3 RGB faces."""
+    log: list[str] = []
+    idx = header_index(ws)
+    tcol = idx["Turnout"]
+    for row in range(2, ws.max_row + 1):
+        name = str(ws.cell(row, tcol).value or "")
+        if name not in RETIRED_S3_TURNOUTS:
+            continue
+        changed = False
+        for col_name in TURNOUT_SIGNAL_COLS:
+            col = idx.get(col_name)
+            if not col:
+                continue
+            if ws.cell(row, col).value:
+                ws.cell(row, col).value = None
+                changed = True
+        if changed:
+            log.append(f"{name}: cleared leftover S3 faces")
+    return log
+
+
+def tag_upper_turnouts_cp(ws: Worksheet) -> list[str]:
+    """S4/S5/S6 plant switches get CP4/CP5/CP6 location labels."""
+    log: list[str] = []
+    idx = header_index(ws)
+    tcol = idx["Turnout"]
+    loc_col = idx.get("Location/Area")
+    if not loc_col:
+        return log
+    for row in range(2, ws.max_row + 1):
+        name = str(ws.cell(row, tcol).value or "")
+        loc = UPPER_TURNOUT_CP.get(name)
+        if not loc:
+            continue
+        prev = ws.cell(row, loc_col).value
+        if prev != loc:
+            ws.cell(row, loc_col).value = loc
+            log.append(f"{name}: {prev!r} → {loc!r}")
+    return log
+
+
 def refresh_nodes(ws: Worksheet) -> None:
     idx = header_index(ws)
     loc_col = idx.get("Location")
@@ -756,6 +938,25 @@ def refresh_nodes(ws: Worksheet) -> None:
         if nid == "C3":
             if loc_col:
                 ws.cell(row, loc_col).value = "West - Lower (Switch 15–21 motors)"
+            if boards_5v_col:
+                ws.cell(row, boards_5v_col).value = 1
+            if num_5v_col:
+                ws.cell(row, num_5v_col).value = 8
+            used_col = idx.get("5V Used")
+            free_col = idx.get("5V Free")
+            leds_col_n = idx.get("Num Signal LEDs")
+            led_dev_col = idx.get("Signal LED Devices")
+            if used_col:
+                ws.cell(row, used_col).value = 1
+            if free_col:
+                ws.cell(row, free_col).value = 7
+            if leds_col_n:
+                ws.cell(row, leds_col_n).value = 0
+            if led_dev_col:
+                ws.cell(row, led_dev_col).value = 0
+            dnou = idx.get("DNOU8")
+            if dnou:
+                ws.cell(row, dnou).value = "OU1, OU2"
         if nid == "C4":
             if loc_col:
                 ws.cell(row, loc_col).value = "West - Lower (Brick / Plane)"
@@ -926,8 +1127,11 @@ def add_split_readme(path: Path) -> None:
     lines = [
         ("signals_split_v8 — frozen planned RGB matrix", True),
         ("", False),
-        ("This workbook is the Nov 2025 RGB LED plan (S1-1 … S6-15, SW1–SW18, SCXA).", False),
-        ("Lower-deck Digicon searchlights (100L, 102LA, 117LA, 114LA, …) are NOT in this file.", False),
+        ("This workbook is the Nov 2025 RGB LED plan (S1-1 … S6-15).", False),
+        ("Lower-deck switch columns use live CTC names (Switch 1, Switch 35, …).", False),
+        ("S4-* = CP4, S5-* = CP5, S6-* = CP6. Mast is filled only when v8 routes", False),
+        ("make a 2-head grouping obvious; otherwise the row is a defined head.", False),
+        ("Lower-deck Digicon searchlights (6LB, 8RA, 36RA, …) are NOT in this file.", False),
         ("", False),
         ("Live lower-deck signal matrix:", False),
         ("  docs/wiring/signals_asbuilt_abs_v2.xlsx", False),
@@ -944,6 +1148,48 @@ def add_split_readme(path: Path) -> None:
     ws.column_dimensions["A"].width = 100
     ws["A1"].alignment = Alignment(wrap_text=True)
     wb.save(path)
+
+
+def add_v8_mast_column(path: Path) -> int:
+    """Fill Mast only when v8 routes make a grouping obvious."""
+    wb = load_workbook(path)
+    n = 0
+    for name in wb.sheetnames:
+        if not name.startswith("control_point_"):
+            continue
+        ws = wb[name]
+        idx = header_index(ws)
+        if "Mast" not in idx:
+            sig_col = idx["Signal"]
+            ws.insert_cols(sig_col + 1)
+            ws.cell(1, sig_col + 1).value = "Mast"
+            ws.cell(1, sig_col + 1).font = Font(bold=True)
+            idx = header_index(ws)
+        sig_col = idx["Signal"]
+        mast_col = idx["Mast"]
+        for row in range(2, ws.max_row + 1):
+            sig = ws.cell(row, sig_col).value
+            hint = V8_MAST_HINT.get(str(sig) if sig else "")
+            if hint:
+                ws.cell(row, mast_col).value = hint
+                n += 1
+    sw_n = 0
+    for ws in wb.worksheets:
+        if ws.title == "README":
+            continue
+        for row in ws.iter_rows():
+            for cell in row:
+                if not isinstance(cell.value, str) or not cell.value:
+                    continue
+                out = cell.value
+                for pat, repl in _SW_TOKEN_CTC:
+                    out = pat.sub(repl, out)
+                if out != cell.value:
+                    cell.value = out
+                    sw_n += 1
+    wb.save(path)
+    print(f"  v8 Mast cells: {n}; CTC switch tokens: {sw_n}")
+    return n
 
 
 def refresh_inventory() -> Path:
@@ -972,9 +1218,13 @@ def refresh_inventory() -> Path:
             "Digicon heads on block-sensor calibration pins: " + ", ".join(clash)
         )
     cal_log = stamp_block_sensor_cal(wb["DNOU8"], cal_ports)
+    s3_log = clear_retired_s3_rgb(wb["DNOU8"])
+    rgb_log = annotate_upper_rgb_heads(wb["DNOU8"])
     ts_log = refresh_turnout_summary(wb["TurnoutSummary"])
     ctc_n = apply_ctc_switch_names(wb)
     sw_n = apply_legacy_sw_tokens(wb)
+    s3_ts_log = clear_s3_turnout_signals(wb["TurnoutSummary"])
+    cp_ts_log = tag_upper_turnouts_cp(wb["TurnoutSummary"])
     refresh_nodes(wb["Nodes"])
     summarize_node_labels(wb["Nodes"], wb["DNOU8"], wb["DNIN8"])
     add_digicon_sheet(wb, wiring, heads)
@@ -1008,8 +1258,18 @@ def refresh_inventory() -> Path:
     print(f"  DNOU8 block-sensor cal: {len(cal_log)}")
     for line in cal_log:
         print(f"    {line}")
+    print(f"  Retired C3 S3 RGB / drop OU3: {len(s3_log)}")
+    for line in s3_log:
+        print(f"    {line}")
+    print(f"  Upper-deck RGB → CP heads: {len(rgb_log)}")
     print(f"  TurnoutSummary Digicon: {len(ts_log)}")
     for line in ts_log:
+        print(f"    {line}")
+    print(f"  TurnoutSummary cleared S3 faces: {len(s3_ts_log)}")
+    for line in s3_ts_log:
+        print(f"    {line}")
+    print(f"  TurnoutSummary CP4/5/6 labels: {len(cp_ts_log)}")
+    for line in cp_ts_log:
         print(f"    {line}")
     return dest
 
@@ -1290,8 +1550,9 @@ def main() -> None:
     refresh_asbuilt()
     split_dest = WIRING / "signals_split_v8.xlsx"
     shutil.copy2(IMPORTED / "signals_split_v8.xlsx", split_dest)
+    add_v8_mast_column(split_dest)
     add_split_readme(split_dest)
-    print(f"wrote {split_dest} (historical + README)")
+    print(f"wrote {split_dest} (CTC switch names + Mast column + README)")
     # Ports extract for cats/data
     inv = load_workbook(WIRING / "LCOS_Layout_Inventory_v85.xlsx")
     extract = CATS / "LCOS_Layout_Inventory_v85_signal_ports.xlsx"
