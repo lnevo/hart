@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — Cleared retained `track/signalhead/*` and `track/signalmast/*` except packed **432** and **433**. Broker-only; not deployed.
+
 Updated: 2026-08-29 — Deploy auto-disables Digicon (MQTT) SML dests in the tables file it ships (no longer refuses). Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — `sml_mode` **enabling** (was enabled_on_boot): stored-Enabled boot and Force override. Originator does **not** abort; other agents **aborting** → **aborted**. Originator announces **enabled** after ~3s. If that never arrives, the Windows bridge challenges to **disabled**. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
