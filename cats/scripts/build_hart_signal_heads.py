@@ -4,15 +4,17 @@
 MQTT packed node == RF24 radio Address. Enclosure ID is C{Address} (D{Address}
 for the helix DCC client). Never assign heads to D5 (radio 5, DCC).
 
-One 3-pin head per mast (LCOS STOP/APPROACH/CLEAR = R/Y/G). Wiring CSV has
-three rows per mast (G, Y, R pins of the same UID).
+Each physical searchlight disc is one 3-pin LCOS object (STOP/APPROACH/CLEAR =
+G/Y/R). Two-head masts are two objects (T + B) on the same radio. New 5V
+DNOU8 **OU4** on C1 / C2 / C3 / C13 holds the second discs. C11 has spare
+pins for 36RB Bottom (no new board).
 
-  radio 1  C1  Princess interlocking (5 faces; 15 5V pins). 36RB overflows.
-  radio 2  C2  East End signals (6 faces). OU1 run as 5V (no turnouts). Packed 2xx.
-  radio 3  C3  Plane / Brick (packed 4xx — LCOS display node still 4)
-  radio 11 C11 Princess overflow: 36RB + 2035/2036. Packed 11xx.
+  radio 1  C1  Princess interlocking + new OU4 (C1-OU2-8 reused as LED)
+  radio 2  C2  East End signals + new OU4. Packed 2xx.
+  radio 3  C3  Plane / Brick + new OU4 (packed 4xx — LCOS display node still 4)
+  radio 11 C11 Princess overflow: 36RB T/B + 2035/2036. Packed 11xx.
   radio 12 C12 East End turnouts 107–112 (no Digicon heads)
-  radio 13 C13 Barn / 117
+  radio 13 C13 Barn / 117 + new OU4
   radio 5  D5  DCC only — no signal ports
 
 `--wiring-only` writes CSVs only (no tables.xml / publisher).
@@ -32,44 +34,58 @@ DATA = ROOT / "cats/data"
 SKIP_HEAD: set[str] = set()
 SKIP_MAST: set[str] = set()
 
-# One 3-pin STOP/APPROACH/CLEAR head per mast. Packed keeps the old surviving
-# mast ID where the radio node did not change; East End is radio 2, Princess
-# overflow is radio 11. G/Y/R follow v84 trio order (G then Y then R on C1/C3/C13;
-# C2-OU1 is 5V consecutive G/Y/R). Enclosure IDs match radio Address.
-# mast, node, parent, location, packed, g, y, r, v84_was
-MASTS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str]] = [
-    # C3 radio 3 — Plane / Brick (was C4). Packed stays 4xx (LCOS display node 4).
-    ("Mast 6LB", 4, "C3", "West - Lower (Plane)", 432, "C3-OU2-1", "C3-OU2-2", "C3-OU2-3", "S3-6 G/Y/R"),
-    ("Mast 6LA", 4, "C3", "West - Lower (Plane)", 434, "C3-OU2-4", "C3-OU2-5", "C3-OU2-6", "S3-7 G/Y/R"),
-    ("Mast 4RA", 4, "C3", "West - Lower (Brick)", 436, "C3-OU3-4", "C3-OU3-5", "C3-OU3-6", "S3-9 G/Y/R"),
-    ("Mast 4RB", 4, "C3", "West - Lower (Brick)", 437, "C3-OU3-7", "C3-OU2-7", "C3-OU3-8", "S3-11 G/Y/R (Y on OU2-7)"),
-    ("Mast 2L", 4, "C3", "West - Lower (Brick)", 438, "C3-OU3-1", "C3-OU3-2", "C3-OU3-3", "S3-8 G/Y/R"),
-    # C13 radio 13 — Barn (v84 S3-10, S3-12, S3-4, S3-5; was C5)
-    ("Mast 8RA", 13, "C13", "West - Lower (Barn)", 1332, "C13-OU1-1", "C13-OU1-2", "C13-OU1-3", "S3-10 G/Y/R"),
-    ("Mast 8RB", 13, "C13", "West - Lower (Barn)", 1335, "C13-OU1-4", "C13-OU1-6", "C13-OU1-5", "S3-12 G/R/Y silk"),
-    ("Mast 8LB", 13, "C13", "West - Lower (Barn)", 1334, "C13-OU2-1", "C13-OU2-2", "C13-OU2-3", "S3-4 G/Y/R"),
-    ("Mast 8LA", 13, "C13", "West - Lower (Barn)", 1337, "C13-OU2-4", "C13-OU2-5", "C13-OU2-6", "S3-5 G/Y/R"),
-    # C2 radio 2 — East End (OU1 as 5V; OU2-8 stays relay; was C3)
-    ("Mast 24RA", 2, "C2", "North - Lower (East End)", 232, "C2-OU1-1", "C2-OU1-2", "C2-OU1-3", "C2-OU1 5V (was C3)"),
-    ("Mast 24L", 2, "C2", "North - Lower (East End)", 233, "C2-OU1-4", "C2-OU1-5", "C2-OU1-6", "C2-OU1 5V (was C3)"),
-    ("Mast 24RB", 2, "C2", "North - Lower (East End)", 234, "C2-OU1-7", "C2-OU1-8", "C2-OU2-1", "OU1-7/8 + OU2-1"),
-    ("Mast 34L", 2, "C2", "North - Lower (East End)", 235, "C2-OU2-2", "C2-OU2-3", "C2-OU2-4", "was S2-5/S2-3 mix"),
-    ("Mast 32R", 2, "C2", "North - Lower (East End)", 236, "C2-OU2-5", "C2-OU2-6", "C2-OU2-7", "OU2-8 is relay"),
-    ("Mast 34R", 2, "C2", "North - Lower (East End)", 237, "C2-OU3-1", "C2-OU3-2", "C2-OU3-3", "was S4-6 G/R/Y"),
-    # C1 radio 1 — Princess interlocking (15 5V pins = 5 trios; 36RB on C11)
-    ("Mast 40LB", 1, "C1", "Helix - Lower (Princess)", 132, "C1-OU2-1", "C1-OU2-2", "C1-OU2-3", "S1-1 G/Y/R"),
-    ("Mast 36RA", 1, "C1", "Helix - Lower (Princess)", 135, "C1-OU2-4", "C1-OU2-5", "C1-OU2-6", "S1-2 G/Y/R"),
-    ("Mast 38LB", 1, "C1", "Helix - Lower (Princess)", 139, "C1-OU3-1", "C1-OU3-2", "C1-OU3-3", "S1-3 G/Y/R"),
-    ("Mast 40LA", 1, "C1", "Helix - Lower (Princess)", 142, "C1-OU3-4", "C1-OU3-5", "C1-OU3-6", "S1-4 G/Y/R"),
-    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess)", 143, "C1-OU2-7", "C1-OU3-7", "C1-OU3-8", "spares G/Y/R"),
-    # C11 radio 11 — Princess overflow + balloon intermediates (was C7)
-    ("Mast 36RB", 11, "C11", "Helix (Princess overflow)", 1132, "C11-OU2-1", "C11-OU2-3", "C11-OU2-2", "S1-5 G/R/Y silk"),
-    ("Mast 2036", 11, "C11", "Helix (Princess overflow)", 1133, "C11-OU2-4", "C11-OU2-6", "C11-OU2-5", "S1-6 G/R/Y silk"),
-    ("Mast 2035", 11, "C11", "Helix (Princess overflow)", 1134, "C11-OU3-1", "C11-OU3-3", "C11-OU3-2", "S4-6 G/R/Y silk"),
+# One 3-pin STOP/APPROACH/CLEAR object per physical disc. Existing trios stay
+# Top (or the only disc). Bottoms land on new OU4 (C11 uses leftover OU3).
+# disc: T top, B bottom, S single. Packed: keep surviving mast ID as T/S;
+# bottoms use the historical adjacent UID where it was free.
+# mast, node, parent, location, packed, g, y, r, disc, v84_was
+HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
+    # C3 radio 3 — Plane / Brick (was C4). Packed stays 4xx.
+    ("Mast 6LB", 4, "C3", "West - Lower (Plane)", 432, "C3-OU2-1", "C3-OU2-2", "C3-OU2-3", "T", "S3-6 G/Y/R"),
+    ("Mast 6LB", 4, "C3", "West - Lower (Plane)", 433, "C3-OU4-1", "C3-OU4-2", "C3-OU4-3", "B", "new OU4"),
+    ("Mast 6LA", 4, "C3", "West - Lower (Plane)", 434, "C3-OU2-4", "C3-OU2-5", "C3-OU2-6", "S", "S3-7 G/Y/R"),
+    ("Mast 4RA", 4, "C3", "West - Lower (Brick)", 436, "C3-OU3-4", "C3-OU3-5", "C3-OU3-6", "S", "S3-9 G/Y/R"),
+    ("Mast 4RB", 4, "C3", "West - Lower (Brick)", 437, "C3-OU3-7", "C3-OU2-7", "C3-OU3-8", "S", "S3-11 G/Y/R (Y on OU2-7)"),
+    ("Mast 2L", 4, "C3", "West - Lower (Brick)", 438, "C3-OU3-1", "C3-OU3-2", "C3-OU3-3", "T", "S3-8 G/Y/R"),
+    ("Mast 2L", 4, "C3", "West - Lower (Brick)", 439, "C3-OU4-4", "C3-OU4-5", "C3-OU4-6", "B", "new OU4"),
+    # C13 radio 13 — Barn (was C5)
+    ("Mast 8RA", 13, "C13", "West - Lower (Barn)", 1332, "C13-OU1-1", "C13-OU1-2", "C13-OU1-3", "T", "S3-10 G/Y/R"),
+    ("Mast 8RA", 13, "C13", "West - Lower (Barn)", 1333, "C13-OU4-1", "C13-OU4-2", "C13-OU4-3", "B", "new OU4"),
+    ("Mast 8RB", 13, "C13", "West - Lower (Barn)", 1335, "C13-OU1-4", "C13-OU1-6", "C13-OU1-5", "T", "S3-12 G/R/Y silk"),
+    ("Mast 8RB", 13, "C13", "West - Lower (Barn)", 1336, "C13-OU4-4", "C13-OU4-5", "C13-OU4-6", "B", "new OU4"),
+    ("Mast 8LB", 13, "C13", "West - Lower (Barn)", 1334, "C13-OU2-1", "C13-OU2-2", "C13-OU2-3", "S", "S3-4 G/Y/R"),
+    ("Mast 8LA", 13, "C13", "West - Lower (Barn)", 1337, "C13-OU2-4", "C13-OU2-5", "C13-OU2-6", "T", "S3-5 G/Y/R"),
+    ("Mast 8LA", 13, "C13", "West - Lower (Barn)", 1338, "C13-OU4-7", "C13-OU4-8", "C13-OU2-8", "B", "new OU4 + OU2-8"),
+    # C2 radio 2 — East End (OU1 as 5V; was C3)
+    ("Mast 24RA", 2, "C2", "North - Lower (East End)", 232, "C2-OU1-1", "C2-OU1-2", "C2-OU1-3", "T", "C2-OU1 5V"),
+    ("Mast 24RA", 2, "C2", "North - Lower (East End)", 238, "C2-OU4-1", "C2-OU4-2", "C2-OU4-3", "B", "new OU4"),
+    ("Mast 24L", 2, "C2", "North - Lower (East End)", 233, "C2-OU1-4", "C2-OU1-5", "C2-OU1-6", "T", "C2-OU1 5V"),
+    ("Mast 24L", 2, "C2", "North - Lower (East End)", 239, "C2-OU4-4", "C2-OU4-5", "C2-OU4-6", "B", "new OU4"),
+    ("Mast 24RB", 2, "C2", "North - Lower (East End)", 234, "C2-OU1-7", "C2-OU1-8", "C2-OU2-1", "S", "OU1-7/8 + OU2-1"),
+    ("Mast 34L", 2, "C2", "North - Lower (East End)", 235, "C2-OU2-2", "C2-OU2-3", "C2-OU2-4", "T", "was S2-5/S2-3 mix"),
+    ("Mast 34L", 2, "C2", "North - Lower (East End)", 240, "C2-OU4-7", "C2-OU4-8", "C2-OU3-7", "B", "new OU4 + OU3-7"),
+    ("Mast 32R", 2, "C2", "North - Lower (East End)", 236, "C2-OU2-5", "C2-OU2-6", "C2-OU2-7", "S", "OU2-8 is relay"),
+    ("Mast 34R", 2, "C2", "North - Lower (East End)", 237, "C2-OU3-1", "C2-OU3-2", "C2-OU3-3", "T", "was S4-6 G/R/Y"),
+    ("Mast 34R", 2, "C2", "North - Lower (East End)", 241, "C2-OU3-4", "C2-OU3-5", "C2-OU3-6", "B", "OU3 leftover (was S2-7)"),
+    # C1 radio 1 — Princess interlocking (36RB on C11). OU4 + steal OU2-8 relay.
+    ("Mast 40LB", 1, "C1", "Helix - Lower (Princess)", 132, "C1-OU2-1", "C1-OU2-2", "C1-OU2-3", "T", "S1-1 G/Y/R"),
+    ("Mast 40LB", 1, "C1", "Helix - Lower (Princess)", 133, "C1-OU4-1", "C1-OU4-2", "C1-OU4-3", "B", "new OU4"),
+    ("Mast 36RA", 1, "C1", "Helix - Lower (Princess)", 135, "C1-OU2-4", "C1-OU2-5", "C1-OU2-6", "T", "S1-2 G/Y/R"),
+    ("Mast 36RA", 1, "C1", "Helix - Lower (Princess)", 136, "C1-OU4-4", "C1-OU4-5", "C1-OU4-6", "B", "new OU4"),
+    ("Mast 38LB", 1, "C1", "Helix - Lower (Princess)", 139, "C1-OU3-1", "C1-OU3-2", "C1-OU3-3", "T", "S1-3 G/Y/R"),
+    ("Mast 38LB", 1, "C1", "Helix - Lower (Princess)", 140, "C1-OU4-7", "C1-OU4-8", "C1-OU2-8", "B", "new OU4 + OU2-8 was relay"),
+    ("Mast 40LA", 1, "C1", "Helix - Lower (Princess)", 142, "C1-OU3-4", "C1-OU3-5", "C1-OU3-6", "S", "S1-4 G/Y/R"),
+    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess)", 143, "C1-OU2-7", "C1-OU3-7", "C1-OU3-8", "S", "spares G/Y/R"),
+    # C11 radio 11 — Princess overflow (was C7). 36RB Bottom on leftover OU3.
+    ("Mast 36RB", 11, "C11", "Helix (Princess overflow)", 1132, "C11-OU2-1", "C11-OU2-3", "C11-OU2-2", "T", "S1-5 G/R/Y silk"),
+    ("Mast 36RB", 11, "C11", "Helix (Princess overflow)", 1135, "C11-OU3-4", "C11-OU3-5", "C11-OU3-6", "B", "OU3 leftover (was S4-7)"),
+    ("Mast 2036", 11, "C11", "Helix (Princess overflow)", 1133, "C11-OU2-4", "C11-OU2-6", "C11-OU2-5", "S", "S1-6 G/R/Y silk"),
+    ("Mast 2035", 11, "C11", "Helix (Princess overflow)", 1134, "C11-OU3-1", "C11-OU3-3", "C11-OU3-2", "S", "S4-6 G/R/Y silk"),
 ]
 
 APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}
 SYSTEM_BY_HEADS = {1: "AAR-1946", 2: "hart-aar", 3: "AAR-1946"}
+DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
 PIN_ORDER = (("G", "g_port"), ("Y", "y_port"), ("R", "r_port"))
 
@@ -78,19 +94,30 @@ def packed(node: int, signal_index: int) -> int:
     return node * 100 + 32 + signal_index
 
 
+def discs_of(mast: str, rows: list[dict]) -> list[dict]:
+    by_packed: dict[int, dict] = {}
+    for r in rows:
+        if r["mast_user_name"] == mast:
+            by_packed.setdefault(r["packed"], r)
+    discs = list(by_packed.values())
+    discs.sort(key=lambda r: DISC_SORT.get(r["disc_role"], 9))
+    return discs
+
+
 def build_rows() -> list[dict]:
     rows: list[dict] = []
     seen_ports: dict[str, str] = {}
-    for mast, node, parent, loc, pid, g, y, r, was in MASTS_3PIN:
+    for mast, node, parent, loc, pid, g, y, r, disc, was in HEADS_3PIN:
         uid = pid - node * 100
         idx = uid - 32
         short = mast[5:] if mast.startswith("Mast ") else mast
         ports = {"G": g, "Y": y, "R": r}
+        label = f"{short} {disc}" if disc in ("T", "B") else short
         for color, _key in PIN_ORDER:
             port = ports[color]
             if port in seen_ports:
                 raise SystemExit(f"duplicate port {port}: {seen_ports[port]} and {mast}")
-            seen_ports[port] = mast
+            seen_ports[port] = f"{mast} {disc} {color}"
             rows.append(
                 {
                     "mqtt_node": node,
@@ -100,14 +127,12 @@ def build_rows() -> list[dict]:
                     "uid": uid,
                     "packed": pid,
                     "system_name": f"IH{pid}",
-                    "user_name": f"Head {short} {color}",
+                    "user_name": f"Head {label} {color}",
                     "mast_user_name": mast,
-                    "head_role": color,
+                    "disc_role": disc,
+                    "head_role": disc,
                     "lamp_color": color,
-                    "heads": 1,
-                    "appearance": APPEAR[1],
-                    "physignal": "single",
-                    "port_id": ports[color],
+                    "port_id": port,
                     "g_port": g,
                     "y_port": y,
                     "r_port": r,
@@ -120,9 +145,10 @@ def build_rows() -> list[dict]:
 
 
 def mast_system_name(mast: str, rows: list[dict]) -> str:
-    heads = [r for r in rows if r["mast_user_name"] == mast]
-    r = heads[0]
-    return f"IF$shsm:{SYSTEM_BY_HEADS[1]}:{APPEAR[1]}({r['system_name']})"
+    discs = discs_of(mast, rows)
+    n = len(discs)
+    ihs = "".join(f"({d['system_name']})" for d in discs)
+    return f"IF$shsm:{SYSTEM_BY_HEADS[n]}:{APPEAR[n]}{ihs}"
 
 
 def write_csvs(rows: list[dict]) -> None:
@@ -138,6 +164,7 @@ def write_csvs(rows: list[dict]) -> None:
         "system_name",
         "user_name",
         "mast_user_name",
+        "disc_role",
         "head_role",
         "lamp_color",
         "topic",
@@ -182,17 +209,19 @@ def write_csvs(rows: list[dict]) -> None:
             continue
         seen.add(m)
         hs = [x for x in rows if x["mast_user_name"] == m]
+        discs = discs_of(m, rows)
+        n = len(discs)
         masts.append(
             {
                 "mast_user_name": m,
                 "mqtt_node": r["mqtt_node"],
                 "parent_node_id": r["parent_node_id"],
-                "heads": 1,
-                "appearance": r["appearance"],
-                "physignal": r["physignal"],
+                "heads": n,
+                "appearance": APPEAR[n],
+                "physignal": "double" if n == 2 else "single",
                 "mast_system_name": mast_system_name(m, rows),
-                "head_system_names": hs[0]["system_name"],
-                "packed_ids": str(hs[0]["packed"]),
+                "head_system_names": " ".join(d["system_name"] for d in discs),
+                "packed_ids": " ".join(str(d["packed"]) for d in discs),
                 "port_ids": " ".join(x["port_id"] for x in hs),
             }
         )
@@ -226,7 +255,7 @@ def write_csvs(rows: list[dict]) -> None:
                 m = by_name[name]
                 row = {
                     **row,
-                    "heads": 1,
+                    "heads": str(m["heads"]),
                     "mqtt_node": str(m["mqtt_node"]),
                     "parent_node_id": m["parent_node_id"],
                     "packed_ids": m["packed_ids"],

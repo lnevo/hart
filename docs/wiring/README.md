@@ -16,7 +16,7 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
-**Enclosure = radio Address.** Packed MQTT already uses Address except Plane/Brick heads, which stay `4xx` (LCOS display node 4) on **C3** (radio 3). Princess on **C1**, never **D5**. East End signals **C2** (radio 2; OU1 as 5V); East End turnouts **C12** (radio 12). Barn **C13**. Princess overflow + **2035/2036** on **C11**. One 3-pin `STOP/APPROACH/CLEAR` head per mast.
+**Enclosure = radio Address.** Two-head masts are two 3-pin discs (T+B) on the same radio. New **5V OU4** on C1 / C2 / C3 / C13; C11 uses leftover OU3 for 36RB Bottom. Packed MQTT: Plane/Brick heads stay `4xx` on **C3** (radio 3). Princess **C1** (never **D5**). East End signals **C2**; East End turnouts **C12**. Barn **C13**. Overflow **C11**.
 
 **6LA** (was documented as 102LA) is a 1-head dwarf on `C3-OU2-4` / `IH434`. `C3-OU2` packed hole for old 102LA Bottom / IH435 is unused; do not reuse it for 101RA. `signals_split_v8.xlsx` stays the frozen RGB plan.
 

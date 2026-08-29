@@ -99,11 +99,11 @@ All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts: tw
 
 | Area | Radio → MQTT node | Parent board | Packed heads |
 |------|-------------------|--------------|--------------|
-| Plane + OS W-1 / OS W-2 + Brick east | `4` (radio **3**; packed 4xx) | **C3** (was C4) | `IH432`–`IH439` |
-| OS Barn / W-117 | **13** | **C13** (was C5) | `IH1332`–`IH1338` |
-| East End | **2** | **C2** (was C3) | `IH232`–`IH237` |
-| Princess interlocking | `1` | **C1** (never D5) | `IH132`–`IH143` |
-| Princess overflow | **11** | **C11** (was C7) | `IH1132`–`IH1134` |
+| Plane + OS W-1 / OS W-2 + Brick east | `4` (radio **3**; packed 4xx) | **C3** + OU4 | `IH432`/`433`, `IH438`/`439` |
+| OS Barn / W-117 | **13** | **C13** + OU4 | `IH1332`/`1333` … `1337`/`1338` |
+| East End | **2** | **C2** + OU4 | `IH232`/`238` … `237`/`241` |
+| Princess interlocking | `1` | **C1** + OU4 (never D5) | `IH132`/`133` … |
+| Princess overflow | **11** | **C11** (36RB T/B on existing OU) | `IH1132`/`1135` |
 
 Princess east exits are **2-head** (main vs OS K-1/OS K-2 restricting). Balloon intermediates **Mast 2035** / **Mast 2036** (was 115R / 114R) stay **SL-1-low** (Slow Clear / Restricting / Stop — Restricting is yellow). All other Digicon **LAMP1** masts use `SL-1-low` dwarfs on Layout Editor (T6, OS S-R, OS 31, OS W-1/OS W-2, OS K-1/OS K-2). Packed IDs: Mast 2036 `IH134` / Mast 2035 `IH141`, stubs `IH142` / `IH143`. 113a/113b packed IDs are unchanged.
 

@@ -206,6 +206,7 @@ LEGACY_NODE_IDS: dict[str, str] = {
     "D1": "D5",
 }
 NODE_ID_TOKEN = re.compile(r"(?<![A-Za-z0-9])([CD]\d+)(?![0-9])")
+DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
 
 def rewrite_legacy_node_ids(value):
@@ -379,6 +380,45 @@ def refresh_block_sensors(ws: Worksheet, occ: dict[str, str]) -> list[str]:
     return log
 
 
+# New 5V DNOU8 for second searchlight discs (C11 uses leftover OU3 instead).
+NEW_5V_OU4 = ("C1", "C2", "C3", "C13")
+
+
+def ensure_ou4_boards(ws: Worksheet) -> list[str]:
+    """Append empty C*-OU4-1..8 5V rows so overlay / the schematic see the new boards."""
+    log: list[str] = []
+    have: set[str] = set()
+    loc_by_node: dict[str, str] = {}
+    for row in range(2, ws.max_row + 1):
+        pid = ws.cell(row, 1).value
+        parent = ws.cell(row, 2).value
+        loc = ws.cell(row, 3).value
+        if pid:
+            have.add(str(pid))
+        if parent and loc and str(parent) not in loc_by_node:
+            loc_by_node[str(parent)] = str(loc)
+    for nid in NEW_5V_OU4:
+        loc = loc_by_node.get(nid, "")
+        for ch in range(1, 9):
+            port = f"{nid}-OU4-{ch}"
+            if port in have:
+                continue
+            ws.append(
+                (
+                    port,
+                    nid,
+                    loc,
+                    ch,
+                    None,
+                    None,
+                    "5V",
+                    "NEW 5V DNOU8 (OU4) for second searchlight disc",
+                )
+            )
+            log.append(f"add {port}")
+    return log
+
+
 def overlay_dnou8(ws: Worksheet, wiring: list[dict[str, str]]) -> list[str]:
     log: list[str] = []
     by_port: dict[str, int] = {}
@@ -442,8 +482,16 @@ def refresh_nodes(ws: Worksheet) -> None:
                 ws.cell(row, num_5v_col).value = 0
             if leds_col:
                 ws.cell(row, leds_col).value = 0
-        if nid == "C1" and loc_col:
-            ws.cell(row, loc_col).value = "Helix - Lower (Princess)"
+        if nid == "C1":
+            if loc_col:
+                ws.cell(row, loc_col).value = "Helix - Lower (Princess)"
+            if boards_5v_col:
+                ws.cell(row, boards_5v_col).value = 3
+            if num_5v_col:
+                ws.cell(row, num_5v_col).value = 24
+            dnou = idx.get("DNOU8")
+            if dnou:
+                ws.cell(row, dnou).value = "OU1, OU2, OU3, OU4"
         if nid == "C2":
             if loc_col:
                 ws.cell(row, loc_col).value = "North - Lower (East End signals)"
@@ -452,11 +500,22 @@ def refresh_nodes(ws: Worksheet) -> None:
             if num_12:
                 ws.cell(row, num_12).value = 0
             if boards_5v_col:
+                ws.cell(row, boards_5v_col).value = 4
+            if num_5v_col:
+                ws.cell(row, num_5v_col).value = 32
+            dnou = idx.get("DNOU8")
+            if dnou:
+                ws.cell(row, dnou).value = "OU1, OU2, OU3, OU4"
+        if nid == "C3":
+            if loc_col:
+                ws.cell(row, loc_col).value = "West - Lower (Plane / Brick)"
+            if boards_5v_col:
                 ws.cell(row, boards_5v_col).value = 3
             if num_5v_col:
                 ws.cell(row, num_5v_col).value = 24
-        if nid == "C3" and loc_col:
-            ws.cell(row, loc_col).value = "West - Lower (Plane / Brick)"
+            dnou = idx.get("DNOU8")
+            if dnou:
+                ws.cell(row, dnou).value = "OU1, OU2, OU3, OU4"
         if nid == "C4" and loc_col:
             current = str(ws.cell(row, loc_col).value or "")
             if "Peninsula" not in current:
@@ -465,8 +524,16 @@ def refresh_nodes(ws: Worksheet) -> None:
             ws.cell(row, loc_col).value = "Helix (Princess overflow)"
         if nid == "C12" and loc_col:
             ws.cell(row, loc_col).value = "North - Lower (East End turnouts 107–112)"
-        if nid == "C13" and loc_col:
-            ws.cell(row, loc_col).value = "West - Lower (Barn)"
+        if nid == "C13":
+            if loc_col:
+                ws.cell(row, loc_col).value = "West - Lower (Barn)"
+            if boards_5v_col:
+                ws.cell(row, boards_5v_col).value = 3
+            if num_5v_col:
+                ws.cell(row, num_5v_col).value = 24
+            dnou = idx.get("DNOU8")
+            if dnou:
+                ws.cell(row, dnou).value = "OU1, OU2, OU3, OU4"
 
 
 def refresh_turnout_summary(ws: Worksheet) -> list[str]:
@@ -523,7 +590,9 @@ def add_digicon_sheet(wb, wiring: list[dict[str, str]], heads: list[dict[str, st
         "system_name",
         "user_name",
         "mast_user_name",
+        "disc_role",
         "head_role",
+        "lamp_color",
         "topic",
         "notes",
     ]
@@ -556,27 +625,44 @@ def rebuild_asbuilt_inventory(ws: Worksheet, wiring: list[dict[str, str]], masts
         ws.delete_rows(2, ws.max_row - 1)
     plan_by_name = {r["proposed_mast_name"]: r for r in masts}
     for mast, pin_rows in heads_by_mast.items():
-        pin_rows = sorted(pin_rows, key=lambda r: (r.get("lamp_color") or r["head_role"] or ""))
+        pin_rows = sorted(
+            pin_rows,
+            key=lambda r: (
+                DISC_SORT.get(r.get("disc_role") or r.get("head_role") or "S", 9),
+                r.get("lamp_color") or "",
+            ),
+        )
         plan = plan_by_name.get(mast, {})
-        packed = pin_rows[0]["packed"]
+        packed_seen: list[str] = []
+        topics_seen: list[str] = []
+        for r in pin_rows:
+            p = str(r["packed"])
+            if p not in packed_seen:
+                packed_seen.append(p)
+                topics_seen.append(r["topic"])
+        n = len(packed_seen)
         ports = " ".join(r["port_id"] for r in pin_rows)
-        topics = pin_rows[0]["topic"]
+        aspect = (
+            "hart-aar SL-2-digicon (two 3-pin STOP/APPROACH/CLEAR discs)"
+            if n == 2
+            else "AAR-1946 SL-1-low (3-pin STOP/APPROACH/CLEAR)"
+        )
         ws.append(
             [
                 plan.get("cp") or pin_rows[0].get("board_location"),
                 mast,
-                1,
+                n,
                 plan.get("direction") or "",
                 f"({plan.get('panel_x')},{plan.get('panel_y')}) {plan.get('edge')}" if plan else "",
                 plan.get("protects_switch") or "",
                 pin_rows[0]["mqtt_node"],
                 pin_rows[0]["parent_node_id"],
-                packed,
+                " ".join(packed_seen),
                 ports,
-                topics,
+                " ".join(topics_seen),
                 plan.get("mast_system_name") or "",
-                "single",
-                "AAR-1946 SL-1-low (3-pin STOP/APPROACH/CLEAR)",
+                "double" if n == 2 else "single",
+                aspect,
                 pin_rows[0].get("notes") or "",
             ]
         )
@@ -625,6 +711,7 @@ def refresh_inventory() -> Path:
     apply_proposed_to_wiring(heads)
 
     bs_log = refresh_block_sensors(wb["BlockSensors"], occ)
+    ou4_log = ensure_ou4_boards(wb["DNOU8"])
     dnou_log = overlay_dnou8(wb["DNOU8"], wiring)
     ts_log = refresh_turnout_summary(wb["TurnoutSummary"])
     refresh_nodes(wb["Nodes"])
@@ -646,6 +733,9 @@ def refresh_inventory() -> Path:
     print(f"wrote {dest}")
     print(f"  BlockSensors renames: {len(bs_log)}")
     for line in bs_log:
+        print(f"    {line}")
+    print(f"  DNOU8 OU4 added: {len(ou4_log)}")
+    for line in ou4_log:
         print(f"    {line}")
     print(f"  DNOU8 overlays: {len(dnou_log)}")
     for line in dnou_log:

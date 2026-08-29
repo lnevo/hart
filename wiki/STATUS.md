@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — Second searchlight discs: **+4 5V DNOU8 (OU4)** on C1 / C2 / C3 / C13; 2-head masts are two 3-pin objects (T+B) on the same radio. C1-OU2-8 reused as LED. C11 36RB Bottom on leftover OU3. Dwarfs stay 1 disc. Wiring CSVs + v85; no `tables.xml`. Docs-only, not deployed.
+
 Updated: 2026-08-29 — LCOS **Node ID = radio Address** (East End signals **C2**, turnouts **C12**; Plane/Brick **C3**; Barn **C13**; Princess overflow **C11**; helix DCC **D5**). Legacy sequential C1–C13 kept on the Nodes sheet. Packed MQTT unchanged (Plane still `4xx`). Wiring CSVs + v85 inventory; no `tables.xml`. Docs-only, not deployed.
 
 Updated: 2026-08-28 — Rebuilt wiring CSVs + v85 inventory (no `tables.xml`): one 3-pin head per mast. Princess on **C1** (36RB+2035/2036 overflow **C11**). East End on **C2** (OU1 as 5V). Barn on **C13**. Packed East End is `2xx` (was `12xx`). Review before JMRI tables.

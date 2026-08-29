@@ -158,11 +158,11 @@ Payload = appearance name      # Red / Yellow / Green / Dark / …
 
 | Area | MQTT node (radio) | Parent board | Packed heads | Example ports |
 |------|-------------------|--------------|--------------|---------------|
-| Plane + OS W-1 / OS W-2 + Brick east | **4** (LCOS display 4; radio **3**) | **C3** (was C4) | `IH432`–`IH439` | C3-OU2-1 … OU2-6, C3-OU3-1/2 |
-| OS Barn / W-117 | **13** | **C13** (was C5) | `IH1332`–`IH1338` | C13 5V OU |
-| East End | **2** | **C2** (was C3) | packed `2xx` | C2-OU1/OU2/OU3 (OU1 as 5V; no turnouts) |
-| Princess interlocking | **1** | **C1** (never D5 / radio 5 DCC) | `IH132`… | C1-OU2/OU3 |
-| Princess overflow + 2035/2036 | **11** | **C11** (was C7) | packed `11xx` | C11-OU2/OU3 |
+| Plane + OS W-1 / OS W-2 + Brick east | **4** (LCOS display 4; radio **3**) | **C3** + new **OU4** | `IH432`/`433` (6LB), `IH438`/`439` (2L) | existing OU2/OU3 + OU4 |
+| OS Barn / W-117 | **13** | **C13** + new **OU4** | `IH1332`/`1333`, `1335`/`1336`, `1337`/`1338` | existing OU1/OU2 + OU4 |
+| East End | **2** | **C2** + new **OU4** | `IH232`/`238` … `237`/`241` | OU1–OU3 5V + OU4 |
+| Princess interlocking | **1** | **C1** + new **OU4** (OU2-8 as LED) | `IH132`/`133`, `135`/`136`, `139`/`140` | OU2/OU3 + OU4 |
+| Princess overflow + 2035/2036 | **11** | **C11** (no new board) | `IH1132`/`1135` (36RB) | OU2 + OU3 leftover |
 
 Head roles on multi-head masts: **T** top, **M** middle, **B** bottom, **S** single.
 
