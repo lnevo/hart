@@ -43,6 +43,11 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("_on_jmri_shutdown", text)
         self.assertIn("DigiconSmlQuitTask", text)
         self.assertIn("setDoRun(True)", text)
+        self.assertNotIn("MQTT_HEAD_NAMES", text)
+        self.assertIn("_enroll_packed", text)
+        self.assertIn("_packed_is_lcos_signal", text)
+        self.assertIn('MAST_TOPIC_PREFIX + "#"', text)
+        self.assertIn('TOPIC_PREFIX + "#"', text)
         self.assertNotIn("mosquitto", text.lower())
         self.assertNotIn("subprocess", text)
         self.assertNotIn("import socket", text)
@@ -156,6 +161,20 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn(marker, updated)
         self.assertIn("'IH999'", updated)
         self.assertNotIn("mosquitto", updated.lower())
+        self.assertNotIn("MQTT_HEAD_NAMES", updated)
+
+    def test_roster_enrolls_from_signalmast_not_signalhead(self) -> None:
+        text = PUBLISHER.read_text(encoding="utf-8")
+        notify = text[text.index("def notifyMqttMessage") :]
+        self.assertIn("_enroll_packed(leaf)", notify)
+        enroll_at = notify.index("_enroll_packed(leaf)")
+        apply_at = notify.index("_apply_mast_payload_to_head(leaf, message)")
+        self.assertLess(enroll_at, apply_at)
+        self.assertIn("never enroll from signalhead", notify)
+        skip = notify.index("never enroll from signalhead")
+        self.assertLess(skip, enroll_at)
+        self.assertIn("UID 32-47", text)
+        self.assertIn("self.mqtt_wanted = set()", text)
 
 
 if __name__ == "__main__":

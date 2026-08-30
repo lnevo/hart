@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — MQTT SET/Unheld roster is live from retained `track/signalmast/<packed>` (UID 32–47, IH bean present). Empty at boot; 432/433 enroll from broker retain. SML Enable still uses `HEAD_NAMES`. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
+
 Updated: 2026-08-29 — JMRI comments: turnout `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC omits DCC); occupancy `Node: 4 Block: 1`; feedback `Sensor: N`; heads `Signal: N` from wiring. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — Quit RELEASE runs in ShutDownTask **call()** (before JMRI closes windows / MQTT) plus main-window close. Hold / Unheld / `disabled` then dest uncheck. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.

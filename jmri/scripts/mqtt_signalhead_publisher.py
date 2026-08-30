@@ -27,7 +27,9 @@
 #
 # Topic leaf is packed digits only (IH432 -> .../432). Beans stay IH*.
 # Generated HEAD_NAMES: cats/scripts/build_hart_signal_heads.py
-# (signal_wiring.csv). Keep the HEAD_NAMES_BEGIN/END markers.
+# (signal_wiring.csv). Keep the HEAD_NAMES_BEGIN/END markers. SML Enable uses
+# that catalog. MQTT SET/Unheld/paint starts empty and grows from
+# track/signalmast/<packed> (node + UID 32-47, IH bean present).
 
 import java
 import jmri
@@ -88,12 +90,9 @@ HEAD_NAMES = [
 ]
 # HEAD_NAMES_END
 
-# TEST LIMIT: MQTT SET / Unheld / mast→IH only for these Digicon heads.
-# Full HEAD_NAMES still drive Digicon mast discovery and SML enable/disable.
-# Restore to all HEAD_NAMES (or empty list = all) when more LCOS signals are live.
-MQTT_HEAD_NAMES = [
-    "IH432",
-]
+# LCOS signal UIDs: UID_OFFSET_SIGNALS .. UID_OFFSET_CROSSINGS-1 (lcos.h).
+_LCOS_SIGNAL_UID_MIN = 32
+_LCOS_SIGNAL_UID_MAX = 47
 
 _HEAD_IN_MAST = re.compile(r"\(IH\d+\)")
 
@@ -131,6 +130,25 @@ def _topic_suffix(sys_name):
     if len(name) > 2 and name[:2].upper() == "IH" and name[2:].isdigit():
         return name[2:]
     return name
+
+
+def _packed_is_lcos_signal(packed):
+    """True if packed = display_node*100 + signal UID (32-47) and node is octal-legal."""
+    if packed is None:
+        return False
+    s = str(packed).strip()
+    if not s.isdigit():
+        return False
+    n = int(s)
+    node = n // 100
+    uid = n % 100
+    if uid < _LCOS_SIGNAL_UID_MIN or uid > _LCOS_SIGNAL_UID_MAX:
+        return False
+    try:
+        int(str(node), 8)
+    except Exception:
+        return False
+    return True
 
 
 def _mqtt_adapter():
@@ -200,10 +218,8 @@ class DigiconMqttSml(
 
     def __init__(self, head_names):
         self.wanted = set(head_names)
-        if MQTT_HEAD_NAMES:
-            self.mqtt_wanted = set(MQTT_HEAD_NAMES)
-        else:
-            self.mqtt_wanted = set(head_names)
+        # MQTT live roster: empty until track/signalmast/<packed> reports.
+        self.mqtt_wanted = set()
         self.mqtt = None
         self._masts = []
         self._heads = []
@@ -595,7 +611,6 @@ class DigiconMqttSml(
 
     def _collect_beans(self):
         mm = _mast_manager()
-        hm = _head_manager()
         self._masts = []
         self._heads = []
         self._head_to_mast = {}
@@ -608,20 +623,7 @@ class DigiconMqttSml(
                 self._masts.append(mast)
                 for n in wanted_heads:
                     self._head_to_mast[n] = mast
-        if hm is not None:
-            # Listeners / SET / Unheld only for MQTT-active heads.
-            for name in sorted(self.mqtt_wanted):
-                if name not in self.wanted:
-                    print(
-                        "mqtt_signalhead: MQTT_HEAD_NAMES entry not in HEAD_NAMES: "
-                        + _ascii(name)
-                    )
-                    continue
-                head = hm.getSignalHead(name)
-                if head is None:
-                    print("mqtt_signalhead: missing head " + _ascii(name))
-                    continue
-                self._heads.append(head)
+        # MQTT heads attach on enroll from track/signalmast/<packed>.
 
     def _attach_bean_listeners(self):
         for mast in self._masts:
@@ -659,13 +661,43 @@ class DigiconMqttSml(
     def _subscribe_mqtt(self):
         try:
             self.mqtt.subscribe(SML_MODE_TOPIC, self)
-            # Mast status → IH only for MQTT-active packed leaves.
-            for sys_name in sorted(self.mqtt_wanted):
-                packed = _topic_suffix(sys_name)
-                if packed:
-                    self.mqtt.subscribe(MAST_TOPIC_PREFIX + packed, self)
+            # signalmast first (roster + paint). signalhead is SET/Unheld; do not enroll.
+            self.mqtt.subscribe(MAST_TOPIC_PREFIX + "#", self)
+            self.mqtt.subscribe(TOPIC_PREFIX + "#", self)
         except Exception as exc:
             print("mqtt_signalhead: MQTT subscribe failed: " + _ascii(exc))
+
+    def _enroll_packed(self, packed):
+        """Add packed disc to MQTT roster from track/signalmast (not signalhead)."""
+        packed = str(packed).strip()
+        if not _packed_is_lcos_signal(packed):
+            return
+        sys_name = "IH" + packed
+        if sys_name in self.mqtt_wanted:
+            return
+        hm = _head_manager()
+        if hm is None:
+            return
+        head = hm.getSignalHead(sys_name)
+        if head is None:
+            print(
+                "mqtt_signalhead: skip enroll %s (no IH bean)"
+                % _ascii(sys_name)
+            )
+            return
+        self.mqtt_wanted.add(sys_name)
+        if head not in self._heads:
+            self._heads.append(head)
+            try:
+                head.addPropertyChangeListener(self)
+            except Exception as exc:
+                print(
+                    "mqtt_signalhead: listener %s: %s"
+                    % (_ascii(sys_name), _ascii(exc))
+                )
+        print("mqtt_signalhead: enrolled %s from signalmast" % _ascii(sys_name))
+        if self._global_enabled:
+            self._publish_head_set(head)
 
     def _add_toggle_button(self):
         self._button = JButton("SML Disabled")
@@ -1055,7 +1087,7 @@ class DigiconMqttSml(
         if not heads:
             print(
                 "mqtt_signalhead: SML dest off %s — no MQTT heads "
-                "(MQTT_HEAD_NAMES=%s)"
+                "(roster=%s)"
                 % (
                     _ascii(mast.getDisplayName()),
                     ",".join(sorted(self.mqtt_wanted)),
@@ -1101,7 +1133,7 @@ class DigiconMqttSml(
         if sys_name not in self.mqtt_wanted:
             return
         mast = self._head_to_mast.get(sys_name)
-        if not self._field_owns_mast(mast):
+        if self._global_enabled and not self._field_owns_mast(mast):
             return
         parts = [p.strip() for p in str(payload).split(";") if p.strip()]
         if not parts:
@@ -1173,6 +1205,13 @@ class DigiconMqttSml(
         ):
             self._on_sml_mode(message)
             return
+        # SET/Unheld: never enroll from signalhead (publisher also publishes SET).
+        if (
+            topic.startswith(TOPIC_PREFIX)
+            or "/signalhead/" in topic
+            or topic.startswith("signalhead/")
+        ):
+            return
         # track/signalmast/<packed>
         prefix = MAST_TOPIC_PREFIX
         leaf = None
@@ -1180,12 +1219,15 @@ class DigiconMqttSml(
             leaf = topic[len(prefix) :]
         elif "/signalmast/" in topic:
             leaf = topic.split("/signalmast/", 1)[1]
+        elif topic.startswith("signalmast/"):
+            leaf = topic[len("signalmast/") :]
         if leaf is None:
             return
         if "/" in leaf:
             leaf = leaf.split("/", 1)[0]
         if not leaf.isdigit():
             return
+        self._enroll_packed(leaf)
         self._apply_mast_payload_to_head(leaf, message)
 
     def _on_sml_mode(self, message):
