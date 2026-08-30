@@ -21,20 +21,22 @@ from apply_public_names import RenameEntry, apply_renames_to_text
 SIGNAL_WIRING = ROOT / "cats/data/signal_wiring.csv"
 PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
-# Old: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
-# New: "Node: 4 | OU-1: Port: 1,2 | DCC: 100"
-_OLD_WIRING_RE = re.compile(
-    r"^Node\s+(\d+)((?:\s*/\s*(?:OU|IN)-\d+\s*/\s*Ports?\s*[\d,\s]+)+)"
-    r"(?:\s*/\s*DCC\s+(\d+))?\s*$",
-    re.I,
+# Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
+# Mid:   "Node: 4 | OU-1: Port: 1,2 | DCC: 100"
+# Live:  "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2"
+_OBJECT_RE = re.compile(
+    r"^Node:\s*(\d+)\s+(Turnout|Signal|Sensor|Block):\s*(\d+)\s*(?:\|(.*))?$",
+    re.I | re.S,
 )
-_NEW_WIRING_RE = re.compile(
-    r"^Node:\s*(\d+)((?:\s*\|\s*(?:OU|IN)-\d+:\s*Port:\s*[\d,\s]+)+)"
-    r"(?:\s*\|\s*DCC:\s*(\d+))?\s*$",
-    re.I,
+_NODE_PIPE_RE = re.compile(r"^Node:\s*(\d+)\s*(?:\|(.*))?$", re.I | re.S)
+_OLD_NODE_RE = re.compile(r"^Node\s+(\d+)\s*/(.*)$", re.I | re.S)
+_BLOCK_NN_RE = re.compile(r"^Block\s+(\d+)-(\d+)$")
+_DCC_RE = re.compile(r"(?:\|\s*)?DCC:\s*(\d+)|(?:/\s*)DCC\s+(\d+)", re.I)
+_UNIT_RE = (
+    re.compile(r"(OU|IN):\s*(\d+)\s+Ports:\s*([\d,]+)", re.I),
+    re.compile(r"(OU|IN)-(\d+):\s*Port:\s*([\d,]+)", re.I),
+    re.compile(r"(OU|IN)-(\d+)\s*/\s*Ports?\s*([\d,]+)", re.I),
 )
-_OLD_UNIT_RE = re.compile(r"(OU|IN)-(\d+)\s*/\s*Ports?\s*([\d,]+)", re.I)
-_NEW_UNIT_RE = re.compile(r"(OU|IN)-(\d+):\s*Port:\s*([\d,]+)", re.I)
 _MAST_NUM_RE = re.compile(r"^Mast\s+(\d+)[LR]", re.I)
 _PORT_ID_RE = re.compile(r"^C(\d+)-(OU|IN)(\d+)-(\d+)$", re.I)
 
@@ -45,31 +47,88 @@ MAST_SWITCH_OVERRIDE = {
 }
 
 
-def format_lcos_comment(comment: str) -> str:
-    """Rewrite Node/OU|IN/Ports[/DCC] comments to labeled pipes."""
-    text = (comment or "").strip()
-    if not text:
-        return text
-    match = _NEW_WIRING_RE.fullmatch(text) or _OLD_WIRING_RE.fullmatch(text)
-    if not match:
-        return text
-    node, body, dcc = match.group(1), match.group(2), match.group(3)
-    unit_re = _NEW_UNIT_RE if "|" in body else _OLD_UNIT_RE
-    units = [(kind.upper(), num, ports.replace(" ", "")) for kind, num, ports in unit_re.findall(body)]
-    if not units:
-        return text
-    parts = [f"Node: {node}"]
-    parts.extend(f"{kind}-{num}: Port: {ports}" for kind, num, ports in units)
+def _units_from(body: str) -> list[tuple[str, str, str]]:
+    for unit_re in _UNIT_RE:
+        units = [
+            (kind.upper(), num, ports.replace(" ", ""))
+            for kind, num, ports in unit_re.findall(body or "")
+        ]
+        if units:
+            return units
+    return []
+
+
+def format_lcos_parts(
+    node: str,
+    units: list[tuple[str, str, str]],
+    *,
+    label: str | None = None,
+    index: str | int | None = None,
+    dcc: str | None = None,
+) -> str:
+    """`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` — `|` splits groups, not Ports."""
+    head = f"Node: {node}"
+    if label is not None and index is not None and str(index) != "":
+        head += f" {label}: {index}"
+    parts = [head]
     if dcc:
         parts.append(f"DCC: {dcc}")
+    parts.extend(f"{kind}: {num} Ports: {ports}" for kind, num, ports in units)
     return " | ".join(parts)
 
 
-def comment_from_port_ids(port_ids: list[str], dcc: str | None = None) -> str:
-    """Build `Node: 4 | OU-2: Port: 1,2,3` from C4-OU2-1 style port ids.
+def format_lcos_comment(comment: str) -> str:
+    """Rewrite Node/OU|IN/Ports[/DCC] comments to the live pipe grammar."""
+    text = (comment or "").strip()
+    if not text:
+        return text
+    match = _BLOCK_NN_RE.fullmatch(text)
+    if match:
+        return f"Node: {match.group(1)} Block: {int(match.group(2))}"
+
+    label: str | None = None
+    index: str | None = None
+    body = ""
+    match = _OBJECT_RE.fullmatch(text)
+    if match:
+        node, label, index, body = (
+            match.group(1),
+            match.group(2).title(),
+            match.group(3),
+            match.group(4) or "",
+        )
+        if label == "Block":
+            return f"Node: {node} Block: {int(index)}"
+    else:
+        match = _NODE_PIPE_RE.fullmatch(text) or _OLD_NODE_RE.fullmatch(text)
+        if not match:
+            return text
+        node, body = match.group(1), match.group(2) or ""
+
+    dcc = None
+    dcc_match = _DCC_RE.search(body)
+    if dcc_match:
+        dcc = dcc_match.group(1) or dcc_match.group(2)
+        body = body[: dcc_match.start()] + body[dcc_match.end() :]
+    units = _units_from(body)
+    if not units:
+        if label:
+            return format_lcos_parts(node, [], label=label, index=index, dcc=dcc)
+        return text
+    return format_lcos_parts(node, units, label=label, index=index, dcc=dcc)
+
+
+def comment_from_port_ids(
+    port_ids: list[str],
+    dcc: str | None = None,
+    *,
+    label: str | None = None,
+    index: str | int | None = None,
+) -> str:
+    """Build `Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3` from C4-OU2-1 style port ids.
 
     Consecutive ports on the same OU stay comma-separated (G/Y/R order).
-    Leftover discs that spill (6LA, 32R, 38LA, 8LB, 2035) get extra `| OU-n:` groups.
+    Leftover discs that spill (6LA, 32R, 38LA, 8LB, 2035) get extra `| OU: n` groups.
     """
     groups: list[tuple[str, str, str, list[str]]] = []
     for pid in port_ids:
@@ -88,11 +147,8 @@ def comment_from_port_ids(port_ids: list[str], dcc: str | None = None) -> str:
             groups.append((node, kind, num, [port]))
     if not groups:
         return ""
-    parts = [f"Node: {groups[0][0]}"]
-    parts.extend(f"{kind}-{num}: Port: {','.join(ports)}" for _, kind, num, ports in groups)
-    if dcc:
-        parts.append(f"DCC: {dcc}")
-    return " | ".join(parts)
+    units = [(kind, num, ",".join(ports)) for _, kind, num, ports in groups]
+    return format_lcos_parts(groups[0][0], units, label=label, index=index, dcc=dcc)
 
 
 def jmri_head_user_name(mast_user_name: str, disc_role: str) -> str:
@@ -113,7 +169,7 @@ def load_wiring_head_comments(path: Path | None = None) -> dict[str, str]:
     cabinets (40LB is IH1132 on C11); live tables still use the old IH beans.
     """
     csv_path = path or SIGNAL_WIRING
-    grouped: OrderedDict[str, list[str]] = OrderedDict()
+    grouped: OrderedDict[str, dict[str, object]] = OrderedDict()
     if not csv_path.is_file():
         return {}
     with csv_path.open(newline="", encoding="utf-8") as handle:
@@ -124,12 +180,24 @@ def load_wiring_head_comments(path: Path | None = None) -> dict[str, str]:
             )
             if not uname:
                 continue
-            grouped.setdefault(uname, []).append((row.get("port_id") or "").strip())
-    return {
-        name: comment_from_port_ids(ports)
-        for name, ports in grouped.items()
-        if comment_from_port_ids(ports)
-    }
+            entry = grouped.setdefault(uname, {"ports": [], "signal": ""})
+            ports = entry["ports"]
+            assert isinstance(ports, list)
+            ports.append((row.get("port_id") or "").strip())
+            if not entry["signal"]:
+                entry["signal"] = (row.get("signal_index") or "").strip()
+    out: dict[str, str] = {}
+    for name, info in grouped.items():
+        ports = info["ports"]
+        assert isinstance(ports, list)
+        comment = comment_from_port_ids(
+            [str(p) for p in ports],
+            label="Signal",
+            index=str(info["signal"]),
+        )
+        if comment:
+            out[name] = comment
+    return out
 
 
 def sync_map_head_comments(path: Path | None = None) -> int:

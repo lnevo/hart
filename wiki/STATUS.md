@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-29 — JMRI comments: turnout `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC omits DCC); occupancy `Node: 4 Block: 1`; feedback `Sensor: N`; heads `Signal: N` from wiring. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-29 — Quit RELEASE runs in ShutDownTask **call()** (before JMRI closes windows / MQTT) plus main-window close. Hold / Unheld / `disabled` then dest uncheck. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — PanelPro/CATS quit: if Digicon SML is Enabled (or enabling), Hold / wait / Unheld then `sml_mode` **disabled**. Abort still skips RELEASE. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.

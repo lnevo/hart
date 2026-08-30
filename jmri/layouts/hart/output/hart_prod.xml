@@ -10,417 +10,417 @@
     <sensor inverted="false">
       <systemName>M2S100</systemName>
       <userName>BS McKees Rocks</userName>
-      <comment>Block 1-1</comment>
+      <comment>Node: 1 Block: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S101</systemName>
       <userName>BS McKeesport</userName>
-      <comment>Block 1-2</comment>
+      <comment>Node: 1 Block: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S102</systemName>
       <userName>BS Switch 37 / BS K-2</userName>
-      <comment>Block 1-3</comment>
+      <comment>Node: 1 Block: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S103</systemName>
       <userName>BS Switch 39 / BS K-1</userName>
-      <comment>Block 1-4</comment>
+      <comment>Node: 1 Block: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S104</systemName>
       <userName>BS Switch 35b</userName>
-      <comment>Block 1-5</comment>
+      <comment>Node: 1 Block: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S105</systemName>
       <userName>BS Switch 35a</userName>
-      <comment>Block 1-6</comment>
+      <comment>Node: 1 Block: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S106</systemName>
       <userName>BS East Lead</userName>
-      <comment>Block 1-7</comment>
+      <comment>Node: 1 Block: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S107</systemName>
       <userName>BS West Main Ext</userName>
-      <comment>Block 1-8</comment>
+      <comment>Node: 1 Block: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S167</systemName>
       <userName>FB Switch 35 N</userName>
-      <comment>Node: 1 | IN-1: Port: 1</comment>
+      <comment>Node: 1 Sensor: 0 | IN: 1 Ports: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S168</systemName>
       <userName>FB Switch 35 R</userName>
-      <comment>Node: 1 | IN-1: Port: 2</comment>
+      <comment>Node: 1 Sensor: 1 | IN: 1 Ports: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S169</systemName>
       <userName>FB Switch 37 N</userName>
-      <comment>Node: 1 | IN-1: Port: 3</comment>
+      <comment>Node: 1 Sensor: 2 | IN: 1 Ports: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S170</systemName>
       <userName>FB Switch 37 R</userName>
-      <comment>Node: 1 | IN-1: Port: 4</comment>
+      <comment>Node: 1 Sensor: 3 | IN: 1 Ports: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S171</systemName>
       <userName>FB Switch 39 N</userName>
-      <comment>Node: 1 | IN-1: Port: 5</comment>
+      <comment>Node: 1 Sensor: 4 | IN: 1 Ports: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S172</systemName>
       <userName>FB Switch 39 R</userName>
-      <comment>Node: 1 | IN-1: Port: 6</comment>
+      <comment>Node: 1 Sensor: 5 | IN: 1 Ports: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S200</systemName>
       <userName>BS Main West</userName>
-      <comment>Block 2-1</comment>
+      <comment>Node: 2 Block: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S202</systemName>
       <userName>BS Main East</userName>
-      <comment>Block 2-3</comment>
+      <comment>Node: 2 Block: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S203</systemName>
       <userName>BS S-4</userName>
-      <comment>Block 2-4</comment>
+      <comment>Node: 2 Block: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S204</systemName>
       <userName>BS S-3</userName>
-      <comment>Block 2-5</comment>
+      <comment>Node: 2 Block: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S205</systemName>
       <userName>BS S-2</userName>
-      <comment>Block 2-6</comment>
+      <comment>Node: 2 Block: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S206</systemName>
       <userName>BS S-1</userName>
-      <comment>Block 2-7</comment>
+      <comment>Node: 2 Block: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S207</systemName>
       <userName>BS S-R</userName>
-      <comment>Block 2-8</comment>
+      <comment>Node: 2 Block: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S300</systemName>
       <userName>BS Switch 13</userName>
-      <comment>Block 3-1</comment>
+      <comment>Node: 3 Block: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S301</systemName>
       <userName>BS Switch 15</userName>
-      <comment>Block 3-2</comment>
+      <comment>Node: 3 Block: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S302</systemName>
       <userName>BS Switch 17</userName>
-      <comment>Block 3-3</comment>
+      <comment>Node: 3 Block: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S304</systemName>
       <userName>BS Switch 19</userName>
-      <comment>Block 3-5</comment>
+      <comment>Node: 3 Block: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S306</systemName>
       <userName>BS Switch 21</userName>
-      <comment>Block 3-7</comment>
+      <comment>Node: 3 Block: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S367</systemName>
       <userName>FB Switch 15 N</userName>
-      <comment>Node: 3 | IN-1: Port: 1</comment>
+      <comment>Node: 3 Sensor: 0 | IN: 1 Ports: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S368</systemName>
       <userName>FB Switch 15 R</userName>
-      <comment>Node: 3 | IN-1: Port: 2</comment>
+      <comment>Node: 3 Sensor: 1 | IN: 1 Ports: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S369</systemName>
       <userName>FB Switch 17 N</userName>
-      <comment>Node: 3 | IN-1: Port: 3</comment>
+      <comment>Node: 3 Sensor: 2 | IN: 1 Ports: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S370</systemName>
       <userName>FB Switch 17 R</userName>
-      <comment>Node: 3 | IN-1: Port: 4</comment>
+      <comment>Node: 3 Sensor: 3 | IN: 1 Ports: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S371</systemName>
       <userName>FB Switch 19 N</userName>
-      <comment>Node: 3 | IN-1: Port: 5</comment>
+      <comment>Node: 3 Sensor: 4 | IN: 1 Ports: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S372</systemName>
       <userName>FB Switch 19 R</userName>
-      <comment>Node: 3 | IN-1: Port: 6</comment>
+      <comment>Node: 3 Sensor: 5 | IN: 1 Ports: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S373</systemName>
       <userName>FB Switch 21 N</userName>
-      <comment>Node: 3 | IN-1: Port: 7</comment>
+      <comment>Node: 3 Sensor: 6 | IN: 1 Ports: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S374</systemName>
       <userName>FB Switch 21 R</userName>
-      <comment>Node: 3 | IN-1: Port: 8</comment>
+      <comment>Node: 3 Sensor: 7 | IN: 1 Ports: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S400</systemName>
       <userName>BS Switch 3</userName>
-      <comment>Block 4-1</comment>
+      <comment>Node: 4 Block: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S401</systemName>
       <userName>BS Switch 1</userName>
-      <comment>Block 4-2</comment>
+      <comment>Node: 4 Block: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S402</systemName>
       <userName>BS W-2</userName>
-      <comment>Block 4-3</comment>
+      <comment>Node: 4 Block: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S403</systemName>
       <userName>BS W-1</userName>
-      <comment>Block 4-4</comment>
+      <comment>Node: 4 Block: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S404</systemName>
       <userName>BS Switch 5</userName>
-      <comment>Block 4-5</comment>
+      <comment>Node: 4 Block: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S405</systemName>
       <userName>BS Brick-Plane</userName>
-      <comment>Block 4-6</comment>
+      <comment>Node: 4 Block: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S406</systemName>
       <userName>BS East Main Ext</userName>
-      <comment>Block 4-7</comment>
+      <comment>Node: 4 Block: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S407</systemName>
       <userName>BS Scale</userName>
-      <comment>Block 4-8</comment>
+      <comment>Node: 4 Block: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S470</systemName>
       <userName>FB Switch 1 N</userName>
-      <comment>Node: 4 | IN-1: Port: 1</comment>
+      <comment>Node: 4 Sensor: 3 | IN: 1 Ports: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S471</systemName>
       <userName>FB Switch 1 R</userName>
-      <comment>Node: 4 | IN-1: Port: 2</comment>
+      <comment>Node: 4 Sensor: 4 | IN: 1 Ports: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S472</systemName>
       <userName>FB Switch 3 N</userName>
-      <comment>Node: 4 | IN-1: Port: 3</comment>
+      <comment>Node: 4 Sensor: 5 | IN: 1 Ports: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S473</systemName>
       <userName>FB Switch 3 R</userName>
-      <comment>Node: 4 | IN-1: Port: 4</comment>
+      <comment>Node: 4 Sensor: 6 | IN: 1 Ports: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S474</systemName>
       <userName>FB Switch 5 N</userName>
-      <comment>Node: 4 | IN-1: Port: 5</comment>
+      <comment>Node: 4 Sensor: 7 | IN: 1 Ports: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S475</systemName>
       <userName>FB Switch 5 R</userName>
-      <comment>Node: 4 | IN-1: Port: 6</comment>
+      <comment>Node: 4 Sensor: 8 | IN: 1 Ports: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S476</systemName>
       <userName>FB Switch 13 N</userName>
-      <comment>Node: 4 | IN-1: Port: 7</comment>
+      <comment>Node: 4 Sensor: 9 | IN: 1 Ports: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S477</systemName>
       <userName>FB Switch 13 R</userName>
-      <comment>Node: 4 | IN-1: Port: 8</comment>
+      <comment>Node: 4 Sensor: 10 | IN: 1 Ports: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1200</systemName>
       <userName>BS Switch 25</userName>
-      <comment>Block 12-1</comment>
+      <comment>Node: 12 Block: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1202</systemName>
       <userName>BS Switch 27</userName>
-      <comment>Block 12-3</comment>
+      <comment>Node: 12 Block: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1203</systemName>
       <userName>BS Switch 23a</userName>
-      <comment>Block 12-4</comment>
+      <comment>Node: 12 Block: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1204</systemName>
       <userName>BS Switch 29</userName>
-      <comment>Block 12-5</comment>
+      <comment>Node: 12 Block: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1205</systemName>
       <userName>BS Switch 23b</userName>
-      <comment>Block 12-6</comment>
+      <comment>Node: 12 Block: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1206</systemName>
       <userName>BS Switch 31</userName>
-      <comment>Block 12-7</comment>
+      <comment>Node: 12 Block: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1207</systemName>
       <userName>BS Switch 33</userName>
-      <comment>Block 12-8</comment>
+      <comment>Node: 12 Block: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1267</systemName>
       <userName>FB Switch 25 N</userName>
-      <comment>Node: 12 | IN-1: Port: 1</comment>
+      <comment>Node: 12 Sensor: 0 | IN: 1 Ports: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1268</systemName>
       <userName>FB Switch 25 R</userName>
-      <comment>Node: 12 | IN-1: Port: 2</comment>
+      <comment>Node: 12 Sensor: 1 | IN: 1 Ports: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1269</systemName>
       <userName>FB Switch 27 N</userName>
-      <comment>Node: 12 | IN-1: Port: 3</comment>
+      <comment>Node: 12 Sensor: 2 | IN: 1 Ports: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1270</systemName>
       <userName>FB Switch 27 R</userName>
-      <comment>Node: 12 | IN-1: Port: 4</comment>
+      <comment>Node: 12 Sensor: 3 | IN: 1 Ports: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1271</systemName>
       <userName>FB Switch 29 N</userName>
-      <comment>Node: 12 | IN-1: Port: 5</comment>
+      <comment>Node: 12 Sensor: 4 | IN: 1 Ports: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1272</systemName>
       <userName>FB Switch 29 R</userName>
-      <comment>Node: 12 | IN-1: Port: 6</comment>
+      <comment>Node: 12 Sensor: 5 | IN: 1 Ports: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1273</systemName>
       <userName>FB Switch 31 N</userName>
-      <comment>Node: 12 | IN-1: Port: 7</comment>
+      <comment>Node: 12 Sensor: 6 | IN: 1 Ports: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1274</systemName>
       <userName>FB Switch 31 R</userName>
-      <comment>Node: 12 | IN-1: Port: 8</comment>
+      <comment>Node: 12 Sensor: 7 | IN: 1 Ports: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1275</systemName>
       <userName>FB Switch 23 N</userName>
-      <comment>Node: 12 | IN-3: Port: 1</comment>
+      <comment>Node: 12 Sensor: 8 | IN: 3 Ports: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1276</systemName>
       <userName>FB Switch 23 R</userName>
-      <comment>Node: 12 | IN-3: Port: 2</comment>
+      <comment>Node: 12 Sensor: 9 | IN: 3 Ports: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1277</systemName>
       <userName>FB Switch 33 N</userName>
-      <comment>Node: 12 | IN-3: Port: 3</comment>
+      <comment>Node: 12 Sensor: 10 | IN: 3 Ports: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1278</systemName>
       <userName>FB Switch 33 R</userName>
-      <comment>Node: 12 | IN-3: Port: 4</comment>
+      <comment>Node: 12 Sensor: 11 | IN: 3 Ports: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1300</systemName>
       <userName>BS Barn</userName>
-      <comment>Block 13-1</comment>
+      <comment>Node: 13 Block: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1301</systemName>
       <userName>BS Switch 11</userName>
-      <comment>Block 13-2</comment>
+      <comment>Node: 13 Block: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1302</systemName>
       <userName>BS Switch 7</userName>
-      <comment>Block 13-3</comment>
+      <comment>Node: 13 Block: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1303</systemName>
       <userName>BS Switch 7b</userName>
-      <comment>Block 13-4</comment>
+      <comment>Node: 13 Block: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1304</systemName>
       <userName>BS EH-3</userName>
-      <comment>Block 13-5</comment>
+      <comment>Node: 13 Block: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1305</systemName>
       <userName>BS EH-2</userName>
-      <comment>Block 13-6</comment>
+      <comment>Node: 13 Block: 6</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1306</systemName>
       <userName>BS EH-1</userName>
-      <comment>Block 13-7</comment>
+      <comment>Node: 13 Block: 7</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1307</systemName>
       <userName>BS Switch 9</userName>
-      <comment>Block 13-8</comment>
+      <comment>Node: 13 Block: 8</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1367</systemName>
       <userName>FB Switch 7 N</userName>
-      <comment>Node: 13 | IN-1: Port: 1</comment>
+      <comment>Node: 13 Sensor: 0 | IN: 1 Ports: 1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1368</systemName>
       <userName>FB Switch 7 R</userName>
-      <comment>Node: 13 | IN-1: Port: 2</comment>
+      <comment>Node: 13 Sensor: 1 | IN: 1 Ports: 2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1369</systemName>
       <userName>FB Switch 11 N</userName>
-      <comment>Node: 13 | IN-1: Port: 3</comment>
+      <comment>Node: 13 Sensor: 2 | IN: 1 Ports: 3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1370</systemName>
       <userName>FB Switch 11 R</userName>
-      <comment>Node: 13 | IN-1: Port: 4</comment>
+      <comment>Node: 13 Sensor: 3 | IN: 1 Ports: 4</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1371</systemName>
       <userName>FB Switch 9 N</userName>
-      <comment>Node: 13 | IN-1: Port: 5</comment>
+      <comment>Node: 13 Sensor: 4 | IN: 1 Ports: 5</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>M2S1372</systemName>
       <userName>FB Switch 9 R</userName>
-      <comment>Node: 13 | IN-1: Port: 6</comment>
+      <comment>Node: 13 Sensor: 5 | IN: 1 Ports: 6</comment>
     </sensor>
   </sensors>
   <sensors class="jmri.jmrix.openlcb.configurexml.OlcbSensorManagerXml">
@@ -444,102 +444,102 @@
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N" inverted="false" automate="Off">
       <systemName>M2T108</systemName>
       <userName>Switch 35</userName>
-      <comment>Node: 1 | OU-1: Port: 1,2 | DCC: 113</comment>
+      <comment>Node: 1 Turnout: 0 | DCC: 113 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
       <systemName>M2T109</systemName>
       <userName>Switch 37</userName>
-      <comment>Node: 1 | OU-1: Port: 3,4 | DCC: 114</comment>
+      <comment>Node: 1 Turnout: 1 | DCC: 114 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
       <systemName>M2T110</systemName>
       <userName>Switch 39</userName>
-      <comment>Node: 1 | OU-1: Port: 5,6 | DCC: 115</comment>
+      <comment>Node: 1 Turnout: 2 | DCC: 115 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 15 R" sensor2="FB Switch 15 N" inverted="false" automate="Off">
       <systemName>M2T308</systemName>
       <userName>Switch 15</userName>
-      <comment>Node: 3 | OU-1: Port: 1,2 | DCC: 103</comment>
+      <comment>Node: 3 Turnout: 0 | DCC: 103 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 17 R" sensor2="FB Switch 17 N" inverted="false" automate="Off">
       <systemName>M2T309</systemName>
       <userName>Switch 17</userName>
-      <comment>Node: 3 | OU-1: Port: 3,4 | DCC: 104</comment>
+      <comment>Node: 3 Turnout: 1 | DCC: 104 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 19 R" sensor2="FB Switch 19 N" inverted="false" automate="Off">
       <systemName>M2T310</systemName>
       <userName>Switch 19</userName>
-      <comment>Node: 3 | OU-1: Port: 5,6 | DCC: 105</comment>
+      <comment>Node: 3 Turnout: 2 | DCC: 105 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 21 R" sensor2="FB Switch 21 N" inverted="false" automate="Off">
       <systemName>M2T311</systemName>
       <userName>Switch 21</userName>
-      <comment>Node: 3 | OU-1: Port: 7,8 | DCC: 106</comment>
+      <comment>Node: 3 Turnout: 3 | DCC: 106 | OU: 1 Ports: 7,8</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N" inverted="false" automate="Off">
       <systemName>M2T408</systemName>
       <userName>Switch 1</userName>
-      <comment>Node: 4 | OU-1: Port: 1,2 | DCC: 100</comment>
+      <comment>Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 3 R" sensor2="FB Switch 3 N" inverted="false" automate="Off">
       <systemName>M2T409</systemName>
       <userName>Switch 3</userName>
-      <comment>Node: 4 | OU-1: Port: 3,4 | DCC: 101</comment>
+      <comment>Node: 4 Turnout: 1 | DCC: 101 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 5 R" sensor2="FB Switch 5 N" inverted="false" automate="Off">
       <systemName>M2T410</systemName>
       <userName>Switch 5</userName>
-      <comment>Node: 4 | OU-1: Port: 5,6 | DCC: 102</comment>
+      <comment>Node: 4 Turnout: 2 | DCC: 102 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T411</systemName>
       <userName>Switch 13</userName>
-      <comment>Node: 4 | OU-1: Port: 7,8 | DCC: 116</comment>
+      <comment>Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 25 R" sensor2="FB Switch 25 N" inverted="false" automate="Off">
       <systemName>M2T1208</systemName>
       <userName>Switch 25</userName>
-      <comment>Node: 12 | OU-1: Port: 1,2 | DCC: 107</comment>
+      <comment>Node: 12 Turnout: 0 | DCC: 107 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 27 R" sensor2="FB Switch 27 N" inverted="false" automate="Off">
       <systemName>M2T1209</systemName>
       <userName>Switch 27</userName>
-      <comment>Node: 12 | OU-1: Port: 3,4 | DCC: 108</comment>
+      <comment>Node: 12 Turnout: 1 | DCC: 108 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 29 R" sensor2="FB Switch 29 N" inverted="false" automate="Off">
       <systemName>M2T1210</systemName>
       <userName>Switch 29</userName>
-      <comment>Node: 12 | OU-1: Port: 5,6 | DCC: 109</comment>
+      <comment>Node: 12 Turnout: 2 | DCC: 109 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 31 R" sensor2="FB Switch 31 N" inverted="false" automate="Off">
       <systemName>M2T1211</systemName>
       <userName>Switch 31</userName>
-      <comment>Node: 12 | OU-1: Port: 7,8 | DCC: 110</comment>
+      <comment>Node: 12 Turnout: 3 | DCC: 110 | OU: 1 Ports: 7,8</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
       <systemName>M2T1212</systemName>
       <userName>Switch 23</userName>
-      <comment>Node: 12 | OU-4: Port: 1,2 | DCC: 111</comment>
+      <comment>Node: 12 Turnout: 4 | DCC: 111 | OU: 4 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 33 R" sensor2="FB Switch 33 N" inverted="false" automate="Off">
       <systemName>M2T1213</systemName>
       <userName>Switch 33</userName>
-      <comment>Node: 12 | OU-4: Port: 3,4 | DCC: 112</comment>
+      <comment>Node: 12 Turnout: 5 | DCC: 112 | OU: 4 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1308</systemName>
       <userName>Switch 7</userName>
-      <comment>Node: 13 | OU-3: Port: 1,2 | DCC: 117</comment>
+      <comment>Node: 13 Turnout: 0 | DCC: 117 | OU: 3 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1309</systemName>
       <userName>Switch 11</userName>
-      <comment>Node: 13 | OU-3: Port: 3,4 | DCC: 118</comment>
+      <comment>Node: 13 Turnout: 1 | DCC: 118 | OU: 3 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1310</systemName>
       <userName>Switch 9</userName>
-      <comment>Node: 13 | OU-3: Port: 5,6 | DCC: 119</comment>
+      <comment>Node: 13 Turnout: 2 | DCC: 119 | OU: 3 Ports: 5,6</comment>
     </turnout>
   </turnouts>
   <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
@@ -567,182 +567,182 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>Head 6LB Top</userName>
-      <comment>Node: 4 | OU-2: Port: 1,2,3</comment>
+      <comment>Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH433</systemName>
       <userName>Head 6LB Bottom</userName>
-      <comment>Node: 4 | OU-2: Port: 4,5,6</comment>
+      <comment>Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH434</systemName>
       <userName>Head 6LA</userName>
-      <comment>Node: 4 | OU-2: Port: 7 | OU-3: Port: 8,7</comment>
+      <comment>Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH436</systemName>
       <userName>Head 4RA</userName>
-      <comment>Node: 4 | OU-4: Port: 1,2,3</comment>
+      <comment>Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH437</systemName>
       <userName>Head 4RB</userName>
-      <comment>Node: 4 | OU-4: Port: 4,5,6</comment>
+      <comment>Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH438</systemName>
       <userName>Head 2L Top</userName>
-      <comment>Node: 4 | OU-3: Port: 1,2,3</comment>
+      <comment>Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH439</systemName>
       <userName>Head 2L Bottom</userName>
-      <comment>Node: 4 | OU-3: Port: 4,5,6</comment>
+      <comment>Node: 4 Signal: 7 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1332</systemName>
       <userName>Head 8RA Top</userName>
-      <comment>Node: 13 | OU-1: Port: 1,2,3</comment>
+      <comment>Node: 13 Signal: 0 | OU: 1 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1333</systemName>
       <userName>Head 8RA Bottom</userName>
-      <comment>Node: 13 | OU-1: Port: 4,5,6</comment>
+      <comment>Node: 13 Signal: 1 | OU: 1 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1334</systemName>
       <userName>Head 8LB</userName>
-      <comment>Node: 13 | OU-2: Port: 7,8 | OU-4: Port: 7</comment>
+      <comment>Node: 13 Signal: 2 | OU: 2 Ports: 7,8 | OU: 4 Ports: 7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1335</systemName>
       <userName>Head 8RB Top</userName>
-      <comment>Node: 13 | OU-4: Port: 1,2,3</comment>
+      <comment>Node: 13 Signal: 3 | OU: 4 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1336</systemName>
       <userName>Head 8RB Bottom</userName>
-      <comment>Node: 13 | OU-4: Port: 4,5,6</comment>
+      <comment>Node: 13 Signal: 4 | OU: 4 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1337</systemName>
       <userName>Head 8LA Top</userName>
-      <comment>Node: 13 | OU-2: Port: 1,2,3</comment>
+      <comment>Node: 13 Signal: 5 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1338</systemName>
       <userName>Head 8LA Bottom</userName>
-      <comment>Node: 13 | OU-2: Port: 4,5,6</comment>
+      <comment>Node: 13 Signal: 6 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1232</systemName>
       <userName>Head 24RA Top</userName>
-      <comment>Node: 2 | OU-1: Port: 1,2,3</comment>
+      <comment>Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1233</systemName>
       <userName>Head 24RA Bottom</userName>
-      <comment>Node: 2 | OU-1: Port: 4,5,6</comment>
+      <comment>Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1234</systemName>
       <userName>Head 24L Top</userName>
-      <comment>Node: 2 | OU-2: Port: 1,2,3</comment>
+      <comment>Node: 2 Signal: 1 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1235</systemName>
       <userName>Head 24L Bottom</userName>
-      <comment>Node: 2 | OU-2: Port: 4,5,6</comment>
+      <comment>Node: 2 Signal: 7 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1236</systemName>
       <userName>Head 24RB</userName>
-      <comment>Node: 2 | OU-3: Port: 6,7,8</comment>
+      <comment>Node: 2 Signal: 2 | OU: 3 Ports: 6,7,8</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1237</systemName>
       <userName>Head 34L Top</userName>
-      <comment>Node: 12 | OU-2: Port: 1,2,3</comment>
+      <comment>Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1238</systemName>
       <userName>Head 34L Bottom</userName>
-      <comment>Node: 12 | OU-2: Port: 4,5,6</comment>
+      <comment>Node: 12 Signal: 1 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1239</systemName>
       <userName>Head 32R</userName>
-      <comment>Node: 12 | OU-2: Port: 7 | OU-3: Port: 8,7</comment>
+      <comment>Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1240</systemName>
       <userName>Head 34R Top</userName>
-      <comment>Node: 12 | OU-3: Port: 1,2,3</comment>
+      <comment>Node: 12 Signal: 3 | OU: 3 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH1241</systemName>
       <userName>Head 34R Bottom</userName>
-      <comment>Node: 12 | OU-3: Port: 4,5,6</comment>
+      <comment>Node: 12 Signal: 4 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH132</systemName>
       <userName>Head 40LB Top</userName>
-      <comment>Node: 11 | OU-2: Port: 1,2,3</comment>
+      <comment>Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH133</systemName>
       <userName>Head 40LB Bottom</userName>
-      <comment>Node: 11 | OU-2: Port: 4,5,6</comment>
+      <comment>Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH134</systemName>
       <userName>Head 2036</userName>
-      <comment>Node: 11 | OU-3: Port: 4,5,6</comment>
+      <comment>Node: 11 Signal: 1 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH135</systemName>
       <userName>Head 36RA Top</userName>
-      <comment>Node: 1 | OU-2: Port: 1,2,3</comment>
+      <comment>Node: 1 Signal: 3 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH136</systemName>
       <userName>Head 36RA Bottom</userName>
-      <comment>Node: 1 | OU-2: Port: 4,5,6</comment>
+      <comment>Node: 1 Signal: 4 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH137</systemName>
       <userName>Head 36RB Top</userName>
-      <comment>Node: 1 | OU-3: Port: 1,2,3</comment>
+      <comment>Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH138</systemName>
       <userName>Head 36RB Bottom</userName>
-      <comment>Node: 1 | OU-3: Port: 4,5,6</comment>
+      <comment>Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH139</systemName>
       <userName>Head 38LB Top</userName>
-      <comment>Node: 1 | OU-4: Port: 1,2,3</comment>
+      <comment>Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH140</systemName>
       <userName>Head 38LB Bottom</userName>
-      <comment>Node: 1 | OU-4: Port: 4,5,6</comment>
+      <comment>Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH141</systemName>
       <userName>Head 2035</userName>
-      <comment>Node: 11 | OU-3: Port: 7,8 | OU-2: Port: 7</comment>
+      <comment>Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH142</systemName>
       <userName>Head 40LA</userName>
-      <comment>Node: 11 | OU-3: Port: 1,2,3</comment>
+      <comment>Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH143</systemName>
       <userName>Head 38LA</userName>
-      <comment>Node: 1 | OU-3: Port: 7,8 | OU-2: Port: 7</comment>
+      <comment>Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">

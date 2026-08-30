@@ -26,18 +26,31 @@ class BeanCommentFormatTest(unittest.TestCase):
         fmt = self.m.format_lcos_comment
         self.assertEqual(
             fmt("Node 4 / OU-1 / Ports 1,2 / DCC 100"),
-            "Node: 4 | OU-1: Port: 1,2 | DCC: 100",
+            "Node: 4 | DCC: 100 | OU: 1 Ports: 1,2",
         )
         self.assertEqual(
             fmt("Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1"),
-            "Node: 1 | OU-2: Port: 8 | OU-3: Port: 1",
+            "Node: 1 | OU: 2 Ports: 8 | OU: 3 Ports: 1",
         )
-        self.assertEqual(fmt("Node 1 / IN-1 / Ports 1"), "Node: 1 | IN-1: Port: 1")
+        self.assertEqual(fmt("Node 1 / IN-1 / Ports 1"), "Node: 1 | IN: 1 Ports: 1")
         self.assertEqual(
             fmt("Node: 4 | OU-1: Port: 1,2 | DCC: 100"),
-            "Node: 4 | OU-1: Port: 1,2 | DCC: 100",
+            "Node: 4 | DCC: 100 | OU: 1 Ports: 1,2",
         )
-        self.assertEqual(fmt("Block 4-2"), "Block 4-2")
+        self.assertEqual(
+            fmt("Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2"),
+            "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
+        )
+        self.assertEqual(
+            fmt("Node: 4 Sensor: 3 | IN: 1 Ports: 1"),
+            "Node: 4 Sensor: 3 | IN: 1 Ports: 1",
+        )
+        self.assertEqual(
+            fmt("Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3"),
+            "Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3",
+        )
+        self.assertEqual(fmt("Block 4-2"), "Node: 4 Block: 2")
+        self.assertEqual(fmt("Node: 4 Block: 1"), "Node: 4 Block: 1")
 
     def test_mast_comment_includes_protected_switch(self) -> None:
         mast = self.m.mast_protect_comment
@@ -70,30 +83,47 @@ class BeanCommentFormatTest(unittest.TestCase):
         from_ports = self.m.comment_from_port_ids
         self.assertEqual(
             from_ports(["C4-OU2-1", "C4-OU2-2", "C4-OU2-3"]),
-            "Node: 4 | OU-2: Port: 1,2,3",
+            "Node: 4 | OU: 2 Ports: 1,2,3",
         )
         self.assertEqual(
             from_ports(["C4-OU2-7", "C4-OU3-8", "C4-OU3-7"]),
-            "Node: 4 | OU-2: Port: 7 | OU-3: Port: 8,7",
+            "Node: 4 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",
         )
         self.assertEqual(
             from_ports(["C11-OU3-7", "C11-OU3-8", "C11-OU2-7"]),
-            "Node: 11 | OU-3: Port: 7,8 | OU-2: Port: 7",
+            "Node: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",
+        )
+        self.assertEqual(
+            from_ports(
+                ["C4-OU1-1", "C4-OU1-2"],
+                dcc="100",
+                label="Turnout",
+                index=0,
+            ),
+            "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
         )
 
     def test_wiring_head_comments_match_live_user_names(self) -> None:
         comments = self.m.load_wiring_head_comments()
-        self.assertEqual(comments["Head 6LB Top"], "Node: 4 | OU-2: Port: 1,2,3")
-        self.assertEqual(comments["Head 6LB Bottom"], "Node: 4 | OU-2: Port: 4,5,6")
-        self.assertEqual(comments["Head 6LA"], "Node: 4 | OU-2: Port: 7 | OU-3: Port: 8,7")
-        self.assertEqual(comments["Head 40LB Top"], "Node: 11 | OU-2: Port: 1,2,3")
-        self.assertEqual(comments["Head 24RA Top"], "Node: 2 | OU-1: Port: 1,2,3")
-        self.assertEqual(comments["Head 34L Top"], "Node: 12 | OU-2: Port: 1,2,3")
-        self.assertEqual(comments["Head 38LA"], "Node: 1 | OU-3: Port: 7,8 | OU-2: Port: 7")
-        self.assertEqual(comments["Head 2035"], "Node: 11 | OU-3: Port: 7,8 | OU-2: Port: 7")
+        self.assertEqual(comments["Head 6LB Top"], "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertEqual(comments["Head 6LB Bottom"], "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6")
         self.assertEqual(
-            self.m.comment_for("signalhead", "IH432", "Head 6LB Top", "Node: 4 | OU-2: Port: 1,2"),
-            "Node: 4 | OU-2: Port: 1,2,3",
+            comments["Head 6LA"], "Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7"
+        )
+        self.assertEqual(comments["Head 40LB Top"], "Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertEqual(comments["Head 24RA Top"], "Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3")
+        self.assertEqual(comments["Head 34L Top"], "Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertEqual(
+            comments["Head 38LA"], "Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
+        )
+        self.assertEqual(
+            comments["Head 2035"], "Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
+        )
+        self.assertEqual(
+            self.m.comment_for(
+                "signalhead", "IH432", "Head 6LB Top", "Node: 4 | OU-2: Port: 1,2"
+            ),
+            "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
         )
 
 
