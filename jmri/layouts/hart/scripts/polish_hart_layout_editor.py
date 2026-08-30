@@ -155,6 +155,50 @@ def find_layout_editor(root: ET.Element) -> ET.Element:
     return max(candidates, key=_panel_score)
 
 
+# Layout Editor draws tracks at level 3. Labels at 4 sit on top. Level 0 is
+# behind the panel background, so BlockContentsIcon text never shows.
+BCI_LEVEL = "4"
+BCI_COLOR = ("0", "0", "0")
+BCI_DROP_FONT_ATTRS = ("fontFamily", "fontname")
+
+
+def ensure_block_contents_visible(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+    """Put block-value labels on the label layer with default Dialog/black text."""
+    changes = 0
+    errors: list[str] = []
+    for icon in le.findall("BlockContentsIcon"):
+        name = icon.get("blockcontents") or "?"
+        if icon.get("level") != BCI_LEVEL:
+            if check:
+                errors.append(
+                    f"BlockContentsIcon {name!r} level={icon.get('level')!r}, "
+                    f"expected {BCI_LEVEL}"
+                )
+            else:
+                icon.set("level", BCI_LEVEL)
+                changes += 1
+        for attr, value in zip(("red", "green", "blue"), BCI_COLOR, strict=True):
+            if icon.get(attr) == value:
+                continue
+            if check:
+                errors.append(
+                    f"BlockContentsIcon {name!r} {attr}={icon.get(attr)!r}, "
+                    f"expected {value!r}"
+                )
+            else:
+                icon.set(attr, value)
+                changes += 1
+        for attr in BCI_DROP_FONT_ATTRS:
+            if attr not in icon.attrib:
+                continue
+            if check:
+                errors.append(f"BlockContentsIcon {name!r} still has {attr}")
+            else:
+                del icon.attrib[attr]
+                changes += 1
+    return changes, errors
+
+
 def _set_xy(el: ET.Element, x: int, y: int) -> bool:
     changed = el.get("x") != str(x) or el.get("y") != str(y)
     el.set("x", str(x))
@@ -328,6 +372,10 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
             else:
                 icon.set(attr, value)
                 changes += 1
+
+    bci_changes, bci_errors = ensure_block_contents_visible(le, check=check)
+    changes += bci_changes
+    errors.extend(bci_errors)
 
     os_added, os_errors = ensure_os_occupancy_icons(le, check=check)
     changes += os_added
