@@ -1,0 +1,29 @@
+FAIL /Users/lnevo/hart/cats/panels/HART.xml
+  - Gate1 missing named blocks: Main West Brick–Plane
+  - Gate1 MQTT missing OCCUPIEDSPEC: Main West Brick–Plane
+PASS /Users/lnevo/hart/cats/panels/HART_Brick.xml
+PASS /Users/lnevo/hart/cats/panels/HART_Brick_magnet.xml
+PASS /Users/lnevo/hart/cats/panels/HART_Master.xml
+PASS /Users/lnevo/hart/cats/panels/HART_Master2.xml
+PASS /Users/lnevo/hart/cats/panels/HART_Master_ABS.xml
+PASS /Users/lnevo/hart/cats/panels/HART_Master_ABS_hold.xml
+PASS /Users/lnevo/hart/cats/panels/HART_Master_CTC_hold.xml
+PASS /Users/lnevo/hart/cats/panels/HART_armstrong_magnet.xml
+PASS /Users/lnevo/hart/cats/panels/HART_chubb_magnet.xml
+PASS /Users/lnevo/hart/cats/panels/HART_ctc.xml
+PASS /Users/lnevo/hart/cats/panels/HART_ctc_magnet.xml
+PASS /Users/lnevo/hart/cats/panels/HART_designer_raw.xml
+FAIL /Users/lnevo/hart/cats/panels/HART_designer_wired.xml
+  - Gate1 missing named blocks: Main West Brick–Plane
+FAIL /Users/lnevo/hart/cats/panels/HART_le.xml
+  - LE Gate1 missing named blocks: Main West Brick–Plane
+  - LE Main West Brick–Plane must sit on HORIZONTAL (tracks=none)
+  - LE MQTT missing OCCUPIEDSPEC: Main West Brick–Plane
+FAIL /Users/lnevo/hart/cats/panels/HART_le_magnet.xml
+  - LE Gate1 missing named blocks: Main West Brick–Plane
+  - LE Main West Brick–Plane must sit on HORIZONTAL (tracks=none)
+FAIL /Users/lnevo/hart/cats/panels/HART_magnet.xml
+  - Gate1 missing named blocks: Main West Brick–Plane
+PASS /Users/lnevo/hart/cats/panels/HART_magnet_safe.xml
+PASS /Users/lnevo/hart/cats/panels/HART_smoke_Armstrong.xml
+EXIT:1

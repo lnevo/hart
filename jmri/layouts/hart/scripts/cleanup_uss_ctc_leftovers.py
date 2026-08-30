@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Rename USS CTC internals to live Switch N and drop unreferenced leftovers.
+
+IS*: systemNames stay frozen. userNames were still CTC 100/101/… after convert.
+OpenLCB leftover sensors and unused MTT aliases go away.
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from refresh_bean_comments import refresh_comments
+
+TABLES = [
+    ROOT / "jmri/layouts/hart/output/tables.xml",
+    ROOT / "tables/new_tables.xml",
+    ROOT / "jmri/layouts/hart/output/hart_prod.xml",
+]
+
+# Unreferenced after the 20-col pack. OpenLCB leftovers and unused MTT aliases.
+DELETE_SYSTEM_NAMES = frozenset(
+    {
+        "MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB",
+        "MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED",
+        "MTT100",
+        "MTT111",
+        "MTT113",
+        "MTT114",
+        "MTT115",
+    }
+)
+
+BEAN_RE = re.compile(
+    r"    <(sensor|turnout)\b[^>]*>.*?</\1>\n",
+    re.S,
+)
+
+
+def system_name_of(block: str) -> str:
+    match = re.search(r"<systemName>(.*?)</systemName>", block, re.S)
+    return match.group(1).strip() if match else ""
+
+
+def delete_orphans(text: str) -> tuple[str, int]:
+    removed = 0
+
+    def repl(match: re.Match[str]) -> str:
+        nonlocal removed
+        if system_name_of(match.group(0)) in DELETE_SYSTEM_NAMES:
+            removed += 1
+            return ""
+        return match.group(0)
+
+    return BEAN_RE.sub(repl, text), removed
+
+
+def main() -> int:
+    write = "--apply" in sys.argv
+    for path in TABLES:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        updated, n_refresh = refresh_comments(text)
+        updated, n_delete = delete_orphans(updated)
+        rel = path.relative_to(ROOT)
+        print(f"{rel}: refresh={n_refresh} deleted={n_delete}")
+        leftover = [name for name in DELETE_SYSTEM_NAMES if f"<systemName>{name}</systemName>" in updated]
+        if leftover:
+            print(f"  still present: {leftover}")
+        if write:
+            path.write_text(updated, encoding="utf-8")
+    if not write:
+        print("dry-run (pass --apply)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="../../XSLT/appearancetable.xsl" type="text/xsl"?>
+
+<appearancetable
+    xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation = "http://jmri.org/xml/schema/appearancetable.xsd"
+>
+
+  <copyright xmlns="http://docbook.org/ns/docbook">
+    <year>2026</year><holder>HART</holder>
+  </copyright>
+
+  <authorgroup xmlns="http://docbook.org/ns/docbook">
+    <author>
+        <personname><firstname>HART</firstname><surname>Panel</surname></personname>
+    </author>
+  </authorgroup>
+
+  <revhistory xmlns="http://docbook.org/ns/docbook">
+    <revision>
+        <revnumber>1</revnumber>
+        <date>2026-08-18</date>
+        <authorinitials>HP</authorinitials>
+        <revremark>Initial version for native SML cutover</revremark>
+    </revision>
+  </revhistory>
+
+  <aspecttable>HART AAR 3-aspect</aspecttable>
+  <name>Two-head Digicon home signal</name>
+  <reference>HART Digicon LCOS home signals: top head governs the through route (Clear/Approach), bottom head the diverging route (Medium Clear/Medium Approach). Mappings chain as 3-aspect ABS — a destination at Approach or better yields Clear/Medium Clear here — unlike stock AAR-1946 SL-2-high-abs whose Approach mapping only offers Advance Approach / Approach Medium, which these two-lamp heads cannot display.</reference>
+  <description>Appearances for a two-head searchlight home signal limited to the Digicon lamp vocabulary</description>
+
+  <appearances>
+
+    <appearance>
+      <aspectname>Clear</aspectname>
+      <show>green</show>
+      <show>red</show>
+      <reference>Page 42 B</reference>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-281.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-clear.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-clear-w.gif</imagelink>
+    </appearance>
+
+    <appearance>
+      <aspectname>Medium Clear</aspectname>
+      <show>red</show>
+      <show>green</show>
+      <reference>Page 45 B</reference>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-medium-clear.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-medium-clear-w.gif</imagelink>
+    </appearance>
+
+    <appearance>
+      <aspectname>Approach</aspectname>
+      <show>yellow</show>
+      <show>red</show>
+      <reference>Page 47 B</reference>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-approach.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-approach-w.gif</imagelink>
+    </appearance>
+
+    <appearance>
+      <aspectname>Medium Approach</aspectname>
+      <show>red</show>
+      <show>yellow</show>
+      <reference>Page 47 D</reference>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-286.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-medium-approach.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-medium-approach-w.gif</imagelink>
+    </appearance>
+
+    <appearance>
+      <aspectname>Stop</aspectname>
+      <show>red</show>
+      <show>red</show>
+      <reference>Page 50 B</reference>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink>
+      <imagelink type="ctc">preference:ctc/icons/sig-h2-stop.gif</imagelink>
+      <imagelink type="ctc-w">preference:ctc/icons/sig-h2-stop-w.gif</imagelink>
+    </appearance>
+
+  </appearances>
+
+  <specificappearances>
+    <danger>
+      <aspect>Stop</aspect>
+    </danger>
+    <held>
+      <aspect>Stop</aspect>
+    </held>
+  </specificappearances>
+
+  <aspectMappings>
+    <aspectMapping>
+      <advancedAspect>Clear</advancedAspect>
+      <ourAspect>Clear</ourAspect>
+      <ourAspect>Medium Clear</ourAspect>
+    </aspectMapping>
+
+    <aspectMapping>
+      <advancedAspect>Approach</advancedAspect>
+      <ourAspect>Clear</ourAspect>
+      <ourAspect>Medium Clear</ourAspect>
+    </aspectMapping>
+
+    <aspectMapping>
+      <advancedAspect>Medium Clear</advancedAspect>
+      <ourAspect>Clear</ourAspect>
+      <ourAspect>Medium Clear</ourAspect>
+    </aspectMapping>
+
+    <aspectMapping>
+      <advancedAspect>Medium Approach</advancedAspect>
+      <ourAspect>Clear</ourAspect>
+      <ourAspect>Medium Clear</ourAspect>
+    </aspectMapping>
+
+    <aspectMapping>
+      <advancedAspect>Slow Clear</advancedAspect>
+      <ourAspect>Approach</ourAspect>
+      <ourAspect>Medium Approach</ourAspect>
+    </aspectMapping>
+
+    <aspectMapping>
+      <advancedAspect>Restricting</advancedAspect>
+      <ourAspect>Approach</ourAspect>
+      <ourAspect>Medium Approach</ourAspect>
+    </aspectMapping>
+
+    <aspectMapping>
+      <advancedAspect>Stop</advancedAspect>
+      <ourAspect>Approach</ourAspect>
+      <ourAspect>Medium Approach</ourAspect>
+    </aspectMapping>
+  </aspectMappings>
+
+</appearancetable>

@@ -1,0 +1,2 @@
+PASS hart phase 0–2 checks
+EXIT:0

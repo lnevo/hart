@@ -63,6 +63,7 @@ Registered layouts in `layout_paths.py`: `mac`, `linear3`, `linear4`, `linear5`,
 - **Load:** `jmri/layouts/hart/output/hart_prod.xml`
 - **Checks:** `python3 jmri/scripts/check_hart_phase02.py`
 - Phases 0–2: naming (CP/OS), purge unused `ISIS*` sensors; signals/NX/NextTrain later
+- **CATS CTC:** [`cats/README.md`](../cats/README.md) · ADR-004 · fetch `./tools/cats/fetch_cats_3.2.sh` (JMRI ≤5.16). Designer redraw binds hart user names; LE panel remains hardware monitor.
 
 ---
 

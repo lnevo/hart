@@ -1,0 +1,5 @@
+{
+  "git.autoRepositoryDetection": false,
+  "git.detectSubmodules": false,
+  "git.repositoryScanMaxDepth": 0
+}

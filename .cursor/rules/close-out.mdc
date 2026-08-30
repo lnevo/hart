@@ -1,0 +1,16 @@
+---
+description: Close out every task with commit, push, and deploy when live artifacts changed
+alwaysApply: true
+---
+
+# Close-out (this repo)
+
+Finishing work **includes** git and host deploy. Do not stop at “the files are edited.”
+
+1. Update `wiki/STATUS.md` if railroad state or a decision changed.
+2. **Commit** on the current branch — do not wait for “please commit.”
+3. **Push** that branch. Never push `main`.
+4. If panels, tables bundle, jython, web home, CTC icons, signals, or CATS resources changed: `./cats/scripts/sync_hart_package.sh --pi` (add `--win` / `--all` when those hosts need it).
+5. Reply with commit hash, push yes/no, deploy hosts or “docs-only, not deployed.”
+
+Never commit secrets or `tools/cats/src-repo/`. Sheets push stays human-gated.

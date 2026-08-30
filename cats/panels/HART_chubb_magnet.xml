@@ -1,0 +1,1543 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<DOCUMENT VERSION="3.0" WIDTH="1000" HEIGHT="612">
+  <FONTDEFINITION FONTKEY="FONT_LABEL" FONTNAME="Grid Labels" FONTCOLOR="-1" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <FONTDEFINITION FONTKEY="FONT_TRAIN" FONTNAME="Train Identities" FONTCOLOR="-1" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <FONTDEFINITION FONTKEY="ONCALL" FONTNAME="On Call Train" FONTCOLOR="-4144960" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <FONTDEFINITION FONTKEY="ACTIVE" FONTNAME="Active Train" FONTCOLOR="-14336" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <FONTDEFINITION FONTKEY="SELECTED" FONTNAME="Selected Train" FONTCOLOR="-16711681" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <FONTDEFINITION FONTKEY="TIEDUP" FONTNAME="Tied Down Train" FONTCOLOR="-65281" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <FONTDEFINITION FONTKEY="UNLOCK_ICON" FONTNAME="Unlocked Icon" FONTCOLOR="-1" FONTSIZE="11" FONTSTYLE="PLAIN" />
+  <LINE />
+  <COUNTER NAME="REFRESH" VALUE="1" />
+  <COUNTER NAME="UPLINKDELAY" VALUE="0" />
+  <COUNTER NAME="UNOCCUPANCYDEBOUNCE" VALUE="0" />
+  <COUNTER NAME="TIMELOCK" VALUE="0" />
+  <COUNTER NAME="TURNOUTSAFETY" VALUE="0" />
+  <COUNTER NAME="CODEDELAY" VALUE="0" />
+  <COUNTER NAME="LNGOVERNOR" VALUE="1" />
+  <COUNTER NAME="DEBOUNCE" VALUE="0" />
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="adv double" R281="Clr" R282="App Med" R284="App Slo" RES_NORM="Res Norm" ADV_NORM="Adv App" R285="App" R283="Med Clr" R283A="Med App Med" R283B="Med App Slo" RES_MED="Res Med" ADV_MED="Adv Med App" R286="Med App" R287="Slo Clr" C423="Slo App Med" C424="Slo App Slo" RES_SLO="Res Slo" ADV_SLO="Adv Slo App" R288="Slo App" R292="Stop" R291="Stop &amp; Go">
+    <ASPECTMAP R281="green|red" R281B="green|red" R282="yellow|green" R284="yellow|yellow" RES_NORM="flashing red|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="red|flashing red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|green" R283B="red|green" RES_MED="red|flashing red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="red|flashing red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" ADVANCE="true" />
+  </SIGNALTEMPLATE>
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="3" TEMPLATENAME="triple" R281="Clr" R282="App Med" R284="App Slo" RES_NORM="Res Norm" R285="App" R283="Med Clr" R283A="Med App Med" R283B="Med App Slo" RES_MED="Res Med" R286="Med App" R287="Slo Clr" C423="Slo App Med" C424="Slo App Slo" RES_SLO="Res Slo" R288="Slo App" R292="Stop" R291="Stop &amp; Go">
+    <ASPECTMAP R281="green|red|red" R281B="green|red|red" R282="yellow|yellow|red" R284="yellow|yellow|red" RES_NORM="flashing red|red|red" ADV_NORM="yellow|yellow|red" R285="yellow|red|red" R281C="green|red|red" C412="green|red|red" C413="yellow|yellow|red" C414="yellow|yellow|red" RES_LIM="red|flashing red|red" ADV_LIM="yellow|yellow|red" R281D="yellow|red|red" R283="red|green|red" C417="red|green|red" R283A="red|yellow|flashing green" R283B="red|green|red" RES_MED="red|red|flashing red" ADV_MED="red|green|red" R286="red|yellow|red" R287="red|red|green" C422="red|red|green" C423="red|red|green" C424="red|red|green" RES_SLO="red|red|flashing red" ADV_SLO="red|red|green" R288="red|red|yellow" R292="red|red|red" R291="red|red|red" />
+  </SIGNALTEMPLATE>
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="3" TEMPLATENAME="adv triple" R281="Clr" R282="App Med" R284="App Slo" RES_NORM="Res Norm" ADV_NORM="Adv App" R285="App" R283="Med Clr" R283A="Med App Med" R283B="Med App Slo" RES_MED="Res Med" ADV_MED="Adv Med App" R286="Med App" R287="Slo Clr" C423="Slo App Med" C424="Slo App Slo" RES_SLO="Res Slo" ADV_SLO="Adv Slo App" R288="Slo App" R292="Stop" R291="Stop &amp; Go">
+    <ASPECTMAP R281="green|red|red" R281B="green|red|red" R282="yellow|yellow|red" R284="yellow|yellow|red" RES_NORM="flashing red|red|red" ADV_NORM="yellow|yellow|red" R285="yellow|red|red" R281C="green|red|red" C412="green|red|red" C413="yellow|yellow|red" C414="yellow|yellow|red" RES_LIM="red|flashing red|red" ADV_LIM="yellow|yellow|red" R281D="yellow|red|red" R283="red|green|red" C417="red|green|red" R283A="red|yellow|flashing green" R283B="red|green|red" RES_MED="red|red|flashing red" ADV_MED="red|green|red" R286="red|yellow|red" R287="red|red|green" C422="red|red|green" C423="red|red|green" C424="red|red|green" RES_SLO="red|red|flashing red" ADV_SLO="red|red|green" R288="red|red|yellow" R292="red|red|red" R291="red|red|red" ADVANCE="true" />
+  </SIGNALTEMPLATE>
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="1" TEMPLATENAME="adv Single" R281="Clr" R282="App Med" R284="App Slo" RES_NORM="Res Norm" ADV_NORM="Adv App" R285="App" R283="Med Clr" R283A="Med App Med" R283B="Med App Slo" RES_MED="Res Med" ADV_MED="Adv Med App" R286="Med App" R287="Slo Clr" C423="Slo App Med" C424="Slo App Slo" RES_SLO="Res Slo" ADV_SLO="Adv Slo App" R288="Slo App" R292="Stop" R291="Stop &amp; Go">
+    <ASPECTMAP R281="green" R281B="green" R282="green" R284="green" RES_NORM="flashing red" ADV_NORM="green" R285="yellow" R281C="green" C412="green" C413="green" C414="green" RES_LIM="flashing red" ADV_LIM="green" R281D="yellow" R283="green" C417="green" R283A="green" R283B="green" RES_MED="flashing red" ADV_MED="green" R286="yellow" R287="green" C422="green" C423="green" C424="green" RES_SLO="flashing red" ADV_SLO="green" R288="yellow" R292="red" R291="red" ADVANCE="true" />
+  </SIGNALTEMPLATE>
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="2" TEMPLATENAME="double" R281="Clr" R282="App Div" R284="App Slo" RES_NORM="Res Norm" R285="App" R283="Div Clr" R283A="Div App Div" R283B="Div App Slo" RES_MED="Res Div" R286="Div App" R287="Slo Clr" C423="Slo App Div" C424="Slo App Slo" RES_SLO="Res Slo" R288="Slo App" R292="Stop" R291="Stop &amp; Go">
+    <ASPECTMAP R281="green|red" R281B="green|red" R282="flashing yellow|red" R284="yellow|yellow" RES_NORM="flashing red|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="red|flashing red" ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" R283A="red|flashing yellow" R283B="red|flashing yellow" RES_MED="red|flashing red" ADV_MED="red|green" R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" C424="red|green" RES_SLO="red|flashing red" ADV_SLO="red|green" R288="red|yellow" R292="red|red" R291="red|red" />
+  </SIGNALTEMPLATE>
+  <SIGNALTEMPLATE TEMPLATEKIND="Lamp" TEMPLATEHEADS="1" TEMPLATENAME="Single" R281="Clr" R282="App Div" R284="App Slo" RES_NORM="Res Norm" R285="App" R283="Div Clr" R283A="Div App Div" R283B="Div App Slo" RES_MED="Res Div" R286="Div App" R287="Slo Clr" C423="Slo App Div" C424="Slo App Slo" RES_SLO="Res Slo" R288="Slo App" R292="Stop" R291="Stop &amp; Go">
+    <ASPECTMAP R281="green" R281B="green" R282="green" R284="green" RES_NORM="flashing red" ADV_NORM="green" R285="yellow" R281C="green" C412="green" C413="green" C414="green" RES_LIM="flashing red" ADV_LIM="green" R281D="yellow" R283="green" C417="green" R283A="green" R283B="green" RES_MED="flashing red" ADV_MED="green" R286="yellow" R287="green" C422="green" C423="green" C424="green" RES_SLO="flashing red" ADV_SLO="green" R288="yellow" R292="red" R291="red" />
+  </SIGNALTEMPLATE>
+  <TRAINSTORE>
+    <TRAINEDIT>
+      <EDITRECORD FIELD_KEY="TRAIN_NAME" FIELD_VISIBLE="true" FIELDLABEL="TRAIN_NAME" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="125" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="String" />
+      <EDITRECORD FIELD_KEY="TRAIN_SYMBOL" FIELD_VISIBLE="true" FIELDLABEL="TRAIN_SYMBOL" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="String" />
+      <EDITRECORD FIELD_KEY="ENGINE" FIELD_VISIBLE="true" FIELDLABEL="ENGINE" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="String" />
+      <EDITRECORD FIELD_KEY="TRANSPONDING" FIELD_VISIBLE="false" FIELDLABEL="TRANSPONDING" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="String" />
+      <EDITRECORD FIELD_KEY="CABOOSE" FIELD_VISIBLE="true" FIELDLABEL="CABOOSE" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="String" />
+      <EDITRECORD FIELD_KEY="CREW" FIELD_VISIBLE="true" FIELDLABEL="CREW" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="ExtraList" />
+      <EDITRECORD FIELD_KEY="ONDUTY" FIELD_VISIBLE="false" FIELDLABEL="ONDUTY" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="TimeSpec" />
+      <EDITRECORD FIELD_KEY="DEPARTURE" FIELD_VISIBLE="false" FIELDLABEL="DEPARTURE" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="TimeSpec" />
+      <EDITRECORD FIELD_KEY="FONT" FIELD_VISIBLE="false" FIELDLABEL="FONT" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="FONT_LABEL" FIELD_CLASS="FontSpec" />
+      <EDITRECORD FIELD_KEY="LENGTH" FIELD_VISIBLE="false" FIELDLABEL="LENGTH" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="0" FIELD_CLASS="Integer" />
+      <EDITRECORD FIELD_KEY="WEIGHT" FIELD_VISIBLE="false" FIELDLABEL="WEIGHT" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="0" FIELD_CLASS="Integer" />
+      <EDITRECORD FIELD_KEY="CARS" FIELD_VISIBLE="false" FIELDLABEL="CARS" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="0" FIELD_CLASS="Integer" />
+      <EDITRECORD FIELD_KEY="AUTOTERMINATE" FIELD_VISIBLE="false" FIELDLABEL="AUTOTERMINATE" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="false" FIELD_CLASS="Boolean" />
+      <EDITRECORD FIELD_KEY="LABELBACKGROUND" FIELD_VISIBLE="false" FIELDLABEL="LABELBACKGROUND" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="false" FIELD_CLASS="Boolean" />
+    </TRAINEDIT>
+  </TRAINSTORE>
+  <JOBSTORE>
+    <JOBEDIT>
+      <EDITRECORD FIELD_KEY="JOB_NAME" FIELD_VISIBLE="true" FIELDLABEL="JOB_NAME" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="String" />
+      <EDITRECORD FIELD_KEY="RUNS_TRAIN" FIELD_VISIBLE="true" FIELDLABEL="RUNS_TRAIN" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="true" FIELD_CLASS="Boolean" />
+      <EDITRECORD FIELD_KEY="CREW_NAME" FIELD_VISIBLE="true" FIELDLABEL="CREW_NAME" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="CrewList" />
+      <EDITRECORD FIELD_KEY="ASSISTANT" FIELD_VISIBLE="true" FIELDLABEL="ASSISTANT" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="CrewList" />
+      <EDITRECORD FIELD_KEY="FONT" FIELD_VISIBLE="false" FIELDLABEL="FONT" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="FONT_LABEL" FIELD_CLASS="FontSpec" />
+    </JOBEDIT>
+  </JOBSTORE>
+  <CREWSTORE>
+    <CREWEDIT>
+      <EDITRECORD FIELD_KEY="CREW_NAME" FIELD_VISIBLE="true" FIELDLABEL="CREW_NAME" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="String" />
+      <EDITRECORD FIELD_KEY="TIME_ON" FIELD_VISIBLE="true" FIELDLABEL="TIME_ON" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="TimeSpec" />
+      <EDITRECORD FIELD_KEY="TIME_LEFT" FIELD_VISIBLE="true" FIELDLABEL="TIME_LEFT" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="TimeSpec" />
+      <EDITRECORD FIELD_KEY="EXPIRES" FIELD_VISIBLE="true" FIELDLABEL="EXPIRES" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="50" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="TimeSpec" />
+      <EDITRECORD FIELD_KEY="TRAIN_ID" FIELD_VISIBLE="true" FIELDLABEL="TRAIN_ID" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="" FIELD_CLASS="TrainList" />
+      <EDITRECORD FIELD_KEY="FONT" FIELD_VISIBLE="false" FIELDLABEL="FONT" FIELD_EDIT="true" FIELD_MANDATORY="true" FIELD_WIDTH="75" ALIGNMENT="CENTER" FIELD_DEFAULT="FONT_LABEL" FIELD_CLASS="FontSpec" />
+    </CREWEDIT>
+  </CREWSTORE>
+  <COLORDEFINITION COLORKEY="OCCUPIED" COLORNAME="Block Occupied" COLORTAG="-65536" />
+  <COLORDEFINITION COLORKEY="EMPTY" COLORNAME="Block Empty" COLORTAG="-1" />
+  <COLORDEFINITION COLORKEY="RESERVED" COLORNAME="Block Reserved" COLORTAG="-16711936" />
+  <COLORDEFINITION COLORKEY="OOSERVICE" COLORNAME="Block Out of Service" COLORTAG="-16776961" />
+  <COLORDEFINITION COLORKEY="HOLD" COLORNAME="Block Held" COLORTAG="-16711681" />
+  <COLORDEFINITION COLORKEY="LOCAL" COLORNAME="Track Authority" COLORTAG="-16776961" />
+  <COLORDEFINITION COLORKEY="DTC" COLORNAME="DTC trail" COLORTAG="-14336" />
+  <COLORDEFINITION COLORKEY="DARK" COLORNAME="Dark" COLORTAG="-8355712" />
+  <COLORDEFINITION COLORKEY="TIME" COLORNAME="Time" COLORTAG="-14336" />
+  <COLORDEFINITION COLORKEY="OCC_WARRANT" COLORNAME="Occupied Warrant" COLORTAG="-65281" />
+  <COLORDEFINITION COLORKEY="FLEETING" COLORNAME="Fleeting Signal" COLORTAG="-16711681" />
+  <COLORDEFINITION COLORKEY="XROUTE" COLORNAME="Entry/Exit" COLORTAG="-6250496" />
+  <COLORDEFINITION COLORKEY="PRECONDITION" COLORNAME="Stack Route" COLORTAG="-256" />
+  <COLORDEFINITION COLORKEY="TRACKAUTHORITY" COLORNAME="Authority Mast" COLORTAG="-16776961" />
+  <COLORDEFINITION COLORKEY="PROPOSED" COLORNAME="Set Route" COLORTAG="-20561" />
+  <COLORDEFINITION COLORKEY="DEPOT" COLORNAME="Depot" COLORTAG="-16711681" />
+  <COLORDEFINITION COLORKEY="NO_ROUTE" COLORNAME="Idle Aspect" COLORTAG="-1" />
+  <COLORDEFINITION COLORKEY="STOP" COLORNAME="Stop Aspect" COLORTAG="-65536" />
+  <COLORDEFINITION COLORKEY="RESTRICTING" COLORNAME="Restricting Aspect" COLORTAG="-65536" />
+  <COLORDEFINITION COLORKEY="CALLON" COLORNAME="Call-on Aspect" COLORTAG="-20561" />
+  <COLORDEFINITION COLORKEY="PENDING" COLORNAME="In transition" COLORTAG="-16711681" />
+  <COLORDEFINITION COLORKEY="APPROACH" COLORNAME="Approach Aspect" COLORTAG="-256" />
+  <COLORDEFINITION COLORKEY="CLEAR" COLORNAME="Clear Aspect" COLORTAG="-16711936" />
+  <COLORDEFINITION COLORKEY="NOSIGNAL" COLORNAME="No Physical Signal" COLORTAG="-8355712" />
+  <COLORDEFINITION COLORKEY="BACKGROUND" COLORNAME="Background" COLORTAG="-16777216" />
+  <COLORDEFINITION COLORKEY="LABELBACKGROUND" COLORNAME="Label Background" COLORTAG="-16777216" />
+  <COLORDEFINITION COLORKEY="LABELBORDER" COLORNAME="Label Border" COLORTAG="-16777216" />
+  <COLORDEFINITION COLORKEY="ERRORCOLOR" COLORNAME="Error" COLORTAG="-65536" />
+  <COLORDEFINITION COLORKEY="DEFAULTSPEED" COLORNAME="Default Speed" COLORTAG="-1" />
+  <COLORDEFINITION COLORKEY="NORMALSPEED" COLORNAME="Normal Speed" COLORTAG="-16711936" />
+  <COLORDEFINITION COLORKEY="LIMITEDSPEED" COLORNAME="Limited Speed" COLORTAG="-16711681" />
+  <COLORDEFINITION COLORKEY="MEDIUMSPEED" COLORNAME="Medium Speed" COLORTAG="-65281" />
+  <COLORDEFINITION COLORKEY="SLOWSPEED" COLORNAME="Slow Speed" COLORTAG="-14336" />
+  <JMRINAME JMRIPREFIX="IS" XMLTYPE="Sensor">jmri.managers.InternalSensorManager</JMRINAME>
+  <JMRINAME JMRIPREFIX="IT" XMLTYPE="Turnout">jmri.managers.InternalTurnoutManager</JMRINAME>
+  <TRACKPLAN COLUMNS="25" ROWS="18">
+    <SECTION X="2" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Main West" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          a2R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="3" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="4" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 100" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          a246
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="5" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="6" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Brick-Plane" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          a4R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="7" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK SPEED="Normal">LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="8" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          a4L
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+      </SECTION>
+    <SECTION X="9" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 102" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="10" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+      </SECTION>
+    <SECTION X="11" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="12" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="13" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="East Main Ext" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          a8R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="14" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK SPEED="Normal">LOWERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="BOTTOM">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="15" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          a8L
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+      </SECTION>
+    <SECTION X="16" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 117b" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="17" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="18" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Main East" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="19" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="20" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 112" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="21" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="22" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="East Lead" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="23" Y="4">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="7" Y="5">
+      <TRACKGROUP>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="8" Y="5">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="9" Y="5">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="10" Y="5">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          a4LB
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="11" Y="5">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 103" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="12" Y="5">
+      <TRACKGROUP>
+        <TRACK SPEED="Medium">HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="13" Y="5">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 104" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          a8RB
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="14" Y="5">
+      <TRACKGROUP>
+        <TRACK>UPPERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="TOP">
+        <BLOCK />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="9" Y="6">
+      <TRACKGROUP>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="10" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          a4LC
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+      </SECTION>
+    <SECTION X="11" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 105" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="12" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="13" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          a275
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+      </SECTION>
+    <SECTION X="14" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 106" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          a276
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="15" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="16" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 107" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="17" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="18" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 108" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="19" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="2" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 101" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          d2R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="3" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="4" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 116" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          d246
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="5" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="6" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 118" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          d4R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="7" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK SPEED="Normal">LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="8" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          d4L
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="9" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 119" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="10" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="11" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="12" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="13" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Barn" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          d8R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="14" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>LOWERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="BOTTOM">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="15" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          d8L
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="16" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 117" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="17" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="18" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="W-1" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="19" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="20" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="W-2" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="21" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="22" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="EH-1" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="23" Y="9">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="7" Y="10">
+      <TRACKGROUP>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="8" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="9" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="10" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          d4LB
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="11" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="S-1" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="12" Y="10">
+      <TRACKGROUP>
+        <TRACK SPEED="Medium">HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="13" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="S-2" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          d10R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="14" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>UPPERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="TOP">
+        <BLOCK />
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="15" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          d10L
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+      </SECTION>
+    <SECTION X="16" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="S-3" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="17" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="18" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="S-4" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="19" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="20" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="S-5" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="21" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="22" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 111a" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="23" Y="10">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="9" Y="11">
+      <TRACKGROUP>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="10" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          d4LC
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="11" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 109" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="12" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+      </SECTION>
+    <SECTION X="13" Y="11">
+      <TRACKGROUP>
+        <TRACK SPEED="Medium">HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          d275
+          <PANELSIGNAL SIGLOCATION="RIGHTUP" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="14" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 110" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          d276
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="15" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="16" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 111b" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="17" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="18" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="EH-2" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      </SECTION>
+    <SECTION X="19" Y="11">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="2" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="West Main Ext" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          f2R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="3" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="4" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 113b" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          f246
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="5" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="6" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 113a" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          f4L
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="7" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK SPEED="Normal">LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="8" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="9" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 114" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="10" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="11" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="12" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="13" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="McKeesport" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          f8R
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="14" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK SPEED="Normal">LOWERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="BOTTOM">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="15" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          f8L
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="16" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS 115" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="17" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="18" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="McKees Rocks" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="19" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="20" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="EH-3" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="21" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="22" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="fBlock 9" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="23" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP2" />
+          <PHYSIGNAL>double</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="7" Y="15">
+      <TRACKGROUP>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="8" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="9" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK SPEED="Slow">LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="10" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          f4LB
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="11" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="fBlock 10" DISCIPLINE="CTC" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="12" Y="15">
+      <TRACKGROUP>
+        <TRACK SPEED="Medium">HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="13" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="fBlock 11" DISCIPLINE="CTC" VISIBLE="true" />
+        <SECSIGNAL>
+          f8RB
+          <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="14" Y="15">
+      <TRACKGROUP>
+        <TRACK>UPPERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="TOP">
+        <BLOCK />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="9" Y="16">
+      <TRACKGROUP>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="10" Y="16">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+        <SECSIGNAL>
+          f4LC
+          <PANELSIGNAL SIGLOCATION="UPRIGHT" SIGORIENT="LEFT" SIGPANTYPE="LAMP1" />
+          <PHYSIGNAL>Single</PHYSIGNAL>
+        </SECSIGNAL>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="11" Y="16">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="fBlock 16" DISCIPLINE="ABS" VISIBLE="true" />
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="12" Y="16">
+      <TRACKGROUP>
+        <TRACK>LOWERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="14" Y="16">
+      <TRACKGROUP>
+        <TRACK>LOWERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+    </SECTION>
+    <SECTION X="15" Y="16">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="12" Y="17">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>UPPERBACKSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="13" Y="17">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+    <SECTION X="14" Y="17">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>UPPERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="LEFT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="RIGHT" NORMAL="true" />
+        </SWITCHPOINTS>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="15" Y="17">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK />
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="LEFT" />
+    </SECTION>
+  <SECTION X="4" Y="2"><SEC_NAME LOC_NAME="CENT" NAME="R1 MAIN" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="8" Y="2"><SEC_NAME LOC_NAME="CENT" NAME="HART RR" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="11" Y="2"><SEC_NAME LOC_NAME="CENT" NAME="Brick" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="14" Y="2"><SEC_NAME LOC_NAME="CENT" NAME="Plane" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="17" Y="2"><SEC_NAME LOC_NAME="CENT" NAME="Barn/117b" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="20" Y="2"><SEC_NAME LOC_NAME="CENT" NAME="East→Lead" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="8" Y="3"><SEC_NAME LOC_NAME="CENT" NAME="◈ plant" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="15" Y="3"><SEC_NAME LOC_NAME="CENT" NAME="◈ plant" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="11" Y="3"><SEC_NAME LOC_NAME="CENT" NAME="100" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="14" Y="3"><SEC_NAME LOC_NAME="CENT" NAME="102" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="17" Y="3"><SEC_NAME LOC_NAME="CENT" NAME="EME·117b·ME" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="20" Y="3"><SEC_NAME LOC_NAME="CENT" NAME="112·Lead" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="4" Y="1"><SEC_NAME LOC_NAME="CENT" NAME="CTC schematic≠LE geography" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="4" Y="7"><SEC_NAME LOC_NAME="CENT" NAME="R2 YARD" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="8" Y="7"><SEC_NAME LOC_NAME="CENT" NAME="West Yard" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="13" Y="7"><SEC_NAME LOC_NAME="CENT" NAME="Tracks 1-5" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="17" Y="7"><SEC_NAME LOC_NAME="CENT" NAME="YT body" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="21" Y="7"><SEC_NAME LOC_NAME="CENT" NAME="→111a" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="8" Y="8"><SEC_NAME LOC_NAME="CENT" NAME="101·116·117top" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="13" Y="8"><SEC_NAME LOC_NAME="CENT" NAME="YT1-5" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="21" Y="8"><SEC_NAME LOC_NAME="CENT" NAME="East End" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="4" Y="12"><SEC_NAME LOC_NAME="CENT" NAME="R3 LOOPS" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="8" Y="12"><SEC_NAME LOC_NAME="CENT" NAME="Princess" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="13" Y="12"><SEC_NAME LOC_NAME="CENT" NAME="113b→114" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="17" Y="12"><SEC_NAME LOC_NAME="CENT" NAME="McKeesport" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="21" Y="12"><SEC_NAME LOC_NAME="CENT" NAME="Rocks" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="8" Y="13"><SEC_NAME LOC_NAME="CENT" NAME="W Main Ext" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="13" Y="13"><SEC_NAME LOC_NAME="CENT" NAME="OS 113-115" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="17" Y="13"><SEC_NAME LOC_NAME="CENT" NAME="← reverse" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="21" Y="13"><SEC_NAME LOC_NAME="CENT" NAME="← reverse" FONT_NAME="FONT_LABEL" /></SECTION><SECTION X="4" Y="16"><SEC_NAME LOC_NAME="CENT" NAME="1 name=1 cell" FONT_NAME="FONT_LABEL" /></SECTION></TRACKPLAN>
+</DOCUMENT>

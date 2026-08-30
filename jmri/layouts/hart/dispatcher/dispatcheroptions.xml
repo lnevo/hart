@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/dispatcheroptions.xsl" type="text/xsl"?>
+<dispatcheroptions>
+  <options lename="HART Railroad"
+    useconnectivity="yes"
+    trainsfrom="TRAINSFROMROSTER"
+    autoallocate="yes"
+    autorelease="yes"
+    autoturnouts="yes"
+    trustknownturnouts="yes"
+    useturnoutconnectiondelay="yes"
+    useoccupiedtrackspeed="no"
+    usestricttraintracking="no"
+    minthrottleinterval="100"
+    fullramptime="5000"
+    hasoccupancydetection="yes"
+    sslcheckdirectionsensors="no"
+    shortactivetrainnames="no"
+    shortnameinblock="yes"
+    extracolorforallocated="yes"
+    nameinallocatedblock="yes"
+    supportvsdecoder="no"
+    layoutscale="HO"
+    usescalemeters="no"
+    userosterentryinblock="yes"
+    stoppingspeedname="Restricted"
+    usesignaltype="signalmast" />
+</dispatcheroptions>

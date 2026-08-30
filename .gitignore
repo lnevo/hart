@@ -9,7 +9,8 @@ credentials*.json
 # OS / editor
 .DS_Store
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.swp
 
 # Python
@@ -20,6 +21,7 @@ venv/
 
 # Nested / external checkouts (own repos or local-only)
 NextTrainDispatcherApp/
+# Desktop LCOS tree (venv + ARCHIVE). Tracked copy: docs/wiring/
 Wiring Documentation
 Wiring Documentation/
 tables/.git/
@@ -42,8 +44,62 @@ jmri/layouts/linear6/blockvalues_preview.xml
 jmri/layouts/**/.pi_*
 jmri/layouts/**/*_status.txt
 
-# Excel lock / junk
+# Excel / PowerPoint lock / junk
 ~$*.xlsx
+~$*.pptx
 
 # Optional local JMRI prefs dumps
 **/pi_prefs/
+
+# DecoderPro roster / Operations Pro copies pulled from the Pi (CV data; not git)
+jmri/host-copies/
+
+# Local CATS Signals notes (Rodney Black; do not commit)
+cats/docs/vendor/CATS_Signals.doc
+cats/docs/vendor/~$*
+
+# CATS binaries (fetch with tools/cats/fetch_cats_3.2.sh)
+tools/cats/release3.2/
+tools/cats/*.zip
+
+# CATS upstream source clone (Bitbucket Kb0oys/cats). Fetch:
+#   ./tools/cats/fetch_cats_src.sh
+# Do not commit the nested git checkout.
+tools/cats/src-repo/
+
+# Accidental `jar xf cats.jar` into this repo (runtime .class). Never commit.
+# Read Java from tools/cats/src-repo — do not explode the jar into cats/.
+META-INF/
+cats/apps/
+cats/automatedTests/
+cats/common/
+cats/crew/
+cats/gui/
+cats/jmri/
+cats/jobs/
+cats/layout/
+cats/network/
+cats/rr_events/
+cats/trackCircuit/
+cats/trains/
+cats/**/*.class
+cats/package-info.class
+cats/HART.xml
+cats/panels/_qa_*.png
+cats/panels/*.png
+cats/panels/sheets/*.pre_*
+cats/panels/sheets/checkpoints/
+
+# Generated CTC evolution video (regenerate with make_ctc_evolution_video.py)
+jmri/layouts/hart/ctc/history/CTC_Evolution_crops/
+jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.gif
+jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.mp4
+cats/.venv/
+
+# CATS patch build artifacts
+tools/cats/patches/*.class
+tools/cats/patches/cats.jar.stock
+
+# Runtime logs and one-off XML backups (not sources)
+cats/logs/
+jmri/layouts/**/*.xml.bak_*

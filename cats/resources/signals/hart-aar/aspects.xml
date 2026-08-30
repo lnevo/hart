@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="../../XSLT/aspecttable.xsl" type="text/xsl"?>
+<aspecttable xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/aspecttable.xsd">
+  <name>HART AAR 3-aspect</name>
+  <date>2026-08-18</date>
+  <reference>AAR 1946 names restricted to the HART Digicon lamp vocabulary: two-head home signals show Clear/Approach on the top head (through route) and Medium Clear/Medium Approach on the bottom head (diverging route). Unlike stock AAR-1946 SL-2-high-abs, the aspect mappings chain as 3-aspect ABS: a destination at Approach yields Clear here, so SML never pins a mast at Stop for lack of an Advance Approach lamp.</reference>
+  <copyright xmlns="http://docbook.org/ns/docbook">
+    <year>2026</year>
+    <holder>HART</holder>
+  </copyright>
+  <authorgroup xmlns="http://docbook.org/ns/docbook">
+    <author>
+      <personname>
+        <firstname>HART</firstname>
+        <surname>Panel</surname>
+      </personname>
+    </author>
+  </authorgroup>
+  <revhistory xmlns="http://docbook.org/ns/docbook">
+    <revision>
+      <revnumber>1</revnumber>
+      <date>2026-08-18</date>
+      <authorinitials>HP</authorinitials>
+      <revremark>Initial version for native SML cutover</revremark>
+    </revision>
+  </revhistory>
+  <aspects>
+    <aspect>
+      <name>Clear</name>
+      <rule>Rule 281</rule>
+      <indication>Proceed</indication>
+      <reference>Page 42</reference>
+      <speed>Normal</speed>
+      <speed2>Normal</speed2>
+      <route>Normal</route>
+    </aspect>
+    <aspect>
+      <name>Medium Clear</name>
+      <rule>Rule 283</rule>
+      <indication>Proceed; medium speed within interlocking limits</indication>
+      <reference>Page 45</reference>
+      <speed>Medium</speed>
+      <speed2>Normal</speed2>
+      <route>Diverging</route>
+    </aspect>
+    <aspect>
+      <name>Approach</name>
+      <rule>Rule 285</rule>
+      <indication>Proceed preparing to stop at next signal. Train exceeding medium speed must at once reduce to that speed.</indication>
+      <reference>Page 47</reference>
+      <speed>Medium</speed>
+      <speed2>Slow</speed2>
+      <route>Normal</route>
+    </aspect>
+    <aspect>
+      <name>Medium Approach</name>
+      <rule>Rule 286</rule>
+      <indication>Proceed at medium speed preparing to stop at next signal</indication>
+      <reference>Page 47</reference>
+      <speed>Medium</speed>
+      <speed2>Slow</speed2>
+      <route>Diverging</route>
+    </aspect>
+    <aspect>
+      <name>Stop</name>
+      <rule>Rule 292</rule>
+      <indication>Stop.</indication>
+      <reference>Page 50</reference>
+      <speed>Stop</speed>
+      <speed2>Stop</speed2>
+      <route>Either</route>
+    </aspect>
+  </aspects>
+  <imagetypes>
+    <imagetype type="default" />
+    <imagetype type="ctc" />
+    <imagetype type="ctc-w" />
+  </imagetypes>
+  <appearancefiles>
+    <appearancefile href="appearance-SL-2-digicon.xml" />
+  </appearancefiles>
+</aspecttable>

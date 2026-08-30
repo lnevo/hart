@@ -1,0 +1,142 @@
+=== computed dests (mini-discovery) ===
+  Brick East Main West  ->  West Yard West East Main Ext
+      blocks:   OS 100 (Brick), Main West Brick-Plane, OS 102 (Plane), East Main Ext, OS 117b (West Yard)
+      turnouts: Switch 100=thrown, Switch 102=closed
+  Brick East Main West  ->  West Yard West OS 117
+      blocks:   OS 100 (Brick), Main West Brick-Plane, OS 102 (Plane), Yard T1, OS 117 (West Yard)
+      turnouts: Switch 100=thrown, Switch 102=thrown
+  Brick West Yard 1  ->  East End West Main West
+      blocks:   OS 101 (Brick), OS 100 (Brick), Main West, OS 111a (East End)
+      turnouts: Switch 100=closed, Switch 101=closed
+  Brick West Yard 2  ->  East End West Main West
+      blocks:   OS 101 (Brick), OS 100 (Brick), Main West, OS 111a (East End)
+      turnouts: Switch 100=closed, Switch 101=thrown
+  East End East Lead  ->  West Yard East Yard T6
+      blocks:   OS 112 (East End), OS 110 (East End), OS 111b (East End), Yard Track 1, OS 103 (South Yard), OS 116 (West Yard), Yard T6, OS 117 (West Yard)
+      turnouts: Switch 103=closed, Switch 110=closed, Switch 111=closed, Switch 112=closed, Switch 116=closed
+  East End East Lead  ->  Brick East Main West
+      blocks:   OS 112 (East End), OS 110 (East End), OS 111b (East End), OS 111a (East End), Main West, OS 100 (Brick)
+      turnouts: Switch 110=closed, Switch 111=thrown, Switch 112=closed
+  East End East Lead  ->  West Yard East Yard T6
+      blocks:   OS 112 (East End), OS 110 (East End), OS 109 (East End), OS 108 (East End), OS 107 (East End), Yard Track 5, OS 106 (South Yard), OS 105 (South Yard), OS 104 (South Yard), OS 103 (South Yard), OS 116 (West Yard), Yard T6, OS 117 (West Yard)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=closed, Switch 106=closed, Switch 107=closed, Switch 108=closed, Switch 109=closed, Switch 110=thrown, Switch 112=closed, Switch 116=closed
+  East End East Lead  ->  West Yard East Yard T6
+      blocks:   OS 112 (East End), OS 110 (East End), OS 109 (East End), OS 108 (East End), OS 107 (East End), Yard Track 4, OS 106 (South Yard), OS 105 (South Yard), OS 104 (South Yard), OS 103 (South Yard), OS 116 (West Yard), Yard T6, OS 117 (West Yard)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=closed, Switch 106=thrown, Switch 107=thrown, Switch 108=closed, Switch 109=closed, Switch 110=thrown, Switch 112=closed, Switch 116=closed
+  East End East Lead  ->  West Yard East Yard T6
+      blocks:   OS 112 (East End), OS 110 (East End), OS 109 (East End), OS 108 (East End), Yard Track 3, OS 105 (South Yard), OS 104 (South Yard), OS 103 (South Yard), OS 116 (West Yard), Yard T6, OS 117 (West Yard)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=thrown, Switch 108=thrown, Switch 109=closed, Switch 110=thrown, Switch 112=closed, Switch 116=closed
+  East End East Lead  ->  West Yard East Yard T6
+      blocks:   OS 112 (East End), OS 110 (East End), OS 109 (East End), Yard Track 2, OS 104 (South Yard), OS 103 (South Yard), OS 116 (West Yard), Yard T6, OS 117 (West Yard)
+      turnouts: Switch 103=thrown, Switch 104=thrown, Switch 109=thrown, Switch 110=thrown, Switch 112=closed, Switch 116=closed
+  East End East Lead  ->  West Yard East OS 117b
+      blocks:   OS 112 (East End), Main East, OS 117b (West Yard)
+      turnouts: Switch 112=thrown
+  East End East OS 111a  ->  Brick East Main West
+      blocks:   OS 111a (East End), Main West, OS 100 (Brick)
+      turnouts: Switch 111=closed
+  East End South OS 110  ->  Princess West OS 113a
+      blocks:   OS 110 (East End), OS 112 (East End), East Lead, OS 113a (Princess)
+      turnouts: Switch 110=thrown, Switch 112=closed
+  East End South OS 112  ->  Princess West OS 113a
+      blocks:   OS 112 (East End), East Lead, OS 113a (Princess)
+      turnouts: Switch 112=thrown
+  East End West Main West  ->  Princess West OS 113b
+      blocks:   OS 111a (East End), West Main Ext, OS 113b (Princess)
+      turnouts: Switch 111=closed
+  East End West Main West  ->  Princess West OS 113a
+      blocks:   OS 111a (East End), OS 111b (East End), OS 110 (East End), OS 112 (East End), East Lead, OS 113a (Princess)
+      turnouts: Switch 110=closed, Switch 111=thrown, Switch 112=closed
+  East End West Yard Track 1  ->  Princess West OS 113a
+      blocks:   OS 111b (East End), OS 110 (East End), OS 112 (East End), East Lead, OS 113a (Princess)
+      turnouts: Switch 110=closed, Switch 111=closed, Switch 112=closed
+  Plane East East Main Ext  ->  East End West Main West
+      blocks:   OS 102 (Plane), Main West Brick-Plane, OS 100 (Brick), Main West, OS 111a (East End)
+      turnouts: Switch 100=thrown, Switch 102=closed
+  Plane East OS 102  ->  East End West Main West
+      blocks:   OS 102 (Plane), Main West Brick-Plane, OS 100 (Brick), Main West, OS 111a (East End)
+      turnouts: Switch 100=thrown, Switch 102=thrown
+  Princess East K-1  ->  East End East OS 111a
+      blocks:   OS 115 (Princess), OS 113b (Princess), West Main Ext, OS 111a (East End)
+      turnouts: Switch 113=closed, Switch 115=closed
+  Princess East K-1  ->  East End East Lead
+      blocks:   OS 115 (Princess), OS 113b (Princess), OS 113a (Princess), East Lead, OS 112 (East End)
+      turnouts: Switch 113=thrown, Switch 115=closed
+  Princess East K-2  ->  East End East Lead
+      blocks:   OS 114 (Princess), OS 113a (Princess), East Lead, OS 112 (East End)
+      turnouts: Switch 113=closed, Switch 114=closed
+  Princess East McKees Rocks  ->  Princess North McKees Rocks
+      blocks:   McKees Rocks, OS 115 (Princess)
+      turnouts: -
+  Princess East McKeesport  ->  Princess South McKeesport
+      blocks:   McKeesport, OS 114 (Princess)
+      turnouts: -
+  Princess North McKees Rocks  ->  East End East OS 111a
+      blocks:   OS 115 (Princess), OS 113b (Princess), West Main Ext, OS 111a (East End)
+      turnouts: Switch 113=closed, Switch 115=thrown
+  Princess North McKees Rocks  ->  East End East Lead
+      blocks:   OS 115 (Princess), OS 113b (Princess), OS 113a (Princess), East Lead, OS 112 (East End)
+      turnouts: Switch 113=thrown, Switch 115=thrown
+  Princess South McKeesport  ->  East End East Lead
+      blocks:   OS 114 (Princess), OS 113a (Princess), East Lead, OS 112 (East End)
+      turnouts: Switch 113=closed, Switch 114=thrown
+  Princess West OS 113a  ->  Princess East McKees Rocks
+      blocks:   OS 113a (Princess), OS 114 (Princess), McKeesport, McKees Rocks
+      turnouts: Switch 113=closed, Switch 114=thrown
+  Princess West OS 113a  ->  Princess East McKeesport
+      blocks:   OS 113a (Princess), OS 113b (Princess), OS 115 (Princess), McKees Rocks, McKeesport
+      turnouts: Switch 113=thrown, Switch 115=thrown
+  Princess West OS 113b  ->  Princess East McKeesport
+      blocks:   OS 113b (Princess), OS 115 (Princess), McKees Rocks, McKeesport
+      turnouts: Switch 113=closed, Switch 115=thrown
+  West Yard East OS 117b  ->  Plane East East Main Ext
+      blocks:   OS 117b (West Yard), East Main Ext, OS 102 (Plane)
+      turnouts: Switch 117=closed
+  West Yard East Yard T6  ->  Plane East OS 102
+      blocks:   OS 117 (West Yard), Yard T1, OS 102 (Plane)
+      turnouts: Switch 117=closed
+  West Yard East Yard T6  ->  Plane East East Main Ext
+      blocks:   OS 117 (West Yard), OS 117b (West Yard), East Main Ext, OS 102 (Plane)
+      turnouts: Switch 117=thrown
+  West Yard West East Main Ext  ->  East End South OS 112
+      blocks:   OS 117b (West Yard), Main East, OS 112 (East End)
+      turnouts: Switch 117=closed
+  West Yard West East Main Ext  ->  East End West Yard Track 1
+      blocks:   OS 117b (West Yard), OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), Yard Track 1, OS 111b (East End)
+      turnouts: Switch 103=closed, Switch 116=closed, Switch 117=thrown
+  West Yard West East Main Ext  ->  East End South OS 110
+      blocks:   OS 117b (West Yard), OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), OS 105 (South Yard), OS 106 (South Yard), Yard Track 5, OS 107 (East End), OS 108 (East End), OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=closed, Switch 106=closed, Switch 107=closed, Switch 108=closed, Switch 109=closed, Switch 116=closed, Switch 117=thrown
+  West Yard West East Main Ext  ->  East End South OS 110
+      blocks:   OS 117b (West Yard), OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), OS 105 (South Yard), OS 106 (South Yard), Yard Track 4, OS 107 (East End), OS 108 (East End), OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=closed, Switch 106=thrown, Switch 107=thrown, Switch 108=closed, Switch 109=closed, Switch 116=closed, Switch 117=thrown
+  West Yard West East Main Ext  ->  East End South OS 110
+      blocks:   OS 117b (West Yard), OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), OS 105 (South Yard), Yard Track 3, OS 108 (East End), OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=thrown, Switch 108=thrown, Switch 109=closed, Switch 116=closed, Switch 117=thrown
+  West Yard West East Main Ext  ->  East End South OS 110
+      blocks:   OS 117b (West Yard), OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), Yard Track 2, OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=thrown, Switch 109=thrown, Switch 116=closed, Switch 117=thrown
+  West Yard West OS 117  ->  East End West Yard Track 1
+      blocks:   OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), Yard Track 1, OS 111b (East End)
+      turnouts: Switch 103=closed, Switch 116=closed, Switch 117=closed
+  West Yard West OS 117  ->  East End South OS 110
+      blocks:   OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), OS 105 (South Yard), OS 106 (South Yard), Yard Track 5, OS 107 (East End), OS 108 (East End), OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=closed, Switch 106=closed, Switch 107=closed, Switch 108=closed, Switch 109=closed, Switch 116=closed, Switch 117=closed
+  West Yard West OS 117  ->  East End South OS 110
+      blocks:   OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), OS 105 (South Yard), OS 106 (South Yard), Yard Track 4, OS 107 (East End), OS 108 (East End), OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=closed, Switch 106=thrown, Switch 107=thrown, Switch 108=closed, Switch 109=closed, Switch 116=closed, Switch 117=closed
+  West Yard West OS 117  ->  East End South OS 110
+      blocks:   OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), OS 105 (South Yard), Yard Track 3, OS 108 (East End), OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=closed, Switch 105=thrown, Switch 108=thrown, Switch 109=closed, Switch 116=closed, Switch 117=closed
+  West Yard West OS 117  ->  East End South OS 110
+      blocks:   OS 117 (West Yard), Yard T6, OS 116 (West Yard), OS 103 (South Yard), OS 104 (South Yard), Yard Track 2, OS 109 (East End), OS 110 (East End)
+      turnouts: Switch 103=thrown, Switch 104=thrown, Switch 109=thrown, Switch 116=closed, Switch 117=closed
+
+=== static checks: PASS ===
+=== stored SML vs computed model ===
+  stored: 36 dests (34 useLE=yes, 2 manual)
+  manual (not validated by model): Princess West OS 113a -> Princess East K-2
+  manual (not validated by model): Princess West OS 113b -> Princess East K-1
+  all stored useLE=yes pairs are reproduced by the model: OK
+
+EXIT:0

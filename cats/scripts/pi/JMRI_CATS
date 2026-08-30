@@ -1,0 +1,24 @@
+#! /bin/bash
+# Start CATS Digicon — same style as /home/pi/JMRI/PanelPro desktop launcher.
+set -euo pipefail
+cd /home/pi/JMRI
+
+export WIRINGPI_GPIOMEM="${WIRINGPI_GPIOMEM:-1}"
+export _JAVA_AWT_WM_NONREPARENTING="${_JAVA_AWT_WM_NONREPARENTING:-1}"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
+export XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}"
+
+# labwc/Xwayland on this Pi uses :1 (not :0). Prefer an existing session value.
+if [[ -z "${DISPLAY:-}" ]]; then
+  for d in :1 :0; do
+    if xdpyinfo -display "$d" >/dev/null 2>&1; then
+      export DISPLAY="$d"
+      break
+    fi
+  done
+  export DISPLAY="${DISPLAY:-:1}"
+fi
+
+PANEL="${1:-/home/pi/hart/cats/panels/HART_Master.xml}"
+exec /home/pi/hart/launch_cats.sh "$PANEL"

@@ -1,0 +1,157 @@
+layer,systemName,userName
+block,IB1,OS 13|BS Switch 13
+block,IB15,OS Barn|BS Barn
+block,IB18,OS 9|BS Switch 9
+block,IB19,OS 11|BS Switch 11
+block,IB20,OS EH-1|BS EH-1
+block,IB21,OS EH-2|BS EH-2
+block,IB22,OS EH-3|BS EH-3
+block,IB23,OS K-1|BS Switch 39 / BS K-1
+block,IB24,OS K-2|BS Switch 37 / BS K-2
+block,IB3,OS Scale|BS Scale
+block,IB6,OS 7b|BS Switch 7b
+block,IB8,OS 7|BS Switch 7
+block,IB:AUTO:0001,OS Main East|BS Main East
+block,IB:AUTO:0003,OS Main West|BS Main West
+block,IB:AUTO:0005,OS Brick-Plane|BS Brick-Plane
+block,IB:AUTO:0007,OS S-4|BS S-4
+block,IB:AUTO:0008,OS S-3|BS S-3
+block,IB:AUTO:0010,OS McKees Rocks|BS McKees Rocks
+block,IB:AUTO:0012,OS S-R|BS S-R
+block,IB:AUTO:0016,OS S-1|BS S-1
+block,IB:AUTO:0017,OS East Lead|BS East Lead
+block,IB:AUTO:0020,OS W-1|BS W-1
+block,IB:AUTO:0022,OS W-2|BS W-2
+block,IB:AUTO:0026,OS S-2|BS S-2
+block,IB:AUTO:0030,OS 33|BS Switch 33
+block,IB:AUTO:0031,OS 5|BS Switch 5
+block,IB:AUTO:0032,OS 37|BS Switch 37 / BS K-2
+block,IB:AUTO:0033,OS 1|BS Switch 1
+block,IB:AUTO:0034,OS 23a|BS Switch 23a
+block,IB:AUTO:0035,OS 3|BS Switch 3
+block,IB:AUTO:0036,OS 25|BS Switch 25
+block,IB:AUTO:0037,OS 27|BS Switch 27
+block,IB:AUTO:0038,OS 21|BS Switch 21
+block,IB:AUTO:0039,OS 23b|BS Switch 23b
+block,IB:AUTO:0040,OS 39|BS Switch 39 / BS K-1
+block,IB:AUTO:0041,OS 15|BS Switch 15
+block,IB:AUTO:0042,OS 31|BS Switch 31
+block,IB:AUTO:0043,OS 29|BS Switch 29
+block,IB:AUTO:0044,OS 17|BS Switch 17
+block,IB:AUTO:0045,OS 19|BS Switch 19
+block,IB:AUTO:0046,OS 35a|BS Switch 35a
+block,IB:AUTO:0047,OS 35b|BS Switch 35b
+block,IB:AUTO:0048,OS McKeesport|BS McKeesport
+block,IB:AUTO:0050,OS West Main Ext|BS West Main Ext
+block,IB:AUTO:0051,OS East Main Ext|BS East Main Ext
+block,IB:AUTO:0052,OS S-1 West|BS S-1
+block,IB:AUTO:0053,OS S-1 East|BS S-1
+block,IB:AUTO:0054,OS S-2 West|BS S-2
+block,IB:AUTO:0055,OS S-2 East|BS S-2
+block,IB:AUTO:0056,OS S-3 West|BS S-3
+block,IB:AUTO:0057,OS S-3 East|BS S-3
+block,IB:AUTO:0058,OS S-4 West|BS S-4
+block,IB:AUTO:0059,OS S-4 East|BS S-4
+block,IB:AUTO:0060,OS S-R East|BS S-R
+block,IB:AUTO:0061,OS S-R West|BS S-R
+signalhead,IH1232,Head 24RA Top
+signalhead,IH1233,Head 24RA Bottom
+signalhead,IH1234,Head 24L Top
+signalhead,IH1235,Head 24L Bottom
+signalhead,IH1236,Head 24RB
+signalhead,IH1237,Head 34L Top
+signalhead,IH1238,Head 34L Bottom
+signalhead,IH1239,Head 32R
+signalhead,IH1240,Head 34R Top
+signalhead,IH1241,Head 34R Bottom
+signalhead,IH132,Head 40LB Top
+signalhead,IH133,Head 40LB Bottom
+signalhead,IH1332,Head 8RA Top
+signalhead,IH1333,Head 8RA Bottom
+signalhead,IH1334,Head 8LB
+signalhead,IH1335,Head 8RB Top
+signalhead,IH1336,Head 8RB Bottom
+signalhead,IH1337,Head 8LA Top
+signalhead,IH1338,Head 8LA Bottom
+signalhead,IH134,Head 2036
+signalhead,IH135,Head 36RA Top
+signalhead,IH136,Head 36RA Bottom
+signalhead,IH137,Head 36RB Top
+signalhead,IH138,Head 36RB Bottom
+signalhead,IH139,Head 38LB Top
+signalhead,IH140,Head 38LB Bottom
+signalhead,IH141,Head 2035
+signalhead,IH142,Head 40LA
+signalhead,IH143,Head 38LA
+signalhead,IH432,Head 6LB Top
+signalhead,IH433,Head 6LB Bottom
+signalhead,IH434,Head 6LA
+signalhead,IH436,Head 4RA
+signalhead,IH437,Head 4RB
+signalhead,IH438,Head 2L Top
+signalhead,IH439,Head 2L Bottom
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH1236),Mast 24RB
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH1239),Mast 32R
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH1334),Mast 8LB
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH134),Mast 2036
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH141),Mast 2035
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH142),Mast 40LA
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH143),Mast 38LA
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH434),Mast 6LA
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH436),Mast 4RA
+signalmast,IF$shsm:AAR-1946:SL-1-low(IH437),Mast 4RB
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233),Mast 24RA
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235),Mast 24L
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238),Mast 34L
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241),Mast 34R
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133),Mast 40LB
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333),Mast 8RA
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336),Mast 8RB
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338),Mast 8LA
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136),Mast 36RA
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138),Mast 36RB
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140),Mast 38LB
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433),Mast 6LB
+signalmast,IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439),Mast 2L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1001),Mast 4LA
+signalmast,IF$vsm:AAR-1946:SL-1-low($1002),Mast 4LB
+signalmast,IF$vsm:AAR-1946:SL-1-low($1003),Mast 40RA
+signalmast,IF$vsm:AAR-1946:SL-1-low($1004),Mast 38RA
+signalmast,IF$vsm:AAR-1946:SL-1-low($1005),Mast 12L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1006),Mast 10LA
+signalmast,IF$vsm:AAR-1946:SL-1-low($1007),Mast 10LB
+signalmast,IF$vsm:AAR-1946:SL-1-low($1008),Mast 18L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1009),Mast 20L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1010),Mast 22L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1011),Mast 26L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1012),Mast 18R
+signalmast,IF$vsm:AAR-1946:SL-1-low($1013),Mast 20R
+signalmast,IF$vsm:AAR-1946:SL-1-low($1014),Mast 22R
+signalmast,IF$vsm:AAR-1946:SL-1-low($1015),Mast 26R
+signalmast,IF$vsm:AAR-1946:SL-1-low($1016),Mast 16L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1017),Mast 32L
+turnout,M2T108,Switch 35
+turnout,M2T109,Switch 37
+turnout,M2T110,Switch 39
+turnout,M2T1208,Switch 25
+turnout,M2T1209,Switch 27
+turnout,M2T1210,Switch 29
+turnout,M2T1211,Switch 31
+turnout,M2T1212,Switch 23
+turnout,M2T1213,Switch 33
+turnout,M2T1308,Switch 7
+turnout,M2T1309,Switch 11
+turnout,M2T1310,Switch 9
+turnout,M2T308,Switch 15
+turnout,M2T309,Switch 17
+turnout,M2T310,Switch 19
+turnout,M2T311,Switch 21
+turnout,M2T408,Switch 1
+turnout,M2T409,Switch 3
+turnout,M2T410,Switch 5
+turnout,M2T411,Switch 13
+turnout,MTT100,Switch 1 alias
+turnout,MTT111,Switch 23 alias
+turnout,MTT113,Switch 35 alias
+turnout,MTT114,Switch 37 alias
+turnout,MTT115,Switch 39 alias

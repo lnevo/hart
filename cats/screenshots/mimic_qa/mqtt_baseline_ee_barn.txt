@@ -1,0 +1,16 @@
+track/turnout/1211 CLOSED
+track/turnout/1212 CLOSED
+track/turnout/1213 THROWN
+track/turnout/1308 CLOSED
+track/sensor/1273 ACTIVE
+track/sensor/1274 INACTIVE
+track/sensor/1275 ACTIVE
+track/sensor/1276 INACTIVE
+track/sensor/1277 INACTIVE
+track/sensor/1278 ACTIVE
+track/sensor/202 INACTIVE
+track/sensor/106 INACTIVE
+track/sensor/200 INACTIVE
+track/sensor/107 INACTIVE
+track/sensor/406 INACTIVE
+track/sensor/1206 INACTIVE

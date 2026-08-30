@@ -1,0 +1,902 @@
+#!/usr/bin/env python3
+"""Archived West Yard sheet wire — not the live Digicon.
+
+Live desk is Master 4 (``cats/scripts/wire_hart_master4.py``). Turnout IO
+helpers live in ``cats/scripts/cats_turnout_io.py``.
+
+SoR (archived): cats/panels/sheets/archive/west_yard/HART_sheet_West_Yard_SOR.xml
+  Geometry + SEC_NAME only (Designer-safe). Do not put Digicon BLOCK/SP/
+  SECSIGNAL back into SoR — that crashes Designer.
+
+    python3 cats/scripts/archive/west_yard/wire_hart_sheet_west_yard2.py
+"""
+
+from __future__ import annotations
+
+import re
+import shutil
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[4]
+SCRIPTS = ROOT / "cats/scripts"
+SHEETS = ROOT / "cats/panels/sheets/archive/west_yard"
+sys.path.insert(0, str(SCRIPTS))
+import build_hart_digicon_ctc as ctc  # noqa: E402
+import build_hart_digicon_from_le as le  # noqa: E402
+import cats_turnout_io as tio  # noqa: E402
+import jmri_to_cats_digicon as gen  # noqa: E402
+
+SOR = SHEETS / "HART_sheet_West_Yard_SOR.xml"
+SRC = SHEETS / "HART_sheet_West_Yard2.xml"
+ACTIVE = SHEETS / "HART_sheet_West_Yard.xml"
+SHOT = ROOT / "cats/screenshots/sheets/HART_sheet_West_Yard2.png"
+
+# Control-point SEC_NAME titles → yellow FONT_CP (Java RGB -256 = #FFFF00).
+# Values: display NAME + LOC_NAME (None = leave Designer placement).
+CP_LABEL_STYLE: dict[str, tuple[str, str | None]] = {
+    "brick": ("BRICK", None),  # Designer places LOWCENT
+    "plane": ("PLANE", None),
+    "barn": ("BARN", None),
+    "princess": ("PRINCESS", None),
+    "east end": ("EAST END", None),
+}
+CP_LABEL_NAMES = frozenset(CP_LABEL_STYLE)
+# Area titles (not yellow CP font) forced to ALL CAPS / placement.
+AREA_LABEL_STYLE: dict[str, tuple[str, str | None]] = {
+    "west yard": ("WEST YARD", None),
+    "south yard": ("SOUTH YARD", None),
+}
+FONT_CP_KEY = "FONT_CP"
+FONT_CP_YELLOW = "-256"  # opaque yellow
+
+# SoR plant cells (tracks unchanged). 111b mate has tracks but no Designer SP.
+# Second field = NORMAL route among non-points legs (not the SP edge).
+# Digicon polarity: NORMAL leg = JMRI CLOSED (close); other = THROWN (throw).
+# Dispatcher tip SoR (confirmed):
+#   112 THROWN = BOTTOM Barn; CLOSED = LEFT through OS110 / S-1
+#   114 THROWN = BOTTOM McKeesport (default); CLOSED = RIGHT K-2
+#   115 THROWN = TOP Rocks; CLOSED = RIGHT K-1 (good — leave alone)
+# SEL+CMD always share polarity. Wrong frog → flip that one PLANTS NORMAL only.
+# Coords match Designer SoR after user_0125 promote (≈ dx=-1,dy=-1; Brick tip compressed).
+# NORMAL = continuing/CLOSED leg among non-points edges (must match SoR ROUTEINFO).
+PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
+    # Brick/WY on y=3; shaft (7,4–6) into Plane tip (8,7).
+    (5, 3): ("OS 101", "LEFT", "TOL38"),
+    (7, 3): ("OS 100", "LEFT", "TOL3"),
+    (8, 7): ("OS 102", "BOTTOM", "TOL42"),
+    (13, 7): ("OS 117", "LEFT", "TO117"),
+    (13, 8): ("OS 117b", "RIGHT", "TO117"),
+    (15, 6): ("OS 119", "LEFT", "TO10"),
+    (17, 6): ("OS 118", "LEFT", "TO11"),
+    (18, 7): ("OS 116", "LEFT", "TO1"),
+    (21, 7): ("OS 103", "RIGHT", "TOR14"),
+    (22, 8): ("OS 104", "BOTTOM", "TOL15"),
+    (23, 9): ("OS 105", "BOTTOM", "TOL17"),
+    (24, 10): ("OS 106", "BOTTOM", "TOL19"),
+    (28, 10): ("OS 107", "BOTTOM", "TOR11"),
+    (29, 9): ("OS 108", "BOTTOM", "TOR9"),
+    (30, 8): ("OS 109", "BOTTOM", "TOR7"),
+    (31, 7): ("OS 110", "LEFT", "TOL6"),
+    (33, 7): ("OS 112", "LEFT", "TOL23"),
+    (29, 6): ("OS 111a", "RIGHT", "TO111"),
+    (29, 7): ("OS 111b", "LEFT", "TO111"),
+    (38, 6): ("OS 113b", "LEFT", "TO113"),
+    (38, 7): ("OS 113a", "RIGHT", "TO113"),
+    (42, 6): ("OS 115", "RIGHT", "TOL29"),
+    (42, 7): ("OS 114", "RIGHT", "TOR36"),
+}
+
+# Named rim / approach / tip edges — only cut faces (interior stays plain).
+# Gap style: plain within a block; cut only at OS bounds (no same-name BLK↔BLK).
+ANCHORS: list[tuple[int, int, str, str]] = [
+    # Brick / WY — W-1/W-2 dead-end spurs (Joins unchecked on west faces).
+    # Digicon gaps: spur tip | mid-spur cut | anon lamp mate | OS101 lamp | plant.
+    # Same block name both sides of spur-end cut (like EH-1 mid-spur).
+    (2, 3, "LEFT", "W-1"),
+    (2, 3, "RIGHT", "W-1"),
+    (3, 3, "LEFT", "W-1"),
+    (4, 3, "LEFT", "OS 101"),
+    (6, 3, "RIGHT", "OS 101"),
+    (2, 4, "LEFT", "W-2"),
+    (2, 4, "RIGHT", "W-2"),
+    (3, 4, "LEFT", "W-2"),
+    (4, 4, "LEFT", "OS 101"),
+    (7, 3, "LEFT", "OS 100"),
+    (7, 3, "BOTTOM", "OS 100"),
+    (8, 3, "RIGHT", "OS 100"),
+    # Main West: Brick tip → SE stair → EE
+    (9, 3, "LEFT", "Main West"),
+    (27, 6, "RIGHT", "Main West"),
+    # Brick-Plane vertical into Plane
+    (7, 4, "TOP", "Brick-Plane"),
+    (7, 6, "BOTTOM", "Brick-Plane"),
+    (7, 7, "TOP", "OS 102"),
+    # Plane: name OS on shaft approach only — floods through plant SP. Do NOT
+    # name (9,8) BOTTOM/(9,9) TOP (extra frog Digicon seam). East lamps on cuts.
+    (9, 7, "RIGHT", "OS 102"),
+    (10, 7, "LEFT", "Scale"),
+    (11, 7, "RIGHT", "Scale"),
+    (12, 7, "LEFT", "OS 117"),
+    (9, 8, "RIGHT", "OS 102"),
+    (10, 8, "LEFT", "East Main Ext"),
+    (11, 8, "RIGHT", "East Main Ext"),
+    (12, 8, "LEFT", "OS 117b"),
+    # Barn 117 / 117b (plants at 14,8 / 14,9)
+    (13, 7, "BOTTOM", "OS 117"),
+    (14, 7, "RIGHT", "OS 117"),
+    (15, 7, "LEFT", "Barn"),
+    (13, 8, "TOP", "OS 117b"),
+    (14, 8, "RIGHT", "OS 117b"),
+    (15, 8, "LEFT", "Main East"),
+    # ET: Designer mid-spur cuts (not at plant throat — OS floods into 118/119)
+    (12, 6, "LEFT", "EH-1"),
+    (13, 6, "RIGHT", "EH-1"),
+    (14, 6, "LEFT", "OS 119"),
+    # OS119 plant: approach names flood through SP — no plant-edge names (avoids
+    # throat Digicon seams + R4 vs plain ET stubs).
+    (16, 6, "RIGHT", "OS 119"),
+    (12, 5, "LEFT", "EH-2"),
+    (13, 5, "RIGHT", "EH-2"),
+    (14, 5, "LEFT", "OS 119"),
+    (12, 4, "LEFT", "EH-3"),
+    (14, 4, "RIGHT", "EH-3"),
+    (15, 4, "LEFT", "OS 118"),
+    (16, 6, "LEFT", "OS 118"),
+    (17, 6, "LEFT", "OS 118"),
+    (18, 6, "BOTTOM", "OS 118"),
+    (17, 7, "RIGHT", "Barn"),
+    (18, 7, "TOP", "OS 116"),
+    (18, 7, "LEFT", "OS 116"),
+    (19, 7, "RIGHT", "OS 116"),
+    # South Yard (plants shifted +1)
+    (20, 7, "LEFT", "OS 103"),
+    (21, 7, "RIGHT", "OS 103"),
+    (22, 7, "LEFT", "S-1"),
+    (22, 8, "RIGHT", "OS 104"),
+    (23, 8, "LEFT", "S-2"),
+    (23, 9, "RIGHT", "OS 105"),
+    (24, 9, "LEFT", "S-3"),
+    (24, 10, "RIGHT", "OS 106"),
+    (25, 10, "LEFT", "S-4"),
+    (24, 10, "BOTTOM", "OS 106"),
+    (24, 11, "TOP", "S-5"),
+    # EE 111 / 110 / 112 (plants at 30,7/30,8 / 32,8 / 34,8)
+    (28, 6, "LEFT", "OS 111a"),
+    (29, 6, "BOTTOM", "OS 111a"),
+    (30, 6, "RIGHT", "OS 111a"),
+    (31, 6, "LEFT", "West Main Ext"),
+    (27, 7, "RIGHT", "S-1"),
+    (28, 7, "LEFT", "OS 111b"),
+    (29, 7, "TOP", "OS 111b"),
+    (30, 7, "RIGHT", "OS 111b"),
+    (31, 7, "LEFT", "OS 110"),
+    (31, 7, "BOTTOM", "OS 110"),
+    (32, 7, "RIGHT", "OS 110"),
+    (30, 8, "LEFT", "OS 109"),
+    (29, 9, "LEFT", "OS 108"),
+    (28, 10, "LEFT", "OS 107"),
+    (33, 7, "LEFT", "OS 112"),
+    (34, 7, "RIGHT", "OS 112"),
+    # 112 south lamp on slash face (34,9) LEFT — continuous (33,9)↔(33,10) Main East
+    (33, 8, "LEFT", "OS 112"),
+    (32, 8, "RIGHT", "Main East"),
+    (35, 7, "LEFT", "East Lead"),
+    (36, 7, "RIGHT", "East Lead"),
+    (37, 7, "LEFT", "OS 113a"),
+    (37, 7, "RIGHT", "OS 113a"),
+    (29, 8, "RIGHT", "S-2"),
+    (28, 9, "RIGHT", "S-3"),
+    (27, 10, "RIGHT", "S-4"),
+    # Princess
+    (36, 6, "RIGHT", "West Main Ext"),
+    (37, 6, "LEFT", "OS 113b"),
+    (38, 6, "BOTTOM", "OS 113b"),
+    (39, 6, "RIGHT", "OS 113b"),
+    (40, 6, "LEFT", "OS 115"),
+    (38, 7, "LEFT", "OS 113a"),
+    (38, 7, "TOP", "OS 113a"),
+    (39, 7, "RIGHT", "OS 113a"),
+    (40, 7, "LEFT", "OS 114"),
+    # K-2 stub past label — named block + eastbound dwarf at (44,7)
+    (43, 8, "RIGHT", "OS 114"),
+    (44, 8, "LEFT", "McKeesport"),
+    (45, 7, "TOP", "McKeesport"),
+    (44, 7, "LEFT", "K-2"),
+    # K-1 stub past label — named block + eastbound dwarf at (44,6)
+    (43, 5, "RIGHT", "OS 115"),
+    (44, 5, "LEFT", "McKees Rocks"),
+    (45, 6, "BOTTOM", "McKees Rocks"),
+    (44, 6, "LEFT", "K-1"),
+]
+
+CUTS: list[tuple[tuple[int, int], str, tuple[int, int], str, str]] = [
+    # W-1/W-2: Joins unchecked on spur left/west faces (Designer "Joins to adjacent").
+    # Digicon encodes that as BLK↔BLK cuts — spur end | anon buffer | OS101 lamp.
+    ((2, 3), "RIGHT", (3, 3), "LEFT", "W-1 spur end (no west join)"),
+    ((2, 4), "RIGHT", (3, 4), "LEFT", "W-2 spur end (no west join)"),
+    ((3, 3), "RIGHT", (4, 3), "LEFT", "W-1 west lamp"),
+    ((3, 4), "RIGHT", (4, 4), "LEFT", "W-2 west lamp"),
+    ((6, 3), "RIGHT", (7, 3), "LEFT", "OS101 tip | OS100"),
+    ((7, 3), "BOTTOM", (7, 4), "TOP", "OS100 | Brick-Plane"),
+    ((7, 6), "BOTTOM", (7, 7), "TOP", "Brick-Plane | OS102"),
+    ((8, 3), "RIGHT", (9, 3), "LEFT", "OS100 tip | Main West"),
+    ((9, 7), "RIGHT", (10, 7), "LEFT", "OS102 | Scale"),
+    ((9, 8), "RIGHT", (10, 8), "LEFT", "OS102 south | East Main Ext"),
+    ((11, 8), "RIGHT", (12, 8), "LEFT", "East Main Ext | OS117b"),
+    ((11, 7), "RIGHT", (12, 7), "LEFT", "Scale | OS117"),
+    ((14, 7), "RIGHT", (15, 7), "LEFT", "OS117 tip | Barn"),
+    ((13, 7), "BOTTOM", (13, 8), "TOP", "OS117 | OS117b diamond"),
+    ((14, 8), "RIGHT", (15, 8), "LEFT", "OS117b | Main East"),
+    # ET mid-spur (Designer) — continuous into OS118/119 throats
+    ((13, 6), "RIGHT", (14, 6), "LEFT", "EH-1 mid"),
+    ((13, 5), "RIGHT", (14, 5), "LEFT", "EH-2 mid"),
+    ((14, 4), "RIGHT", (15, 4), "LEFT", "EH-3 mid"),
+    ((16, 6), "RIGHT", (17, 6), "LEFT", "OS119 tip | OS118"),
+    ((18, 6), "BOTTOM", (18, 7), "TOP", "OS118 | OS116"),
+    ((17, 7), "RIGHT", (18, 7), "LEFT", "Barn | OS116"),
+    ((19, 7), "RIGHT", (20, 7), "LEFT", "OS116 tip | OS103 tip"),
+    ((21, 7), "RIGHT", (22, 7), "LEFT", "OS103 | S-1 / S-1"),
+    ((21, 7), "BOTTOM", (21, 8), "TOP", "OS103 spine"),
+    ((22, 8), "RIGHT", (23, 8), "LEFT", "OS104 | S-2"),
+    ((22, 8), "BOTTOM", (22, 9), "TOP", "OS104 spine"),
+    ((23, 9), "RIGHT", (24, 9), "LEFT", "OS105 | S-3"),
+    ((23, 9), "BOTTOM", (23, 10), "TOP", "OS105 spine"),
+    ((24, 10), "RIGHT", (25, 10), "LEFT", "OS106 | S-4"),
+    ((24, 10), "BOTTOM", (24, 11), "TOP", "OS106 | S-5"),
+    ((27, 6), "RIGHT", (28, 6), "LEFT", "Main West | OS111a tip"),
+    ((30, 6), "RIGHT", (31, 6), "LEFT", "OS111a | West Main Ext"),
+    ((29, 6), "BOTTOM", (29, 7), "TOP", "OS111a | OS111b diamond"),
+    ((27, 7), "RIGHT", (28, 7), "LEFT", "YT1/S-1 | OS111b"),
+    ((30, 7), "RIGHT", (31, 7), "LEFT", "OS111b tip | OS110"),
+    ((31, 7), "BOTTOM", (31, 8), "TOP", "OS110 spine"),
+    ((29, 8), "RIGHT", (30, 8), "LEFT", "OS109 approach"),
+    ((30, 8), "BOTTOM", (30, 9), "TOP", "OS109 spine"),
+    ((28, 9), "RIGHT", (29, 9), "LEFT", "OS108 approach"),
+    ((29, 9), "BOTTOM", (29, 10), "TOP", "OS108 spine"),
+    ((27, 10), "RIGHT", (28, 10), "LEFT", "OS107 approach"),
+    ((28, 10), "BOTTOM", (28, 11), "TOP", "OS107 spine"),
+    ((32, 7), "RIGHT", (33, 7), "LEFT", "OS110 tip | OS112"),
+    ((34, 7), "RIGHT", (35, 7), "LEFT", "OS112 tip | East Lead"),
+    ((36, 7), "RIGHT", (37, 7), "LEFT", "East Lead | OS113a tip"),
+    ((32, 8), "RIGHT", (33, 8), "LEFT", "OS112 south lamp"),
+    ((36, 6), "RIGHT", (37, 6), "LEFT", "WME | OS113b"),
+    ((38, 6), "BOTTOM", (38, 7), "TOP", "OS113b | OS113a diamond"),
+    ((39, 7), "RIGHT", (40, 7), "LEFT", "OS113a | OS114 approach"),
+    ((39, 6), "RIGHT", (40, 6), "LEFT", "OS113b tip | OS115"),
+    ((43, 5), "RIGHT", (44, 5), "LEFT", "OS115 | McKees Rocks"),
+    ((43, 6), "RIGHT", (44, 6), "LEFT", "K-1 stub (BLK mate — Screen.init)"),
+    ((43, 7), "RIGHT", (44, 7), "LEFT", "K-2 stub (BLK mate — Screen.init)"),
+    ((43, 8), "RIGHT", (44, 8), "LEFT", "OS114 | McKeesport"),
+    ((45, 6), "BOTTOM", (45, 7), "TOP", "McKees Rocks | McKeesport"),
+]
+
+# Panel-lamp NX targets: (x,y,edge) → (name, pantype, loc, orient).
+# Must sit on a BLOCK edge (never SP / plain). LAMP1=yard · 2=main/CP · 3=Princess exits.
+
+
+_tracks = tio.section_tracks
+load_turnouts = tio.load_turnouts
+
+
+def wire_turnouts(
+    tp: ET.Element,
+    turnout_by_ident: dict[str, tuple[str, str]],
+    plants: dict[tuple[int, int], tuple[str, str, str]] | None = None,
+    invert_vs_jmri: set[str] | None = None,
+) -> int:
+    """Row-1 default plants; pass ``plants=`` for Class-I / sidecar bands."""
+    return tio.wire_turnouts(
+        tp,
+        turnout_by_ident,
+        plants=PLANTS if plants is None else plants,
+        invert_vs_jmri=invert_vs_jmri,
+    )
+
+
+def _clear_edges(sec: ET.Element) -> None:
+    for e in list(sec.findall("SEC_EDGE")):
+        sec.remove(e)
+
+
+def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
+    for e in sec.findall("SEC_EDGE"):
+        if e.get("EDGE") == edge:
+            return e
+    return None
+
+
+# ADR-002: CP + direction + track. Value = (name, pantype, loc, orient).
+# Facing: tip INTO the BLOCK on that edge —
+#   LEFT→SIGORIENT RIGHT, RIGHT→LEFT, TOP→BOTTOM, BOTTOM→TOP.
+# SoR is geometry-only (Designer). Lamps live on West_Yard2 named cut faces.
+#
+# SIGPANTYPE = panel head count (CATS AspectMap templates):
+#   LAMP1 / single — yard / stub / one-head dwarf or single-route connector
+#   LAMP2 / double — main / CP home (high vs medium/restricting; two speed classes)
+#   LAMP3 / triple — reserved for high+medium+slow plants (none on HART Master today)
+SIGNAL_DEFS: dict[tuple[int, int, str], tuple] = {
+    # Yard stubs — single head
+    (4, 3, "LEFT"): ("101RA", "LAMP1", "LOWLEFT", "RIGHT"),
+    (4, 4, "LEFT"): ("101RB", "LAMP1", "LOWLEFT", "RIGHT"),
+    # Hidden westbound stub stops on mid-spur cuts (no PANELSIGNAL). Digicon-only;
+    # Stay Stop → westbound 100L drops to Approach / yellow.
+    (3, 3, "RIGHT"): ("Brick W-1 West Stub", "HIDDEN", "", "LEFT"),
+    (3, 4, "RIGHT"): ("Brick W-2 West Stub", "HIDDEN", "", "LEFT"),
+    # Brick main — virtual heads IH438/IH439 (C4-OU3), same SHSM path as other homes
+    (8, 3, "RIGHT"): ("100L", "LAMP2", "LOWLEFT", "LEFT"),
+    # 114/115 diverging homes face west (SIGORIENT LEFT): trains from McKees*
+    # into the plant. Dest WME (113 normal) or East Lead (113 reverse).
+    (43, 5, "RIGHT"): ("115LB", "LAMP2", "LOWCENT", "LEFT"),
+    (28, 6, "LEFT"): ("111RA", "LAMP2", "LOWLEFT", "RIGHT"),
+    (30, 6, "RIGHT"): ("111L", "LAMP2", "LOWLEFT", "LEFT"),
+    (37, 6, "LEFT"): ("113RA", "LAMP2", "LOWLEFT", "RIGHT"),
+    (43, 6, "RIGHT"): ("115LA", "LAMP1", "LOWCENT", "LEFT"),
+    # Balloon connector: tip into the named block (BOTTOM→TOP, TOP→BOTTOM).
+    (45, 6, "BOTTOM"): ("120L", "LAMP1", "RIGHTUP", "TOP"),
+    (9, 7, "RIGHT"): ("102LA", "LAMP2", "LOWLEFT", "LEFT"),
+    (12, 7, "LEFT"): ("117RA", "LAMP2", "LOWLEFT", "RIGHT"),
+    (14, 7, "RIGHT"): ("117LB", "LAMP1", "LOWLEFT", "LEFT"),
+    (28, 7, "LEFT"): ("111RB", "LAMP1", "LOWLEFT", "RIGHT"),
+    (34, 7, "RIGHT"): ("112L", "LAMP2", "LOWCENT", "LEFT"),
+    (37, 7, "LEFT"): ("113RB", "LAMP2", "LOWLEFT", "RIGHT"),
+    (43, 7, "RIGHT"): ("114LA", "LAMP1", "LOWCENT", "LEFT"),
+    (31, 7, "BOTTOM"): ("110R", "LAMP1", "LEFTUP", "TOP"),
+    (45, 7, "TOP"): ("120R", "LAMP1", "RIGHTLOW", "BOTTOM"),
+    # Plane normal route (SW102 closed → East Main Ext): virtual heads IH432/IH433 (node 4)
+    (9, 8, "RIGHT"): ("102LB", "LAMP2", "LOWLEFT", "LEFT"),
+    (12, 8, "LEFT"): ("117RB", "LAMP2", "LOWLEFT", "RIGHT"),
+    # Lower-right Barn face — LOWRIGHT keeps the lamp under the Main East rail.
+    (14, 8, "RIGHT"): ("117LA", "LAMP2", "LOWRIGHT", "LEFT"),
+    (33, 8, "LEFT"): ("112R", "LAMP2", "RIGHTLOW", "RIGHT"),
+    (43, 8, "RIGHT"): ("114LB", "LAMP2", "LOWCENT", "LEFT"),
+}
+
+_PANTYPE_PHYS = {"LAMP1": "single", "LAMP2": "double", "LAMP3": "triple", "HIDDEN": "single"}
+
+# Digicon AppearanceKey → AAR Clear/Approach/Stop for MQTT mast 432 (100L).
+# Must stay in every wired sheet — missing template + PHYSIGNAL=aar-single NPEs CATS panel load.
+_AAR_SINGLE_ATTRS = {
+    "TEMPLATEKIND": "Lamp",
+    "TEMPLATEHEADS": "2",
+    "TEMPLATENAME": "aar-single",
+    "R281": "Clear",
+    "R281B": "Clear",
+    "R282": "Clear",
+    "R284": "Clear",
+    "RES_NORM": "Approach",
+    "ADV_NORM": "Clear",
+    "R285": "Approach",
+    "R281C": "Clear",
+    "C412": "Clear",
+    "C413": "Clear",
+    "C414": "Clear",
+    "RES_LIM": "Approach",
+    "ADV_LIM": "Clear",
+    "R281D": "Approach",
+    "R283": "Clear",
+    "C417": "Clear",
+    "R283A": "Clear",
+    "R283B": "Clear",
+    "RES_MED": "Approach",
+    "ADV_MED": "Clear",
+    "R286": "Approach",
+    "R287": "Clear",
+    "C422": "Clear",
+    "C423": "Clear",
+    "C424": "Clear",
+    "RES_SLO": "Approach",
+    "ADV_SLO": "Clear",
+    "R288": "Approach",
+    "R291": "Stop",
+    "R292": "Stop",
+}
+_AAR_SINGLE_ASPECTMAP = (
+    'R281="green|red" R281B="green|red" R282="yellow|yellow" R284="yellow|yellow" '
+    'RES_NORM="yellow|red" ADV_NORM="yellow|yellow" R285="yellow|red" R281C="green|red" '
+    'C412="green|red" C413="yellow|yellow" C414="yellow|yellow" RES_LIM="yellow|red" '
+    'ADV_LIM="yellow|yellow" R281D="yellow|red" R283="red|green" C417="red|green" '
+    'R283A="red|green" R283B="red|green" RES_MED="yellow|red" ADV_MED="red|green" '
+    'R286="red|yellow" R287="red|green" C422="red|green" C423="red|green" '
+    'C424="red|green" RES_SLO="yellow|red" ADV_SLO="red|green" R288="red|yellow" '
+    'R292="red|red" R291="red|red"'
+)
+
+
+def _ensure_aar_single_template(root: ET.Element) -> None:
+    """Insert/refresh aar-single SIGNALTEMPLATE (SoR copies lack it)."""
+    existing = [
+        t
+        for t in root.findall("SIGNALTEMPLATE")
+        if t.get("TEMPLATENAME") == "aar-single"
+    ]
+    for t in existing:
+        root.remove(t)
+    el = ET.Element("SIGNALTEMPLATE", _AAR_SINGLE_ATTRS)
+    am = ET.SubElement(el, "ASPECTMAP")
+    for k, v in re.findall(r'(\w+)="([^"]*)"', _AAR_SINGLE_ASPECTMAP):
+        am.set(k, v)
+    # Place after "single" template if present, else before first SIGNALTEMPLATE
+    singles = [
+        t for t in root.findall("SIGNALTEMPLATE") if t.get("TEMPLATENAME") == "single"
+    ]
+    if singles:
+        idx = list(root).index(singles[0]) + 1
+        root.insert(idx, el)
+    else:
+        # before first TRACKPLAN / after counters
+        for i, child in enumerate(list(root)):
+            if child.tag in ("SIGNALTEMPLATE", "TRACKPLAN", "TRAINSTORE"):
+                root.insert(i, el)
+                break
+        else:
+            root.append(el)
+
+
+
+def _signal_list() -> list[tuple[int, int, str, str, str, str, str]]:
+    """(x, y, edge, name, loc, orient, pantype) from SIGNAL_DEFS."""
+    out: list[tuple[int, int, str, str, str, str, str]] = []
+    for (x, y, edge), defn in sorted(
+        SIGNAL_DEFS.items(), key=lambda kv: (kv[0][1], kv[0][0], kv[0][2])
+    ):
+        name, pantype, loc, orient = defn[0], defn[1], defn[2], defn[3]
+        out.append((x, y, edge, name, loc, orient, pantype))
+    return out
+
+
+def _phys_for(defn: tuple, pantype: str) -> str:
+    """Optional 5th SIGNAL_DEFS field overrides PHYSIGNAL template name."""
+    if len(defn) >= 5 and defn[4]:
+        return str(defn[4])
+    return _PANTYPE_PHYS.get(pantype, "single")
+
+
+def _apply_signals(
+    tp: ET.Element,
+    signals: list[tuple[int, int, str, str, str, str, str]],
+) -> list[str]:
+    """Attach panel-lamp SECSIGNAL on existing BLOCK edges only."""
+    secs = {
+        (int(s.get("X")), int(s.get("Y"))): s
+        for s in tp.findall("SECTION")
+        if s.find("TRACKGROUP") is not None
+    }
+    for sec in secs.values():
+        for se in sec.findall("SEC_EDGE"):
+            for old in list(se.findall("SECSIGNAL")):
+                se.remove(old)
+
+    by_key = {k: v for k, v in SIGNAL_DEFS.items()}
+    placed: list[str] = []
+    for x, y, edge, name, loc, orient, pantype in signals:
+        sec = secs.get((x, y))
+        if sec is None:
+            print(f"SIGNAL SKIP: {name} @({x},{y}) missing cell", file=sys.stderr)
+            continue
+        se = _edge(sec, edge)
+        if se is None or se.find("BLOCK") is None:
+            print(
+                f"SIGNAL SKIP: {name} @({x},{y}) {edge} needs BLOCK edge",
+                file=sys.stderr,
+            )
+            continue
+        if se.find("SWITCHPOINTS") is not None:
+            print(f"SIGNAL SKIP: {name} @({x},{y}) {edge} is SP", file=sys.stderr)
+            continue
+        phys_name = _phys_for(by_key[(x, y, edge)], pantype)
+        sig = ET.Element("SECSIGNAL")
+        sig.text = f"\n          {name}\n          "
+        # HIDDEN = interlocking-only (Armstrong SpurL/SpurR style): PHYSIGNAL, no lamp.
+        if pantype != "HIDDEN":
+            ps = ET.SubElement(
+                sig,
+                "PANELSIGNAL",
+                {"SIGLOCATION": loc, "SIGORIENT": orient, "SIGPANTYPE": pantype},
+            )
+            ps.tail = "\n          "
+        phys = ET.SubElement(sig, "PHYSIGNAL")
+        phys.text = phys_name
+        phys.tail = "\n        "
+        se.append(sig)
+        blk = se.find("BLOCK")
+        bname = blk.get("NAME") if blk is not None else None
+        placed.append(
+            f"{name} @({x},{y}) {edge} {pantype}/{phys_name} "
+            f"loc={loc or '-'} ori={orient or '-'} blk={bname or '(cut)'}"
+        )
+    return placed
+
+
+def _sync_sor_signals(sor_path: Path) -> None:
+    """Deprecated: do not write Digicon edges/signals into SoR.
+
+    Designer crashes on Digicon BLOCK/SP/SECSIGNAL payloads. SoR stays
+    geometry + SEC_NAME only; West_Yard2.xml is Designer; West_Yard.xml is ops.
+    """
+    return
+
+
+def _strip_sp_side_anchors() -> None:
+    for xy in PLANTS:
+        tracks = le.GRID.get(xy)
+        if not tracks:
+            continue
+        sp = le.points_edge(tracks)
+        if sp is None:
+            continue
+        le.ANCHORS.pop((xy, sp), None)
+        le.ANON.discard((xy, sp))
+        dx, dy = le.STEP[sp]
+        tip = (xy[0] + dx, xy[1] + dy)
+        back = le.OPPOSITE[sp]
+        le.ANCHORS.pop((tip, back), None)
+        le.ANON.discard((tip, back))
+
+
+def _demote_non_plant_sp(tp: ET.Element) -> None:
+    for s in tp.findall("SECTION"):
+        if s.find("TRACKGROUP") is None:
+            continue
+        xy = (int(s.get("X")), int(s.get("Y")))
+        if xy in PLANTS:
+            continue
+        tracks = _tracks(s)
+        pts = le.points_edge(tracks)
+        if pts is None:
+            continue
+        for e in list(s.findall("SEC_EDGE")):
+            if e.get("EDGE") != pts or e.find("SWITCHPOINTS") is None:
+                continue
+            s.remove(e)
+            se = ET.Element("SEC_EDGE", {"EDGE": pts})
+            key = (xy, pts)
+            if key in le.ANCHORS:
+                bname = le.ANCHORS[key]
+                ET.SubElement(
+                    se,
+                    "BLOCK",
+                    {
+                        "NAME": bname,
+                        "STATION": bname,
+                        "DISCIPLINE": "CTC",
+                        "VISIBLE": "true",
+                    },
+                )
+            elif key in le.ANON:
+                ET.SubElement(se, "BLOCK")
+            s.append(se)
+
+
+def _report_gaps(tp: ET.Element) -> None:
+    """Print Digicon BLK boundaries and Designer empty-cell gaps."""
+    kind: dict[tuple[tuple[int, int], str], tuple[str, str | None]] = {}
+    cells: dict[tuple[int, int], list[str]] = {}
+    for s in tp.findall("SECTION"):
+        if s.find("TRACKGROUP") is None:
+            continue
+        xy = (int(s.get("X")), int(s.get("Y")))
+        cells[xy] = _tracks(s)
+        for e in s.findall("SEC_EDGE"):
+            ed = e.get("EDGE") or ""
+            if e.find("SWITCHPOINTS") is not None:
+                kind[(xy, ed)] = ("SP", None)
+            elif e.find("BLOCK") is not None:
+                kind[(xy, ed)] = ("BLK", e.find("BLOCK").get("NAME"))
+            else:
+                kind[(xy, ed)] = ("plain", None)
+
+    print("\n=== Digicon BLK gaps (wiring) ===")
+    seen: set[tuple] = set()
+    n = 0
+    for (xy, ed), (k, name) in sorted(kind.items()):
+        if k != "BLK":
+            continue
+        dx, dy = le.STEP[ed]
+        nb = (xy[0] + dx, xy[1] + dy)
+        back = le.OPPOSITE[ed]
+        other = kind.get((nb, back))
+        if other is None or other[0] != "BLK":
+            continue
+        key = tuple(sorted([(xy, ed), (nb, back)]))
+        if key in seen:
+            continue
+        seen.add(key)
+        n += 1
+        a = name or "<anon>"
+        b = other[1] or "<anon>"
+        print(f"  {xy} {ed} [{a}]  <->  {nb} {back} [{b}]")
+    print(f"total Digicon gap pairs: {n}")
+
+    print("\n=== Designer empty cells (SoR geometry, not wiring) ===")
+    for y in range(min(c[1] for c in cells), max(c[1] for c in cells) + 1):
+        xs = sorted(x for x, yy in cells if yy == y)
+        if not xs:
+            continue
+        missing = [x for x in range(xs[0], xs[-1] + 1) if (x, y) not in cells]
+        if missing:
+            print(f"  y={y} empty x={missing}")
+
+
+def _sync_designer_labels_into_sor(designer: Path, sor: Path) -> int:
+    """Copy SEC_NAME placements from Designer save into SoR (tracks untouched).
+
+    Row-2 Class-I labels (y >= 14) are compose-owned — do not fold into SoR.
+    """
+    d_root = ET.parse(designer).getroot()
+    s_root = ET.parse(sor).getroot()
+    d_tp = d_root.find("TRACKPLAN")
+    s_tp = s_root.find("TRACKPLAN")
+    assert d_tp is not None and s_tp is not None
+
+    labels: dict[tuple[int, int], dict[str, str]] = {}
+    for sec in d_tp.findall("SECTION"):
+        y = int(sec.get("Y"))
+        if y >= 14:
+            continue
+        sn = sec.find("SEC_NAME")
+        if sn is None or not (sn.get("NAME") or "").strip():
+            continue
+        labels[(int(sec.get("X")), y)] = dict(sn.attrib)
+
+    s_secs = {
+        (int(s.get("X")), int(s.get("Y"))): s for s in s_tp.findall("SECTION")
+    }
+    for sec in list(s_tp.findall("SECTION")):
+        xy = (int(sec.get("X")), int(sec.get("Y")))
+        # Class-I row2 is compose-owned — strip from SoR entirely.
+        if xy[1] >= 14:
+            s_tp.remove(sec)
+            s_secs.pop(xy, None)
+            continue
+        for old in list(sec.findall("SEC_NAME")):
+            sec.remove(old)
+        if sec.find("TRACKGROUP") is None and not list(sec):
+            s_tp.remove(sec)
+            s_secs.pop(xy, None)
+
+    for (x, y), attrs in sorted(labels.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+        sec = s_secs.get((x, y))
+        if sec is None:
+            sec = ET.SubElement(s_tp, "SECTION", {"X": str(x), "Y": str(y)})
+            s_secs[(x, y)] = sec
+        ET.SubElement(sec, "SEC_NAME", attrs)
+
+    ET.indent(s_root, space="  ")
+    ET.ElementTree(s_root).write(sor, encoding="UTF-8", xml_declaration=True)
+    return len(labels)
+
+
+def _ensure_cp_yellow_labels(root: ET.Element) -> list[str]:
+    """Yellow FONT_CP for CP titles; enforce ALL-CAPS / LOW|UP placements."""
+    defs = list(root.findall("FONTDEFINITION"))
+    existing = {d.get("FONTKEY") for d in defs}
+    if FONT_CP_KEY not in existing:
+        # Insert after FONT_LABEL if present, else first among font defs.
+        fd = ET.Element(
+            "FONTDEFINITION",
+            {
+                "FONTKEY": FONT_CP_KEY,
+                "FONTNAME": "Control Points",
+                "FONTCOLOR": FONT_CP_YELLOW,
+                "FONTSIZE": "11",
+                "FONTSTYLE": "PLAIN",
+            },
+        )
+        anchor = None
+        for i, child in enumerate(list(root)):
+            if child.tag == "FONTDEFINITION" and child.get("FONTKEY") == "FONT_LABEL":
+                anchor = i
+                break
+        if anchor is not None:
+            root.insert(anchor + 1, fd)
+        else:
+            root.insert(0, fd)
+
+    painted: list[str] = []
+    for sn in root.iter("SEC_NAME"):
+        name = (sn.get("NAME") or "").strip()
+        key = name.casefold()
+        if key == "to princess":
+            key = "princess"
+
+        if key in AREA_LABEL_STYLE:
+            new_name, loc = AREA_LABEL_STYLE[key]
+            sn.set("NAME", new_name)
+            if loc:
+                sn.set("LOC_NAME", loc)
+            painted.append(f"{new_name}@{sn.get('LOC_NAME')}")
+            continue
+
+        if key not in CP_LABEL_STYLE:
+            continue
+        new_name, loc = CP_LABEL_STYLE[key]
+        sn.set("NAME", new_name)
+        if loc:
+            sn.set("LOC_NAME", loc)
+        sn.set("FONT_NAME", FONT_CP_KEY)
+        painted.append(f"{new_name}@{sn.get('LOC_NAME')}/{FONT_CP_KEY}")
+    return painted
+
+
+def wire() -> int:
+    if not SOR.exists():
+        print(f"MISSING SoR: {SOR}", file=sys.stderr)
+        return 2
+
+    # Designer SEC_NAME edits live on West_Yard2 — fold into SoR before copy.
+    if SRC.exists():
+        n_lab = _sync_designer_labels_into_sor(SRC, SOR)
+        print(f"synced {n_lab} SEC_NAME labels Designer → SoR")
+
+    # Fresh copy of SoR; we rebuild every SEC_EDGE (ignore any BLK already in SoR).
+    shutil.copy2(SOR, SRC)
+    root = ET.parse(SRC).getroot()
+    _ensure_aar_single_template(root)
+    painted = _ensure_cp_yellow_labels(root)
+    if painted:
+        print(f"CP yellow labels: {', '.join(painted)}")
+    # Persist yellow font + CP FONT_NAME back into SoR (Designer-safe).
+    sor_root = ET.parse(SOR).getroot()
+    _ensure_cp_yellow_labels(sor_root)
+    ET.indent(sor_root, space="  ")
+    ET.ElementTree(sor_root).write(SOR, encoding="UTF-8", xml_declaration=True)
+
+    tp = root.find("TRACKPLAN")
+    assert tp is not None
+
+    secs = {
+        (int(s.get("X")), int(s.get("Y"))): s
+        for s in tp.findall("SECTION")
+        if s.find("TRACKGROUP") is not None
+    }
+    before = {xy: tuple(_tracks(s)) for xy, s in secs.items()}
+
+    le.GRID.clear()
+    le.PLANTS.clear()
+    le.ANCHORS.clear()
+    le.ANON.clear()
+    le.LABELS.clear()
+
+    for xy, s in secs.items():
+        le.GRID[xy] = _tracks(s)
+        _clear_edges(s)
+
+    for xy, (os_name, normal, ident) in PLANTS.items():
+        if xy not in le.GRID:
+            print(f"NOTE: plant {xy} {os_name} missing from SoR", file=sys.stderr)
+            continue
+        le.PLANTS[xy] = (os_name, normal, ident)
+
+    for x, y, edge, name in ANCHORS:
+        if (x, y) in le.GRID:
+            le.nm((x, y), edge, name)
+
+    cut_reasons: dict[tuple, str] = {}
+    for a, ae, b, be, reason in CUTS:
+        if a in le.GRID and b in le.GRID:
+            le.cut(a, ae, b, be)
+            cut_reasons[(a, ae, b, be)] = reason
+
+    _strip_sp_side_anchors()
+
+    # No west-rim BLK stubs — anonymous BLK with no neighbor crashes Digicon
+    # SecEdge→AbstractTrackEdge during findBounds. WY1/WY2 are named at cuts.
+    xs = [x for x, _ in le.GRID]
+    for xy, tracks in le.GRID.items():
+        if xy[0] >= max(xs) and "RIGHT" in le.cell_edges(tracks):
+            le.an(xy, "RIGHT")
+
+    mini = ET.Element("TRACKPLAN")
+    for (x, y), tracks in sorted(le.GRID.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+        mini.append(le.make_section(x, y, tracks))
+    disc = le.load_disciplines()
+    disc = {k: ("CTC" if v == "YARD" else v) for k, v in disc.items()}
+    le.wire(mini, disc)
+    for blk in mini.iter("BLOCK"):
+        if blk.get("NAME"):
+            blk.set("VISIBLE", "true")
+            blk.set("DISCIPLINE", disc.get(blk.get("NAME") or "", "CTC"))
+
+    _demote_non_plant_sp(mini)
+    # After demote recreates BLOCKs — apply K-1/K-2 (etc.) station paint last.
+    ctc._apply_station_labels(mini)
+    wired = {(int(s.get("X")), int(s.get("Y"))): s for s in mini.findall("SECTION")}
+    for xy, wsec in wired.items():
+        live = secs[xy]
+        _clear_edges(live)
+        for e in wsec.findall("SEC_EDGE"):
+            live.append(e)
+    _demote_non_plant_sp(tp)
+
+    after = {xy: tuple(_tracks(s)) for xy, s in secs.items()}
+    if before != after:
+        raise SystemExit("REFUSING TO WRITE: tracks diverged from SoR")
+
+    errs = le.verify(tp)
+    for e in errs:
+        print(f"VERIFY FAIL: {e}", file=sys.stderr)
+
+    # Live occupancy: same CATS block name on disjoint spans shares one sensor
+    # (e.g. Main West @ Brick 100 and @ 111 → M2S200 / Block 2-1).
+    gen.ensure_mqtt(root)
+    gen.wire_occupancy(root, le.load_occupancy())
+    # Turnout feedback: SELECTEDREPORT + ROUTECOMMAND read/write MQTT M2T.
+    # Stock CATS + cats-pts-nullguard overlay. Launch does not touch MQTT retain.
+    to_map = load_turnouts()
+    n_to = wire_turnouts(tp, to_map)
+    n_sel = sum(1 for _ in root.iter("SELECTEDREPORT"))
+    for ops in root.iter("OPERATIONS"):
+        ops.set("CONNECT", "true")
+
+    sigs = _signal_list()
+    print(f"signal defs: {len(sigs)}")
+    placed_sigs = _apply_signals(tp, sigs)
+    _sync_sor_signals(SOR)
+
+    # STATION paint last (occupancy/signals may recreate BLOCKs). Default
+    # STATION=NAME, then overlay K-1/K-2 etc. from STATION_LABEL.
+    for blk in tp.iter("BLOCK"):
+        if blk.get("NAME"):
+            blk.set("STATION", blk.get("NAME"))
+            blk.set("VISIBLE", "true")
+    ctc._apply_station_labels(tp)
+
+    n_trains = gen.ensure_hart_trains(root)
+    print(f"trains={n_trains} from {gen.HART_TRAINS_CSV.name}")
+
+    print(f"explicit cuts: {len(cut_reasons)}")
+    for (a, ae, b, be), reason in cut_reasons.items():
+        print(f"  {a} {ae} | {b} {be}  — {reason}")
+
+    _report_gaps(tp)
+
+    ET.indent(root, space="  ")
+    # Appearance → Tee Base: empty <TEEMAST/> toggles default-off → enabled.
+    if root.find("TEEMAST") is None:
+        idx = 0
+        for i, child in enumerate(list(root)):
+            if child.tag in ("LINE", "COUNTER"):
+                idx = i + 1
+        root.insert(idx, ET.Element("TEEMAST"))
+
+    for dest in (SRC, ACTIVE):
+        ET.ElementTree(root).write(dest, encoding="UTF-8", xml_declaration=True)
+        print(f"wrote {dest.relative_to(ROOT)}")
+
+    # Keep SoR train/job tables in sync (Designer-safe; no Digicon edges).
+    sor_root = ET.parse(SOR).getroot()
+    gen.ensure_hart_trains(sor_root)
+    ET.indent(sor_root, space="  ")
+    ET.ElementTree(sor_root).write(SOR, encoding="UTF-8", xml_declaration=True)
+
+    named = sorted({b.get("NAME") for b in tp.iter("BLOCK") if b.get("NAME")})
+    n_occ = sum(
+        1
+        for b in root.iter("BLOCK")
+        if b.get("NAME") and b.find("OCCUPIEDSPEC") is not None
+    )
+    mw = [
+        b
+        for b in root.iter("BLOCK")
+        if b.get("NAME") == "Main West" and b.find("OCCUPIEDSPEC") is not None
+    ]
+    print(
+        f"plants={len(le.PLANTS)} named={len(named)} verify={len(errs)} "
+        f"tracks=SoR MQTT {n_occ}/{len(named)} MainWest×{len(mw)}→M2S200 "
+        f"turnouts={n_to} SELECTEDREPORT={n_sel} signals={len(placed_sigs)}"
+    )
+    for s in placed_sigs:
+        print(f"  signal {s}")
+
+    subprocess.run(
+        [sys.executable, str(ROOT / "cats/scripts/render_cats_panel.py"), str(SRC), str(SHOT)],
+        check=False,
+    )
+    return 1 if errs else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(wire())

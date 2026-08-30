@@ -1,0 +1,59 @@
+USS CTC / code buttons	codeButton-Inactive	/Applications/JMRI/resources/icons/USS/plate/levers/codeButton-Inactive.gif
+USS CTC / code buttons	codeButton-Active	/Applications/JMRI/resources/icons/USS/plate/levers/codeButton-Active.gif
+USS CTC / code buttons	codeButton-unknown	/Applications/JMRI/resources/icons/USS/plate/levers/codeButton-unknown.gif
+USS CTC / code buttons	codeButton-inconsistent	/Applications/JMRI/resources/icons/USS/plate/levers/codeButton-inconsistent.gif
+USS CTC / code buttons	USSpanels code-button	/Applications/JMRI/resources/icons/USSpanels/Plates/code-button.gif
+USS CTC / code buttons	code	/Applications/JMRI/resources/icons/USS/plate/levers/code.gif
+USS CTC / code buttons	code-press	/Applications/JMRI/resources/icons/USS/plate/levers/code-press.gif
+USS CTC / code buttons	code-wide	/Applications/JMRI/resources/icons/USS/plate/levers/code-wide.gif
+USS CTC / code buttons	code-press-wide	/Applications/JMRI/resources/icons/USS/plate/levers/code-press-wide.gif
+USS CTC / code buttons	switch-off	/Applications/JMRI/resources/icons/USS/plate/levers/switch-off.gif
+USS CTC / code buttons	switch-on	/Applications/JMRI/resources/icons/USS/plate/levers/switch-on.gif
+USS CTC / code buttons	switch-mid	/Applications/JMRI/resources/icons/USS/plate/levers/switch-mid.gif
+CSD AZD buttons	metal	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-metal.gif
+CSD AZD buttons	metal-a	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-metal-a.gif
+CSD AZD buttons	metal-u	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-metal-u.gif
+CSD AZD buttons	metal-x	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-metal-x.gif
+CSD AZD buttons	green	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-green.gif
+CSD AZD buttons	green-off	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-green-off.gif
+CSD AZD buttons	green-u	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-green-u.gif
+CSD AZD buttons	green-x	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-green-x.gif
+CSD AZD buttons	white	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-white.gif
+CSD AZD buttons	white-off	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-white-off.gif
+CSD AZD buttons	white-u	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-white-u.gif
+CSD AZD buttons	white-x	/Applications/JMRI/resources/icons/panels/CSD/AZD/button/button-white-x.gif
+CSD ESP / Domino / function	ESP a	/Applications/JMRI/resources/icons/panels/CSD/ESP/controller/button_a.png
+CSD ESP / Domino / function	ESP i	/Applications/JMRI/resources/icons/panels/CSD/ESP/controller/button_i.png
+CSD ESP / Domino / function	ESP u	/Applications/JMRI/resources/icons/panels/CSD/ESP/controller/button_u.png
+CSD ESP / Domino / function	ESP x	/Applications/JMRI/resources/icons/panels/CSD/ESP/controller/button_x.png
+CSD ESP / Domino / function	Domino gray_45	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_gray_45.png
+CSD ESP / Domino / function	Domino gray_90	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_gray_90.png
+CSD ESP / Domino / function	Domino green_45	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_green_45.png
+CSD ESP / Domino / function	Domino green_90	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_green_90.png
+CSD ESP / Domino / function	Domino red_45	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_red_45.png
+CSD ESP / Domino / function	Domino red_90	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_red_90.png
+CSD ESP / Domino / function	Domino yellow_45	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_yellow_45.png
+CSD ESP / Domino / function	Domino yellow_90	/Applications/JMRI/resources/icons/panels/DominoPanel/Special/button_yellow_90.png
+CSD ESP / Domino / function	fn on off	/Applications/JMRI/resources/icons/functionicons/transparent_background/on_button_off.png
+CSD ESP / Domino / function	fn on on	/Applications/JMRI/resources/icons/functionicons/transparent_background/on_button_on.png
+CSD ESP / Domino / function	fn off off	/Applications/JMRI/resources/icons/functionicons/transparent_background/off_button_off.png
+CSD ESP / Domino / function	fn off on	/Applications/JMRI/resources/icons/functionicons/transparent_background/off_button_on.png
+HART homemade (current — skip)	homemade left idle	/Users/lnevo/hart/cats/resources/buttons/ladder_left_idle.png
+HART homemade (current — skip)	homemade left active	/Users/lnevo/hart/cats/resources/buttons/ladder_left_active.png
+HART homemade (current — skip)	homemade right idle	/Users/lnevo/hart/cats/resources/buttons/ladder_right_idle.png
+HART homemade (current — skip)	homemade right active	/Users/lnevo/hart/cats/resources/buttons/ladder_right_active.png
+CSD JOP buttons	signal_main_off.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_main_off.png
+CSD JOP buttons	signal_main_on.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_main_on.png
+CSD JOP buttons	signal_main_u.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_main_u.png
+CSD JOP buttons	signal_main_x.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_main_x.png
+CSD JOP buttons	signal_shunt_off.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_shunt_off.png
+CSD JOP buttons	signal_shunt_on.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_shunt_on.png
+CSD JOP buttons	signal_shunt_u.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_shunt_u.png
+CSD JOP buttons	signal_shunt_x.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/signal_shunt_x.png
+CSD JOP buttons	turnout_left_63_on.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/turnout_left_63_on.png
+CSD JOP buttons	turnout_left_on.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/turnout_left_on.png
+CSD JOP buttons	turnout_off.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/turnout_off.png
+CSD JOP buttons	turnout_right_63_on.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/turnout_right_63_on.png
+CSD JOP buttons	turnout_right_on.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/turnout_right_on.png
+CSD JOP buttons	turnout_u.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/turnout_u.png
+CSD JOP buttons	turnout_x.png	/Applications/JMRI/resources/icons/panels/CSD/JOP/button/turnout_x.png

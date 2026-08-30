@@ -45,6 +45,23 @@ def main() -> int:
     if not clock:
         errors.append("ISCLOCKRUNNING missing")
 
+    # Panel title
+    le_names = [le.get("name") for le in root.iter("LayoutEditor")]
+    if not any(name in {"HART Railroad", "HART"} for name in le_names):
+        errors.append(f"LayoutEditor name not HART Railroad: {le_names}")
+
+    # No duplicate block userNames
+    from collections import Counter
+
+    counts = Counter(
+        (b.findtext("userName") or "").strip()
+        for b in root.iter("block")
+        if (b.findtext("userName") or "").strip()
+    )
+    dups = [f"{n}×{c}" for n, c in counts.items() if c > 1]
+    if dups:
+        errors.append("duplicate block userNames: " + ", ".join(dups[:8]))
+
     # Expected OS public names present on layout turnouts
     with CSV.open(newline="", encoding="utf-8") as f:
         expected_os = {
@@ -57,9 +74,9 @@ def main() -> int:
     # Crossover / paired legs: occupancy exists in block table; layoutturnout
     # may only name the primary leg (linear6 connectivity).
     secondary_ok = {
-        "OS 111b (East End)",
-        "OS 113a (Princess)",
-        "OS 117b (West Yard)",
+        "OS Switch 23b",
+        "OS Switch 35a",
+        "OS Switch 7b",
     }
     missing = [m for m in missing if m not in secondary_ok]
     if missing:
