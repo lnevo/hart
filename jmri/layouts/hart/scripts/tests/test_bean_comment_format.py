@@ -26,7 +26,7 @@ class BeanCommentFormatTest(unittest.TestCase):
         fmt = self.m.format_lcos_comment
         self.assertEqual(
             fmt("Node 4 / OU-1 / Ports 1,2 / DCC 100"),
-            "Node: 4 | DCC: 100 | OU: 1 Ports: 1,2",
+            "Node: 4 DCC: 100 | OU: 1 Ports: 1,2",
         )
         self.assertEqual(
             fmt("Node 1 / OU-2 / Ports 8 / OU-3 / Ports 1"),
@@ -35,11 +35,15 @@ class BeanCommentFormatTest(unittest.TestCase):
         self.assertEqual(fmt("Node 1 / IN-1 / Ports 1"), "Node: 1 | IN: 1 Ports: 1")
         self.assertEqual(
             fmt("Node: 4 | OU-1: Port: 1,2 | DCC: 100"),
-            "Node: 4 | DCC: 100 | OU: 1 Ports: 1,2",
+            "Node: 4 DCC: 100 | OU: 1 Ports: 1,2",
         )
         self.assertEqual(
             fmt("Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2"),
-            "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
+            "Node: 4 Turnout: 0 DCC: 100 | OU: 1 Ports: 1,2",
+        )
+        self.assertEqual(
+            fmt("Node: 4 Turnout: 0 DCC: 100 | OU: 1 Ports: 1,2"),
+            "Node: 4 Turnout: 0 DCC: 100 | OU: 1 Ports: 1,2",
         )
         self.assertEqual(
             fmt("Node: 4 Sensor: 3 | IN: 1 Ports: 1"),
@@ -100,7 +104,7 @@ class BeanCommentFormatTest(unittest.TestCase):
                 label="Turnout",
                 index=0,
             ),
-            "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
+            "Node: 4 Turnout: 0 DCC: 100 | OU: 1 Ports: 1,2",
         )
 
     def test_wiring_head_comments_match_live_user_names(self) -> None:

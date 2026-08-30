@@ -23,12 +23,16 @@ PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
 # Mid:   "Node: 4 | OU-1: Port: 1,2 | DCC: 100"
-# Live:  "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2"
+# Live:  "Node: 4 Turnout: 0 DCC: 100 | OU: 1 Ports: 1,2"
 _OBJECT_RE = re.compile(
-    r"^Node:\s*(\d+)\s+(Turnout|Signal|Sensor|Block):\s*(\d+)\s*(?:\|(.*))?$",
+    r"^Node:\s*(\d+)\s+(Turnout|Signal|Sensor|Block):\s*(\d+)"
+    r"(?:\s+DCC:\s*(\d+))?\s*(?:\|(.*))?$",
     re.I | re.S,
 )
-_NODE_PIPE_RE = re.compile(r"^Node:\s*(\d+)\s*(?:\|(.*))?$", re.I | re.S)
+_NODE_PIPE_RE = re.compile(
+    r"^Node:\s*(\d+)(?:\s+DCC:\s*(\d+))?\s*(?:\|(.*))?$",
+    re.I | re.S,
+)
 _OLD_NODE_RE = re.compile(r"^Node\s+(\d+)\s*/(.*)$", re.I | re.S)
 _BLOCK_NN_RE = re.compile(r"^Block\s+(\d+)-(\d+)$")
 _DCC_RE = re.compile(r"(?:\|\s*)?DCC:\s*(\d+)|(?:/\s*)DCC\s+(\d+)", re.I)
@@ -66,13 +70,13 @@ def format_lcos_parts(
     index: str | int | None = None,
     dcc: str | None = None,
 ) -> str:
-    """`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` — `|` splits groups, not Ports."""
+    """`Node: 4 Turnout: 0 DCC: 100 | OU: 1 Ports: 1,2` — `|` splits OU/IN groups."""
     head = f"Node: {node}"
     if label is not None and index is not None and str(index) != "":
         head += f" {label}: {index}"
-    parts = [head]
     if dcc:
-        parts.append(f"DCC: {dcc}")
+        head += f" DCC: {dcc}"
+    parts = [head]
     parts.extend(f"{kind}: {num} Ports: {ports}" for kind, num, ports in units)
     return " | ".join(parts)
 
@@ -91,11 +95,12 @@ def format_lcos_comment(comment: str) -> str:
     body = ""
     match = _OBJECT_RE.fullmatch(text)
     if match:
-        node, label, index, body = (
+        node, label, index, dcc_on_head, body = (
             match.group(1),
             match.group(2).title(),
             match.group(3),
-            match.group(4) or "",
+            match.group(4),
+            match.group(5) or "",
         )
         if label == "Block":
             return f"Node: {node} Block: {int(index)}"
@@ -103,12 +108,15 @@ def format_lcos_comment(comment: str) -> str:
         match = _NODE_PIPE_RE.fullmatch(text) or _OLD_NODE_RE.fullmatch(text)
         if not match:
             return text
-        node, body = match.group(1), match.group(2) or ""
+        if match.re is _NODE_PIPE_RE:
+            node, dcc_on_head, body = match.group(1), match.group(2), match.group(3) or ""
+        else:
+            node, dcc_on_head, body = match.group(1), None, match.group(2) or ""
 
-    dcc = None
+    dcc = dcc_on_head
     dcc_match = _DCC_RE.search(body)
     if dcc_match:
-        dcc = dcc_match.group(1) or dcc_match.group(2)
+        dcc = dcc or (dcc_match.group(1) or dcc_match.group(2))
         body = body[: dcc_match.start()] + body[dcc_match.end() :]
     units = _units_from(body)
     if not units:
