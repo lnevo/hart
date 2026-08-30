@@ -176,6 +176,25 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("UID 32-47", text)
         self.assertIn("self.mqtt_wanted = set()", text)
 
+    def test_sml_timing_ack_while_taking_or_holding(self) -> None:
+        text = PUBLISHER.read_text(encoding="utf-8")
+        self.assertIn("HOLD_WAIT_MS = 3000", text)
+        self.assertIn("BOOT_MODE_WAIT_MS = 1000", text)
+        self.assertIn("SML_ABORT_RESUME_MS = 1000", text)
+        self.assertIn("PROBE_WAIT_MS = 1000", text)
+        self.assertIn("def _should_ack_sml_alive", text)
+        self.assertIn("Thread.sleep(PROBE_WAIT_MS)", text)
+        hand = text[text.index("def _hand_off_enabled") : text.index("def _mast_for_head")]
+        self.assertIn("self._enabling_originator = True", hand)
+        ack = text[
+            text.index("def _should_ack_sml_alive") : text.index("def propertyChange")
+        ]
+        self.assertIn("self._probe_active", ack)
+        self.assertIn("self._abort_in_progress", ack)
+        self.assertIn("self._enabling_originator", ack)
+        self.assertIn("self._global_enabled", ack)
+        self.assertNotIn("not self._busy", ack)
+
 
 if __name__ == "__main__":
     unittest.main()

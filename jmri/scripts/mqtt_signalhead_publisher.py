@@ -14,13 +14,15 @@
 #   agents that see the token publish aborting, uncheck immediately
 #   (no Hold/Red/Unheld), then aborted, and stay Disabled. Solo boot has
 #   nobody to abort (correct). After SML_ABORT_RESUME_MS the originator
-#   publishes enabled. If that never happens, the LCOS bridge challenges.
-#   Clean boot: hold Digicon SML off until track/bridge/sml_mode is seen.
+#   Holds, then publishes enabled. If that never happens, the LCOS bridge
+#   challenges. Clean boot: hold Digicon SML off until track/bridge/sml_mode
+#   is seen.
 #   missing / disabled / query / disabling -> take Digicon (enable SML; announce enabled).
 #   enabled / enabling / aborting / aborted -> stay Disabled (originator owns resume).
 # Operator Enable when sml_mode is already enabled: force-override popup;
 #   Yes publishes enabling (same abort for other agents) then enabled.
-# Query or disabling ACK when Enabled (so bridge can suspend RELEASE).
+# Query or disabling ACK while this instance owns or is taking Digicon
+#   (including Enable/Disable/quit Hold) so the LCOS bridge can suspend RELEASE.
 # Quit (ShutDownTask.call + main-window close): if this instance still owns
 #   Digicon, Hold / wait / Unheld then sml_mode disabled. Work is in call()
 #   because JMRI run() is after windows close. Abort does not RELEASE.
@@ -43,9 +45,11 @@ TOPIC_PREFIX = "track/signalhead/"
 MAST_TOPIC_PREFIX = "track/signalmast/"
 SML_MODE_TOPIC = "track/bridge/sml_mode"
 HOLD_WAIT_MS = 3000
-BOOT_MODE_WAIT_MS = 3000
-# After enabling, originator waits then announces sml_mode enabled.
-SML_ABORT_RESUME_MS = 3000
+BOOT_MODE_WAIT_MS = 1000
+# After enabling, originator waits then Holds and announces sml_mode enabled.
+SML_ABORT_RESUME_MS = 1000
+# Operator Enable probe: wait for another instance to ACK enabled.
+PROBE_WAIT_MS = 1000
 # Only abort mutes bean MQTT: dests uncheck without Hold/Red/Unheld because
 # another agent owns Digicon. Operator Enable/Disable Hold wait publishes.
 
@@ -853,7 +857,7 @@ class DigiconMqttSml(
         try:
             self._publish(SML_MODE_TOPIC, "query", retain=False)
             print("mqtt_signalhead: enable probe query (wait for enabled ACK)")
-            Thread.sleep(2000)
+            Thread.sleep(PROBE_WAIT_MS)
         finally:
             self._probe_active = False
         if self._probe_saw_enabled:
@@ -952,6 +956,8 @@ class DigiconMqttSml(
         if self._shutting_down:
             print("mqtt_signalhead: enable skipped (shutting down)")
             return
+        # ACK query/disabling during Hold (not yet _global_enabled).
+        self._enabling_originator = True
         print("mqtt_signalhead: global -> SML Enabled")
         print(
             "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML on"
@@ -1256,15 +1262,19 @@ class DigiconMqttSml(
             self._abort_sml_immediate()
             return
         # Live Digicon: answer query and disabling so the LCOS bridge can abort RELEASE.
-        # Do not ACK during abort (unchecked, not yet re-enabled).
-        if (
-            mode in ("query", "disabling")
-            and self._global_enabled
-            and not self._busy
-            and not self._abort_in_progress
-        ):
+        # ACK while owning or taking (Hold included). Do not ACK our Enable probe
+        # or during abort (unchecked, not yet re-enabled).
+        if mode in ("query", "disabling") and self._should_ack_sml_alive():
             self._publish_mode("enabled")
             print("mqtt_signalhead: ACK %s -> enabled" % mode)
+
+    def _should_ack_sml_alive(self):
+        """True while this instance owns or is taking Digicon (including Hold)."""
+        if self._probe_active or self._abort_in_progress:
+            return False
+        if self._enabling_originator:
+            return True
+        return bool(self._global_enabled)
 
     def propertyChange(self, event):
         name = event.propertyName
