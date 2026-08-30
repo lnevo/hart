@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-30 — Restored OpenLCB turnout aliases **MTT100 / MTT111 / MTT113 / MTT114 / MTT115** (`Switch N alias`, same FB as MQTT, comment omits DCC). They were dropped 2026-08-27 as unused. Reload **PanelPro**. Deploy `--pi --win`.
+Updated: 2026-08-30 — Restored all 20 OpenLCB turnout aliases **MTT100–MTT119** (`DCC Switch N` from the device map, same FB/DIRECT sensors as the MQTT plant, comment omits DCC). Audit `--strict` fails if any MQTT DCC turnout lacks its MTT twin. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-30 — Layout Editor BlockContentsIcons sit at **level 4** (tracks are 3) with Dialog/black text. Live tables had them at level 0 behind the panel so 2091 on Track West Main Ext never painted. Reload **PanelPro**. Deploy `--pi --win`.
 

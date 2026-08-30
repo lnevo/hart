@@ -1,6 +1,5 @@
 layer,current,proposed,cp,hardware,comment,notes
 turnout,Switch 1,Switch 1,Brick,M2T408,"Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
-turnout,Switch 1 alias,Switch 1 alias,,MTT100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
 turnout,Switch 11,Switch 11,,M2T1309,"Node: 13 Turnout: 1 | DCC: 118 | OU: 3 Ports: 3,4",
 turnout,Switch 13,Switch 13,Engine House,M2T411,"Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",
 turnout,Switch 15,Switch 15,South Yard,M2T308,"Node: 3 Turnout: 0 | DCC: 103 | OU: 1 Ports: 1,2",
@@ -8,7 +7,6 @@ turnout,Switch 17,Switch 17,South Yard,M2T309,"Node: 3 Turnout: 1 | DCC: 104 | O
 turnout,Switch 19,Switch 19,South Yard,M2T310,"Node: 3 Turnout: 2 | DCC: 105 | OU: 1 Ports: 5,6",
 turnout,Switch 21,Switch 21,South Yard,M2T311,"Node: 3 Turnout: 3 | DCC: 106 | OU: 1 Ports: 7,8",
 turnout,Switch 23,Switch 23,East End,M2T1212,"Node: 12 Turnout: 4 | DCC: 111 | OU: 4 Ports: 1,2",
-turnout,Switch 23 alias,Switch 23 alias,,MTT111,"Node: 12 Turnout: 4 | OU: 4 Ports: 1,2",
 turnout,Switch 25,Switch 25,East End,M2T1208,"Node: 12 Turnout: 0 | DCC: 107 | OU: 1 Ports: 1,2",
 turnout,Switch 27,Switch 27,East End,M2T1209,"Node: 12 Turnout: 1 | DCC: 108 | OU: 1 Ports: 3,4",
 turnout,Switch 29,Switch 29,East End,M2T1210,"Node: 12 Turnout: 2 | DCC: 109 | OU: 1 Ports: 5,6",
@@ -16,11 +14,8 @@ turnout,Switch 3,Switch 3,Brick,M2T409,"Node: 4 Turnout: 1 | DCC: 101 | OU: 1 Po
 turnout,Switch 31,Switch 31,East End,M2T1211,"Node: 12 Turnout: 3 | DCC: 110 | OU: 1 Ports: 7,8",
 turnout,Switch 33,Switch 33,East End,M2T1213,"Node: 12 Turnout: 5 | DCC: 112 | OU: 4 Ports: 3,4",
 turnout,Switch 35,Switch 35,Princess,M2T108,"Node: 1 Turnout: 0 | DCC: 113 | OU: 1 Ports: 1,2",
-turnout,Switch 35 alias,Switch 35 alias,,MTT113,"Node: 1 Turnout: 0 | OU: 1 Ports: 1,2",
 turnout,Switch 37,Switch 37,Princess,M2T109,"Node: 1 Turnout: 1 | DCC: 114 | OU: 1 Ports: 3,4",
-turnout,Switch 37 alias,Switch 37 alias,,MTT114,"Node: 1 Turnout: 1 | OU: 1 Ports: 3,4",
 turnout,Switch 39,Switch 39,Princess,M2T110,"Node: 1 Turnout: 2 | DCC: 115 | OU: 1 Ports: 5,6",
-turnout,Switch 39 alias,Switch 39 alias,,MTT115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",
 turnout,Switch 5,Switch 5,Plane,M2T410,"Node: 4 Turnout: 2 | DCC: 102 | OU: 1 Ports: 5,6",
 turnout,Switch 7,Switch 7,Barn,M2T1308,"Node: 13 Turnout: 0 | DCC: 117 | OU: 3 Ports: 1,2",
 turnout,Switch 9,Switch 9,,M2T1310,"Node: 13 Turnout: 2 | DCC: 119 | OU: 3 Ports: 5,6",
@@ -44,6 +39,31 @@ turnout,Switch 115,Switch 39,Princess,M2T110,"Node: 1 Turnout: 2 | DCC: 115 | OU
 turnout,Switch 102,Switch 5,Plane,M2T410,"Node: 4 Turnout: 2 | DCC: 102 | OU: 1 Ports: 5,6",historical alias; CTC Switch 5 (was 102); keep
 turnout,Switch 117,Switch 7,Barn,M2T1308,"Node: 13 Turnout: 0 | DCC: 117 | OU: 3 Ports: 1,2",historical alias; CTC Switch 7 (was 117); crossover 7/7b; field still hand-throw
 turnout,Switch 119,Switch 9,,M2T1310,"Node: 13 Turnout: 2 | DCC: 119 | OU: 3 Ports: 5,6",historical alias; CTC Switch 9 (was 119); hand-throw; Engine House
+turnout,DCC Switch 1,DCC Switch 1,,MTT100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",LCC alias of Switch 1 (M2T408)
+turnout,Switch 1 alias,DCC Switch 1,,MTT100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; was Switch N alias
+turnout,DCC Switch 3,DCC Switch 3,,MTT101,"Node: 4 Turnout: 1 | OU: 1 Ports: 3,4",LCC alias of Switch 3 (M2T409)
+turnout,DCC Switch 5,DCC Switch 5,,MTT102,"Node: 4 Turnout: 2 | OU: 1 Ports: 5,6",LCC alias of Switch 5 (M2T410)
+turnout,DCC Switch 15,DCC Switch 15,,MTT103,"Node: 3 Turnout: 0 | OU: 1 Ports: 1,2",LCC alias of Switch 15 (M2T308)
+turnout,DCC Switch 17,DCC Switch 17,,MTT104,"Node: 3 Turnout: 1 | OU: 1 Ports: 3,4",LCC alias of Switch 17 (M2T309)
+turnout,DCC Switch 19,DCC Switch 19,,MTT105,"Node: 3 Turnout: 2 | OU: 1 Ports: 5,6",LCC alias of Switch 19 (M2T310)
+turnout,DCC Switch 21,DCC Switch 21,,MTT106,"Node: 3 Turnout: 3 | OU: 1 Ports: 7,8",LCC alias of Switch 21 (M2T311)
+turnout,DCC Switch 25,DCC Switch 25,,MTT107,"Node: 12 Turnout: 0 | OU: 1 Ports: 1,2",LCC alias of Switch 25 (M2T1208)
+turnout,DCC Switch 27,DCC Switch 27,,MTT108,"Node: 12 Turnout: 1 | OU: 1 Ports: 3,4",LCC alias of Switch 27 (M2T1209)
+turnout,DCC Switch 29,DCC Switch 29,,MTT109,"Node: 12 Turnout: 2 | OU: 1 Ports: 5,6",LCC alias of Switch 29 (M2T1210)
+turnout,DCC Switch 31,DCC Switch 31,,MTT110,"Node: 12 Turnout: 3 | OU: 1 Ports: 7,8",LCC alias of Switch 31 (M2T1211)
+turnout,DCC Switch 23,DCC Switch 23,,MTT111,"Node: 12 Turnout: 4 | OU: 4 Ports: 1,2",LCC alias of Switch 23 (M2T1212)
+turnout,Switch 23 alias,DCC Switch 23,,MTT111,"Node: 12 Turnout: 4 | OU: 4 Ports: 1,2",historical alias; was Switch N alias
+turnout,DCC Switch 33,DCC Switch 33,,MTT112,"Node: 12 Turnout: 5 | OU: 4 Ports: 3,4",LCC alias of Switch 33 (M2T1213)
+turnout,DCC Switch 35,DCC Switch 35,,MTT113,"Node: 1 Turnout: 0 | OU: 1 Ports: 1,2",LCC alias of Switch 35 (M2T108)
+turnout,Switch 35 alias,DCC Switch 35,,MTT113,"Node: 1 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; was Switch N alias
+turnout,DCC Switch 37,DCC Switch 37,,MTT114,"Node: 1 Turnout: 1 | OU: 1 Ports: 3,4",LCC alias of Switch 37 (M2T109)
+turnout,Switch 37 alias,DCC Switch 37,,MTT114,"Node: 1 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; was Switch N alias
+turnout,DCC Switch 39,DCC Switch 39,,MTT115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",LCC alias of Switch 39 (M2T110)
+turnout,Switch 39 alias,DCC Switch 39,,MTT115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; was Switch N alias
+turnout,DCC Switch 13,DCC Switch 13,,MTT116,"Node: 4 Turnout: 3 | OU: 1 Ports: 7,8",LCC alias of Switch 13 (M2T411)
+turnout,DCC Switch 7,DCC Switch 7,,MTT117,"Node: 13 Turnout: 0 | OU: 3 Ports: 1,2",LCC alias of Switch 7 (M2T1308)
+turnout,DCC Switch 11,DCC Switch 11,,MTT118,"Node: 13 Turnout: 1 | OU: 3 Ports: 3,4",LCC alias of Switch 11 (M2T1309)
+turnout,DCC Switch 9,DCC Switch 9,,MTT119,"Node: 13 Turnout: 2 | OU: 3 Ports: 5,6",LCC alias of Switch 9 (M2T1310)
 block,OS Switch 1,OS Switch 1,Brick,Block 4-2,Brick,
 block,OS Switch 11,OS Switch 11,Engine House,Block 13-2,Engine House,
 block,OS Switch 13,OS Switch 13,Engine House,Block 3-1,Engine House,

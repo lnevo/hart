@@ -150,8 +150,23 @@ turnout,M2T408,Switch 1
 turnout,M2T409,Switch 3
 turnout,M2T410,Switch 5
 turnout,M2T411,Switch 13
-turnout,MTT100,Switch 1 alias
-turnout,MTT111,Switch 23 alias
-turnout,MTT113,Switch 35 alias
-turnout,MTT114,Switch 37 alias
-turnout,MTT115,Switch 39 alias
+turnout,MTT100,DCC Switch 1
+turnout,MTT101,DCC Switch 3
+turnout,MTT102,DCC Switch 5
+turnout,MTT103,DCC Switch 15
+turnout,MTT104,DCC Switch 17
+turnout,MTT105,DCC Switch 19
+turnout,MTT106,DCC Switch 21
+turnout,MTT107,DCC Switch 25
+turnout,MTT108,DCC Switch 27
+turnout,MTT109,DCC Switch 29
+turnout,MTT110,DCC Switch 31
+turnout,MTT111,DCC Switch 23
+turnout,MTT112,DCC Switch 33
+turnout,MTT113,DCC Switch 35
+turnout,MTT114,DCC Switch 37
+turnout,MTT115,DCC Switch 39
+turnout,MTT116,DCC Switch 13
+turnout,MTT117,DCC Switch 7
+turnout,MTT118,DCC Switch 11
+turnout,MTT119,DCC Switch 9

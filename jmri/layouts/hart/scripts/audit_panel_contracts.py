@@ -27,6 +27,7 @@ PANEL_NAMES = {"HART", "HART Railroad"}
 # Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
 sys.path.insert(0, str(REPO_ROOT / "jmri" / "layouts" / "hart" / "scripts"))
+from lcc_turnout_contract import contract_violations
 from refresh_bean_comments import BLOCK_COMMENTS
 
 STATION_COMMENTS = {
@@ -358,6 +359,22 @@ def audit_turnout_systemname_lookups(
     audit.facts["turnout_lookups"] = tuple(sorted(missing))
 
 
+def audit_lcc_mqtt_turnout_aliases(
+    root: ET.Element, audit: Audit, *, required: bool
+) -> None:
+    """Every MQTT DCC turnout has MTT{dcc} named and wired from the device map."""
+    problem = audit.error if required else audit.warn
+    csv_path = REPO_ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
+    issues = contract_violations(root, csv_path)
+    if issues:
+        problem(
+            "LCC turnout aliases do not match MQTT plants / device map: "
+            + "; ".join(issues[:8])
+            + (" ..." if len(issues) > 8 else "")
+        )
+    audit.facts["lcc_turnout_aliases"] = tuple(issues)
+
+
 def audit_stations(
     root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool
 ) -> None:
@@ -591,6 +608,7 @@ def audit_source(
         audit_occupancy_bindings(root, audit, required=True)
         audit_turnout_feedback_sensors(root, audit, required=True)
         audit_turnout_systemname_lookups(root, audit, required=True)
+        audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
         audit_dispatcher_startup(root, audit)
         if label == "deployment":
             audit_generated_dispatcher(root, audit)
@@ -604,6 +622,7 @@ def audit_source(
         audit_occupancy_bindings(root, audit, required=True)
         audit_turnout_feedback_sensors(root, audit, required=True)
         audit_turnout_systemname_lookups(root, audit, required=True)
+        audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
     audit_placeholders(panel, audit)
     return audit
 

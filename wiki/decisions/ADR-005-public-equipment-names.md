@@ -23,6 +23,7 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 | Signal mast | `Mast <n><L\|R>[A\|B]` or `Mast` + 4-digit field | `Mast 8LA`, `Mast 2L`, `Mast 2035` |
 | Signal head | `Head` + mast, or + ` Top` / ` Bottom` | `Head 2L Top`, `Head 2035` |
 | Feedback | `FB Switch <n> N\|R` | `FB Switch 1 N` |
+| LCC switch alias | `DCC Switch <n>` | `DCC Switch 1` (`MTT100`; same FB as MQTT `Switch 1`; comment omits DCC) |
 
 **L** = westbound (USS signal lever Left). **R** = eastbound (Right).  
 **A/B** only when that lever lists two masts.  

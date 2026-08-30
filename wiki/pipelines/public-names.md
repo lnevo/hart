@@ -1,6 +1,6 @@
 # Pipeline 2 — Public names + comments
 
-Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT `systemName`s stay frozen (`M2T*`, `M2S*`, `IH*`, `IS*:`, `ISNX:*`).
+Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT `systemName`s stay frozen (`M2T*`, `M2S*`, `IH*`, `IS*:`, `ISNX:*`). LCC turnout aliases `MTT100`–`MTT119` are required twins (userName `DCC Switch N`, comment is MQTT minus `DCC: NNN`, same FB sensors). `audit_panel_contracts.py --strict` fails if any MQTT DCC turnout lacks its MTT twin. Do not delete MTT* as leftovers.
 
 **Status:** Live. [ADR-005](../decisions/ADR-005-public-equipment-names.md).
 

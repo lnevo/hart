@@ -44,14 +44,8 @@ class CtcInternalNamesTest(unittest.TestCase):
                 num = user_name.split()[1]
                 if num.isdigit() and int(num) >= 100:
                     old_ctc.append(user_name)
-        mtt = sorted(
-            (el.findtext("systemName") or "").strip()
-            for el in root.iter("turnout")
-            if (el.findtext("systemName") or "").startswith("MTT")
-        )
         self.assertEqual(leftover, [])
         self.assertEqual(old_ctc, [])
-        self.assertEqual(mtt, ["MTT100", "MTT111", "MTT113", "MTT114", "MTT115"])
 
     def test_every_switch_has_a_ctc_lever(self) -> None:
         root = ET.parse(TABLES).getroot()

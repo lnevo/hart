@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-"""LE cleanup: MTT FB share, 114-McKeesport kink, zero-length K-2, hidden stub
-and South Yard throat-boundary virtual masts.
+"""LE cleanup: MTT FB share from MQTT twins, 114-McKeesport kink, zero-length
+K-2, hidden stub and South Yard throat-boundary virtual masts.
+
+LCC aliases keep device-map userNames (`DCC Switch N`) and comments; this
+script only copies MQTT feedback/sensors onto MTT{dcc}.
 
 Writable source is tables/new_tables.xml. --sync-output also patches
 jmri/layouts/hart/output/tables.xml and hart_prod.xml independently.
@@ -14,10 +17,14 @@ from __future__ import annotations
 
 import argparse
 import math
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lcc_turnout_contract import DCC_RE, child_text
+
 DEFAULT = ROOT / "tables/new_tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
@@ -55,13 +62,23 @@ YARD_BOUNDARY_MASTS = [
 ]
 YARD_VIRTUAL_UNAMES = {row[3] for row in YARD_BOUNDARY_MASTS}
 
-MTT_FB = {
-    "MTT100": ("FB Switch 1 R", "FB Switch 1 N", "Switch 1"),
-    "MTT111": ("FB Switch 23 R", "FB Switch 23 N", "Switch 23"),
-    "MTT113": ("FB Switch 35 R", "FB Switch 35 N", "Switch 35"),
-    "MTT114": ("FB Switch 37 R", "FB Switch 37 N", "Switch 37"),
-    "MTT115": ("FB Switch 39 R", "FB Switch 39 N", "Switch 39"),
-}
+
+def mqtt_fb_for_lcc(root: ET.Element) -> dict[str, tuple[str, str, str]]:
+    """MTT{dcc} → (feedback, sensor1, sensor2) copied from the MQTT plant."""
+    out: dict[str, tuple[str, str, str]] = {}
+    for turnout in root.iter("turnout"):
+        sn = child_text(turnout, "systemName")
+        if not sn.startswith("M2T"):
+            continue
+        match = DCC_RE.search(child_text(turnout, "comment"))
+        if not match:
+            continue
+        out[f"MTT{match.group(1)}"] = (
+            turnout.get("feedback") or "DIRECT",
+            turnout.get("sensor1") or "",
+            turnout.get("sensor2") or "",
+        )
+    return out
 
 
 def _le(root: ET.Element) -> ET.Element | None:
@@ -73,33 +90,29 @@ def _le(root: ET.Element) -> ET.Element | None:
 
 
 def patch_mtt(root: ET.Element) -> int:
+    """Copy MQTT feedback onto MTT twins. Never rewrite userName or comment."""
+    want = mqtt_fb_for_lcc(root)
     n = 0
     for turnout in root.iter("turnout"):
-        sn = ""
-        child = turnout.find("systemName")
-        if child is not None and child.text:
-            sn = child.text.strip()
-        if sn not in MTT_FB:
+        sn = child_text(turnout, "systemName")
+        if sn not in want:
             continue
-        sensor1, sensor2, switch = MTT_FB[sn]
-        if turnout.get("feedback") != "TWOSENSOR":
-            turnout.set("feedback", "TWOSENSOR")
+        feedback, sensor1, sensor2 = want[sn]
+        if turnout.get("feedback") != feedback:
+            turnout.set("feedback", feedback)
             n += 1
-        if turnout.get("sensor1") != sensor1:
-            turnout.set("sensor1", sensor1)
-            n += 1
-        if turnout.get("sensor2") != sensor2:
-            turnout.set("sensor2", sensor2)
-            n += 1
-        comment = turnout.find("comment")
-        want = f"OpenLCB alias of {switch}; same FB as MQTT hardware ({switch})"
-        if comment is None:
-            comment = ET.SubElement(turnout, "comment")
-            comment.text = want
-            n += 1
-        elif comment.text != want:
-            comment.text = want
-            n += 1
+        if feedback == "TWOSENSOR":
+            if turnout.get("sensor1") != sensor1:
+                turnout.set("sensor1", sensor1)
+                n += 1
+            if turnout.get("sensor2") != sensor2:
+                turnout.set("sensor2", sensor2)
+                n += 1
+        else:
+            for attr in ("sensor1", "sensor2"):
+                if attr in turnout.attrib:
+                    del turnout.attrib[attr]
+                    n += 1
     return n
 
 

@@ -22,11 +22,15 @@ TABLES = [
 ]
 
 # Unreferenced after the 20-col pack. OpenLCB leftover sensors only.
+# MTT* LCC aliases of MQTT plants are required (device map DCC Switch N).
 DELETE_SYSTEM_NAMES = frozenset(
     {
         "MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB",
         "MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED",
     }
+)
+assert not any(name.startswith("MTT") for name in DELETE_SYSTEM_NAMES), (
+    "LCC MTT* aliases are required; do not list them in DELETE_SYSTEM_NAMES"
 )
 
 BEAN_RE = re.compile(
@@ -45,7 +49,10 @@ def delete_orphans(text: str) -> tuple[str, int]:
 
     def repl(match: re.Match[str]) -> str:
         nonlocal removed
-        if system_name_of(match.group(0)) in DELETE_SYSTEM_NAMES:
+        sn = system_name_of(match.group(0))
+        if sn.startswith("MTT"):
+            return match.group(0)
+        if sn in DELETE_SYSTEM_NAMES:
             removed += 1
             return ""
         return match.group(0)
