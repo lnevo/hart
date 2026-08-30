@@ -3149,102 +3149,102 @@
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N" inverted="false" automate="Off">
       <systemName>M2T108</systemName>
       <userName>Switch 35</userName>
-      <comment>Node: 1 Turnout: 0 DCC: 113 | OU: 1 Ports: 1,2</comment>
+      <comment>Node: 1 Turnout: 0 | DCC: 113 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
       <systemName>M2T109</systemName>
       <userName>Switch 37</userName>
-      <comment>Node: 1 Turnout: 1 DCC: 114 | OU: 1 Ports: 3,4</comment>
+      <comment>Node: 1 Turnout: 1 | DCC: 114 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
       <systemName>M2T110</systemName>
       <userName>Switch 39</userName>
-      <comment>Node: 1 Turnout: 2 DCC: 115 | OU: 1 Ports: 5,6</comment>
+      <comment>Node: 1 Turnout: 2 | DCC: 115 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 15 R" sensor2="FB Switch 15 N" inverted="false" automate="Off">
       <systemName>M2T308</systemName>
       <userName>Switch 15</userName>
-      <comment>Node: 3 Turnout: 0 DCC: 103 | OU: 1 Ports: 1,2</comment>
+      <comment>Node: 3 Turnout: 0 | DCC: 103 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 17 R" sensor2="FB Switch 17 N" inverted="false" automate="Off">
       <systemName>M2T309</systemName>
       <userName>Switch 17</userName>
-      <comment>Node: 3 Turnout: 1 DCC: 104 | OU: 1 Ports: 3,4</comment>
+      <comment>Node: 3 Turnout: 1 | DCC: 104 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 19 R" sensor2="FB Switch 19 N" inverted="false" automate="Off">
       <systemName>M2T310</systemName>
       <userName>Switch 19</userName>
-      <comment>Node: 3 Turnout: 2 DCC: 105 | OU: 1 Ports: 5,6</comment>
+      <comment>Node: 3 Turnout: 2 | DCC: 105 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 21 R" sensor2="FB Switch 21 N" inverted="false" automate="Off">
       <systemName>M2T311</systemName>
       <userName>Switch 21</userName>
-      <comment>Node: 3 Turnout: 3 DCC: 106 | OU: 1 Ports: 7,8</comment>
+      <comment>Node: 3 Turnout: 3 | DCC: 106 | OU: 1 Ports: 7,8</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N" inverted="false" automate="Off">
       <systemName>M2T408</systemName>
       <userName>Switch 1</userName>
-      <comment>Node: 4 Turnout: 0 DCC: 100 | OU: 1 Ports: 1,2</comment>
+      <comment>Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 3 R" sensor2="FB Switch 3 N" inverted="false" automate="Off">
       <systemName>M2T409</systemName>
       <userName>Switch 3</userName>
-      <comment>Node: 4 Turnout: 1 DCC: 101 | OU: 1 Ports: 3,4</comment>
+      <comment>Node: 4 Turnout: 1 | DCC: 101 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 5 R" sensor2="FB Switch 5 N" inverted="false" automate="Off">
       <systemName>M2T410</systemName>
       <userName>Switch 5</userName>
-      <comment>Node: 4 Turnout: 2 DCC: 102 | OU: 1 Ports: 5,6</comment>
+      <comment>Node: 4 Turnout: 2 | DCC: 102 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T411</systemName>
       <userName>Switch 13</userName>
-      <comment>Node: 4 Turnout: 3 DCC: 116 | OU: 1 Ports: 7,8</comment>
+      <comment>Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 25 R" sensor2="FB Switch 25 N" inverted="false" automate="Off">
       <systemName>M2T1208</systemName>
       <userName>Switch 25</userName>
-      <comment>Node: 12 Turnout: 0 DCC: 107 | OU: 1 Ports: 1,2</comment>
+      <comment>Node: 12 Turnout: 0 | DCC: 107 | OU: 1 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 27 R" sensor2="FB Switch 27 N" inverted="false" automate="Off">
       <systemName>M2T1209</systemName>
       <userName>Switch 27</userName>
-      <comment>Node: 12 Turnout: 1 DCC: 108 | OU: 1 Ports: 3,4</comment>
+      <comment>Node: 12 Turnout: 1 | DCC: 108 | OU: 1 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 29 R" sensor2="FB Switch 29 N" inverted="false" automate="Off">
       <systemName>M2T1210</systemName>
       <userName>Switch 29</userName>
-      <comment>Node: 12 Turnout: 2 DCC: 109 | OU: 1 Ports: 5,6</comment>
+      <comment>Node: 12 Turnout: 2 | DCC: 109 | OU: 1 Ports: 5,6</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 31 R" sensor2="FB Switch 31 N" inverted="false" automate="Off">
       <systemName>M2T1211</systemName>
       <userName>Switch 31</userName>
-      <comment>Node: 12 Turnout: 3 DCC: 110 | OU: 1 Ports: 7,8</comment>
+      <comment>Node: 12 Turnout: 3 | DCC: 110 | OU: 1 Ports: 7,8</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
       <systemName>M2T1212</systemName>
       <userName>Switch 23</userName>
-      <comment>Node: 12 Turnout: 4 DCC: 111 | OU: 4 Ports: 1,2</comment>
+      <comment>Node: 12 Turnout: 4 | DCC: 111 | OU: 4 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="TWOSENSOR" sensor1="FB Switch 33 R" sensor2="FB Switch 33 N" inverted="false" automate="Off">
       <systemName>M2T1213</systemName>
       <userName>Switch 33</userName>
-      <comment>Node: 12 Turnout: 5 DCC: 112 | OU: 4 Ports: 3,4</comment>
+      <comment>Node: 12 Turnout: 5 | DCC: 112 | OU: 4 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1308</systemName>
       <userName>Switch 7</userName>
-      <comment>Node: 13 Turnout: 0 DCC: 117 | OU: 3 Ports: 1,2</comment>
+      <comment>Node: 13 Turnout: 0 | DCC: 117 | OU: 3 Ports: 1,2</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1309</systemName>
       <userName>Switch 11</userName>
-      <comment>Node: 13 Turnout: 1 DCC: 118 | OU: 3 Ports: 3,4</comment>
+      <comment>Node: 13 Turnout: 1 | DCC: 118 | OU: 3 Ports: 3,4</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>M2T1310</systemName>
       <userName>Switch 9</userName>
-      <comment>Node: 13 Turnout: 2 DCC: 119 | OU: 3 Ports: 5,6</comment>
+      <comment>Node: 13 Turnout: 2 | DCC: 119 | OU: 3 Ports: 5,6</comment>
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
