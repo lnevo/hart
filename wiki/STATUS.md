@@ -1,12 +1,14 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-30 — Digicon publisher: no `HEAD_NAMES`; plants = LCOS `IH*` masts in tables; SET/Unheld only after `track/signalmast` enroll (bridge required). Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
 Updated: 2026-08-30 — Pipeline inventory is [`wiki/pipelines/README.md`](pipelines/README.md) (16 flows; NextTrain not listed). Docs-only, not deployed.
 
 Updated: 2026-08-29 — Digicon Hold stays **3s**; JMRI `sml_mode` chatter is **1s**. ACK `query`/`disabling` while owning or taking Digicon (Hold included). Bridge query/disabling **1s**, boot-abort watch **5s**. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — TODO: revisit USB serial ACK/pacing (turnout 0.35s, signalhead 50ms).
 
-Updated: 2026-08-29 — MQTT SET/Unheld roster is live from retained `track/signalmast/<packed>` (UID 32–47, IH bean present). Empty at boot; 432/433 enroll from broker retain. SML Enable still uses `HEAD_NAMES`. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
+Updated: 2026-08-29 — MQTT SET/Unheld roster is live from retained `track/signalmast/<packed>` (UID 32–47, IH bean present). Empty at boot; Digicon plants from LCOS IH masts in tables (no `HEAD_NAMES`). Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — JMRI comments: turnout `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC omits DCC); occupancy `Node: 4 Block: 1`; feedback `Sensor: N`; heads `Signal: N` from wiring. Reload **PanelPro**. Deploy `--pi --win`.
 

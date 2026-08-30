@@ -28,10 +28,9 @@
 #   because JMRI run() is after windows close. Abort does not RELEASE.
 #
 # Topic leaf is packed digits only (IH432 -> .../432). Beans stay IH*.
-# Generated HEAD_NAMES: cats/scripts/build_hart_signal_heads.py
-# (signal_wiring.csv). Keep the HEAD_NAMES_BEGIN/END markers. SML Enable uses
-# that catalog. MQTT SET/Unheld/paint starts empty and grows from
-# track/signalmast/<packed> (node + UID 32-47, IH bean present).
+# Digicon plants: SignalMasts that carry LCOS Virtual IH heads (UID 32-47) in
+# JMRI tables — no hardcoded HEAD_NAMES. MQTT SET/Unheld/paint still requires
+# enrollment from track/signalmast/<packed> (bridge + field status up).
 
 import java
 import jmri
@@ -52,47 +51,6 @@ SML_ABORT_RESUME_MS = 1000
 PROBE_WAIT_MS = 1000
 # Only abort mutes bean MQTT: dests uncheck without Hold/Red/Unheld because
 # another agent owns Digicon. Operator Enable/Disable Hold wait publishes.
-
-# HEAD_NAMES_BEGIN
-HEAD_NAMES = [
-    'IH432',
-    'IH433',
-    'IH434',
-    'IH436',
-    'IH437',
-    'IH438',
-    'IH439',
-    'IH1332',
-    'IH1333',
-    'IH1334',
-    'IH1335',
-    'IH1336',
-    'IH1337',
-    'IH1338',
-    'IH1232',
-    'IH1233',
-    'IH1234',
-    'IH1235',
-    'IH1236',
-    'IH1237',
-    'IH1238',
-    'IH1239',
-    'IH1240',
-    'IH1241',
-    'IH132',
-    'IH133',
-    'IH134',
-    'IH135',
-    'IH136',
-    'IH137',
-    'IH138',
-    'IH139',
-    'IH140',
-    'IH141',
-    'IH142',
-    'IH143',
-]
-# HEAD_NAMES_END
 
 # LCOS signal UIDs: UID_OFFSET_SIGNALS .. UID_OFFSET_CROSSINGS-1 (lcos.h).
 _LCOS_SIGNAL_UID_MIN = 32
@@ -153,6 +111,16 @@ def _packed_is_lcos_signal(packed):
     except Exception:
         return False
     return True
+
+
+def _is_lcos_ih_sys(sys_name):
+    """True if system name is IH<packed> for an LCOS signal UID."""
+    if sys_name is None:
+        return False
+    name = str(sys_name)
+    if len(name) <= 2 or name[:2].upper() != "IH":
+        return False
+    return _packed_is_lcos_signal(name[2:])
 
 
 def _mqtt_adapter():
@@ -220,8 +188,7 @@ class DigiconMqttSml(
 ):
     """Global SML toggle + Digicon MQTT SET / mast->IH / query ACK."""
 
-    def __init__(self, head_names):
-        self.wanted = set(head_names)
+    def __init__(self):
         # MQTT live roster: empty until track/signalmast/<packed> reports.
         self.mqtt_wanted = set()
         self.mqtt = None
@@ -271,9 +238,9 @@ class DigiconMqttSml(
             self._schedule_boot_check()
         self._register_shutdown_task()
         print(
-            "mqtt_signalhead: Digicon SML MQTT, %d masts, %d MQTT heads "
-            "(of %d Digicon; packed topics)"
-            % (len(self._masts), len(self._heads), len(self.wanted))
+            "mqtt_signalhead: Digicon SML MQTT, %d LCOS masts, %d MQTT heads enrolled "
+            "(SET requires signalmast; packed topics)"
+            % (len(self._masts), len(self._heads))
         )
 
     def _register_shutdown_task(self):
@@ -614,20 +581,23 @@ class DigiconMqttSml(
                 _do()
 
     def _collect_beans(self):
+        """Digicon plants = SHSM masts with LCOS Virtual IH heads (tables, not a static list).
+
+        MQTT SET/Unheld heads attach later via _enroll_packed from signalmast.
+        """
         mm = _mast_manager()
         self._masts = []
         self._heads = []
         self._head_to_mast = {}
-        if mm is not None:
-            for mast in mm.getNamedBeanSet():
-                heads = _head_names_on_mast(mast)
-                wanted_heads = [n for n in heads if n in self.wanted]
-                if not wanted_heads:
-                    continue
-                self._masts.append(mast)
-                for n in wanted_heads:
-                    self._head_to_mast[n] = mast
-        # MQTT heads attach on enroll from track/signalmast/<packed>.
+        if mm is None:
+            return
+        for mast in mm.getNamedBeanSet():
+            lcos_heads = [n for n in _head_names_on_mast(mast) if _is_lcos_ih_sys(n)]
+            if not lcos_heads:
+                continue
+            self._masts.append(mast)
+            for n in lcos_heads:
+                self._head_to_mast[n] = mast
 
     def _attach_bean_listeners(self):
         for mast in self._masts:
@@ -1365,5 +1335,5 @@ class DigiconSmlQuitTask(jmri.implementation.AbstractShutDownTask):
             print("mqtt_signalhead: ShutDownTask run failed: " + _ascii(exc))
 
 
-controller = DigiconMqttSml(HEAD_NAMES)
+controller = DigiconMqttSml()
 controller.start()

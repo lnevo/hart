@@ -531,21 +531,23 @@ def patch_tables(rows: list[dict]) -> None:
 
 
 def write_publisher(rows: list[dict]) -> None:
-    """Refresh HEAD_NAMES in mqtt_signalhead_publisher.py; do not rewrite the script."""
-    names = [r["system_name"] for r in rows]
+    """Publisher Digicon roster is dynamic (LCOS IH masts + MQTT enroll); no HEAD_NAMES rewrite."""
     path = ROOT / "jmri/scripts/mqtt_signalhead_publisher.py"
-    names_lit = ",\n    ".join(repr(n) for n in names)
-    begin = "# HEAD_NAMES_BEGIN"
-    end_mark = "# HEAD_NAMES_END"
-    block = (
-        f"{begin}\nHEAD_NAMES = [\n    {names_lit},\n]\n{end_mark}"
+    if not path.is_file():
+        raise SystemExit(f"missing {path}")
+    text = path.read_text()
+    if "DigiconMqttSml()" not in text or "_enroll_packed" not in text:
+        raise SystemExit(
+            f"{path}: expected dynamic DigiconMqttSml() + _enroll_packed roster"
+        )
+    if "HEAD_NAMES_BEGIN" in text or "\nHEAD_NAMES =" in text:
+        raise SystemExit(
+            f"{path}: remove HEAD_NAMES; Digicon plants come from LCOS IH beans + MQTT"
+        )
+    print(
+        f"publisher OK (dynamic Digicon roster; {len(rows)} wiring heads, "
+        f"no HEAD_NAMES patch): {path.relative_to(ROOT)}"
     )
-    src = path.read_text()
-    pat = re.compile(re.escape(begin) + r".*?" + re.escape(end_mark), re.S)
-    if not pat.search(src):
-        raise SystemExit(f"{path}: missing {begin} / {end_mark} markers")
-    path.write_text(pat.sub(block, src, count=1))
-    print(f"updated HEAD_NAMES in {path.relative_to(ROOT)} ({len(names)} heads)")
 
 
 

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import csv
 import importlib.util
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 PUBLISHER = ROOT / "jmri/scripts/mqtt_signalhead_publisher.py"
-WIRING = ROOT / "cats/data/signal_wiring.csv"
 BUILD = ROOT / "cats/scripts/build_hart_signal_heads.py"
 
 
@@ -44,6 +42,10 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("DigiconSmlQuitTask", text)
         self.assertIn("setDoRun(True)", text)
         self.assertNotIn("MQTT_HEAD_NAMES", text)
+        self.assertNotIn("HEAD_NAMES_BEGIN", text)
+        self.assertNotIn("\nHEAD_NAMES =", text)
+        self.assertIn("DigiconMqttSml()", text)
+        self.assertIn("_is_lcos_ih_sys", text)
         self.assertIn("_enroll_packed", text)
         self.assertIn("_packed_is_lcos_signal", text)
         self.assertIn('MAST_TOPIC_PREFIX + "#"', text)
@@ -136,31 +138,24 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("if self._enabling_originator:", on_mode)
         self.assertIn('_publish_mode("enabling")', text[text.index("def _announce_enabling") :])
 
-    def test_head_names_match_wiring_csv(self) -> None:
+    def test_no_static_head_names_list(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
-        begin = text.index("# HEAD_NAMES_BEGIN")
-        end = text.index("# HEAD_NAMES_END")
-        block = text[begin:end]
-        listed = [
-            line.strip().strip(",").strip("'").strip('"')
-            for line in block.splitlines()
-            if line.strip().startswith("'IH") or line.strip().startswith('"IH')
-        ]
-        with WIRING.open(newline="", encoding="utf-8") as handle:
-            csv_names = [row["system_name"] for row in csv.DictReader(handle)]
-        self.assertEqual(listed, csv_names)
+        self.assertNotIn("# HEAD_NAMES_BEGIN", text)
+        self.assertNotIn("HEAD_NAMES = [", text)
+        self.assertIn("LCOS Virtual IH heads", text)
+        collect = text[text.index("def _collect_beans") : text.index("def _attach_bean_listeners")]
+        self.assertIn("_is_lcos_ih_sys", collect)
+        self.assertNotIn("self.wanted", collect)
 
-    def test_write_publisher_preserves_script(self) -> None:
+    def test_write_publisher_checks_dynamic_roster(self) -> None:
         module = load_build()
         original = PUBLISHER.read_text(encoding="utf-8")
         self.addCleanup(PUBLISHER.write_text, original, "utf-8")
-        marker = "# KEEP_ME_SENTINEL"
-        PUBLISHER.write_text(original.replace("TOPIC_PREFIX", marker, 1), encoding="utf-8")
         module.write_publisher([{"system_name": "IH999"}])
         updated = PUBLISHER.read_text(encoding="utf-8")
-        self.assertIn(marker, updated)
-        self.assertIn("'IH999'", updated)
-        self.assertNotIn("mosquitto", updated.lower())
+        self.assertEqual(updated, original)
+        self.assertNotIn("HEAD_NAMES_BEGIN", updated)
+        self.assertNotIn("\nHEAD_NAMES =", updated)
         self.assertNotIn("MQTT_HEAD_NAMES", updated)
 
     def test_roster_enrolls_from_signalmast_not_signalhead(self) -> None:

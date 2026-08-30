@@ -178,9 +178,9 @@ Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and
 
 ### JMRI ↔ MQTT for Virtual heads
 
-`jmri/scripts/mqtt_signalhead_publisher.py` (Start Up; `HEAD_NAMES` refreshed by `build_hart_signal_heads.py`):
+`jmri/scripts/mqtt_signalhead_publisher.py` (Start Up): Digicon plants are discovered from JMRI SignalMasts that carry LCOS Virtual `IH*` heads (UID 32–47). MQTT SET/Unheld requires enrollment from `track/signalmast/<packed>` (bridge + field status). `build_hart_signal_heads.py` no longer patches a `HEAD_NAMES` list.
 
-Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publish when Enabled, mast→IH when SML off, per-mast `Unheld` on disable **edges**, `track/bridge/sml_mode` query ACK. Digicon SML pairs are stored **Enabled=no** in tables. Stored-Enabled boot or Force override publishes **`enabling`** and does not abort; other agents abort (immediate uncheck, no RELEASE) then **`aborted`**; originator announces **`enabled`** after ~3s. Clean boot holds dests off, **reads** `sml_mode` (no retain publish); missing/`disabled` → enable Digicon; `enabled` / enabling-abort tokens → stay Disabled with no Unheld. SML / SHSM still own aspects while Enabled; Held remains CATS/USS veto.
+Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publish when Enabled (enrolled heads only), mast→IH when SML off, per-mast `Unheld` on disable **edges**, `track/bridge/sml_mode` query ACK. Digicon SML pairs are stored **Enabled=no** in tables. Stored-Enabled boot or Force override publishes **`enabling`** and does not abort; other agents abort (immediate uncheck, no RELEASE) then **`aborted`**; originator announces **`enabled`** after ~3s. Clean boot holds dests off, **reads** `sml_mode` (no retain publish); missing/`disabled` → enable Digicon; `enabled` / enabling-abort tokens → stay Disabled with no Unheld. SML / SHSM still own aspects while Enabled; Held remains CATS/USS veto.
 
 **LCOS Nano bridge dual path** (`LCOS_ESP32_MQTT_Client`, see `docs/signal_dual_path.md`):
 
@@ -189,7 +189,7 @@ Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publi
 
 Mast 2L is the same packed-head path (`IH438`/`IH439` on C3-OU3). JMRI no longer publishes `track/signalmast/432`.
 
-Rebuild heads + tables + publisher:
+Rebuild heads + tables (publisher roster is dynamic; build script only verifies it):
 
 ```bash
 python3 cats/scripts/build_hart_signal_heads.py
