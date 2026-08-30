@@ -17,4 +17,4 @@ Chat is a scratchpad. Decisions that count live here.
 **Dispatcher desks:** [USS](../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md) · [CATS](../cats/docs/DISPATCHER_GUIDE_CTC.md) · [auto](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md) · [LE / Dispatcher hoops](DISPATCHER_LAYOUT_HOOPS.md) · [Master 4 schematic (live CATS)](MASTER4_SCHEMATIC.md)  
 **Wiring / LCOS inventory:** [`../docs/wiring/README.md`](../docs/wiring/README.md)  
 **Pipelines (16):** [`pipelines/README.md`](pipelines/README.md)  
-**Live status:** [`STATUS.md`](STATUS.md)
+**Live status:** [`STATUS.md`](STATUS.md) · human gates: none ([`WAITING_ON_HUMAN.md`](WAITING_ON_HUMAN.md))

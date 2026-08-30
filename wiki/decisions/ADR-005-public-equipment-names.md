@@ -55,9 +55,9 @@ Identity rows are `current` == `proposed` == live userName, with Device-map text
 
 ## Attack (executed 2026-08-21)
 
-Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. CTC-number convert + SML Discover + NX Discover + CTC Logic smoke + `--pi --win` done 2026-08-27. Node 13 occupancy walk-down stuck (EH-1↔EH-3 swap). Do not change MQTT topics.
+Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. CTC-number convert + SML Discover + NX Discover + CTC Logic smoke + `--pi --win` done 2026-08-27. Node 13 occupancy walk-down is done (EH-1/EH-3 MQTT channels stay swapped vs geographic labels). Do not change MQTT topics.
 
-1. Walk-down node 13 (done: 1301=OS Switch 11/118, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9/119). Freeze the CSV.  
+1. Walk-down node 13 (done: 1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9). Live map: `Block 13-7` / M2S1306 = EH-1, `Block 13-5` / M2S1304 = EH-3. Freeze the CSV.  
 2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
 3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_hart_master4.py` then `build_hart_master_abs_hold.py`.  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  

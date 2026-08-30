@@ -1,18 +1,7 @@
 # Waiting on you
 
-**Cleared 2026-08-07** — decisions locked in ADR-004:
+Nothing is gated on a human decision.
 
-| Question | Answer |
-|----------|--------|
-| JMRI version | Current host build (**5.15.4plus** in hart panel; CATS 3.2 OK) |
-| Who throws switches in CTC | **CATS** |
-| First plant | **Brick** |
+ADR-004 locks still hold: current host JMRI, **CATS** throws CTC switches, first plant was Brick. Gate 1 Brick / Switch 100 load-and-throw steps are retired — live desks are **CATS CTC** / **CATS ABS** (Masters), not `HART_Brick.xml`.
 
-## Your next hands-on step
-
-1. JMRI up → load `jmri/layouts/hart/output/hart_prod.xml`
-2. `./cats/scripts/launch_cats.sh` (or Designer to polish topology)
-3. File → Open `cats/panels/HART_Brick.xml`
-4. Test OS 100 / Switch 100 per `cats/docs/BRICK_BINDINGS.md`
-
-If Designer rejects MQTT manager class names, re-bind devices in the Designer tables UI using the CSVs — keep the same user names.
+Railroad work that is still open is in [`STATUS.md`](STATUS.md) (Remaining) and [`projects/hart-panel.md`](projects/hart-panel.md).

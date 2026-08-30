@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-30 — Wiki: [`WAITING_ON_HUMAN.md`](WAITING_ON_HUMAN.md) is empty (Gate 1 Brick / Switch 100 steps retired). Node 13 occupancy walk-down closed — 1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT swap is the live map. Docs-only, not deployed.
+
 Updated: 2026-08-30 — Digicon publisher: no `HEAD_NAMES`; plants = LCOS `IH*` masts in tables; SET/Unheld only after `track/signalmast` enroll (bridge required). Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 
 Updated: 2026-08-30 — Pipeline inventory is [`wiki/pipelines/README.md`](pipelines/README.md) (16 flows; NextTrain not listed). Docs-only, not deployed.
