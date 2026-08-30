@@ -500,7 +500,7 @@ class DigiconMqttSml(
         that wait returns so dest uncheck does not publish (another agent owns SET).
         """
         # SML may finish discovering after Start Up -- refresh before bulk set.
-        self._attach_sml_listeners()
+        self._attach_sml_listeners(quiet=True)
 
         def _do():
             n = 0
@@ -605,7 +605,7 @@ class DigiconMqttSml(
         for head in self._heads:
             head.addPropertyChangeListener(self)
 
-    def _attach_sml_listeners(self):
+    def _attach_sml_listeners(self, quiet=False):
         smlm = _sml_manager()
         if smlm is None:
             return
@@ -627,10 +627,15 @@ class DigiconMqttSml(
             sml.addPropertyChangeListener(self)
             self._smls.append(sml)
             self._sml_by_mast[src] = sml
+        n = len(self._smls)
+        # Refresh before bulk set is normal; only log when the count changes.
+        if quiet and n == getattr(self, "_sml_watch_logged", None):
+            return
         print(
             "mqtt_signalhead: watching %d Digicon SignalMastLogic sources"
-            % len(self._smls)
+            % n
         )
+        self._sml_watch_logged = n
 
     def _subscribe_mqtt(self):
         try:
