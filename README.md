@@ -1,15 +1,17 @@
 # Panel workspace
 
-Two related pipelines live here. Keep them in separate folders so a new AnyRail export does not overwrite dispatcher inputs or the finished Mac layout.
+HART’s live **pipeline inventory** (16 flows; NextTrain not listed) is [`wiki/pipelines/README.md`](wiki/pipelines/README.md).
 
-## Pipelines
+The folders below are the original JMRI AnyRail + NextTrain split. hart does **not** re-run AnyRail or push Google Sheets. NextTrain remains in-tree for linear4 history only.
+
+## Historical folders (linear4 / mac)
 
 | Goal | Folder | What you produce |
 |------|--------|------------------|
-| **1. JMRI panel** | [`jmri/`](jmri/) | Blocked panel XML for JMRI (`mac_jmri_blocked.xml`) |
-| **2. Track warrants** | [`dispatcher/`](dispatcher/) | `NextTrainDispatcherApp.xlsx` segments / control points |
+| JMRI panel | [`jmri/`](jmri/) | Blocked panel XML (`*_blocked.xml`, linear4 `*_prod.xml`) |
+| Track warrants (abandoned for hart) | [`dispatcher/`](dispatcher/) | `NextTrainDispatcherApp.xlsx` → Google Sheets |
 
-**Flow:** AnyRail export → apply defaults & blocks → JMRI panel → export tables/layout → NextTrain spreadsheet.
+**Flow (linear4 only):** AnyRail export → apply defaults & blocks → JMRI panel → export tables/layout → NextTrain spreadsheet.
 
 ## Layouts (JMRI)
 

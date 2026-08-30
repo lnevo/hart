@@ -1,0 +1,30 @@
+# Pipeline 9 — LCOS Nano firmware
+
+Flash the Arduino Nano that bridges LCOS radio (nRF24) to USB serial MQTT lines.
+
+**Status:** Live. Repo: [`LCOS_ESP32_MQTT_Client`](https://github.com/lnevo/LCOS_ESP32_MQTT_Client) (folder name is historical; hardware is Nano).
+
+**API truth:** `lcos/lcos.h`, `lcos/lcos.cpp`, `reference/` — do not edit vendor `lcos/` or `reference/` unless merging an official drop.
+
+## Inputs
+
+- `LCOS_ESP32_MQTT_Client.ino` — RF channel, `thisNode`
+- `lcos_mqtt_bridge.cpp` — `kSubscribeDisplayNodes[]` (event **125** to those display nodes)
+
+## Outputs
+
+- Firmware on the Nano. Boot should log `Subscription accepted` per node. Host `RESUBSCRIBE` re-emits 125.
+
+## Run
+
+Configure nodes, then flash (`scripts/windows/flash_nano.py` or Arduino IDE). Host bridge:
+
+```bash
+python -u serial_to_mqtt.py --com COM3 --broker <mqtt-host> --verbose
+```
+
+Run the Windows serial bridge in the **foreground**. Do not start it from an agent (`Start-Process` Hidden stole COM3).
+
+Detail: that repo’s `README.md`, `docs/serial_mqtt_windows.md`.
+
+Periodic 125 after a master RAM wipe is a known follow-up (mast MQTT vanishes until 125 is replayed).

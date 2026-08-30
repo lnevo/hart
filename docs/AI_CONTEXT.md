@@ -1,19 +1,21 @@
 # Panel workspace — context for AI assistants
 
-This document explains what this repository is for, how the two pipelines connect, and what was established in recent work (especially **linear4** — including the **production MQTT panel** rolled out May 2026 — and the **NextTrain dispatcher** Google Sheets flow). Read this before making layout or dispatcher changes.
+**Live pipeline inventory (16 flows, NextTrain not listed):** [`wiki/pipelines/README.md`](../wiki/pipelines/README.md).
+
+This document is still the landmine list for **linear4** AnyRail geometry and the **abandoned** NextTrain Google Sheets flow. hart does not re-run either. Read [`wiki/home.md`](../wiki/home.md) first.
 
 ---
 
 ## What this project is
 
-**Panel** is a workspace for a model railroad JMRI layout and a **NextTrain dispatcher** web app. Two pipelines share geometry but use different outputs:
+**Panel** is a workspace for a model railroad JMRI layout. Historically two pipelines shared geometry:
 
 | Pipeline | Folder | Output | Consumer |
 |----------|--------|--------|----------|
 | **1. JMRI panel** | `jmri/` | Blocked panel (`*_blocked.xml`); linear4 also **`linear4_prod.xml`** (MQTT + LogixNG) | JMRI Layout Editor |
-| **2. Dispatcher schematic** | `dispatcher/` + per-layout `jmri/layouts/<name>/dispatcher/` | `NextTrainDispatcherApp.xlsx` → Google Sheets | `NextTrainDispatcherApp/` (Next.js) |
+| **2. Dispatcher schematic (abandoned for hart)** | `dispatcher/` + per-layout `jmri/layouts/<name>/dispatcher/` | `NextTrainDispatcherApp.xlsx` → Google Sheets | `NextTrainDispatcherApp/` (Next.js) |
 
-**Flow:** AnyRail export → prepare (optional) → blocks Excel → apply blocks → JMRI panel → export coordinates → local xlsx → **push to Google Sheets** → app reads live sheet.
+**linear4 flow:** AnyRail export → prepare (optional) → blocks Excel → apply blocks → JMRI panel → export coordinates → local xlsx → **push to Google Sheets** → app reads live sheet.
 
 ---
 
