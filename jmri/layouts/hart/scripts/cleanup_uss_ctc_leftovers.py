@@ -2,7 +2,7 @@
 """Rename USS CTC internals to live Switch N and drop unreferenced leftovers.
 
 IS*: systemNames stay frozen. userNames were still CTC 100/101/… after convert.
-OpenLCB leftover sensors and unused MTT aliases go away.
+OpenLCB leftover sensors go away. MTT OpenLCB turnout aliases stay.
 """
 
 from __future__ import annotations
@@ -21,16 +21,11 @@ TABLES = [
     ROOT / "jmri/layouts/hart/output/hart_prod.xml",
 ]
 
-# Unreferenced after the 20-col pack. OpenLCB leftovers and unused MTT aliases.
+# Unreferenced after the 20-col pack. OpenLCB leftover sensors only.
 DELETE_SYSTEM_NAMES = frozenset(
     {
         "MS01.01.02.00.00.FF.00.EA;01.01.02.00.00.FF.00.EB",
         "MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED",
-        "MTT100",
-        "MTT111",
-        "MTT113",
-        "MTT114",
-        "MTT115",
     }
 )
 

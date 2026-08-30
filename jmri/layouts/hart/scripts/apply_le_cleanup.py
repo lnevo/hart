@@ -57,6 +57,7 @@ YARD_VIRTUAL_UNAMES = {row[3] for row in YARD_BOUNDARY_MASTS}
 
 MTT_FB = {
     "MTT100": ("FB Switch 1 R", "FB Switch 1 N", "Switch 1"),
+    "MTT111": ("FB Switch 23 R", "FB Switch 23 N", "Switch 23"),
     "MTT113": ("FB Switch 35 R", "FB Switch 35 N", "Switch 35"),
     "MTT114": ("FB Switch 37 R", "FB Switch 37 N", "Switch 37"),
     "MTT115": ("FB Switch 39 R", "FB Switch 39 N", "Switch 39"),

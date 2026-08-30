@@ -3078,6 +3078,31 @@
     </operations>
     <defaultclosedspeed>Normal</defaultclosedspeed>
     <defaultthrownspeed>Restricted</defaultthrownspeed>
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N" inverted="false" automate="Off">
+      <systemName>MTT100</systemName>
+      <userName>Switch 1 alias</userName>
+      <comment>Node: 4 Turnout: 0 | OU: 1 Ports: 1,2</comment>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 23 R" sensor2="FB Switch 23 N" inverted="false" automate="Off">
+      <systemName>MTT111</systemName>
+      <userName>Switch 23 alias</userName>
+      <comment>Node: 12 Turnout: 4 | OU: 4 Ports: 1,2</comment>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 35 R" sensor2="FB Switch 35 N" inverted="false" automate="Off">
+      <systemName>MTT113</systemName>
+      <userName>Switch 35 alias</userName>
+      <comment>Node: 1 Turnout: 0 | OU: 1 Ports: 1,2</comment>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 37 R" sensor2="FB Switch 37 N" inverted="false" automate="Off">
+      <systemName>MTT114</systemName>
+      <userName>Switch 37 alias</userName>
+      <comment>Node: 1 Turnout: 1 | OU: 1 Ports: 3,4</comment>
+    </turnout>
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 39 R" sensor2="FB Switch 39 N" inverted="false" automate="Off">
+      <systemName>MTT115</systemName>
+      <userName>Switch 39 alias</userName>
+      <comment>Node: 1 Turnout: 2 | OU: 1 Ports: 5,6</comment>
+    </turnout>
   </turnouts>
   <turnouts class="jmri.jmrix.internal.configurexml.InternalTurnoutManagerXml">
     <operations automate="false">

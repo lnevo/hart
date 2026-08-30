@@ -29,6 +29,7 @@ class CtcInternalNamesTest(unittest.TestCase):
         self.assertEqual(refresh.ctc_user_name("IS1:LEVER"), "CTC 3 lever")
         self.assertEqual(refresh.ctc_user_name("IS32:LOCKTOGGLE"), "CTC 9 lock local")
         self.assertEqual(refresh.ctc_user_name("IS14:LOCKTOGGLE"), "CTC 25 lock local")
+
     def test_tables_have_no_old_ctc_or_olcb_leftovers(self) -> None:
 
         root = ET.parse(TABLES).getroot()
@@ -43,14 +44,14 @@ class CtcInternalNamesTest(unittest.TestCase):
                 num = user_name.split()[1]
                 if num.isdigit() and int(num) >= 100:
                     old_ctc.append(user_name)
-        mtt = [
+        mtt = sorted(
             (el.findtext("systemName") or "").strip()
             for el in root.iter("turnout")
             if (el.findtext("systemName") or "").startswith("MTT")
-        ]
+        )
         self.assertEqual(leftover, [])
         self.assertEqual(old_ctc, [])
-        self.assertEqual(mtt, [])
+        self.assertEqual(mtt, ["MTT100", "MTT111", "MTT113", "MTT114", "MTT115"])
 
     def test_every_switch_has_a_ctc_lever(self) -> None:
         root = ET.parse(TABLES).getroot()
