@@ -385,35 +385,61 @@ def _schedule_turnout_paint(turnout_rows, delay_ms):
         _paint_turnouts(turnout_rows)
 
 
-# Brief settle so MQTT connection / tables are present.
-try:
-    time.sleep(0.5)
-except Exception:
-    pass
+def reload_mqtt_retain(turnout_delay_ms=None, settle_secs=0.5, log_prefix=None):
+    """Read broker retain; paint sensors now; schedule/paint turnouts.
 
-host = _mqtt_host()
-print("apply_maintain_mqtt: host=" + _ascii(host) + " exe=" + _ascii(_mosquitto_sub()))
+    Returns (sensor_count, turnout_queued). Safe to call again from other
+    Start Up scripts (e.g. sync_turnout_buttons) to regain occupancy / plants.
 
-retained = _retained(host)
-turnout_rows = []
-n_s = 0
-for topic, payload in retained:
-    parts = topic.split("/")
-    if len(parts) != 3 or parts[0] != "track":
-        continue
-    kind, addr_s = parts[1], parts[2]
-    if not addr_s.isdigit():
-        continue
-    addr = int(addr_s)
-    if kind == "sensor":
-        _apply_sensor(addr, payload)
-        n_s += 1
-    elif kind == "turnout":
-        turnout_rows.append((addr, payload))
+    turnout_delay_ms: None → HART_TURNOUT_RETAIN_DELAY_MS / default 12000;
+    0 → paint turnouts immediately (use only when Digicon PTS is already up).
+    """
+    prefix = log_prefix or "apply_maintain_mqtt"
+    if settle_secs and settle_secs > 0:
+        try:
+            time.sleep(settle_secs)
+        except Exception:
+            pass
 
-print(
-    "apply_maintain_mqtt: sensors=%d turnouts_queued=%d"
-    % (n_s, len(turnout_rows))
-)
+    host = _mqtt_host()
+    print(
+        "%s: host=%s exe=%s"
+        % (prefix, _ascii(host), _ascii(_mosquitto_sub()))
+    )
 
-_schedule_turnout_paint(turnout_rows, _turnout_delay_ms())
+    retained = _retained(host)
+    turnout_rows = []
+    n_s = 0
+    for topic, payload in retained:
+        parts = topic.split("/")
+        if len(parts) != 3 or parts[0] != "track":
+            continue
+        kind, addr_s = parts[1], parts[2]
+        if not addr_s.isdigit():
+            continue
+        addr = int(addr_s)
+        if kind == "sensor":
+            try:
+                _apply_sensor(addr, payload)
+                n_s += 1
+            except Exception as e:
+                print(
+                    "%s: sensor M2S%s failed: %s"
+                    % (prefix, addr, _ascii(e))
+                )
+        elif kind == "turnout":
+            turnout_rows.append((addr, payload))
+
+    print(
+        "%s: sensors=%d turnouts_queued=%d"
+        % (prefix, n_s, len(turnout_rows))
+    )
+
+    delay = _turnout_delay_ms() if turnout_delay_ms is None else max(0, int(turnout_delay_ms))
+    _schedule_turnout_paint(turnout_rows, delay)
+    return n_s, len(turnout_rows)
+
+
+# Start Up entry point. Importers set _HART_MQTT_RETAIN_AS_LIBRARY first.
+if not globals().get("_HART_MQTT_RETAIN_AS_LIBRARY"):
+    reload_mqtt_retain()
