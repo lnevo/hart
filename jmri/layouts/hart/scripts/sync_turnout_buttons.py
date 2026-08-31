@@ -1,5 +1,6 @@
 # Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout states,
-# and drive the HART Railroad Turnouts status lamp (IH:TURNOUT_FB).
+# drive the HART Railroad Turnouts status lamp (IH:TURNOUT_FB), and wire clicks on
+# the LCOS / Turnouts / Signals status lamps.
 #
 # CRITICAL: the same ITs are JMRI Route controlTurnouts (fire on THROWN).
 # This script must NEVER setCommandedState(THROWN) — that re-fires routes and
@@ -7,13 +8,17 @@
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
+# Click: toggle those plants between TWOSENSOR and DIRECT.
+#
+# Signals lamp (IS:SML_MODE): click → DigiconMqttSml.toggle_from_panel().
+# LCOS lamp (M2S1567): click → MQTT track/bridge/cmd RESUBSCRIBE (not FORCE).
 #
 # Arming is deferred until Layout Editor / turnout beans are up (Start Up scripts
 # often run before panels finish opening).
 
 import jmri
+from java.awt.event import ActionListener, MouseAdapter, MouseEvent
 from java.beans import PropertyChangeListener
-from java.awt.event import ActionListener
 from java.lang import Runnable
 from javax.swing import SwingUtilities, Timer
 
@@ -23,6 +28,11 @@ TWOSENSOR = jmri.Turnout.TWOSENSOR
 DIRECT = jmri.Turnout.DIRECT
 
 TURNOUT_FB_HEAD = "IH:TURNOUT_FB"
+LCOS_SENSOR = "M2S1567"
+SML_MODE_SENSOR = "IS:SML_MODE"
+BRIDGE_CMD_TOPIC = "track/bridge/cmd"
+RESUBSCRIBE_PAYLOAD = "RESUBSCRIBE"
+
 GREEN = jmri.SignalHead.GREEN
 YELLOW = jmri.SignalHead.YELLOW
 RED = jmri.SignalHead.RED
@@ -57,9 +67,11 @@ _ARM_MAX_ATTEMPTS = 30
 
 _busy = False
 _armed = False
+_clicks_armed = False
 _last = (None, None)
 _last_fb_appearance = None
 _listener = None
+_click_busy = False
 
 
 def _known(to):
@@ -110,7 +122,7 @@ def _has_two_fb_sensors(to):
 
 
 def _included_plant_turnouts():
-    """M2T/MTT turnouts with both feedback sensors assigned."""
+    """M2T/MTT (MQTT/LCC plant) turnouts with both feedback sensors assigned."""
     out = []
     try:
         for to in turnouts.getNamedBeanSet():
@@ -222,6 +234,118 @@ def sync_turnout_fb_lamp():
         print("sync_turnout_buttons: Turnouts lamp set failed: %s" % e)
 
 
+def toggle_turnout_fb_mode():
+    """Click Turnouts lamp: flip included plants TWOSENSOR ↔ DIRECT."""
+    included = _included_plant_turnouts()
+    if not included:
+        print("sync_turnout_buttons: no 2-sensor M2T/MTT plants to toggle")
+        return
+    modes = set()
+    for to in included:
+        try:
+            modes.add(to.getFeedbackMode())
+        except Exception:
+            pass
+    if modes == {TWOSENSOR}:
+        target = DIRECT
+        label = "DIRECT"
+    else:
+        # All DIRECT, mixed, or other → TWOSENSOR (recover feedback).
+        target = TWOSENSOR
+        label = "TWOSENSOR"
+    n = 0
+    for to in included:
+        try:
+            to.setFeedbackMode(target)
+            if target == TWOSENSOR:
+                try:
+                    to.setInitialKnownStateFromFeedback()
+                except Exception:
+                    pass
+            n += 1
+        except Exception as e:
+            print(
+                "sync_turnout_buttons: setFeedbackMode %s failed: %s"
+                % (to.getSystemName(), e)
+            )
+    print(
+        "sync_turnout_buttons: Turnouts lamp click → %s on %d plant(s)"
+        % (label, n)
+    )
+    sync_turnout_fb_lamp()
+
+
+def _mqtt_publish(topic, payload):
+    try:
+        memo = jmri.InstanceManager.getDefault(
+            jmri.jmrix.mqtt.MqttSystemConnectionMemo
+        )
+        if memo is None:
+            print("sync_turnout_buttons: no MQTT connection")
+            return False
+        adapter = memo.getMqttAdapter()
+        if adapter is None:
+            print("sync_turnout_buttons: no MQTT adapter")
+            return False
+        adapter.publish(topic, payload)
+        return True
+    except Exception as e:
+        print("sync_turnout_buttons: MQTT publish failed: %s" % e)
+        return False
+
+
+def publish_lcos_resubscribe():
+    """Click LCOS lamp: plain RESUBSCRIBE (not FORCE) on track/bridge/cmd."""
+    if _mqtt_publish(BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD):
+        print(
+            "sync_turnout_buttons: LCOS lamp → %s %s"
+            % (BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD)
+        )
+
+
+def _digicon_controller():
+    """Find DigiconMqttSml from INSTANCE / __main__ (same JMRI jython engine)."""
+    try:
+        import __main__
+
+        ctrl = getattr(__main__, "digicon_sml_controller", None)
+        if ctrl is not None:
+            return ctrl
+    except Exception:
+        pass
+    try:
+        # Class may live in this interpreter if the publisher script shared ns.
+        for obj in globals().values():
+            cls = getattr(obj, "__class__", None)
+            if cls is not None and getattr(cls, "__name__", "") == "DigiconMqttSml":
+                inst = getattr(cls, "INSTANCE", None)
+                if inst is not None:
+                    return inst
+    except Exception:
+        pass
+    try:
+        # Publisher may have left DigiconMqttSml in this namespace.
+        cls = DigiconMqttSml  # noqa: F821 — may exist after publisher load
+        return getattr(cls, "INSTANCE", None)
+    except NameError:
+        return None
+
+
+def toggle_sml_mode():
+    """Click Signals lamp: Digicon global SML enable/disable."""
+    ctrl = _digicon_controller()
+    if ctrl is None:
+        print(
+            "sync_turnout_buttons: Digicon SML controller not found "
+            "(is mqtt_signalhead_publisher running?)"
+        )
+        return
+    try:
+        ctrl.toggle_from_panel()
+    except Exception as e:
+        print("sync_turnout_buttons: SML toggle failed: %s" % e)
+
+
 def sync_ladder_buttons(event=None):
     global _busy, _last
     if _busy:
@@ -282,10 +406,117 @@ class _TurnoutListener(PropertyChangeListener):
             print("sync_turnout_buttons: listener error: %s" % e)
 
 
+def _sensor_sys(icon):
+    try:
+        s = icon.getSensor()
+        if s is None:
+            return None
+        return s.getSystemName()
+    except Exception:
+        return None
+
+
+def _head_sys(icon):
+    try:
+        h = icon.getSignalHead()
+        if h is None:
+            return None
+        return h.getSystemName()
+    except Exception:
+        return None
+
+
+def _disable_icon_control(icon):
+    """Stop JMRI default click (toggle sensor / cycle head)."""
+    try:
+        icon.setControlling(False)
+    except Exception:
+        pass
+    try:
+        # SignalHeadIcon: 0=change aspect — leave mode but controlling off.
+        if hasattr(icon, "setClickMode"):
+            icon.setClickMode(0)
+    except Exception:
+        pass
+
+
+class _LampClick(MouseAdapter):
+    def __init__(self, action):
+        self._action = action
+
+    def mouseClicked(self, event):
+        global _click_busy
+        if event.getButton() != MouseEvent.BUTTON1:
+            return
+        if _click_busy:
+            return
+        _click_busy = True
+        try:
+            self._action()
+        except Exception as e:
+            print("sync_turnout_buttons: lamp click failed: %s" % e)
+        finally:
+            _click_busy = False
+
+
+def _arm_status_lamp_clicks():
+    """Attach left-click handlers on LCOS / Turnouts / Signals panel icons."""
+    global _clicks_armed
+    if _clicks_armed:
+        return True
+    try:
+        from jmri.jmrit.display import EditorManager, SensorIcon, SignalHeadIcon
+    except Exception as e:
+        print("sync_turnout_buttons: display imports failed: %s" % e)
+        return False
+
+    em = jmri.InstanceManager.getDefault(EditorManager)
+    if em is None:
+        return False
+
+    found = {"lcos": 0, "turnouts": 0, "signals": 0}
+    for ed in list(em.getAll()):
+        try:
+            contents = list(ed.getContents())
+        except Exception:
+            continue
+        for icon in contents:
+            try:
+                if isinstance(icon, SensorIcon):
+                    sn = _sensor_sys(icon)
+                    if sn == LCOS_SENSOR:
+                        _disable_icon_control(icon)
+                        icon.addMouseListener(_LampClick(publish_lcos_resubscribe))
+                        found["lcos"] += 1
+                    elif sn == SML_MODE_SENSOR:
+                        _disable_icon_control(icon)
+                        icon.addMouseListener(_LampClick(toggle_sml_mode))
+                        found["signals"] += 1
+                elif isinstance(icon, SignalHeadIcon):
+                    hn = _head_sys(icon)
+                    if hn == TURNOUT_FB_HEAD:
+                        _disable_icon_control(icon)
+                        icon.addMouseListener(_LampClick(toggle_turnout_fb_mode))
+                        found["turnouts"] += 1
+            except Exception as e:
+                print("sync_turnout_buttons: icon wire failed: %s" % e)
+
+    if found["lcos"] or found["turnouts"] or found["signals"]:
+        _clicks_armed = True
+        print(
+            "sync_turnout_buttons: status lamp clicks "
+            "LCOS=%d Turnouts=%d Signals=%d"
+            % (found["lcos"], found["turnouts"], found["signals"])
+        )
+        return True
+    return False
+
+
 def _arm_listeners():
     """Attach listeners once beans exist. Safe to call only once."""
     global _armed, _listener
     if _armed:
+        _arm_status_lamp_clicks()
         return True
     _listener = _TurnoutListener()
     for sn in WATCH:
@@ -304,6 +535,7 @@ def _arm_listeners():
         "sync_turnout_buttons: armed (%d watch turnouts, close-only + Turnouts lamp)"
         % len(WATCH)
     )
+    _arm_status_lamp_clicks()
     return True
 
 
@@ -336,12 +568,33 @@ class _ArmAttempt(ActionListener):
         try:
             _arm_listeners()
             sync_ladder_buttons()
+            # Icons may appear slightly after LE; retry click wiring a few times.
+            if not _clicks_armed:
+                t = Timer(2000, _RetryClicks(0))
+                t.setRepeats(False)
+                t.start()
         except Exception as e:
             print("sync_turnout_buttons: arm failed: %s" % e)
             if self.attempt + 1 < _ARM_MAX_ATTEMPTS:
                 t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
                 t.setRepeats(False)
                 t.start()
+
+
+class _RetryClicks(ActionListener):
+    def __init__(self, attempt):
+        self.attempt = attempt
+
+    def actionPerformed(self, event):
+        event.getSource().stop()
+        if _arm_status_lamp_clicks():
+            return
+        if self.attempt + 1 < 10:
+            t = Timer(2000, _RetryClicks(self.attempt + 1))
+            t.setRepeats(False)
+            t.start()
+        else:
+            print("sync_turnout_buttons: status lamp icons not found on panel")
 
 
 print(
