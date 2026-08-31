@@ -170,20 +170,32 @@ install_ctc_icons_local() {
     done
     echo "button icons -> $dest"
   }
+  _install_uss_sensor_icons_into() {
+    local dest="$1/resources/icons/USS/sensor"
+    local src="$ROOT/cats/resources/icons/USS/sensor"
+    [[ -d "$src" ]] || return 0
+    mkdir -p "$dest"
+    local f
+    for f in "$src/"yellow-*.gif; do
+      [[ -f "$f" ]] && cp -f "$f" "$dest/"
+    done
+    echo "USS sensor icons -> $dest"
+  }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/.jmri" ]]; then
     for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
     _install_ctc_into "${HOME}/JMRI_UserFiles"
     _install_hart_aar_into "${HOME}/JMRI_UserFiles"
     _install_buttons_into "${HOME}/JMRI_UserFiles"
+    _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
   fi
 }
 
@@ -195,6 +207,7 @@ stage_package() {
   mkdir -p \
     "$stage/cats/panels" \
     "$stage/cats/resources/buttons" \
+    "$stage/cats/resources/icons/USS/sensor" \
     "$stage/cats/scripts" \
     "$stage/ctc/icons" \
     "$stage/jmri/layouts/hart/scripts" \
@@ -218,6 +231,10 @@ stage_package() {
            "$ROOT/cats/resources/buttons/"triangle_*.png; do
     [[ -f "$f" ]] && cp -f "$f" "$stage/cats/resources/buttons/"
   done
+  if [[ -d "$ROOT/cats/resources/icons/USS/sensor" ]]; then
+    cp -f "$ROOT/cats/resources/icons/USS/sensor/"yellow-*.gif \
+      "$stage/cats/resources/icons/USS/sensor/" 2>/dev/null || true
+  fi
 
   rsync -a "$ROOT/cats/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   rsync -a "$ROOT/cats/resources/signals/cats-masts/" "$stage/cats/resources/signals/cats-masts/"

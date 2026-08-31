@@ -24918,13 +24918,13 @@
         <held url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></held>
         <dark url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></dark>
         <red url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></red>
-        <yellow url="program:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></yellow>
+        <yellow url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></yellow>
         <green url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></green>
-        <lunar url="program:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></lunar>
+        <lunar url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></lunar>
         <flashred url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></flashred>
-        <flashyellow url="program:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></flashyellow>
+        <flashyellow url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></flashyellow>
         <flashgreen url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></flashgreen>
-        <flashlunar url="program:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></flashlunar>
+        <flashlunar url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></flashlunar>
       </icons>
       <iconmaps />
     </signalheadicon>
