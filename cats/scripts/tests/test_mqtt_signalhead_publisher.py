@@ -24,6 +24,8 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("getMqttAdapter", text)
         self.assertIn("Aspect", text)
         self.assertIn("track/bridge/sml_mode", text)
+        self.assertIn("IS:SML_MODE", text)
+        self.assertIn("_sync_sml_mode_sensor", text)
         self.assertIn("setAppearance", text)
         self.assertIn("Unheld", text)
         self.assertIn("_warn_if_stored_sml_enabled", text)

@@ -40,7 +40,7 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 for name in (
     "apply_maintain_mqtt.py",
-    "sync_yard_ladder_buttons.py",
+    "sync_turnout_buttons.py",
     "mqtt_signalhead_publisher.py",
 ):
     pattern = re.compile(

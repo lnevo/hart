@@ -43,6 +43,7 @@ from jmri.jmrix.mqtt import MqttEventListener
 TOPIC_PREFIX = "track/signalhead/"
 MAST_TOPIC_PREFIX = "track/signalmast/"
 SML_MODE_TOPIC = "track/bridge/sml_mode"
+SML_MODE_SENSOR = "IS:SML_MODE"
 HOLD_WAIT_MS = 3000
 BOOT_MODE_WAIT_MS = 1000
 # After enabling, originator waits then Holds and announces sml_mode enabled.
@@ -237,11 +238,26 @@ class DigiconMqttSml(
             self._boot_hold_sml_off()
             self._schedule_boot_check()
         self._register_shutdown_task()
+        self._sync_sml_mode_sensor()
         print(
             "mqtt_signalhead: Digicon SML MQTT, %d LCOS masts, %d MQTT heads enrolled "
             "(SET requires signalmast; packed topics)"
             % (len(self._masts), len(self._heads))
         )
+
+    def _sync_sml_mode_sensor(self):
+        """Drive panel Signals lamp (IS:SML_MODE): ACTIVE=enabled, INACTIVE=otherwise."""
+        try:
+            s = sensors.provideSensor(SML_MODE_SENSOR)
+            want = (
+                jmri.Sensor.ACTIVE
+                if self._global_enabled
+                else jmri.Sensor.INACTIVE
+            )
+            if s.getKnownState() != want:
+                s.setKnownState(want)
+        except Exception as e:
+            print("mqtt_signalhead: SML mode sensor update failed: %s" % e)
 
     def _register_shutdown_task(self):
         """Register before windows/MQTT close. Work runs in call(), not run()."""
@@ -345,6 +361,7 @@ class DigiconMqttSml(
                 pass
         self._global_enabled = False
         self._enabling_originator = False
+        self._sync_sml_mode_sensor()
 
     def _stored_enabled_source_names(self):
         """UserNames of Digicon sources that loaded with any dest Enabled."""
@@ -415,6 +432,7 @@ class DigiconMqttSml(
         self._boot_pending = False
         self._busy = True
         self._global_enabled = False
+        self._sync_sml_mode_sensor()
         self._suppress_sml = True
         try:
             print("mqtt_signalhead: sml_mode aborting (immediate uncheck, no RELEASE)")
@@ -467,6 +485,7 @@ class DigiconMqttSml(
         self._boot_pending = True
         self._set_all_digicon_sml_destinations(False)
         self._global_enabled = False
+        self._sync_sml_mode_sensor()
         self._snapshot_mast_sml_state()
         self._set_button_label()
 
@@ -922,6 +941,7 @@ class DigiconMqttSml(
         self._global_enabled = False
         if publish_mode:
             self._publish_mode("disabled")
+        self._sync_sml_mode_sensor()
 
     def _hand_off_disabled(self, release):
         print("mqtt_signalhead: global -> SML Disabled (release=%s)" % release)
@@ -964,6 +984,7 @@ class DigiconMqttSml(
         # Ownership announce for the bridge (not a boot retain republish).
         self._publish_mode("enabled")
         self._enabling_originator = False
+        self._sync_sml_mode_sensor()
         # Push current appearances once Digicon owns SET again.
         for head in self._heads:
             if self._mast_logic_enabled(self._mast_for_head(head)):
