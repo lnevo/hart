@@ -41,8 +41,8 @@
   <a href="../pipelines/15-publications.html">Publications</a>
   <a href="../pipelines/16-industries.html">Industries</a>
 </div>
-<div class="nav-section"><h4>Cutover (standalone)</h4>
-  <a href="../cutover/index.html">Cutover projects</a>
+<div class="nav-section"><h4>Reference archive</h4>
+  <a href="../cutover/index.html">Cutover manifests (future)</a>
   <a href="../sor-central.html">Central SoR index</a>
   <a href="../audits/pipeline-review-matrix.html">Pipeline review matrix</a>
 </div>
@@ -51,6 +51,8 @@
   <a href="../archive/index.html">Archive taxonomy A–F</a>
 </div>
 <div class="nav-section"><h4>Review</h4>
+  <a href="../review/device-map.html"><strong>Device Map (D2)</strong></a>
+  <a href="../review/industry-matrix.html">Industry matrix</a>
   <a href="../audits/index.html">Audits</a>
   <a href="../backlog.html">Backlog</a>
   <a href="../repos.html">Repos &amp; submodules</a>
@@ -62,9 +64,8 @@
   <main class="content">
     <h1>Pipeline review matrix — refactor, SoR, testing</h1>
 
-<p><strong>Date:</strong> 2026-08-31  </p>
-<p><strong>Central SoR index:</strong> <a href="../sor/CENTRAL_SOR.md"><code>sor/CENTRAL_SOR.md</code></a>  </p>
-<p><strong>Cutover standalone plans:</strong> <a href="../cutover/"><code>cutover/</code></a></p>
+<p><strong>Date:</strong> 2026-08-31 (finalize pass)  </p>
+<p><strong>Central SoR index:</strong> <a href="../sor/CENTRAL_SOR.md"><code>sor/CENTRAL_SOR.md</code></a></p>
 
 <p>Legend:</p>
 <ul>
@@ -83,7 +84,9 @@
 <tr><td>All pipelines reviewed for refactor?</td><td>**Yes — documented.** Refactor **copies** exist where needed; live scripts unchanged by design (D12).</td></tr>
 <tr><td>Central SoR for all parts?</td><td>**Mostly.** CSV/XLSX SoR snapshotted to `sor/`; hart-ops/STS/LCOS in `external/`; large generated XML stays live-ref + validators.</td></tr>
 <tr><td>What&#x27;s not relevant?</td><td>Pipeline **1** (frozen AnyRail), **11** (parked speed match), Gate 1 CATS panels, LCOS BOM (D8), NextTrain/Sheets.</td></tr>
-<tr><td>What needs testing?</td><td>Tier **A** automated (PASS); Tier **B** manual (hosts); Tier **C** hart-ops golden + STS session smokes.</td></tr>
+<tr><td>What needs testing?</td><td>Tier **A** automated **PASS**; Tier **C** golden + publications **PASS**; Tier **B** manual **deferred** (hosts); STS session **deferred**.</td></tr>
+<tr><td>D2 names review</td><td>**Complete** — owner approved; no live promotion scheduled.</td></tr>
+<tr><td>Cutover</td><td>**Not scheduled** — [`cutover/`](../cutover/) is reference archive only.</td></tr>
 </table>
 
 <p>---</p>
@@ -93,14 +96,14 @@
 <table>
 <tr><td>#</td><td>Name</td><td>Relevant</td><td>Refactor reviewed</td><td>Consolidation SoR</td><td>Testing</td><td>Gaps</td></tr>
 <tr><td>1</td><td>JMRI AnyRail</td><td>**No** (frozen)</td><td>Guide only</td><td>—</td><td>None</td><td>Not live path for hart</td></tr>
-<tr><td>2</td><td>Public names</td><td>**Yes**</td><td>Guide + D2 scripts</td><td>`sor/names/` merged + snapshots</td><td>Tier **A** phase02, names_diff</td><td>Human review merged map</td></tr>
+<tr><td>2</td><td>Public names</td><td>**Yes**</td><td>Guide + D2 scripts</td><td>`sor/names/` merged + snapshots</td><td>Tier **A** phase02, names_diff</td><td>D2 review **done**; promotion future</td></tr>
 <tr><td>3</td><td>Digicon beans</td><td>**Yes**</td><td>Guide + crosswalk audit</td><td>`sor/signals/*.csv`, `sor/wiring/`</td><td>Tier **A** audit_strict, wiring</td><td>Appearance XML live-ref only</td></tr>
 <tr><td>4</td><td>Native SML + NX</td><td>**Yes**</td><td>Guide + invariants</td><td>`sor/signals/le_signal_boundaries.csv`</td><td>Tier **A** sml 93 dest</td><td>SML in live tables XML</td></tr>
-<tr><td>5</td><td>CATS Masters</td><td>**Yes**</td><td>Guide + cats-integration</td><td>`sor/cats/jmri_devices.csv`</td><td>Tier **B** CATS load/smoke</td><td>Hold panels live-ref</td></tr>
-<tr><td>6</td><td>USS CTC</td><td>**Yes**</td><td>Guide + tables audit</td><td>chain doc only</td><td>Tier **B** USS load</td><td>GUIObjects live-ref</td></tr>
-<tr><td>7</td><td>Dispatcher</td><td>**Yes**</td><td>Guide</td><td>chain doc only</td><td>Tier **B** graph counts</td><td>traininfo/ live-ref</td></tr>
+<tr><td>5</td><td>CATS Masters</td><td>**Yes**</td><td>Guide + cats-integration</td><td>`sor/cats/jmri_devices.csv`</td><td>Tier **B** CATS load/smoke</td><td>Hold panels live-ref; B deferred</td></tr>
+<tr><td>6</td><td>USS CTC</td><td>**Yes**</td><td>Guide + tables audit</td><td>chain doc only</td><td>Tier **B** USS load</td><td>GUIObjects live-ref; B deferred</td></tr>
+<tr><td>7</td><td>Dispatcher</td><td>**Yes**</td><td>Guide</td><td>chain doc only</td><td>Tier **B** graph counts</td><td>traininfo/ live-ref; B deferred</td></tr>
 <tr><td>8</td><td>Wiring docs</td><td>**Yes**</td><td>Guide + crosswalk</td><td>`sor/wiring/` xlsx + CSV</td><td>Tier **A** crosswalk</td><td>Desktop wiring mirror inventory only</td></tr>
-<tr><td>9</td><td>LCOS firmware</td><td>**Yes**</td><td>Guide + TIER_B spec</td><td>`external/lcos-bridge/`</td><td>Tier **B** broker smoke</td><td>Event 125 closed (D10b)</td></tr>
+<tr><td>9</td><td>LCOS firmware</td><td>**Yes**</td><td>Guide + TIER_B spec</td><td>`external/lcos-bridge/`</td><td>Tier **B** broker smoke</td><td>Event 125 closed (D10b); B deferred</td></tr>
 <tr><td>—</td><td>Tables merge</td><td>**Yes**</td><td>Guide + audit</td><td>`sor/tables/README.md`</td><td>Tier **A** (chain)</td><td>No full tables.xml snapshot</td></tr>
 <tr><td>—</td><td>MQTT mimic</td><td>**Yes**</td><td>Cross-cutting guide</td><td>uses names + tables ref</td><td>Tier **B** optional</td><td>Lab-only QA tool</td></tr>
 </table>
@@ -112,32 +115,37 @@
 <table>
 <tr><td>#</td><td>Name</td><td>Relevant</td><td>Refactor reviewed</td><td>Consolidation SoR</td><td>Testing</td><td>Gaps</td></tr>
 <tr><td>11</td><td>Speed matching</td><td>**Parked**</td><td>Guide</td><td>—</td><td>None</td><td>Synthetic profiles only</td></tr>
-<tr><td>12</td><td>Car cards</td><td>**Yes**</td><td>hart-ops + D11 ADR</td><td>`external/hart-ops/data/`</td><td>Tier **C** golden NW32800</td><td>Car photos not in git</td></tr>
-<tr><td>13</td><td>Waybills</td><td>**Yes**</td><td>Guide</td><td>hart-ops CSV</td><td>Tier **C** STS session</td><td>—</td></tr>
-<tr><td>14</td><td>STS</td><td>**Yes**</td><td>Guide</td><td>`external/sts-docker`, `sts-helpers`</td><td>Tier **C** session smokes</td><td>No live seed apply in build</td></tr>
-<tr><td>15</td><td>Publications</td><td>**Yes**</td><td>Guide + audit</td><td>hart-ops scripts + `docs/published/`</td><td>py_compile OK; full rebuild optional</td><td>Desktop class D dupes</td></tr>
-<tr><td>16</td><td>Industries</td><td>**Yes**</td><td>Guide</td><td>hart-ops `industries/`</td><td>Tier **C** matrix review</td><td>—</td></tr>
+<tr><td>12</td><td>Car cards</td><td>**Yes**</td><td>hart-ops + D11 ADR</td><td>`external/hart-ops/data/`</td><td>Tier **C** golden NW32800 **PASS**</td><td>Car photos not in git</td></tr>
+<tr><td>13</td><td>Waybills</td><td>**Yes**</td><td>Guide + script inventory</td><td>hart-ops CSV</td><td>Tier **C** STS session deferred</td><td>—</td></tr>
+<tr><td>14</td><td>STS</td><td>**Yes**</td><td>Guide</td><td>`external/sts-docker`, `sts-helpers`</td><td>Tier **C** session smokes deferred</td><td>No live seed apply in build</td></tr>
+<tr><td>15</td><td>Publications</td><td>**Yes**</td><td>Guide + audit</td><td>hart-ops scripts + `docs/published/`</td><td>rebuild + py_compile **PASS**</td><td>Desktop class D dupes</td></tr>
+<tr><td>16</td><td>Industries</td><td>**Yes**</td><td>Guide</td><td>hart-ops `industries/`</td><td>Tier **C** canvas review **done**</td><td>—</td></tr>
 </table>
 
 <p>---</p>
 
-<h2>Cross-cutting inventory &amp; cutover</h2>
+<h2>Reference archive (not scheduled)</h2>
+
+<p>Historical cutover manifests — documented for a future explicit promotion request, not active work:</p>
 
 <table>
-<tr><td>Area</td><td>Relevant</td><td>Standalone in consolidation</td><td>Testing</td></tr>
-<tr><td>Desktop F-root</td><td>Review/browse</td><td>manifest + F-root HTML</td><td>classify script</td></tr>
-<tr><td>Desktop class C</td><td>**Yes**</td><td>hart-ops mirror + subtree CSV</td><td>golden + roster build</td></tr>
-<tr><td>History archive</td><td>Future</td><td>cutover/history-archive/</td><td>browse categories</td></tr>
-<tr><td>Names D2 cutover</td><td>Future</td><td>cutover/names-d2/ + sor/names</td><td>Tier A map phase02</td></tr>
-<tr><td>Desktop slim</td><td>Future</td><td>cutover/desktop-slim/</td><td>inventory complete</td></tr>
-<tr><td>Layout hosts</td><td>Future</td><td>cutover/layout-hosts/ + Tier B doc</td><td>manual smokes</td></tr>
+<tr><td>Area</td><td>Consolidation copy</td><td>Notes</td></tr>
+<tr><td>History archive</td><td>`cutover/history-archive/`</td><td>browse categories</td></tr>
+<tr><td>Names D2 batch</td><td>`cutover/names-d2/` + `sor/names/`</td><td>Tier A map phase02 green</td></tr>
+<tr><td>Desktop slim</td><td>`cutover/desktop-slim/`</td><td>inventory complete</td></tr>
+<tr><td>Layout hosts</td><td>`cutover/layout-hosts/`</td><td>Tier B doc only</td></tr>
+<tr><td>Class C migration</td><td>`cutover/class-c-migration/`</td><td>hart-ops mirror</td></tr>
 </table>
 
 <p>---</p>
 
-<h2>SoR gaps (consolidation snapshots to refresh)</h2>
+<h2>SoR refresh</h2>
 
-<p>Run <code>python3 consolidation/scripts/snapshot_live_sor.py</code>:</p>
+<p>Run as part of <code>bash consolidation/scripts/mirror_all_live.sh</code> or standalone:</p>
+
+<pre><code>
+python3 consolidation/scripts/snapshot_live_sor.py
+</code></pre>
 
 <table>
 <tr><td>Live path</td><td>Consolidation target</td><td>Pipeline</td></tr>
@@ -165,15 +173,16 @@
 
 <p>---</p>
 
-<h2>Recommended test matrix before any cutover</h2>
+<h2>Validation status (consolidation build)</h2>
 
 <table>
 <tr><td>Tier</td><td>Command / action</td><td>Status</td></tr>
-<tr><td>A</td><td>`bash consolidation/validators/run_all.sh`</td><td>PASS (2026-08-31)</td></tr>
-<tr><td>C</td><td>`cd external/hart-ops &amp;&amp; pytest tests/test_golden_card.py`</td><td>PASS</td></tr>
-<tr><td>C</td><td>Publications py_compile</td><td>PASS</td></tr>
-<tr><td>B</td><td>Tier B manual smokes on lab host</td><td>Not run (documented)</td></tr>
-<tr><td>C</td><td>STS begin_session / switch list</td><td>Not run (ops session)</td></tr>
+<tr><td>A</td><td>`bash consolidation/validators/run_all.sh`</td><td>**PASS** (2026-08-31T21:04Z)</td></tr>
+<tr><td>C</td><td>`cd external/hart-ops &amp;&amp; python tests/test_golden_card.py`</td><td>**PASS**</td></tr>
+<tr><td>C</td><td>`bash consolidation/scripts/rebuild_publications.sh`</td><td>**PASS**</td></tr>
+<tr><td>C</td><td>Publications py_compile</td><td>**PASS**</td></tr>
+<tr><td>B</td><td>Tier B manual smokes on lab host</td><td>**Deferred** (documented)</td></tr>
+<tr><td>C</td><td>STS begin_session / switch list</td><td>**Deferred** (needs Docker session)</td></tr>
 </table>
 
 <p>Regenerate this matrix after pipeline or SoR changes.</p>

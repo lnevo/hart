@@ -1,6 +1,6 @@
 # Central source of record — consolidation workspace
 
-**Principle:** One canonical artifact per fact type in the **new tree**. Live and Desktop paths are read-only references until cutover.
+**Principle:** One canonical artifact per fact type in the **new tree**. Live and Desktop paths are read-only references until explicit promotion (future).
 
 **Registry:** [`manifest.yaml`](../manifest.yaml) · **ADR:** [`wiki/decisions/ADR-consolidation-sor.md`](../wiki/decisions/ADR-consolidation-sor.md)
 
@@ -59,7 +59,7 @@
 | Pipeline 1 AnyRail | **Frozen** — not live path for hart |
 | Pipeline 11 speed matching | **Parked** — synthetic profiles |
 | `tables/tables.xml` | Legacy snapshot — never edit |
-| `~/Desktop/HART/` bulk | Inventory + browse only; cutover manifests in [`cutover/`](../cutover/) |
+| `~/Desktop/HART/` bulk | Inventory + browse only; future promotion manifests in [`cutover/`](../cutover/) (reference archive) |
 | Car final photos (~GB) | Local path / LFS — not in git |
 | LCOS BOM (D8) | Excluded |
 | Gate 1 `HART.xml` CATS panels | History — not ops desk |

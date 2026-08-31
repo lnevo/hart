@@ -1,8 +1,8 @@
-# Cutover projects — standalone consolidation mirrors
+# Cutover projects — reference archive only
 
-Each project below is documented and **manifested in consolidation only**. Live `hart/`, `~/Desktop/HART/`, and layout hosts are **not modified** by these artifacts.
+> **Not active work.** These manifests document a possible future promotion path. The consolidation build continues on SoRs and pipeline validation. Live `hart/`, `~/Desktop/HART/`, and layout hosts are **not modified** by these artifacts unless you explicitly request promotion later.
 
-When the consolidation tree becomes authoritative, cutover executes from these standalone plans — not by editing files in place today.
+Each project below is documented and **manifested in consolidation only**.
 
 | Project | Manifest | Consolidation standalone copy |
 |---------|----------|------------------------------|

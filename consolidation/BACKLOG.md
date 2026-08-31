@@ -1,8 +1,8 @@
 # Consolidation backlog
 
-**Updated:** 2026-08-31
+**Updated:** 2026-08-31 (finalize pass)
 
-**Central SoR:** [`sor/CENTRAL_SOR.md`](sor/CENTRAL_SOR.md) · **Pipeline matrix:** [`audits/pipeline-review-matrix.md`](audits/pipeline-review-matrix.md) · **Cutover plans:** [`cutover/`](cutover/)
+**Central SoR:** [`sor/CENTRAL_SOR.md`](sor/CENTRAL_SOR.md) · **Pipeline matrix:** [`audits/pipeline-review-matrix.md`](audits/pipeline-review-matrix.md)
 
 ---
 
@@ -51,22 +51,35 @@ Core workspace, portal, F-root categories, hart-ops, validators, audits.
 
 ---
 
-## Open (operator / optional)
+## Done (61–66) — finalize validation pass
 
-| Item | Notes |
-|------|-------|
-| Tier B manual smokes | Run on lab host with packages |
-| STS Tier C session | begin_session / switch lists |
-| D2 merged map | Human review |
-| Legacy raw Images one-time import | `DESKTOP_MIRROR_RAW=1` only if needed |
-| hart-ops submodule commit | `process_car_images.py` + path env patches |
+| # | Item | Output |
+|---|------|--------|
+| 61 | Full mirror + Tier A refresh | `mirror_all_live.sh` — ALL PASSED (2026-08-31T21:04Z) |
+| 62 | Tier C golden smoke | `tests/test_golden_card.py` — NW32800 OK |
+| 63 | Publications rebuild | `rebuild_publications.sh` — 8 scripts OK |
+| 64 | Review canvases + portal | `build_review_canvases.py`, `build_site.py` |
+| 65 | D2 device map review | Owner approved — canvases + `d2_legacy_match.csv` |
+| 66 | Industry matrix review | Owner approved — canvas OK for now |
 
 ---
 
-## Commands
+## Deferred (needs hosts or explicit future request)
+
+| Item | Notes |
+|------|-------|
+| Tier B manual smokes | CATS/USS/LCOS — documented in `TIER_B_MANUAL_SMOKES.md`; not run during build |
+| STS Tier C session | begin_session / switch lists — needs Docker ops session |
+| Live promotion (D2, cutover) | **Not scheduled** — consolidation build continues; see `cutover/` reference archive only |
+| Legacy raw Images one-time import | `DESKTOP_MIRROR_RAW=1` only if needed |
+
+---
+
+## Rhythm (repeat after SoR or pipeline changes)
 
 ```bash
 bash consolidation/scripts/mirror_all_live.sh
 bash consolidation/validators/run_all.sh
+python3 consolidation/scripts/build_review_canvases.py
 python3 consolidation/scripts/build_site.py
 ```

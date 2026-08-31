@@ -41,8 +41,8 @@
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
-<div class="nav-section"><h4>Cutover (standalone)</h4>
-  <a href="cutover/index.html">Cutover projects</a>
+<div class="nav-section"><h4>Reference archive</h4>
+  <a href="cutover/index.html">Cutover manifests (future)</a>
   <a href="sor-central.html">Central SoR index</a>
   <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
 </div>
@@ -51,6 +51,8 @@
   <a href="archive/index.html">Archive taxonomy A–F</a>
 </div>
 <div class="nav-section"><h4>Review</h4>
+  <a href="review/device-map.html"><strong>Device Map (D2)</strong></a>
+  <a href="review/industry-matrix.html">Industry matrix</a>
   <a href="audits/index.html">Audits</a>
   <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
@@ -62,9 +64,9 @@
   <main class="content">
     <h1>Consolidation backlog</h1>
 
-<p><strong>Updated:</strong> 2026-08-31</p>
+<p><strong>Updated:</strong> 2026-08-31 (finalize pass)</p>
 
-<p><strong>Central SoR:</strong> <a href="sor/CENTRAL_SOR.md"><code>sor/CENTRAL_SOR.md</code></a> · <strong>Pipeline matrix:</strong> <a href="audits/pipeline-review-matrix.md"><code>audits/pipeline-review-matrix.md</code></a> · <strong>Cutover plans:</strong> <a href="cutover/"><code>cutover/</code></a></p>
+<p><strong>Central SoR:</strong> <a href="sor/CENTRAL_SOR.md"><code>sor/CENTRAL_SOR.md</code></a> · <strong>Pipeline matrix:</strong> <a href="audits/pipeline-review-matrix.md"><code>audits/pipeline-review-matrix.md</code></a></p>
 
 <p>---</p>
 
@@ -116,16 +118,39 @@
 
 <p>---</p>
 
-<h2>Open (operator / optional)</h2>
+<h2>Done (61–66) — finalize validation pass</h2>
+
+<table>
+<tr><td>#</td><td>Item</td><td>Output</td></tr>
+<tr><td>61</td><td>Full mirror + Tier A refresh</td><td>`mirror_all_live.sh` — ALL PASSED (2026-08-31T21:04Z)</td></tr>
+<tr><td>62</td><td>Tier C golden smoke</td><td>`tests/test_golden_card.py` — NW32800 OK</td></tr>
+<tr><td>63</td><td>Publications rebuild</td><td>`rebuild_publications.sh` — 8 scripts OK</td></tr>
+<tr><td>64</td><td>Review canvases + portal</td><td>`build_review_canvases.py`, `build_site.py`</td></tr>
+<tr><td>65</td><td>D2 device map review</td><td>Owner approved — canvases + `d2_legacy_match.csv`</td></tr>
+<tr><td>66</td><td>Industry matrix review</td><td>Owner approved — canvas OK for now</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Deferred (needs hosts or explicit future request)</h2>
 
 <table>
 <tr><td>Item</td><td>Notes</td></tr>
-<tr><td>Tier B manual smokes</td><td>Run on lab host with packages</td></tr>
-<tr><td>STS Tier C session</td><td>begin_session / switch lists</td></tr>
-<tr><td>D2 merged map</td><td>Human review</td></tr>
+<tr><td>Tier B manual smokes</td><td>CATS/USS/LCOS — documented in `TIER_B_MANUAL_SMOKES.md`; not run during build</td></tr>
+<tr><td>STS Tier C session</td><td>begin_session / switch lists — needs Docker ops session</td></tr>
+<tr><td>Live promotion (D2, cutover)</td><td>**Not scheduled** — consolidation build continues; see `cutover/` reference archive only</td></tr>
 <tr><td>Legacy raw Images one-time import</td><td>`DESKTOP_MIRROR_RAW=1` only if needed</td></tr>
-<tr><td>hart-ops submodule commit</td><td>`process_car_images.py` + path env patches</td></tr>
 </table>
+
+<p>---</p>
+
+<h2>Rhythm (repeat after SoR or pipeline changes)</h2>
+
+<pre><code>
+bash consolidation/scripts/mirror_all_live.sh
+python3 consolidation/scripts/build_review_canvases.py
+python3 consolidation/scripts/build_site.py
+</code></pre>
 
 <p>---</p>
 
