@@ -66,11 +66,28 @@ def retarget_to_preference_jython(profile: Path, scripts: list[str]) -> list[str
 
     Leaves ScriptButton / XmlFile / Action tags alone. Idempotent when the
     name is already preference:jython/.
+    Also renames known retired basenames (e.g. sync_yard_ladder_buttons →
+    sync_turnout_buttons) before retargeting.
     """
     txt = profile.read_text(encoding="utf-8")
     orig = txt
     notes: list[str] = []
     wanted = {_script_basename(s) for s in scripts}
+
+    # Retired → current startup script basenames (must run after package rename).
+    renames = {
+        "sync_yard_ladder_buttons.py": "sync_turnout_buttons.py",
+    }
+    for old, new in renames.items():
+        if old in txt and new in wanted:
+            txt2, n = re.subn(
+                rf'(name="[^"]*){re.escape(old)}(")',
+                rf"\1{new}\2",
+                txt,
+            )
+            if n:
+                notes.append(f"{old} -> {new} ({n} Start Up entr{'y' if n == 1 else 'ies'})")
+                txt = txt2
 
     def repl(match: re.Match[str]) -> str:
         tag = match.group(0)

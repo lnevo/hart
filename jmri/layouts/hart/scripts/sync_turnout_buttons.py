@@ -1,6 +1,5 @@
 # Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout states,
 # and drive the HART Railroad Turnouts status lamp (IH:TURNOUT_FB).
-# Startup + turnout listeners so idle lamps stay mutually exclusive after a click.
 #
 # CRITICAL: the same ITs are JMRI Route controlTurnouts (fire on THROWN).
 # This script must NEVER setCommandedState(THROWN) — that re-fires routes and
@@ -8,6 +7,9 @@
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
+#
+# Arming is deferred until Layout Editor / turnout beans are up (Start Up scripts
+# often run before panels finish opening).
 
 import jmri
 from java.beans import PropertyChangeListener
@@ -24,7 +26,6 @@ TURNOUT_FB_HEAD = "IH:TURNOUT_FB"
 GREEN = jmri.SignalHead.GREEN
 YELLOW = jmri.SignalHead.YELLOW
 RED = jmri.SignalHead.RED
-DARK = jmri.SignalHead.DARK
 
 # First match wins — specific peels before S-5 / S-1.
 LEFT_PATTERNS = [
@@ -49,9 +50,16 @@ WATCH = [
     "M2T1211", "M2T1210", "M2T1209", "M2T1208",
 ]
 
+# Wait for LE / MQTT turnouts: first try after 5s, then every 2s up to ~60s.
+_ARM_FIRST_MS = 5000
+_ARM_RETRY_MS = 2000
+_ARM_MAX_ATTEMPTS = 30
+
 _busy = False
+_armed = False
 _last = (None, None)
 _last_fb_appearance = None
+_listener = None
 
 
 def _known(to):
@@ -116,17 +124,68 @@ def _included_plant_turnouts():
     return out
 
 
-def sync_turnout_fb_lamp():
-    """Set IH:TURNOUT_FB Green/Yellow/Red from included plant feedback modes."""
-    global _last_fb_appearance
+def _layout_editor_ready():
+    """True once at least one Layout Editor panel is open (or editors exist)."""
+    try:
+        from jmri.jmrit.display import EditorManager
+
+        em = jmri.InstanceManager.getDefault(EditorManager)
+        if em is None:
+            return False
+        editors = list(em.getAll())
+        if not editors:
+            return False
+        for ed in editors:
+            name = ""
+            try:
+                name = ed.getTitle() or ed.getName() or ""
+            except Exception:
+                try:
+                    name = str(ed)
+                except Exception:
+                    name = ""
+            # Prefer HART Railroad; any LE is enough to know panels are up.
+            if "HART" in name or "Layout" in name or "layout" in ed.getClass().getName():
+                return True
+        return len(editors) > 0
+    except Exception:
+        return False
+
+
+def _watch_turnouts_present():
+    """True when the MQTT ladder watch turnouts exist in the manager."""
+    try:
+        for sn in WATCH:
+            if turnouts.getTurnout(sn) is None:
+                return False
+        return True
+    except Exception:
+        return False
+
+
+def _ensure_turnout_fb_head():
+    """Return IH:TURNOUT_FB, creating a VirtualSignalHead if tables omitted it."""
     try:
         mgr = jmri.InstanceManager.getDefault(jmri.SignalHeadManager)
         head = mgr.getSignalHead(TURNOUT_FB_HEAD)
+        if head is not None:
+            return head
+        from jmri.implementation import VirtualSignalHead
+
+        head = VirtualSignalHead(TURNOUT_FB_HEAD)
+        mgr.register(head)
+        print("sync_turnout_buttons: created VirtualSignalHead %s" % TURNOUT_FB_HEAD)
+        return head
     except Exception as e:
-        print("sync_turnout_buttons: no Turnouts lamp head: %s" % e)
-        return
+        print("sync_turnout_buttons: Turnouts lamp head unavailable: %s" % e)
+        return None
+
+
+def sync_turnout_fb_lamp():
+    """Set IH:TURNOUT_FB Green/Yellow/Red from included plant feedback modes."""
+    global _last_fb_appearance
+    head = _ensure_turnout_fb_head()
     if head is None:
-        print("sync_turnout_buttons: missing %s" % TURNOUT_FB_HEAD)
         return
 
     included = _included_plant_turnouts()
@@ -223,33 +282,72 @@ class _TurnoutListener(PropertyChangeListener):
             print("sync_turnout_buttons: listener error: %s" % e)
 
 
-class _StartupAction(ActionListener):
-    def actionPerformed(self, event):
-        sync_ladder_buttons()
-        event.getSource().stop()
-
-
-try:
-    listener = _TurnoutListener()
+def _arm_listeners():
+    """Attach listeners once beans exist. Safe to call only once."""
+    global _armed, _listener
+    if _armed:
+        return True
+    _listener = _TurnoutListener()
     for sn in WATCH:
-        turnouts.provideTurnout(sn).addPropertyChangeListener(listener)
+        turnouts.provideTurnout(sn).addPropertyChangeListener(_listener)
     for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
         turnouts.provideTurnout(sn)
-    # Listen for FB mode / sensor assignment changes on all plant turnouts.
     for to in turnouts.getNamedBeanSet():
         sn = to.getSystemName()
         if sn.startswith("M2T") or sn.startswith("MTT"):
             try:
-                to.addPropertyChangeListener(listener)
+                to.addPropertyChangeListener(_listener)
             except Exception:
                 pass
-    sync_ladder_buttons()
-    t = Timer(3000, _StartupAction())
-    t.setRepeats(False)
-    t.start()
+    _armed = True
     print(
         "sync_turnout_buttons: armed (%d watch turnouts, close-only + Turnouts lamp)"
         % len(WATCH)
     )
-except Exception as e:
-    print("sync_turnout_buttons: init failed: %s" % e)
+    return True
+
+
+class _ArmAttempt(ActionListener):
+    def __init__(self, attempt):
+        self.attempt = attempt
+
+    def actionPerformed(self, event):
+        event.getSource().stop()
+        ready = _watch_turnouts_present()
+        le_ok = _layout_editor_ready()
+        if not ready or not le_ok:
+            if self.attempt + 1 >= _ARM_MAX_ATTEMPTS:
+                print(
+                    "sync_turnout_buttons: giving up wait "
+                    "(turnouts=%s layoutEditor=%s); arming anyway"
+                    % (ready, le_ok)
+                )
+            else:
+                if self.attempt == 0 or (self.attempt % 5) == 0:
+                    print(
+                        "sync_turnout_buttons: waiting for panel/turnouts "
+                        "(try %d, LE=%s, watch=%s)"
+                        % (self.attempt + 1, le_ok, ready)
+                    )
+                t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
+                t.setRepeats(False)
+                t.start()
+                return
+        try:
+            _arm_listeners()
+            sync_ladder_buttons()
+        except Exception as e:
+            print("sync_turnout_buttons: arm failed: %s" % e)
+            if self.attempt + 1 < _ARM_MAX_ATTEMPTS:
+                t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
+                t.setRepeats(False)
+                t.start()
+
+
+print(
+    "sync_turnout_buttons: loaded; arming after %dms (waits for Layout Editor)"
+    % _ARM_FIRST_MS
+)
+_t0 = Timer(_ARM_FIRST_MS, _ArmAttempt(0))
+_t0.setRepeats(False)
+_t0.start()

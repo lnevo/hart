@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — Turnouts lamp / yard ladder: Profile Start Up still pointed at retired `sync_yard_ladder_buttons.py` after the rename (lamp stayed `?`; ladder never armed). `patch_jmri_startup` now renames that entry → `sync_turnout_buttons.py`; script waits for Layout Editor + watch turnouts (5s then 2s retries) and creates `IH:TURNOUT_FB` if missing. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-31 — Panel status lamps (HART Railroad lower left): **LCOS** (`M2S1567` / `track/sensor/1567` from Windows bridge HBLOOP), **Turnouts** (`IH:TURNOUT_FB` via `sync_turnout_buttons.py`, 2-sensor M2T/MTT only), **Signals** (`IS:SML_MODE` from Digicon publisher). Renamed `sync_yard_ladder_buttons` → `sync_turnout_buttons`. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-30 — Restored all 20 OpenLCB turnout aliases **MTT100–MTT119** (`DCC Switch N` from the device map, same FB/DIRECT sensors as the MQTT plant, comment omits DCC). Audit `--strict` fails if any MQTT DCC turnout lacks its MTT twin. Reload **PanelPro**. Deploy `--pi --win`.

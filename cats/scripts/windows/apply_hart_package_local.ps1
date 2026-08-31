@@ -70,6 +70,41 @@ if (Test-Path $btnSrc) {
   }
 }
 
+$ussSrc = Join-Path $hart 'cats\resources\icons\USS\sensor'
+if (Test-Path $ussSrc) {
+  $roots = New-Object System.Collections.Generic.List[string]
+  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  $jmri = Join-Path $env:USERPROFILE 'JMRI'
+  if (Test-Path $jmri) {
+    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+      [void]$roots.Add($_.FullName)
+    }
+  }
+  $gifs = @(Get-ChildItem $ussSrc -Filter 'yellow-*.gif' -ErrorAction SilentlyContinue)
+  foreach ($r in ($roots | Select-Object -Unique)) {
+    if (-not (Test-Path $r)) { continue }
+    $dest = Join-Path $r 'resources\icons\USS\sensor'
+    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+    foreach ($g in $gifs) {
+      Copy-Item $g.FullName $dest -Force
+    }
+    Write-Host ("USS sensor icons -> {0}\resources\icons\USS\sensor" -f $r)
+  }
+  foreach ($prog in @(
+    'C:\Program Files (x86)\JMRI\resources\icons\USS\sensor',
+    'C:\Program Files\JMRI\resources\icons\USS\sensor'
+  )) {
+    $parent = Split-Path $prog -Parent
+    if (Test-Path $parent) {
+      New-Item -ItemType Directory -Force -Path $prog | Out-Null
+      foreach ($g in $gifs) {
+        Copy-Item $g.FullName $prog -Force
+      }
+      Write-Host ("USS sensor icons (program) -> {0}" -f $prog)
+    }
+  }
+}
+
 $ctcSrc = Join-Path $hart 'ctc'
 if (Test-Path (Join-Path $ctcSrc 'icons')) {
   $roots = New-Object System.Collections.Generic.List[string]

@@ -72,6 +72,22 @@ class RetargetJython(unittest.TestCase):
             )
         self.assertEqual(notes, [])
 
+    def test_renames_retired_yard_ladder_basename(self) -> None:
+        mod = _load()
+        profile_txt = PROFILE.replace(
+            "sync_turnout_buttons.py", "sync_yard_ladder_buttons.py"
+        )
+        with tempfile.TemporaryDirectory() as td:
+            profile = Path(td) / "profile.xml"
+            profile.write_text(profile_txt, encoding="utf-8")
+            notes = mod.retarget_to_preference_jython(
+                profile, ["sync_turnout_buttons.py"]
+            )
+            txt = profile.read_text(encoding="utf-8")
+        self.assertTrue(any("sync_yard_ladder_buttons.py -> sync_turnout_buttons.py" in n for n in notes))
+        self.assertIn('name="preference:jython/sync_turnout_buttons.py"', txt)
+        self.assertNotIn("sync_yard_ladder_buttons.py", txt)
+
 
 class HideCatsChromeSource(unittest.TestCase):
     def test_cats_only_help_quit_hooks(self) -> None:
