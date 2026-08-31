@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jmri anyrail — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
+
+<h2>Source of record (consolidation view)</h2>
+
+<table>
+<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/jmri-anyrail.md`</td><td>`consolidation/wiki/pipelines/jmri-anyrail.md`</td></tr>
+<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+</table>
+
+<p>---</p>
+
+<h1>Pipeline 1 — JMRI AnyRail panel</h1>
+
+<p>Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaults).</p>
+
+<p><strong>Status:</strong> Frozen for <strong>hart</strong>. Live geometry came from linear6; do not re-run this path unless asked. Still the workflow for <code>mac</code> / <code>linear4</code>.</p>
+
+<h2>Inputs</h2>
+
+<ul>
+<li><code>jmri/layouts/&lt;name&gt;/anyrail/*.xml</code></li>
+<li><code>jmri/layouts/&lt;name&gt;/data/layout_blocks.xlsx</code> (+ <code>block_merges.txt</code>)</li>
+<li>Authoritative panel for styles (<code>mac_jmri2.xml</code> pattern)</li>
+</ul>
+
+<h2>Outputs</h2>
+
+<ul>
+<li><code>jmri/layouts/&lt;name&gt;/output/*_blocked.xml</code></li>
+<li>linear4 also <code>linear4_prod.xml</code> (MQTT + LogixNG)</li>
+</ul>
+
+<h2>Run (`JMRI_LAYOUT=linear4` example)</h2>
+
+<pre><code>
+export JMRI_LAYOUT=linear4
+python3 jmri/scripts/prepare_tables_from_anyrail.py \
+  jmri/layouts/linear4/anyrail/linear4.xml \
+  jmri/layouts/linear4/authoritative/linear4.xml \
+  --scale 1
+python3 jmri/scripts/build_blocks_excel.py
+python3 jmri/scripts/apply_blocks_to_panel.py \
+  jmri/layouts/linear4/anyrail/linear4.xml \
+  jmri/layouts/linear4/output/linear4_blocked.xml \
+  jmri/layouts/mac/authoritative/mac_jmri2.xml \
+  use-panel-layout no-nx
+</code></pre>
+
+<p>hart bootstrap (one-time, already done): <code>python3 jmri/scripts/bootstrap_hart_from_linear6.py</code></p>
+
+<h2>Do not</h2>
+
+<ul>
+<li><code>--scale</code> other than 1 on linear4/hart</li>
+<li><code>fit_panel_height</code>, <code>fit_panel_canvas</code>, <code>polish_layout_geometry</code> unless asked</li>
+<li>Remove <strong>F30-S-0</strong> where the layout includes it</li>
+<li>New track: set <strong>Mainline → Yes</strong> (<code>mainline=&quot;yes&quot;</code>)</li>
+</ul>
+
+<p>Detail: <a href="../../jmri/README.md"><code>jmri/README.md</code></a> · <a href="../../docs/AI_CONTEXT.md"><code>docs/AI_CONTEXT.md</code></a></p>
+  </main>
+</body>
+</html>

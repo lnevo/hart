@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manifest — HART Consolidation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="index.html">Home</a>
+  <a href="objective.html">Objective</a>
+  <a href="decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="live-sources.html">Live sources</a>
+  <a href="manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="pipelines/08-wiring.html">Wiring docs</a>
+  <a href="pipelines/12-car-cards.html">Car cards</a>
+  <a href="pipelines/14-sts.html">STS</a>
+  <a href="pipelines/15-publications.html">Publications</a>
+  <a href="pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="audits/index.html">Audits</a>
+  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <pre><code># HART pipeline manifest (consolidation workspace)
+# Live paths are read-only references. Proposed outputs live under consolidation/sor/
+
+version: 1
+workspace: consolidation/
+live_layout: hart
+
+tiers:
+  A: blocking — run before any promotion to live
+  B: release — manual smokes before deploy
+  C: ops session — deferred (Desktop pipelines)
+
+pipelines:
+  - id: 1
+    name: JMRI AnyRail panel
+    status: frozen_hart
+    tier: null
+    live_inputs:
+      - jmri/layouts/hart/reference/linear6_baseline.xml
+    live_outputs:
+      - jmri/layouts/hart/output/hart_prod.xml
+    validator: null
+    guide: wiki/pipelines/jmri-anyrail.md
+
+  - id: 2
+    name: Public names + comments
+    status: live
+    tier: A
+    sor_decision: D2 — public_name_map.csv single authority; block_display legacy
+    live_inputs:
+      - jmri/layouts/hart/data/public_name_map.csv
+    live_legacy:
+      - jmri/layouts/hart/data/block_display_names.csv
+    live_outputs:
+      - tables/new_tables.xml
+    proposed_sor:
+      - sor/names/public_name_map.csv
+    validator: validators/check_names_diff.py
+    guide: wiki/pipelines/public-names.md
+
+  - id: 3
+    name: Digicon signal beans
+    status: live
+    tier: A
+    live_inputs:
+      - cats/data/signal_wiring.csv
+      - cats/data/signal_head_plan.csv
+      - cats/data/signal_mast_plan.csv
+    live_outputs:
+      - tables/new_tables.xml
+      - cats/resources/signals/hart-aar/
+    validator: validators/check_audit_strict.sh
+    guide: wiki/pipelines/digicon-signal-beans.md
+
+  - id: 4
+    name: Native SML + NX
+    status: live
+    tier: A
+    live_inputs:
+      - cats/data/le_signal_boundaries.csv
+      - tables/new_tables.xml
+    live_outputs:
+      - tables/new_tables.xml
+    validator: validators/check_sml_invariants.py
+    guide: wiki/pipelines/native-sml.md
+    invariants:
+      sml_destinations: 93
+      nx_mast_only: true
+
+  - id: 5
+    name: CATS Digicon Masters
+    status: live
+    tier: B
+    live_inputs:
+      - cats/panels/HART_Master4.xml
+      - cats/data/jmri_devices.csv
+    live_outputs:
+      - cats/panels/HART_Master_CTC_hold.xml
+      - cats/panels/HART_Master_ABS_hold.xml
+    validator: validators/check_audit_strict.sh
+    manual_smoke:
+      - Load HART_Master_CTC_hold.xml in CATS; confirm HOLD_ONLY signals
+      - Load HART_Master_ABS_hold.xml; confirm SML paints aspects
+    guide: wiki/pipelines/cats-masters.md
+
+  - id: 6
+    name: USS CTC machine
+    status: live
+    tier: B
+    live_inputs:
+      - tables/new_tables.xml
+    live_outputs:
+      - jmri/layouts/hart/ctc/GUIObjects.xml
+    manual_smoke:
+      - Confirm 15-column USS machine loads; mutually exclusive with CATS CTC
+    guide: wiki/pipelines/uss-ctc.md
+
+  - id: 7
+    name: Dispatcher System graph
+    status: live
+    tier: B
+    live_inputs:
+      - tables/new_tables.xml
+    live_outputs:
+      - jmri/layouts/hart/dispatcher/traininfo/
+    manual_smoke:
+      - Baseline 91 sections, 688 transits, 1508 traininfo
+    guide: wiki/pipelines/dispatcher-system.md
+
+  - id: 8
+    name: Wiring documentation
+    status: live
+    tier: A
+    live_inputs:
+      - cats/data/occupancy_bindings.csv
+      - cats/data/signal_wiring.csv
+      - jmri/layouts/hart/data/public_name_map.csv
+    live_outputs:
+      - docs/wiring/LCOS_Layout_Inventory_v85.xlsx
+    proposed_sor:
+      - sor/wiring/
+    validator: validators/check_wiring_crosswalk.py
+    guide: wiki/pipelines/wiring-docs.md
+
+  - id: 9
+    name: LCOS Nano firmware
+    status: live
+    tier: B
+    repo: LCOS_ESP32_MQTT_Client
+    live_inputs:
+      - ../LCOS_ESP32_MQTT_Client/lcos_mqtt_bridge.cpp
+    manual_smoke:
+      - Broker subscribe track/signalmast/#; SET gated on live mast
+      - Event 125 replay after master restart
+    guide: wiki/pipelines/lcos-firmware.md
+    cross_repo: cross-repo/lcos/TIER_B.md
+
+  - id: 11
+    name: Speed matching
+    status: parked
+    tier: null
+    guide: wiki/pipelines/speed-matching.md
+
+  - id: 12
+    name: Car cards
+    status: deferred
+    tier: C
+    external: ~/Desktop/HART/Car Cards/
+    guide: wiki/pipelines/car-cards.md
+
+  - id: 13
+    name: Waybills
+    status: deferred
+    tier: C
+    guide: wiki/pipelines/waybills.md
+
+  - id: 14
+    name: STS
+    status: deferred
+    tier: C
+    external: ~/sts/sts-docker
+    guide: wiki/pipelines/sts.md
+
+  - id: 15
+    name: Ops publications
+    status: deferred
+    tier: C
+    guide: wiki/pipelines/ops-publications.md
+
+  - id: 16
+    name: Industry routing
+    status: deferred
+    tier: C
+    external: ~/Desktop/HART/Industries/
+    guide: wiki/pipelines/industry-routing.md
+
+global_validators:
+  - validators/check_audit_strict.sh
+  - validators/check_phase02.sh
+  - validators/run_all.sh
+
+decisions: DECISIONS_PENDING.md
+</code></pre>
+  </main>
+</body>
+</html>

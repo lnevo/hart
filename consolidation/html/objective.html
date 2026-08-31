@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Objective — HART Consolidation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="index.html">Home</a>
+  <a href="objective.html">Objective</a>
+  <a href="decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="live-sources.html">Live sources</a>
+  <a href="manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="pipelines/08-wiring.html">Wiring docs</a>
+  <a href="pipelines/12-car-cards.html">Car cards</a>
+  <a href="pipelines/14-sts.html">STS</a>
+  <a href="pipelines/15-publications.html">Publications</a>
+  <a href="pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="audits/index.html">Audits</a>
+  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>HART consolidation — objective</h1>
+
+<p><strong>Charter:</strong> Produce a validated, browsable, refactor-ready picture of the entire HART railroad software stack <strong>without changing live operational sources</strong>.</p>
+
+<h2>Success criteria</h2>
+
+<ol>
+<li>1. <strong>Live inventory</strong> — every pipeline documents what it reads/writes today (<code>LIVE_SOURCES.md</code>).</li>
+<li>2. <strong>Proposed SoR</strong> — draft canonical artifacts under <code>sor/</code> (not promoted until approved).</li>
+<li>3. <strong>Draft runbooks</strong> — pipeline guides under <code>wiki/pipelines/</code> with SoR tables and consolidation notes.</li>
+<li>4. <strong>Read-only validators</strong> — <code>validators/run_all.sh</code> checks live state; reports go to <code>audits/</code>.</li>
+<li>5. <strong>Batch decisions</strong> — open choices in <code>DECISIONS_PENDING.md</code> for owner approval in parallel.</li>
+<li>6. <strong>Human navigation</strong> — open <a href="index.html"><code>index.html</code></a> in a browser to browse categories.</li>
+</ol>
+
+<h2>Non-goals (this phase)</h2>
+
+<ul>
+<li>Editing <code>jmri/</code>, <code>cats/</code>, <code>tables/</code>, live <code>wiki/</code>, or <code>docs/wiring/</code>.</li>
+<li>PanelPro reload, CATS deploy, broker changes, or <code>sync_hart_package.sh</code> behavior changes.</li>
+<li>Promoting consolidation drafts into live paths (separate <strong>promotion gate</strong>).</li>
+</ul>
+
+<h2>Lead engineer role</h2>
+
+<p>Review live code and docs as <strong>read-only references</strong>. Write improvements, audits, ADRs, and refactored script <strong>copies</strong> only under <code>consolidation/</code>. Flag gaps; do not patch live workflows to “fix forward” during consolidation.</p>
+
+<h2>Related</h2>
+
+<ul>
+<li><a href="AGENTS.md"><code>AGENTS.md</code></a> — mandatory agent instructions</li>
+<li><a href="DECISIONS_PENDING.md"><code>DECISIONS_PENDING.md</code></a> — approve these in parallel</li>
+<li><a href="manifest.yaml"><code>manifest.yaml</code></a> — pipeline registry</li>
+</ul>
+  </main>
+</body>
+</html>

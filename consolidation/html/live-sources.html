@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live sources — HART Consolidation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="index.html">Home</a>
+  <a href="objective.html">Objective</a>
+  <a href="decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="live-sources.html">Live sources</a>
+  <a href="manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="pipelines/08-wiring.html">Wiring docs</a>
+  <a href="pipelines/12-car-cards.html">Car cards</a>
+  <a href="pipelines/14-sts.html">STS</a>
+  <a href="pipelines/15-publications.html">Publications</a>
+  <a href="pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="audits/index.html">Audits</a>
+  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>LIVE_SOURCES — read-only reference map</h1>
+
+<p><strong>Do not edit these paths</strong> as part of consolidation work. Validators and audits may <strong>read</strong> them only.</p>
+
+<p>Pipeline index: live <a href="../wiki/pipelines/README.md"><code>wiki/pipelines/README.md</code></a> (16 flows; NextTrain abandoned).</p>
+
+<p>Legend: <strong>RO</strong> = treat as read-only for consolidation; <strong>W</strong> = live writable (do not touch from consolidation).</p>
+
+<p>---</p>
+
+<h2>Core layout and tables</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td><td>Pipeline</td></tr>
+<tr><td>`jmri/layout_paths.py`</td><td>`JMRI_LAYOUT` path resolver</td><td>RO</td><td>infra</td></tr>
+<tr><td>`jmri/layouts/hart/output/hart_prod.xml`</td><td>LE monitor artifact</td><td>RO</td><td>1</td></tr>
+<tr><td>`jmri/layouts/hart/output/tables.xml`</td><td>Deploy bundle (LE+SML+CTC+Dispatcher)</td><td>RO</td><td>2–7</td></tr>
+<tr><td>`tables/tables.xml`</td><td>Legacy tables snapshot</td><td>**RO — never edit**</td><td>—</td></tr>
+<tr><td>`tables/new_tables.xml`</td><td>Writable working tables source</td><td>W (live only)</td><td>2–7</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 2 — Public names</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`jmri/layouts/hart/data/public_name_map.csv`</td><td>Apply / identity map</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/data/block_display_names.csv`</td><td>Live name index</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/apply_public_names.py`</td><td>Rename beans</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/refresh_bean_comments.py`</td><td>Comments</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/sync_public_name_map.py`</td><td>Sync map from device sheet</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/audit_panel_contracts.py`</td><td>Contract audit</td><td>RO (invoke via validator)</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/cleanup_uss_ctc_leftovers.py`</td><td>USS/Digicon cleanup</td><td>RO</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 3 — Digicon signal beans</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`cats/data/signal_wiring.csv`</td><td>3-pin head catalog</td><td>RO</td></tr>
+<tr><td>`cats/data/signal_head_plan.csv`</td><td>Virtual head plan</td><td>RO</td></tr>
+<tr><td>`cats/data/signal_mast_plan.csv`</td><td>Mast plan</td><td>RO</td></tr>
+<tr><td>`cats/scripts/build_hart_signal_heads.py`</td><td>Generate IH/SHSM</td><td>RO</td></tr>
+<tr><td>`cats/resources/signals/hart-aar/`</td><td>Appearance XML</td><td>RO</td></tr>
+<tr><td>`jmri/scripts/mqtt_signalhead_publisher.py`</td><td>MQTT ↔ SML jython</td><td>RO</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 4 — Native SML + NX</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`cats/data/le_signal_boundaries.csv`</td><td>LE boundaries</td><td>RO</td></tr>
+<tr><td>`cats/scripts/run_sml_discover.sh`</td><td>SML Discover wrapper</td><td>RO</td></tr>
+<tr><td>`cats/scripts/disable_digicon_sml_in_tables.py`</td><td>Disable Digicon SML dests</td><td>RO</td></tr>
+<tr><td>`cats/scripts/validate_le_signalling.py`</td><td>Post-discover validation</td><td>RO</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 5 — CATS Masters</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`cats/panels/HART_Master_CTC_hold.xml`</td><td>**Live CTC desk**</td><td>RO</td></tr>
+<tr><td>`cats/panels/HART_Master_ABS_hold.xml`</td><td>**Live ABS desk**</td><td>RO</td></tr>
+<tr><td>`cats/panels/HART_Master4.xml`</td><td>Master4 geometry</td><td>RO</td></tr>
+<tr><td>`cats/scripts/wire_hart_master4.py`</td><td>Wire Master4</td><td>RO</td></tr>
+<tr><td>`cats/scripts/build_hart_master_ctc_hold.py`</td><td>Build CTC hold</td><td>RO</td></tr>
+<tr><td>`cats/scripts/lcos_mqtt_mimic.py`</td><td>MQTT mimic QA</td><td>RO</td></tr>
+<tr><td>`cats/scripts/sync_hart_package.sh`</td><td>Deploy to Pi/Win</td><td>RO</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 6 — USS CTC</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`jmri/layouts/hart/ctc/GUIObjects.xml`</td><td>USS track diagram</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/gen_ctc_track_plan.py`</td><td>Generate CTC plan</td><td>RO</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 7 — Dispatcher System</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`jmri/layouts/hart/dispatcher/traininfo/`</td><td>Traininfo XML (~1508)</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/hart_dispatcher_startup.py`</td><td>Jython startup</td><td>RO</td></tr>
+<tr><td>`jmri/layouts/hart/scripts/patch_dispatcher_facing.py`</td><td>Facing overlay</td><td>RO</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 8 — Wiring</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`docs/wiring/LCOS_Layout_Inventory_v85.xlsx`</td><td>LCOS inventory</td><td>RO</td></tr>
+<tr><td>`docs/wiring/scripts/refresh_wiring_docs.py`</td><td>Regenerate pack</td><td>RO</td></tr>
+<tr><td>`~/Desktop/HART/Wiring Documentation/`</td><td>Bench mirror</td><td>RO (external)</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipeline 9 — LCOS (sibling repo)</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td><td>Consolidation</td></tr>
+<tr><td>`../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py`</td><td>Host bridge</td><td>RO</td></tr>
+<tr><td>`../LCOS_ESP32_MQTT_Client/lcos_mqtt_bridge.cpp`</td><td>Firmware bridge</td><td>RO</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Pipelines 12–16 (deferred — external)</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td></tr>
+<tr><td>`~/Desktop/HART/Car Cards/`</td><td>Car cards, waybills, publications scripts</td></tr>
+<tr><td>`~/sts/sts-docker`</td><td>STS runtime</td></tr>
+<tr><td>`~/Desktop/HART/Industries/`</td><td>Industry routing matrix</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Live rules (from AGENTS / AI_CONTEXT)</h2>
+
+<ol>
+<li>1. Writable tables: <strong><code>tables/new_tables.xml</code> only</strong></li>
+<li>2. Never run CATS CTC and USS CTC together</li>
+<li>3. Do not store JMRI tables from a CATS session</li>
+<li>4. hart geometry scale <strong>1:1</strong> — no <code>fit_panel_*</code> unless asked</li>
+<li>5. Deploy gate: <code>audit_panel_contracts.py --strict</code> before ship</li>
+</ol>
+  </main>
+</body>
+</html>

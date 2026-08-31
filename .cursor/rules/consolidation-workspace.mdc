@@ -1,0 +1,35 @@
+---
+description: HART consolidation workspace — parallel review track; live sources read-only
+globs:
+  - consolidation/**
+alwaysApply: false
+---
+
+# Consolidation workspace
+
+When the task touches **pipeline review**, **SoR consolidation**, **validators**, **refactors**, or **railroad documentation** beyond live ops:
+
+## Read first (mandatory)
+
+1. [`consolidation/AGENTS.md`](../../consolidation/AGENTS.md)
+2. [`consolidation/OBJECTIVE.md`](../../consolidation/OBJECTIVE.md)
+3. [`consolidation/LIVE_SOURCES.md`](../../consolidation/LIVE_SOURCES.md)
+4. [`consolidation/DECISIONS_PENDING.md`](../../consolidation/DECISIONS_PENDING.md)
+
+Browse portal: [`consolidation/index.html`](../../consolidation/index.html)
+
+## Golden rule
+
+**Write only under `consolidation/`.** Do not edit live `jmri/`, `cats/`, `tables/`, `docs/wiring/`, or live `wiki/` unless the user explicitly requests **promotion** to live.
+
+## Validators
+
+```bash
+bash consolidation/validators/run_all.sh
+```
+
+Reports go to `consolidation/audits/`.
+
+## Promotion
+
+Cutover to live requires user approval + Tier A green + STATUS update. Live workflow stays frozen during consolidation.

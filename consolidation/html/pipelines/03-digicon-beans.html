@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>digicon signal beans — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
+
+<h2>Source of record (consolidation view)</h2>
+
+<table>
+<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/digicon-signal-beans.md`</td><td>`consolidation/wiki/pipelines/digicon-signal-beans.md`</td></tr>
+<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+</table>
+
+<p>---</p>
+
+<h1>Pipeline 3 — Digicon signal beans</h1>
+
+<p>Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog, plus the <code>hart-aar</code> two-head appearance set.</p>
+
+<p><strong>Status:</strong> Live.</p>
+
+<h2>Inputs</h2>
+
+<ul>
+<li><a href="../../cats/data/signal_wiring.csv"><code>cats/data/signal_wiring.csv</code></a> (3 pins per disc)</li>
+<li><a href="../../cats/data/signal_head_plan.csv"><code>cats/data/signal_head_plan.csv</code></a></li>
+<li><a href="../../cats/data/signal_mast_plan.csv"><code>cats/data/signal_mast_plan.csv</code></a></li>
+</ul>
+
+<p>Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → <code>432</code> / <code>IH432</code>).</p>
+
+<h2>Outputs</h2>
+
+<ul>
+<li>IH / SHSM beans in tables (<code>hart-aar</code> <code>SL-2-digicon</code> two-head; AAR-1946 <code>SL-1-low</code> dwarfs)</li>
+<li><a href="../../cats/resources/signals/hart-aar/"><code>cats/resources/signals/hart-aar/</code></a> (deployed by <code>sync_hart_package.sh</code>)</li>
+</ul>
+
+<h2>Run</h2>
+
+<pre><code>
+python3 cats/scripts/build_hart_signal_heads.py
+</code></pre>
+
+<p>Facing / SML chaining: <a href="../../cats/docs/SIGNAL_FACING.md"><code>cats/docs/SIGNAL_FACING.md</code></a>.</p>
+
+<p>MQTT SET uses packed topics <code>track/signalhead/&lt;digits&gt;</code> and field status <code>track/signalmast/&lt;digits&gt;</code> — not an include list. Live roster is LCOS mast traffic.</p>
+
+<h2>Do not</h2>
+
+<ul>
+<li>Use stock <code>SL-2-high-abs</code> for two-lamp Digicon homes (SML pins at Stop)</li>
+<li>Put <code>IH</code> in the MQTT topic leaf</li>
+<li>Store tables from a CATS session</li>
+</ul>
+  </main>
+</body>
+</html>

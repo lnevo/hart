@@ -1,0 +1,70 @@
+=== HART consolidation validators ===
+Root: /Users/lnevo/hart
+Report: /Users/lnevo/hart/consolidation/audits/run_all_20260831T054418Z.log
+
+--- audit_strict ---
+working: tables/new_tables.xml (panel=HART Railroad, errors=0, warnings=0)
+deployment: jmri/layouts/hart/output/tables.xml (panel=HART Railroad, errors=0, warnings=0)
+standalone: jmri/layouts/hart/output/hart_prod.xml (panel=HART Railroad, errors=0, warnings=0)
+source drift: 0 difference(s)
+RESULT: PASS (strict; hard errors=0, warnings=0, drift=0)
+OK: audit_strict
+
+--- phase02 ---
+PASS hart phase 0–2 checks
+OK: phase02
+
+--- names_diff ---
+Map identity/proposed names: 257
+Bean userNames in tables: 0
+Map names not on any bean: 257 (informational)
+CRITICAL missing (equipment-like): 139
+  - DCC Switch 1
+  - DCC Switch 11
+  - DCC Switch 13
+  - DCC Switch 15
+  - DCC Switch 17
+  - DCC Switch 19
+  - DCC Switch 21
+  - DCC Switch 23
+  - DCC Switch 25
+  - DCC Switch 27
+  - DCC Switch 29
+  - DCC Switch 3
+  - DCC Switch 31
+  - DCC Switch 33
+  - DCC Switch 35
+  - DCC Switch 37
+  - DCC Switch 39
+  - DCC Switch 5
+  - DCC Switch 7
+  - DCC Switch 9
+  ... and 119 more
+FAIL: names_diff
+
+--- sml_invariants ---
+SML destinations: 0 (expected 93)
+ISNX sensors: 0
+FAIL: destination count 0 != 93
+OK: NX uses ISNX:* systemNames
+FAIL: sml_invariants
+
+--- wiring_crosswalk ---
+Packed IDs from signal_wiring.csv: 46
+IH packed IDs from tables: 0
+WARN: 46 wiring IDs without IH bean (first 10):
+  - 1132
+  - 1133
+  - 1134
+  - 1135
+  - 1136
+  - 1232
+  - 1233
+  - 1234
+  - 1235
+  - 1236
+FAIL: >10% wiring IDs missing IH beans
+FAIL: wiring_crosswalk
+
+=== Summary ===
+SOME CHECKS FAILED — see /Users/lnevo/hart/consolidation/audits/run_all_20260831T054418Z.log

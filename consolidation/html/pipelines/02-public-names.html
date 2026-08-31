@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>public names — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
+
+<h2>Source of record (consolidation view)</h2>
+
+<table>
+<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/public-names.md`</td><td>`consolidation/wiki/pipelines/public-names.md`</td></tr>
+<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+</table>
+
+<p>---</p>
+
+<h1>Pipeline 2 — Public names + comments</h1>
+
+<p>Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT <code>systemName</code>s stay frozen (<code>M2T*</code>, <code>M2S*</code>, <code>IH*</code>, <code>IS*:</code>, <code>ISNX:*</code>). LCC turnout aliases <code>MTT100</code>–<code>MTT119</code> are required twins (userName <code>DCC Switch N</code>, comment is MQTT minus <code>DCC: NNN</code>, same FB sensors). <code>audit_panel_contracts.py --strict</code> fails if any MQTT DCC turnout lacks its MTT twin. Do not delete MTT* as leftovers.</p>
+
+<p><strong>Status:</strong> Live. <a href="../decisions/ADR-005-public-equipment-names.md">ADR-005</a>.</p>
+
+<h2>Inputs</h2>
+
+<ul>
+<li><a href="../../jmri/layouts/hart/data/public_name_map.csv"><code>jmri/layouts/hart/data/public_name_map.csv</code></a></li>
+<li>Device-map comments (node / OU / ports / <code>DCC: NNN</code>)</li>
+</ul>
+
+<h2>Outputs</h2>
+
+<ul>
+<li><code>userName</code> on turnouts, sensors, blocks, heads, masts in <code>tables/new_tables.xml</code> and hart <code>output/</code></li>
+<li>Occupancy comments <code>Block n-n</code>; wiring comments on hardware beans</li>
+<li>Names baked into USS / CATS <strong>after regenerate</strong>, not by string-replace of generated XML</li>
+</ul>
+
+<h2>Run</h2>
+
+<pre><code>
+export JMRI_LAYOUT=hart
+python3 jmri/layouts/hart/scripts/apply_public_names.py          # dry-run first
+python3 jmri/layouts/hart/scripts/apply_public_names.py --apply
+python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --apply
+python3 jmri/layouts/hart/scripts/sync_public_name_map.py
+python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
+</code></pre>
+
+<p>Beans <strong>with a generator</strong> (USS diagram, CATS Masters, signal heads): change the script or CSV, then regenerate those pipelines. Do not search-replace their output.</p>
+
+<p>Writable tables only: <code>tables/new_tables.xml</code> (never <code>tables/tables.xml</code>).</p>
+
+<h2>Do not</h2>
+
+<ul>
+<li>Change MQTT topics or <code>systemName</code>s</li>
+<li>Put leftover Switch 100–119 in public names (DCC address stays in turnout <strong>comments</strong>)</li>
+<li>Add one-off deletes to <code>cleanup_uss_ctc_leftovers.py</code> as a forever list</li>
+</ul>
+  </main>
+</body>
+</html>

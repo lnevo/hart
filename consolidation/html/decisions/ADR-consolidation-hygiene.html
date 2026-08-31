@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADR-consolidation-hygiene — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>ADR — Consolidation vs promotion hygiene (draft)</h1>
+
+<p><strong>Status:</strong> Draft — pending D1 in <a href="../../DECISIONS_PENDING.md"><code>DECISIONS_PENDING.md</code></a>.</p>
+
+<h2>During consolidation</h2>
+
+<ul>
+<li>All writes under <code>consolidation/</code> only.</li>
+<li>Validators read live; reports under <code>consolidation/audits/</code>.</li>
+<li>Findings update: manifest row + audit markdown + draft wiki guide.</li>
+</ul>
+
+<h2>On promotion (future, user-approved)</h2>
+
+<ol>
+<li>1. User approves specific files in <code>DECISIONS_PENDING.md</code>.</li>
+<li>2. Tier A validators green against live.</li>
+<li>3. Apply change to live path(s).</li>
+<li>4. Update live <code>wiki/STATUS.md</code> + pipeline guide.</li>
+<li>5. Deploy if live artifacts changed (<code>sync_hart_package.sh</code>).</li>
+</ol>
+
+<h2>Do not</h2>
+
+<ul>
+<li>Patch live workflows to “fix forward” during review.</li>
+<li>Add one-shot deletes to immortal cleanup lists without audit (D5).</li>
+</ul>
+  </main>
+</body>
+</html>

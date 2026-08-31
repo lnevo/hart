@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home — HART Consolidation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="index.html">Home</a>
+  <a href="objective.html">Objective</a>
+  <a href="decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="live-sources.html">Live sources</a>
+  <a href="manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="pipelines/08-wiring.html">Wiring docs</a>
+  <a href="pipelines/12-car-cards.html">Car cards</a>
+  <a href="pipelines/14-sts.html">STS</a>
+  <a href="pipelines/15-publications.html">Publications</a>
+  <a href="pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="audits/index.html">Audits</a>
+  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    
+<div class="hero">
+  <h1>HART Railroad — Consolidation Portal</h1>
+  <p>Parallel review workspace. Live operational sources are <strong>read-only</strong>.
+  All drafts, validators, and proposed SoRs live under <code>hart/consolidation/</code>.</p>
+  <p><a href="decisions.html"><strong>→ Review decisions pending approval</strong></a></p>
+</div>
+<div class="cards">
+  <a class="card" href="pipelines/05-cats-masters.html"><h3>CATS CTC / ABS</h3><p>Master4 hold panels, Digicon desk</p></a>
+  <a class="card" href="pipelines/07-dispatcher.html"><h3>JMRI Dispatcher</h3><p>Graph, traininfo, facing overlay</p></a>
+  <a class="card" href="pipelines/mimic.html"><h3>MQTT mimic</h3><p>LCOS QA, signalhead publisher</p></a>
+  <a class="card" href="pipelines/14-sts.html"><h3>STS</h3><p>Sessions, switch lists, seed</p></a>
+  <a class="card" href="pipelines/08-wiring.html"><h3>Wiring</h3><p>LCOS inventory v85, schematics</p></a>
+  <a class="card" href="pipelines/09-lcos-firmware.html"><h3>LCOS bridge</h3><p>Nano firmware + serial_to_mqtt</p></a>
+  <a class="card" href="live-sources.html"><h3>Live sources map</h3><p>Paths you must not edit</p></a>
+  <a class="card" href="audits/index.html"><h3>Audits</h3><p>Validator reports & reviews</p></a>
+</div>
+
+  </main>
+</body>
+</html>

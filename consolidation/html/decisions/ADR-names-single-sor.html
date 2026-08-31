@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADR-names-single-sor — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>ADR — Single names SoR (consolidation, D2 approved)</h1>
+
+<p><strong>Status:</strong> Approved 2026-08-31  </p>
+<p><strong>Supersedes (on promotion):</strong> dual-CSV language in draft <code>ADR-consolidation-sor.md</code></p>
+
+<h2>Decision</h2>
+
+<p><strong><code>public_name_map.csv</code> is the single source of truth</strong> for equipment identity, proposed renames, device comments, and HART Device Map display.</p>
+
+<p><code>block_display_names.csv</code> is <strong>legacy</strong> — retain only until consumers are migrated or proven redundant.</p>
+
+<h2>Rationale</h2>
+
+<ul>
+<li>Device Map canvas syncs via <code>sync_public_name_map.py</code> into the map CSV.</li>
+<li>676 map rows vs 53 block_display rows; 30 block_display-only values are mostly CP/plate/throat <strong>metadata</strong>, not separate equipment identity.</li>
+<li>Owner confirmed map is authority.</li>
+</ul>
+
+<h2>Migration (promotion only — not live yet)</h2>
+
+<table>
+<tr><td>Consumer</td><td>Today</td><td>Target</td></tr>
+<tr><td>`check_hart_phase02.py`</td><td>OS names from `block_display_names.csv`</td><td>Filter `public_name_map.csv` by role/layer or CP column</td></tr>
+<tr><td>`bootstrap_hart_from_linear6.py`</td><td>Optional block_display apply</td><td>Remove or map-only</td></tr>
+<tr><td>`refresh_bean_comments.py`</td><td>Text-replace path list includes block_display file</td><td>Drop from replace list after migration</td></tr>
+<tr><td>`sor/names/` snapshot</td><td>Both CSVs</td><td>Map only after migration</td></tr>
+</table>
+
+<h2>Generator order (unchanged)</h2>
+
+<pre><code>
+sync_public_name_map → apply_public_names → refresh_bean_comments → export pipelines
+</code></pre>
+
+<h2>Audit</h2>
+
+<p><a href="../audits/block-display-vs-map.md"><code>audits/block-display-vs-map.md</code></a></p>
+  </main>
+</body>
+</html>

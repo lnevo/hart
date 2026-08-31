@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>speed matching — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
+
+<h2>Source of record (consolidation view)</h2>
+
+<table>
+<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/speed-matching.md`</td><td>`consolidation/wiki/pipelines/speed-matching.md`</td></tr>
+<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+</table>
+
+<p>---</p>
+
+<h1>Pipeline 11 — Speed matching</h1>
+
+<p>Measured DecoderPro speed profiles so Dispatcher System station stops are realistic.</p>
+
+<p><strong>Status:</strong> Parked. Every live roster loco currently has the same <strong>synthetic</strong> 10-step / 400 mm/s profile (<code>ensure_dispatcher_roster_profiles.py</code>). Replace with measured tables when the circle is ready.</p>
+
+<h2>Inputs</h2>
+
+<ul>
+<li>Club SOP + scripts under <a href="../../jmri/docs/speedmatching/"><code>jmri/docs/speedmatching/</code></a></li>
+<li>Detected loop (scripts are N-scale Kato 19″ / BDL168 <code>LS1</code>–<code>LS12</code> — <strong>adapt</strong> for HART)</li>
+</ul>
+
+<h2>Outputs</h2>
+
+<ul>
+<li>Roster speed profile on each DecoderPro loco</li>
+</ul>
+
+<h2>Run</h2>
+
+<p>Project notes: <a href="../projects/speedmatching.md"><code>wiki/projects/speedmatching.md</code></a>. Load <strong>Matching</strong>, then <strong>Measuring</strong> (reverse order errors).</p>
+
+<p>Do not run the stock STRR geometry against HART without changing sensors, piece count, radius, and scale.</p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>car cards — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
+
+<h2>Source of record (consolidation view)</h2>
+
+<table>
+<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/car-cards.md`</td><td>`consolidation/wiki/pipelines/car-cards.md`</td></tr>
+<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+</table>
+
+<p>---</p>
+
+<h1>Pipeline 12 — Car cards</h1>
+
+<p>Print filled car cards from roster XML + cropped car photos.</p>
+
+<p><strong>Status:</strong> Live on Desktop (not the hart git tree). <code>~/Desktop/HART/Car Cards/</code></p>
+
+<h2>Inputs</h2>
+
+<ul>
+<li><code>data/HART_MergedCarRoster.xml</code>, <code>data/OperationsEngineRoster.xml</code></li>
+<li><code>data/image_metadata.csv</code></li>
+<li>Photos: <code>CarImagesFinal/</code> (and crop/OCR helpers in <code>card_pipeline/</code>)</li>
+</ul>
+
+<h2>Outputs</h2>
+
+<ul>
+<li><code>card_pipeline/output/HART_All_Car_Cards.docx</code> (sticker sheet, 9 per page)</li>
+</ul>
+
+<h2>Run</h2>
+
+<p>From <code>~/Desktop/HART/Car Cards/</code>:</p>
+
+<pre><code>
+.venv/bin/python card_pipeline/generate_all_cards.py
+</code></pre>
+
+<p>Related: <code>generate_single_card.py</code>, <code>generate_card_template.py</code>, <code>build_merged_car_roster.py</code>, image OCR/crop scripts in <code>card_pipeline/</code>. Agent notes: <code>Car Cards/AGENTS.md</code>.</p>
+  </main>
+</body>
+</html>

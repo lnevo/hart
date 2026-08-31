@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MQTT mimic — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>MQTT mimic QA (CATS + JMRI)</h1>
+
+<p><strong>Consolidation topic:</strong> Pipeline 3/5 cross-cutting — LCOS Digicon aspect QA without physical layout.</p>
+
+<h2>Live paths (read-only)</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td></tr>
+<tr><td>`cats/scripts/lcos_mqtt_mimic.py`</td><td>CATS-side mimic; reads `public_name_map.csv`</td></tr>
+<tr><td>`jmri/scripts/mqtt_signalhead_publisher.py`</td><td>JMRI jython publisher (deployed to `preference:jython/`)</td></tr>
+<tr><td>`LCOS_ESP32_MQTT_Client/serial_to_mqtt.py`</td><td>Host serial ↔ MQTT bridge</td></tr>
+</table>
+
+<h2>Behavior (consolidation documented)</h2>
+
+<ul>
+<li><strong>Live roster:</strong> non-empty <code>track/signalmast/&lt;packed&gt;</code> from LCOS — not static allow-lists.</li>
+<li><strong>Topics:</strong> <code>track/signalhead/&lt;packed&gt;</code> (SET), <code>track/signalmast/&lt;packed&gt;</code> (field status).</li>
+<li><strong>Packed ID:</strong> radio node × 100 + UID (e.g. node 4 UID 32 → <code>432</code> / <code>IH432</code>).</li>
+<li><strong>Bridge:</strong> Windows serial bridge runs <strong>foreground</strong> only (do not <code>Start-Process</code> Hidden).</li>
+</ul>
+
+<h2>Run (live — do not change from consolidation)</h2>
+
+<pre><code>
+# JMRI PanelPro with mqtt_signalhead_publisher active
+python3 cats/scripts/lcos_mqtt_mimic.py --help
+python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local
+</code></pre>
+
+<h2>Pending (D10)</h2>
+
+<ul>
+<li>Periodic event <strong>125</strong> after master RAM wipe</li>
+<li>USB serial ACK / pacing on Windows bridge</li>
+</ul>
+
+<p>Spec: <a href="../../cross-repo/lcos/TIER_B.md"><code>cross-repo/lcos/TIER_B.md</code></a></p>
+
+<h2>Related pipelines</h2>
+
+<ul>
+<li><a href="digicon-signal-beans.md">Digicon signal beans</a> — pipeline 3</li>
+<li><a href="cats-masters.md">CATS Masters</a> — pipeline 5</li>
+<li><a href="lcos-firmware.md">LCOS firmware</a> — pipeline 9</li>
+</ul>
+  </main>
+</body>
+</html>

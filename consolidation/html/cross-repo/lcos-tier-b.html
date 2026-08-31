@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LCOS Tier B — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>LCOS — Tier B validation spec (consolidation)</h1>
+
+<p><strong>Repo:</strong> <a href="../../../LCOS_ESP32_MQTT_Client"><code>LCOS_ESP32_MQTT_Client</code></a> — do not edit vendor <code>lcos/</code> or <code>reference/</code> from consolidation.</p>
+
+<h2>Manual smokes (manifest tier B)</h2>
+
+<h3>B1 — Mast roster from MQTT</h3>
+
+<ol>
+<li>1. Subscribe <code>track/signalmast/#</code> on broker <code>minipc-e5h6x.local</code>.</li>
+<li>2. After bridge connect, confirm non-empty retained mast topics for live heads.</li>
+<li>3. SET on <code>track/signalhead/&lt;packed&gt;</code> must be gated when mast topic absent.</li>
+</ol>
+
+<h3>B2 — Event 125 replay</h3>
+
+<p>After LCOS master RAM wipe, mast MQTT disappears until display subscription (event 125) is replayed.</p>
+
+<p><strong>Proposal:</strong> Periodic 125 to <code>kSubscribeDisplayNodes[]</code> after master restart.</p>
+
+<ul>
+<li>[ ] Approve firmware/bridge change (D10)</li>
+</ul>
+
+<h3>B3 — USB serial ACK / pacing</h3>
+
+<p>Windows bridge TODOs in live STATUS — document pacing before promotion.</p>
+
+<h2>Files to change on promotion (not now)</h2>
+
+<ul>
+<li><code>lcos_mqtt_bridge.cpp</code> — subscription + 125</li>
+<li><code>serial_to_mqtt.py</code> — ACK pacing</li>
+<li><code>mqtt_serial.cpp</code> — serial layer</li>
+</ul>
+
+<h2>Broker cleanup note</h2>
+
+<p>One-shot retain clear for stale <code>track/signalhead/*</code> and <code>track/signalmast/*</code> (keep 432/433) — already done manually; do not encode in immortal scripts.</p>
+  </main>
+</body>
+</html>

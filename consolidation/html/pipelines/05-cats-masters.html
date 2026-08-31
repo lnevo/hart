@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>cats masters — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
+  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
+
+<h2>Source of record (consolidation view)</h2>
+
+<table>
+<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/cats-masters.md`</td><td>`consolidation/wiki/pipelines/cats-masters.md`</td></tr>
+<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+</table>
+
+<p>---</p>
+
+<h1>Pipeline 5 — CATS Digicon Masters</h1>
+
+<p>Designer geometry → wired Master XML → HOLD_ONLY CTC and ABS launchers.</p>
+
+<p><strong>Status:</strong> Live desks are <strong>CATS CTC</strong> and <strong>CATS ABS</strong>. <a href="../decisions/ADR-004-cats-ctc.md">ADR-004</a>.</p>
+
+<h2>Inputs</h2>
+
+<ul>
+<li><code>cats/panels/HART_Master.xml</code> (geometry; rebuild from Master4 via <code>wire_hart_master4.py --live</code>)</li>
+<li>Device CSVs from <code>python3 jmri/scripts/export_hart_devices_for_cats.py</code></li>
+</ul>
+
+<h2>Outputs</h2>
+
+<table>
+<tr><td>File</td><td>Role</td></tr>
+<tr><td>`cats/panels/HART_Master_CTC_hold.xml`</td><td>Live CTC — routes on; signals HOLD_ONLY; SML owns aspects</td></tr>
+<tr><td>`cats/panels/HART_Master_ABS_hold.xml`</td><td>Live ABS — paints SML; HOLD_ONLY</td></tr>
+</table>
+
+<h2>Run</h2>
+
+<pre><code>
+python3 cats/scripts/wire_hart_master4.py --live
+python3 cats/scripts/build_hart_master_ctc_hold.py
+python3 cats/scripts/build_hart_master_abs_hold.py
+python3 cats/scripts/polish_hart_master_header.py --panel all
+python3 cats/scripts/validate_cats_panel.py
+./cats/scripts/launch_cats.sh
+</code></pre>
+
+<p>System picture: <a href="../../cats/docs/HART_DIGICON_SYSTEM.md"><code>cats/docs/HART_DIGICON_SYSTEM.md</code></a>. Operator: <a href="../../cats/docs/DISPATCHER_GUIDE_CTC.md"><code>cats/docs/DISPATCHER_GUIDE_CTC.md</code></a>.</p>
+
+<h2>Do not</h2>
+
+<ul>
+<li>Run CATS CTC and USS CTC (or Dispatcher System from inside CATS) at the same time</li>
+<li>Store JMRI tables from a CATS session</li>
+<li>Treat Gate 1 <code>HART.xml</code> as the ops board</li>
+<li>Command field turnouts / publish <code>track/cmd</code> from launch or paint-fix scripts</li>
+</ul>
+  </main>
+</body>
+</html>
