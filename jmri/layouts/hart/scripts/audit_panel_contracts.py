@@ -448,9 +448,13 @@ def audit_stations(
 def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
     placeholders: list[str] = []
     redundant_occupancy_icons: list[str] = []
+    # Intentional status-lamp captions (not temporary SIG… placeholders).
+    _status_lamp_labels = {"LCOS", "Turnouts", "Signals"}
     if panel is not None:
         for label in panel.iter("positionablelabel"):
             value = (label.get("text") or text(label, "text")).strip()
+            if value in _status_lamp_labels:
+                continue
             if value.upper().startswith("SIG"):
                 placeholders.append(value)
         station_occupancy = {
