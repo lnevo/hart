@@ -13,8 +13,8 @@
 # Signals lamp (IS:SML_MODE): click → DigiconMqttSml.toggle_from_panel().
 # LCOS lamp (M2S1567): click → MQTT track/bridge/cmd RESUBSCRIBE (not FORCE).
 #
-# Arming is deferred until Layout Editor / turnout beans are up (Start Up scripts
-# often run before panels finish opening).
+# Ladder/lamp arm as soon as watch turnouts exist. Panel click wiring retries
+# quietly afterward (do not block on Layout Editor — EditorManager often lags).
 
 import jmri
 from java.awt.event import ActionListener, MouseAdapter, MouseEvent
@@ -60,18 +60,23 @@ WATCH = [
     "M2T1211", "M2T1210", "M2T1209", "M2T1208",
 ]
 
-# Wait for LE / MQTT turnouts: first try after 5s, then every 2s up to ~60s.
-_ARM_FIRST_MS = 5000
-_ARM_RETRY_MS = 2000
-_ARM_MAX_ATTEMPTS = 30
+# Ladder/lamp: short settle, then arm when watch turnouts exist (no LE gate).
+_ARM_FIRST_MS = 1000
+_ARM_RETRY_MS = 1000
+_ARM_MAX_ATTEMPTS = 15
+# Clicks: quiet background retries after panel contents appear.
+_CLICK_RETRY_MS = 2000
+_CLICK_MAX_ATTEMPTS = 30
 
 _busy = False
 _armed = False
 _clicks_armed = False
+_icon_rebound = False
 _last = (None, None)
 _last_fb_appearance = None
 _listener = None
 _click_busy = False
+_plant_count = 0
 
 
 def _known(to):
@@ -136,34 +141,6 @@ def _included_plant_turnouts():
     return out
 
 
-def _layout_editor_ready():
-    """True once at least one Layout Editor panel is open (or editors exist)."""
-    try:
-        from jmri.jmrit.display import EditorManager
-
-        em = jmri.InstanceManager.getDefault(EditorManager)
-        if em is None:
-            return False
-        editors = list(em.getAll())
-        if not editors:
-            return False
-        for ed in editors:
-            name = ""
-            try:
-                name = ed.getTitle() or ed.getName() or ""
-            except Exception:
-                try:
-                    name = str(ed)
-                except Exception:
-                    name = ""
-            # Prefer HART Railroad; any LE is enough to know panels are up.
-            if "HART" in name or "Layout" in name or "layout" in ed.getClass().getName():
-                return True
-        return len(editors) > 0
-    except Exception:
-        return False
-
-
 def _watch_turnouts_present():
     """True when the MQTT ladder watch turnouts exist in the manager."""
     try:
@@ -199,7 +176,7 @@ def _ensure_turnout_fb_head():
 
 
 def _set_head_appearance(head, appearance):
-    """Apply appearance on the layout thread; clear held so icon is not '?'."""
+    """Apply appearance on the EDT; clear held so icon is not '?'."""
 
     class _Set(Runnable):
         def run(self):
@@ -226,8 +203,9 @@ def _set_head_appearance(head, appearance):
 
 
 def _rebind_turnout_fb_icons(head):
-    """If the LE icon loaded before the bean existed, re-point it at IH9990."""
-    if head is None:
+    """Once: if the LE icon loaded before the bean existed, re-point it."""
+    global _icon_rebound
+    if head is None or _icon_rebound:
         return
     try:
         from jmri.jmrit.display import EditorManager, SignalHeadIcon
@@ -236,6 +214,7 @@ def _rebind_turnout_fb_icons(head):
     em = jmri.InstanceManager.getDefault(EditorManager)
     if em is None:
         return
+    rebound = False
     for ed in list(em.getAll()):
         try:
             contents = list(ed.getContents())
@@ -245,41 +224,32 @@ def _rebind_turnout_fb_icons(head):
             try:
                 if not isinstance(icon, SignalHeadIcon):
                     continue
-                # Match by name on the icon even when bean was missing at load.
-                name = None
-                try:
-                    name = icon.getName()
-                except Exception:
-                    name = None
                 hn = _head_sys(icon)
                 if hn == TURNOUT_FB_HEAD:
+                    rebound = True
                     continue
-                if hn is None and (
-                    name == TURNOUT_FB_HEAD
-                    or (name and "TURNOUT" in str(name).upper())
-                    or (name and "9990" in str(name))
-                ):
-                    pass
-                elif hn is not None and hn != TURNOUT_FB_HEAD:
-                    continue
-                else:
-                    # Heuristic: status-lamp strip near LCOS (x~24,y~588).
-                    try:
-                        if int(icon.getX()) > 40 or abs(int(icon.getY()) - 588) > 20:
-                            continue
-                    except Exception:
+                try:
+                    if abs(int(icon.getX()) - 24) > 8 or abs(int(icon.getY()) - 588) > 8:
                         continue
+                except Exception:
+                    continue
                 try:
                     icon.setSignalHead(TURNOUT_FB_HEAD)
-                    print("sync_turnout_buttons: rebound Turnouts icon -> %s" % TURNOUT_FB_HEAD)
+                    rebound = True
+                    print(
+                        "sync_turnout_buttons: rebound Turnouts icon -> %s"
+                        % TURNOUT_FB_HEAD
+                    )
                 except Exception:
                     try:
                         icon.setSignalHead(head)
-                        print("sync_turnout_buttons: rebound Turnouts icon (bean)")
-                    except Exception as e:
-                        print("sync_turnout_buttons: rebind failed: %s" % e)
+                        rebound = True
+                    except Exception:
+                        pass
             except Exception:
                 pass
+    if rebound:
+        _icon_rebound = True
 
 
 def sync_turnout_fb_lamp():
@@ -339,7 +309,6 @@ def toggle_turnout_fb_mode():
         target = DIRECT
         label = "DIRECT"
     else:
-        # All DIRECT, mixed, or other → TWOSENSOR (recover feedback).
         target = TWOSENSOR
         label = "TWOSENSOR"
     n = 0
@@ -403,7 +372,6 @@ def _digicon_controller():
     except Exception:
         pass
     try:
-        # Class may live in this interpreter if the publisher script shared ns.
         for obj in globals().values():
             cls = getattr(obj, "__class__", None)
             if cls is not None and getattr(cls, "__name__", "") == "DigiconMqttSml":
@@ -413,8 +381,7 @@ def _digicon_controller():
     except Exception:
         pass
     try:
-        # Publisher may have left DigiconMqttSml in this namespace.
-        cls = DigiconMqttSml  # noqa: F821 — may exist after publisher load
+        cls = DigiconMqttSml  # noqa: F821
         return getattr(cls, "INSTANCE", None)
     except NameError:
         return None
@@ -458,7 +425,6 @@ def sync_ladder_buttons(event=None):
         _busy = False
 
 
-# Debounce peel bursts from a single route.
 _sync_timer = Timer(250, None)
 _sync_timer.setRepeats(False)
 
@@ -516,13 +482,11 @@ def _head_sys(icon):
 
 
 def _disable_icon_control(icon):
-    """Stop JMRI default click (toggle sensor / cycle head)."""
     try:
         icon.setControlling(False)
     except Exception:
         pass
     try:
-        # SignalHeadIcon: 0=change aspect — leave mode but controlling off.
         if hasattr(icon, "setClickMode"):
             icon.setClickMode(0)
     except Exception:
@@ -582,50 +546,45 @@ def _arm_status_lamp_clicks():
                         icon.addMouseListener(_LampClick(toggle_sml_mode))
                         found["signals"] += 1
                 elif isinstance(icon, SignalHeadIcon):
-                    hn = _head_sys(icon)
-                    if hn == TURNOUT_FB_HEAD:
+                    if _head_sys(icon) == TURNOUT_FB_HEAD:
                         _disable_icon_control(icon)
                         icon.addMouseListener(_LampClick(toggle_turnout_fb_mode))
                         found["turnouts"] += 1
             except Exception as e:
                 print("sync_turnout_buttons: icon wire failed: %s" % e)
 
-    if found["lcos"] or found["turnouts"] or found["signals"]:
+    if found["lcos"] and found["turnouts"] and found["signals"]:
         _clicks_armed = True
         print(
-            "sync_turnout_buttons: status lamp clicks "
-            "LCOS=%d Turnouts=%d Signals=%d"
-            % (found["lcos"], found["turnouts"], found["signals"])
+            "sync_turnout_buttons: status lamp clicks ready "
+            "(LCOS/Turnouts/Signals)"
         )
         return True
     return False
 
 
 def _arm_listeners():
-    """Attach listeners once beans exist. Safe to call only once."""
-    global _armed, _listener
-    if not _armed:
-        _listener = _TurnoutListener()
-        for sn in WATCH:
-            turnouts.provideTurnout(sn).addPropertyChangeListener(_listener)
-        for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
-            turnouts.provideTurnout(sn)
-        for to in turnouts.getNamedBeanSet():
-            sn = to.getSystemName()
-            if sn.startswith("M2T") or sn.startswith("MTT"):
-                try:
-                    to.addPropertyChangeListener(_listener)
-                except Exception:
-                    pass
-        _armed = True
-        print(
-            "sync_turnout_buttons: armed (%d watch turnouts, close-only + Turnouts lamp)"
-            % len(WATCH)
-        )
-    try:
-        _arm_status_lamp_clicks()
-    except Exception as e:
-        print("sync_turnout_buttons: click arm failed: %s" % e)
+    """Attach ladder/plant listeners once. Independent of panel icons."""
+    global _armed, _listener, _plant_count
+    if _armed:
+        return True
+    _listener = _TurnoutListener()
+    for sn in WATCH:
+        turnouts.provideTurnout(sn).addPropertyChangeListener(_listener)
+    for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
+        turnouts.provideTurnout(sn)
+    plants = _included_plant_turnouts()
+    _plant_count = len(plants)
+    for to in plants:
+        try:
+            to.addPropertyChangeListener(_listener)
+        except Exception:
+            pass
+    _armed = True
+    print(
+        "sync_turnout_buttons: armed (watch=%d plantFB=%d)"
+        % (len(WATCH), _plant_count)
+    )
     return True
 
 
@@ -635,27 +594,12 @@ class _ArmAttempt(ActionListener):
 
     def actionPerformed(self, event):
         event.getSource().stop()
-        ready = _watch_turnouts_present()
-        le_ok = _layout_editor_ready()
-        if not ready or not le_ok:
+        if not _watch_turnouts_present():
             if self.attempt + 1 >= _ARM_MAX_ATTEMPTS:
-                print(
-                    "sync_turnout_buttons: giving up wait "
-                    "(turnouts=%s layoutEditor=%s); arming anyway"
-                    % (ready, le_ok)
-                )
+                print("sync_turnout_buttons: watch turnouts missing; arming anyway")
             else:
-                if self.attempt == 0 or (self.attempt % 5) == 0:
-                    print(
-                        "sync_turnout_buttons: waiting for panel/turnouts "
-                        "(try %d, LE=%s, watch=%s)"
-                        % (self.attempt + 1, le_ok, ready)
-                    )
-                # Still try to paint the lamp while waiting (bean may already exist).
-                try:
-                    sync_turnout_fb_lamp()
-                except Exception:
-                    pass
+                if self.attempt == 0:
+                    print("sync_turnout_buttons: waiting for watch turnouts…")
                 t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
                 t.setRepeats(False)
                 t.start()
@@ -663,20 +607,11 @@ class _ArmAttempt(ActionListener):
         try:
             _arm_listeners()
             sync_ladder_buttons()
-            if not _clicks_armed:
-                t = Timer(2000, _RetryClicks(0))
-                t.setRepeats(False)
-                t.start()
         except Exception as e:
             print("sync_turnout_buttons: arm failed: %s" % e)
-            try:
-                sync_turnout_fb_lamp()
-            except Exception:
-                pass
-            if self.attempt + 1 < _ARM_MAX_ATTEMPTS:
-                t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
-                t.setRepeats(False)
-                t.start()
+        t = Timer(_CLICK_RETRY_MS, _RetryClicks(0))
+        t.setRepeats(False)
+        t.start()
 
 
 class _RetryClicks(ActionListener):
@@ -690,23 +625,15 @@ class _RetryClicks(ActionListener):
                 return
         except Exception as e:
             print("sync_turnout_buttons: click retry failed: %s" % e)
-        if self.attempt + 1 < 10:
-            t = Timer(2000, _RetryClicks(self.attempt + 1))
+        if self.attempt + 1 < _CLICK_MAX_ATTEMPTS:
+            t = Timer(_CLICK_RETRY_MS, _RetryClicks(self.attempt + 1))
             t.setRepeats(False)
             t.start()
         else:
             print("sync_turnout_buttons: status lamp icons not found on panel")
 
 
-print(
-    "sync_turnout_buttons: loaded; arming after %dms (waits for Layout Editor)"
-    % _ARM_FIRST_MS
-)
-# Early paint: tables may already have IH9990 before LE finishes opening.
-try:
-    sync_turnout_fb_lamp()
-except Exception as e:
-    print("sync_turnout_buttons: early lamp paint: %s" % e)
+print("sync_turnout_buttons: loaded; arming in %dms" % _ARM_FIRST_MS)
 _t0 = Timer(_ARM_FIRST_MS, _ArmAttempt(0))
 _t0.setRepeats(False)
 _t0.start()
