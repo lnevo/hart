@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — `sync_turnout_buttons` no longer waits ~60s on Layout Editor (`LE=False` spam); arms ladder/lamp when watch turnouts exist (~1s), retries clicks quietly. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-31 — Turnouts lamp bean renamed `IH:TURNOUT_FB` → **`IH9990`** (colon name left icon as `?`); paint early + rebind; dark/held icons no longer s-unknown. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-31 — Status lamp clicks (sync_turnout_buttons): **Turnouts** toggles TWOSENSOR↔DIRECT on 2-sensor M2T/MTT; **Signals** toggles Digicon SML (same as main-window button); **LCOS** publishes `track/bridge/cmd` RESUBSCRIBE (not FORCE). Icons `forcecontroloff=true`. Reload **PanelPro**. Deploy `--pi --win`.
