@@ -38,10 +38,6 @@
 - Designer as dual-primary: parked unless redraw; do not treat `HART.xml` as live
 - Node 13 walk-down done; EH-1/EH-3 MQTT channels swapped vs geographic labels — do not change topics
 
-## Deploy (live — not from consolidation)
+## Consolidation note
 
-```bash
-./cats/scripts/sync_hart_package.sh --pi   # add --win / --all when needed
-```
-
-Detail: [`cats/README.md`](../../../cats/README.md) · Dispatcher: [`cats/docs/DISPATCHER_GUIDE_CTC.md`](../../../cats/docs/DISPATCHER_GUIDE_CTC.md)
+Deploy commands live in `cats/README.md` — not run from the consolidation build workspace.

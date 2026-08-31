@@ -6,10 +6,10 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 EXT="$ROOT/consolidation/external"
 cd "$ROOT"
 
-LCOS_PIN=ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d
+LCOS_PIN=ae2d8da7b8821d2b14c889e05063ea359bab6afe
 STS_DOCKER_PIN=899b45809c99b92614f99990a88fee1dd4e63be2
 STS_HELPERS_PIN=cdbbfce8ab2ef915430b8e3eafc31267b518cde5
-HART_OPS_PIN=c276b85432118bd2d3f02299c3336169181e6670
+HART_OPS_PIN=0fecf5ecf6195b03048f0829fc4b00ee223bc521
 
 mkdir -p "$EXT"
 

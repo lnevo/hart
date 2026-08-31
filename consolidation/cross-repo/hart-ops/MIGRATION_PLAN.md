@@ -1,7 +1,7 @@
 # hart-ops — migration plan (P3a approved)
 
 **Status:** Phase 1 **complete** (2026-08-31) · repo [`lnevo/hart-ops`](https://github.com/lnevo/hart-ops)  
-**Submodule:** `consolidation/external/hart-ops` @ `bc6ce55`
+**Submodule:** `consolidation/external/hart-ops` @ `761c1f9`
 
 ## SoR build chain (D11)
 

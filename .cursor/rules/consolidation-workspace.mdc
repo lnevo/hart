@@ -13,20 +13,23 @@ When the task touches **pipeline review**, **SoR consolidation**, **validators**
 
 1. [`consolidation/AGENTS.md`](../../consolidation/AGENTS.md)
 2. [`consolidation/OBJECTIVE.md`](../../consolidation/OBJECTIVE.md)
-3. [`consolidation/LIVE_SOURCES.md`](../../consolidation/LIVE_SOURCES.md)
-4. [`consolidation/DECISIONS_PENDING.md`](../../consolidation/DECISIONS_PENDING.md)
+3. [`consolidation/BACKLOG.md`](../../consolidation/BACKLOG.md)
+4. [`consolidation/LIVE_SOURCES.md`](../../consolidation/LIVE_SOURCES.md)
 
-Browse portal: [`consolidation/index.html`](../../consolidation/index.html)
+Browse portal: [`consolidation/index.html`](../../consolidation/index.html)  
+F-root browse: [`consolidation/html/archive/f-root-index.html`](../../consolidation/html/archive/f-root-index.html)
 
 ## Golden rule
 
 **Write only under `hart/consolidation/`** (including `consolidation/external/*` submodules). Do not edit live `jmri/`, `cats/`, `tables/`, `docs/wiring/`, live `wiki/`, or **`~/Desktop/HART/`**.
 
+We are building the **new authoritative tree**. Live paths stay read-only until that tree is complete.
+
 ## Bench freeze (D12)
 
-- **No Pi / layout host deploy** — no roster push, no `sync_hart_package.sh` from consolidation work
-- **Desktop/HART is read-only** — inventory/audit only; slim/dedupe is a separate cutover project
-- **Original live files stay untouched** until rebuild is verified and user starts cutover
+- **No Pi / layout host deploy** from consolidation work
+- **Desktop/HART is read-only** — inventory, manifest, and F-root browse only
+- **Live hart tree untouched** during consolidation build
 
 ## Validators
 
@@ -35,7 +38,3 @@ bash consolidation/validators/run_all.sh
 ```
 
 Reports go to `consolidation/audits/`.
-
-## Promotion
-
-Cutover to live requires user approval + Tier A green + STATUS update. Live workflow stays frozen during consolidation.

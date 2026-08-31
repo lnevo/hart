@@ -7,7 +7,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path.insert(0, str(ROOT / "consolidation" / "scripts" / "lib"))
+
+from consolidation_paths import path_tables_xml
+
+TABLES = path_tables_xml()
 EXPECTED_DESTS = 93
 
 

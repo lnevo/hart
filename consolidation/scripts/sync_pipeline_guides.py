@@ -16,7 +16,7 @@ SOR_HEADER = """> **Consolidation draft** — live sources are read-only. See [`
 | Kind | Live path (read-only) | Proposed consolidation path |
 |------|----------------------|----------------------------|
 | Runbook | `wiki/pipelines/{name}` | `consolidation/wiki/pipelines/{name}` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Artifacts | See live guide below | `consolidation/sor/` when authoritative |
 
 ---
 

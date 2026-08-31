@@ -192,6 +192,15 @@ pipelines:
       - industries/HART_Industry_Routing_Matrix.xlsx
     guide: wiki/pipelines/industry-routing.md
 
+cross_cutting:
+  - id: tables
+    name: Tables XML merge chain
+    tier: A
+    decision: D3
+    guide: wiki/pipelines/tables-merge.md
+    adr: wiki/decisions/ADR-tables-merge-order.md
+    audit: audits/tables-pipeline.md
+
 global_validators:
   - validators/check_audit_strict.sh
   - validators/check_phase02.sh

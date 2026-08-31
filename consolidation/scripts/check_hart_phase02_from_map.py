@@ -15,12 +15,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "consolidation" / "scripts"))
+sys.path.insert(0, str(ROOT / "consolidation" / "scripts" / "lib"))
 
-from names_from_map import DEFAULT_MAP, SECONDARY_OS_BLOCKS, os_public_names_from_map
+from consolidation_paths import hart_runtime_root, path_hart_prod_xml, path_public_name_map
+from names_from_map import SECONDARY_OS_BLOCKS, os_public_names_from_map
 
-JMRI_ROOT = ROOT / "jmri"
-HART = JMRI_ROOT / "layouts" / "hart"
-PANEL = HART / "output" / "hart_prod.xml"
+HART_ROOT = hart_runtime_root()
+JMRI_ROOT = HART_ROOT / "jmri"
+PANEL = path_hart_prod_xml()
+DEFAULT_MAP = path_public_name_map()
 
 
 def main() -> int:
@@ -32,7 +35,7 @@ def main() -> int:
 
     root = ET.parse(PANEL).getroot()
 
-    sys.path.insert(0, str(JMRI_ROOT.parent))
+    sys.path.insert(0, str(HART_ROOT))
     from jmri.layout_paths import layout_paths
 
     paths = layout_paths("hart")

@@ -10,6 +10,7 @@ Open the [browse portal](../../index.html) for HTML navigation.
 | 2 | [public-names](public-names.md) | A | D2 single SoR; merged map in `sor/names/` |
 | 3 | [digicon-signal-beans](digicon-signal-beans.md) | A | Wiring crosswalk validator |
 | 4 | [native-sml](native-sml.md) | A | 93 destinations invariant |
+| — | [tables-merge](tables-merge.md) | A | **Cross-cutting** — D3 chain for pipelines 2–7 |
 | 5 | [cats-masters](cats-masters.md) | B | CTC + ABS hold copies |
 | 6 | [uss-ctc](uss-ctc.md) | B | Mutually exclusive with CATS CTC |
 | 7 | [dispatcher-system](dispatcher-system.md) | B | Stage 1 graph |

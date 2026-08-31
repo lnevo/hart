@@ -1,28 +1,27 @@
 # HART meta-repo — sibling repos and submodules
 
-**Status:** P3b **approved** — stage via [`scripts/init_external_submodules.sh`](../scripts/init_external_submodules.sh)  
+**Status:** P3b **done** — submodules under `consolidation/external/`  
 **Manifest:** [`cross-repo/SUBMODULE_MANIFEST.yaml`](../cross-repo/SUBMODULE_MANIFEST.yaml)  
-**Locks:** D7 · [`DECISIONS_RECORDED.md`](../DECISIONS_RECORDED.md)
+**Init:** [`scripts/init_external_submodules.sh`](../scripts/init_external_submodules.sh)
 
 ## Hub
 
 | Repo | Role |
 |------|------|
-| **`lnevo/hart`** | Layout, CATS panels, JMRI tables, wiring docs, consolidation |
+| **`lnevo/hart`** | Layout, CATS panels, JMRI tables, wiring docs, consolidation workspace |
 | **`LCOS_ESP32_MQTT_Client`** | Nano firmware + MQTT bridge → `consolidation/external/lcos-bridge` |
 | **`sts-docker`** | STS PHP runtime → `consolidation/external/sts-docker` |
 | **`sts-docker-helpers`** | Seed, warm-start, switch lists → `consolidation/external/sts-helpers` |
-| **hart-ops** | Car inventory SoR, cards, waybills, publications → `consolidation/external/hart-ops` @ `bc6ce55` |
+| **`hart-ops`** | Car inventory SoR, cards, waybills, publications → `consolidation/external/hart-ops` @ `761c1f9` |
 
 ## Submodule layout
 
 ```
-hart/
-  external/
-    lcos-bridge/      → LCOS_ESP32_MQTT_Client @ ec16af8
-    sts-docker/       → sts-docker @ 899b458
-    sts-helpers/      → sts-docker-helpers @ cdbbfce
-    hart-ops/         → hart-ops @ bc6ce55
+hart/consolidation/external/
+  lcos-bridge/      → LCOS_ESP32_MQTT_Client @ ae2d8da
+  sts-docker/       → sts-docker @ 899b458
+  sts-helpers/      → sts-docker-helpers @ cdbbfce
+  hart-ops/         → hart-ops @ 761c1f9
 ```
 
 ## Init (operator)
@@ -32,14 +31,6 @@ bash consolidation/scripts/init_external_submodules.sh
 git submodule update --init --recursive
 ```
 
-Or manual:
-
-```bash
-git submodule add git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git external/lcos-bridge
-git -C external/lcos-bridge checkout ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d
-# … sts-docker, sts-helpers per SUBMODULE_MANIFEST.yaml
-```
-
 ## Pins
 
 | Submodule | Doc |
@@ -47,7 +38,7 @@ git -C external/lcos-bridge checkout ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d
 | LCOS | [`cross-repo/lcos/SUBMODULE_PIN.md`](../cross-repo/lcos/SUBMODULE_PIN.md) |
 | sts-docker | [`cross-repo/sts-docker/SUBMODULE_PIN.md`](../cross-repo/sts-docker/SUBMODULE_PIN.md) |
 | sts-helpers | [`cross-repo/sts-helpers/SUBMODULE_PIN.md`](../cross-repo/sts-helpers/SUBMODULE_PIN.md) |
-| hart-ops | [`cross-repo/hart-ops/MIGRATION_PLAN.md`](../cross-repo/hart-ops/MIGRATION_PLAN.md) |
+| hart-ops | [`cross-repo/hart-ops/SUBMODULE_PIN.md`](../cross-repo/hart-ops/SUBMODULE_PIN.md) |
 
 ## Car inventory SoR
 
@@ -65,4 +56,4 @@ bash consolidation/validators/run_all.sh
 
 - Monorepo-merge LCOS vendor `lcos/` into hart
 - Edit car inventory in Operations Pro as SoR (export target only)
-- Commit Desktop Car Cards tree into hart (use hart-ops)
+- Clone submodules under `$HOME` — use `consolidation/external/` only

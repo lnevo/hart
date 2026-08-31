@@ -1,28 +1,31 @@
 # HART consolidation — objective
 
-**Charter:** Produce a validated, browsable, refactor-ready picture of the entire HART railroad software stack **without changing live operational sources**.
+**Charter:** Build a validated, browsable, refactored HART railroad software tree under `consolidation/` — without changing live operational sources on disk.
+
+When this tree is complete (versions current, scripts clean, validators green), it becomes the **authoritative** workspace. Until then we keep building; live layout and Desktop/HART stay read-only.
 
 ## Success criteria
 
 1. **Live inventory** — every pipeline documents what it reads/writes today (`LIVE_SOURCES.md`).
-2. **Proposed SoR** — draft canonical artifacts under `sor/` (not promoted until approved).
-3. **Draft runbooks** — pipeline guides under `wiki/pipelines/` with SoR tables and consolidation notes.
+2. **Proposed SoR** — draft canonical artifacts under `sor/`.
+3. **Draft runbooks** — pipeline guides under `wiki/pipelines/` with SoR tables.
 4. **Read-only validators** — `validators/run_all.sh` checks live state; reports go to `audits/`.
-5. **Batch decisions** — open choices in `DECISIONS_PENDING.md` for owner approval in parallel.
-6. **Human navigation** — open [`index.html`](index.html) in a browser to browse categories.
+5. **Recorded decisions** — `DECISIONS_RECORDED.md` locks consolidation defaults.
+6. **Human navigation** — open [`index.html`](index.html); F-root files at [`html/archive/f-root-index.html`](html/archive/f-root-index.html).
+7. **Backlog tracking** — [`BACKLOG.md`](BACKLOG.md) lists build progress.
 
-## Non-goals (this phase)
+## Non-goals (infrastructure)
 
-- Editing `jmri/`, `cats/`, `tables/`, live `wiki/`, or `docs/wiring/`.
-- PanelPro reload, CATS deploy, broker changes, or `sync_hart_package.sh` behavior changes.
-- Promoting consolidation drafts into live paths (separate **promotion gate**).
+- MQTT broker, Pi/Windows layout hosts, Windows COM bridge — documented, not packaged.
+- Optional raw Car Cards `Images/` (~982 MB) — use `DESKTOP_MIRROR_RAW=1` if needed.
+- Editing live `jmri/`, `cats/`, `tables/`, or moving/slimming live Desktop/HART during build.
 
 ## Lead engineer role
 
-Review live code and docs as **read-only references**. Write improvements, audits, ADRs, and refactored script **copies** only under `consolidation/`. Flag gaps; do not patch live workflows to “fix forward” during consolidation.
+Review live code and docs as **read-only references**. Write improvements, audits, ADRs, and refactored script **copies** only under `consolidation/`. Flag gaps; do not patch live workflows during the build.
 
 ## Related
 
 - [`AGENTS.md`](AGENTS.md) — mandatory agent instructions
-- [`DECISIONS_PENDING.md`](DECISIONS_PENDING.md) — approve these in parallel
+- [`BACKLOG.md`](BACKLOG.md) — build checklist
 - [`manifest.yaml`](manifest.yaml) — pipeline registry

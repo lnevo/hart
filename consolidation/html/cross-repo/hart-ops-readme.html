@@ -14,13 +14,14 @@
   <a href="../index.html">Home</a>
   <a href="../objective.html">Objective</a>
   <a href="../decisions.html">Decisions recorded</a>
-  <a href="next-round.html">Next round</a>
+  <a href="../next-round.html">Next round</a>
   <a href="../live-sources.html">Live sources</a>
   <a href="../manifest.html">Manifest</a>
 </div>
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,50 +41,65 @@
   <a href="../pipelines/15-publications.html">Publications</a>
   <a href="../pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="../cutover/index.html">Cutover projects</a>
+  <a href="../sor-central.html">Central SoR index</a>
+  <a href="../audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="../archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="../archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../archive/index.html">Archive taxonomy</a>
-  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../backlog.html">Backlog</a>
+  <a href="../repos.html">Repos &amp; submodules</a>
   <a href="../decisions/index.html">ADR index</a>
   <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
-    <h1>hart-ops — migration target</h1>
+    <h1>hart-ops — consolidation external module</h1>
 
-<p><strong>Status:</strong> <strong>Live</strong> @ <a href="https://github.com/lnevo/hart-ops"><code>lnevo/hart-ops</code></a> · submodule <code>consolidation/external/hart-ops</code>  </p>
-<p><strong>Pin:</strong> <a href="SUBMODULE_PIN.md"><code>SUBMODULE_PIN.md</code></a> · <code>bc6ce55</code></p>
+<p><strong>Repo:</strong> <a href="https://github.com/lnevo/hart-ops"><code>lnevo/hart-ops</code></a>  </p>
+<p><strong>Path:</strong> <code>consolidation/external/hart-ops</code>  </p>
+<p><strong>Pin:</strong> <a href="SUBMODULE_PIN.md"><code>SUBMODULE_PIN.md</code></a> · <code>761c1f9</code></p>
 
 <h2>Scope (pipelines 12–16)</h2>
 
 <table>
-<tr><td>Pipeline</td><td>Desktop path</td><td>Repo target</td></tr>
-<tr><td>12 Car cards</td><td>`Car Cards/card_pipeline/`</td><td>`hart-ops/card_pipeline/`</td></tr>
-<tr><td>13 Waybills</td><td>`Car Cards/data/HART_Spot_Waybills.csv`</td><td>`hart-ops/data/`</td></tr>
-<tr><td>14 STS helpers</td><td>`Car Cards/sts-docker-helpers/`</td><td>`hart-ops/sts-helpers/` (submodule later)</td></tr>
-<tr><td>15 Publications</td><td>`Car Cards/publications/`</td><td>`hart-ops/publications/`</td></tr>
-<tr><td>16 Industries</td><td>`~/Desktop/HART/Industries/`</td><td>`hart-ops/industries/`</td></tr>
+<tr><td>Pipeline</td><td>Content</td><td>Repo path</td></tr>
+<tr><td>12 Car cards</td><td>card pipeline, OCR, merge roster</td><td>`card_pipeline/`</td></tr>
+<tr><td>13 Waybills</td><td>spot assignments</td><td>`data/HART_Spot_Waybills.csv`</td></tr>
+<tr><td>14 STS</td><td>seed helpers (sibling submodule)</td><td>`consolidation/external/sts-helpers`</td></tr>
+<tr><td>15 Publications</td><td>rebuild scripts</td><td>`publications/rebuild_*.py`</td></tr>
+<tr><td>16 Industries</td><td>routing matrix</td><td>`industries/`</td></tr>
 </table>
 
-<h2>Out of scope for git (large binaries)</h2>
+<h2>Car SoR (D11)</h2>
+
+<pre><code>
+data/image_metadata.csv  →  HART_MergedCarRoster.xml  →  OperationsCarRoster.xml
+</code></pre>
+
+<p>Build: <code>python card_pipeline/build_car_roster_sor.py</code>  </p>
+<p>Golden: <strong>NW32800</strong> — <a href="GOLDEN_SMOKE_CAR_CARDS.md"><code>GOLDEN_SMOKE_CAR_CARDS.md</code></a></p>
+
+<h2>Publications audit</h2>
+
+<p><a href="../../audits/hart-ops-publications.md"><code>audits/hart-ops-publications.md</code></a> — 8 rebuild scripts verified present.</p>
+
+<h2>Large binaries (not in git)</h2>
 
 <ul>
-<li><code>CarImagesFinal/</code> — local path or LFS bucket; env var <code>HART_CAR_IMAGES_FINAL</code></li>
-<li>Desktop root class <strong>F</strong> media — ingest to <code>hart/docs/archive/</code> per <a href="../../audits/class-f-ingest-plan.md"><code>audits/class-f-ingest-plan.md</code></a></li>
+<li>Car final photos — local path / LFS; env <code>HART_CAR_IMAGES_FINAL</code></li>
+<li>Desktop class <strong>F</strong> media — browse only via <a href="../../html/archive/f-root-index.html"><code>html/archive/f-root-index.html</code></a></li>
 </ul>
 
-<h2>Golden smoke</h2>
+<h2>Migration history</h2>
 
-<ul>
-<li>Spec: <a href="GOLDEN_SMOKE_CAR_CARDS.md"><code>GOLDEN_SMOKE_CAR_CARDS.md</code></a></li>
-<li>Car: <strong>NW32800</strong></li>
-<li>SoR audit: <a href="../../audits/golden-car-sor.md"><code>audits/golden-car-sor.md</code></a></li>
-</ul>
-
-<h2>Submodules (P3b)</h2>
-
-<p>hart-ops is sibling to <code>consolidation/external/sts-helpers</code> in hart meta-repo. STS helpers stay submodule; car SoR moves into hart-ops when repo exists.</p>
+<p><a href="MIGRATION_PLAN.md"><code>MIGRATION_PLAN.md</code></a></p>
   </main>
 </body>
 </html>

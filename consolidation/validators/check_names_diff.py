@@ -9,11 +9,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "consolidation" / "scripts"))
+sys.path.insert(0, str(ROOT / "consolidation" / "scripts" / "lib"))
 
+from consolidation_paths import path_public_name_map, path_tables_xml
 from virtual_stub_masts import virtual_mast_names_from_map
 
-MAP_CSV = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+MAP_CSV = path_public_name_map()
+TABLES = path_tables_xml()
 
 
 def text(el: ET.Element | None, child: str) -> str:

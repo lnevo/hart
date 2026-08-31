@@ -6,26 +6,32 @@
 /Users/lnevo/hart/consolidation/index.html
 ```
 
-Categories: pipelines, CATS, MQTT, wiring, LCOS, audits, ADRs, archive taxonomy, repos.
+**Desktop/HART F-root (124 files):** [`html/archive/f-root-index.html`](html/archive/f-root-index.html) — browse, archive, and skip rows with local `file://` links.
 
-## 2. Decisions
+Categories: pipelines, CATS, MQTT, wiring, LCOS, audits, ADRs, archive, repos, backlog.
 
-**Recorded:** [`DECISIONS_RECORDED.md`](DECISIONS_RECORDED.md) (D1–D10, D2a–f, ADR-set)
+## 2. Build status
 
-**Next work:** [`NEXT_ROUND.md`](NEXT_ROUND.md) — bench freeze active; build in consolidation + hart-ops only
+**Backlog:** [`BACKLOG.md`](BACKLOG.md)  
+**Decisions:** [`DECISIONS_RECORDED.md`](DECISIONS_RECORDED.md) (D1–D12)  
+**Next work:** [`NEXT_ROUND.md`](NEXT_ROUND.md)
 
 ## 3. Validators
 
 ```bash
 cd /Users/lnevo/hart
+bash consolidation/scripts/mirror_all_live.sh   # refresh mirrors + validate
+# or validators only:
 bash consolidation/validators/run_all.sh
 ```
 
-Tier B manual checklist: [`validators/TIER_B_MANUAL_SMOKES.md`](validators/TIER_B_MANUAL_SMOKES.md)
+**Workspace map:** [`WORKSPACE.md`](WORKSPACE.md) · **Gaps:** [`audits/standalone-gaps.md`](audits/standalone-gaps.md)
+
+Tier B manual checklist: [`validators/TIER_B_MANUAL_SMOKES.md`](validators/TIER_B_MANUAL_SMOKES.md) (reference during build)
 
 ## 4. Workspace rule
 
-All review work under `consolidation/` — live sources and **`~/Desktop/HART/` read-only**. No Pi deploy or cutover until a separate cleanup project (D12).
+All build work under `consolidation/` — live sources and **`~/Desktop/HART/` read-only**.
 
 Agent rule: `.cursor/rules/consolidation-workspace.mdc`
 
@@ -34,15 +40,18 @@ Agent rule: `.cursor/rules/consolidation-workspace.mdc`
 | Path | Contents |
 |------|----------|
 | `index.html` | Browse portal |
+| `html/archive/f-root-index.html` | **F-root file browser** |
+| `BACKLOG.md` | Build checklist |
 | `manifest.yaml` | Pipelines + Tier A validators |
 | `wiki/pipelines/` | Draft runbooks with SoR tables |
-| `wiki/decisions/` | Accepted consolidation ADRs |
-| `wiki/archive/INDEX.md` | Desktop taxonomy (P4 pending) |
-| `wiki/REPOS.md` | Submodule recipe (P3 pending) |
+| `wiki/decisions/` | Consolidation ADRs |
+| `wiki/archive/INDEX.md` | Desktop taxonomy |
+| `wiki/REPOS.md` | Submodule recipe |
 | `validators/` | Automated + Tier B smokes |
 | `audits/` | Reports + validator logs |
 | `sor/` | Names, wiring crosswalk, desktop CSV |
 | `cross-repo/` | Submodule pins, hart-ops migration docs |
-| `consolidation/external/` | Git submodules under consolidation/external/ |
+| `consolidation/external/` | Git submodules + runtime mirrors |
+| `WORKSPACE.md` | Complete standalone tree map |
 
 Rebuild portal: `python3 consolidation/scripts/build_site.py`

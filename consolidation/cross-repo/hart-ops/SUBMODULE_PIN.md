@@ -7,8 +7,8 @@
 
 | Field | Value |
 |-------|--------|
-| Commit | `761c1f9a7897555b4109bfe25603db07d73c6292` |
-| Message | Initial hart-ops: car SoR, card pipeline, publications, industries. |
+| Commit | `0fecf5ecf6195b03048f0829fc4b00ee223bc521` |
+| Message | Add print SoR: car card templates, waybills, and car_paths resolver. |
 
 ## Role
 

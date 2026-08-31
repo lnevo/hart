@@ -110,13 +110,15 @@ Legend: **RO** = treat as read-only for consolidation; **W** = live writable (do
 
 ---
 
-## Pipelines 12–16 (deferred — external)
+## Pipelines 12–16 (hart-ops + STS submodules)
 
 | Path | Role |
 |------|------|
-| `~/Desktop/HART/Car Cards/` | Car cards, waybills, publications scripts |
-| `~/sts/sts-docker` | STS runtime |
-| `~/Desktop/HART/Industries/` | Industry routing matrix |
+| `consolidation/external/hart-ops/` | Car cards, waybills, publications, industries (pipelines 12–16) |
+| `consolidation/external/sts-docker/` | STS runtime |
+| `consolidation/external/sts-helpers/` | STS seed / switch-list helpers |
+| `consolidation/external/lcos-bridge/` | LCOS firmware submodule pin |
+| `~/Desktop/HART/` | Bench mirror — **read-only** for audits (D12) |
 
 ---
 

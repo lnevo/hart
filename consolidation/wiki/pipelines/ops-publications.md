@@ -33,4 +33,4 @@ cd consolidation/external/hart-ops
 .venv/bin/python publications/update_tt23_station_map.py
 ```
 
-Index: `docs/published/README.md`. Desktop root Word duplicates remain until cutover project.
+Index: `docs/published/README.md`. Desktop root Word duplicates (class D) documented in [`audits/desktop-inventory.md`](../../audits/desktop-inventory.md).

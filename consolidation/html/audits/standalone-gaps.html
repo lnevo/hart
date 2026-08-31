@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Standalone gaps — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="../next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/tables-merge.html">Tables merge (D3)</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="../cutover/index.html">Cutover projects</a>
+  <a href="../sor-central.html">Central SoR index</a>
+  <a href="../audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="../archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="../archive/index.html">Archive taxonomy A–F</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../backlog.html">Backlog</a>
+  <a href="../repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>Standalone consolidation — package boundaries</h1>
+
+<p><strong>Date:</strong> 2026-08-31  </p>
+<p><strong>Goal:</strong> Complete operational package under <code>hart/consolidation/</code> with documented deploy scripts.</p>
+
+<p>---</p>
+
+<h2>Package index</h2>
+
+<p>See <a href="packages/README.md"><code>packages/README.md</code></a>.</p>
+
+<table>
+<tr><td>Package</td><td>Standalone?</td><td>Deploy script</td></tr>
+<tr><td>**MQTT broker**</td><td>Prerequisite (infra)</td><td>[`packages/infra/mqtt-broker/`](packages/infra/mqtt-broker/)</td></tr>
+<tr><td>**LCOS bridge**</td><td>Yes (firmware + COM host)</td><td>[`packages/lcos-bridge/run_bridge.sh`](packages/lcos-bridge/run_bridge.sh)</td></tr>
+<tr><td>**Layout hosts**</td><td>Yes (from hart-runtime mirror)</td><td>[`packages/layout-hosts/sync_from_consolidation.sh`](packages/layout-hosts/sync_from_consolidation.sh)</td></tr>
+<tr><td>**STS**</td><td>Yes</td><td>[`packages/sts/README.md`](packages/sts/README.md)</td></tr>
+<tr><td>**Car cards**</td><td>Yes (pipeline; no legacy raw mirror)</td><td>[`packages/car-cards/README.md`](packages/car-cards/README.md)</td></tr>
+<tr><td>**hart-ops**</td><td>Yes</td><td>submodule + `.venv`</td></tr>
+<tr><td>**DJ Trains**</td><td>Yes (prototype mirror)</td><td>`external/desktop-data/dj-trains/`</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Mirrors</h2>
+
+<table>
+<tr><td>Mirror</td><td>Source</td><td>Refresh</td></tr>
+<tr><td>`external/hart-runtime/`</td><td>`hart/` repo</td><td>`mirror_hart_runtime.sh`</td></tr>
+<tr><td>`external/sts-docker-data/`</td><td>`~/sts/*`</td><td>`mirror_sts_docker_data.sh`</td></tr>
+<tr><td>`external/desktop-data/`</td><td>`~/Desktop/HART/`</td><td>`mirror_desktop_data.sh`</td></tr>
+<tr><td>`external/desktop-data/dj-trains/`</td><td>DJ Trains prototype</td><td>same</td></tr>
+<tr><td>`external/desktop-data/car-cards/incoming/`</td><td>*(empty drop folder)*</td><td>`setup_car_cards_workspace.sh`</td></tr>
+</table>
+
+<p><strong>One command:</strong> <code>bash consolidation/scripts/mirror_all_live.sh</code></p>
+
+<p>---</p>
+
+<h2>Intentionally excluded</h2>
+
+<table>
+<tr><td>Item</td><td>Policy</td></tr>
+<tr><td>Legacy Car Cards `Images/` (~982 MB)</td><td>Not mirrored; drop new raws in `car-cards/incoming/`</td></tr>
+<tr><td>Mosquitto binaries</td><td>Install on broker host; document in infra package</td></tr>
+<tr><td>JMRI / PanelPro app</td><td>Operator install on layout hosts</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Validators</h2>
+
+<p>Tier A uses <code>HART_LIVE_ROOT</code> → <code>external/hart-runtime/</code> when mirrored. <strong>ALL PASSED</strong> after refresh.</p>
+
+<p>---</p>
+
+<h2>Host config template</h2>
+
+<p><a href="packages/layout-hosts/hosts.env.example"><code>packages/layout-hosts/hosts.env.example</code></a> — MQTT broker, SSH, COM port.</p>
+  </main>
+</body>
+</html>

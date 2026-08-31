@@ -8,11 +8,15 @@ TS="$(date -u +%Y%m%dT%H%M%SZ)"
 REPORT="$AUDIT_DIR/run_all_${TS}.log"
 mkdir -p "$AUDIT_DIR"
 
+# shellcheck source=consolidation/validators/_hart_root.sh
+source "$ROOT/consolidation/validators/_hart_root.sh"
+
 cd "$ROOT"
 exec > >(tee "$REPORT") 2>&1
 
 echo "=== HART consolidation validators ==="
 echo "Root: $ROOT"
+echo "HART_LIVE_ROOT: $HART_LIVE_ROOT"
 echo "Report: $REPORT"
 echo
 

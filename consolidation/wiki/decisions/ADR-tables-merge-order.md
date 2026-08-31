@@ -24,4 +24,4 @@ jmri/layouts/hart/output/hart_prod.xml  ← standalone LE monitor (not full bund
 
 Refactored copies live in `consolidation/scripts/`; promotion replaces live paths only after Tier A green + explicit user request.
 
-Audit: [`audits/tables-pipeline.md`](../../audits/tables-pipeline.md)
+**Runbook:** [`wiki/pipelines/tables-merge.md`](../pipelines/tables-merge.md) · **Audit:** [`audits/tables-pipeline.md`](../../audits/tables-pipeline.md)

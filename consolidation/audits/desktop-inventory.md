@@ -67,5 +67,5 @@
 
 ## Decision not needed yet
 
-Ingest policy: [`audits/class-f-ingest-plan.md`](../audits/class-f-ingest-plan.md) (P4a approved; promotion pending).
+Ingest policy for class F root files waits on **hart-ops** repo creation (P3).
 

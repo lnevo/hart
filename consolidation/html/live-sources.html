@@ -21,6 +21,7 @@
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,9 +41,18 @@
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
   <a href="decisions/index.html">ADR index</a>
   <a href="validators/tier-b-smokes.html">Tier B smokes</a>
@@ -171,13 +181,15 @@
 
 <p>---</p>
 
-<h2>Pipelines 12–16 (deferred — external)</h2>
+<h2>Pipelines 12–16 (hart-ops + STS submodules)</h2>
 
 <table>
 <tr><td>Path</td><td>Role</td></tr>
-<tr><td>`~/Desktop/HART/Car Cards/`</td><td>Car cards, waybills, publications scripts</td></tr>
-<tr><td>`~/sts/sts-docker`</td><td>STS runtime</td></tr>
-<tr><td>`~/Desktop/HART/Industries/`</td><td>Industry routing matrix</td></tr>
+<tr><td>`consolidation/external/hart-ops/`</td><td>Car cards, waybills, publications, industries (pipelines 12–16)</td></tr>
+<tr><td>`consolidation/external/sts-docker/`</td><td>STS runtime</td></tr>
+<tr><td>`consolidation/external/sts-helpers/`</td><td>STS seed / switch-list helpers</td></tr>
+<tr><td>`consolidation/external/lcos-bridge/`</td><td>LCOS firmware submodule pin</td></tr>
+<tr><td>`~/Desktop/HART/`</td><td>Bench mirror — **read-only** for audits (D12)</td></tr>
 </table>
 
 <p>---</p>

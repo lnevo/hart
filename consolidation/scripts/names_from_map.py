@@ -5,10 +5,13 @@ Read-only helpers — no live file writes.
 from __future__ import annotations
 
 import csv
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from consolidation_paths import path_public_name_map
+
+DEFAULT_MAP = path_public_name_map()
 
 # Crossover legs: layoutturnout may name primary only; block table must still hold these.
 SECONDARY_OS_BLOCKS = frozenset(

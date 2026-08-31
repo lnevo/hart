@@ -1,7 +1,7 @@
-# Car inventory SoR (consolidation draft)
+# Car inventory SoR (consolidation)
 
 **ADR:** [`wiki/decisions/ADR-car-roster-single-sor.md`](../../wiki/decisions/ADR-car-roster-single-sor.md)  
-**Live today:** `~/Desktop/HART/Car Cards/data/` → future **`hart-ops/data/`**
+**Authority:** `consolidation/external/hart-ops/data/`
 
 ## One inventory, three exports
 
@@ -23,6 +23,16 @@ image_metadata.csv  ──build──►  HART_MergedCarRoster.xml  (canonical f
 | `OperationsCarRoster.xml` | Generated | `export_operations_roster.py` |
 | `OperationsEngineRoster.xml` | Separate loco roster | DecoderPro / ops |
 
+## Build (hart-ops)
+
+```bash
+cd consolidation/external/hart-ops
+python card_pipeline/build_car_roster_sor.py
+python -m pytest tests/test_golden_card.py
+```
+
+Golden smoke: **NW32800**
+
 ## STS vs Operations Pro
 
 | Equipment | In SoR | Operations Pro | STS fleet |
@@ -32,16 +42,9 @@ image_metadata.csv  ──build──►  HART_MergedCarRoster.xml  (canonical f
 | MOW on roster | Yes | Yes | Config-only via seed JSON |
 | Locomotives | Engine roster | DecoderPro | Separate |
 
-## Snapshot (2026-08-31 Desktop)
+## Counts (2026-08-31 hart-ops)
 
 | Artifact | Count |
 |----------|------:|
-| `image_metadata.csv` rows | 82 |
-| `OperationsCarRoster.xml` cars | 79 |
-| `HART_MergedCarRoster.xml` cars | 98 |
-
-Merged includes metadata-only freight not yet on the legacy ops export.
-
-## Promotion
-
-Rebuild and verify in **hart-ops** only. Cutover to JMRI profiles and Desktop retirement is a **separate project** (D12).
+| Merged roster cars | 98 |
+| Golden test | NW32800 PASS |

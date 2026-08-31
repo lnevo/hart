@@ -1,0 +1,19 @@
+id: layout-hosts
+name: Pi / Windows layout host sync
+status: packaged
+decision: D12
+hosts_unchanged: true
+
+package:
+  readme: packages/layout-hosts/README.md
+  sync: packages/layout-hosts/sync_from_consolidation.sh
+  runtime_mirror: external/hart-runtime/
+  hosts_env: packages/layout-hosts/hosts.env.example
+
+prerequisites:
+  - packages/infra/mqtt-broker/
+  - packages/lcos-bridge/
+
+checklist: validators/TIER_B_MANUAL_SMOKES.md
+
+tier_a_gate: validators/run_all.sh

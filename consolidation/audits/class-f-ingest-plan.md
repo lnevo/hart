@@ -1,8 +1,20 @@
-# Class-F ingest plan (P4a approved)
+# Class-F ingest plan (P4a)
 
-**Status:** Consolidation draft only — **no live `docs/` writes** until promotion  
+**Status:** Consolidation draft — manifest and browse index built; **no files copied** (D12)  
 **Decision:** P4a=Y in [`DECISIONS_RECORDED.md`](../DECISIONS_RECORDED.md)  
-**Manifest (2026-08-31):** [`sor/desktop/class_f_ingest_manifest.csv`](../sor/desktop/class_f_ingest_manifest.csv) — 124 rows, 54 flagged for human review. Regenerate: `python3 consolidation/scripts/classify_f_ingest.py`
+**Browse:** [`html/archive/f-root-index.html`](../html/archive/f-root-index.html)  
+**Manifest:** [`sor/desktop/class_f_ingest_manifest.csv`](../sor/desktop/class_f_ingest_manifest.csv) — 124 rows  
+**Regenerate:** `python3 consolidation/scripts/classify_f_ingest.py`
+
+---
+
+## Owner dispositions (2026-08-31)
+
+| Disposition | Count | Rule |
+|-------------|------:|------|
+| **skip** | 23 | `Coke_Ovens.dmg`, `Thumbs.db`, `~$*`, IMG_894x–895x, wiring schematics, layout photos |
+| **browse** | 33 | Screenshots, downloads, generic media — portal browse |
+| **archive** | 68 | `HART_*` narrative, historical PDFs, named prototype media |
 
 ---
 
@@ -11,80 +23,39 @@
 1. **Selective** — not a bulk copy of Desktop root.
 2. **Exclude installers** — `.dmg`, large binaries stay off git.
 3. **Prefer dedupe** — skip files whose hash already exists under `Car Cards/` (class E) or `docs/` (class A).
-4. **LFS for large media** — PNG/JPG/PDF over ~1 MB → `docs/archive/` with LFS policy TBD at promotion.
+4. **Browse first** — human sort of `browse` rows before any future ingest.
 
 ---
 
-## Target buckets (live paths after promotion)
+## Target buckets (consolidation tree — when history project runs)
 
-| Bucket | Live path | Contents |
-|--------|-----------|----------|
+| Bucket | Future path | Contents |
+|--------|-------------|----------|
 | **F-narrative** | `docs/archive/narrative/` | Timetables, narrative docx, historical writeups |
-| **F-media** | `docs/archive/media/` | Layout photos, track schemes, operator logos not in Car Cards |
+| **F-media** | `docs/archive/media/` | Layout photos, track schemes |
 | **F-reference** | `docs/archive/reference/` | USGS/Google map captures, external PDFs |
-| **F-skip** | — | Installers, duplicates, unknown one-offs |
+| **F-skip** | — | Installers, duplicates, layout photo series |
 
-Taxonomy reference: [`wiki/archive/INDEX.md`](../wiki/archive/INDEX.md)
-
----
-
-## Phase 1 — auto-classify (script to add at promotion)
-
-Extend `inventory_desktop_hart.py` or add `classify_f_ingest.py`:
-
-| Rule | Bucket |
-|------|--------|
-| Extension `.dmg`, `.pkg`, `.exe` | **F-skip** |
-| Basename matches class D list | **F-skip** (already in Car Cards/docs) |
-| SHA256 matches class E | **F-skip** |
-| `.docx`, `.pdf`, `.pptx`, `.xlsx` (non-D) | **F-narrative** |
-| `.png`, `.jpg`, `.webp`, `.gif` | **F-media** |
-| Name contains `USGS`, `Google Maps`, `topo` | **F-reference** |
-
-Output: `sor/desktop/class_f_ingest_manifest.csv` with columns `path,bucket,action,notes`.
+Taxonomy: [`wiki/archive/INDEX.md`](../wiki/archive/INDEX.md)
 
 ---
 
-## Phase 2 — human review (before copy)
+## Script
 
-Review manifest rows where:
+`consolidation/scripts/classify_f_ingest.py` reads `hart_root_inventory.csv` class-F rows and writes:
 
-- Filename is generic (`IMG_*.jpg`, `s-l960.webp`)
-- Size > 10 MB
-- Unknown extension
-
-Owner approves manifest; agent/operator runs copy only on approved rows.
+- `sor/desktop/class_f_ingest_manifest.csv`
+- `wiki/archive/F-ROOT-INDEX.md`
+- `html/archive/f-root-index.html` (re-wrapped by `build_site.py` with full nav)
 
 ---
 
-## Phase 3 — promote to live (explicit user command)
+## Not in scope (consolidation build)
 
-```bash
-# Example — not run until "promote archive ingest"
-mkdir -p docs/archive/{narrative,media,reference}
-# rsync or cp from manifest approved rows only
-git lfs track "docs/archive/media/**"
-```
-
-Update [`wiki/archive/INDEX.md`](../wiki/archive/INDEX.md) with ingest date and row counts.
-
----
-
-## Sample classifications (first 20 from inventory)
-
-| File | Proposed bucket |
-|------|-----------------|
-| `1956-07-07PWV27-seabass.pdf` | F-reference |
-| `1VFNT00010012.jpg` | F-media |
-| `2022-10-16 *Google Maps*.png` | F-reference |
-| `2022-10-16 *USGS*.png` | F-reference |
-| `ammonium sulphate.png` | F-media |
-| `basic_schematic.pptx` | F-narrative |
-| `ChartiersTrackScheme.jpg` | F-media |
-| `Coke_Ovens.dmg` | **F-skip** |
-| `flannery-*.jpg` | F-media |
-
-Full 124 rows remain in CSV until classify script runs.
+- Class C subtree moves (hart-ops already holds SoR copies)
+- Wiring Documentation bench mirror (D4)
+- DJ Trains folder (model collection — separate review)
+- Copying files off Desktop
 
 ---
 
@@ -93,13 +64,5 @@ Full 124 rows remain in CSV until classify script runs.
 | Item | Status |
 |------|--------|
 | P4a decision | **Approved** |
-| hart-ops migration (P3a) | Approved — independent; F ingest goes to **hart** `docs/archive/` |
-| P3b submodules | Deferred — no blocker |
-
----
-
-## Not in scope
-
-- Class C subtree moves (hart-ops migration)
-- Wiring Documentation bench mirror (D4)
-- DJ Trains folder (model collection — separate review)
+| hart-ops (P3a) | **In** `consolidation/external/hart-ops` |
+| P3b submodules | **Done** |

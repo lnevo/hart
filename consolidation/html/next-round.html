@@ -21,6 +21,7 @@
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,9 +41,18 @@
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
   <a href="decisions/index.html">ADR index</a>
   <a href="validators/tier-b-smokes.html">Tier B smokes</a>
@@ -52,13 +62,13 @@
   <main class="content">
     <h1>Next round — consolidation</h1>
 
-<p><strong>Updated:</strong> 2026-08-31</p>
+<p><strong>Portal:</strong> <a href="index.html"><code>index.html</code></a> · <strong>F-root:</strong> <a href="html/archive/f-root-index.html"><code>html/archive/f-root-index.html</code></a> · <strong>Backlog:</strong> <a href="BACKLOG.md"><code>BACKLOG.md</code></a></p>
 
 <p>---</p>
 
 <h2>Scope</h2>
 
-<p><strong>Consolidation workspace only</strong> — build docs, validators, audits, hart-ops, and submodule pins. Live layout, Desktop/HART, Pi, and STS runtime are <strong>out of scope</strong> for this effort.</p>
+<p><strong>Consolidation workspace only</strong> — build docs, validators, audits, hart-ops, and submodule pins. Live layout, Desktop/HART, Pi, and STS runtime are <strong>out of scope</strong> for this effort (D12 bench freeze).</p>
 
 <p>---</p>
 
@@ -67,12 +77,14 @@
 <table>
 <tr><td>Area</td><td>Output</td></tr>
 <tr><td>Meta-repo</td><td>`consolidation/external/*` submodules + manifest pins</td></tr>
-<tr><td>hart-ops</td><td>github.com/lnevo/hart-ops @ `c276b85`</td></tr>
+<tr><td>hart-ops</td><td>github.com/lnevo/hart-ops @ `761c1f9`</td></tr>
 <tr><td>Tranche A</td><td>manifest + pipeline guides 12–16</td></tr>
-<tr><td>Tranche B</td><td>`class_f_ingest_manifest.csv` (124 rows)</td></tr>
-<tr><td>Tranche C</td><td>metadata-first roster + golden test</td></tr>
+<tr><td>Tranche B</td><td>`class_f_ingest_manifest.csv` (124 rows; skip/browse/archive)</td></tr>
+<tr><td>Tranche B+</td><td>F-root browse portal — `html/archive/f-root-index.html`</td></tr>
+<tr><td>Tranche C</td><td>metadata-first roster + golden test (NW32800)</td></tr>
+<tr><td>Tables merge</td><td>[`wiki/pipelines/tables-merge.md`](wiki/pipelines/tables-merge.md) + audit refresh</td></tr>
 <tr><td>Decisions</td><td>D1–D12, ADRs, bench freeze</td></tr>
-<tr><td>Validators</td><td>Tier A — ALL PASSED</td></tr>
+<tr><td>Validators</td><td>Tier A — run `run_all.sh` after changes</td></tr>
 </table>
 
 <p>---</p>
@@ -82,10 +94,11 @@
 <table>
 <tr><td>Item</td><td>Path</td></tr>
 <tr><td>Tier A validators</td><td>`bash consolidation/validators/run_all.sh`</td></tr>
-<tr><td>Class-F review rows (optional)</td><td>`sor/desktop/class_f_ingest_manifest.csv`</td></tr>
+<tr><td>Class-F browse sort (optional)</td><td>`sor/desktop/class_f_ingest_manifest.csv` + F-root HTML</td></tr>
 <tr><td>D2 draft validation</td><td>`sor/names/public_name_map_merged.csv`</td></tr>
-<tr><td>Tier B smoke docs</td><td>`validators/TIER_B_MANUAL_SMOKES.md`</td></tr>
+<tr><td>Tier B smoke docs</td><td>`validators/TIER_B_MANUAL_SMOKES.md` (reference only during freeze)</td></tr>
 <tr><td>Portal rebuild</td><td>`python3 consolidation/scripts/build_site.py`</td></tr>
+<tr><td>History archive (future)</td><td>`HART_*` class-F rows → separate project when ready</td></tr>
 </table>
 
 <p>---</p>
@@ -95,6 +108,7 @@
 <pre><code>
 bash consolidation/validators/run_all.sh
 python3 consolidation/scripts/build_site.py
+python3 consolidation/scripts/classify_f_ingest.py   # refresh F-root browse
 cd consolidation/external/hart-ops &amp;&amp; python card_pipeline/build_car_roster_sor.py
 </code></pre>
   </main>
