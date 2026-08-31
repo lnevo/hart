@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-31 — Layout Editor switch labels: DCC addresses (100–119) → **`Sw N`** plant numbers from `public_name_map.csv` (e.g. 100→Sw 1). Reload **PanelPro**. Deploy `--pi --win`.
+Updated: 2026-08-31 — LE switch labels format **`SW-N`** (was `Sw N`); **SW-11** nudged left (x 610→570). Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-31 — `sync_turnout_buttons` no longer waits ~60s on Layout Editor (`LE=False` spam); arms ladder/lamp when watch turnouts exist (~1s), retries clicks quietly. Reload **PanelPro**. Deploy `--pi --win`.
 
