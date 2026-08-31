@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — Turnouts lamp bean renamed `IH:TURNOUT_FB` → **`IH9990`** (colon name left icon as `?`); paint early + rebind; dark/held icons no longer s-unknown. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-31 — Status lamp clicks (sync_turnout_buttons): **Turnouts** toggles TWOSENSOR↔DIRECT on 2-sensor M2T/MTT; **Signals** toggles Digicon SML (same as main-window button); **LCOS** publishes `track/bridge/cmd` RESUBSCRIBE (not FORCE). Icons `forcecontroloff=true`. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-31 — Turnouts lamp / yard ladder: Profile Start Up still pointed at retired `sync_yard_ladder_buttons.py` after the rename (lamp stayed `?`; ladder never armed). `patch_jmri_startup` now renames that entry → `sync_turnout_buttons.py`; script waits for Layout Editor + watch turnouts (5s then 2s retries) and creates `IH:TURNOUT_FB` if missing. Reload **PanelPro**. Deploy `--pi --win`.
