@@ -8,6 +8,16 @@
 
 **Desktop/HART F-root (124 files):** [`html/archive/f-root-index.html`](html/archive/f-root-index.html) — browse, archive, and skip rows with local `file://` links.
 
+**Product-owner review (Cursor canvases — open beside chat):**
+
+- **Device map (D2):** [hart-device-map-d2-review.canvas.tsx](file:///Users/lnevo/.cursor/projects/Users-lnevo-hart/canvases/hart-device-map-d2-review.canvas.tsx) — live beans only, same as hart-device-map
+- **D2 legacy / aliases:** [hart-device-map-d2-legacy.canvas.tsx](file:///Users/lnevo/.cursor/projects/Users-lnevo-hart/canvases/hart-device-map-d2-legacy.canvas.tsx) · CSV: [`sor/names/d2_legacy_match.csv`](sor/names/d2_legacy_match.csv)
+- **Industry matrix (16):** [hart-industry-matrix.canvas.tsx](file:///Users/lnevo/.cursor/projects/Users-lnevo-hart/canvases/hart-industry-matrix.canvas.tsx)
+
+Regenerate: `python3 consolidation/scripts/build_review_canvases.py`
+
+Static HTML fallbacks: [`html/review/device-map.html`](html/review/device-map.html) · [`html/review/industry-matrix.html`](html/review/industry-matrix.html)
+
 Categories: pipelines, CATS, MQTT, wiring, LCOS, audits, ADRs, archive, repos, backlog.
 
 ## 2. Build status
@@ -55,3 +65,5 @@ Agent rule: `.cursor/rules/consolidation-workspace.mdc`
 | `WORKSPACE.md` | Complete standalone tree map |
 
 Rebuild portal: `python3 consolidation/scripts/build_site.py`
+
+Regenerate publications (pipeline 15): `bash consolidation/scripts/rebuild_publications.sh`

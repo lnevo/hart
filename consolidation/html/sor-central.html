@@ -41,8 +41,8 @@
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
-<div class="nav-section"><h4>Cutover (standalone)</h4>
-  <a href="cutover/index.html">Cutover projects</a>
+<div class="nav-section"><h4>Reference archive</h4>
+  <a href="cutover/index.html">Cutover manifests (future)</a>
   <a href="sor-central.html">Central SoR index</a>
   <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
 </div>
@@ -51,6 +51,8 @@
   <a href="archive/index.html">Archive taxonomy A–F</a>
 </div>
 <div class="nav-section"><h4>Review</h4>
+  <a href="review/device-map.html"><strong>Device Map (D2)</strong></a>
+  <a href="review/industry-matrix.html">Industry matrix</a>
   <a href="audits/index.html">Audits</a>
   <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
@@ -62,7 +64,7 @@
   <main class="content">
     <h1>Central source of record — consolidation workspace</h1>
 
-<p><strong>Principle:</strong> One canonical artifact per fact type in the <strong>new tree</strong>. Live and Desktop paths are read-only references until cutover.</p>
+<p><strong>Principle:</strong> One canonical artifact per fact type in the <strong>new tree</strong>. Live and Desktop paths are read-only references until explicit promotion (future).</p>
 
 <p><strong>Registry:</strong> <a href="../manifest.yaml"><code>manifest.yaml</code></a> · <strong>ADR:</strong> <a href="../wiki/decisions/ADR-consolidation-sor.md"><code>wiki/decisions/ADR-consolidation-sor.md</code></a></p>
 
@@ -123,7 +125,7 @@
 <tr><td>Pipeline 1 AnyRail</td><td>**Frozen** — not live path for hart</td></tr>
 <tr><td>Pipeline 11 speed matching</td><td>**Parked** — synthetic profiles</td></tr>
 <tr><td>`tables/tables.xml`</td><td>Legacy snapshot — never edit</td></tr>
-<tr><td>`~/Desktop/HART/` bulk</td><td>Inventory + browse only; cutover manifests in [`cutover/`](../cutover/)</td></tr>
+<tr><td>`~/Desktop/HART/` bulk</td><td>Inventory + browse only; future promotion manifests in [`cutover/`](../cutover/) (reference archive)</td></tr>
 <tr><td>Car final photos (~GB)</td><td>Local path / LFS — not in git</td></tr>
 <tr><td>LCOS BOM (D8)</td><td>Excluded</td></tr>
 <tr><td>Gate 1 `HART.xml` CATS panels</td><td>History — not ops desk</td></tr>

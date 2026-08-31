@@ -279,8 +279,8 @@ NAV = """
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
-<div class="nav-section"><h4>Cutover (standalone)</h4>
-  <a href="cutover/index.html">Cutover projects</a>
+<div class="nav-section"><h4>Reference archive</h4>
+  <a href="cutover/index.html">Cutover manifests (future)</a>
   <a href="sor-central.html">Central SoR index</a>
   <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
 </div>
@@ -289,6 +289,8 @@ NAV = """
   <a href="archive/index.html">Archive taxonomy A–F</a>
 </div>
 <div class="nav-section"><h4>Review</h4>
+  <a href="review/device-map.html"><strong>Device Map (D2)</strong></a>
+  <a href="review/industry-matrix.html">Industry matrix</a>
   <a href="audits/index.html">Audits</a>
   <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
@@ -322,6 +324,7 @@ def write_page(rel: str, title: str, body_html: str, css_depth: str = "style.css
         "projects",
         "archive",
         "validators",
+        "review",
         "decisions/adr",
     ):
         prefix = "../" * rel.count("/")
@@ -347,8 +350,11 @@ def main() -> None:
 <div class="cards">
   <a class="card" href="packages/README.html"><h3>Deploy packages</h3><p>MQTT, LCOS bridge, layout hosts, car cards, STS</p></a>
   <a class="card" href="workspace.html"><h3>Standalone workspace</h3><p>Complete tree map — all mirrors under consolidation/external/</p></a>
-  <a class="card" href="audits/standalone-gaps.html"><h3>Cutover readiness</h3><p>What runs standalone vs infrastructure gaps</p></a>
-  <a class="card" href="archive/index.html"><h3>Archive taxonomy</h3><p>Classes A–F — Desktop/HART inventory</p></a>
+  <a class="card" href="audits/pipeline-review-matrix.html"><h3>Pipeline matrix</h3><p>SoR + validation status per pipeline</p></a>
+  <a class="card" href="audits/standalone-gaps.html"><h3>Standalone gaps</h3><p>Package boundaries and infrastructure notes</p></a>
+  <a class="card" href="review/device-map.html"><h3>Device Map review</h3><p>D2 names — filter, notes, renames (678 rows)</p></a>
+  <a class="card" href="review/industry-matrix.html"><h3>Industry matrix</h3><p>Pipeline 16 — lanes + interchange</p></a>
+  <a class="card" href="archive/f-root-index.html"><h3>Archive taxonomy</h3><p>Classes A–F — Desktop/HART inventory</p></a>
   <a class="card" href="backlog.html"><h3>Backlog</h3><p>Consolidation build checklist</p></a>
   <a class="card" href="pipelines/05-cats-masters.html"><h3>CATS CTC / ABS</h3><p>Master4 hold panels, Digicon desk</p></a>
   <a class="card" href="pipelines/07-dispatcher.html"><h3>JMRI Dispatcher</h3><p>Graph, traininfo, facing overlay</p></a>
@@ -439,6 +445,14 @@ def main() -> None:
     import subprocess
     import sys
 
+    for review_script in (
+        CON / "scripts/build_review_canvases.py",
+        CON / "scripts/build_device_map_review.py",
+        CON / "scripts/build_industry_review.py",
+    ):
+        if review_script.is_file():
+            subprocess.run([sys.executable, str(review_script)], check=False, cwd=str(ROOT))
+
     classify = CON / "scripts/classify_f_ingest.py"
     if classify.is_file():
         subprocess.run([sys.executable, str(classify)], check=False, cwd=str(ROOT))
@@ -469,6 +483,7 @@ def main() -> None:
         ('href="projects/', 'href="html/projects/'),
         ('href="cross-repo/', 'href="html/cross-repo/'),
         ('href="validators/', 'href="html/validators/'),
+        ('href="review/', 'href="html/review/'),
         ('href="decisions/', 'href="html/decisions/'),
     ):
         root_index = root_index.replace(old, new)

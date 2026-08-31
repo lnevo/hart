@@ -13,7 +13,7 @@ Checklist for when the consolidation tree is authoritative and layout hosts are 
 
 ## Pipeline 6 — USS CTC
 
-- [ ] USS 15-column machine loads in PanelPro
+- [ ] USS 20-column machine loads in PanelPro (see `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`)
 - [ ] Mutually exclusive with live CATS CTC session
 - [ ] `python3 jmri/layouts/hart/scripts/ctc_logic_smoke.py` if regen touched CTC data
 

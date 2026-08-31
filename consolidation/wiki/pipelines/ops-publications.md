@@ -22,6 +22,12 @@ Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 ## Run
 
 ```bash
+bash consolidation/scripts/rebuild_publications.sh
+```
+
+Or individually:
+
+```bash
 cd consolidation/external/hart-ops
 .venv/bin/python publications/rebuild_scale_operating_instructions.py
 .venv/bin/python publications/rebuild_dispatcher_train_list.py

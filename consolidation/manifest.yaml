@@ -92,7 +92,7 @@ pipelines:
     live_outputs:
       - jmri/layouts/hart/ctc/GUIObjects.xml
     manual_smoke:
-      - Confirm 15-column USS machine loads; mutually exclusive with CATS CTC
+      - Confirm 20-column USS machine loads; mutually exclusive with CATS CTC
     guide: wiki/pipelines/uss-ctc.md
 
   - id: 7

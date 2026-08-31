@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Industry routing — review</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+.review-page { max-width: 1280px; }
+.review-lead { color: var(--muted); margin: 0.5rem 0 1.25rem; }
+.callout {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent2);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0 1.25rem;
+}
+.callout h3 { margin: 0 0 0.35rem; font-size: 0.95rem; color: var(--accent2); }
+.callout p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+}
+.stat-card .value { font-size: 1.35rem; font-weight: 700; color: var(--accent); }
+.stat-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.review-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0.75rem 0 1rem;
+}
+.review-toolbar select,
+.review-toolbar input[type="search"] {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.9rem;
+}
+.review-toolbar select { min-width: 220px; }
+.review-toolbar input[type="search"] { flex: 1; min-width: 16rem; }
+.table-wrap {
+  overflow: auto;
+  max-height: 900px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+table.review-table {
+  margin: 0;
+  font-size: 0.82rem;
+}
+table.review-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface2);
+  z-index: 1;
+}
+table.review-table tbody tr:nth-child(even) { background: var(--surface); }
+table.review-table td, table.review-table th { vertical-align: top; }
+table.review-table code { font-size: 0.85em; }
+tr.has-notes td.notes-col { background: rgba(240, 180, 41, 0.12); }
+.subhead { color: var(--muted); font-size: 0.95rem; margin: 0.25rem 0 0.75rem; }
+</style>
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Review</h4>
+  <a href="device-map.html"><strong>Device Map (D2)</strong></a>
+  <a href="industry-matrix.html" class="active">Industry matrix</a>
+  <a href="../sor-central.html">Central SoR</a>
+  <a href="../cutover/names-d2.html">Names D2 cutover</a>
+  <a href="../pipelines/16-industries.html">Pipeline 16</a>
+</div>
+
+  </nav>
+  <main class="content review-page">
+    
+<h1>Industry routing matrix — review</h1>
+<p class="review-lead">
+  From <code>HART_Industry_Routing_Matrix.xlsx</code> in hart-ops. Cross-check lane changes with
+  <code>data/HART_Spot_Waybills.csv</code> and spot assignments. Generated 2026-08-31 21:05 UTC.
+</p>
+<div class="callout"><h3>Lane grammar</h3><p>Each row is one supplier/customer lane: Industry + IN/OUT flow + commodity + party + region. Interchange rows map foreign railroad handoffs. When a lane changes, regenerate spot waybills and validate STS seed consistency.</p></div>
+<div class="stat-grid"><div class="stat-card"><div class="value">68</div><div class="label">HART lanes</div></div><div class="stat-card"><div class="value">34</div><div class="label">IN flows</div></div><div class="stat-card"><div class="value">34</div><div class="label">OUT flows</div></div><div class="stat-card"><div class="value">8</div><div class="label">Industries</div></div></div>
+<h2>Grammar</h2>
+<table class="review-table">
+<thead><tr><th>Industry</th><th>Flow</th><th>Commodity / Product</th><th>Supplier / Customer</th><th>Region</th><th>Foreign Railroad</th><th>Interchange</th><th>Car Type</th></tr></thead>
+<tbody><tr><td>IN</td><td>Brick Yard</td><td>Coal</td><td>Penn Coal Co.</td><td>Local</td><td>—</td><td>—</td><td>Hopper</td></tr><tr><td>OUT</td><td>Plane Scale</td><td>Steel coils</td><td>US Steel</td><td>Local</td><td>—</td><td>—</td><td>Gondola</td></tr><tr><td>IN</td><td>Interchange</td><td>Lumber</td><td>Regional Lumber</td><td>Foreign</td><td>B&amp;O</td><td>McKees Rocks</td><td>Boxcar</td></tr></tbody>
+</table>
+<h2>All lanes</h2>
+<p class="subhead" id="row-count">68 of 68 shown</p>
+<div class="review-toolbar">
+  <select id="kind-filter">
+    <option value="all">All tables</option>
+    <option value="lane">HART lanes only</option>
+    <option value="IN">IN flows</option>
+    <option value="OUT">OUT flows</option>
+    <option value="interchange">Interchange matrix</option>
+  </select>
+  <input type="search" id="q" placeholder="Filter industry, commodity, car type…" />
+</div>
+
+<h2>Industry Routing Matrix</h2>
+<p class="subhead section-count" data-table="hart-lanes">68 rows</p>
+<div class="table-wrap">
+<table class="review-table" id="hart-lanes">
+  <thead><tr><th>Industry</th><th>Flow</th><th>Commodity / Product</th><th>Supplier / Customer</th><th>Region</th><th>Foreign Railroad</th><th>Interchange</th><th>Car Type</th></tr></thead>
+  <tbody><tr data-flow='IN' data-search='aristech chemical in petrochemical feedstocks dow chemical (midland, mi) midland, mi ns ns interchange tank car' data-industry='aristech chemical'><td>Aristech Chemical</td><td>IN</td><td>Petrochemical feedstocks</td><td>Dow Chemical (Midland, MI)</td><td>Midland, MI</td><td>NS</td><td>NS Interchange</td><td>Tank Car</td></tr><tr data-flow='IN' data-search='aristech chemical in petrochemical feedstocks exxon chemical (bayonne, nj) bayonne, nj ns ns interchange tank car' data-industry='aristech chemical'><td>Aristech Chemical</td><td>IN</td><td>Petrochemical feedstocks</td><td>Exxon Chemical (Bayonne, NJ)</td><td>Bayonne, NJ</td><td>NS</td><td>NS Interchange</td><td>Tank Car</td></tr><tr data-flow='OUT' data-search='aristech chemical out plastic resins owens-illinois (toledo, oh) toledo, oh ns via w&amp;le bridgeville covered hopper' data-industry='aristech chemical'><td>Aristech Chemical</td><td>OUT</td><td>Plastic resins</td><td>Owens-Illinois (Toledo, OH)</td><td>Toledo, OH</td><td>NS via W&amp;LE</td><td>Bridgeville</td><td>Covered Hopper</td></tr><tr data-flow='OUT' data-search='aristech chemical out plastic resins bemis company (flemington, nj) flemington, nj ns glenwood covered hopper' data-industry='aristech chemical'><td>Aristech Chemical</td><td>OUT</td><td>Plastic resins</td><td>Bemis Company (Flemington, NJ)</td><td>Flemington, NJ</td><td>NS</td><td>Glenwood</td><td>Covered Hopper</td></tr><tr data-flow='OUT' data-search='aristech chemical out coal tar koppers company (pittsburgh, pa) pittsburgh conrail, csx/ns (1999) glenwood tank car' data-industry='aristech chemical'><td>Aristech Chemical</td><td>OUT</td><td>Coal tar</td><td>Koppers Company (Pittsburgh, PA)</td><td>Pittsburgh</td><td>Conrail, CSX/NS (1999)</td><td>Glenwood</td><td>Tank Car</td></tr><tr data-flow='OUT' data-search='aristech chemical out ammonia sulfate lebanon chemical corp (lebanon, pa) lebanon, pa ns ns interchange tank car' data-industry='aristech chemical'><td>Aristech Chemical</td><td>OUT</td><td>Ammonia sulfate</td><td>Lebanon Chemical Corp (Lebanon, PA)</td><td>Lebanon, PA</td><td>NS</td><td>NS Interchange</td><td>Tank Car</td></tr><tr data-flow='OUT' data-search='aristech chemical out benzene and light oils lebanon chemical corp (lebanon, pa) lebanon, pa ns ns interchange tank car' data-industry='aristech chemical'><td>Aristech Chemical</td><td>OUT</td><td>Benzene and light oils</td><td>Lebanon Chemical Corp (Lebanon, PA)</td><td>Lebanon, PA</td><td>NS</td><td>NS Interchange</td><td>Tank Car</td></tr><tr data-flow='IN' data-search='brockway glass in silica sand ottawa silica sand (ottawa, oh) ottawa, oh w&amp;le bridgeville covered hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Silica sand</td><td>Ottawa Silica Sand (Ottawa, OH)</td><td>Ottawa, OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in soda ash fmc corporation (philadelphia, pa) wyoming ns ns interchange covered hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Soda ash</td><td>FMC Corporation (Philadelphia, PA)</td><td>Wyoming</td><td>NS</td><td>NS Interchange</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in cullet strategic materials (worcester, ma) worcester, ma ns glenwood hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Cullet</td><td>Strategic Materials (Worcester, MA)</td><td>Worcester, MA</td><td>NS</td><td>Glenwood</td><td>Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in fuel oil / gas ashland oil (glendon, pa) glendon, pa conrail, csx/ns (1999) scully tank car' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Fuel oil / gas</td><td>Ashland Oil (Glendon, PA)</td><td>Glendon, PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Tank Car</td></tr><tr data-flow='IN' data-search='brockway glass in silica sand u.s. silica (ottawa, oh) western ohio w&amp;le bridgeville covered hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Silica sand</td><td>U.S. Silica (Ottawa, OH)</td><td>Western Ohio</td><td>W&amp;LE</td><td>Bridgeville</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in silica sand badger mining corp (fairwater, wi) wisconsin ns ns interchange covered hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Silica sand</td><td>Badger Mining Corp (Fairwater, WI)</td><td>Wisconsin</td><td>NS</td><td>NS Interchange</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in soda ash ansac (green river, wy) wyoming ns ns interchange covered hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Soda ash</td><td>ANSAC (Green River, WY)</td><td>Wyoming</td><td>NS</td><td>NS Interchange</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in soda ash general chemical partners (parsippany, nj) midwest ns ns interchange covered hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Soda ash</td><td>General Chemical Partners (Parsippany, NJ)</td><td>Midwest</td><td>NS</td><td>NS Interchange</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in limestone michigan limestone &amp; chemical (rogers city, mi) michigan w&amp;le bridgeville hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Limestone</td><td>Michigan Limestone &amp; Chemical (Rogers City, MI)</td><td>Michigan</td><td>W&amp;LE</td><td>Bridgeville</td><td>Hopper</td></tr><tr data-flow='IN' data-search='brockway glass in limestone us aggregates (indianapolis, in) indianapolis, in w&amp;le bridgeville hopper' data-industry='brockway glass'><td>Brockway Glass</td><td>IN</td><td>Limestone</td><td>US Aggregates (Indianapolis, IN)</td><td>Indianapolis, IN</td><td>W&amp;LE</td><td>Bridgeville</td><td>Hopper</td></tr><tr data-flow='OUT' data-search='brockway glass out glass jars h.j. heinz company (pittsburgh, pa) pittsburgh p&amp;le, csx (1992), avr (1995) glenwood boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Glass jars</td><td>H.J. Heinz Company (Pittsburgh, PA)</td><td>Pittsburgh</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out jars &amp; bottles knouse foods (orrtanna, pa) south-central pa ns ns interchange boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Jars &amp; bottles</td><td>Knouse Foods (Orrtanna, PA)</td><td>South-Central PA</td><td>NS</td><td>NS Interchange</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out bottles starkist foods (pittsburgh, pa) central pa ns ns interchange boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Bottles</td><td>StarKist Foods (Pittsburgh, PA)</td><td>Central PA</td><td>NS</td><td>NS Interchange</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out glass jars del monte foods (san francisco, ca) pittsburgh / midwest p&amp;le, csx (1992), avr (1995) glenwood boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Glass jars</td><td>Del Monte Foods (San Francisco, CA)</td><td>Pittsburgh / Midwest</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out glass jars nestle usa (arlington, va) midwest ns ns interchange boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Glass jars</td><td>Nestle USA (Arlington, VA)</td><td>Midwest</td><td>NS</td><td>NS Interchange</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out glass jars kraft foods (northfield, il) pittsburgh / midwest p&amp;le, csx (1992), avr (1995) glenwood boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Glass jars</td><td>Kraft Foods (Northfield, IL)</td><td>Pittsburgh / Midwest</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out glass bottles pepsi bottling group (pittsburgh, pa) pittsburgh / oh p&amp;le, csx (1992), avr (1995) glenwood boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Glass bottles</td><td>Pepsi Bottling Group (Pittsburgh, PA)</td><td>Pittsburgh / OH</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out glass bottles iron city brewing (pittsburgh, pa) pittsburgh, pa p&amp;le, csx (1992), avr (1995) glenwood boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Glass bottles</td><td>Iron City Brewing (Pittsburgh, PA)</td><td>Pittsburgh, PA</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='brockway glass out glass jars smucker&#x27;s (orrville, oh) orrville, oh ns ns interchange boxcar' data-industry='brockway glass'><td>Brockway Glass</td><td>OUT</td><td>Glass jars</td><td>Smucker&#x27;s (Orrville, OH)</td><td>Orrville, OH</td><td>NS</td><td>NS Interchange</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='calgon carbon out activated carbon univar (salem, ma) ma ns ns interchange covered hopper' data-industry='calgon carbon'><td>Calgon Carbon</td><td>OUT</td><td>Activated carbon</td><td>Univar (Salem, MA)</td><td>MA</td><td>NS</td><td>NS Interchange</td><td>Covered Hopper</td></tr><tr data-flow='OUT' data-search='calgon carbon out activated carbon houghton chemical (allston, ma) ma ns glenwood covered hopper' data-industry='calgon carbon'><td>Calgon Carbon</td><td>OUT</td><td>Activated carbon</td><td>Houghton Chemical (Allston, MA)</td><td>MA</td><td>NS</td><td>Glenwood</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='flannery bolt in steel bar stock ryerson steel service (chicago, il) chicago, il mp, up (1982) via p&amp;le scully flatcar' data-industry='flannery bolt'><td>Flannery Bolt</td><td>IN</td><td>Steel bar stock</td><td>Ryerson Steel Service (Chicago, IL)</td><td>Chicago, IL</td><td>MP, UP (1982) via P&amp;LE</td><td>Scully</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='flannery bolt in tool steel republic steel (cleveland, oh) cleveland, oh w&amp;le bridgeville flatcar' data-industry='flannery bolt'><td>Flannery Bolt</td><td>IN</td><td>Tool steel</td><td>Republic Steel (Cleveland, OH)</td><td>Cleveland, OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='flannery bolt in steel bar stock metal service co. (apollo, pa) pittsburgh p&amp;le, csx (1992), avr (1995) glenwood flatcar' data-industry='flannery bolt'><td>Flannery Bolt</td><td>IN</td><td>Steel bar stock</td><td>Metal Service Co. (Apollo, PA)</td><td>Pittsburgh</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='flannery bolt out gun barrels lockheed martin (bethesda, md) pa / nj ns ns interchange boxcar' data-industry='flannery bolt'><td>Flannery Bolt</td><td>OUT</td><td>Gun barrels</td><td>Lockheed Martin (Bethesda, MD)</td><td>PA / NJ</td><td>NS</td><td>NS Interchange</td><td>Boxcar</td></tr><tr data-flow='OUT' data-search='flannery bolt out precision bolts caterpillar (peoria, il) peoria, il bn, bnsf (1996) via w&amp;le bridgeville boxcar' data-industry='flannery bolt'><td>Flannery Bolt</td><td>OUT</td><td>Precision bolts</td><td>Caterpillar (Peoria, IL)</td><td>Peoria, IL</td><td>BN, BNSF (1996) via W&amp;LE</td><td>Bridgeville</td><td>Boxcar</td></tr><tr data-flow='IN' data-search='shenango coke works in coal consol energy (pittsburgh, pa) pittsburgh ns ns interchange hopper' data-industry='shenango coke works'><td>Shenango Coke Works</td><td>IN</td><td>Coal</td><td>Consol Energy (Pittsburgh, PA)</td><td>Pittsburgh</td><td>NS</td><td>NS Interchange</td><td>Hopper</td></tr><tr data-flow='IN' data-search='shenango coke works in coal rochester &amp; pittsburgh coal (brady twp, pa) pa conrail, csx/ns (1999) scully hopper' data-industry='shenango coke works'><td>Shenango Coke Works</td><td>IN</td><td>Coal</td><td>Rochester &amp; Pittsburgh Coal (Brady Twp, PA)</td><td>PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Hopper</td></tr><tr data-flow='IN' data-search='shenango coke works in coal hillman coal &amp; coke (canton twp, pa) pa conrail, csx/ns (1999) scully hopper' data-industry='shenango coke works'><td>Shenango Coke Works</td><td>IN</td><td>Coal</td><td>Hillman Coal &amp; Coke (Canton Twp, PA)</td><td>PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Hopper</td></tr><tr data-flow='OUT' data-search='shenango coke works out coke washington steel (washington, pa) sw pa conrail, csx/ns (1999) scully hopper' data-industry='shenango coke works'><td>Shenango Coke Works</td><td>OUT</td><td>Coke</td><td>Washington Steel (Washington, PA)</td><td>SW PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Hopper</td></tr><tr data-flow='OUT' data-search='shenango coke works out coke allegheny ludlum (brackenridge, pa) sw pa conrail, csx/ns (1999) scully hopper' data-industry='shenango coke works'><td>Shenango Coke Works</td><td>OUT</td><td>Coke</td><td>Allegheny Ludlum (Brackenridge, PA)</td><td>SW PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Hopper</td></tr><tr data-flow='OUT' data-search='shenango coke works out coke us steel clairton (clairton, pa) sw pa conrail, csx/ns (1999) scully hopper' data-industry='shenango coke works'><td>Shenango Coke Works</td><td>OUT</td><td>Coke</td><td>US Steel Clairton (Clairton, PA)</td><td>SW PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Hopper</td></tr><tr data-flow='OUT' data-search='shenango coke works out coke sharon steel (farrell, pa) sw pa conrail, csx/ns (1999) scully hopper' data-industry='shenango coke works'><td>Shenango Coke Works</td><td>OUT</td><td>Coke</td><td>Sharon Steel (Farrell, PA)</td><td>SW PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Hopper</td></tr><tr data-flow='IN' data-search='standard forged products in steel billets / ingots republic steel (cleveland, oh) cleveland, oh w&amp;le bridgeville flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>IN</td><td>Steel billets / ingots</td><td>Republic Steel (Cleveland, OH)</td><td>Cleveland, OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='standard forged products in heavy billets ltv steel (cleveland, oh) cleveland, oh w&amp;le bridgeville covered hopper' data-industry='standard forged products'><td>Standard Forged Products</td><td>IN</td><td>Heavy billets</td><td>LTV Steel (Cleveland, OH)</td><td>Cleveland, OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='standard forged products in steel billets / ingots ltv steel (cleveland, oh) oh w&amp;le bridgeville flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>IN</td><td>Steel billets / ingots</td><td>LTV Steel (Cleveland, OH)</td><td>OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='standard forged products in steel billets / ingots weirton steel (weirton, wv) wv ns ns interchange flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>IN</td><td>Steel billets / ingots</td><td>Weirton Steel (Weirton, WV)</td><td>WV</td><td>NS</td><td>NS Interchange</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='standard forged products in steel billets / ingots bethlehem steel (bethlehem, pa) pa conrail, csx/ns (1999) scully flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>IN</td><td>Steel billets / ingots</td><td>Bethlehem Steel (Bethlehem, PA)</td><td>PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='standard forged products out industrial forgings babcock &amp; wilcox (beaver falls, pa) beaver valley ns ns interchange flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>OUT</td><td>Industrial forgings</td><td>Babcock &amp; Wilcox (Beaver Falls, PA)</td><td>Beaver Valley</td><td>NS</td><td>NS Interchange</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='standard forged products out forged components westinghouse electric (pittsburgh, pa) pittsburgh, pa p&amp;le, csx (1992), avr (1995) glenwood flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>OUT</td><td>Forged components</td><td>Westinghouse Electric (Pittsburgh, PA)</td><td>Pittsburgh, PA</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='standard forged products out forged axles greenbrier companies (portland, or) portland, or sp, up (1996) via w&amp;le bridgeville flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>OUT</td><td>Forged axles</td><td>Greenbrier Companies (Portland, OR)</td><td>Portland, OR</td><td>SP, UP (1996) via W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='standard forged products out forged components caterpillar (peoria, il) peoria, il bn, bnsf (1996) via w&amp;le bridgeville flatcar' data-industry='standard forged products'><td>Standard Forged Products</td><td>OUT</td><td>Forged components</td><td>Caterpillar (Peoria, IL)</td><td>Peoria, IL</td><td>BN, BNSF (1996) via W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='universal stainless in stainless slab allegheny ludlum sw pa conrail, csx/ns (1999) scully covered hopper' data-industry='universal stainless'><td>Universal Stainless</td><td>IN</td><td>Stainless slab</td><td>Allegheny Ludlum</td><td>SW PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='universal stainless in alloy additives republic steel (cleveland, oh) cleveland, oh w&amp;le bridgeville covered hopper' data-industry='universal stainless'><td>Universal Stainless</td><td>IN</td><td>Alloy additives</td><td>Republic Steel (Cleveland, OH)</td><td>Cleveland, OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Covered Hopper</td></tr><tr data-flow='IN' data-search='universal stainless in industrial gases dow chemical midland, mi ns ns interchange tank car' data-industry='universal stainless'><td>Universal Stainless</td><td>IN</td><td>Industrial gases</td><td>Dow Chemical</td><td>Midland, MI</td><td>NS</td><td>NS Interchange</td><td>Tank Car</td></tr><tr data-flow='IN' data-search='universal stainless in alloy additives ltv steel (cleveland, oh) oh w&amp;le bridgeville covered hopper' data-industry='universal stainless'><td>Universal Stainless</td><td>IN</td><td>Alloy additives</td><td>LTV Steel (Cleveland, OH)</td><td>OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Covered Hopper</td></tr><tr data-flow='OUT' data-search='universal stainless out stainless bar ryerson steel service (chicago, il) w pa / oh w&amp;le bridgeville flatcar' data-industry='universal stainless'><td>Universal Stainless</td><td>OUT</td><td>Stainless bar</td><td>Ryerson Steel Service (Chicago, IL)</td><td>W PA / OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='universal stainless out specialty stainless boeing (seattle, wa) seattle, wa bn, bnsf (1996) via ns ns interchange flatcar' data-industry='universal stainless'><td>Universal Stainless</td><td>OUT</td><td>Specialty stainless</td><td>Boeing (Seattle, WA)</td><td>Seattle, WA</td><td>BN, BNSF (1996) via NS</td><td>NS Interchange</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='universal stainless out precision alloys westinghouse electric corp beaver, pa ns ns interchange flatcar' data-industry='universal stainless'><td>Universal Stainless</td><td>OUT</td><td>Precision alloys</td><td>Westinghouse Electric Corp</td><td>Beaver, PA</td><td>NS</td><td>NS Interchange</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='universal stainless out stainless bar metal service co. (apollo, pa) pittsburgh p&amp;le, csx (1992), avr (1995) glenwood flatcar' data-industry='universal stainless'><td>Universal Stainless</td><td>OUT</td><td>Stainless bar</td><td>Metal Service Co. (Apollo, PA)</td><td>Pittsburgh</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='washington steel in stainless slabs allegheny ludlum sw pa conrail, csx/ns (1999) scully flatcar' data-industry='washington steel'><td>Washington Steel</td><td>IN</td><td>Stainless slabs</td><td>Allegheny Ludlum</td><td>SW PA</td><td>Conrail, CSX/NS (1999)</td><td>Scully</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='washington steel in alloy billets republic steel (cleveland, oh) cleveland, oh w&amp;le bridgeville flatcar' data-industry='washington steel'><td>Washington Steel</td><td>IN</td><td>Alloy billets</td><td>Republic Steel (Cleveland, OH)</td><td>Cleveland, OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='washington steel in pickling acids dow chemical midland, mi ns ns interchange tank car' data-industry='washington steel'><td>Washington Steel</td><td>IN</td><td>Pickling acids</td><td>Dow Chemical</td><td>Midland, MI</td><td>NS</td><td>NS Interchange</td><td>Tank Car</td></tr><tr data-flow='IN' data-search='washington steel in scrap steel mcconway &amp; torley (pittsburgh, pa) pittsburgh conrail, csx/ns (1999) glenwood gondola' data-industry='washington steel'><td>Washington Steel</td><td>IN</td><td>Scrap steel</td><td>McConway &amp; Torley (Pittsburgh, PA)</td><td>Pittsburgh</td><td>Conrail, CSX/NS (1999)</td><td>Glenwood</td><td>Gondola</td></tr><tr data-flow='IN' data-search='washington steel in alloy billets ltv steel (cleveland, oh) oh w&amp;le bridgeville flatcar' data-industry='washington steel'><td>Washington Steel</td><td>IN</td><td>Alloy billets</td><td>LTV Steel (Cleveland, OH)</td><td>OH</td><td>W&amp;LE</td><td>Bridgeville</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='washington steel in alloy billets weirton steel (weirton, wv) wv ns ns interchange flatcar' data-industry='washington steel'><td>Washington Steel</td><td>IN</td><td>Alloy billets</td><td>Weirton Steel (Weirton, WV)</td><td>WV</td><td>NS</td><td>NS Interchange</td><td>Flatcar</td></tr><tr data-flow='IN' data-search='washington steel in scrap steel mcconway &amp; torley pittsburgh conrail, csx/ns (1999) glenwood gondola' data-industry='washington steel'><td>Washington Steel</td><td>IN</td><td>Scrap steel</td><td>McConway &amp; Torley</td><td>Pittsburgh</td><td>Conrail, CSX/NS (1999)</td><td>Glenwood</td><td>Gondola</td></tr><tr data-flow='OUT' data-search='washington steel out cold-rolled coil ryerson steel service (chicago, il) chicago, il mp, up (1982) via w&amp;le bridgeville coil car' data-industry='washington steel'><td>Washington Steel</td><td>OUT</td><td>Cold-rolled coil</td><td>Ryerson Steel Service (Chicago, IL)</td><td>Chicago, IL</td><td>MP, UP (1982) via W&amp;LE</td><td>Bridgeville</td><td>Coil Car</td></tr><tr data-flow='OUT' data-search='washington steel out stainless strip babcock &amp; wilcox co koppel works beaver falls, pa ns ns interchange flatcar' data-industry='washington steel'><td>Washington Steel</td><td>OUT</td><td>Stainless strip</td><td>Babcock &amp; Wilcox Co Koppel Works</td><td>Beaver Falls, PA</td><td>NS</td><td>NS Interchange</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='washington steel out sheet steel allegheny technologies (pittsburgh, pa) pittsburgh p&amp;le, csx (1992), avr (1995) glenwood flatcar' data-industry='washington steel'><td>Washington Steel</td><td>OUT</td><td>Sheet steel</td><td>Allegheny Technologies (Pittsburgh, PA)</td><td>Pittsburgh</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Flatcar</td></tr><tr data-flow='OUT' data-search='washington steel out sheet steel metal service co. (apollo, pa) pittsburgh p&amp;le, csx (1992), avr (1995) glenwood flatcar' data-industry='washington steel'><td>Washington Steel</td><td>OUT</td><td>Sheet steel</td><td>Metal Service Co. (Apollo, PA)</td><td>Pittsburgh</td><td>P&amp;LE, CSX (1992), AVR (1995)</td><td>Glenwood</td><td>Flatcar</td></tr></tbody>
+</table></div>
+
+<h2>Interchange_Matrix</h2>
+<p class="subhead section-count" data-table="interchange">5 rows</p>
+<div class="table-wrap">
+<table class="review-table" id="interchange">
+  <thead><tr><th>Interchange</th><th>Location</th><th>Foreign Railroads</th><th>Serving Railroad</th><th>Industries Served</th></tr></thead>
+  <tbody><tr data-sheet='interchange' data-search='rook yard rook yard w&amp;le, n&amp;w, ns (1982) w&amp;le none (interchange only)'><td>Rook Yard</td><td>Rook Yard</td><td>W&amp;LE, N&amp;W, NS (1982)</td><td>W&amp;LE</td><td>None (interchange only)</td></tr><tr data-sheet='interchange' data-search='ns interchange mckees rocks (near scully yard) ns, bn, bnsf (1996) via ns ns none (interchange only)'><td>NS Interchange</td><td>McKees Rocks (near Scully Yard)</td><td>NS, BN, BNSF (1996) via NS</td><td>NS</td><td>None (interchange only)</td></tr><tr data-sheet='interchange' data-search='bridgeville bridgeville, pa w&amp;le (previously n&amp;w), bn, bnsf (1996) via w&amp;le, mp, up (1982) via w&amp;le, ns via w&amp;le, sp, up (1996) via w&amp;le pc&amp;y (1980s-1996), pohc (2001) standard forged products, ge, flannery bolt, bridgeville lumber, universal stainless (pc&amp;y line)'><td>Bridgeville</td><td>Bridgeville, PA</td><td>W&amp;LE (previously N&amp;W), BN, BNSF (1996) via W&amp;LE, MP, UP (1982) via W&amp;LE, NS via W&amp;LE, SP, UP (1996) via W&amp;LE</td><td>PC&amp;Y (1980s-1996), POHC (2001)</td><td>Standard Forged Products, GE, Flannery Bolt, Bridgeville Lumber, Universal Stainless (PC&amp;Y line)</td></tr><tr data-sheet='interchange' data-search='scully yard / glenwood scully yard / glenwood conrail, csx/ns (1999), ns, p&amp;le, csx (1992), avr (1995), mp, up (1982) via p&amp;le b&amp;o/chessie/csx (1987), p&amp;le/csx (1992)/avr (1995), conrail/csx/ns (1999) washington steel, brockway glass (b&amp;o line in washington, pa)'><td>Scully Yard / Glenwood</td><td>Scully Yard / Glenwood</td><td>Conrail, CSX/NS (1999), NS, P&amp;LE, CSX (1992), AVR (1995), MP, UP (1982) via P&amp;LE</td><td>B&amp;O/Chessie/CSX (1987), P&amp;LE/CSX (1992)/AVR (1995), Conrail/CSX/NS (1999)</td><td>Washington Steel, Brockway Glass (B&amp;O line in Washington, PA)</td></tr><tr data-sheet='interchange' data-search='neville island neville island, pa csx, pohc (2001) csx, pohc (2001) shenango coke works, aristech chemical, calgon carbon'><td>Neville Island</td><td>Neville Island, PA</td><td>CSX, POHC (2001)</td><td>CSX, POHC (2001)</td><td>Shenango Coke Works, Aristech Chemical, Calgon Carbon</td></tr></tbody>
+</table></div>
+
+<script>
+(function() {
+  const kindSel = document.getElementById('kind-filter');
+  const q = document.getElementById('q');
+  const countEl = document.getElementById('row-count');
+  const tables = ['hart-lanes', 'interchange'];
+  function allRows() {
+    return tables.flatMap(id => [...document.querySelectorAll('#' + id + ' tbody tr')]);
+  }
+  function apply() {
+    const kind = kindSel.value;
+    const term = (q.value || '').toLowerCase();
+    let shown = 0;
+    let total = 0;
+    allRows().forEach(tr => {
+      total++;
+      const flow = tr.getAttribute('data-flow') || '';
+      const sheet = tr.closest('table').id === 'interchange' ? 'interchange' : 'lane';
+      let okKind = kind === 'all'
+        || (kind === 'lane' && sheet === 'lane')
+        || (kind === 'interchange' && sheet === 'interchange')
+        || (kind === flow);
+      const hay = (tr.getAttribute('data-search') || '').toLowerCase();
+      const ok = okKind && (!term || hay.includes(term));
+      tr.style.display = ok ? '' : 'none';
+      if (ok) shown++;
+    });
+    countEl.textContent = shown + ' of ' + total + ' shown';
+  }
+  kindSel.addEventListener('change', apply);
+  q.addEventListener('input', apply);
+  apply();
+})();
+</script>
+
+  </main>
+</body>
+</html>

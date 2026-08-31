@@ -61,3 +61,5 @@ cd consolidation/external/hart-ops
 .venv/bin/python card_pipeline/generate_waybill_cards.py
 .venv/bin/python card_pipeline/generate_all_cards.py   # full fleet → output/ + mirror
 ```
+
+**Waybill / session scripts:** see [`WAYBILL_SCRIPTS.md`](WAYBILL_SCRIPTS.md) — spot waybills, STS `--refresh`, session rebuild, not-yet-printed workflow.

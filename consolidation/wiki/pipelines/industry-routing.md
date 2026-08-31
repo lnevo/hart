@@ -18,6 +18,10 @@ Maintain supplier/customer/commodity matrix for waybills and STS seed.
 
 **Status:** **hart-ops** (`consolidation/external/hart-ops/industries/`).
 
+## Review
+
+- [`html/review/industry-matrix.html`](../../html/review/industry-matrix.html) — filterable matrix + interchange sheet
+
 ## Run
 
 ```bash

@@ -17,7 +17,7 @@
 
 Generate the USS track diagram and CTC table data from a Python plan (Quaker Valley–style icons).
 
-**Status:** Live alternate desk. Never with CATS CTC.
+**Status:** Live alternate desk. Never with CATS CTC. **20 plant columns** (see [`DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md)).
 
 ## Inputs
 
