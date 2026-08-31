@@ -14,6 +14,7 @@ Approved by owner. Consolidation work proceeds under these locked defaults until
 | **D8** | Y | BOM excluded | PCBWay out of consolidation scope |
 | **D9** | Y (modified) | Local HTML portal now | Pi-hosted portal with STS/mimic/JMRI later (low priority) |
 | **D10** | Y (modified) | LCOS as-is | Working published version moves into consolidation review; minimal change |
+| **D2f** | Y | Virtual stub masts = **A** | 17 Dispatcher stubs map-only; no signalmast beans — [`audits/proposed-virtual-masts.md`](audits/proposed-virtual-masts.md) |
 
 ## Follow-up work unlocked
 

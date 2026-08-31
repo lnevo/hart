@@ -18,7 +18,7 @@
 
 1. **Names migration plan** — map-derived OS **covers all 23 legacy OS rows** (`propose_os_from_map.py`); promote phase02 read from map; retire `block_display_names.csv`.
 2. **Wiring crosswalk** — close 10 ID gap (1132–1136 vs 1237–1241); document in `sor/wiring/`.
-3. **17 proposed virtual masts** — not missing Digicon masts; Dispatcher stub names in map only. See [`audits/proposed-virtual-masts.md`](audits/proposed-virtual-masts.md). Decide: document-only (A), apply beans (B), or STUB_MASTS pipeline (C).
+3. **Virtual stub masts** — **Option A approved** (document-only). See [`audits/proposed-virtual-masts.md`](audits/proposed-virtual-masts.md). D2 sub-decisions: [`wiki/decisions/D2-promotion-checklist.md`](wiki/decisions/D2-promotion-checklist.md).
 4. **`unused-modules/`** — move retired one-shot cleanup patterns as templates (not live).
 5. **LCOS submodule spec** — pin working commit + validation checklist before any bridge edits.
 
