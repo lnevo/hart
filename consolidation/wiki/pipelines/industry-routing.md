@@ -5,7 +5,7 @@
 | Kind | Live (read-only bench) | Build target |
 |------|------------------------|--------------|
 | Runbook | `wiki/pipelines/industry-routing.md` | this file |
-| Matrix | `external/hart-ops/industries/HART_Industry_Routing_Matrix.xlsx` | hart-ops |
+| Matrix | `consolidation/external/hart-ops/industries/HART_Industry_Routing_Matrix.xlsx` | hart-ops |
 | Legacy bench | `~/Desktop/HART/Industries/` | read-only (D12) |
 
 **Tier:** C · Feeds waybills (13) and STS seed (14)
@@ -16,12 +16,12 @@
 
 Maintain supplier/customer/commodity matrix for waybills and STS seed.
 
-**Status:** **hart-ops** (`external/hart-ops/industries/`).
+**Status:** **hart-ops** (`consolidation/external/hart-ops/industries/`).
 
 ## Run
 
 ```bash
-cd external/hart-ops/industries
+cd consolidation/external/hart-ops/industries
 python3 validate_and_update_matrix.py
 ```
 

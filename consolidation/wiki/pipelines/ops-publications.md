@@ -5,8 +5,8 @@
 | Kind | Live (read-only bench) | Build target |
 |------|------------------------|--------------|
 | Runbook | `wiki/pipelines/ops-publications.md` | this file |
-| Rebuild scripts | `external/hart-ops/publications/rebuild_*.py` | hart-ops |
-| Published output | `external/hart-ops/docs/published/` | hart-ops |
+| Rebuild scripts | `consolidation/external/hart-ops/publications/rebuild_*.py` | hart-ops |
+| Published output | `consolidation/external/hart-ops/docs/published/` | hart-ops |
 | Desktop root dupes | class **D** in [`audits/desktop-inventory.md`](../../audits/desktop-inventory.md) | cutover only |
 
 **Tier:** C · **D12:** do not overwrite Desktop or live `hart/docs/`
@@ -17,12 +17,12 @@
 
 Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 
-**Status:** **hart-ops** (`external/hart-ops/publications/` → `docs/published/`).
+**Status:** **hart-ops** (`consolidation/external/hart-ops/publications/` → `docs/published/`).
 
 ## Run
 
 ```bash
-cd external/hart-ops
+cd consolidation/external/hart-ops
 .venv/bin/python publications/rebuild_scale_operating_instructions.py
 .venv/bin/python publications/rebuild_dispatcher_train_list.py
 .venv/bin/python publications/rebuild_yardmaster_sequence.py

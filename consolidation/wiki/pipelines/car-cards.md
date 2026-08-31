@@ -5,7 +5,7 @@
 | Kind | Live (read-only bench) | Build target |
 |------|------------------------|--------------|
 | Runbook | `wiki/pipelines/car-cards.md` | this file |
-| **hart-ops repo** | [`external/hart-ops`](../../../external/hart-ops) @ submodule pin | **canonical ops workspace** |
+| **hart-ops repo** | [`consolidation/external/hart-ops`](../../external/hart-ops) @ consolidation/external/ | **canonical ops workspace** |
 | **Car inventory SoR** | `data/image_metadata.csv` → `HART_MergedCarRoster.xml` | [`sor/cars/README.md`](../../sor/cars/README.md) |
 | JMRI export | `OperationsCarRoster.xml` (generated in hart-ops) | cutover project |
 | Photos (local) | `HART_CAR_IMAGES_FINAL` env → Desktop `CarImagesFinal/` | not in git |
@@ -18,7 +18,7 @@
 
 Print filled car cards from roster XML + cropped car photos.
 
-**Status:** **hart-ops** repo (`external/hart-ops`). Desktop `Car Cards/` is read-only bench until cutover.
+**Status:** **hart-ops** repo (`consolidation/external/hart-ops`). Desktop `Car Cards/` is read-only bench until cutover.
 
 ## SoR (single inventory)
 
@@ -31,7 +31,7 @@ STS and card pipeline are **filtered consumers** — see ADR.
 ## Run (hart-ops)
 
 ```bash
-cd external/hart-ops   # or ~/hart-ops clone
+cd consolidation/external/hart-ops   
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 export HART_CAR_IMAGES_FINAL=~/Desktop/HART/Car\ Cards/CarImagesFinal
 

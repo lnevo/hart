@@ -57,8 +57,8 @@
 <table>
 <tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
 <tr><td>Runbook</td><td>`wiki/pipelines/ops-publications.md`</td><td>this file</td></tr>
-<tr><td>Rebuild scripts</td><td>`external/hart-ops/publications/rebuild_*.py`</td><td>hart-ops</td></tr>
-<tr><td>Published output</td><td>`external/hart-ops/docs/published/`</td><td>hart-ops</td></tr>
+<tr><td>Rebuild scripts</td><td>`consolidation/external/hart-ops/publications/rebuild_*.py`</td><td>hart-ops</td></tr>
+<tr><td>Published output</td><td>`consolidation/external/hart-ops/docs/published/`</td><td>hart-ops</td></tr>
 <tr><td>Desktop root dupes</td><td>class **D** in [`audits/desktop-inventory.md`](../../audits/desktop-inventory.md)</td><td>cutover only</td></tr>
 </table>
 
@@ -70,12 +70,12 @@
 
 <p>Rebuild official HART crew/dispatcher paperwork from Python content dicts.</p>
 
-<p><strong>Status:</strong> <strong>hart-ops</strong> (<code>external/hart-ops/publications/</code> → <code>docs/published/</code>).</p>
+<p><strong>Status:</strong> <strong>hart-ops</strong> (<code>consolidation/external/hart-ops/publications/</code> → <code>docs/published/</code>).</p>
 
 <h2>Run</h2>
 
 <pre><code>
-cd external/hart-ops
+cd consolidation/external/hart-ops
 .venv/bin/python publications/rebuild_scale_operating_instructions.py
 .venv/bin/python publications/rebuild_dispatcher_train_list.py
 .venv/bin/python publications/rebuild_yardmaster_sequence.py

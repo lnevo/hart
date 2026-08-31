@@ -146,7 +146,7 @@ pipelines:
     status: live
     tier: C
     repo: hart-ops
-    external: external/hart-ops
+    external: consolidation/external/hart-ops
     sor:
       - data/image_metadata.csv
       - data/HART_MergedCarRoster.xml
@@ -158,7 +158,7 @@ pipelines:
     status: live
     tier: C
     repo: hart-ops
-    external: external/hart-ops
+    external: consolidation/external/hart-ops
     sor:
       - data/HART_Spot_Waybills.csv
     guide: wiki/pipelines/waybills.md
@@ -167,8 +167,8 @@ pipelines:
     name: STS
     status: live
     tier: C
-    external: external/sts-docker
-    helpers: external/sts-helpers
+    external: consolidation/external/sts-docker
+    helpers: consolidation/external/sts-helpers
     guide: wiki/pipelines/sts.md
 
   - id: 15
@@ -176,7 +176,7 @@ pipelines:
     status: live
     tier: C
     repo: hart-ops
-    external: external/hart-ops
+    external: consolidation/external/hart-ops
     sor:
       - publications/rebuild_*.py
       - docs/published/
@@ -187,7 +187,7 @@ pipelines:
     status: live
     tier: C
     repo: hart-ops
-    external: external/hart-ops
+    external: consolidation/external/hart-ops
     sor:
       - industries/HART_Industry_Routing_Matrix.xlsx
     guide: wiki/pipelines/industry-routing.md

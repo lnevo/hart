@@ -1,7 +1,7 @@
 # LCOS bridge — submodule pin spec (consolidation)
 
 **Sibling repo:** [LCOS_ESP32_MQTT_Client](https://github.com/lnevo/LCOS_ESP32_MQTT_Client)  
-**Status:** Pin active · submodule path `external/lcos-bridge` — see [`SUBMODULE_MANIFEST.yaml`](../SUBMODULE_MANIFEST.yaml)
+**Status:** Pin active · submodule path `consolidation/external/lcos-bridge` — see [`SUBMODULE_MANIFEST.yaml`](../SUBMODULE_MANIFEST.yaml)
 
 ## Pin (2026-08-31)
 
@@ -31,7 +31,7 @@ Project-specific changes belong in `lcos_mqtt_bridge.*`, `mqtt_serial.*`, `LCOS_
 ## Future submodule layout (D7)
 
 ```
-hart/external/lcos-bridge  →  LCOS_ESP32_MQTT_Client @ ec16af8…
+consolidation/external/lcos-bridge  →  LCOS_ESP32_MQTT_Client @ ec16af8…
 ```
 
 Init: [`wiki/REPOS.md`](../../wiki/REPOS.md) · `bash consolidation/scripts/init_external_submodules.sh`

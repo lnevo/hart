@@ -57,7 +57,7 @@
 <table>
 <tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
 <tr><td>Runbook</td><td>`wiki/pipelines/car-cards.md`</td><td>this file</td></tr>
-<tr><td>**hart-ops repo**</td><td>[`external/hart-ops`](../../../external/hart-ops) @ submodule pin</td><td>**canonical ops workspace**</td></tr>
+<tr><td>**hart-ops repo**</td><td>[`consolidation/external/hart-ops`](../../external/hart-ops) @ consolidation/external/</td><td>**canonical ops workspace**</td></tr>
 <tr><td>**Car inventory SoR**</td><td>`data/image_metadata.csv` → `HART_MergedCarRoster.xml`</td><td>[`sor/cars/README.md`](../../sor/cars/README.md)</td></tr>
 <tr><td>JMRI export</td><td>`OperationsCarRoster.xml` (generated in hart-ops)</td><td>cutover project</td></tr>
 <tr><td>Photos (local)</td><td>`HART_CAR_IMAGES_FINAL` env → Desktop `CarImagesFinal/`</td><td>not in git</td></tr>
@@ -71,7 +71,7 @@
 
 <p>Print filled car cards from roster XML + cropped car photos.</p>
 
-<p><strong>Status:</strong> <strong>hart-ops</strong> repo (<code>external/hart-ops</code>). Desktop <code>Car Cards/</code> is read-only bench until cutover.</p>
+<p><strong>Status:</strong> <strong>hart-ops</strong> repo (<code>consolidation/external/hart-ops</code>). Desktop <code>Car Cards/</code> is read-only bench until cutover.</p>
 
 <h2>SoR (single inventory)</h2>
 
@@ -84,7 +84,7 @@ image_metadata.csv  →  build_car_roster_sor.py  →  HART_MergedCarRoster.xml 
 <h2>Run (hart-ops)</h2>
 
 <pre><code>
-cd external/hart-ops   # or ~/hart-ops clone
+cd consolidation/external/hart-ops   
 python3 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
 export HART_CAR_IMAGES_FINAL=~/Desktop/HART/Car\ Cards/CarImagesFinal
 

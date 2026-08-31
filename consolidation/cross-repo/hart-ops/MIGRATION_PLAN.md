@@ -1,7 +1,7 @@
 # hart-ops — migration plan (P3a approved)
 
 **Status:** Phase 1 **complete** (2026-08-31) · repo [`lnevo/hart-ops`](https://github.com/lnevo/hart-ops)  
-**Submodule:** `hart/external/hart-ops` @ `bc6ce55`
+**Submodule:** `consolidation/external/hart-ops` @ `bc6ce55`
 
 ## SoR build chain (D11)
 
@@ -80,7 +80,7 @@ hart-ops/
 
 1. ~~Create **`lnevo/hart-ops`** on GitHub.~~ Done @ `bc6ce55`
 2. ~~Copy phase-1 tree from Desktop~~ — one-time copy into **hart-ops**; **Desktop/HART unchanged**
-3. Submodule: `hart/external/hart-ops`
+3. Submodule: `consolidation/external/hart-ops`
 
 ## Not during consolidation (cutover project)
 

@@ -19,7 +19,7 @@ Consolidation **builds the new workspace**; it does **not** cut over operations 
 | Pi / Windows layout hosts | No deploy, no roster push, no `sync_hart_package.sh` from consolidation work |
 | Original STS/JMRI runtime state | No seed apply or live session changes from here |
 
-**Build targets:** `consolidation/`, `external/*`, **`hart-ops`** (new repo). Desktop slim, Pi sync, and live promotion belong to a **separate cutover/cleanup project** after rebuild is verified.
+**Build targets:** `consolidation/` and **`consolidation/external/*`** submodules only. Do not create standalone clones under `$HOME` (e.g. no `~/hart-ops`).
 
 ## Read order
 

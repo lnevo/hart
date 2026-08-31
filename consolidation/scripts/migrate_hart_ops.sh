@@ -4,7 +4,7 @@ set -euo pipefail
 
 DESKTOP_CARDS="${DESKTOP_CARDS:-$HOME/Desktop/HART/Car Cards}"
 DESKTOP_IND="${DESKTOP_IND:-$HOME/Desktop/HART/Industries}"
-TARGET="${TARGET:-$HOME/hart-ops}"
+TARGET="${TARGET:-$HOME/hart/consolidation/external/hart-ops}"
 
 if [[ ! -d "$DESKTOP_CARDS/card_pipeline" ]]; then
   echo "Missing Desktop Car Cards at $DESKTOP_CARDS" >&2

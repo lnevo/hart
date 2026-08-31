@@ -1,12 +1,12 @@
-[submodule "external/lcos-bridge"]
-	path = external/lcos-bridge
+[submodule "consolidation/external/lcos-bridge"]
+	path = consolidation/external/lcos-bridge
 	url = git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git
-[submodule "external/sts-docker"]
-	path = external/sts-docker
+[submodule "consolidation/external/sts-docker"]
+	path = consolidation/external/sts-docker
 	url = git@github.com:lnevo/sts-docker.git
-[submodule "external/sts-helpers"]
-	path = external/sts-helpers
+[submodule "consolidation/external/sts-helpers"]
+	path = consolidation/external/sts-helpers
 	url = git@github.com:lnevo/sts-docker-helpers.git
-[submodule "external/hart-ops"]
-	path = external/hart-ops
+[submodule "consolidation/external/hart-ops"]
+	path = consolidation/external/hart-ops
 	url = git@github.com:lnevo/hart-ops.git

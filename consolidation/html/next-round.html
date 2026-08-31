@@ -66,7 +66,7 @@
 
 <table>
 <tr><td>Area</td><td>Output</td></tr>
-<tr><td>Meta-repo</td><td>`external/*` submodules + manifest pins</td></tr>
+<tr><td>Meta-repo</td><td>`consolidation/external/*` submodules + manifest pins</td></tr>
 <tr><td>hart-ops</td><td>github.com/lnevo/hart-ops @ `c276b85`</td></tr>
 <tr><td>Tranche A</td><td>manifest + pipeline guides 12–16</td></tr>
 <tr><td>Tranche B</td><td>`class_f_ingest_manifest.csv` (124 rows)</td></tr>
@@ -95,7 +95,7 @@
 <pre><code>
 bash consolidation/validators/run_all.sh
 python3 consolidation/scripts/build_site.py
-cd external/hart-ops &amp;&amp; python card_pipeline/build_car_roster_sor.py
+cd consolidation/external/hart-ops &amp;&amp; python card_pipeline/build_car_roster_sor.py
 </code></pre>
   </main>
 </body>
