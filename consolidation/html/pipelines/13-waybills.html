@@ -57,11 +57,11 @@
 <table>
 <tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
 <tr><td>Runbook</td><td>`wiki/pipelines/waybills.md`</td><td>this file</td></tr>
-<tr><td>Matrix SoR</td><td>`external/hart-ops/data/HART_Spot_Waybills.csv`</td><td>hart-ops</td></tr>
+<tr><td>Matrix SoR</td><td>`consolidation/external/hart-ops/data/HART_Spot_Waybills.csv`</td><td>hart-ops</td></tr>
 <tr><td>Legacy bench</td><td>`~/Desktop/HART/Car Cards/data/`</td><td>read-only (D12)</td></tr>
 </table>
 
-<p><strong>Tier:</strong> C · <strong>Repo:</strong> <code>external/hart-ops</code></p>
+<p><strong>Tier:</strong> C · <strong>Repo:</strong> <code>consolidation/external/hart-ops</code></p>
 
 <p>---</p>
 
@@ -69,7 +69,7 @@
 
 <p>Generate spot waybill cards and CC/waybill labels from the HART waybill matrix.</p>
 
-<p><strong>Status:</strong> <strong>hart-ops</strong> (<code>external/hart-ops</code>). STS seed reads same CSV via <code>external/sts-helpers</code>.</p>
+<p><strong>Status:</strong> <strong>hart-ops</strong> (<code>consolidation/external/hart-ops</code>). STS seed reads same CSV via <code>consolidation/external/sts-helpers</code>.</p>
 
 <h2>Inputs</h2>
 
@@ -82,12 +82,12 @@
 <h2>Run</h2>
 
 <pre><code>
-cd external/hart-ops
+cd consolidation/external/hart-ops
 .venv/bin/python card_pipeline/generate_waybill_cards.py
 .venv/bin/python card_pipeline/generate_cc_waybill_labels.py
 </code></pre>
 
-<p>Keep CSV in sync with <code>external/sts-helpers/seed/inputs/</code> when waybill lanes change (hart-ops + helpers repos only — not Desktop).</p>
+<p>Keep CSV in sync with <code>consolidation/external/sts-helpers/seed/inputs/</code> when waybill lanes change (hart-ops + helpers repos only — not Desktop).</p>
   </main>
 </body>
 </html>

@@ -19,7 +19,7 @@ Open the [browse portal](../../index.html) for HTML navigation.
 | 11 | [speed-matching](speed-matching.md) | — | Parked |
 | 12 | [car-cards](car-cards.md) | C | **hart-ops** — car SoR |
 | 13 | [waybills](waybills.md) | C | **hart-ops** |
-| 14 | [sts](sts.md) | C | `external/sts-docker` + `sts-helpers` |
+| 14 | [sts](sts.md) | C | `consolidation/external/sts-docker` + `sts-helpers` |
 | 15 | [ops-publications](ops-publications.md) | C | **hart-ops** |
 | 16 | [industry-routing](industry-routing.md) | C | **hart-ops** |
 

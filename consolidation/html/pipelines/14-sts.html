@@ -57,9 +57,9 @@
 <table>
 <tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
 <tr><td>Runbook</td><td>`wiki/pipelines/sts.md`</td><td>this file</td></tr>
-<tr><td>Runtime</td><td>`external/sts-docker`</td><td>submodule @ pin</td></tr>
-<tr><td>Helpers</td><td>`external/sts-helpers`</td><td>submodule @ pin</td></tr>
-<tr><td>Roster / waybills</td><td>`external/hart-ops/data/`</td><td>hart-ops SoR</td></tr>
+<tr><td>Runtime</td><td>`consolidation/external/sts-docker`</td><td>submodule @ pin</td></tr>
+<tr><td>Helpers</td><td>`consolidation/external/sts-helpers`</td><td>submodule @ pin</td></tr>
+<tr><td>Roster / waybills</td><td>`consolidation/external/hart-ops/data/`</td><td>hart-ops SoR</td></tr>
 <tr><td>Legacy bench</td><td>`~/Desktop/HART/Car Cards/`</td><td>read-only (D12)</td></tr>
 </table>
 
@@ -76,23 +76,23 @@
 <h2>Inputs</h2>
 
 <ul>
-<li><code>external/sts-helpers/seed/</code> (<code>hart_seed_config.json</code>, CSV inputs)</li>
-<li><code>external/hart-ops/data/</code> (roster XML, waybills, <code>image_metadata.csv</code>)</li>
+<li><code>consolidation/external/sts-helpers/seed/</code> (<code>hart_seed_config.json</code>, CSV inputs)</li>
+<li><code>consolidation/external/hart-ops/data/</code> (roster XML, waybills, <code>image_metadata.csv</code>)</li>
 <li><code>HART_CAR_IMAGES_FINAL</code> for car photos in generated seed</li>
 </ul>
 
 <h2>Wrappers (hart-ops)</h2>
 
 <pre><code>
-cd external/hart-ops
+cd consolidation/external/hart-ops
 ./bin/apply_hart_seed.sh --generate --merge-fleet   # cutover / lab only
 ./bin/apply_warm_start.sh
 ./bin/begin_session.sh --run-stg-scully --switchlists
 </code></pre>
 
-<p>Canonical PHP runtime: <strong><code>external/sts-docker/sts/</code></strong>. Read <code>external/sts-helpers</code> and <code>external/sts-docker</code> AGENTS.md.</p>
+<p>Canonical PHP runtime: <strong><code>consolidation/external/sts-docker/sts/</code></strong>. Read <code>consolidation/external/sts-helpers</code> and <code>consolidation/external/sts-docker</code> AGENTS.md.</p>
 
-<p>Switch-list docs: <code>external/sts-helpers/docs/SWITCHLIST_BUILDING.md</code>.</p>
+<p>Switch-list docs: <code>consolidation/external/sts-helpers/docs/SWITCHLIST_BUILDING.md</code>.</p>
   </main>
 </body>
 </html>

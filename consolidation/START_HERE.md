@@ -43,6 +43,6 @@ Agent rule: `.cursor/rules/consolidation-workspace.mdc`
 | `audits/` | Reports + validator logs |
 | `sor/` | Names, wiring crosswalk, desktop CSV |
 | `cross-repo/` | Submodule pins, hart-ops migration docs |
-| `external/` | Live submodule checkouts (sibling repos) |
+| `consolidation/external/` | Git submodules under consolidation/external/ |
 
 Rebuild portal: `python3 consolidation/scripts/build_site.py`

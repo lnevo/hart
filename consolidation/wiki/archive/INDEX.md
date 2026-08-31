@@ -9,7 +9,7 @@
 | Class | Meaning | Action (when approved) |
 |-------|---------|------------------------|
 | **A** | Already in `hart` git (`docs/`, `jmri/`, `cats/`, …) | None — canonical |
-| **B** | Sibling git repo (`LCOS_ESP32_MQTT_Client`, `sts-docker`, future `hart-ops`) | Submodule under `external/` (P3b) |
+| **B** | Sibling git repo (`LCOS_ESP32_MQTT_Client`, `sts-docker`, future `hart-ops`) | Submodule under `consolidation/external/` (P3b) |
 | **C** | Operational subtree on Desktop | Migrate to `hart-ops` or documented path (P3a) |
 | **D** | Root duplicate basename of `Car Cards/docs/` | Delete Desktop copy after confirming git/hart-ops SoR |
 | **E** | Root duplicate hash of file under Car Cards | Same as D |

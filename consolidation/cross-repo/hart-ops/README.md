@@ -1,6 +1,6 @@
 # hart-ops — migration target
 
-**Status:** **Live** @ [`lnevo/hart-ops`](https://github.com/lnevo/hart-ops) · submodule `external/hart-ops`  
+**Status:** **Live** @ [`lnevo/hart-ops`](https://github.com/lnevo/hart-ops) · submodule `consolidation/external/hart-ops`  
 **Pin:** [`SUBMODULE_PIN.md`](SUBMODULE_PIN.md) · `bc6ce55`
 
 ## Scope (pipelines 12–16)
@@ -26,4 +26,4 @@
 
 ## Submodules (P3b)
 
-hart-ops is sibling to `external/sts-helpers` in hart meta-repo. STS helpers stay submodule; car SoR moves into hart-ops when repo exists.
+hart-ops is sibling to `consolidation/external/sts-helpers` in hart meta-repo. STS helpers stay submodule; car SoR moves into hart-ops when repo exists.

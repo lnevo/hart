@@ -20,7 +20,7 @@ Browse portal: [`consolidation/index.html`](../../consolidation/index.html)
 
 ## Golden rule
 
-**Write only under `consolidation/`** (and sibling build targets: `external/*`, `hart-ops` repo). Do not edit live `jmri/`, `cats/`, `tables/`, `docs/wiring/`, live `wiki/`, or **`~/Desktop/HART/`** unless the user explicitly requests **promotion** or **cutover**.
+**Write only under `hart/consolidation/`** (including `consolidation/external/*` submodules). Do not edit live `jmri/`, `cats/`, `tables/`, `docs/wiring/`, live `wiki/`, or **`~/Desktop/HART/`**.
 
 ## Bench freeze (D12)
 

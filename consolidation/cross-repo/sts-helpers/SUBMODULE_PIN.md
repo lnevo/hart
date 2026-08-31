@@ -1,7 +1,7 @@
 # sts-docker-helpers — submodule pin spec
 
 **Sibling repo:** [lnevo/sts-docker-helpers](https://github.com/lnevo/sts-docker-helpers)  
-**Path in hart:** `external/sts-helpers`
+**Path in hart:** `consolidation/external/sts-helpers`
 
 ## Pin (2026-08-31)
 

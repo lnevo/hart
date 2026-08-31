@@ -9,10 +9,10 @@
 | Repo | Role |
 |------|------|
 | **`lnevo/hart`** | Layout, CATS panels, JMRI tables, wiring docs, consolidation |
-| **`LCOS_ESP32_MQTT_Client`** | Nano firmware + MQTT bridge → `external/lcos-bridge` |
-| **`sts-docker`** | STS PHP runtime → `external/sts-docker` |
-| **`sts-docker-helpers`** | Seed, warm-start, switch lists → `external/sts-helpers` |
-| **hart-ops** | Car inventory SoR, cards, waybills, publications → `external/hart-ops` @ `bc6ce55` |
+| **`LCOS_ESP32_MQTT_Client`** | Nano firmware + MQTT bridge → `consolidation/external/lcos-bridge` |
+| **`sts-docker`** | STS PHP runtime → `consolidation/external/sts-docker` |
+| **`sts-docker-helpers`** | Seed, warm-start, switch lists → `consolidation/external/sts-helpers` |
+| **hart-ops** | Car inventory SoR, cards, waybills, publications → `consolidation/external/hart-ops` @ `bc6ce55` |
 
 ## Submodule layout
 
