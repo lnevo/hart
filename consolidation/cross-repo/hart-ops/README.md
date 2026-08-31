@@ -1,29 +1,37 @@
-# hart-ops — migration target
+# hart-ops — consolidation external module
 
-**Status:** **Live** @ [`lnevo/hart-ops`](https://github.com/lnevo/hart-ops) · submodule `consolidation/external/hart-ops`  
-**Pin:** [`SUBMODULE_PIN.md`](SUBMODULE_PIN.md) · `bc6ce55`
+**Repo:** [`lnevo/hart-ops`](https://github.com/lnevo/hart-ops)  
+**Path:** `consolidation/external/hart-ops`  
+**Pin:** [`SUBMODULE_PIN.md`](SUBMODULE_PIN.md) · `761c1f9`
 
 ## Scope (pipelines 12–16)
 
-| Pipeline | Desktop path | Repo target |
-|----------|--------------|-------------|
-| 12 Car cards | `Car Cards/card_pipeline/` | `hart-ops/card_pipeline/` |
-| 13 Waybills | `Car Cards/data/HART_Spot_Waybills.csv` | `hart-ops/data/` |
-| 14 STS helpers | `Car Cards/sts-docker-helpers/` | `hart-ops/sts-helpers/` (submodule later) |
-| 15 Publications | `Car Cards/publications/` | `hart-ops/publications/` |
-| 16 Industries | `~/Desktop/HART/Industries/` | `hart-ops/industries/` |
+| Pipeline | Content | Repo path |
+|----------|---------|-----------|
+| 12 Car cards | card pipeline, OCR, merge roster | `card_pipeline/` |
+| 13 Waybills | spot assignments | `data/HART_Spot_Waybills.csv` |
+| 14 STS | seed helpers (sibling submodule) | `consolidation/external/sts-helpers` |
+| 15 Publications | rebuild scripts | `publications/rebuild_*.py` |
+| 16 Industries | routing matrix | `industries/` |
 
-## Out of scope for git (large binaries)
+## Car SoR (D11)
 
-- `CarImagesFinal/` — local path or LFS bucket; env var `HART_CAR_IMAGES_FINAL`
-- Desktop root class **F** media — ingest to `hart/docs/archive/` per [`audits/class-f-ingest-plan.md`](../../audits/class-f-ingest-plan.md)
+```
+data/image_metadata.csv  →  HART_MergedCarRoster.xml  →  OperationsCarRoster.xml
+```
 
-## Golden smoke
+Build: `python card_pipeline/build_car_roster_sor.py`  
+Golden: **NW32800** — [`GOLDEN_SMOKE_CAR_CARDS.md`](GOLDEN_SMOKE_CAR_CARDS.md)
 
-- Spec: [`GOLDEN_SMOKE_CAR_CARDS.md`](GOLDEN_SMOKE_CAR_CARDS.md)
-- Car: **NW32800**
-- SoR audit: [`audits/golden-car-sor.md`](../../audits/golden-car-sor.md)
+## Publications audit
 
-## Submodules (P3b)
+[`audits/hart-ops-publications.md`](../../audits/hart-ops-publications.md) — 8 rebuild scripts verified present.
 
-hart-ops is sibling to `consolidation/external/sts-helpers` in hart meta-repo. STS helpers stay submodule; car SoR moves into hart-ops when repo exists.
+## Large binaries (not in git)
+
+- Car final photos — local path / LFS; env `HART_CAR_IMAGES_FINAL`
+- Desktop class **F** media — browse only via [`html/archive/f-root-index.html`](../../html/archive/f-root-index.html)
+
+## Migration history
+
+[`MIGRATION_PLAN.md`](MIGRATION_PLAN.md)

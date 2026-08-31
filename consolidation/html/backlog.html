@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backlog — HART Consolidation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="index.html">Home</a>
+  <a href="objective.html">Objective</a>
+  <a href="decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="live-sources.html">Live sources</a>
+  <a href="manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
+  <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="projects/cats-integration.html">CATS integration</a>
+  <a href="pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="pipelines/08-wiring.html">Wiring docs</a>
+  <a href="pipelines/12-car-cards.html">Car cards</a>
+  <a href="pipelines/14-sts.html">STS</a>
+  <a href="pipelines/15-publications.html">Publications</a>
+  <a href="pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="audits/index.html">Audits</a>
+  <a href="backlog.html">Backlog</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="decisions/index.html">ADR index</a>
+  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>Consolidation backlog</h1>
+
+<p><strong>Updated:</strong> 2026-08-31</p>
+
+<p><strong>Central SoR:</strong> <a href="sor/CENTRAL_SOR.md"><code>sor/CENTRAL_SOR.md</code></a> · <strong>Pipeline matrix:</strong> <a href="audits/pipeline-review-matrix.md"><code>audits/pipeline-review-matrix.md</code></a> · <strong>Cutover plans:</strong> <a href="cutover/"><code>cutover/</code></a></p>
+
+<p>---</p>
+
+<h2>Done (1–42)</h2>
+
+<p>Core workspace, portal, F-root categories, hart-ops, validators, audits.</p>
+
+<p>---</p>
+
+<h2>Done (43–48) — inventory + standalone cutover</h2>
+
+<table>
+<tr><td>#</td><td>Item</td><td>Output</td></tr>
+<tr><td>43</td><td>Live SoR snapshots</td><td>`sor/signals/`, `sor/cats/`, `sor/wiring/` xlsx + `snapshot_manifest.csv`</td></tr>
+<tr><td>44</td><td>Class C subtree inventory</td><td>`hart_subtree_inventory.csv`, `desktop-subtree-inventory.md`</td></tr>
+<tr><td>45</td><td>Central SoR index</td><td>`sor/CENTRAL_SOR.md`</td></tr>
+<tr><td>46</td><td>Cutover standalone projects</td><td>`cutover/*` (5 projects, manifests, no live edits)</td></tr>
+<tr><td>47</td><td>Pipeline review matrix</td><td>`audits/pipeline-review-matrix.md`</td></tr>
+<tr><td>48</td><td>Portal: cutover + SoR nav</td><td>build_site</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Done (49–54) — standalone mirrors</h2>
+
+<table>
+<tr><td>#</td><td>Item</td><td>Output</td></tr>
+<tr><td>49</td><td>HART runtime mirror</td><td>`external/hart-runtime/` (~55 MB)</td></tr>
+<tr><td>50</td><td>Desktop data mirror</td><td>`external/desktop-data/` (~530 MB)</td></tr>
+<tr><td>51</td><td>`mirror_all_live.sh`</td><td>One-command refresh + validate</td></tr>
+<tr><td>52</td><td>`consolidation_paths.py`</td><td>Validators prefer mirrors</td></tr>
+<tr><td>53</td><td>`WORKSPACE.md` + env example</td><td>Standalone docs</td></tr>
+<tr><td>54</td><td>`standalone-gaps.md` refresh</td><td>Cutover readiness updated</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Done (55–60) — deploy packages</h2>
+
+<table>
+<tr><td>#</td><td>Item</td><td>Output</td></tr>
+<tr><td>55</td><td>Deploy packages tree</td><td>`packages/{infra,lcos-bridge,layout-hosts,car-cards,sts}/`</td></tr>
+<tr><td>56</td><td>Layout host sync from consolidation</td><td>`sync_from_consolidation.sh`</td></tr>
+<tr><td>57</td><td>LCOS bridge deploy scripts</td><td>`run_bridge.sh`, `run_bridge.ps1`</td></tr>
+<tr><td>58</td><td>Car cards incoming pipeline</td><td>`setup_car_cards_workspace.sh`, `run_process.sh`, `HART_CAR_CARDS_ROOT`</td></tr>
+<tr><td>59</td><td>DJ Trains mirror</td><td>`desktop-data/dj-trains/`</td></tr>
+<tr><td>60</td><td>`process_car_images.py` in hart-ops</td><td>card pipeline complete</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Open (operator / optional)</h2>
+
+<table>
+<tr><td>Item</td><td>Notes</td></tr>
+<tr><td>Tier B manual smokes</td><td>Run on lab host with packages</td></tr>
+<tr><td>STS Tier C session</td><td>begin_session / switch lists</td></tr>
+<tr><td>D2 merged map</td><td>Human review</td></tr>
+<tr><td>Legacy raw Images one-time import</td><td>`DESKTOP_MIRROR_RAW=1` only if needed</td></tr>
+<tr><td>hart-ops submodule commit</td><td>`process_car_images.py` + path env patches</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Commands</h2>
+
+<pre><code>
+bash consolidation/scripts/mirror_all_live.sh
+bash consolidation/validators/run_all.sh
+python3 consolidation/scripts/build_site.py
+</code></pre>
+  </main>
+</body>
+</html>

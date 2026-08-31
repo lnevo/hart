@@ -1,0 +1,19 @@
+id: history-archive
+name: Class F root → docs/archive
+status: inventory_complete
+decision: P4a
+desktop_read_only: true
+
+inventory:
+  - sor/desktop/class_f_ingest_manifest.csv
+  - sor/desktop/hart_root_inventory.csv
+
+browse:
+  - html/archive/f-root-index.html
+
+future_targets:
+  narrative: docs/archive/narrative/
+  reference: docs/archive/reference/
+  media: docs/archive/media/
+
+skip_rules: scripts/classify_f_ingest.py

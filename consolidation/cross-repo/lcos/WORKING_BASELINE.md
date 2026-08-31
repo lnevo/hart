@@ -9,7 +9,7 @@
 
 | Component | Role |
 |-----------|------|
-| `LCOS_ESP32_MQTT_Client.ino` | Nano firmware; RF + USB serial |
+| `lcos-bridge.ino` | Nano firmware; RF + USB serial (sketch name = submodule folder) |
 | `lcos_mqtt_bridge.cpp` | IH SET + `track/signalmast/<packed>` status |
 | `serial_to_mqtt.py` | Host bridge; roster from `track/signalmast/#` |
 | `mqtt_serial.cpp` | Serial line discipline |

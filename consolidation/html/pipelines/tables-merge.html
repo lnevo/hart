@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tables merge — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="../next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/tables-merge.html">Tables merge (D3)</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="../cutover/index.html">Cutover projects</a>
+  <a href="../sor-central.html">Central SoR index</a>
+  <a href="../audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="../archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="../archive/index.html">Archive taxonomy A–F</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../backlog.html">Backlog</a>
+  <a href="../repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <blockquote><strong>Consolidation draft</strong> — cross-cutting runbook for pipelines <strong>2–7</strong>. Live sources read-only; see <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>. <strong>D12 bench freeze:</strong> document and validate only — no live table edits.</blockquote>
+
+<h2>Source of record</h2>
+
+<table>
+<tr><td>Kind</td><td>Live (read-only)</td><td>Consolidation</td></tr>
+<tr><td>ADR</td><td>—</td><td>[`ADR-tables-merge-order`](../decisions/ADR-tables-merge-order.md) (D3)</td></tr>
+<tr><td>Audit</td><td>—</td><td>[`audits/tables-pipeline.md`](../../audits/tables-pipeline.md)</td></tr>
+<tr><td>Cleanup ref</td><td>`jmri/layouts/hart/scripts/cleanup_uss_ctc_leftovers.py`</td><td>[`scripts/cleanup_uss_ctc_leftovers.py`](../../scripts/cleanup_uss_ctc_leftovers.py)</td></tr>
+<tr><td>Retired one-shots</td><td>—</td><td>[`unused-modules/tables/`](../../unused-modules/tables/) (D5)</td></tr>
+<tr><td>Writable source</td><td>`tables/new_tables.xml`</td><td>documented only — **do not edit live**</td></tr>
+<tr><td>Deploy bundle</td><td>`jmri/layouts/hart/output/tables.xml`</td><td>read-only for validators</td></tr>
+<tr><td>LE monitor</td><td>`jmri/layouts/hart/output/hart_prod.xml`</td><td>independent LE patches OK</td></tr>
+</table>
+
+<p><strong>Decision D3:</strong> merge order is fixed. <strong>Never</strong> blind-copy between artifacts.</p>
+
+<p>---</p>
+
+<h1>Tables merge — cross-cutting pipeline</h1>
+
+<p>JMRI stores layout beans, Signal Mast Logic, USS CTC, CATS paneleditors, and Dispatcher graph data in a <strong>tables bundle</strong>. HART splits that into three files with different roles. Most numbered pipelines (2–7) read or write <strong><code>tables/new_tables.xml</code></strong>; only specialized sync scripts may patch <strong><code>output/tables.xml</code></strong> in place.</p>
+
+<h2>Artifact chain</h2>
+
+<pre><code>
+tables/tables.xml                    ← legacy snapshot — READ ONLY (agents never edit)
+        ↓ (historical baseline only)
+tables/new_tables.xml                ← writable working source (live promotion only)
+        ↓ pipeline scripts (names, beans, SML, LE patches, …)
+jmri/layouts/hart/output/tables.xml ← deploy bundle (LE + SML + CTC + Dispatcher)
+        ↓ independent LE-only sync allowed
+jmri/layouts/hart/output/hart_prod.xml ← standalone LE monitor (not full bundle)
+</code></pre>
+
+<h3>What lives where</h3>
+
+<table>
+<tr><td>Section</td><td>Typical home</td><td>Notes</td></tr>
+<tr><td>Turnouts, sensors, blocks, heads, masts</td><td>`new_tables.xml` → bundle</td><td>Pipeline 2–3</td></tr>
+<tr><td>`signalmastlogics` (native SML + NX)</td><td>`new_tables.xml` → **section sync**</td><td>Pipeline 4 — use `sync_hart_sml_to_deployment.py`</td></tr>
+<tr><td>`&lt;ctcdata&gt;`, USS paneleditor</td><td>**`output/tables.xml`** primarily</td><td>Pipeline 6 — regen `GUIObjects.xml`, do not wipe</td></tr>
+<tr><td>Dispatcher stations / traininfo refs</td><td>bundle</td><td>Pipeline 7</td></tr>
+<tr><td>CATS Master hold panels</td><td>separate XML under `cats/panels/`</td><td>Pipeline 5 — regenerate, never string-replace</td></tr>
+</table>
+
+<h2>Hard rules (D3)</h2>
+
+<ol>
+<li>1. <strong>Never edit</strong> <code>tables/tables.xml</code> with tools.</li>
+<li>2. <strong>Never copy</strong> <code>new_tables.xml</code> → <code>output/tables.xml</code> whole-file (drops <code>&lt;ctcdata&gt;</code> / USS).</li>
+<li>3. <strong>Never overwrite</strong> <code>output/tables.xml</code> with <code>hart_prod.xml</code>.</li>
+<li>4. <strong>Regenerate</strong> USS <code>GUIObjects.xml</code> and CATS hold panels — do not search-replace generated XML.</li>
+<li>5. <strong>Do not store</strong> JMRI tables from a CATS session (PanelPro owns the bundle).</li>
+<li>6. <strong>One-shot deletes</strong> (D5): document in <code>unused-modules/tables/</code>; do not grow immortal delete lists in live cleanup scripts.</li>
+</ol>
+
+<h2>Sync patterns</h2>
+
+<table>
+<tr><td>Pattern</td><td>When</td><td>Script</td></tr>
+<tr><td>**Section replace**</td><td>SML changed in `new_tables.xml`</td><td>`sync_hart_sml_to_deployment.py` — replaces `signalmastlogics` only; verifies CTC/panel counts unchanged</td></tr>
+<tr><td>**`--sync-output`**</td><td>LE patch scripts on working source</td><td>`apply_le_cleanup.py`, `apply_yard_throat_blocks.py`, `polish_hart_layout_editor.py` — also patch `output/tables.xml` and optionally `hart_prod.xml` **independently**</td></tr>
+<tr><td>**CTC regen**</td><td>USS track diagram change</td><td>`gen_ctc_track_plan.py` → `ctc/GUIObjects.xml` + targeted tables writes</td></tr>
+<tr><td>**Full-file copy (forbidden)**</td><td>—</td><td>Do not `cp new_tables.xml output/tables.xml`</td></tr>
+</table>
+
+<h2>Typical promotion order (live — on explicit request only)</h2>
+
+<p>After any tables-affecting change, run in order:</p>
+
+<pre><code>
+export JMRI_LAYOUT=hart
+
+# 1 — Names (pipeline 2)
+python3 jmri/layouts/hart/scripts/sync_public_name_map.py
+python3 jmri/layouts/hart/scripts/apply_public_names.py --apply
+python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --apply
+
+# 2 — Signal beans / SML (pipelines 3–4) — regenerate via their scripts, then:
+python3 jmri/layouts/hart/scripts/sync_hart_sml_to_deployment.py
+
+# 3 — USS / CTC if touched (pipeline 6)
+python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
+
+# 4 — Contract audit (Tier A gate)
+python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
+bash consolidation/validators/run_all.sh
+</code></pre>
+
+<p>Dispatcher graph (pipeline 7) and CATS Masters (pipeline 5) have their own regen steps — see those guides. They still <strong>consume</strong> the tables bundle; they do not replace the merge rules above.</p>
+
+<h2>Consolidation validators (read-only)</h2>
+
+<table>
+<tr><td>Check</td><td>Script</td></tr>
+<tr><td>Panel contracts</td><td>`validators/check_audit_strict.sh` → live `audit_panel_contracts.py --strict`</td></tr>
+<tr><td>Phase02 layout</td><td>`validators/check_phase02.sh`</td></tr>
+<tr><td>SML invariants (93 dests)</td><td>`validators/check_sml_invariants.py`</td></tr>
+<tr><td>Names snapshot</td><td>`validators/check_names_diff.py`</td></tr>
+</table>
+
+<p>Run all: <code>bash consolidation/validators/run_all.sh</code></p>
+
+<h2>Related pipelines</h2>
+
+<table>
+<tr><td>#</td><td>Guide</td><td>Tables role</td></tr>
+<tr><td>2</td><td>[public-names](public-names.md)</td><td>Bean `userName` + comments</td></tr>
+<tr><td>3</td><td>[digicon-signal-beans](digicon-signal-beans.md)</td><td>IH / SHSM beans</td></tr>
+<tr><td>4</td><td>[native-sml](native-sml.md)</td><td>SML + NX; section sync</td></tr>
+<tr><td>5</td><td>[cats-masters](cats-masters.md)</td><td>Separate hold XML — regen from beans</td></tr>
+<tr><td>6</td><td>[uss-ctc](uss-ctc.md)</td><td>`&lt;ctcdata&gt;` + USS board</td></tr>
+<tr><td>7</td><td>[dispatcher-system](dispatcher-system.md)</td><td>Graph / traininfo</td></tr>
+</table>
+
+<h2>Do not</h2>
+
+<ul>
+<li>Run CATS CTC and USS CTC simultaneously</li>
+<li>Append one-shot OpenLCB deletes to live cleanup without archiving first — see <a href="../../unused-modules/tables/openlcb-leftover-sensors.md"><code>openlcb-leftover-sensors.md</code></a></li>
+<li>Edit tables from consolidation workspace during bench freeze (D12)</li>
+</ul>
+  </main>
+</body>
+</html>

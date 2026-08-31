@@ -14,13 +14,14 @@
   <a href="../index.html">Home</a>
   <a href="../objective.html">Objective</a>
   <a href="../decisions.html">Decisions recorded</a>
-  <a href="next-round.html">Next round</a>
+  <a href="../next-round.html">Next round</a>
   <a href="../live-sources.html">Live sources</a>
   <a href="../manifest.html">Manifest</a>
 </div>
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,10 +41,19 @@
   <a href="../pipelines/15-publications.html">Publications</a>
   <a href="../pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="../cutover/index.html">Cutover projects</a>
+  <a href="../sor-central.html">Central SoR index</a>
+  <a href="../audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="../archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="../archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../archive/index.html">Archive taxonomy</a>
-  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../backlog.html">Backlog</a>
+  <a href="../repos.html">Repos &amp; submodules</a>
   <a href="../decisions/index.html">ADR index</a>
   <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
@@ -77,7 +87,7 @@
 <h2>Inputs</h2>
 
 <ul>
-<li><code>LCOS_ESP32_MQTT_Client.ino</code> — RF channel, <code>thisNode</code></li>
+<li><code>lcos-bridge.ino</code> — RF channel, <code>thisNode</code> (sketch name matches submodule folder <code>lcos-bridge/</code>)</li>
 <li><code>lcos_mqtt_bridge.cpp</code> — <code>kSubscribeDisplayNodes[]</code> (event <strong>125</strong> to those display nodes)</li>
 </ul>
 

@@ -293,11 +293,48 @@ def sync_turnout_fb_lamp():
         print("sync_turnout_buttons: Turnouts lamp set failed: %s" % e)
 
 
-def toggle_turnout_fb_mode():
-    """Click Turnouts lamp: flip included plants TWOSENSOR ↔ DIRECT."""
+def _show_amber_head():
+    """Pending click feedback on Turnouts lamp (yellow)."""
+    global _last_fb_appearance
+    head = _ensure_turnout_fb_head()
+    if head is None:
+        return
+    _set_head_appearance(head, YELLOW)
+    _last_fb_appearance = YELLOW
+
+
+def _show_amber_sensor(sys_name):
+    """Pending click feedback on LCOS/Signals (INCONSISTENT → yellow icon)."""
+    try:
+        s = sensors.getSensor(sys_name)
+        if s is None:
+            s = sensors.provideSensor(sys_name)
+        s.setKnownState(jmri.Sensor.INCONSISTENT)
+    except Exception as e:
+        print("sync_turnout_buttons: amber %s failed: %s" % (sys_name, e))
+
+
+def _after_paint(fn):
+    """Run fn shortly after amber paints (so the EDT can redraw first)."""
+
+    class _Go(ActionListener):
+        def actionPerformed(self, event):
+            event.getSource().stop()
+            try:
+                fn()
+            except Exception as e:
+                print("sync_turnout_buttons: deferred action failed: %s" % e)
+
+    t = Timer(80, _Go())
+    t.setRepeats(False)
+    t.start()
+
+
+def _toggle_turnout_fb_mode_body():
     included = _included_plant_turnouts()
     if not included:
         print("sync_turnout_buttons: no 2-sensor M2T/MTT plants to toggle")
+        sync_turnout_fb_lamp()
         return
     modes = set()
     for to in included:
@@ -333,6 +370,12 @@ def toggle_turnout_fb_mode():
     sync_turnout_fb_lamp()
 
 
+def toggle_turnout_fb_mode():
+    """Click Turnouts lamp: amber, then flip TWOSENSOR ↔ DIRECT, then final color."""
+    _show_amber_head()
+    _after_paint(_toggle_turnout_fb_mode_body)
+
+
 def _mqtt_publish(topic, payload):
     try:
         memo = jmri.InstanceManager.getDefault(
@@ -352,13 +395,51 @@ def _mqtt_publish(topic, payload):
         return False
 
 
+def _restore_lcos_lamp(prev_state):
+    """After RESUBSCRIBE: keep MQTT update if it arrived; else restore prior."""
+
+    class _Restore(ActionListener):
+        def actionPerformed(self, event):
+            event.getSource().stop()
+            try:
+                s = sensors.getSensor(LCOS_SENSOR)
+                if s is None:
+                    return
+                if s.getKnownState() != jmri.Sensor.INCONSISTENT:
+                    return  # bridge/MQTT already painted final
+                if prev_state in (jmri.Sensor.ACTIVE, jmri.Sensor.INACTIVE):
+                    s.setKnownState(prev_state)
+                else:
+                    s.setKnownState(jmri.Sensor.INACTIVE)
+            except Exception as e:
+                print("sync_turnout_buttons: LCOS restore failed: %s" % e)
+
+    # RESUBSCRIBE is fire-and-forget; give the bridge a moment to refresh HBLOOP.
+    t = Timer(2000, _Restore())
+    t.setRepeats(False)
+    t.start()
+
+
 def publish_lcos_resubscribe():
-    """Click LCOS lamp: plain RESUBSCRIBE (not FORCE) on track/bridge/cmd."""
-    if _mqtt_publish(BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD):
-        print(
-            "sync_turnout_buttons: LCOS lamp → %s %s"
-            % (BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD)
-        )
+    """Click LCOS lamp: amber → RESUBSCRIBE (not FORCE) → restore/final."""
+    prev = jmri.Sensor.UNKNOWN
+    try:
+        s = sensors.getSensor(LCOS_SENSOR)
+        if s is not None:
+            prev = s.getKnownState()
+    except Exception:
+        pass
+    _show_amber_sensor(LCOS_SENSOR)
+
+    def _do():
+        if _mqtt_publish(BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD):
+            print(
+                "sync_turnout_buttons: LCOS lamp → %s %s"
+                % (BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD)
+            )
+        _restore_lcos_lamp(prev)
+
+    _after_paint(_do)
 
 
 def _digicon_controller():
@@ -387,19 +468,67 @@ def _digicon_controller():
         return None
 
 
+def _watch_sml_amber_clear():
+    """If Digicon finishes (or stalls), ensure Signals lamp leaves amber."""
+
+    class _Watch(ActionListener):
+        def __init__(self, attempt):
+            self.attempt = attempt
+
+        def actionPerformed(self, event):
+            event.getSource().stop()
+            try:
+                s = sensors.getSensor(SML_MODE_SENSOR)
+                if s is None or s.getKnownState() != jmri.Sensor.INCONSISTENT:
+                    return
+                ctrl = _digicon_controller()
+                busy = bool(ctrl is not None and getattr(ctrl, "_busy", False))
+                if busy and self.attempt < 40:
+                    t = Timer(500, _Watch(self.attempt + 1))
+                    t.setRepeats(False)
+                    t.start()
+                    return
+                if ctrl is not None:
+                    try:
+                        ctrl._sync_sml_mode_sensor()
+                        return
+                    except Exception:
+                        pass
+                # Fallback: assume disabled if Digicon missing.
+                s.setKnownState(jmri.Sensor.INACTIVE)
+            except Exception as e:
+                print("sync_turnout_buttons: SML amber clear failed: %s" % e)
+
+    t = Timer(500, _Watch(0))
+    t.setRepeats(False)
+    t.start()
+
+
 def toggle_sml_mode():
-    """Click Signals lamp: Digicon global SML enable/disable."""
-    ctrl = _digicon_controller()
-    if ctrl is None:
-        print(
-            "sync_turnout_buttons: Digicon SML controller not found "
-            "(is mqtt_signalhead_publisher running?)"
-        )
-        return
-    try:
-        ctrl.toggle_from_panel()
-    except Exception as e:
-        print("sync_turnout_buttons: SML toggle failed: %s" % e)
+    """Click Signals lamp: amber → Digicon SML toggle → Digicon paints final."""
+    _show_amber_sensor(SML_MODE_SENSOR)
+
+    def _do():
+        ctrl = _digicon_controller()
+        if ctrl is None:
+            print(
+                "sync_turnout_buttons: Digicon SML controller not found "
+                "(is mqtt_signalhead_publisher running?)"
+            )
+            try:
+                sensors.provideSensor(SML_MODE_SENSOR).setKnownState(
+                    jmri.Sensor.INACTIVE
+                )
+            except Exception:
+                pass
+            return
+        try:
+            ctrl.toggle_from_panel()
+        except Exception as e:
+            print("sync_turnout_buttons: SML toggle failed: %s" % e)
+        _watch_sml_amber_clear()
+
+    _after_paint(_do)
 
 
 def sync_ladder_buttons(event=None):

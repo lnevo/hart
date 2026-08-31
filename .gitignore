@@ -26,7 +26,25 @@ Wiring Documentation
 Wiring Documentation/
 tables/.git/
 
-# Backup / noise
+# Consolidation STS runtime data mirror (~465MB; refresh via mirror_sts_docker_data.sh)
+consolidation/external/sts-docker-data/backups/
+consolidation/external/sts-docker-data/database/
+consolidation/external/sts-docker-data/Rolling Stock photos/
+consolidation/external/sts-docker-data/MIRROR_MANIFEST.txt
+
+# Consolidation HART layout ops mirror (~55MB; refresh via mirror_hart_runtime.sh)
+consolidation/external/hart-runtime/tables/
+consolidation/external/hart-runtime/jmri/
+consolidation/external/hart-runtime/cats/
+consolidation/external/hart-runtime/docs/
+consolidation/external/hart-runtime/MIRROR_MANIFEST.txt
+
+consolidation/audits/run_all_*.log
+
+# Consolidation Desktop/HART data mirror (~200MB+; refresh via mirror_desktop_data.sh)
+consolidation/external/desktop-data/
+!consolidation/external/desktop-data/README.md
+
 *.bak
 *.bak-*
 *_good.xml

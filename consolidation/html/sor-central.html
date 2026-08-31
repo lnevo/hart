@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central SoR — HART Consolidation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="index.html">Home</a>
+  <a href="objective.html">Objective</a>
+  <a href="decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="live-sources.html">Live sources</a>
+  <a href="manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
+  <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="projects/cats-integration.html">CATS integration</a>
+  <a href="pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="pipelines/08-wiring.html">Wiring docs</a>
+  <a href="pipelines/12-car-cards.html">Car cards</a>
+  <a href="pipelines/14-sts.html">STS</a>
+  <a href="pipelines/15-publications.html">Publications</a>
+  <a href="pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="audits/index.html">Audits</a>
+  <a href="backlog.html">Backlog</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="decisions/index.html">ADR index</a>
+  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>Central source of record — consolidation workspace</h1>
+
+<p><strong>Principle:</strong> One canonical artifact per fact type in the <strong>new tree</strong>. Live and Desktop paths are read-only references until cutover.</p>
+
+<p><strong>Registry:</strong> <a href="../manifest.yaml"><code>manifest.yaml</code></a> · <strong>ADR:</strong> <a href="../wiki/decisions/ADR-consolidation-sor.md"><code>wiki/decisions/ADR-consolidation-sor.md</code></a></p>
+
+<p>---</p>
+
+<h2>Authority map (consolidation tree)</h2>
+
+<table>
+<tr><td>Fact type</td><td>Consolidation SoR</td><td>Live reference (read-only)</td><td>Pipeline</td></tr>
+<tr><td>Public identity map</td><td>`sor/names/public_name_map_merged.csv`</td><td>`jmri/.../public_name_map.csv`</td><td>2</td></tr>
+<tr><td>Legacy name index (retire)</td><td>`sor/names/block_display_names.csv` snapshot</td><td>live CSV</td><td>2</td></tr>
+<tr><td>Digicon wiring catalog</td><td>`sor/signals/signal_wiring.csv`</td><td>`cats/data/signal_wiring.csv`</td><td>3</td></tr>
+<tr><td>Signal head plan</td><td>`sor/signals/signal_head_plan.csv`</td><td>`cats/data/signal_head_plan.csv`</td><td>3</td></tr>
+<tr><td>Signal mast plan</td><td>`sor/signals/signal_mast_plan.csv`</td><td>`cats/data/signal_mast_plan.csv`</td><td>3</td></tr>
+<tr><td>Wiring ↔ bean crosswalk</td><td>`sor/wiring/packed_id_crosswalk.csv`</td><td>derived</td><td>3, 8</td></tr>
+<tr><td>LE signal boundaries</td><td>`sor/signals/le_signal_boundaries.csv`</td><td>`cats/data/le_signal_boundaries.csv`</td><td>4</td></tr>
+<tr><td>Occupancy bindings</td><td>`sor/signals/occupancy_bindings.csv`</td><td>`cats/data/occupancy_bindings.csv`</td><td>8</td></tr>
+<tr><td>CATS device map</td><td>`sor/cats/jmri_devices.csv`</td><td>`cats/data/jmri_devices.csv`</td><td>5</td></tr>
+<tr><td>Writable tables chain</td><td>`sor/tables/README.md` + live XML refs</td><td>`tables/new_tables.xml`</td><td>cross</td></tr>
+<tr><td>Deploy tables bundle</td><td>read-only ref</td><td>`jmri/.../output/tables.xml`</td><td>cross</td></tr>
+<tr><td>Wiring xlsx pack</td><td>`sor/wiring/LCOS_Layout_Inventory_v85.xlsx` snapshot</td><td>`docs/wiring/`</td><td>8</td></tr>
+<tr><td>Car inventory</td><td>`external/hart-ops/data/image_metadata.csv`</td><td>Desktop Car Cards</td><td>12</td></tr>
+<tr><td>Merged roster</td><td>`external/hart-ops/data/HART_MergedCarRoster.xml`</td><td>generated</td><td>12</td></tr>
+<tr><td>Waybills</td><td>`external/hart-ops/data/HART_Spot_Waybills.csv`</td><td>hart-ops</td><td>13</td></tr>
+<tr><td>Publications scripts + output</td><td>`external/hart-ops/publications/`, `docs/published/`</td><td>hart-ops</td><td>15</td></tr>
+<tr><td>Industry matrix</td><td>`external/hart-ops/industries/`</td><td>hart-ops</td><td>16</td></tr>
+<tr><td>LCOS firmware</td><td>`external/lcos-bridge/`</td><td>sibling repo</td><td>9</td></tr>
+<tr><td>STS runtime</td><td>`external/sts-docker/` + `external/sts-docker-data/`</td><td>sibling + `~/sts/*`</td><td>14</td></tr>
+<tr><td>STS helpers</td><td>`external/sts-helpers/`</td><td>sibling repo</td><td>14</td></tr>
+<tr><td>Layout ops mirror</td><td>`external/hart-runtime/`</td><td>`hart/` repo</td><td>cross</td></tr>
+<tr><td>Desktop bench mirror</td><td>`external/desktop-data/`</td><td>`~/Desktop/HART/`</td><td>cross</td></tr>
+<tr><td>Desktop root inventory</td><td>`sor/desktop/hart_root_inventory.csv`</td><td>`~/Desktop/HART/`</td><td>P4</td></tr>
+<tr><td>Desktop subtree inventory</td><td>`sor/desktop/hart_subtree_inventory.csv`</td><td>class C dirs</td><td>P4</td></tr>
+<tr><td>Class-F dispositions</td><td>`sor/desktop/class_f_ingest_manifest.csv`</td><td>F-root browse</td><td>P4</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Generated artifacts (never hand-edit)</h2>
+
+<table>
+<tr><td>Artifact</td><td>Generator</td><td>Pipeline</td></tr>
+<tr><td>`tables/new_tables.xml`</td><td>names, beans, SML scripts</td><td>2–4</td></tr>
+<tr><td>`output/tables.xml`</td><td>section sync, CTC regen</td><td>cross, 6</td></tr>
+<tr><td>`HART_Master_*_hold.xml`</td><td>CATS build scripts</td><td>5</td></tr>
+<tr><td>`ctc/GUIObjects.xml`</td><td>`gen_ctc_track_plan.py`</td><td>6</td></tr>
+<tr><td>`dispatcher/traininfo/*`</td><td>Dispatcher Stage 1</td><td>7</td></tr>
+<tr><td>`OperationsCarRoster.xml`</td><td>hart-ops export</td><td>12</td></tr>
+<tr><td>Published docx/pdf</td><td>hart-ops `publications/rebuild_*.py`</td><td>15</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Not SoR (reference / parked / excluded)</h2>
+
+<table>
+<tr><td>Item</td><td>Status</td></tr>
+<tr><td>Pipeline 1 AnyRail</td><td>**Frozen** — not live path for hart</td></tr>
+<tr><td>Pipeline 11 speed matching</td><td>**Parked** — synthetic profiles</td></tr>
+<tr><td>`tables/tables.xml`</td><td>Legacy snapshot — never edit</td></tr>
+<tr><td>`~/Desktop/HART/` bulk</td><td>Inventory + browse only; cutover manifests in [`cutover/`](../cutover/)</td></tr>
+<tr><td>Car final photos (~GB)</td><td>Local path / LFS — not in git</td></tr>
+<tr><td>LCOS BOM (D8)</td><td>Excluded</td></tr>
+<tr><td>Gate 1 `HART.xml` CATS panels</td><td>History — not ops desk</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Refresh snapshots</h2>
+
+<pre><code>
+python3 consolidation/scripts/snapshot_live_sor.py
+python3 consolidation/scripts/inventory_desktop_hart.py
+python3 consolidation/scripts/inventory_desktop_subtrees.py
+python3 consolidation/scripts/classify_f_ingest.py
+</code></pre>
+  </main>
+</body>
+</html>

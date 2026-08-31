@@ -905,6 +905,7 @@ class DigiconMqttSml(
                 finally:
                     controller._busy = False
                     controller._set_button_label()
+                    controller._sync_sml_mode_sensor()
 
         Thread(_Run(), "digicon-sml-enable").start()
 
@@ -923,6 +924,7 @@ class DigiconMqttSml(
                 finally:
                     controller._busy = False
                     controller._set_button_label()
+                    controller._sync_sml_mode_sensor()
 
         Thread(_Run(), "digicon-sml-disable").start()
 

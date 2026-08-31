@@ -22,8 +22,8 @@ Approved by owner. Consolidation work proceeds under these locked defaults until
 | **D2e** | Y | No `role` column | Derive OS via `layer=block` + `proposed.startswith("OS ")` |
 | **ADR-set** | Y | Consolidation ADRs accepted | validation tiers, hygiene, SoR, tables merge — `wiki/decisions/README.md` |
 | **P3a** | Y | Create **hart-ops** repo | Car Cards, publications, Industries — migration plan in `cross-repo/hart-ops/` |
-| **P3b** | Y | Submodules | Stage `consolidation/external/` — [`cross-repo/SUBMODULE_MANIFEST.yaml`](cross-repo/SUBMODULE_MANIFEST.yaml) · hart-ops pin pending repo |
-| **P4a** | Y | Archive ingest | Selective class-F → `docs/archive/` plan (consolidation draft; not live until promotion) |
+| **P3b** | Y | Submodules | `consolidation/external/` — [`cross-repo/SUBMODULE_MANIFEST.yaml`](cross-repo/SUBMODULE_MANIFEST.yaml) |
+| **P4a** | Y | Archive ingest | Class-F manifest + F-root browse; file copy deferred to history project |
 | **D10b** | Y (closed) | LCOS bridge | No pending LCOS actions; event 125/pacing considered done or out of scope |
 | **D11** | Y | Car roster single SoR | `image_metadata.csv` → Merged → Operations export; STS filtered subset — [`wiki/decisions/ADR-car-roster-single-sor.md`](wiki/decisions/ADR-car-roster-single-sor.md) |
 | **D12** | Y | Bench freeze | No Pi deploy, no Desktop/HART edits, no live `hart` edits during consolidation; cutover = separate project |

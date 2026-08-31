@@ -13,9 +13,14 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-WIRING = ROOT / "cats/data/signal_wiring.csv"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+sys.path.insert(0, str(ROOT / "consolidation" / "scripts" / "lib"))
+
+from consolidation_paths import hart_runtime_root, path_lcos_bridge, path_public_name_map, path_signal_wiring, path_tables_xml
+
+HART_ROOT = hart_runtime_root()
+WIRING = path_signal_wiring()
+TABLES = path_tables_xml()
+MAP = path_public_name_map()
 OUT = ROOT / "consolidation/sor/wiring/packed_id_crosswalk.csv"
 
 # Known stale packed IDs (node*100+uid or pre-rename helix) → live IH from deploy tables.

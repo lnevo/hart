@@ -14,9 +14,14 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-WIRING = ROOT / "cats/data/signal_wiring.csv"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path.insert(0, str(ROOT / "consolidation" / "scripts" / "lib"))
+
+from consolidation_paths import hart_runtime_root, path_signal_wiring, path_tables_xml
+
+WIRING = path_signal_wiring()
+TABLES = path_tables_xml()
 CROSSWALK = ROOT / "consolidation/sor/wiring/packed_id_crosswalk.csv"
+HART_ROOT = hart_runtime_root()
 
 
 def text(el: ET.Element | None, child: str) -> str:

@@ -7,9 +7,9 @@
 
 | Field | Value |
 |-------|--------|
-| Commit | `ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d` |
-| Message | Remind on ops traffic when HBLOOP is down that layout feedback is missing. |
-| Branch | (record at pin time: current default branch HEAD) |
+| Commit | `ae2d8da7b8821d2b14c889e05063ea359bab6afe` |
+| Message | Rename sketch to lcos-bridge.ino for Arduino IDE folder match. |
+| Branch | `main` |
 
 ## Validation before any bridge/firmware promotion
 
@@ -26,12 +26,12 @@ Working baseline narrative: [`WORKING_BASELINE.md`](WORKING_BASELINE.md).
 - `lcos/` — vendor LCOS library  
 - `reference/LCOS_Client_Bare.ino` — upstream pattern  
 
-Project-specific changes belong in `lcos_mqtt_bridge.*`, `mqtt_serial.*`, `LCOS_ESP32_MQTT_Client.ino`, `serial_to_mqtt.py`.
+Project-specific changes belong in `lcos_mqtt_bridge.*`, `mqtt_serial.*`, `lcos-bridge.ino`, `serial_to_mqtt.py`.
 
 ## Future submodule layout (D7)
 
 ```
-consolidation/external/lcos-bridge  →  LCOS_ESP32_MQTT_Client @ ec16af8…
+consolidation/external/lcos-bridge  →  LCOS_ESP32_MQTT_Client @ ae2d8da…
 ```
 
 Init: [`wiki/REPOS.md`](../../wiki/REPOS.md) · `bash consolidation/scripts/init_external_submodules.sh`

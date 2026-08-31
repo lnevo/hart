@@ -21,6 +21,7 @@
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,9 +41,18 @@
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
   <a href="decisions/index.html">ADR index</a>
   <a href="validators/tier-b-smokes.html">Tier B smokes</a>
@@ -52,36 +62,39 @@
   <main class="content">
     <h1>HART consolidation — objective</h1>
 
-<p><strong>Charter:</strong> Produce a validated, browsable, refactor-ready picture of the entire HART railroad software stack <strong>without changing live operational sources</strong>.</p>
+<p><strong>Charter:</strong> Build a validated, browsable, refactored HART railroad software tree under <code>consolidation/</code> — without changing live operational sources on disk.</p>
+
+<p>When this tree is complete (versions current, scripts clean, validators green), it becomes the <strong>authoritative</strong> workspace. Until then we keep building; live layout and Desktop/HART stay read-only.</p>
 
 <h2>Success criteria</h2>
 
 <ol>
 <li>1. <strong>Live inventory</strong> — every pipeline documents what it reads/writes today (<code>LIVE_SOURCES.md</code>).</li>
-<li>2. <strong>Proposed SoR</strong> — draft canonical artifacts under <code>sor/</code> (not promoted until approved).</li>
-<li>3. <strong>Draft runbooks</strong> — pipeline guides under <code>wiki/pipelines/</code> with SoR tables and consolidation notes.</li>
+<li>2. <strong>Proposed SoR</strong> — draft canonical artifacts under <code>sor/</code>.</li>
+<li>3. <strong>Draft runbooks</strong> — pipeline guides under <code>wiki/pipelines/</code> with SoR tables.</li>
 <li>4. <strong>Read-only validators</strong> — <code>validators/run_all.sh</code> checks live state; reports go to <code>audits/</code>.</li>
-<li>5. <strong>Batch decisions</strong> — open choices in <code>DECISIONS_PENDING.md</code> for owner approval in parallel.</li>
-<li>6. <strong>Human navigation</strong> — open <a href="index.html"><code>index.html</code></a> in a browser to browse categories.</li>
+<li>5. <strong>Recorded decisions</strong> — <code>DECISIONS_RECORDED.md</code> locks consolidation defaults.</li>
+<li>6. <strong>Human navigation</strong> — open <a href="index.html"><code>index.html</code></a>; F-root files at <a href="html/archive/f-root-index.html"><code>html/archive/f-root-index.html</code></a>.</li>
+<li>7. <strong>Backlog tracking</strong> — <a href="BACKLOG.md"><code>BACKLOG.md</code></a> lists build progress.</li>
 </ol>
 
-<h2>Non-goals (this phase)</h2>
+<h2>Non-goals (infrastructure)</h2>
 
 <ul>
-<li>Editing <code>jmri/</code>, <code>cats/</code>, <code>tables/</code>, live <code>wiki/</code>, or <code>docs/wiring/</code>.</li>
-<li>PanelPro reload, CATS deploy, broker changes, or <code>sync_hart_package.sh</code> behavior changes.</li>
-<li>Promoting consolidation drafts into live paths (separate <strong>promotion gate</strong>).</li>
+<li>MQTT broker, Pi/Windows layout hosts, Windows COM bridge — documented, not packaged.</li>
+<li>Optional raw Car Cards <code>Images/</code> (~982 MB) — use <code>DESKTOP_MIRROR_RAW=1</code> if needed.</li>
+<li>Editing live <code>jmri/</code>, <code>cats/</code>, <code>tables/</code>, or moving/slimming live Desktop/HART during build.</li>
 </ul>
 
 <h2>Lead engineer role</h2>
 
-<p>Review live code and docs as <strong>read-only references</strong>. Write improvements, audits, ADRs, and refactored script <strong>copies</strong> only under <code>consolidation/</code>. Flag gaps; do not patch live workflows to “fix forward” during consolidation.</p>
+<p>Review live code and docs as <strong>read-only references</strong>. Write improvements, audits, ADRs, and refactored script <strong>copies</strong> only under <code>consolidation/</code>. Flag gaps; do not patch live workflows during the build.</p>
 
 <h2>Related</h2>
 
 <ul>
 <li><a href="AGENTS.md"><code>AGENTS.md</code></a> — mandatory agent instructions</li>
-<li><a href="DECISIONS_PENDING.md"><code>DECISIONS_PENDING.md</code></a> — approve these in parallel</li>
+<li><a href="BACKLOG.md"><code>BACKLOG.md</code></a> — build checklist</li>
 <li><a href="manifest.yaml"><code>manifest.yaml</code></a> — pipeline registry</li>
 </ul>
   </main>

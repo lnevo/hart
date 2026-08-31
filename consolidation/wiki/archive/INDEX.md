@@ -1,19 +1,29 @@
 # Archive taxonomy — Desktop/HART (draft)
 
-**Status:** Consolidation draft · **P4a approved** — selective ingest plan ready; not executed until promotion  
+**Status:** Consolidation draft — inventory and browse only; no files moved (D12)  
+**F-root browse:** [`html/archive/f-root-index.html`](../../html/archive/f-root-index.html) — **124 files** with skip / browse / archive dispositions  
 **Inventory:** [`audits/desktop-inventory.md`](../../audits/desktop-inventory.md) · CSV: [`sor/desktop/hart_root_inventory.csv`](../../sor/desktop/hart_root_inventory.csv)  
+**Manifest:** [`sor/desktop/class_f_ingest_manifest.csv`](../../sor/desktop/class_f_ingest_manifest.csv) · Regenerate: `python3 consolidation/scripts/classify_f_ingest.py`  
 **Ingest plan:** [`audits/class-f-ingest-plan.md`](../../audits/class-f-ingest-plan.md)
 
 ## Classes (extended)
 
-| Class | Meaning | Action (when approved) |
-|-------|---------|------------------------|
-| **A** | Already in `hart` git (`docs/`, `jmri/`, `cats/`, …) | None — canonical |
-| **B** | Sibling git repo (`LCOS_ESP32_MQTT_Client`, `sts-docker`, future `hart-ops`) | Submodule under `consolidation/external/` (P3b) |
-| **C** | Operational subtree on Desktop | Migrate to `hart-ops` or documented path (P3a) |
-| **D** | Root duplicate basename of `Car Cards/docs/` | Delete Desktop copy after confirming git/hart-ops SoR |
+| Class | Meaning | Consolidation action |
+|-------|---------|----------------------|
+| **A** | Already in `hart` git (`docs/`, `jmri/`, `cats/`, …) | None — canonical in live repo today |
+| **B** | Sibling git repo (`LCOS_ESP32_MQTT_Client`, `sts-docker`, `hart-ops`) | Submodule under `consolidation/external/` |
+| **C** | Operational subtree on Desktop | Target: `hart-ops` or documented path |
+| **D** | Root duplicate basename of `Car Cards/docs/` | Dedupe after hart-ops SoR verified |
 | **E** | Root duplicate hash of file under Car Cards | Same as D |
-| **F** | Root narrative, media, installers, misc | Selective ingest → `docs/archive/` (P4a) |
+| **F** | Root narrative, media, installers, misc | Browse in portal; archive bucket for later history project |
+
+## Class F dispositions (owner 2026-08-31)
+
+| Disposition | Count | Meaning |
+|-------------|------:|---------|
+| **browse** | 33 | Screenshots, downloads — sort in [F-root browse](../../html/archive/f-root-index.html) |
+| **archive** | 68 | `HART_*` narrative, design PDFs, prototype media — history project later |
+| **skip** | 23 | dmg, Thumbs.db, layout photo series, wiring schematics |
 
 ## Class C — subtrees (2026-08-31 scan)
 
@@ -31,28 +41,8 @@
 - `Neville_Island_Yardmaster_Sequence.docx`
 - `TT-23_Route23_NevilleQueen_RevisionA_v6.pptx`
 
-Published SoR: `Car Cards/docs/` via pipeline 15 rebuild scripts.
+Published SoR: `hart-ops` publications via pipeline 15 rebuild scripts.
 
-## Class F — ingest buckets (proposed, not executed)
+## Slim Desktop target (future — not now)
 
-| Bucket | Examples | Proposed git home |
-|--------|----------|-------------------|
-| **F-narrative** | `HART_Railroad_Narrative_Updated.docx`, timetables | `docs/archive/narrative/` |
-| **F-media** | `IMG_894*.png`, track schemes | `docs/archive/media/` + LFS policy TBD |
-| **F-reference** | USGS/Google map PNGs, historical PDFs | `docs/archive/reference/` |
-| **F-installer** | `Coke_Ovens.dmg` | do not ingest — keep off git |
-
-**124** class-F root files — full list in CSV. Regenerate: `python3 consolidation/scripts/inventory_desktop_hart.py`
-
-## Slim Desktop target (cutover project — not now)
-
-Per D12 bench freeze, **do not modify** `~/Desktop/HART/` during consolidation. Target state for later:
-
-```
-~/Desktop/HART/
-  README.md          ← links to hart git, hart-ops, sts, wiring bench sync
-  Car Cards/         ← symlink or removed after hart-ops migration
-  Wiring Documentation/  ← export mirror only
-```
-
-**P3a/P4a approved** — ingest and Desktop changes deferred to **cutover project**. No live `docs/` writes during consolidation.
+Per D12, **do not modify** `~/Desktop/HART/` during consolidation build.

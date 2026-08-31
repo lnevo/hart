@@ -21,6 +21,7 @@
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,9 +41,18 @@
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
   <a href="decisions/index.html">ADR index</a>
   <a href="validators/tier-b-smokes.html">Tier B smokes</a>
@@ -52,30 +62,29 @@
   <main class="content">
     <h1>HART meta-repo — sibling repos and submodules</h1>
 
-<p><strong>Status:</strong> P3b <strong>approved</strong> — stage via <a href="../scripts/init_external_submodules.sh"><code>scripts/init_external_submodules.sh</code></a>  </p>
+<p><strong>Status:</strong> P3b <strong>done</strong> — submodules under <code>consolidation/external/</code>  </p>
 <p><strong>Manifest:</strong> <a href="../cross-repo/SUBMODULE_MANIFEST.yaml"><code>cross-repo/SUBMODULE_MANIFEST.yaml</code></a>  </p>
-<p><strong>Locks:</strong> D7 · <a href="../DECISIONS_RECORDED.md"><code>DECISIONS_RECORDED.md</code></a></p>
+<p><strong>Init:</strong> <a href="../scripts/init_external_submodules.sh"><code>scripts/init_external_submodules.sh</code></a></p>
 
 <h2>Hub</h2>
 
 <table>
 <tr><td>Repo</td><td>Role</td></tr>
-<tr><td>**`lnevo/hart`**</td><td>Layout, CATS panels, JMRI tables, wiring docs, consolidation</td></tr>
+<tr><td>**`lnevo/hart`**</td><td>Layout, CATS panels, JMRI tables, wiring docs, consolidation workspace</td></tr>
 <tr><td>**`LCOS_ESP32_MQTT_Client`**</td><td>Nano firmware + MQTT bridge → `consolidation/external/lcos-bridge`</td></tr>
 <tr><td>**`sts-docker`**</td><td>STS PHP runtime → `consolidation/external/sts-docker`</td></tr>
 <tr><td>**`sts-docker-helpers`**</td><td>Seed, warm-start, switch lists → `consolidation/external/sts-helpers`</td></tr>
-<tr><td>**hart-ops**</td><td>Car inventory SoR, cards, waybills, publications → `consolidation/external/hart-ops` @ `bc6ce55`</td></tr>
+<tr><td>**`hart-ops`**</td><td>Car inventory SoR, cards, waybills, publications → `consolidation/external/hart-ops` @ `761c1f9`</td></tr>
 </table>
 
 <h2>Submodule layout</h2>
 
 <pre><code>
-hart/
-  external/
-    lcos-bridge/      → LCOS_ESP32_MQTT_Client @ ec16af8
-    sts-docker/       → sts-docker @ 899b458
-    sts-helpers/      → sts-docker-helpers @ cdbbfce
-    hart-ops/         → hart-ops @ bc6ce55
+hart/consolidation/external/
+  lcos-bridge/      → LCOS_ESP32_MQTT_Client @ ae2d8da
+  sts-docker/       → sts-docker @ 899b458
+  sts-helpers/      → sts-docker-helpers @ cdbbfce
+  hart-ops/         → hart-ops @ 761c1f9
 </code></pre>
 
 <h2>Init (operator)</h2>
@@ -85,14 +94,6 @@ bash consolidation/scripts/init_external_submodules.sh
 git submodule update --init --recursive
 </code></pre>
 
-<p>Or manual:</p>
-
-<pre><code>
-git submodule add git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git external/lcos-bridge
-git -C external/lcos-bridge checkout ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d
-# … sts-docker, sts-helpers per SUBMODULE_MANIFEST.yaml
-</code></pre>
-
 <h2>Pins</h2>
 
 <table>
@@ -100,7 +101,7 @@ git -C external/lcos-bridge checkout ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d
 <tr><td>LCOS</td><td>[`cross-repo/lcos/SUBMODULE_PIN.md`](../cross-repo/lcos/SUBMODULE_PIN.md)</td></tr>
 <tr><td>sts-docker</td><td>[`cross-repo/sts-docker/SUBMODULE_PIN.md`](../cross-repo/sts-docker/SUBMODULE_PIN.md)</td></tr>
 <tr><td>sts-helpers</td><td>[`cross-repo/sts-helpers/SUBMODULE_PIN.md`](../cross-repo/sts-helpers/SUBMODULE_PIN.md)</td></tr>
-<tr><td>hart-ops</td><td>[`cross-repo/hart-ops/MIGRATION_PLAN.md`](../cross-repo/hart-ops/MIGRATION_PLAN.md)</td></tr>
+<tr><td>hart-ops</td><td>[`cross-repo/hart-ops/SUBMODULE_PIN.md`](../cross-repo/hart-ops/SUBMODULE_PIN.md)</td></tr>
 </table>
 
 <h2>Car inventory SoR</h2>
@@ -120,7 +121,7 @@ bash consolidation/validators/run_all.sh
 <ul>
 <li>Monorepo-merge LCOS vendor <code>lcos/</code> into hart</li>
 <li>Edit car inventory in Operations Pro as SoR (export target only)</li>
-<li>Commit Desktop Car Cards tree into hart (use hart-ops)</li>
+<li>Clone submodules under <code>$HOME</code> — use <code>consolidation/external/</code> only</li>
 </ul>
   </main>
 </body>

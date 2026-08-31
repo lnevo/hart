@@ -15,13 +15,16 @@ bash consolidation/validators/run_all.sh
 | Report | Topic |
 |--------|-------|
 | [script-headers.md](script-headers.md) | Live script/doc header audit |
-| [tables-pipeline.md](tables-pipeline.md) | Tables chain + cleanup script review |
+| [tables-pipeline.md](tables-pipeline.md) | D3 tables chain + script inventory |
 | [names-consumers.md](names-consumers.md) | CSV consumer map |
 | [block-display-vs-map.md](block-display-vs-map.md) | D2 single SoR migration audit |
 | [wiring-crosswalk-gap.md](wiring-crosswalk-gap.md) | Packed ID vs live IH remap (mast-aware 100%) |
 | [desktop-inventory.md](desktop-inventory.md) | ~/Desktop/HART root taxonomy (C/D/E/F) |
+| [hart-ops-publications.md](hart-ops-publications.md) | Pipeline 15 script inventory |
+| [pipeline-guide-drift.md](pipeline-guide-drift.md) | Live vs consolidation pipeline guides |
 | [proposed-virtual-masts.md](proposed-virtual-masts.md) | 17 map-only Dispatcher stubs (D2f) |
 | [mqtt-static-refs.md](mqtt-static-refs.md) | D6 live roster / no static lists |
+| [standalone-gaps.md](standalone-gaps.md) | Cutover readiness — what runs standalone vs holes |
 
 ## Last run summary (2026-08-31)
 

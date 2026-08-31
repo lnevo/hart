@@ -11,7 +11,7 @@ submodules:
   - name: lcos-bridge
     path: consolidation/external/lcos-bridge
     url: git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git
-    pin: ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d
+    pin: ae2d8da7b8821d2b14c889e05063ea359bab6afe
     pin_doc: cross-repo/lcos/SUBMODULE_PIN.md
     status: ready
 
@@ -32,6 +32,6 @@ submodules:
   - name: hart-ops
     path: consolidation/external/hart-ops
     url: git@github.com:lnevo/hart-ops.git
-    pin: 761c1f9a7897555b4109bfe25603db07d73c6292
+    pin: 0fecf5ecf6195b03048f0829fc4b00ee223bc521
     pin_doc: cross-repo/hart-ops/SUBMODULE_PIN.md
     status: ready

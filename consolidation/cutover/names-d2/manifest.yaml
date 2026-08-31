@@ -1,0 +1,20 @@
+id: names-d2
+name: Single public_name_map SoR
+status: draft_ready
+decision: D2
+desktop_read_only: true
+
+consolidation_standalone:
+  - sor/names/public_name_map_merged.csv
+  - sor/names/public_name_map.csv
+  - sor/names/block_display_names.csv
+
+live_reference_read_only:
+  - jmri/layouts/hart/data/public_name_map.csv
+  - jmri/layouts/hart/data/block_display_names.csv
+
+validators:
+  - validators/check_phase02_from_map.sh
+  - validators/check_names_diff.py
+
+consumers_audit: audits/names-consumers.md

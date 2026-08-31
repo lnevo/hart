@@ -14,13 +14,14 @@
   <a href="../index.html">Home</a>
   <a href="../objective.html">Objective</a>
   <a href="../decisions.html">Decisions recorded</a>
-  <a href="next-round.html">Next round</a>
+  <a href="../next-round.html">Next round</a>
   <a href="../live-sources.html">Live sources</a>
   <a href="../manifest.html">Manifest</a>
 </div>
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,10 +41,19 @@
   <a href="../pipelines/15-publications.html">Publications</a>
   <a href="../pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="../cutover/index.html">Cutover projects</a>
+  <a href="../sor-central.html">Central SoR index</a>
+  <a href="../audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="../archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="../archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../archive/index.html">Archive taxonomy</a>
-  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../backlog.html">Backlog</a>
+  <a href="../repos.html">Repos &amp; submodules</a>
   <a href="../decisions/index.html">ADR index</a>
   <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
@@ -52,20 +62,31 @@
   <main class="content">
     <h1>Archive taxonomy — Desktop/HART (draft)</h1>
 
-<p><strong>Status:</strong> Consolidation draft · <strong>P4a approved</strong> — selective ingest plan ready; not executed until promotion  </p>
+<p><strong>Status:</strong> Consolidation draft — inventory and browse only; no files moved (D12)  </p>
+<p><strong>F-root browse:</strong> <a href="../../html/archive/f-root-index.html"><code>html/archive/f-root-index.html</code></a> — <strong>124 files</strong> with skip / browse / archive dispositions  </p>
 <p><strong>Inventory:</strong> <a href="../../audits/desktop-inventory.md"><code>audits/desktop-inventory.md</code></a> · CSV: <a href="../../sor/desktop/hart_root_inventory.csv"><code>sor/desktop/hart_root_inventory.csv</code></a>  </p>
+<p><strong>Manifest:</strong> <a href="../../sor/desktop/class_f_ingest_manifest.csv"><code>sor/desktop/class_f_ingest_manifest.csv</code></a> · Regenerate: <code>python3 consolidation/scripts/classify_f_ingest.py</code>  </p>
 <p><strong>Ingest plan:</strong> <a href="../../audits/class-f-ingest-plan.md"><code>audits/class-f-ingest-plan.md</code></a></p>
 
 <h2>Classes (extended)</h2>
 
 <table>
-<tr><td>Class</td><td>Meaning</td><td>Action (when approved)</td></tr>
-<tr><td>**A**</td><td>Already in `hart` git (`docs/`, `jmri/`, `cats/`, …)</td><td>None — canonical</td></tr>
-<tr><td>**B**</td><td>Sibling git repo (`LCOS_ESP32_MQTT_Client`, `sts-docker`, future `hart-ops`)</td><td>Submodule under `consolidation/external/` (P3b)</td></tr>
-<tr><td>**C**</td><td>Operational subtree on Desktop</td><td>Migrate to `hart-ops` or documented path (P3a)</td></tr>
-<tr><td>**D**</td><td>Root duplicate basename of `Car Cards/docs/`</td><td>Delete Desktop copy after confirming git/hart-ops SoR</td></tr>
+<tr><td>Class</td><td>Meaning</td><td>Consolidation action</td></tr>
+<tr><td>**A**</td><td>Already in `hart` git (`docs/`, `jmri/`, `cats/`, …)</td><td>None — canonical in live repo today</td></tr>
+<tr><td>**B**</td><td>Sibling git repo (`LCOS_ESP32_MQTT_Client`, `sts-docker`, `hart-ops`)</td><td>Submodule under `consolidation/external/`</td></tr>
+<tr><td>**C**</td><td>Operational subtree on Desktop</td><td>Target: `hart-ops` or documented path</td></tr>
+<tr><td>**D**</td><td>Root duplicate basename of `Car Cards/docs/`</td><td>Dedupe after hart-ops SoR verified</td></tr>
 <tr><td>**E**</td><td>Root duplicate hash of file under Car Cards</td><td>Same as D</td></tr>
-<tr><td>**F**</td><td>Root narrative, media, installers, misc</td><td>Selective ingest → `docs/archive/` (P4a)</td></tr>
+<tr><td>**F**</td><td>Root narrative, media, installers, misc</td><td>Browse in portal; archive bucket for later history project</td></tr>
+</table>
+
+<h2>Class F dispositions (owner 2026-08-31)</h2>
+
+<table>
+<tr><td>Disposition</td><td>Count</td><td>Meaning</td></tr>
+<tr><td>**browse**</td><td>33</td><td>Screenshots, downloads — sort in [F-root browse](../../html/archive/f-root-index.html)</td></tr>
+<tr><td>**archive**</td><td>68</td><td>`HART_*` narrative, design PDFs, prototype media — history project later</td></tr>
+<tr><td>**skip**</td><td>23</td><td>dmg, Thumbs.db, layout photo series, wiring schematics</td></tr>
 </table>
 
 <h2>Class C — subtrees (2026-08-31 scan)</h2>
@@ -87,32 +108,11 @@
 <li><code>TT-23_Route23_NevilleQueen_RevisionA_v6.pptx</code></li>
 </ul>
 
-<p>Published SoR: <code>Car Cards/docs/</code> via pipeline 15 rebuild scripts.</p>
+<p>Published SoR: <code>hart-ops</code> publications via pipeline 15 rebuild scripts.</p>
 
-<h2>Class F — ingest buckets (proposed, not executed)</h2>
+<h2>Slim Desktop target (future — not now)</h2>
 
-<table>
-<tr><td>Bucket</td><td>Examples</td><td>Proposed git home</td></tr>
-<tr><td>**F-narrative**</td><td>`HART_Railroad_Narrative_Updated.docx`, timetables</td><td>`docs/archive/narrative/`</td></tr>
-<tr><td>**F-media**</td><td>`IMG_894*.png`, track schemes</td><td>`docs/archive/media/` + LFS policy TBD</td></tr>
-<tr><td>**F-reference**</td><td>USGS/Google map PNGs, historical PDFs</td><td>`docs/archive/reference/`</td></tr>
-<tr><td>**F-installer**</td><td>`Coke_Ovens.dmg`</td><td>do not ingest — keep off git</td></tr>
-</table>
-
-<p><strong>124</strong> class-F root files — full list in CSV. Regenerate: <code>python3 consolidation/scripts/inventory_desktop_hart.py</code></p>
-
-<h2>Slim Desktop target (cutover project — not now)</h2>
-
-<p>Per D12 bench freeze, <strong>do not modify</strong> <code>~/Desktop/HART/</code> during consolidation. Target state for later:</p>
-
-<pre><code>
-~/Desktop/HART/
-  README.md          ← links to hart git, hart-ops, sts, wiring bench sync
-  Car Cards/         ← symlink or removed after hart-ops migration
-  Wiring Documentation/  ← export mirror only
-</code></pre>
-
-<p><strong>P3a/P4a approved</strong> — ingest and Desktop changes deferred to <strong>cutover project</strong>. No live <code>docs/</code> writes during consolidation.</p>
+<p>Per D12, <strong>do not modify</strong> <code>~/Desktop/HART/</code> during consolidation build.</p>
   </main>
 </body>
 </html>

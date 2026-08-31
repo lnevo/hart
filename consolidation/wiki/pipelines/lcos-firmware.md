@@ -23,7 +23,7 @@ Flash the Arduino Nano that bridges LCOS radio (nRF24) to USB serial MQTT lines.
 
 ## Inputs
 
-- `LCOS_ESP32_MQTT_Client.ino` — RF channel, `thisNode`
+- `lcos-bridge.ino` — RF channel, `thisNode` (sketch name matches submodule folder `lcos-bridge/`)
 - `lcos_mqtt_bridge.cpp` — `kSubscribeDisplayNodes[]` (event **125** to those display nodes)
 
 ## Outputs

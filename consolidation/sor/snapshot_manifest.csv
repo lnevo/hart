@@ -1,0 +1,10 @@
+rel_path,live_source,status,sha256,bytes
+names/public_name_map.csv,jmri/layouts/hart/data/public_name_map.csv,OK,4c3b3bc16b3fea0c,66152
+names/block_display_names.csv,jmri/layouts/hart/data/block_display_names.csv,OK,f38e818f72659d36,2884
+signals/signal_wiring.csv,cats/data/signal_wiring.csv,OK,fda98245f1409c8e,23146
+signals/signal_head_plan.csv,cats/data/signal_head_plan.csv,OK,d781d3e97dfb8f45,3301
+signals/signal_mast_plan.csv,cats/data/signal_mast_plan.csv,OK,a997dc909582a018,4374
+signals/le_signal_boundaries.csv,cats/data/le_signal_boundaries.csv,OK,6ead155131f723c0,1576
+signals/occupancy_bindings.csv,cats/data/occupancy_bindings.csv,OK,daee18ac81935315,1407
+cats/jmri_devices.csv,cats/data/jmri_devices.csv,OK,1bb0719edf7f447c,9287
+wiring/LCOS_Layout_Inventory_v85.xlsx,docs/wiring/LCOS_Layout_Inventory_v85.xlsx,OK,fc34412a2c6faf72,49296

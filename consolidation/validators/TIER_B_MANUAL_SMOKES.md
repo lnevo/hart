@@ -1,6 +1,8 @@
-# Tier B — manual smokes before deploy
+# Tier B — manual smokes (reference)
 
-Run after Tier A green and before `./cats/scripts/sync_hart_package.sh`.
+Checklist for when the consolidation tree is authoritative and layout hosts are updated from it.
+
+> **During consolidation build (D12):** documentation only — no layout-host sync from this workspace.
 
 ## Pipeline 5 — CATS Masters
 

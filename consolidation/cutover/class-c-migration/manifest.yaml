@@ -1,0 +1,22 @@
+id: class-c-migration
+name: Desktop class C → hart-ops
+status: mirror_ready
+desktop_read_only: true
+
+sources:
+  - path: ~/Desktop/HART/Car Cards/
+    class: C
+  - path: ~/Desktop/HART/Industries/
+    class: C
+
+consolidation_standalone:
+  - consolidation/external/hart-ops/
+  - sor/cars/README.md
+
+inventory:
+  - sor/desktop/hart_subtree_inventory.csv
+  - audits/desktop-subtree-inventory.md
+
+tests:
+  - hart-ops: build_car_roster_sor.py
+  - hart-ops: test_golden_card.py

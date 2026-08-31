@@ -14,15 +14,16 @@
   <a href="index.html">Home</a>
   <a href="html/objective.html">Objective</a>
   <a href="html/decisions.html">Decisions recorded</a>
-  <a href="next-round.html">Next round</a>
+  <a href="html/next-round.html">Next round</a>
   <a href="html/live-sources.html">Live sources</a>
   <a href="html/manifest.html">Manifest</a>
 </div>
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="html/pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="html/pipelines/02-public-names.html">Public names</a>
+  <a href="html/pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="html/pipelines/05-cats-masters.html">CATS Masters</a>
-  <a href="projects/cats-integration.html">CATS integration</a>
+  <a href="html/projects/cats-integration.html">CATS integration</a>
   <a href="html/pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="html/pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -30,7 +31,7 @@
   <a href="html/pipelines/03-digicon-beans.html">Digicon beans</a>
   <a href="html/pipelines/04-native-sml.html">Native SML + NX</a>
   <a href="html/pipelines/09-lcos-firmware.html">LCOS firmware</a>
-  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="html/cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
   <a href="html/pipelines/mimic.html">MQTT mimic QA</a>
 </div>
 <div class="nav-section"><h4>Ops &amp; wiring</h4>
@@ -40,12 +41,21 @@
   <a href="html/pipelines/15-publications.html">Publications</a>
   <a href="html/pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="html/cutover/index.html">Cutover projects</a>
+  <a href="html/sor-central.html">Central SoR index</a>
+  <a href="html/audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="html/archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="html/archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="html/audits/index.html">Audits</a>
-  <a href="archive/index.html">Archive taxonomy</a>
-  <a href="repos.html">Repos &amp; submodules</a>
-  <a href="decisions/index.html">ADR index</a>
-  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
+  <a href="html/backlog.html">Backlog</a>
+  <a href="html/repos.html">Repos &amp; submodules</a>
+  <a href="html/decisions/index.html">ADR index</a>
+  <a href="html/validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
@@ -53,11 +63,18 @@
     
 <div class="hero">
   <h1>HART Railroad — Consolidation Portal</h1>
-  <p>Parallel review workspace. Live operational sources are <strong>read-only</strong>.
-  All drafts, validators, and proposed SoRs live under <code>hart/consolidation/</code>.</p>
-  <p><a href="html/decisions.html"><strong>→ Review decisions pending approval</strong></a></p>
+  <p>Building the refactored HART tree under <code>hart/consolidation/</code>.
+  Live operational sources on disk are <strong>read-only</strong> until this workspace is complete.</p>
+  <p><a href="workspace.html"><strong>→ Standalone workspace map</strong></a>
+  · <a href="html/archive/f-root-index.html"><strong>F-root browse (124)</strong></a>
+  · <a href="html/backlog.html">Backlog</a> · <a href="html/decisions.html">Decisions</a></p>
 </div>
 <div class="cards">
+  <a class="card" href="packages/README.html"><h3>Deploy packages</h3><p>MQTT, LCOS bridge, layout hosts, car cards, STS</p></a>
+  <a class="card" href="workspace.html"><h3>Standalone workspace</h3><p>Complete tree map — all mirrors under consolidation/external/</p></a>
+  <a class="card" href="html/audits/standalone-gaps.html"><h3>Cutover readiness</h3><p>What runs standalone vs infrastructure gaps</p></a>
+  <a class="card" href="html/archive/index.html"><h3>Archive taxonomy</h3><p>Classes A–F — Desktop/HART inventory</p></a>
+  <a class="card" href="html/backlog.html"><h3>Backlog</h3><p>Consolidation build checklist</p></a>
   <a class="card" href="html/pipelines/05-cats-masters.html"><h3>CATS CTC / ABS</h3><p>Master4 hold panels, Digicon desk</p></a>
   <a class="card" href="html/pipelines/07-dispatcher.html"><h3>JMRI Dispatcher</h3><p>Graph, traininfo, facing overlay</p></a>
   <a class="card" href="html/pipelines/mimic.html"><h3>MQTT mimic</h3><p>LCOS QA, signalhead publisher</p></a>
@@ -66,8 +83,8 @@
   <a class="card" href="html/pipelines/09-lcos-firmware.html"><h3>LCOS bridge</h3><p>Nano firmware + serial_to_mqtt</p></a>
   <a class="card" href="html/live-sources.html"><h3>Live sources map</h3><p>Paths you must not edit</p></a>
   <a class="card" href="html/audits/index.html"><h3>Audits</h3><p>Validator reports & reviews</p></a>
-  <a class="card" href="archive/index.html"><h3>Archive taxonomy</h3><p>Desktop/HART classes A–F</p></a>
-  <a class="card" href="repos.html"><h3>Repos</h3><p>Meta-repo & submodule recipe</p></a>
+  <a class="card" href="html/pipelines/tables-merge.html"><h3>Tables merge</h3><p>D3 chain — new_tables → bundle → hart_prod</p></a>
+  <a class="card" href="html/repos.html"><h3>Repos</h3><p>Meta-repo &amp; submodule recipe</p></a>
 </div>
 
   </main>

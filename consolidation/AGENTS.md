@@ -6,16 +6,16 @@
 
 **Write only under `hart/consolidation/`.** Live paths in [`LIVE_SOURCES.md`](LIVE_SOURCES.md) are **read-only**.
 
-**Promotion** = copying a named consolidation artifact or script change into live paths. Happens **only when you explicitly request it** for that item. Approved decisions (D1–D10, D2a–e) describe the target; they do not auto-promote.
+We are **building a new authoritative tree** under `consolidation/` (and `consolidation/external/*`). The live `jmri/`, `cats/`, `tables/`, and Desktop/HART paths stay untouched until that tree is complete and you switch over.
 
 ## Bench freeze (2026-08-31)
 
-Consolidation **builds the new workspace**; it does **not** cut over operations yet.
+Consolidation **builds the new workspace** only.
 
 | Do not touch | Notes |
 |------------|-------|
-| `~/Desktop/HART/` | Read-only for audits/inventory; no moves, slim, or symlink swaps |
-| Live `hart` tree | `jmri/`, `cats/`, `tables/`, live `wiki/`, `docs/` — no edits unless explicit **promote** |
+| `~/Desktop/HART/` | Read-only for audits/inventory; browse via [`html/archive/f-root-index.html`](html/archive/f-root-index.html) |
+| Live `hart` tree | `jmri/`, `cats/`, `tables/`, live `wiki/`, `docs/` — no edits from consolidation work |
 | Pi / Windows layout hosts | No deploy, no roster push, no `sync_hart_package.sh` from consolidation work |
 | Original STS/JMRI runtime state | No seed apply or live session changes from here |
 
@@ -25,9 +25,11 @@ Consolidation **builds the new workspace**; it does **not** cut over operations 
 
 1. This file (`consolidation/AGENTS.md`)
 2. [`OBJECTIVE.md`](OBJECTIVE.md)
-3. [`LIVE_SOURCES.md`](LIVE_SOURCES.md)
-4. [`DECISIONS_PENDING.md`](DECISIONS_PENDING.md) — do not resolve without user approval
-5. [`.cursor/plans/pipeline_audit_umbrella_ad0458b1.plan.md`](../../.cursor/plans/pipeline_audit_umbrella_ad0458b1.plan.md) (if present)
+3. [`BACKLOG.md`](BACKLOG.md)
+4. [`LIVE_SOURCES.md`](LIVE_SOURCES.md)
+5. [`DECISIONS_RECORDED.md`](DECISIONS_RECORDED.md)
+
+Browse portal: [`index.html`](index.html)
 
 ## Where to put work
 
@@ -47,10 +49,6 @@ Consolidation **builds the new workspace**; it does **not** cut over operations 
 - Run from repo root: `bash consolidation/validators/run_all.sh`
 - Validators may **read** live XML/CSV and **write** only under `consolidation/audits/`
 - Wrappers call live scripts (`audit_panel_contracts.py`, `check_hart_phase02.py`) — do not fork logic into live tree
-
-## Promotion gate (on request only)
-
-Cutover to live requires: **explicit user request** for that artifact, validators green, deploy checklist, `wiki/STATUS.md` update. Until then, all drafts stay in `consolidation/`.
 
 ## Do not
 

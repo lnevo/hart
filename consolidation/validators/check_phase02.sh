@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Wrap live check_hart_phase02.py (read-only).
+# Wrap check_hart_phase02.py (consolidation mirror or live fallback).
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-cd "$ROOT"
-export JMRI_LAYOUT="${JMRI_LAYOUT:-hart}"
+# shellcheck source=consolidation/validators/_hart_root.sh
+source "$(dirname "$0")/_hart_root.sh"
+cd "$HART_LIVE_ROOT"
 python3 jmri/scripts/check_hart_phase02.py

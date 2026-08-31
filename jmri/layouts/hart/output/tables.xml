@@ -24908,7 +24908,7 @@
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></active>
       <inactive url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></inactive>
       <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0"><rotation>0</rotation></inconsistent>
+      <inconsistent url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></inconsistent>
       <iconmaps />
     </sensoricon>
     <positionablelabel x="48" y="558" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="LCOS" fontFamily="Dialog" fontname="Dialog.plain" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -24934,7 +24934,7 @@
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></active>
       <inactive url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></inactive>
       <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></unknown>
-      <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" scale="1.0"><rotation>0</rotation></inconsistent>
+      <inconsistent url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></inconsistent>
       <iconmaps />
     </sensoricon>
     <positionablelabel x="48" y="614" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Signals" fontFamily="Dialog" fontname="Dialog.plain" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />

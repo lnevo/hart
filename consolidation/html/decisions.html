@@ -21,6 +21,7 @@
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
@@ -40,9 +41,18 @@
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
   <a href="decisions/index.html">ADR index</a>
   <a href="validators/tier-b-smokes.html">Tier B smokes</a>
@@ -74,8 +84,8 @@
 <tr><td>**D2e**</td><td>Y</td><td>No `role` column</td><td>Derive OS via `layer=block` + `proposed.startswith(&quot;OS &quot;)`</td></tr>
 <tr><td>**ADR-set**</td><td>Y</td><td>Consolidation ADRs accepted</td><td>validation tiers, hygiene, SoR, tables merge — `wiki/decisions/README.md`</td></tr>
 <tr><td>**P3a**</td><td>Y</td><td>Create **hart-ops** repo</td><td>Car Cards, publications, Industries — migration plan in `cross-repo/hart-ops/`</td></tr>
-<tr><td>**P3b**</td><td>Y</td><td>Submodules</td><td>Stage `consolidation/external/` — [`cross-repo/SUBMODULE_MANIFEST.yaml`](cross-repo/SUBMODULE_MANIFEST.yaml) · hart-ops pin pending repo</td></tr>
-<tr><td>**P4a**</td><td>Y</td><td>Archive ingest</td><td>Selective class-F → `docs/archive/` plan (consolidation draft; not live until promotion)</td></tr>
+<tr><td>**P3b**</td><td>Y</td><td>Submodules</td><td>`consolidation/external/` — [`cross-repo/SUBMODULE_MANIFEST.yaml`](cross-repo/SUBMODULE_MANIFEST.yaml)</td></tr>
+<tr><td>**P4a**</td><td>Y</td><td>Archive ingest</td><td>Class-F manifest + F-root browse; file copy deferred to history project</td></tr>
 <tr><td>**D10b**</td><td>Y (closed)</td><td>LCOS bridge</td><td>No pending LCOS actions; event 125/pacing considered done or out of scope</td></tr>
 <tr><td>**D11**</td><td>Y</td><td>Car roster single SoR</td><td>`image_metadata.csv` → Merged → Operations export; STS filtered subset — [`wiki/decisions/ADR-car-roster-single-sor.md`](wiki/decisions/ADR-car-roster-single-sor.md)</td></tr>
 <tr><td>**D12**</td><td>Y</td><td>Bench freeze</td><td>No Pi deploy, no Desktop/HART edits, no live `hart` edits during consolidation; cutover = separate project</td></tr>

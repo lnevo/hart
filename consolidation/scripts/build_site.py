@@ -241,6 +241,9 @@ blockquote {
 .badge.live { background: #1a3d2e; color: var(--ok); }
 .badge.frozen { background: #3d3a1a; color: var(--warn); }
 .badge.deferred { background: var(--surface2); }
+.category-toc { margin: 0.75rem 0 1.25rem; padding: 0.75rem 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); line-height: 1.8; }
+.category-toc a { margin-right: 0.25rem; }
+.content h3 { margin-top: 1.5rem; color: var(--text); }
 """
 
 
@@ -256,6 +259,7 @@ NAV = """
 <div class="nav-section"><h4>Desks &amp; panel</h4>
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
   <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
@@ -275,9 +279,18 @@ NAV = """
   <a href="pipelines/15-publications.html">Publications</a>
   <a href="pipelines/16-industries.html">Industries</a>
 </div>
+<div class="nav-section"><h4>Cutover (standalone)</h4>
+  <a href="cutover/index.html">Cutover projects</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="backlog.html">Backlog</a>
   <a href="repos.html">Repos &amp; submodules</a>
   <a href="decisions/index.html">ADR index</a>
   <a href="validators/tier-b-smokes.html">Tier B smokes</a>
@@ -293,7 +306,24 @@ def write_page(rel: str, title: str, body_html: str, css_depth: str = "style.css
     nav_home = "../" * (rel.count("/")) + "index.html" if rel != "index.html" else "index.html"
     nav = NAV.replace('href="index.html"', f'href="{nav_home}"')
     nav = nav.replace('href="objective.html"', f'href="{"../" * rel.count("/")}objective.html"')
-    for name in ("decisions", "live-sources", "manifest", "audits", "cross-repo", "pipelines", "projects", "archive", "validators", "decisions/adr"):
+    for name in (
+        "objective",
+        "decisions",
+        "live-sources",
+        "manifest",
+        "next-round",
+        "backlog",
+        "sor-central",
+        "cutover",
+        "repos",
+        "audits",
+        "cross-repo",
+        "pipelines",
+        "projects",
+        "archive",
+        "validators",
+        "decisions/adr",
+    ):
         prefix = "../" * rel.count("/")
         nav = nav.replace(f'href="{name}', f'href="{prefix}{name}')
     page = PAGE_SHELL.format(title=html.escape(title), css=css, home=home, nav=nav, body=body_html)
@@ -308,11 +338,18 @@ def main() -> None:
     home_body = """
 <div class="hero">
   <h1>HART Railroad — Consolidation Portal</h1>
-  <p>Parallel review workspace. Live operational sources are <strong>read-only</strong>.
-  All drafts, validators, and proposed SoRs live under <code>hart/consolidation/</code>.</p>
-  <p><a href="decisions.html"><strong>→ Review decisions pending approval</strong></a></p>
+  <p>Building the refactored HART tree under <code>hart/consolidation/</code>.
+  Live operational sources on disk are <strong>read-only</strong> until this workspace is complete.</p>
+  <p><a href="workspace.html"><strong>→ Standalone workspace map</strong></a>
+  · <a href="archive/f-root-index.html"><strong>F-root browse (124)</strong></a>
+  · <a href="backlog.html">Backlog</a> · <a href="decisions.html">Decisions</a></p>
 </div>
 <div class="cards">
+  <a class="card" href="packages/README.html"><h3>Deploy packages</h3><p>MQTT, LCOS bridge, layout hosts, car cards, STS</p></a>
+  <a class="card" href="workspace.html"><h3>Standalone workspace</h3><p>Complete tree map — all mirrors under consolidation/external/</p></a>
+  <a class="card" href="audits/standalone-gaps.html"><h3>Cutover readiness</h3><p>What runs standalone vs infrastructure gaps</p></a>
+  <a class="card" href="archive/index.html"><h3>Archive taxonomy</h3><p>Classes A–F — Desktop/HART inventory</p></a>
+  <a class="card" href="backlog.html"><h3>Backlog</h3><p>Consolidation build checklist</p></a>
   <a class="card" href="pipelines/05-cats-masters.html"><h3>CATS CTC / ABS</h3><p>Master4 hold panels, Digicon desk</p></a>
   <a class="card" href="pipelines/07-dispatcher.html"><h3>JMRI Dispatcher</h3><p>Graph, traininfo, facing overlay</p></a>
   <a class="card" href="pipelines/mimic.html"><h3>MQTT mimic</h3><p>LCOS QA, signalhead publisher</p></a>
@@ -321,8 +358,8 @@ def main() -> None:
   <a class="card" href="pipelines/09-lcos-firmware.html"><h3>LCOS bridge</h3><p>Nano firmware + serial_to_mqtt</p></a>
   <a class="card" href="live-sources.html"><h3>Live sources map</h3><p>Paths you must not edit</p></a>
   <a class="card" href="audits/index.html"><h3>Audits</h3><p>Validator reports & reviews</p></a>
-  <a class="card" href="archive/index.html"><h3>Archive taxonomy</h3><p>Desktop/HART classes A–F</p></a>
-  <a class="card" href="repos.html"><h3>Repos</h3><p>Meta-repo & submodule recipe</p></a>
+  <a class="card" href="pipelines/tables-merge.html"><h3>Tables merge</h3><p>D3 chain — new_tables → bundle → hart_prod</p></a>
+  <a class="card" href="repos.html"><h3>Repos</h3><p>Meta-repo &amp; submodule recipe</p></a>
 </div>
 """
     write_page("index.html", "Home", home_body)
@@ -330,11 +367,19 @@ def main() -> None:
     # Markdown pages
     md_pages = [
         ("objective.html", "Objective", CON / "OBJECTIVE.md"),
+        ("workspace.html", "Standalone workspace", CON / "WORKSPACE.md"),
+        ("packages/README.html", "Deploy packages", CON / "packages/README.md"),
         ("decisions.html", "Decisions recorded", CON / "DECISIONS_RECORDED.md"),
         ("next-round.html", "Next round", CON / "NEXT_ROUND.md"),
+        ("backlog.html", "Backlog", CON / "BACKLOG.md"),
+        ("ai-context.html", "AI context", CON / "AI_CONTEXT.md"),
+        ("sor-central.html", "Central SoR", CON / "sor/CENTRAL_SOR.md"),
+        ("cutover/index.html", "Cutover projects", CON / "cutover/README.md"),
+        ("audits/pipeline-review-matrix.html", "Pipeline review", CON / "audits/pipeline-review-matrix.md"),
         ("live-sources.html", "Live sources", CON / "LIVE_SOURCES.md"),
         ("manifest.html", "Manifest", CON / "manifest.yaml"),
         ("audits/index.html", "Audits", CON / "audits/README.md"),
+        ("audits/standalone-gaps.html", "Standalone gaps", CON / "audits/standalone-gaps.md"),
         ("cross-repo/lcos-tier-b.html", "LCOS Tier B", CON / "cross-repo/lcos/TIER_B.md"),
         ("projects/cats-integration.html", "CATS integration", CON / "wiki/projects/cats-integration.md"),
         ("archive/index.html", "Archive taxonomy", CON / "wiki/archive/INDEX.md"),
@@ -381,13 +426,53 @@ def main() -> None:
             title = md_name.replace("-", " ").replace(".md", "")
             write_page(html_rel, title, md_to_html(md_path.read_text(encoding="utf-8")))
 
-    # Mimic page (custom)
+    # Mimic + cross-cutting
     mimic = CON / "wiki/pipelines/mqtt-mimic.md"
     if mimic.is_file():
         write_page("pipelines/mimic.html", "MQTT mimic", md_to_html(mimic.read_text(encoding="utf-8")))
 
+    tables_merge = CON / "wiki/pipelines/tables-merge.md"
+    if tables_merge.is_file():
+        write_page("pipelines/tables-merge.html", "Tables merge", md_to_html(tables_merge.read_text(encoding="utf-8")))
+
+    # F-root browse (classify script writes body tables; refresh before site copy)
+    import subprocess
+    import sys
+
+    classify = CON / "scripts/classify_f_ingest.py"
+    if classify.is_file():
+        subprocess.run([sys.executable, str(classify)], check=False, cwd=str(ROOT))
+
+    f_root = HTML / "archive/f-root-index.html"
+    if f_root.is_file():
+        body = f_root.read_text(encoding="utf-8")
+        m = re.search(r"<main class=\"content\">(.*)</main>", body, re.S)
+        if m:
+            write_page("archive/f-root-index.html", "F-root browse", m.group(1).strip())
+
     # Copy index to consolidation root for easy open
-    (CON / "index.html").write_text((HTML / "index.html").read_text(encoding="utf-8").replace('href="style.css"', 'href="html/style.css"').replace('href="objective.html"', 'href="html/objective.html"').replace('href="decisions.html"', 'href="html/decisions.html"').replace('href="pipelines/', 'href="html/pipelines/').replace('href="live-sources.html"', 'href="html/live-sources.html"').replace('href="audits/', 'href="html/audits/').replace('href="manifest.html"', 'href="html/manifest.html"'), encoding="utf-8")
+    root_index = (HTML / "index.html").read_text(encoding="utf-8")
+    for old, new in (
+        ('href="style.css"', 'href="html/style.css"'),
+        ('href="objective.html"', 'href="html/objective.html"'),
+        ('href="decisions.html"', 'href="html/decisions.html"'),
+        ('href="next-round.html"', 'href="html/next-round.html"'),
+        ('href="live-sources.html"', 'href="html/live-sources.html"'),
+        ('href="manifest.html"', 'href="html/manifest.html"'),
+        ('href="backlog.html"', 'href="html/backlog.html"'),
+        ('href="sor-central.html"', 'href="html/sor-central.html"'),
+        ('href="cutover/', 'href="html/cutover/'),
+        ('href="repos.html"', 'href="html/repos.html"'),
+        ('href="pipelines/', 'href="html/pipelines/'),
+        ('href="audits/', 'href="html/audits/'),
+        ('href="archive/', 'href="html/archive/'),
+        ('href="projects/', 'href="html/projects/'),
+        ('href="cross-repo/', 'href="html/cross-repo/'),
+        ('href="validators/', 'href="html/validators/'),
+        ('href="decisions/', 'href="html/decisions/'),
+    ):
+        root_index = root_index.replace(old, new)
+    (CON / "index.html").write_text(root_index, encoding="utf-8")
 
     print(f"Site written to {HTML}")
 
