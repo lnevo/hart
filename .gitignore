@@ -37,6 +37,7 @@ consolidation/external/hart-runtime/tables/
 consolidation/external/hart-runtime/jmri/
 consolidation/external/hart-runtime/cats/
 consolidation/external/hart-runtime/docs/
+consolidation/external/hart-runtime/tools/
 consolidation/external/hart-runtime/MIRROR_MANIFEST.txt
 
 consolidation/audits/run_all_*.log
