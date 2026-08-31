@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,35 +42,42 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/public-names.md`</td><td>`consolidation/wiki/pipelines/public-names.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only)</td><td>Consolidation draft</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/public-names.md`</td><td>this file</td></tr>
+<tr><td>**Apply map (SoR)**</td><td>`jmri/layouts/hart/data/public_name_map.csv`</td><td>`sor/names/public_name_map_merged.csv` (D2b notes)</td></tr>
+<tr><td>Legacy index</td><td>`jmri/layouts/hart/data/block_display_names.csv`</td><td>`sor/names/block_display_names.csv` snapshot — **retire on promotion (D2a)**</td></tr>
+<tr><td>ADR</td><td>`wiki/decisions/ADR-005-public-equipment-names.md`</td><td>`wiki/decisions/ADR-names-single-sor.md`</td></tr>
 </table>
+
+<p><strong>Decision D2:</strong> single authority = <strong><code>public_name_map.csv</code></strong>. Generator order unchanged.</p>
 
 <p>---</p>
 
 <h1>Pipeline 2 — Public names + comments</h1>
 
-<p>Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT <code>systemName</code>s stay frozen (<code>M2T*</code>, <code>M2S*</code>, <code>IH*</code>, <code>IS*:</code>, <code>ISNX:*</code>). LCC turnout aliases <code>MTT100</code>–<code>MTT119</code> are required twins (userName <code>DCC Switch N</code>, comment is MQTT minus <code>DCC: NNN</code>, same FB sensors). <code>audit_panel_contracts.py --strict</code> fails if any MQTT DCC turnout lacks its MTT twin. Do not delete MTT* as leftovers.</p>
+<p>Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT <code>systemName</code>s stay frozen (<code>M2T*</code>, <code>M2S*</code>, <code>IH*</code>, <code>IS*:</code>, <code>ISNX:*</code>). LCC turnout aliases <code>MTT100</code>–<code>MTT119</code> are required twins.</p>
 
-<p><strong>Status:</strong> Live. <a href="../decisions/ADR-005-public-equipment-names.md">ADR-005</a>.</p>
+<p><strong>Status:</strong> Live. <a href="../../../wiki/decisions/ADR-005-public-equipment-names.md">ADR-005</a> · consolidation <a href="../decisions/ADR-names-single-sor.md">ADR-names-single-sor</a>.</p>
 
 <h2>Inputs</h2>
 
 <ul>
-<li><a href="../../jmri/layouts/hart/data/public_name_map.csv"><code>jmri/layouts/hart/data/public_name_map.csv</code></a></li>
+<li><a href="../../../jmri/layouts/hart/data/public_name_map.csv"><code>public_name_map.csv</code></a> — Device Map identity, <code>proposed</code> renames, hardware IDs, comments</li>
 <li>Device-map comments (node / OU / ports / <code>DCC: NNN</code>)</li>
+<li>Legacy: <code>block_display_names.csv</code> — still read by live <code>check_hart_phase02.py</code> until D2 promotes</li>
 </ul>
 
 <h2>Outputs</h2>
@@ -80,18 +88,27 @@
 <li>Names baked into USS / CATS <strong>after regenerate</strong>, not by string-replace of generated XML</li>
 </ul>
 
-<h2>Run</h2>
+<h2>Run (live — promotion only)</h2>
 
 <pre><code>
 export JMRI_LAYOUT=hart
+python3 jmri/layouts/hart/scripts/sync_public_name_map.py
 python3 jmri/layouts/hart/scripts/apply_public_names.py          # dry-run first
 python3 jmri/layouts/hart/scripts/apply_public_names.py --apply
 python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --apply
-python3 jmri/layouts/hart/scripts/sync_public_name_map.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 </code></pre>
 
-<p>Beans <strong>with a generator</strong> (USS diagram, CATS Masters, signal heads): change the script or CSV, then regenerate those pipelines. Do not search-replace their output.</p>
+<p>Beans <strong>with a generator</strong> (USS diagram, CATS Masters, signal heads): change the script or CSV, then regenerate. Do not search-replace generated XML.</p>
+
+<h2>Consolidation validators (read-only)</h2>
+
+<table>
+<tr><td>Check</td><td>Script</td></tr>
+<tr><td>OS names derivable from map</td><td>`scripts/propose_os_from_map.py`</td></tr>
+<tr><td>phase02 with map-derived OS</td><td>`scripts/check_hart_phase02_from_map.py`</td></tr>
+<tr><td>Names snapshot diff</td><td>`validators/check_names_diff.py`</td></tr>
+</table>
 
 <p>Writable tables only: <code>tables/new_tables.xml</code> (never <code>tables/tables.xml</code>).</p>
 
@@ -99,8 +116,8 @@ python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 
 <ul>
 <li>Change MQTT topics or <code>systemName</code>s</li>
-<li>Put leftover Switch 100–119 in public names (DCC address stays in turnout <strong>comments</strong>)</li>
-<li>Add one-off deletes to <code>cleanup_uss_ctc_leftovers.py</code> as a forever list</li>
+<li>Put leftover Switch 100–119 in public names</li>
+<li>Add one-off deletes to <code>cleanup_uss_ctc_leftovers.py</code> as a forever list (see <code>unused-modules/</code>)</li>
 </ul>
   </main>
 </body>

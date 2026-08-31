@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,21 +42,23 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
-    <h1>D2 promotion — decisions still needed</h1>
+    <h1>D2 promotion — checklist</h1>
 
-<p><strong>Principle already approved (2026-08-31):</strong> <a href="../../../jmri/layouts/hart/data/public_name_map.csv"><code>public_name_map.csv</code></a> is the <strong>single</strong> names SoR. See <a href="ADR-names-single-sor.md"><code>ADR-names-single-sor.md</code></a>.</p>
+<p><strong>Principle approved (2026-08-31):</strong> <a href="../../../jmri/layouts/hart/data/public_name_map.csv"><code>public_name_map.csv</code></a> is the <strong>single</strong> names SoR. See <a href="ADR-names-single-sor.md"><code>ADR-names-single-sor.md</code></a>.</p>
 
-<p><strong>Not yet promoted to live</strong> — items below need your approval before editing live scripts/files.</p>
+<p><strong>Sub-decisions D2a–e approved 2026-08-31 (all Option A).</strong> Drafts live under <code>consolidation/</code> only. Live edits happen <strong>only when you explicitly request promotion</strong> for a named item.</p>
 
 <p>---</p>
 
-<h2>Already settled (no further decision)</h2>
+<h2>Already settled</h2>
 
 <table>
 <tr><td>Item</td><td>Evidence</td></tr>
@@ -67,29 +70,17 @@
 
 <p>---</p>
 
-<h2>D2a — Retire `block_display_names.csv`?</h2>
+<h2>D2a — Retire `block_display_names.csv`</h2>
 
-<p><strong>Proposal:</strong> Delete live file after consumer migration; keep last snapshot in <code>consolidation/sor/names/</code> only.</p>
+<p><strong>Approved: Option A</strong> — delete live file after consumer migration; keep snapshot in <code>consolidation/sor/names/</code> only.</p>
 
-<table>
-<tr><td>Option</td><td>Meaning</td></tr>
-<tr><td>**Approve retire**</td><td>Remove file on promotion (recommended)</td></tr>
-<tr><td>**Keep as export**</td><td>Auto-generate read-only index from map (optional script)</td></tr>
-</table>
-
-<p><strong>Gap if retired without migration:</strong> 20 <strong>note strings</strong> live only in block_display <code>notes</code> column (throat hints, crossover leg, EH occupancy hints). Track/switch <strong>names</strong> themselves are already in the map.</p>
-
-<ul>
-<li>[ ] Approve retire after notes migrated (D2b)</li>
-<li>[ ] Approve retire and <strong>drop</strong> standalone notes (accept loss of index-only prose)</li>
-<li>[ ] Keep file as generated export from map</li>
-</ul>
+<p>26 note strings handled by D2b merge (see merge script output).</p>
 
 <p>---</p>
 
-<h2>D2b — Migrate block_display `notes` into map?</h2>
+<h2>D2b — Migrate block_display `notes` into map</h2>
 
-<p><strong>Only if you care about preserving index prose</strong> (hidden throat lines, <code>Crossover leg</code>, EH occupancy hints).</p>
+<p><strong>Approved: Option A</strong> — copy into map <code>notes</code>, then retire block_display.</p>
 
 <table>
 <tr><td>Target</td><td>Example block_display note</td><td>Map row to enrich</td></tr>
@@ -99,88 +90,72 @@
 <tr><td>Yard plate</td><td>`West Yard plate; access Switch 3 only`</td><td>Track W-1/W-2</td></tr>
 </table>
 
-<ul>
-<li>[ ] <strong>Migrate</strong> notes into map <code>notes</code> column then retire block_display (recommended if ops docs reference them)</li>
-<li>[ ] <strong>Skip</strong> — map comments from Device map are enough; delete block_display</li>
-</ul>
-
-<p><strong>Consolidation can draft a one-shot merge script</strong> under <code>consolidation/scripts/</code> — not live until approved.</p>
+<p>Draft: <code>consolidation/scripts/merge_block_display_notes_into_map.py</code> → <code>sor/names/public_name_map_merged.csv</code>.</p>
 
 <p>---</p>
 
-<h2>D2c — `check_hart_phase02.py` reads map (promotion)</h2>
+<h2>D2c — `check_hart_phase02.py` reads map</h2>
 
-<p><strong>Proposal:</strong> Replace <code>block_display_names.csv</code> read with same filter as <code>propose_os_from_map.py</code> (blocks/layer with <code>OS </code> proposed names + existing <code>secondary_ok</code> set for 23b/35a/7b).</p>
+<p><strong>Approved: Option A</strong> — promote on next live batch.</p>
 
-<ul>
-<li>[ ] Approve promotion of phase02 change</li>
-<li>[ ] Defer — keep phase02 on block_display until next maintenance window</li>
-</ul>
+<p>Draft (validator): <code>consolidation/scripts/check_hart_phase02_from_map.py</code> · <code>validators/check_phase02_from_map.sh</code>.</p>
 
-<p>Draft: <code>consolidation/scripts/check_hart_phase02_from_map.py</code> (wrapper, not live yet).</p>
+<p>OS filter: <code>layer=block</code> + <code>proposed.startswith(&quot;OS &quot;)</code> + existing <code>secondary_ok</code> for 23b/35a/7b.</p>
 
 <p>---</p>
 
-<h2>D2d — Other live consumers</h2>
+<h2>D2d — Other live consumers (one batch)</h2>
+
+<p><strong>Approved: Option A</strong> — all together on promotion:</p>
 
 <table>
-<tr><td>File</td><td>Change on promotion</td><td>Approval</td></tr>
-<tr><td>`refresh_bean_comments.py`</td><td>Remove `block_display_names.csv` from text-replace path list</td><td>[ ]</td></tr>
-<tr><td>`bootstrap_hart_from_linear6.py`</td><td>Remove `--no-display` path / DISPLAY_CSV (hart bootstrap done)</td><td>[ ]</td></tr>
-<tr><td>`jmri/layouts/hart/README.md`</td><td>Single map SoR wording</td><td>[ ]</td></tr>
-<tr><td>Live `wiki/decisions/ADR-002`</td><td>Point only to map</td><td>[ ]</td></tr>
+<tr><td>File</td><td>Change on promotion</td></tr>
+<tr><td>`check_hart_phase02.py`</td><td>OS from map (`names_from_map.os_public_names_from_map`)</td></tr>
+<tr><td>`refresh_bean_comments.py`</td><td>Remove `block_display_names.csv` from target list</td></tr>
+<tr><td>`bootstrap_hart_from_linear6.py`</td><td>Remove DISPLAY_CSV path (bootstrap done)</td></tr>
+<tr><td>`jmri/layouts/hart/README.md`</td><td>Single map SoR wording</td></tr>
+<tr><td>Live `wiki/decisions/ADR-002`</td><td>Point only to map</td></tr>
 </table>
 
 <p>---</p>
 
-<h2>D2e — Map schema (optional enhancement)</h2>
+<h2>D2e — Map schema</h2>
 
-<p>block_display had explicit <strong><code>role</code></strong> column (<code>os</code>, <code>yard</code>, <code>track</code>, <code>interchange</code>). Map uses <strong><code>layer</code></strong> (<code>turnout</code>, <code>block</code>, <code>occupancy</code>, …).</p>
-
-<table>
-<tr><td>Option</td><td>Meaning</td></tr>
-<tr><td>**Use layer + cp**</td><td>No schema change; phase02 filters `proposed.startswith(&quot;OS &quot;)`</td></tr>
-<tr><td>**Add `role` column to map**</td><td>Easier queries; one-time CSV migration</td></tr>
-</table>
-
-<ul>
-<li>[ ] No schema change (recommended)</li>
-<li>[ ] Add <code>role</code> column on promotion</li>
-</ul>
+<p><strong>Approved: Option A</strong> — no <code>role</code> column; use <code>layer</code> + <code>cp</code> + <code>notes</code>.</p>
 
 <p>---</p>
 
-<h2>D2f — Virtual stub masts (related, not D2 core)</h2>
+<h2>D2f — Virtual stub masts (related)</h2>
 
-<p><strong>Approved 2026-08-31: Option A</strong> — 17 Dispatcher stub masts stay <strong>map-only</strong>; no signalmast beans. See <a href="../audits/proposed-virtual-masts.md"><code>audits/proposed-virtual-masts.md</code></a>.</p>
-
-<p>Validator may warn on 17 <code>Mast*</code> names; exclude from fail via <code>notes=virtual</code> when we tighten the check.</p>
+<p><strong>Approved: Option A</strong> — 17 Dispatcher stub masts stay <strong>map-only</strong>; no signalmast beans. See <a href="../audits/proposed-virtual-masts.md"><code>audits/proposed-virtual-masts.md</code></a>.</p>
 
 <p>---</p>
 
-<h2>Promotion order (when you approve D2a–d)</h2>
+<h2>Live promotion (on explicit request only)</h2>
+
+<p>When you ask to promote D2, apply in this order to <strong>live</strong> paths:</p>
 
 <ol>
-<li>1. Optional D2b notes merge into map (live <code>public_name_map.csv</code> — <strong>requires promotion approval</strong>)</li>
+<li>1. Apply <code>public_name_map_merged.csv</code> → live <code>public_name_map.csv</code></li>
 <li>2. <code>sync_public_name_map</code> / <code>apply_public_names</code> if map edited</li>
-<li>3. Promote phase02 + refresh_bean_comments consumer changes</li>
-<li>4. Delete <code>block_display_names.csv</code></li>
+<li>3. Promote phase02 + refresh_bean_comments + bootstrap + README + ADR-002</li>
+<li>4. Delete <code>block_display_names.csv</code>; keep <code>consolidation/sor/names/</code> snapshot</li>
 <li>5. <code>bash consolidation/validators/run_all.sh</code> green</li>
 <li>6. Update live wiki STATUS + README</li>
 </ol>
 
 <p>---</p>
 
-<h2>Approval record (D2 sub-decisions)</h2>
+<h2>Approval record</h2>
 
 <table>
 <tr><td>ID</td><td>Decision</td><td>Approved</td><td>Notes</td><td>Date</td></tr>
-<tr><td>D2a</td><td>Retire block_display</td><td></td><td></td><td></td></tr>
-<tr><td>D2b</td><td>Notes migration</td><td></td><td></td><td></td></tr>
-<tr><td>D2c</td><td>phase02 from map</td><td></td><td></td><td></td></tr>
-<tr><td>D2d</td><td>Other consumers</td><td></td><td></td><td></td></tr>
-<tr><td>D2e</td><td>Map schema</td><td></td><td></td><td></td></tr>
-<tr><td>**D2f**</td><td>Y</td><td>Virtual stubs = A (map-only)</td><td>2026-08-31</td></tr>
+<tr><td>D2a</td><td>Retire block_display</td><td>Y</td><td>After merge + promotion</td><td>2026-08-31</td></tr>
+<tr><td>D2b</td><td>Notes migration</td><td>Y</td><td>Draft merge script</td><td>2026-08-31</td></tr>
+<tr><td>D2c</td><td>phase02 from map</td><td>Y</td><td>Draft validator green</td><td>2026-08-31</td></tr>
+<tr><td>D2d</td><td>Other consumers</td><td>Y</td><td>One batch on promotion</td><td>2026-08-31</td></tr>
+<tr><td>D2e</td><td>Map schema</td><td>Y</td><td>No role column</td><td>2026-08-31</td></tr>
+<tr><td>D2f</td><td>Virtual stubs = A (map-only)</td><td>Y</td><td>Document-only</td><td>2026-08-31</td></tr>
 </table>
   </main>
 </body>

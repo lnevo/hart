@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,21 +42,26 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/waybills.md`</td><td>`consolidation/wiki/pipelines/waybills.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/waybills.md`</td><td>this file</td></tr>
+<tr><td>Matrix SoR</td><td>`external/hart-ops/data/HART_Spot_Waybills.csv`</td><td>hart-ops</td></tr>
+<tr><td>Legacy bench</td><td>`~/Desktop/HART/Car Cards/data/`</td><td>read-only (D12)</td></tr>
 </table>
+
+<p><strong>Tier:</strong> C · <strong>Repo:</strong> <code>external/hart-ops</code></p>
 
 <p>---</p>
 
@@ -63,33 +69,25 @@
 
 <p>Generate spot waybill cards and CC/waybill labels from the HART waybill matrix.</p>
 
-<p><strong>Status:</strong> Live on Desktop. Same tree as car cards. CSV also seeds STS (pipeline 14).</p>
+<p><strong>Status:</strong> <strong>hart-ops</strong> (<code>external/hart-ops</code>). STS seed reads same CSV via <code>external/sts-helpers</code>.</p>
 
 <h2>Inputs</h2>
 
 <ul>
 <li><code>data/HART_Spot_Waybills.csv</code></li>
 <li><code>data/spot_assignments.csv</code></li>
-<li><code>operator_logos/</code> for labels</li>
-</ul>
-
-<h2>Outputs</h2>
-
-<ul>
-<li><code>card_pipeline/output/HART_Spot_Waybills.docx</code></li>
-<li>CC/waybill label docs from <code>generate_cc_waybill_labels.py</code></li>
+<li><code>operator_logos/</code></li>
 </ul>
 
 <h2>Run</h2>
 
-<p>From <code>~/Desktop/HART/Car Cards/</code>:</p>
-
 <pre><code>
+cd external/hart-ops
 .venv/bin/python card_pipeline/generate_waybill_cards.py
 .venv/bin/python card_pipeline/generate_cc_waybill_labels.py
 </code></pre>
 
-<p>Commodity / supplier / customer / via rules in <code>generate_waybill_cards.py</code> are the paper SoR; keep the CSV in sync with STS seed inputs under <code>sts-docker-helpers/seed/inputs/</code>.</p>
+<p>Keep CSV in sync with <code>external/sts-helpers/seed/inputs/</code> when waybill lanes change (hart-ops + helpers repos only — not Desktop).</p>
   </main>
 </body>
 </html>

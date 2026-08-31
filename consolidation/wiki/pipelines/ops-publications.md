@@ -1,11 +1,15 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/ops-publications.md` | `consolidation/wiki/pipelines/ops-publications.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only bench) | Build target |
+|------|------------------------|--------------|
+| Runbook | `wiki/pipelines/ops-publications.md` | this file |
+| Rebuild scripts | `external/hart-ops/publications/rebuild_*.py` | hart-ops |
+| Published output | `external/hart-ops/docs/published/` | hart-ops |
+| Desktop root dupes | class **D** in [`audits/desktop-inventory.md`](../../audits/desktop-inventory.md) | cutover only |
+
+**Tier:** C · **D12:** do not overwrite Desktop or live `hart/docs/`
 
 ---
 
@@ -13,30 +17,12 @@
 
 Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 
-**Status:** Live on Desktop. `~/Desktop/HART/Car Cards/publications/` → `docs/`.
-
-## Inputs
-
-- Content in each `rebuild_*.py`
-- Assets under `publications/assets/` (station map PNG, TT-23 trifold)
-
-## Outputs (in `Car Cards/docs/`)
-
-| Pub | File |
-|-----|------|
-| EQ-01 | `HART Railroad Scale Operating Instructions.docx` |
-| DS-01 | `Neville_Island_Dispatcher_Train_List.docx` |
-| YM-01 | `Neville_Island_Yardmaster_Sequence.docx` |
-| CI-* | `Neville_Island_Crew_{D749,NVL,CK1}.docx` |
-| SM-01 | `Neville_Island_Station_Map.docx` |
-| SM-02…05 | West Yard / South Yard / East End / Shenango maps |
-| HB-01 | `Neville_Island_New_Operator_Primer.docx` |
-| TT-23 | `TT-23_Route23_NevilleQueen_RevisionA_v6.pptx` (map swap script) |
+**Status:** **hart-ops** (`external/hart-ops/publications/` → `docs/published/`).
 
 ## Run
 
 ```bash
-cd ~/Desktop/HART/Car\ Cards
+cd external/hart-ops
 .venv/bin/python publications/rebuild_scale_operating_instructions.py
 .venv/bin/python publications/rebuild_dispatcher_train_list.py
 .venv/bin/python publications/rebuild_yardmaster_sequence.py
@@ -47,4 +33,4 @@ cd ~/Desktop/HART/Car\ Cards
 .venv/bin/python publications/update_tt23_station_map.py
 ```
 
-Index: `Car Cards/docs/README.md`. Standards: `HART_Railroad_Publication_Standards_v1.0.docx`. Root Desktop Word files (orientation packet, old train lists) are drafts unless they match these pubs.
+Index: `docs/published/README.md`. Desktop root Word duplicates remain until cutover project.

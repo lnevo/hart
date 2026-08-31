@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADR-car-roster-single-sor — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>ADR — Single car inventory SoR (outside Operations Pro)</h1>
+
+<p><strong>Status:</strong> Accepted (consolidation) · promotion to live <code>wiki/</code> when hart-ops migrates  </p>
+<p><strong>Date:</strong> 2026-08-31  </p>
+<p><strong>Context:</strong> P3a hart-ops · golden car · STS seed · JMRI Operations Pro sync</p>
+
+<h2>Decision</h2>
+
+<p>Maintain <strong>one authoritative car inventory</strong> in <strong>hart-ops</strong> (not in JMRI Operations Pro GUI). JMRI and STS are <strong>consumers</strong> with different filters.</p>
+
+<h2>SoR stack (hart-ops `data/`)</h2>
+
+<table>
+<tr><td>Layer</td><td>File</td><td>Role</td></tr>
+<tr><td>**1 — editable manifest**</td><td>`image_metadata.csv`</td><td>Reporting marks, OCR weights/capacities, photo refs, roster_id, notes</td></tr>
+<tr><td>**2 — canonical XML**</td><td>`HART_MergedCarRoster.xml`</td><td>**Generated** full fleet inventory (freight + passenger + caboose + MOW on roster)</td></tr>
+<tr><td>**3 — JMRI export**</td><td>`OperationsCarRoster.xml`</td><td>**Generated** from layer 2 — Operations Pro reads this; must include **all** cars</td></tr>
+<tr><td>**4 — engine roster**</td><td>`OperationsEngineRoster.xml`</td><td>Locomotives only (separate from freight car SoR)</td></tr>
+</table>
+
+<p><strong>Do not</strong> treat Pi-exported <code>OperationsCarRoster.xml</code> as upstream authority after migration. Operations Pro is a <strong>sync target</strong>, not the editor of record.</p>
+
+<h2>Consumer rules</h2>
+
+<table>
+<tr><td>Consumer</td><td>Input</td><td>Filter</td></tr>
+<tr><td>**Operations Pro (PanelPro)**</td><td>`OperationsCarRoster.xml`</td><td>**All cars** — passenger, caboose, MOW included</td></tr>
+<tr><td>**Car card pipeline**</td><td>`image_metadata.csv` + Merged roster</td><td>Freight with `CarImagesFinal` in notes</td></tr>
+<tr><td>**STS seed**</td><td>Merged roster + metadata</td><td>**STS inventory only** — exclude `PASSENGER_TYPES` (Baggage, Coach, Combine, Dining, Observation, Caboose, MOW); require final photo; MOW via `hart_seed_config.json`</td></tr>
+<tr><td>**Golden smoke**</td><td>NW32800 on Operations export</td><td>Assert generated `OperationsCarRoster.xml` row matches metadata</td></tr>
+</table>
+
+<p>Passenger equipment and cabooses <strong>belong in the SoR</strong> and <strong>sync to Operations Pro</strong> but <strong>do not</strong> enter STS freight fleet unless explicitly added to STS inventory config.</p>
+
+<h2>Build direction (target — invert today’s flow)</h2>
+
+<p><strong>Today (Desktop):</strong> <code>OperationsCarRoster.xml</code> → <code>build_merged_car_roster.py</code> → Merged  </p>
+<p><strong>Target (hart-ops):</strong></p>
+
+<pre><code>
+image_metadata.csv  (+ manual roster rows for non-photo cars)
+        ↓
+build_car_roster_sor.py   # replaces build_merged_car_roster.py
+        ↓
+HART_MergedCarRoster.xml
+        ↓
+export_operations_roster.py → OperationsCarRoster.xml
+        ↓
+Pi / Mac / Windows JMRI profiles (future cutover project — **not during consolidation**)
+</code></pre>
+
+<p>STS continues via <code>generate_hart_seed.py</code> reading Merged + metadata with existing type filters.</p>
+
+<h2>Fields in SoR</h2>
+
+<p>All rolling stock inventory fields live in <code>image_metadata.csv</code> (or merged into it):</p>
+
+<ul>
+<li><code>roster_id</code>, <code>reporting_marks</code>, <code>road_name</code>, <code>road_number</code></li>
+<li><code>car_type</code>, <code>car_class</code>, <code>color</code></li>
+<li><code>capy_lbs</code>, <code>ld_lmt_lbs</code>, <code>lt_wt_lbs</code>, <code>roster_weight_oz</code>, <code>roster_weight_tons</code></li>
+<li>Photo pipeline: <code>source_image</code>, <code>cropped_image</code>, <code>crop_status</code>, <code>notes</code> (<code>final_ref=…</code>)</li>
+<li>Optional future: <code>sts_eligible</code> (default derive from type + final photo)</li>
+</ul>
+
+<h2>Golden car</h2>
+
+<p><strong>NW32800</strong> — assert against generated <code>OperationsCarRoster.xml</code> after SoR build.</p>
+
+<h2>Consequences</h2>
+
+<ul>
+<li><strong><code>sync_roster_ops_from_pi.sh</code></strong> — leave as-is on live bench; Pi roster push is <strong>cutover project</strong>, not consolidation.</li>
+<li>Align <a href="../../audits/golden-car-sor.md"><code>audits/golden-car-sor.md</code></a> and pipeline 12 docs with this ADR.</li>
+<li>hart-ops holds SoR files and build scripts; <strong>does not overwrite</strong> Desktop/HART originals until cutover.</li>
+</ul>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="../../sor/cars/README.md"><code>sor/cars/README.md</code></a></li>
+<li><a href="../../cross-repo/hart-ops/MIGRATION_PLAN.md"><code>cross-repo/hart-ops/MIGRATION_PLAN.md</code></a></li>
+<li><a href="../../audits/golden-car-sor.md"><code>audits/golden-car-sor.md</code></a></li>
+</ul>
+  </main>
+</body>
+</html>

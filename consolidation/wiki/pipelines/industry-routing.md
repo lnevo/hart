@@ -1,37 +1,28 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/industry-routing.md` | `consolidation/wiki/pipelines/industry-routing.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only bench) | Build target |
+|------|------------------------|--------------|
+| Runbook | `wiki/pipelines/industry-routing.md` | this file |
+| Matrix | `external/hart-ops/industries/HART_Industry_Routing_Matrix.xlsx` | hart-ops |
+| Legacy bench | `~/Desktop/HART/Industries/` | read-only (D12) |
+
+**Tier:** C · Feeds waybills (13) and STS seed (14)
 
 ---
 
 # Pipeline 16 — Industry routing
 
-Maintain the supplier/customer/commodity matrix that feeds waybills and STS seed.
+Maintain supplier/customer/commodity matrix for waybills and STS seed.
 
-**Status:** Live on Desktop. `~/Desktop/HART/Industries/`
-
-## Inputs
-
-- `industries.txt`
-- Existing `HART_Industry_Routing_Matrix.xlsx`
-
-## Outputs
-
-- `HART_Industry_Routing_Matrix.xlsx` (validated rows: industry, flow, commodity, company, car type)
+**Status:** **hart-ops** (`external/hart-ops/industries/`).
 
 ## Run
 
 ```bash
-cd ~/Desktop/HART/Industries
+cd external/hart-ops/industries
 python3 validate_and_update_matrix.py
-# also: update_railroads.py, update_railroad_timelines_era.py, fix_railroad_timelines.py
 ```
 
-Notes: `SCRIPT_IMPROVEMENTS.md`, `Supplier_Customer_Analysis.md`. Keep car types in the allowed set (Boxcar, Covered Hopper, Flatcar, Gondola, Hopper, Tank Car, Coil Car). Do not pair food companies with steel commodities.
-
-This matrix is **not** in the hart git repo; sync conceptually with `HART_Spot_Waybills.csv` when lanes change.
+Sync conceptually with `data/HART_Spot_Waybills.csv` when lanes change. Desktop `Industries/` untouched until cutover.

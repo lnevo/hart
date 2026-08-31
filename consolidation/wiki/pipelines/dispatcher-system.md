@@ -1,11 +1,15 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/dispatcher-system.md` | `consolidation/wiki/pipelines/dispatcher-system.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation |
+|------|------------------|---------------|
+| Runbook | `wiki/pipelines/dispatcher-system.md` | this file |
+| Graph output | `jmri/layouts/hart/dispatcher/traininfo/` | — |
+| Virtual stubs | `public_name_map.csv` (`hardware` = virtual) | [`audits/proposed-virtual-masts.md`](../../audits/proposed-virtual-masts.md) |
+| Operator guide | `jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md` | — |
+
+**Tier:** B · Baseline: **91** sections / **688** transits / **1508** traininfo
 
 ---
 

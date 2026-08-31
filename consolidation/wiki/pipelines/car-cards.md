@@ -1,11 +1,16 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/car-cards.md` | `consolidation/wiki/pipelines/car-cards.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only bench) | Build target |
+|------|------------------------|--------------|
+| Runbook | `wiki/pipelines/car-cards.md` | this file |
+| **hart-ops repo** | [`external/hart-ops`](../../../external/hart-ops) @ submodule pin | **canonical ops workspace** |
+| **Car inventory SoR** | `data/image_metadata.csv` → `HART_MergedCarRoster.xml` | [`sor/cars/README.md`](../../sor/cars/README.md) |
+| JMRI export | `OperationsCarRoster.xml` (generated in hart-ops) | cutover project |
+| Photos (local) | `HART_CAR_IMAGES_FINAL` env → Desktop `CarImagesFinal/` | not in git |
+
+**Tier:** C · **ADR:** [`wiki/decisions/ADR-car-roster-single-sor.md`](../decisions/ADR-car-roster-single-sor.md) · **D12:** do not overwrite Desktop bench
 
 ---
 
@@ -13,24 +18,25 @@
 
 Print filled car cards from roster XML + cropped car photos.
 
-**Status:** Live on Desktop (not the hart git tree). `~/Desktop/HART/Car Cards/`
+**Status:** **hart-ops** repo (`external/hart-ops`). Desktop `Car Cards/` is read-only bench until cutover.
 
-## Inputs
+## SoR (single inventory)
 
-- `data/HART_MergedCarRoster.xml`, `data/OperationsEngineRoster.xml`
-- `data/image_metadata.csv`
-- Photos: `CarImagesFinal/` (and crop/OCR helpers in `card_pipeline/`)
+```
+image_metadata.csv  →  build_car_roster_sor.py  →  HART_MergedCarRoster.xml  →  OperationsCarRoster.xml
+```
 
-## Outputs
+STS and card pipeline are **filtered consumers** — see ADR.
 
-- `card_pipeline/output/HART_All_Car_Cards.docx` (sticker sheet, 9 per page)
-
-## Run
-
-From `~/Desktop/HART/Car Cards/`:
+## Run (hart-ops)
 
 ```bash
+cd external/hart-ops   # or ~/hart-ops clone
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+export HART_CAR_IMAGES_FINAL=~/Desktop/HART/Car\ Cards/CarImagesFinal
+
+python card_pipeline/build_car_roster_sor.py
 .venv/bin/python card_pipeline/generate_all_cards.py
 ```
 
-Related: `generate_single_card.py`, `generate_card_template.py`, `build_merged_car_roster.py`, image OCR/crop scripts in `card_pipeline/`. Agent notes: `Car Cards/AGENTS.md`.
+Golden smoke: **NW32800** — `tests/test_golden_card.py` · [`cross-repo/hart-ops/GOLDEN_SMOKE_CAR_CARDS.md`](../../cross-repo/hart-ops/GOLDEN_SMOKE_CAR_CARDS.md)

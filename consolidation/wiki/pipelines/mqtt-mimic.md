@@ -1,20 +1,34 @@
+> **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
+
+## Source of record
+
+| Kind | Live (read-only) | Consolidation |
+|------|------------------|---------------|
+| CATS mimic | `cats/scripts/lcos_mqtt_mimic.py` | — |
+| JMRI publisher | `jmri/scripts/mqtt_signalhead_publisher.py` | — |
+| Bridge | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | [`cross-repo/lcos/TIER_B.md`](../../cross-repo/lcos/TIER_B.md) |
+
+**Tier:** B (manual smoke) · Cross-cutting pipelines **3 / 5 / 9** · **D6:** live `track/signalmast/#` roster
+
+---
+
 # MQTT mimic QA (CATS + JMRI)
 
-**Consolidation topic:** Pipeline 3/5 cross-cutting — LCOS Digicon aspect QA without physical layout.
+**Consolidation topic:** Pipeline 3/5/9 cross-cutting — LCOS Digicon aspect QA without physical layout.
 
-## Live paths (read-only)
+## Live paths
 
 | Path | Role |
 |------|------|
 | `cats/scripts/lcos_mqtt_mimic.py` | CATS-side mimic; reads `public_name_map.csv` |
-| `jmri/scripts/mqtt_signalhead_publisher.py` | JMRI jython publisher (deployed to `preference:jython/`) |
+| `jmri/scripts/mqtt_signalhead_publisher.py` | JMRI jython publisher |
 | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge |
 
-## Behavior (consolidation documented)
+## Behavior
 
 - **Live roster:** non-empty `track/signalmast/<packed>` from LCOS — not static allow-lists.
 - **Topics:** `track/signalhead/<packed>` (SET), `track/signalmast/<packed>` (field status).
-- **Packed ID:** radio node × 100 + UID (e.g. node 4 UID 32 → `432` / `IH432`).
+- **Packed ID:** deploy `IH*` digits; wiring CSV may use other schemes — pipeline 8 crosswalk.
 - **Bridge:** Windows serial bridge runs **foreground** only (do not `Start-Process` Hidden).
 
 ## Run (live — do not change from consolidation)

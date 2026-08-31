@@ -257,6 +257,7 @@ NAV = """
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -276,8 +277,10 @@ NAV = """
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="decisions/index.html">ADR index</a>
+  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 """
 
@@ -290,7 +293,7 @@ def write_page(rel: str, title: str, body_html: str, css_depth: str = "style.css
     nav_home = "../" * (rel.count("/")) + "index.html" if rel != "index.html" else "index.html"
     nav = NAV.replace('href="index.html"', f'href="{nav_home}"')
     nav = nav.replace('href="objective.html"', f'href="{"../" * rel.count("/")}objective.html"')
-    for name in ("decisions", "live-sources", "manifest", "audits", "cross-repo", "pipelines", "decisions/adr"):
+    for name in ("decisions", "live-sources", "manifest", "audits", "cross-repo", "pipelines", "projects", "archive", "validators", "decisions/adr"):
         prefix = "../" * rel.count("/")
         nav = nav.replace(f'href="{name}', f'href="{prefix}{name}')
     page = PAGE_SHELL.format(title=html.escape(title), css=css, home=home, nav=nav, body=body_html)
@@ -318,6 +321,8 @@ def main() -> None:
   <a class="card" href="pipelines/09-lcos-firmware.html"><h3>LCOS bridge</h3><p>Nano firmware + serial_to_mqtt</p></a>
   <a class="card" href="live-sources.html"><h3>Live sources map</h3><p>Paths you must not edit</p></a>
   <a class="card" href="audits/index.html"><h3>Audits</h3><p>Validator reports & reviews</p></a>
+  <a class="card" href="archive/index.html"><h3>Archive taxonomy</h3><p>Desktop/HART classes A–F</p></a>
+  <a class="card" href="repos.html"><h3>Repos</h3><p>Meta-repo & submodule recipe</p></a>
 </div>
 """
     write_page("index.html", "Home", home_body)
@@ -331,6 +336,12 @@ def main() -> None:
         ("manifest.html", "Manifest", CON / "manifest.yaml"),
         ("audits/index.html", "Audits", CON / "audits/README.md"),
         ("cross-repo/lcos-tier-b.html", "LCOS Tier B", CON / "cross-repo/lcos/TIER_B.md"),
+        ("projects/cats-integration.html", "CATS integration", CON / "wiki/projects/cats-integration.md"),
+        ("archive/index.html", "Archive taxonomy", CON / "wiki/archive/INDEX.md"),
+        ("repos.html", "Repos & submodules", CON / "wiki/REPOS.md"),
+        ("decisions/index.html", "ADR index", CON / "wiki/decisions/README.md"),
+        ("validators/tier-b-smokes.html", "Tier B smokes", CON / "validators/TIER_B_MANUAL_SMOKES.md"),
+        ("cross-repo/hart-ops-readme.html", "hart-ops (draft)", CON / "cross-repo/hart-ops/README.md"),
     ]
 
     for rel, title, md_path in md_pages:

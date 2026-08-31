@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,21 +42,28 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/cats-masters.md`</td><td>`consolidation/wiki/pipelines/cats-masters.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only)</td><td>Consolidation</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/cats-masters.md`</td><td>this file</td></tr>
+<tr><td>**Live CTC desk**</td><td>`cats/panels/HART_Master_CTC_hold.xml`</td><td>—</td></tr>
+<tr><td>**Live ABS desk**</td><td>`cats/panels/HART_Master_ABS_hold.xml`</td><td>—</td></tr>
+<tr><td>Geometry source</td><td>`cats/panels/HART_Master.xml`</td><td>rebuild via `wire_hart_master4.py`</td></tr>
+<tr><td>Project context</td><td>`wiki/projects/cats-integration.md`</td><td>`wiki/projects/cats-integration.md`</td></tr>
 </table>
+
+<p><strong>Tier:</strong> B (manual smoke before deploy) · <strong>ADR:</strong> <a href="../../../wiki/decisions/ADR-004-cats-ctc.md">ADR-004</a></p>
 
 <p>---</p>
 

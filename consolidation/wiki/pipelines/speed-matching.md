@@ -1,11 +1,14 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/speed-matching.md` | `consolidation/wiki/pipelines/speed-matching.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation |
+|------|------------------|---------------|
+| Runbook | `wiki/pipelines/speed-matching.md` | this file |
+| Project notes | `wiki/projects/speedmatching.md` | — |
+| Scripts | `jmri/docs/speedmatching/` | adapt for HART loop geometry |
+
+**Tier:** — (parked) · Synthetic profiles on all roster locos today
 
 ---
 

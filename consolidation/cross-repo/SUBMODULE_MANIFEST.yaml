@@ -1,0 +1,41 @@
+# Submodule staging manifest — hart meta-repo (P3b)
+# Operator: consolidation/scripts/init_external_submodules.sh
+
+version: 1
+updated: 2026-08-31
+
+layout:
+  root: external/
+  hub: lnevo/hart
+
+submodules:
+  - name: lcos-bridge
+    path: external/lcos-bridge
+    url: git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git
+    pin: ec16af8c85a5d8c9acb05eed854a5b69cc8ca90d
+    pin_doc: cross-repo/lcos/SUBMODULE_PIN.md
+    status: ready
+
+  - name: sts-docker
+    path: external/sts-docker
+    url: git@github.com:lnevo/sts-docker.git
+    pin: 899b45809c99b92614f99990a88fee1dd4e63be2
+    pin_doc: cross-repo/sts-docker/SUBMODULE_PIN.md
+    status: ready
+    note: Canonical runtime also at ~/sts/sts-docker
+
+  - name: sts-helpers
+    path: external/sts-helpers
+    url: git@github.com:lnevo/sts-docker-helpers.git
+    pin: cdbbfce8ab2ef915430b8e3eafc31267b518cde5
+    pin_doc: cross-repo/sts-helpers/SUBMODULE_PIN.md
+    status: ready
+    note: Today also under Desktop/Car Cards/sts-docker-helpers/
+
+  - name: hart-ops
+    path: external/hart-ops
+    url: git@github.com:lnevo/hart-ops.git
+    pin: c276b85432118bd2d3f02299c3336169181e6670
+    pin_doc: cross-repo/hart-ops/MIGRATION_PLAN.md
+    status: ready
+    note: Car inventory SoR, card pipeline, publications, industries

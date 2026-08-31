@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,21 +42,27 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/wiring-docs.md`</td><td>`consolidation/wiki/pipelines/wiring-docs.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only)</td><td>Consolidation draft</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/wiring-docs.md`</td><td>this file</td></tr>
+<tr><td>Canonical pack</td><td>`docs/wiring/` (git)</td><td>`sor/wiring/` snapshots + crosswalk</td></tr>
+<tr><td>Bench mirror</td><td>`~/Desktop/HART/Wiring Documentation/`</td><td>export-only (D4)</td></tr>
+<tr><td>Wiring CSV</td><td>`cats/data/signal_wiring.csv`</td><td>remap table in `sor/wiring/packed_id_crosswalk.csv`</td></tr>
 </table>
+
+<p><strong>Decision D4:</strong> git <code>docs/wiring/</code> is canonical; Desktop bench is export mirror.</p>
 
 <p>---</p>
 
@@ -63,7 +70,7 @@
 
 <p>Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.</p>
 
-<p><strong>Status:</strong> Live. Git copy: <a href="../../docs/wiring/"><code>docs/wiring/</code></a>. Bench copy: <code>~/Desktop/HART/Wiring Documentation/</code> (not git).</p>
+<p><strong>Status:</strong> Live.</p>
 
 <h2>Inputs</h2>
 
@@ -83,22 +90,36 @@
 <li><code>docs/wiring/Wiring_Schematic.pptx</code></li>
 </ul>
 
-<h2>Run</h2>
+<h2>Run (live — promotion only)</h2>
 
 <pre><code>
 python3 docs/wiring/scripts/refresh_wiring_docs.py
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 </code></pre>
 
-<p>Copy the three workbooks <strong>and</strong> the pptx back to the Desktop pack after XML apply so the bench matches live beans. Detail: <a href="../../docs/wiring/README.md"><code>docs/wiring/README.md</code></a>.</p>
+<p>Copy workbooks + pptx to Desktop pack after XML apply so bench matches beans.</p>
+
+<h2>Consolidation: wiring ↔ bean crosswalk</h2>
+
+<p>Ten wiring packed IDs and ten deploy IH IDs fail <strong>naive</strong> digit match (72% overlap). Mast-aware remap resolves <strong>100%</strong> — see <a href="../../audits/wiring-crosswalk-gap.md"><code>audits/wiring-crosswalk-gap.md</code></a>.</p>
+
+<pre><code>
+python3 consolidation/scripts/build_wiring_crosswalk.py   # writes sor/wiring/packed_id_crosswalk.csv
+python3 consolidation/validators/check_wiring_crosswalk.py
+</code></pre>
+
+<p>When <code>docs/wiring/</code> is next regenerated (explicit promotion), align <code>signal_wiring.csv</code> packed column to live IH or drop stale node×100 rows.</p>
 
 <h2>Do not</h2>
 
 <ul>
-<li>Treat Desktop <code>ARCHIVE/</code> one-off Python as the live generator (git <code>docs/wiring/scripts/</code> is)</li>
-<li>Refresh Desktop before JMRI XML is applied if the pack must match beans</li>
+<li>Edit live <code>docs/wiring/</code> from consolidation without promotion</li>
+<li>Treat Desktop <code>ARCHIVE/</code> one-off Python as the live generator</li>
+<li>Refresh Desktop before JMRI XML apply if the pack must match beans</li>
 <li>Put packed MQTT on helix <strong>D5</strong></li>
 </ul>
+
+<p>Detail: <a href="../../../docs/wiring/README.md"><code>docs/wiring/README.md</code></a></p>
   </main>
 </body>
 </html>

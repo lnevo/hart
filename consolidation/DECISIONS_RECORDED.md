@@ -15,6 +15,18 @@ Approved by owner. Consolidation work proceeds under these locked defaults until
 | **D9** | Y (modified) | Local HTML portal now | Pi-hosted portal with STS/mimic/JMRI later (low priority) |
 | **D10** | Y (modified) | LCOS as-is | Working published version moves into consolidation review; minimal change |
 | **D2f** | Y | Virtual stub masts = **A** | 17 Dispatcher stubs map-only; no signalmast beans — [`audits/proposed-virtual-masts.md`](audits/proposed-virtual-masts.md) |
+| **D2a** | Y | Retire `block_display_names.csv` | After notes merge + consumer promotion; snapshot in `sor/names/` only |
+| **D2b** | Y | Migrate block_display `notes` → map | Draft: `scripts/merge_block_display_notes_into_map.py` → `sor/names/public_name_map_merged.csv` |
+| **D2c** | Y | phase02 reads map | Draft: `scripts/check_hart_phase02_from_map.py`; promote to live on next batch |
+| **D2d** | Y | All consumers together | phase02 + `refresh_bean_comments` + bootstrap + README + ADR-002 in one promotion |
+| **D2e** | Y | No `role` column | Derive OS via `layer=block` + `proposed.startswith("OS ")` |
+| **ADR-set** | Y | Consolidation ADRs accepted | validation tiers, hygiene, SoR, tables merge — `wiki/decisions/README.md` |
+| **P3a** | Y | Create **hart-ops** repo | Car Cards, publications, Industries — migration plan in `cross-repo/hart-ops/` |
+| **P3b** | Y | Submodules | Stage `external/` — [`cross-repo/SUBMODULE_MANIFEST.yaml`](cross-repo/SUBMODULE_MANIFEST.yaml) · hart-ops pin pending repo |
+| **P4a** | Y | Archive ingest | Selective class-F → `docs/archive/` plan (consolidation draft; not live until promotion) |
+| **D10b** | Y (closed) | LCOS bridge | No pending LCOS actions; event 125/pacing considered done or out of scope |
+| **D11** | Y | Car roster single SoR | `image_metadata.csv` → Merged → Operations export; STS filtered subset — [`wiki/decisions/ADR-car-roster-single-sor.md`](wiki/decisions/ADR-car-roster-single-sor.md) |
+| **D12** | Y | Bench freeze | No Pi deploy, no Desktop/HART edits, no live `hart` edits during consolidation; cutover = separate project |
 
 ## Follow-up work unlocked
 

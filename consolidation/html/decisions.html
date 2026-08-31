@@ -22,6 +22,7 @@
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,8 +42,10 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="decisions/index.html">ADR index</a>
+  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
@@ -64,6 +67,18 @@
 <tr><td>**D9**</td><td>Y (modified)</td><td>Local HTML portal now</td><td>Pi-hosted portal with STS/mimic/JMRI later (low priority)</td></tr>
 <tr><td>**D10**</td><td>Y (modified)</td><td>LCOS as-is</td><td>Working published version moves into consolidation review; minimal change</td></tr>
 <tr><td>**D2f**</td><td>Y</td><td>Virtual stub masts = **A**</td><td>17 Dispatcher stubs map-only; no signalmast beans — [`audits/proposed-virtual-masts.md`](audits/proposed-virtual-masts.md)</td></tr>
+<tr><td>**D2a**</td><td>Y</td><td>Retire `block_display_names.csv`</td><td>After notes merge + consumer promotion; snapshot in `sor/names/` only</td></tr>
+<tr><td>**D2b**</td><td>Y</td><td>Migrate block_display `notes` → map</td><td>Draft: `scripts/merge_block_display_notes_into_map.py` → `sor/names/public_name_map_merged.csv`</td></tr>
+<tr><td>**D2c**</td><td>Y</td><td>phase02 reads map</td><td>Draft: `scripts/check_hart_phase02_from_map.py`; promote to live on next batch</td></tr>
+<tr><td>**D2d**</td><td>Y</td><td>All consumers together</td><td>phase02 + `refresh_bean_comments` + bootstrap + README + ADR-002 in one promotion</td></tr>
+<tr><td>**D2e**</td><td>Y</td><td>No `role` column</td><td>Derive OS via `layer=block` + `proposed.startswith(&quot;OS &quot;)`</td></tr>
+<tr><td>**ADR-set**</td><td>Y</td><td>Consolidation ADRs accepted</td><td>validation tiers, hygiene, SoR, tables merge — `wiki/decisions/README.md`</td></tr>
+<tr><td>**P3a**</td><td>Y</td><td>Create **hart-ops** repo</td><td>Car Cards, publications, Industries — migration plan in `cross-repo/hart-ops/`</td></tr>
+<tr><td>**P3b**</td><td>Y</td><td>Submodules</td><td>Stage `external/` — [`cross-repo/SUBMODULE_MANIFEST.yaml`](cross-repo/SUBMODULE_MANIFEST.yaml) · hart-ops pin pending repo</td></tr>
+<tr><td>**P4a**</td><td>Y</td><td>Archive ingest</td><td>Selective class-F → `docs/archive/` plan (consolidation draft; not live until promotion)</td></tr>
+<tr><td>**D10b**</td><td>Y (closed)</td><td>LCOS bridge</td><td>No pending LCOS actions; event 125/pacing considered done or out of scope</td></tr>
+<tr><td>**D11**</td><td>Y</td><td>Car roster single SoR</td><td>`image_metadata.csv` → Merged → Operations export; STS filtered subset — [`wiki/decisions/ADR-car-roster-single-sor.md`](wiki/decisions/ADR-car-roster-single-sor.md)</td></tr>
+<tr><td>**D12**</td><td>Y</td><td>Bench freeze</td><td>No Pi deploy, no Desktop/HART edits, no live `hart` edits during consolidation; cutover = separate project</td></tr>
 </table>
 
 <h2>Follow-up work unlocked</h2>

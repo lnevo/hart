@@ -1,11 +1,15 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/uss-ctc.md` | `consolidation/wiki/pipelines/uss-ctc.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation |
+|------|------------------|---------------|
+| Runbook | `wiki/pipelines/uss-ctc.md` | this file |
+| Generator | `jmri/layouts/hart/scripts/gen_ctc_track_plan.py` | — |
+| CTC GUI | `jmri/layouts/hart/ctc/GUIObjects.xml` | — |
+| Cleanup policy | live `cleanup_uss_ctc_leftovers.py` | `unused-modules/tables/` |
+
+**Tier:** B · **Mutually exclusive** with CATS CTC (pipeline 5)
 
 ---
 

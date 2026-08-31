@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,15 +42,18 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
-    <h1>ADR — Consolidation source of record (draft)</h1>
+    <h1>ADR — Consolidation source of record</h1>
 
-<p><strong>Status:</strong> Draft — pending D2, D4 in <a href="../../DECISIONS_PENDING.md"><code>DECISIONS_PENDING.md</code></a>.</p>
+<p><strong>Status:</strong> Accepted (consolidation) · 2026-08-31  </p>
+<p><strong>Locks:</strong> D2, D4 · <a href="../../DECISIONS_RECORDED.md"><code>DECISIONS_RECORDED.md</code></a></p>
 
 <h2>Principle</h2>
 
@@ -58,22 +62,27 @@
 <h2>Live vs consolidation</h2>
 
 <table>
-<tr><td>Fact type</td><td>Live SoR (read-only)</td><td>Consolidation proposed</td></tr>
-<tr><td>Public identity map</td><td>`jmri/layouts/hart/data/public_name_map.csv`</td><td>`sor/names/public_name_map.csv`</td></tr>
-<tr><td>~~Live name index~~</td><td>~~`block_display_names.csv`~~ **legacy (D2)**</td><td>migrate into map; retire on promotion</td></tr>
-<tr><td>Writable tables</td><td>`tables/new_tables.xml`</td><td>Document only until promotion</td></tr>
-<tr><td>Deploy bundle</td><td>`jmri/layouts/hart/output/tables.xml`</td><td>Never hand-edit</td></tr>
-<tr><td>Digicon wiring catalog</td><td>`cats/data/signal_wiring.csv`</td><td>Snapshot in audits</td></tr>
-<tr><td>Wiring pack</td><td>`docs/wiring/`</td><td>`sor/wiring/` drafts</td></tr>
-<tr><td>CATS live desk</td><td>`cats/panels/HART_Master_*_hold.xml`</td><td>Regenerate only via scripts</td></tr>
+<tr><td>Fact type</td><td>Live SoR (read-only)</td><td>Consolidation draft</td></tr>
+<tr><td>Public identity map</td><td>`jmri/layouts/hart/data/public_name_map.csv`</td><td>`sor/names/public_name_map_merged.csv` (D2b)</td></tr>
+<tr><td>Legacy name index</td><td>`block_display_names.csv`</td><td>retire on promotion (D2a)</td></tr>
+<tr><td>Writable tables</td><td>`tables/new_tables.xml`</td><td>documented chain only</td></tr>
+<tr><td>Deploy bundle</td><td>`jmri/layouts/hart/output/tables.xml`</td><td>never hand-edit</td></tr>
+<tr><td>Digicon wiring</td><td>`cats/data/signal_wiring.csv`</td><td>`sor/wiring/packed_id_crosswalk.csv`</td></tr>
+<tr><td>Wiring pack</td><td>`docs/wiring/` (git)</td><td>`sor/wiring/` snapshots</td></tr>
+<tr><td>CATS live desk</td><td>`cats/panels/HART_Master_*_hold.xml`</td><td>regenerate via scripts only</td></tr>
+<tr><td>Desktop ops</td><td>`~/Desktop/HART/` subtrees</td><td>`sor/desktop/hart_root_inventory.csv`</td></tr>
 </table>
 
-<h2>Bench copies</h2>
+<h2>Bench copies (not SoR)</h2>
 
-<ul>
-<li><code>~/Desktop/HART/Wiring Documentation/</code> — export mirror, not SoR</li>
-<li><code>~/Desktop/HART/Car Cards/</code> — ops tooling (deferred tier C)</li>
-</ul>
+<table>
+<tr><td>Path</td><td>Role</td></tr>
+<tr><td>`~/Desktop/HART/Wiring Documentation/`</td><td>export mirror (D4)</td></tr>
+<tr><td>`~/Desktop/HART/Car Cards/`</td><td>Tier C ops — future `hart-ops` (P3 pending)</td></tr>
+<tr><td>`~/Desktop/HART/Industries/`</td><td>Tier C matrix</td></tr>
+</table>
+
+<p>Detail: <a href="../../audits/desktop-inventory.md"><code>audits/desktop-inventory.md</code></a></p>
   </main>
 </body>
 </html>

@@ -1,9 +1,21 @@
+> **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
+
 # Project — CATS CTC integration
 
 - **Owner:** lnevo
 - **Status:** Active — live desks are **CATS CTC** + **CATS ABS** (Masters), not Gate 1 `HART.xml`
-- **ADR:** [`../decisions/ADR-004-cats-ctc.md`](../decisions/ADR-004-cats-ctc.md)
-- **Code/docs:** [`cats/`](../../cats/) · system: [`../../cats/docs/HART_DIGICON_SYSTEM.md`](../../cats/docs/HART_DIGICON_SYSTEM.md)
+- **ADR:** [`ADR-004-cats-ctc.md`](../../../wiki/decisions/ADR-004-cats-ctc.md)
+- **Live wiki:** [`wiki/projects/cats-integration.md`](../../../wiki/projects/cats-integration.md)
+
+## Source of record
+
+| Kind | Live (read-only) | Notes |
+|------|------------------|-------|
+| CTC hold board | `cats/panels/HART_Master_CTC_hold.xml` | **Live ops CTC** |
+| ABS hold board | `cats/panels/HART_Master_ABS_hold.xml` | **Live ops ABS** |
+| Geometry sources | `HART_Master.xml`, `HART_Master_ABS.xml` | Rebuild hold copies after edits |
+| Gate 1 Designer | `HART.xml`, `HART_Brick.xml`, … | History / experiments — **not ops** |
+| System doc | `cats/docs/HART_DIGICON_SYSTEM.md` | Digicon + SML split |
 
 ## Locked
 
@@ -12,24 +24,24 @@
 - Signal **aspects**: **JMRI SML** (`hart-aar` / AAR-1946). Without CATS, Unhold = ABS.
 - Never run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.
 
-## Live artifacts
+## Related pipelines
 
-| Path | Role |
-|------|------|
-| `cats/panels/HART_Master_CTC_hold.xml` | **Live CATS CTC** — routes/turnouts on; signals HOLD_ONLY; SML owns aspects |
-| `cats/panels/HART_Master_ABS_hold.xml` | **Live CATS ABS** — HOLD_ONLY; SECSIGNAL bound to JMRI masts (paints SML) |
-| `cats/panels/HART_Master.xml` | CTC geometry source (rebuild hold copy after edits) |
-| `cats/panels/HART_Master_ABS.xml` | ABS geometry source (unbound; hold copy is what launches) |
-
-Gate 1 Designer files (`HART.xml`, `HART_Brick.xml`, `HART_le.xml`, `HART_ctc.xml`) are history / experiments, not the ops board.
+| # | Pipeline | Link |
+|---|----------|------|
+| 5 | CATS Masters | [cats-masters](../pipelines/cats-masters.md) |
+| 3 | Digicon signal beans | [digicon-signal-beans](../pipelines/digicon-signal-beans.md) |
+| 4 | Native SML | [native-sml](../pipelines/native-sml.md) |
+| — | MQTT mimic QA | [mqtt-mimic](../pipelines/mqtt-mimic.md) |
 
 ## Remaining
 
-- [ ] Designer as dual-primary: leave parked unless we redraw; do not treat `HART.xml` as live
+- Designer as dual-primary: parked unless redraw; do not treat `HART.xml` as live
+- Node 13 walk-down done; EH-1/EH-3 MQTT channels swapped vs geographic labels — do not change topics
 
-Node 13 occupancy walk-down is done (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9). EH-1/EH-3 MQTT channels stay swapped vs geographic labels (`Block 13-7` = EH-1, `Block 13-5` = EH-3). Master 4 is the live Digicon — [`MASTER4_SCHEMATIC.md`](../MASTER4_SCHEMATIC.md). Gate 1 occupancy color checks (`Block 4-6` / `Block 4-2`) and Switch 100 throws from CATS were overtaken by the Master board + native SML QA (30/30). Re-open only if a plant mis-paints.
+## Deploy (live — not from consolidation)
 
-## Related
+```bash
+./cats/scripts/sync_hart_package.sh --pi   # add --win / --all when needed
+```
 
-- Dispatcher guide: [`../../cats/docs/DISPATCHER_GUIDE_CTC.md`](../../cats/docs/DISPATCHER_GUIDE_CTC.md)
-- Deploy: `./cats/scripts/sync_hart_package.sh --pi` (add `--win` / `--all`)
+Detail: [`cats/README.md`](../../../cats/README.md) · Dispatcher: [`cats/docs/DISPATCHER_GUIDE_CTC.md`](../../../cats/docs/DISPATCHER_GUIDE_CTC.md)

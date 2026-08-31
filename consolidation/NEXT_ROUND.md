@@ -1,27 +1,45 @@
-# Next round — consolidation (post-decisions)
+# Next round — consolidation
 
-**Recorded:** 2026-08-31 · [`DECISIONS_RECORDED.md`](DECISIONS_RECORDED.md)
+**Updated:** 2026-08-31
 
-## In progress / this round
+---
 
-| Task | Status | Output |
-|------|--------|--------|
-| Record D1–D10 | done | `DECISIONS_RECORDED.md` |
-| Names CSV overlap audit | done | `audits/block-display-vs-map.md` |
-| MQTT static-ref grep | done | `audits/mqtt-static-refs.md` + `validators/check_mqtt_no_static_lists.py` |
-| LCOS working baseline doc | done | `cross-repo/lcos/WORKING_BASELINE.md` |
-| ADR: single names SoR | done | `wiki/decisions/ADR-names-single-sor.md` |
-| ADR: unused-modules policy | done | `unused-modules/README.md` |
-| Pi portal note (D9) | done | `wiki/decisions/ADR-portal-hosting-deferred.md` |
+## Scope
 
-## Up next (P2 consolidation)
+**Consolidation workspace only** — build docs, validators, audits, hart-ops, and submodule pins. Live layout, Desktop/HART, Pi, and STS runtime are **out of scope** for this effort.
 
-1. **Names migration plan** — map-derived OS **covers all 23 legacy OS rows** (`propose_os_from_map.py`); promote phase02 read from map; retire `block_display_names.csv`.
-2. **Wiring crosswalk** — close 10 ID gap (1132–1136 vs 1237–1241); document in `sor/wiring/`.
-3. **Virtual stub masts** — **Option A approved** (document-only). See [`audits/proposed-virtual-masts.md`](audits/proposed-virtual-masts.md). D2 sub-decisions: [`wiki/decisions/D2-promotion-checklist.md`](wiki/decisions/D2-promotion-checklist.md).
-4. **`unused-modules/`** — move retired one-shot cleanup patterns as templates (not live).
-5. **LCOS submodule spec** — pin working commit + validation checklist before any bridge edits.
+---
 
-## Promotion gate (unchanged)
+## Completed
 
-User approval + `bash consolidation/validators/run_all.sh` green + live STATUS/deploy if artifacts change.
+| Area | Output |
+|------|--------|
+| Meta-repo | `external/*` submodules + manifest pins |
+| hart-ops | github.com/lnevo/hart-ops @ `c276b85` |
+| Tranche A | manifest + pipeline guides 12–16 |
+| Tranche B | `class_f_ingest_manifest.csv` (124 rows) |
+| Tranche C | metadata-first roster + golden test |
+| Decisions | D1–D12, ADRs, bench freeze |
+| Validators | Tier A — ALL PASSED |
+
+---
+
+## Continue here (consolidation branch work)
+
+| Item | Path |
+|------|------|
+| Tier A validators | `bash consolidation/validators/run_all.sh` |
+| Class-F review rows (optional) | `sor/desktop/class_f_ingest_manifest.csv` |
+| D2 draft validation | `sor/names/public_name_map_merged.csv` |
+| Tier B smoke docs | `validators/TIER_B_MANUAL_SMOKES.md` |
+| Portal rebuild | `python3 consolidation/scripts/build_site.py` |
+
+---
+
+## Commands
+
+```bash
+bash consolidation/validators/run_all.sh
+python3 consolidation/scripts/build_site.py
+cd external/hart-ops && python card_pipeline/build_car_roster_sor.py
+```

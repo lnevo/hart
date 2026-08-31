@@ -1,11 +1,15 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/native-sml.md` | `consolidation/wiki/pipelines/native-sml.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation |
+|------|------------------|---------------|
+| Runbook | `wiki/pipelines/native-sml.md` | this file |
+| LE boundaries | `cats/data/le_signal_boundaries.csv` | — |
+| Tables bundle | `tables/new_tables.xml` → `output/tables.xml` | merge order: [`ADR-tables-merge-order`](../decisions/ADR-tables-merge-order.md) |
+| Validator | — | `validators/check_sml_invariants.py` (93 dests) |
+
+**Tier:** A · Invariant: **93** SML destinations, NX mast-only (`ISNX:*`)
 
 ---
 

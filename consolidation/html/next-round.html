@@ -22,6 +22,7 @@
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,42 +42,61 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="decisions/index.html">ADR index</a>
+  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
-    <h1>Next round — consolidation (post-decisions)</h1>
+    <h1>Next round — consolidation</h1>
 
-<p><strong>Recorded:</strong> 2026-08-31 · <a href="DECISIONS_RECORDED.md"><code>DECISIONS_RECORDED.md</code></a></p>
+<p><strong>Updated:</strong> 2026-08-31</p>
 
-<h2>In progress / this round</h2>
+<p>---</p>
+
+<h2>Scope</h2>
+
+<p><strong>Consolidation workspace only</strong> — build docs, validators, audits, hart-ops, and submodule pins. Live layout, Desktop/HART, Pi, and STS runtime are <strong>out of scope</strong> for this effort.</p>
+
+<p>---</p>
+
+<h2>Completed</h2>
 
 <table>
-<tr><td>Task</td><td>Status</td><td>Output</td></tr>
-<tr><td>Record D1–D10</td><td>done</td><td>`DECISIONS_RECORDED.md`</td></tr>
-<tr><td>Names CSV overlap audit</td><td>done</td><td>`audits/block-display-vs-map.md`</td></tr>
-<tr><td>MQTT static-ref grep</td><td>done</td><td>`audits/mqtt-static-refs.md` + `validators/check_mqtt_no_static_lists.py`</td></tr>
-<tr><td>LCOS working baseline doc</td><td>done</td><td>`cross-repo/lcos/WORKING_BASELINE.md`</td></tr>
-<tr><td>ADR: single names SoR</td><td>done</td><td>`wiki/decisions/ADR-names-single-sor.md`</td></tr>
-<tr><td>ADR: unused-modules policy</td><td>done</td><td>`unused-modules/README.md`</td></tr>
-<tr><td>Pi portal note (D9)</td><td>done</td><td>`wiki/decisions/ADR-portal-hosting-deferred.md`</td></tr>
+<tr><td>Area</td><td>Output</td></tr>
+<tr><td>Meta-repo</td><td>`external/*` submodules + manifest pins</td></tr>
+<tr><td>hart-ops</td><td>github.com/lnevo/hart-ops @ `c276b85`</td></tr>
+<tr><td>Tranche A</td><td>manifest + pipeline guides 12–16</td></tr>
+<tr><td>Tranche B</td><td>`class_f_ingest_manifest.csv` (124 rows)</td></tr>
+<tr><td>Tranche C</td><td>metadata-first roster + golden test</td></tr>
+<tr><td>Decisions</td><td>D1–D12, ADRs, bench freeze</td></tr>
+<tr><td>Validators</td><td>Tier A — ALL PASSED</td></tr>
 </table>
 
-<h2>Up next (P2 consolidation)</h2>
+<p>---</p>
 
-<ol>
-<li>1. <strong>Names migration plan</strong> — map-derived OS <strong>covers all 23 legacy OS rows</strong> (<code>propose_os_from_map.py</code>); promote phase02 read from map; retire <code>block_display_names.csv</code>.</li>
-<li>2. <strong>Wiring crosswalk</strong> — close 10 ID gap (1132–1136 vs 1237–1241); document in <code>sor/wiring/</code>.</li>
-<li>3. <strong>Virtual stub masts</strong> — <strong>Option A approved</strong> (document-only). See <a href="audits/proposed-virtual-masts.md"><code>audits/proposed-virtual-masts.md</code></a>. D2 sub-decisions: <a href="wiki/decisions/D2-promotion-checklist.md"><code>wiki/decisions/D2-promotion-checklist.md</code></a>.</li>
-<li>4. <strong><code>unused-modules/</code></strong> — move retired one-shot cleanup patterns as templates (not live).</li>
-<li>5. <strong>LCOS submodule spec</strong> — pin working commit + validation checklist before any bridge edits.</li>
-</ol>
+<h2>Continue here (consolidation branch work)</h2>
 
-<h2>Promotion gate (unchanged)</h2>
+<table>
+<tr><td>Item</td><td>Path</td></tr>
+<tr><td>Tier A validators</td><td>`bash consolidation/validators/run_all.sh`</td></tr>
+<tr><td>Class-F review rows (optional)</td><td>`sor/desktop/class_f_ingest_manifest.csv`</td></tr>
+<tr><td>D2 draft validation</td><td>`sor/names/public_name_map_merged.csv`</td></tr>
+<tr><td>Tier B smoke docs</td><td>`validators/TIER_B_MANUAL_SMOKES.md`</td></tr>
+<tr><td>Portal rebuild</td><td>`python3 consolidation/scripts/build_site.py`</td></tr>
+</table>
 
-<p>User approval + <code>bash consolidation/validators/run_all.sh</code> green + live STATUS/deploy if artifacts change.</p>
+<p>---</p>
+
+<h2>Commands</h2>
+
+<pre><code>
+bash consolidation/validators/run_all.sh
+python3 consolidation/scripts/build_site.py
+cd external/hart-ops &amp;&amp; python card_pipeline/build_car_roster_sor.py
+</code></pre>
   </main>
 </body>
 </html>
