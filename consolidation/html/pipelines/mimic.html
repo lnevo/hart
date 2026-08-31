@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,31 +42,48 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
-    <h1>MQTT mimic QA (CATS + JMRI)</h1>
+    <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<p><strong>Consolidation topic:</strong> Pipeline 3/5 cross-cutting — LCOS Digicon aspect QA without physical layout.</p>
+<h2>Source of record</h2>
 
-<h2>Live paths (read-only)</h2>
+<table>
+<tr><td>Kind</td><td>Live (read-only)</td><td>Consolidation</td></tr>
+<tr><td>CATS mimic</td><td>`cats/scripts/lcos_mqtt_mimic.py`</td><td>—</td></tr>
+<tr><td>JMRI publisher</td><td>`jmri/scripts/mqtt_signalhead_publisher.py`</td><td>—</td></tr>
+<tr><td>Bridge</td><td>`LCOS_ESP32_MQTT_Client/serial_to_mqtt.py`</td><td>[`cross-repo/lcos/TIER_B.md`](../../cross-repo/lcos/TIER_B.md)</td></tr>
+</table>
+
+<p><strong>Tier:</strong> B (manual smoke) · Cross-cutting pipelines <strong>3 / 5 / 9</strong> · <strong>D6:</strong> live <code>track/signalmast/#</code> roster</p>
+
+<p>---</p>
+
+<h1>MQTT mimic QA (CATS + JMRI)</h1>
+
+<p><strong>Consolidation topic:</strong> Pipeline 3/5/9 cross-cutting — LCOS Digicon aspect QA without physical layout.</p>
+
+<h2>Live paths</h2>
 
 <table>
 <tr><td>Path</td><td>Role</td></tr>
 <tr><td>`cats/scripts/lcos_mqtt_mimic.py`</td><td>CATS-side mimic; reads `public_name_map.csv`</td></tr>
-<tr><td>`jmri/scripts/mqtt_signalhead_publisher.py`</td><td>JMRI jython publisher (deployed to `preference:jython/`)</td></tr>
+<tr><td>`jmri/scripts/mqtt_signalhead_publisher.py`</td><td>JMRI jython publisher</td></tr>
 <tr><td>`LCOS_ESP32_MQTT_Client/serial_to_mqtt.py`</td><td>Host serial ↔ MQTT bridge</td></tr>
 </table>
 
-<h2>Behavior (consolidation documented)</h2>
+<h2>Behavior</h2>
 
 <ul>
 <li><strong>Live roster:</strong> non-empty <code>track/signalmast/&lt;packed&gt;</code> from LCOS — not static allow-lists.</li>
 <li><strong>Topics:</strong> <code>track/signalhead/&lt;packed&gt;</code> (SET), <code>track/signalmast/&lt;packed&gt;</code> (field status).</li>
-<li><strong>Packed ID:</strong> radio node × 100 + UID (e.g. node 4 UID 32 → <code>432</code> / <code>IH432</code>).</li>
+<li><strong>Packed ID:</strong> deploy <code>IH*</code> digits; wiring CSV may use other schemes — pipeline 8 crosswalk.</li>
 <li><strong>Bridge:</strong> Windows serial bridge runs <strong>foreground</strong> only (do not <code>Start-Process</code> Hidden).</li>
 </ul>
 

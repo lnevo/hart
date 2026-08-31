@@ -1,0 +1,12 @@
+[submodule "external/lcos-bridge"]
+	path = external/lcos-bridge
+	url = git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git
+[submodule "external/sts-docker"]
+	path = external/sts-docker
+	url = git@github.com:lnevo/sts-docker.git
+[submodule "external/sts-helpers"]
+	path = external/sts-helpers
+	url = git@github.com:lnevo/sts-docker-helpers.git
+[submodule "external/hart-ops"]
+	path = external/hart-ops
+	url = git@github.com:lnevo/hart-ops.git

@@ -22,6 +22,7 @@
   <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="pipelines/02-public-names.html">Public names</a>
   <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="projects/cats-integration.html">CATS integration</a>
   <a href="pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,8 +42,10 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="audits/index.html">Audits</a>
-  <a href="decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="decisions/index.html">ADR index</a>
+  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
@@ -192,43 +195,68 @@ pipelines:
 
   - id: 12
     name: Car cards
-    status: deferred
+    status: live
     tier: C
-    external: ~/Desktop/HART/Car Cards/
+    repo: hart-ops
+    external: external/hart-ops
+    sor:
+      - data/image_metadata.csv
+      - data/HART_MergedCarRoster.xml
     guide: wiki/pipelines/car-cards.md
+    golden: tests/golden/NW32800.docx
 
   - id: 13
     name: Waybills
-    status: deferred
+    status: live
     tier: C
+    repo: hart-ops
+    external: external/hart-ops
+    sor:
+      - data/HART_Spot_Waybills.csv
     guide: wiki/pipelines/waybills.md
 
   - id: 14
     name: STS
-    status: deferred
+    status: live
     tier: C
-    external: ~/sts/sts-docker
+    external: external/sts-docker
+    helpers: external/sts-helpers
     guide: wiki/pipelines/sts.md
 
   - id: 15
     name: Ops publications
-    status: deferred
+    status: live
     tier: C
+    repo: hart-ops
+    external: external/hart-ops
+    sor:
+      - publications/rebuild_*.py
+      - docs/published/
     guide: wiki/pipelines/ops-publications.md
 
   - id: 16
     name: Industry routing
-    status: deferred
+    status: live
     tier: C
-    external: ~/Desktop/HART/Industries/
+    repo: hart-ops
+    external: external/hart-ops
+    sor:
+      - industries/HART_Industry_Routing_Matrix.xlsx
     guide: wiki/pipelines/industry-routing.md
 
 global_validators:
   - validators/check_audit_strict.sh
   - validators/check_phase02.sh
+  - validators/check_phase02_from_map.sh
+  - validators/check_names_diff.py
+  - validators/check_sml_invariants.py
+  - validators/check_mqtt_no_static_lists.py
+  - validators/check_wiring_crosswalk.py
   - validators/run_all.sh
 
-decisions: DECISIONS_PENDING.md
+tier_b_manual: validators/TIER_B_MANUAL_SMOKES.md
+
+decisions: DECISIONS_RECORDED.md
 </code></pre>
   </main>
 </body>

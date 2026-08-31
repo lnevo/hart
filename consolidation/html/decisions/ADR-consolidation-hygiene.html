@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,31 +42,35 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
-    <h1>ADR — Consolidation vs promotion hygiene (draft)</h1>
+    <h1>ADR — Consolidation vs promotion hygiene</h1>
 
-<p><strong>Status:</strong> Draft — pending D1 in <a href="../../DECISIONS_PENDING.md"><code>DECISIONS_PENDING.md</code></a>.</p>
+<p><strong>Status:</strong> Accepted (consolidation) · 2026-08-31  </p>
+<p><strong>Locks:</strong> D1, D5 · <a href="../../DECISIONS_RECORDED.md"><code>DECISIONS_RECORDED.md</code></a></p>
 
 <h2>During consolidation</h2>
 
 <ul>
 <li>All writes under <code>consolidation/</code> only.</li>
-<li>Validators read live; reports under <code>consolidation/audits/</code>.</li>
+<li>Validators <strong>read</strong> live; reports under <code>consolidation/audits/</code>.</li>
 <li>Findings update: manifest row + audit markdown + draft wiki guide.</li>
+<li>Retired one-shots → <code>unused-modules/</code> (not immortal live delete lists).</li>
 </ul>
 
-<h2>On promotion (future, user-approved)</h2>
+<h2>On promotion (explicit user request only)</h2>
 
 <ol>
-<li>1. User approves specific files in <code>DECISIONS_PENDING.md</code>.</li>
+<li>1. User names the artifact(s) to promote.</li>
 <li>2. Tier A validators green against live.</li>
 <li>3. Apply change to live path(s).</li>
-<li>4. Update live <code>wiki/STATUS.md</code> + pipeline guide.</li>
+<li>4. Update live <code>wiki/STATUS.md</code> + pipeline guide when railroad state changed.</li>
 <li>5. Deploy if live artifacts changed (<code>sync_hart_package.sh</code>).</li>
 </ol>
 
@@ -73,7 +78,8 @@
 
 <ul>
 <li>Patch live workflows to “fix forward” during review.</li>
-<li>Add one-shot deletes to immortal cleanup lists without audit (D5).</li>
+<li>Add one-shot deletes to active cleanup scripts without <code>unused-modules/</code> entry (D5).</li>
+<li>Auto-promote because a consolidation ADR or decision is “approved.”</li>
 </ul>
   </main>
 </body>

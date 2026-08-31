@@ -1,11 +1,12 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/jmri-anyrail.md` | `consolidation/wiki/pipelines/jmri-anyrail.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation draft |
+|------|------------------|---------------------|
+| Runbook | `wiki/pipelines/jmri-anyrail.md` | this file |
+| hart panel | `jmri/layouts/hart/reference/linear6_baseline.xml` | — |
+| AnyRail snapshot | `jmri/layouts/hart/anyrail/hart.xml` | historical only |
 
 ---
 
@@ -13,20 +14,29 @@
 
 Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaults).
 
-**Status:** Frozen for **hart**. Live geometry came from linear6; do not re-run this path unless asked. Still the workflow for `mac` / `linear4`.
+## hart status: **not this pipeline**
 
-## Inputs
+**hart does not use AnyRail → Excel → blocked panel.** Geometry and connectivity were forked once from **linear6** (`bootstrap_hart_from_linear6.py`). Re-running AnyRail prep on hart would violate ADR-001/003 unless explicitly requested.
+
+| Layout | Pipeline 1 role |
+|--------|-----------------|
+| **hart** | **Frozen** — linear6 bootstrap only |
+| linear4 / mac / linear5 | Active AnyRail workflow below |
+
+## Active workflow (non-hart layouts)
+
+### Inputs
 
 - `jmri/layouts/<name>/anyrail/*.xml`
 - `jmri/layouts/<name>/data/layout_blocks.xlsx` (+ `block_merges.txt`)
 - Authoritative panel for styles (`mac_jmri2.xml` pattern)
 
-## Outputs
+### Outputs
 
 - `jmri/layouts/<name>/output/*_blocked.xml`
 - linear4 also `linear4_prod.xml` (MQTT + LogixNG)
 
-## Run (`JMRI_LAYOUT=linear4` example)
+### Run (`JMRI_LAYOUT=linear4` example)
 
 ```bash
 export JMRI_LAYOUT=linear4
@@ -42,13 +52,18 @@ python3 jmri/scripts/apply_blocks_to_panel.py \
   use-panel-layout no-nx
 ```
 
-hart bootstrap (one-time, already done): `python3 jmri/scripts/bootstrap_hart_from_linear6.py`
+### hart one-time bootstrap (already done)
 
-## Do not
+```bash
+export JMRI_LAYOUT=hart
+python3 jmri/scripts/bootstrap_hart_from_linear6.py
+```
 
-- `--scale` other than 1 on linear4/hart
+## Do not (hart)
+
+- Re-run AnyRail prep or `--scale` ≠ 1 on hart
 - `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` unless asked
 - Remove **F30-S-0** where the layout includes it
-- New track: set **Mainline → Yes** (`mainline="yes"`)
+- New track without **Mainline → Yes** (`mainline="yes"`)
 
-Detail: [`jmri/README.md`](../../jmri/README.md) · [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md)
+Detail: [`jmri/README.md`](../../../jmri/README.md) · [`docs/AI_CONTEXT.md`](../../../docs/AI_CONTEXT.md)

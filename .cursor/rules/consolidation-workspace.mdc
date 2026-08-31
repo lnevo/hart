@@ -20,7 +20,13 @@ Browse portal: [`consolidation/index.html`](../../consolidation/index.html)
 
 ## Golden rule
 
-**Write only under `consolidation/`.** Do not edit live `jmri/`, `cats/`, `tables/`, `docs/wiring/`, or live `wiki/` unless the user explicitly requests **promotion** to live.
+**Write only under `consolidation/`** (and sibling build targets: `external/*`, `hart-ops` repo). Do not edit live `jmri/`, `cats/`, `tables/`, `docs/wiring/`, live `wiki/`, or **`~/Desktop/HART/`** unless the user explicitly requests **promotion** or **cutover**.
+
+## Bench freeze (D12)
+
+- **No Pi / layout host deploy** — no roster push, no `sync_hart_package.sh` from consolidation work
+- **Desktop/HART is read-only** — inventory/audit only; slim/dedupe is a separate cutover project
+- **Original live files stay untouched** until rebuild is verified and user starts cutover
 
 ## Validators
 

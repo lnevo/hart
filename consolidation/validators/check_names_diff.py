@@ -8,6 +8,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "consolidation" / "scripts"))
+
+from virtual_stub_masts import virtual_mast_names_from_map
+
 MAP_CSV = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 
@@ -51,27 +55,31 @@ def main() -> int:
         print("MISSING inputs", file=sys.stderr)
         return 2
 
+    virtual_masts = virtual_mast_names_from_map(MAP_CSV)
     map_names = identity_names_from_map()
     bean_names = bean_usernames(TABLES)
 
     missing = sorted(n for n in map_names if n not in bean_names)
-    # Mast/Head/Switch/OS/Track prefixes — equipment-like
     critical = [
         n
         for n in missing
         if n.startswith(("Mast ", "Head ", "Switch ", "OS ", "Track ", "Block "))
+        and n not in virtual_masts
     ]
+    virtual_missing = sorted(n for n in missing if n in virtual_masts)
 
     print(f"Map names (excl DCC comment rows): {len(map_names)}")
     print(f"Bean userNames in deploy tables: {len(bean_names)}")
     print(f"Map names not on beans: {len(missing)}")
-    if critical:
-        print(f"WARN: {len(critical)} equipment-like map rows not matched (first 15):")
-        for n in critical[:15]:
+    if virtual_missing:
+        print(f"INFO: {len(virtual_missing)} virtual stub masts excluded (D2f map-only):")
+        for n in virtual_missing:
             print(f"  - {n}")
-        # Soft fail — map includes proposed/planned rows not yet on beans
-        if len(critical) > 50:
-            return 1
+    if critical:
+        print(f"FAIL: {len(critical)} equipment-like map rows not on beans:")
+        for n in critical[:20]:
+            print(f"  - {n}")
+        return 1
     print("OK: names diff within consolidation tolerance")
     return 0
 

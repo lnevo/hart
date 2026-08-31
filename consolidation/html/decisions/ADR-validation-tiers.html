@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,40 +42,46 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
-    <h1>ADR — Validation tiers (consolidation draft)</h1>
+    <h1>ADR — Validation tiers</h1>
 
-<p><strong>Status:</strong> Draft — pending approval in <a href="../../DECISIONS_PENDING.md"><code>DECISIONS_PENDING.md</code></a> D1, D9.</p>
+<p><strong>Status:</strong> Accepted (consolidation) · 2026-08-31  </p>
+<p><strong>Locks:</strong> D1, D9 · <a href="../../DECISIONS_RECORDED.md"><code>DECISIONS_RECORDED.md</code></a></p>
 
 <h2>Tiers</h2>
 
 <table>
-<tr><td>Tier</td><td>When</td><td>Pipelines</td><td>Command</td></tr>
-<tr><td>**A**</td><td>Before promotion to live; local consolidation CI</td><td>2, 3, 4, 8</td><td>`bash consolidation/validators/run_all.sh`</td></tr>
-<tr><td>**B**</td><td>Before deploy (`sync_hart_package.sh`)</td><td>5, 6, 7, 9</td><td>Manual smokes in `manifest.yaml`</td></tr>
-<tr><td>**C**</td><td>Ops session</td><td>12–16</td><td>Deferred</td></tr>
+<tr><td>Tier</td><td>When</td><td>Pipelines</td><td>Command / doc</td></tr>
+<tr><td>**A**</td><td>Before promotion to live; consolidation CI</td><td>2, 3, 4, 8</td><td>`bash consolidation/validators/run_all.sh`</td></tr>
+<tr><td>**B**</td><td>Before deploy (`sync_hart_package.sh`)</td><td>5, 6, 7, 9</td><td>[`validators/TIER_B_MANUAL_SMOKES.md`](../../validators/TIER_B_MANUAL_SMOKES.md)</td></tr>
+<tr><td>**C**</td><td>Ops session</td><td>12–16</td><td>Golden specs in `cross-repo/hart-ops/`</td></tr>
 </table>
 
-<h2>Tier A checks</h2>
+<h2>Tier A checks (`run_all.sh`)</h2>
 
-<ol>
-<li>1. <code>check_audit_strict.sh</code> — wraps <code>audit_panel_contracts.py --strict</code></li>
-<li>2. <code>check_phase02.sh</code> — wraps <code>check_hart_phase02.py</code></li>
-<li>3. <code>check_names_diff.py</code> — map vs bean userName</li>
-<li>4. <code>check_sml_invariants.py</code> — 93 SML destinations</li>
-<li>5. <code>check_wiring_crosswalk.py</code> — packed ID stub</li>
-</ol>
+<table>
+<tr><td>Check</td><td>Script</td><td>Notes</td></tr>
+<tr><td>Panel contracts</td><td>`check_audit_strict.sh`</td><td>drift=0 strict</td></tr>
+<tr><td>Phase02 (live)</td><td>`check_phase02.sh`</td><td>block_display OS list</td></tr>
+<tr><td>Phase02 (map draft)</td><td>`check_phase02_from_map.sh`</td><td>D2c prep</td></tr>
+<tr><td>Names diff</td><td>`check_names_diff.py`</td><td>17 virtual masts excluded (D2f)</td></tr>
+<tr><td>SML</td><td>`check_sml_invariants.py`</td><td>93 destinations</td></tr>
+<tr><td>MQTT static lists</td><td>`check_mqtt_no_static_lists.py`</td><td>D6</td></tr>
+<tr><td>Wiring crosswalk</td><td>`check_wiring_crosswalk.py`</td><td>mast-aware via `sor/wiring/packed_id_crosswalk.csv`</td></tr>
+</table>
 
-<p>Reports: <code>consolidation/audits/run_all_*.log</code></p>
+<p>Reports: <code>consolidation/audits/run_all_*.log</code> · symlink <code>latest.log</code></p>
 
-<h2>Promotion</h2>
+<h2>Promotion gate</h2>
 
-<p>Tier A must pass before any consolidation artifact replaces a live path.</p>
+<p>Tier A must pass before any consolidation artifact replaces a live path (explicit user request per file).</p>
   </main>
 </body>
 </html>

@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,20 +42,23 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/jmri-anyrail.md`</td><td>`consolidation/wiki/pipelines/jmri-anyrail.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only)</td><td>Consolidation draft</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/jmri-anyrail.md`</td><td>this file</td></tr>
+<tr><td>hart panel</td><td>`jmri/layouts/hart/reference/linear6_baseline.xml`</td><td>—</td></tr>
+<tr><td>AnyRail snapshot</td><td>`jmri/layouts/hart/anyrail/hart.xml`</td><td>historical only</td></tr>
 </table>
 
 <p>---</p>
@@ -63,9 +67,19 @@
 
 <p>Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaults).</p>
 
-<p><strong>Status:</strong> Frozen for <strong>hart</strong>. Live geometry came from linear6; do not re-run this path unless asked. Still the workflow for <code>mac</code> / <code>linear4</code>.</p>
+<h2>hart status: **not this pipeline**</h2>
 
-<h2>Inputs</h2>
+<p><strong>hart does not use AnyRail → Excel → blocked panel.</strong> Geometry and connectivity were forked once from <strong>linear6</strong> (<code>bootstrap_hart_from_linear6.py</code>). Re-running AnyRail prep on hart would violate ADR-001/003 unless explicitly requested.</p>
+
+<table>
+<tr><td>Layout</td><td>Pipeline 1 role</td></tr>
+<tr><td>**hart**</td><td>**Frozen** — linear6 bootstrap only</td></tr>
+<tr><td>linear4 / mac / linear5</td><td>Active AnyRail workflow below</td></tr>
+</table>
+
+<h2>Active workflow (non-hart layouts)</h2>
+
+<h3>Inputs</h3>
 
 <ul>
 <li><code>jmri/layouts/&lt;name&gt;/anyrail/*.xml</code></li>
@@ -73,14 +87,14 @@
 <li>Authoritative panel for styles (<code>mac_jmri2.xml</code> pattern)</li>
 </ul>
 
-<h2>Outputs</h2>
+<h3>Outputs</h3>
 
 <ul>
 <li><code>jmri/layouts/&lt;name&gt;/output/*_blocked.xml</code></li>
 <li>linear4 also <code>linear4_prod.xml</code> (MQTT + LogixNG)</li>
 </ul>
 
-<h2>Run (`JMRI_LAYOUT=linear4` example)</h2>
+<h3>Run (`JMRI_LAYOUT=linear4` example)</h3>
 
 <pre><code>
 export JMRI_LAYOUT=linear4
@@ -96,18 +110,23 @@ python3 jmri/scripts/apply_blocks_to_panel.py \
   use-panel-layout no-nx
 </code></pre>
 
-<p>hart bootstrap (one-time, already done): <code>python3 jmri/scripts/bootstrap_hart_from_linear6.py</code></p>
+<h3>hart one-time bootstrap (already done)</h3>
 
-<h2>Do not</h2>
+<pre><code>
+export JMRI_LAYOUT=hart
+python3 jmri/scripts/bootstrap_hart_from_linear6.py
+</code></pre>
+
+<h2>Do not (hart)</h2>
 
 <ul>
-<li><code>--scale</code> other than 1 on linear4/hart</li>
+<li>Re-run AnyRail prep or <code>--scale</code> ≠ 1 on hart</li>
 <li><code>fit_panel_height</code>, <code>fit_panel_canvas</code>, <code>polish_layout_geometry</code> unless asked</li>
 <li>Remove <strong>F30-S-0</strong> where the layout includes it</li>
-<li>New track: set <strong>Mainline → Yes</strong> (<code>mainline=&quot;yes&quot;</code>)</li>
+<li>New track without <strong>Mainline → Yes</strong> (<code>mainline=&quot;yes&quot;</code>)</li>
 </ul>
 
-<p>Detail: <a href="../../jmri/README.md"><code>jmri/README.md</code></a> · <a href="../../docs/AI_CONTEXT.md"><code>docs/AI_CONTEXT.md</code></a></p>
+<p>Detail: <a href="../../../jmri/README.md"><code>jmri/README.md</code></a> · <a href="../../../docs/AI_CONTEXT.md"><code>docs/AI_CONTEXT.md</code></a></p>
   </main>
 </body>
 </html>

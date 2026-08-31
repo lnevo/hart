@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,54 +42,43 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/industry-routing.md`</td><td>`consolidation/wiki/pipelines/industry-routing.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/industry-routing.md`</td><td>this file</td></tr>
+<tr><td>Matrix</td><td>`external/hart-ops/industries/HART_Industry_Routing_Matrix.xlsx`</td><td>hart-ops</td></tr>
+<tr><td>Legacy bench</td><td>`~/Desktop/HART/Industries/`</td><td>read-only (D12)</td></tr>
 </table>
+
+<p><strong>Tier:</strong> C · Feeds waybills (13) and STS seed (14)</p>
 
 <p>---</p>
 
 <h1>Pipeline 16 — Industry routing</h1>
 
-<p>Maintain the supplier/customer/commodity matrix that feeds waybills and STS seed.</p>
+<p>Maintain supplier/customer/commodity matrix for waybills and STS seed.</p>
 
-<p><strong>Status:</strong> Live on Desktop. <code>~/Desktop/HART/Industries/</code></p>
-
-<h2>Inputs</h2>
-
-<ul>
-<li><code>industries.txt</code></li>
-<li>Existing <code>HART_Industry_Routing_Matrix.xlsx</code></li>
-</ul>
-
-<h2>Outputs</h2>
-
-<ul>
-<li><code>HART_Industry_Routing_Matrix.xlsx</code> (validated rows: industry, flow, commodity, company, car type)</li>
-</ul>
+<p><strong>Status:</strong> <strong>hart-ops</strong> (<code>external/hart-ops/industries/</code>).</p>
 
 <h2>Run</h2>
 
 <pre><code>
-cd ~/Desktop/HART/Industries
+cd external/hart-ops/industries
 python3 validate_and_update_matrix.py
-# also: update_railroads.py, update_railroad_timelines_era.py, fix_railroad_timelines.py
 </code></pre>
 
-<p>Notes: <code>SCRIPT_IMPROVEMENTS.md</code>, <code>Supplier_Customer_Analysis.md</code>. Keep car types in the allowed set (Boxcar, Covered Hopper, Flatcar, Gondola, Hopper, Tank Car, Coil Car). Do not pair food companies with steel commodities.</p>
-
-<p>This matrix is <strong>not</strong> in the hart git repo; sync conceptually with <code>HART_Spot_Waybills.csv</code> when lanes change.</p>
+<p>Sync conceptually with <code>data/HART_Spot_Waybills.csv</code> when lanes change. Desktop <code>Industries/</code> untouched until cutover.</p>
   </main>
 </body>
 </html>

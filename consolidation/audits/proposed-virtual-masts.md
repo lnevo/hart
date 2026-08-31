@@ -58,6 +58,8 @@ Princess **2035/2036** are on beans; map still has alias rows from old Princess 
 
 See live [`wiki/DISPATCHER_LAYOUT_HOOPS.md`](../../wiki/DISPATCHER_LAYOUT_HOOPS.md) and [`NEXT_ROUND.md`](../NEXT_ROUND.md).
 
-## Validator behavior
+## Validator behavior (2026-08-31)
 
-`check_names_diff.py` reports equipment-like map names not on beans; **17 Mast\*** is expected until virtual stubs are applied or excluded from the critical check via a `notes=virtual` column in the map.
+`check_names_diff.py` **excludes** the 17 virtual stub masts (`hardware` contains `virtual` on canonical mast rows). Any other equipment-like gap **fails** Tier A.
+
+See `scripts/virtual_stub_masts.py`.

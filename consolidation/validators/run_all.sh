@@ -33,6 +33,7 @@ run() {
 
 run "audit_strict" bash consolidation/validators/check_audit_strict.sh
 run "phase02" bash consolidation/validators/check_phase02.sh
+run "phase02_map_draft" bash consolidation/validators/check_phase02_from_map.sh
 run "names_diff" python3 consolidation/validators/check_names_diff.py
 run "sml_invariants" python3 consolidation/validators/check_sml_invariants.py
 run "mqtt_static" python3 consolidation/validators/check_mqtt_no_static_lists.py

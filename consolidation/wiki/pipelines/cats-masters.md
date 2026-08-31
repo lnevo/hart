@@ -1,11 +1,16 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/cats-masters.md` | `consolidation/wiki/pipelines/cats-masters.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation |
+|------|------------------|---------------|
+| Runbook | `wiki/pipelines/cats-masters.md` | this file |
+| **Live CTC desk** | `cats/panels/HART_Master_CTC_hold.xml` | — |
+| **Live ABS desk** | `cats/panels/HART_Master_ABS_hold.xml` | — |
+| Geometry source | `cats/panels/HART_Master.xml` | rebuild via `wire_hart_master4.py` |
+| Project context | `wiki/projects/cats-integration.md` | `wiki/projects/cats-integration.md` |
+
+**Tier:** B (manual smoke before deploy) · **ADR:** [ADR-004](../../../wiki/decisions/ADR-004-cats-ctc.md)
 
 ---
 

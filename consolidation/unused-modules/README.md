@@ -9,6 +9,7 @@ Archive **retired** or **one-shot** logic here for reference — not executed in
 | Pattern | Example | Active home |
 |---------|---------|-------------|
 | One-shot OpenLCB route delete | IO:AUTO:0001–0004 (Switch 37/39) | STATUS note only; already removed from live |
+| OpenLCB leftover MS01 sensors | [`tables/openlcb-leftover-sensors.md`](tables/openlcb-leftover-sensors.md) | Live `cleanup_uss_ctc_leftovers.py` (2-name minimal set) |
 | Obsolete HEAD_NAMES patch | `build_hart_signal_heads.py` guard | Live code rejects HEAD_NAMES reintroduction |
 | USS rename + orphan delete | `cleanup_uss_ctc_leftovers.py` | Live script (minimal deletes only) |
 

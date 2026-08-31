@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,21 +42,27 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/ops-publications.md`</td><td>`consolidation/wiki/pipelines/ops-publications.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/ops-publications.md`</td><td>this file</td></tr>
+<tr><td>Rebuild scripts</td><td>`external/hart-ops/publications/rebuild_*.py`</td><td>hart-ops</td></tr>
+<tr><td>Published output</td><td>`external/hart-ops/docs/published/`</td><td>hart-ops</td></tr>
+<tr><td>Desktop root dupes</td><td>class **D** in [`audits/desktop-inventory.md`](../../audits/desktop-inventory.md)</td><td>cutover only</td></tr>
 </table>
+
+<p><strong>Tier:</strong> C · <strong>D12:</strong> do not overwrite Desktop or live <code>hart/docs/</code></p>
 
 <p>---</p>
 
@@ -63,33 +70,12 @@
 
 <p>Rebuild official HART crew/dispatcher paperwork from Python content dicts.</p>
 
-<p><strong>Status:</strong> Live on Desktop. <code>~/Desktop/HART/Car Cards/publications/</code> → <code>docs/</code>.</p>
-
-<h2>Inputs</h2>
-
-<ul>
-<li>Content in each <code>rebuild_*.py</code></li>
-<li>Assets under <code>publications/assets/</code> (station map PNG, TT-23 trifold)</li>
-</ul>
-
-<h2>Outputs (in `Car Cards/docs/`)</h2>
-
-<table>
-<tr><td>Pub</td><td>File</td></tr>
-<tr><td>EQ-01</td><td>`HART Railroad Scale Operating Instructions.docx`</td></tr>
-<tr><td>DS-01</td><td>`Neville_Island_Dispatcher_Train_List.docx`</td></tr>
-<tr><td>YM-01</td><td>`Neville_Island_Yardmaster_Sequence.docx`</td></tr>
-<tr><td>CI-*</td><td>`Neville_Island_Crew_{D749,NVL,CK1}.docx`</td></tr>
-<tr><td>SM-01</td><td>`Neville_Island_Station_Map.docx`</td></tr>
-<tr><td>SM-02…05</td><td>West Yard / South Yard / East End / Shenango maps</td></tr>
-<tr><td>HB-01</td><td>`Neville_Island_New_Operator_Primer.docx`</td></tr>
-<tr><td>TT-23</td><td>`TT-23_Route23_NevilleQueen_RevisionA_v6.pptx` (map swap script)</td></tr>
-</table>
+<p><strong>Status:</strong> <strong>hart-ops</strong> (<code>external/hart-ops/publications/</code> → <code>docs/published/</code>).</p>
 
 <h2>Run</h2>
 
 <pre><code>
-cd ~/Desktop/HART/Car\ Cards
+cd external/hart-ops
 .venv/bin/python publications/rebuild_scale_operating_instructions.py
 .venv/bin/python publications/rebuild_dispatcher_train_list.py
 .venv/bin/python publications/rebuild_yardmaster_sequence.py
@@ -100,7 +86,7 @@ cd ~/Desktop/HART/Car\ Cards
 .venv/bin/python publications/update_tt23_station_map.py
 </code></pre>
 
-<p>Index: <code>Car Cards/docs/README.md</code>. Standards: <code>HART_Railroad_Publication_Standards_v1.0.docx</code>. Root Desktop Word files (orientation packet, old train lists) are drafts unless they match these pubs.</p>
+<p>Index: <code>docs/published/README.md</code>. Desktop root Word duplicates remain until cutover project.</p>
   </main>
 </body>
 </html>

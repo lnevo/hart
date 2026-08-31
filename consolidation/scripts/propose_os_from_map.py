@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draft: OS block names for phase02 from public_name_map (D2 migration prep).
 
-Read-only — prints CSV to stdout; does not write live files.
+Read-only — prints comparison; does not write live files.
 """
 from __future__ import annotations
 
@@ -10,7 +10,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+sys.path.insert(0, str(ROOT / "consolidation" / "scripts"))
+
+from names_from_map import DEFAULT_MAP, os_public_names_from_map
+
 LEGACY = ROOT / "jmri/layouts/hart/data/block_display_names.csv"
 
 
@@ -25,24 +28,9 @@ def os_from_legacy() -> set[str]:
         }
 
 
-def os_from_map() -> set[str]:
-    names: set[str] = set()
-    with MAP.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            layer = (row.get("layer") or "").strip()
-            proposed = (row.get("proposed") or row.get("current") or "").strip()
-            if not proposed:
-                continue
-            if layer == "block" and proposed.startswith("OS "):
-                names.add(proposed)
-            if layer == "turnout" and "OS" in proposed:
-                names.add(proposed)
-    return names
-
-
 def main() -> int:
     legacy = os_from_legacy()
-    derived = os_from_map()
+    derived = os_public_names_from_map(DEFAULT_MAP)
     print(f"legacy block_display OS count: {len(legacy)}")
     print(f"derived from map OS count: {len(derived)}")
     only_legacy = sorted(legacy - derived)

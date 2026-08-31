@@ -2,49 +2,47 @@
 
 ## 1. Open the browse portal
 
-**Double-click or open in Chrome:**
-
 ```
 /Users/lnevo/hart/consolidation/index.html
 ```
 
-Dark-themed portal with categories: JMRI, CATS, MQTT mimic, STS, wiring, LCOS, audits, ADRs.
+Categories: pipelines, CATS, MQTT, wiring, LCOS, audits, ADRs, archive taxonomy, repos.
 
-## 2. Decisions — recorded
+## 2. Decisions
 
-All ten approved **2026-08-31:** [`DECISIONS_RECORDED.md`](DECISIONS_RECORDED.md)
+**Recorded:** [`DECISIONS_RECORDED.md`](DECISIONS_RECORDED.md) (D1–D10, D2a–f, ADR-set)
 
-Next work: [`NEXT_ROUND.md`](NEXT_ROUND.md)
+**Next work:** [`NEXT_ROUND.md`](NEXT_ROUND.md) — bench freeze active; build in consolidation + hart-ops only
 
-## 3. Validator status
-
-Last run: **ALL PASSED** (see `audits/latest.log`).
-
-Re-run anytime:
+## 3. Validators
 
 ```bash
 cd /Users/lnevo/hart
 bash consolidation/validators/run_all.sh
 ```
 
-## 4. What changed overnight
+Tier B manual checklist: [`validators/TIER_B_MANUAL_SMOKES.md`](validators/TIER_B_MANUAL_SMOKES.md)
 
-- **New folder:** `hart/consolidation/` — all review work lives here
-- **Live sources untouched:** `jmri/`, `cats/`, `tables/`, `docs/wiring/`, live `wiki/`
-- **Agent rule:** `.cursor/rules/consolidation-workspace.mdc`
+## 4. Workspace rule
+
+All review work under `consolidation/` — live sources and **`~/Desktop/HART/` read-only**. No Pi deploy or cutover until a separate cleanup project (D12).
+
+Agent rule: `.cursor/rules/consolidation-workspace.mdc`
 
 ## 5. Tree at a glance
 
 | Path | Contents |
 |------|----------|
 | `index.html` | Browse portal |
-| `DECISIONS_PENDING.md` | Batch approvals |
-| `manifest.yaml` | 15 pipelines + validators |
-| `wiki/pipelines/` | Draft guides with SoR headers |
-| `wiki/decisions/` | 4 draft ADRs |
-| `validators/` | Read-only checks (wraps live audit) |
+| `manifest.yaml` | Pipelines + Tier A validators |
+| `wiki/pipelines/` | Draft runbooks with SoR tables |
+| `wiki/decisions/` | Accepted consolidation ADRs |
+| `wiki/archive/INDEX.md` | Desktop taxonomy (P4 pending) |
+| `wiki/REPOS.md` | Submodule recipe (P3 pending) |
+| `validators/` | Automated + Tier B smokes |
 | `audits/` | Reports + validator logs |
-| `sor/names/` | CSV snapshots |
-| `scripts/` | build_site, sync guides, cleanup copy |
+| `sor/` | Names, wiring crosswalk, desktop CSV |
+| `cross-repo/` | Submodule pins, hart-ops migration docs |
+| `external/` | Live submodule checkouts (sibling repos) |
 
-Nothing was committed (per your git preferences).
+Rebuild portal: `python3 consolidation/scripts/build_site.py`

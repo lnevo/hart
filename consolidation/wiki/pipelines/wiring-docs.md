@@ -1,11 +1,15 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/wiring-docs.md` | `consolidation/wiki/pipelines/wiring-docs.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation draft |
+|------|------------------|---------------------|
+| Runbook | `wiki/pipelines/wiring-docs.md` | this file |
+| Canonical pack | `docs/wiring/` (git) | `sor/wiring/` snapshots + crosswalk |
+| Bench mirror | `~/Desktop/HART/Wiring Documentation/` | export-only (D4) |
+| Wiring CSV | `cats/data/signal_wiring.csv` | remap table in `sor/wiring/packed_id_crosswalk.csv` |
+
+**Decision D4:** git `docs/wiring/` is canonical; Desktop bench is export mirror.
 
 ---
 
@@ -13,7 +17,7 @@
 
 Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 
-**Status:** Live. Git copy: [`docs/wiring/`](../../docs/wiring/). Bench copy: `~/Desktop/HART/Wiring Documentation/` (not git).
+**Status:** Live.
 
 ## Inputs
 
@@ -29,17 +33,31 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 - `docs/wiring/signals_split_v8.xlsx` (frozen RGB plan + notes)
 - `docs/wiring/Wiring_Schematic.pptx`
 
-## Run
+## Run (live — promotion only)
 
 ```bash
 python3 docs/wiring/scripts/refresh_wiring_docs.py
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 ```
 
-Copy the three workbooks **and** the pptx back to the Desktop pack after XML apply so the bench matches live beans. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).
+Copy workbooks + pptx to Desktop pack after XML apply so bench matches beans.
+
+## Consolidation: wiring ↔ bean crosswalk
+
+Ten wiring packed IDs and ten deploy IH IDs fail **naive** digit match (72% overlap). Mast-aware remap resolves **100%** — see [`audits/wiring-crosswalk-gap.md`](../../audits/wiring-crosswalk-gap.md).
+
+```bash
+python3 consolidation/scripts/build_wiring_crosswalk.py   # writes sor/wiring/packed_id_crosswalk.csv
+python3 consolidation/validators/check_wiring_crosswalk.py
+```
+
+When `docs/wiring/` is next regenerated (explicit promotion), align `signal_wiring.csv` packed column to live IH or drop stale node×100 rows.
 
 ## Do not
 
-- Treat Desktop `ARCHIVE/` one-off Python as the live generator (git `docs/wiring/scripts/` is)
-- Refresh Desktop before JMRI XML is applied if the pack must match beans
+- Edit live `docs/wiring/` from consolidation without promotion
+- Treat Desktop `ARCHIVE/` one-off Python as the live generator
+- Refresh Desktop before JMRI XML apply if the pack must match beans
 - Put packed MQTT on helix **D5**
+
+Detail: [`docs/wiring/README.md`](../../../docs/wiring/README.md)

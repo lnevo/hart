@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tier B smokes — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>Tier B — manual smokes before deploy</h1>
+
+<p>Run after Tier A green and before <code>./cats/scripts/sync_hart_package.sh</code>.</p>
+
+<h2>Pipeline 5 — CATS Masters</h2>
+
+<ul>
+<li>[ ] Load <code>HART_Master_CTC_hold.xml</code> in CATS — routes work; signals <strong>HOLD_ONLY</strong></li>
+<li>[ ] Load <code>HART_Master_ABS_hold.xml</code> — SML paints aspects on SECSIGNAL cells</li>
+<li>[ ] <code>python3 cats/scripts/validate_cats_panel.py</code> PASS</li>
+<li>[ ] Do <strong>not</strong> run USS CTC or Dispatcher System from inside CATS simultaneously</li>
+</ul>
+
+<h2>Pipeline 6 — USS CTC</h2>
+
+<ul>
+<li>[ ] USS 15-column machine loads in PanelPro</li>
+<li>[ ] Mutually exclusive with live CATS CTC session</li>
+<li>[ ] <code>python3 jmri/layouts/hart/scripts/ctc_logic_smoke.py</code> if regen touched CTC data</li>
+</ul>
+
+<h2>Pipeline 7 — Dispatcher System</h2>
+
+<ul>
+<li>[ ] Graph baseline: <strong>91</strong> sections / <strong>688</strong> transits / <strong>1508</strong> traininfo (or documented delta in STATUS)</li>
+<li>[ ] Stage 1 CreateTransits not required every deploy — only after graph edits</li>
+<li>[ ] Facing overlay jython still loads (<code>hart_dispatcher_startup.py</code>)</li>
+</ul>
+
+<h2>Pipeline 9 — LCOS / MQTT</h2>
+
+<ul>
+<li>[ ] Broker: subscribe <code>track/signalmast/#</code> — non-empty retained masts after bridge connect</li>
+<li>[ ] SET on <code>track/signalhead/&lt;packed&gt;</code> gated when mast topic absent</li>
+<li>[ ] Windows bridge <strong>foreground</strong> (<code>serial_to_mqtt.py --verbose</code>)</li>
+<li>[ ] Event <strong>125</strong> replay after master RAM wipe (known gap — D10 spec only until D10b)</li>
+</ul>
+
+<h2>Cross-cutting — MQTT mimic</h2>
+
+<ul>
+<li>[ ] PanelPro <code>mqtt_signalhead_publisher</code> running if testing aspects</li>
+<li>[ ] <code>python3 cats/scripts/lcos_mqtt_mimic.py</code> for Digicon QA (optional)</li>
+</ul>
+
+<h2>Deploy</h2>
+
+<pre><code>
+./cats/scripts/sync_hart_package.sh --pi    # add --win / --all when needed
+</code></pre>
+
+<p>Record smoke date in live <code>wiki/STATUS.md</code> when railroad state or deploy artifacts changed.</p>
+  </main>
+</body>
+</html>

@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,8 +42,10 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
@@ -67,6 +70,9 @@ bash consolidation/validators/run_all.sh
 <tr><td>[tables-pipeline.md](tables-pipeline.md)</td><td>Tables chain + cleanup script review</td></tr>
 <tr><td>[names-consumers.md](names-consumers.md)</td><td>CSV consumer map</td></tr>
 <tr><td>[block-display-vs-map.md](block-display-vs-map.md)</td><td>D2 single SoR migration audit</td></tr>
+<tr><td>[wiring-crosswalk-gap.md](wiring-crosswalk-gap.md)</td><td>Packed ID vs live IH remap (mast-aware 100%)</td></tr>
+<tr><td>[desktop-inventory.md](desktop-inventory.md)</td><td>~/Desktop/HART root taxonomy (C/D/E/F)</td></tr>
+<tr><td>[proposed-virtual-masts.md](proposed-virtual-masts.md)</td><td>17 map-only Dispatcher stubs (D2f)</td></tr>
 <tr><td>[mqtt-static-refs.md](mqtt-static-refs.md)</td><td>D6 live roster / no static lists</td></tr>
 </table>
 
@@ -76,10 +82,10 @@ bash consolidation/validators/run_all.sh
 <tr><td>Check</td><td>Result</td></tr>
 <tr><td>audit_strict</td><td>PASS</td></tr>
 <tr><td>phase02</td><td>PASS</td></tr>
-<tr><td>names_diff</td><td>PASS</td></tr>
+<tr><td>names_diff</td><td>PASS (17 virtual stubs excluded)</td></tr>
 <tr><td>sml_invariants</td><td>PASS (93 destinations)</td></tr>
 <tr><td>mqtt_static</td><td>PASS</td></tr>
-<tr><td>wiring_crosswalk</td><td>PASS (72% overlap; 10 ID gap documented)</td></tr>
+<tr><td>wiring_crosswalk</td><td>PASS (mast-aware 100%; naive 72% — see wiring-crosswalk-gap)</td></tr>
 </table>
 
 <p><strong>D2 note:</strong> <code>propose_os_from_map.py</code> confirms map-derived OS covers all 23 legacy block_display OS rows.</p>

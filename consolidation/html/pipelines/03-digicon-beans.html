@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,20 +42,24 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/digicon-signal-beans.md`</td><td>`consolidation/wiki/pipelines/digicon-signal-beans.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only)</td><td>Consolidation draft</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/digicon-signal-beans.md`</td><td>this file</td></tr>
+<tr><td>Wiring catalog</td><td>`cats/data/signal_wiring.csv`</td><td>crosswalk: `sor/wiring/packed_id_crosswalk.csv`</td></tr>
+<tr><td>Head/mast plans</td><td>`cats/data/signal_head_plan.csv`, `signal_mast_plan.csv`</td><td>—</td></tr>
+<tr><td>Appearances</td><td>`cats/resources/signals/hart-aar/`</td><td>—</td></tr>
 </table>
 
 <p>---</p>
@@ -68,18 +73,24 @@
 <h2>Inputs</h2>
 
 <ul>
-<li><a href="../../cats/data/signal_wiring.csv"><code>cats/data/signal_wiring.csv</code></a> (3 pins per disc)</li>
-<li><a href="../../cats/data/signal_head_plan.csv"><code>cats/data/signal_head_plan.csv</code></a></li>
-<li><a href="../../cats/data/signal_mast_plan.csv"><code>cats/data/signal_mast_plan.csv</code></a></li>
+<li><a href="../../../cats/data/signal_wiring.csv"><code>cats/data/signal_wiring.csv</code></a> (3 pins per disc)</li>
+<li><a href="../../../cats/data/signal_head_plan.csv"><code>cats/data/signal_head_plan.csv</code></a></li>
+<li><a href="../../../cats/data/signal_mast_plan.csv"><code>cats/data/signal_mast_plan.csv</code></a></li>
 </ul>
 
-<p>Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → <code>432</code> / <code>IH432</code>).</p>
+<h3>Packed ID note</h3>
+
+<p>Wiring CSV <strong><code>packed</code></strong> column mixes schemes: node×100+uid (e.g. <code>432</code>), helix export (<code>1132</code>), and IH-shaped numbers that <strong>collide</strong> with live beans on different masts (e.g. wiring <code>1232</code> = Mast 34L, deploy <code>IH1232</code> = Mast 24RA). <strong>Do not</strong> validate wiring ↔ beans by raw packed digits alone.</p>
+
+<p>Use consolidation crosswalk: <a href="../../audits/wiring-crosswalk-gap.md"><code>audits/wiring-crosswalk-gap.md</code></a> · regenerate with <code>scripts/build_wiring_crosswalk.py</code>.</p>
+
+<p>Live MQTT topics use **deploy <code>IH*</code> digits** (<code>track/signalhead/&lt;packed&gt;</code> where packed matches bean systemName).</p>
 
 <h2>Outputs</h2>
 
 <ul>
 <li>IH / SHSM beans in tables (<code>hart-aar</code> <code>SL-2-digicon</code> two-head; AAR-1946 <code>SL-1-low</code> dwarfs)</li>
-<li><a href="../../cats/resources/signals/hart-aar/"><code>cats/resources/signals/hart-aar/</code></a> (deployed by <code>sync_hart_package.sh</code>)</li>
+<li><a href="../../../cats/resources/signals/hart-aar/"><code>cats/resources/signals/hart-aar/</code></a></li>
 </ul>
 
 <h2>Run</h2>
@@ -88,15 +99,24 @@
 python3 cats/scripts/build_hart_signal_heads.py
 </code></pre>
 
-<p>Facing / SML chaining: <a href="../../cats/docs/SIGNAL_FACING.md"><code>cats/docs/SIGNAL_FACING.md</code></a>.</p>
+<p>Facing / SML chaining: <a href="../../../cats/docs/SIGNAL_FACING.md"><code>cats/docs/SIGNAL_FACING.md</code></a>.</p>
 
-<p>MQTT SET uses packed topics <code>track/signalhead/&lt;digits&gt;</code> and field status <code>track/signalmast/&lt;digits&gt;</code> — not an include list. Live roster is LCOS mast traffic.</p>
+<p>MQTT SET uses packed topics <code>track/signalhead/&lt;digits&gt;</code> and field status <code>track/signalmast/&lt;digits&gt;</code>. Live roster = LCOS mast traffic (D6 — no static allow-lists).</p>
+
+<h2>Validators</h2>
+
+<table>
+<tr><td>Check</td><td>Script</td></tr>
+<tr><td>Panel contracts</td><td>`validators/check_audit_strict.sh`</td></tr>
+<tr><td>Wiring ↔ IH (mast-aware)</td><td>`validators/check_wiring_crosswalk.py`</td></tr>
+<tr><td>MQTT static lists</td><td>`validators/check_mqtt_no_static_lists.py`</td></tr>
+</table>
 
 <h2>Do not</h2>
 
 <ul>
 <li>Use stock <code>SL-2-high-abs</code> for two-lamp Digicon homes (SML pins at Stop)</li>
-<li>Put <code>IH</code> in the MQTT topic leaf</li>
+<li>Put <code>IH</code> prefix in the MQTT topic leaf</li>
 <li>Store tables from a CATS session</li>
 </ul>
   </main>

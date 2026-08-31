@@ -22,6 +22,7 @@
   <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
   <a href="../pipelines/02-public-names.html">Public names</a>
   <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
   <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
   <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
 </div>
@@ -41,60 +42,57 @@
 </div>
 <div class="nav-section"><h4>Review</h4>
   <a href="../audits/index.html">Audits</a>
-  <a href="../decisions/adr-validation-tiers.html">ADR: Validation tiers</a>
-  <a href="../decisions/adr-consolidation-sor.html">ADR: SoR rules</a>
+  <a href="../archive/index.html">Archive taxonomy</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
 </div>
 
   </nav>
   <main class="content">
     <blockquote><strong>Consolidation draft</strong> — live sources are read-only. See <a href="../../LIVE_SOURCES.md"><code>LIVE_SOURCES.md</code></a>.</blockquote>
 
-<h2>Source of record (consolidation view)</h2>
+<h2>Source of record</h2>
 
 <table>
-<tr><td>Kind</td><td>Live path (read-only)</td><td>Proposed consolidation path</td></tr>
-<tr><td>Runbook</td><td>`wiki/pipelines/sts.md`</td><td>`consolidation/wiki/pipelines/sts.md`</td></tr>
-<tr><td>Artifacts</td><td>See live guide below</td><td>`consolidation/sor/` when promoted</td></tr>
+<tr><td>Kind</td><td>Live (read-only bench)</td><td>Build target</td></tr>
+<tr><td>Runbook</td><td>`wiki/pipelines/sts.md`</td><td>this file</td></tr>
+<tr><td>Runtime</td><td>`external/sts-docker`</td><td>submodule @ pin</td></tr>
+<tr><td>Helpers</td><td>`external/sts-helpers`</td><td>submodule @ pin</td></tr>
+<tr><td>Roster / waybills</td><td>`external/hart-ops/data/`</td><td>hart-ops SoR</td></tr>
+<tr><td>Legacy bench</td><td>`~/Desktop/HART/Car Cards/`</td><td>read-only (D12)</td></tr>
 </table>
+
+<p><strong>Tier:</strong> C · <strong>D12:</strong> no live seed apply during consolidation</p>
 
 <p>---</p>
 
 <h1>Pipeline 14 — STS</h1>
 
-<p>Shipit Transportation System: HART seed database, warm-start, operating sessions, and switch lists.</p>
+<p>Shipit Transportation System: HART seed database, warm-start, sessions, switch lists.</p>
 
-<p><strong>Status:</strong> Live. Runtime: <code>~/sts/sts-docker</code>. Host toolkit: <code>~/Desktop/HART/Car Cards/sts-docker-helpers/</code>. JMRI Home.html links to <code>http://10.0.0.53:8980/sts/</code>.</p>
+<p><strong>Status:</strong> Meta-repo submodules. <strong>Do not apply seed to live Docker</strong> during consolidation bench freeze.</p>
 
 <h2>Inputs</h2>
 
 <ul>
-<li><code>sts-docker-helpers/seed/</code> (<code>hart_seed_config.json</code>, roster/waybill CSVs)</li>
-<li><code>Car Cards/data/</code> (resolved by seed: roster XML, waybills, spots)</li>
-<li><code>CarImagesFinal/</code> for car photos in generated seed</li>
+<li><code>external/sts-helpers/seed/</code> (<code>hart_seed_config.json</code>, CSV inputs)</li>
+<li><code>external/hart-ops/data/</code> (roster XML, waybills, <code>image_metadata.csv</code>)</li>
+<li><code>HART_CAR_IMAGES_FINAL</code> for car photos in generated seed</li>
 </ul>
 
-<h2>Outputs</h2>
-
-<ul>
-<li>MySQL <code>hart_seed</code> (and session backups under <code>~/sts/sts-backups</code>)</li>
-<li>Switch lists at <code>http://localhost:8980/switchlists/index.html</code></li>
-<li>Session editor <code>http://localhost:8980/sts/editor.html</code></li>
-</ul>
-
-<h2>Run</h2>
-
-<p>From <code>~/Desktop/HART/Car Cards/</code> (wrappers) or <code>sts-docker-helpers/bin/</code>:</p>
+<h2>Wrappers (hart-ops)</h2>
 
 <pre><code>
-./apply_hart_seed.sh --generate --merge-fleet
-./apply_warm_start.sh
-./begin_session.sh --run-stg-scully --switchlists
-./generate_switchlists.sh --format=phased
+cd external/hart-ops
+./bin/apply_hart_seed.sh --generate --merge-fleet   # cutover / lab only
+./bin/apply_warm_start.sh
+./bin/begin_session.sh --run-stg-scully --switchlists
 </code></pre>
 
-<p>Canonical PHP runtime is <strong><code>sts-docker/sts/</code></strong>. Diagnostics live in <code>sts-docker-helpers/diagnostics/</code>, not in the web tree. Read <code>Car Cards/AGENTS.md</code> then <code>sts-docker/AGENTS.md</code>.</p>
+<p>Canonical PHP runtime: <strong><code>external/sts-docker/sts/</code></strong>. Read <code>external/sts-helpers</code> and <code>external/sts-docker</code> AGENTS.md.</p>
 
-<p>Switch-list styles and gaps: <code>sts-docker-helpers/docs/SWITCHLIST_BUILDING.md</code>.</p>
+<p>Switch-list docs: <code>external/sts-helpers/docs/SWITCHLIST_BUILDING.md</code>.</p>
   </main>
 </body>
 </html>

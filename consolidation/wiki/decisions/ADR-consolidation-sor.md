@@ -1,6 +1,7 @@
-# ADR — Consolidation source of record (draft)
+# ADR — Consolidation source of record
 
-**Status:** Draft — pending D2, D4 in [`DECISIONS_PENDING.md`](../../DECISIONS_PENDING.md).
+**Status:** Accepted (consolidation) · 2026-08-31  
+**Locks:** D2, D4 · [`DECISIONS_RECORDED.md`](../../DECISIONS_RECORDED.md)
 
 ## Principle
 
@@ -8,17 +9,23 @@ One canonical file per **fact type**. Generators read SoR; humans do not hand-ed
 
 ## Live vs consolidation
 
-| Fact type | Live SoR (read-only) | Consolidation proposed |
-|-----------|---------------------|------------------------|
-| Public identity map | `jmri/layouts/hart/data/public_name_map.csv` | `sor/names/public_name_map.csv` |
-| ~~Live name index~~ | ~~`block_display_names.csv`~~ **legacy (D2)** | migrate into map; retire on promotion |
-| Writable tables | `tables/new_tables.xml` | Document only until promotion |
-| Deploy bundle | `jmri/layouts/hart/output/tables.xml` | Never hand-edit |
-| Digicon wiring catalog | `cats/data/signal_wiring.csv` | Snapshot in audits |
-| Wiring pack | `docs/wiring/` | `sor/wiring/` drafts |
-| CATS live desk | `cats/panels/HART_Master_*_hold.xml` | Regenerate only via scripts |
+| Fact type | Live SoR (read-only) | Consolidation draft |
+|-----------|---------------------|---------------------|
+| Public identity map | `jmri/layouts/hart/data/public_name_map.csv` | `sor/names/public_name_map_merged.csv` (D2b) |
+| Legacy name index | `block_display_names.csv` | retire on promotion (D2a) |
+| Writable tables | `tables/new_tables.xml` | documented chain only |
+| Deploy bundle | `jmri/layouts/hart/output/tables.xml` | never hand-edit |
+| Digicon wiring | `cats/data/signal_wiring.csv` | `sor/wiring/packed_id_crosswalk.csv` |
+| Wiring pack | `docs/wiring/` (git) | `sor/wiring/` snapshots |
+| CATS live desk | `cats/panels/HART_Master_*_hold.xml` | regenerate via scripts only |
+| Desktop ops | `~/Desktop/HART/` subtrees | `sor/desktop/hart_root_inventory.csv` |
 
-## Bench copies
+## Bench copies (not SoR)
 
-- `~/Desktop/HART/Wiring Documentation/` — export mirror, not SoR
-- `~/Desktop/HART/Car Cards/` — ops tooling (deferred tier C)
+| Path | Role |
+|------|------|
+| `~/Desktop/HART/Wiring Documentation/` | export mirror (D4) |
+| `~/Desktop/HART/Car Cards/` | Tier C ops — future `hart-ops` (P3 pending) |
+| `~/Desktop/HART/Industries/` | Tier C matrix |
+
+Detail: [`audits/desktop-inventory.md`](../../audits/desktop-inventory.md)

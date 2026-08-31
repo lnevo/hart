@@ -1,11 +1,15 @@
 > **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
 
-## Source of record (consolidation view)
+## Source of record
 
-| Kind | Live path (read-only) | Proposed consolidation path |
-|------|----------------------|----------------------------|
-| Runbook | `wiki/pipelines/lcos-firmware.md` | `consolidation/wiki/pipelines/lcos-firmware.md` |
-| Artifacts | See live guide below | `consolidation/sor/` when promoted |
+| Kind | Live (read-only) | Consolidation |
+|------|------------------|---------------|
+| Runbook | `wiki/pipelines/lcos-firmware.md` | this file |
+| Sibling repo | `LCOS_ESP32_MQTT_Client` | [`cross-repo/lcos/SUBMODULE_PIN.md`](../../cross-repo/lcos/SUBMODULE_PIN.md) |
+| Tier B smokes | — | [`cross-repo/lcos/TIER_B.md`](../../cross-repo/lcos/TIER_B.md) |
+| Vendor (no edit) | `lcos/`, `reference/` | protected |
+
+**Tier:** B · **D10:** spec-only until bridge/firmware promotion requested
 
 ---
 
