@@ -1,0 +1,20 @@
+# Consolidation workspace — STS Docker with local data mirror
+# From hart repo root:
+#   bash consolidation/scripts/mirror_sts_docker_data.sh
+#   cd consolidation/external/sts-docker
+#   docker compose -f docker-compose.yml -f ../sts-docker-data/docker-compose.consolidation.yml --profile build up -d --build
+
+services:
+  web:
+    volumes:
+      - ../sts-docker-data/backups:/var/www/html/sts/backups
+      - ../sts-docker-data/Rolling Stock photos:/var/www/html/sts/ImageStore/DB_Images/RollingStock/
+
+  web_prebuilt:
+    volumes:
+      - ../sts-docker-data/backups:/var/www/html/sts/backups
+      - ../sts-docker-data/Rolling Stock photos:/var/www/html/sts/ImageStore/DB_Images/RollingStock/
+
+  db:
+    volumes:
+      - ../sts-docker-data/database/docker/sts/db:/var/lib/mysql

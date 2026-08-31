@@ -25,7 +25,7 @@ submodules:
   - name: sts-helpers
     path: consolidation/external/sts-helpers
     url: git@github.com:lnevo/sts-docker-helpers.git
-    pin: cdbbfce8ab2ef915430b8e3eafc31267b518cde5
+    pin: 31b8583851482d270f45c233f67190d0d8b80c10
     pin_doc: cross-repo/sts-helpers/SUBMODULE_PIN.md
     status: ready
 
