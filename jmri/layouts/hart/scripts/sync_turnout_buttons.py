@@ -314,8 +314,8 @@ def _show_amber_sensor(sys_name):
         print("sync_turnout_buttons: amber %s failed: %s" % (sys_name, e))
 
 
-def _after_paint(fn):
-    """Run fn shortly after amber paints (so the EDT can redraw first)."""
+def _after_paint(fn, delay_ms=80):
+    """Run fn after delay so amber can paint first (EDT redraw)."""
 
     class _Go(ActionListener):
         def actionPerformed(self, event):
@@ -325,7 +325,7 @@ def _after_paint(fn):
             except Exception as e:
                 print("sync_turnout_buttons: deferred action failed: %s" % e)
 
-    t = Timer(80, _Go())
+    t = Timer(delay_ms, _Go())
     t.setRepeats(False)
     t.start()
 
@@ -370,10 +370,14 @@ def _toggle_turnout_fb_mode_body():
     sync_turnout_fb_lamp()
 
 
+# Hold amber long enough to feel like a click landed (FB flip itself is near-instant).
+_TURNOUT_AMBER_MS = 500
+
+
 def toggle_turnout_fb_mode():
-    """Click Turnouts lamp: amber, then flip TWOSENSOR ↔ DIRECT, then final color."""
+    """Click Turnouts lamp: amber hold, then flip TWOSENSOR ↔ DIRECT, then final."""
     _show_amber_head()
-    _after_paint(_toggle_turnout_fb_mode_body)
+    _after_paint(_toggle_turnout_fb_mode_body, delay_ms=_TURNOUT_AMBER_MS)
 
 
 def _mqtt_publish(topic, payload):
