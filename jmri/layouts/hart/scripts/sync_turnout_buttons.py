@@ -4,7 +4,8 @@
 #
 # CRITICAL: the same ITs are JMRI Route controlTurnouts (fire on THROWN).
 # This script must NEVER setCommandedState(THROWN) — that re-fires routes and
-# ping-pongs peels (e.g. R4 ↔ R5). Only CLOSE inactive indicators.
+# ping-pongs peels (e.g. R4 ↔ R5). Paint indicators with newKnownState only:
+# active → THROWN (lit), inactive → CLOSED.
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
@@ -104,19 +105,35 @@ def _match(patterns):
     return None
 
 
-def _close_inactive(indicators, active):
-    """Close non-active lamps only. Never THROWN — that fires Routes."""
-    for sn in indicators:
-        if sn == active:
-            continue
-        to = turnouts.getTurnout(sn)
-        if to is None:
-            continue
+def _set_indicator_known(sn, state):
+    """Paint YL lamp KnownState without commanding (avoids Route re-fire)."""
+    to = turnouts.getTurnout(sn)
+    if to is None:
         try:
-            if to.getCommandedState() != CLOSED:
-                to.setCommandedState(CLOSED)
-        except Exception as e:
-            print("sync_turnout_buttons: close %s failed: %s" % (sn, e))
+            to = turnouts.provideTurnout(sn)
+        except Exception:
+            return
+    try:
+        if to.getKnownState() == state:
+            return
+        if hasattr(to, "newKnownState"):
+            to.newKnownState(state)
+        elif state == CLOSED:
+            # Fallback: CLOSE is safe (routes arm on THROWN only).
+            to.setCommandedState(CLOSED)
+        else:
+            print(
+                "sync_turnout_buttons: cannot light %s (no newKnownState)"
+                % sn
+            )
+    except Exception as e:
+        print("sync_turnout_buttons: indicator %s → %s failed: %s" % (sn, state, e))
+
+
+def _paint_side_indicators(indicators, active):
+    """Lit = THROWN on the matching peel; all others CLOSED."""
+    for sn in indicators:
+        _set_indicator_known(sn, THROWN if sn == active else CLOSED)
 
 
 def _has_two_fb_sensors(to):
@@ -549,8 +566,8 @@ def sync_ladder_buttons(event=None):
                 "sync_turnout_buttons: left=%s right=%s"
                 % (left or "none", right or "none")
             )
-        _close_inactive(LEFT_INDICATORS, left)
-        _close_inactive(RIGHT_INDICATORS, right)
+        _paint_side_indicators(LEFT_INDICATORS, left)
+        _paint_side_indicators(RIGHT_INDICATORS, right)
         sync_turnout_fb_lamp()
     except Exception as e:
         print("sync_turnout_buttons: sync error: %s" % e)
@@ -696,6 +713,68 @@ def _arm_status_lamp_clicks():
     return False
 
 
+def _reload_mqtt_retain_at_boot():
+    """Re-read broker retain for sensors + turnouts before first ladder paint.
+
+    apply_maintain_mqtt may have deferred turnouts (~12s) or occupancy may
+    still be UNKNOWN; this script needs plant KnownState now so YL icons
+    can light, and occupancy sensors should regain last retain.
+    """
+    import os
+
+    path = None
+    try:
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "apply_maintain_mqtt.py",
+        )
+    except Exception:
+        path = None
+    if not path or not os.path.isfile(path):
+        try:
+            from jmri.util import FileUtil
+
+            path = FileUtil.getExternalFilename(
+                "preference:jython/apply_maintain_mqtt.py"
+            )
+        except Exception:
+            path = None
+    if not path or not os.path.isfile(path):
+        print("sync_turnout_buttons: apply_maintain_mqtt.py not found; skip MQTT reload")
+        return False
+
+    ns = {
+        "_HART_MQTT_RETAIN_AS_LIBRARY": True,
+        "__name__": "apply_maintain_mqtt_lib",
+        "__file__": path,
+    }
+    try:
+        f = open(path, "r")
+        try:
+            src = f.read()
+        finally:
+            f.close()
+        exec(compile(src, path, "exec"), ns)
+        fn = ns.get("reload_mqtt_retain")
+        if fn is None:
+            print("sync_turnout_buttons: reload_mqtt_retain missing")
+            return False
+        # Digicon PTS is up by arm time; paint turnouts immediately.
+        n_s, n_t = fn(
+            turnout_delay_ms=0,
+            settle_secs=0,
+            log_prefix="sync_turnout_buttons/mqtt",
+        )
+        print(
+            "sync_turnout_buttons: MQTT retain reload sensors=%s turnouts=%s"
+            % (n_s, n_t)
+        )
+        return True
+    except Exception as e:
+        print("sync_turnout_buttons: MQTT retain reload failed: %s" % e)
+        return False
+
+
 def _arm_listeners():
     """Attach ladder/plant listeners once. Independent of panel icons."""
     global _armed, _listener, _plant_count
@@ -738,6 +817,7 @@ class _ArmAttempt(ActionListener):
                 t.start()
                 return
         try:
+            _reload_mqtt_retain_at_boot()
             _arm_listeners()
             sync_ladder_buttons()
         except Exception as e:
