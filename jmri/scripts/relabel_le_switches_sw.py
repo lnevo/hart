@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rewrite HART Layout Editor DCC switch labels (100–119) to Sw <plant#>.
+"""Rewrite HART Layout Editor DCC switch labels (100–119) to SW-<plant#>.
 
 Plant numbers come from ``public_name_map.csv`` (proposed ``Switch N`` + ``DCC:``).
 Canonical writable target: ``tables/new_tables.xml``.
@@ -19,9 +19,14 @@ MAP = HART / "data/public_name_map.csv"
 SRC = ROOT / "tables/new_tables.xml"
 OUTPUTS = [HART / "output/tables.xml", HART / "output/hart_prod.xml"]
 
+# Absolute x for specific plant labels (after rename).
+LABEL_X = {
+    "11": "570",  # was 610; nudged left clear of SW-13
+}
+
 
 def dcc_to_sw_label(map_path: Path = MAP) -> dict[str, str]:
-    """DCC address string → ``Sw N`` from non-historical public_name_map rows."""
+    """DCC address string → ``SW-N`` from non-historical public_name_map rows."""
     out: dict[str, str] = {}
     with map_path.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -32,7 +37,7 @@ def dcc_to_sw_label(map_path: Path = MAP) -> dict[str, str]:
             m = re.search(r"DCC:\s*(\d+)", row.get("comment") or "")
             pm = re.fullmatch(r"Switch\s+(\d+)", (row.get("proposed") or "").strip())
             if m and pm:
-                out[m.group(1)] = f"Sw {pm.group(1)}"
+                out[m.group(1)] = f"SW-{pm.group(1)}"
     return out
 
 
@@ -47,23 +52,37 @@ def _hart_le(root: ET.Element) -> ET.Element:
     return editors[0]
 
 
+def _is_plant_label(el: ET.Element) -> bool:
+    if el.get("blue") == "128" and el.get("red") == "0":
+        return True
+    return el.get("level") == "4"
+
+
 def apply(path: Path, mapping: dict[str, str]) -> int:
     tree = ET.parse(path)
     le = _hart_le(tree.getroot())
     n = 0
     for el in le.findall("positionablelabel"):
+        if not _is_plant_label(el):
+            continue
         text = el.get("text") or ""
-        if text not in mapping:
-            continue
-        # Navy plant labels, or level-4 digit labels on slim panels.
-        if el.get("blue") == "128" and el.get("red") == "0":
-            pass
-        elif el.get("level") == "4" and text.isdigit():
-            pass
+        plant = None
+        if text in mapping:
+            new = mapping[text]
+            plant = new.split("-", 1)[1]
+            el.set("text", new)
+            n += 1
         else:
-            continue
-        el.set("text", mapping[text])
-        n += 1
+            m = re.fullmatch(r"(?:Sw\s+|SW-)(\d+)", text)
+            if not m:
+                continue
+            plant = m.group(1)
+            want = f"SW-{plant}"
+            if text != want:
+                el.set("text", want)
+                n += 1
+        if plant in LABEL_X:
+            el.set("x", LABEL_X[plant])
     tree.write(path, encoding="UTF-8", xml_declaration=True)
     print(f"Updated {n} switch labels → {path}")
     return n
@@ -76,7 +95,7 @@ def main() -> int:
     args = ap.parse_args()
     mapping = dcc_to_sw_label()
     if len(mapping) != 20:
-        raise SystemExit(f"expected 20 DCC→Sw mappings, got {len(mapping)}")
+        raise SystemExit(f"expected 20 DCC→SW mappings, got {len(mapping)}")
     apply(args.panel, mapping)
     if args.sync_output and args.panel.resolve() == SRC.resolve():
         for output in OUTPUTS:
