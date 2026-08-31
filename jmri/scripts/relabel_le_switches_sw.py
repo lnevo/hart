@@ -20,8 +20,11 @@ SRC = ROOT / "tables/new_tables.xml"
 OUTPUTS = [HART / "output/tables.xml", HART / "output/hart_prod.xml"]
 
 # Absolute x for specific plant labels (after rename).
+# Engine-house row (y=213): even 50px centers over EH stubs→SW-13.
 LABEL_X = {
-    "11": "570",  # was 610; nudged left clear of SW-13
+    "9": "548",
+    "11": "598",
+    "13": "648",
 }
 
 
