@@ -2136,9 +2136,9 @@
       <sideTieLength>0</sideTieLength>
       <sideTieWidth>0</sideTieWidth>
     </layoutTrackDrawingOptions>
-    <!-- Status lamps: LCOS / Turnouts / Signals (lower left) -->
-    <sensoricon sensor="Bridge HBLOOP" x="24" y="560" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>LCOS HBLOOP</tooltip>
+    <!-- Status lamps: LCOS / Turnouts / Signals (lower left; clicks via sync_turnout_buttons) -->
+    <sensoricon sensor="Bridge HBLOOP" x="24" y="560" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Click: MQTT RESUBSCRIBE (not FORCE)</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></active>
       <inactive url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></inactive>
       <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></unknown>
@@ -2146,8 +2146,8 @@
       <iconmaps />
     </sensoricon>
     <positionablelabel x="48" y="558" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="LCOS" fontFamily="Dialog" fontname="Dialog.plain" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <signalheadicon signalhead="IH:TURNOUT_FB" x="24" y="588" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
-      <tooltip>Turnouts feedback mode</tooltip>
+    <signalheadicon signalhead="IH:TURNOUT_FB" x="24" y="588" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+      <tooltip>Click: toggle TWOSENSOR/DIRECT on 2-sensor M2T/MTT</tooltip>
       <icons>
         <held url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></held>
         <dark url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></dark>
@@ -2163,8 +2163,8 @@
       <iconmaps />
     </signalheadicon>
     <positionablelabel x="48" y="586" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Turnouts" fontFamily="Dialog" fontname="Dialog.plain" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <sensoricon sensor="SML Mode" x="24" y="616" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Signals / Digicon SML</tooltip>
+    <sensoricon sensor="SML Mode" x="24" y="616" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Click: toggle Digicon SML mode</tooltip>
       <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></active>
       <inactive url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></inactive>
       <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></unknown>

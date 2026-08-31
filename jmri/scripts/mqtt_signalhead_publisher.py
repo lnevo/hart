@@ -189,6 +189,9 @@ class DigiconMqttSml(
 ):
     """Global SML toggle + Digicon MQTT SET / mast->IH / query ACK."""
 
+    # Cross-script handle for panel status-lamp clicks (sync_turnout_buttons).
+    INSTANCE = None
+
     def __init__(self):
         # MQTT live roster: empty until track/signalmast/<packed> reports.
         self.mqtt_wanted = set()
@@ -216,6 +219,13 @@ class DigiconMqttSml(
         self._shutdown_released = False
 
     def start(self):
+        DigiconMqttSml.INSTANCE = self
+        try:
+            import __main__
+
+            __main__.digicon_sml_controller = self
+        except Exception:
+            pass
         self.mqtt = _mqtt_adapter()
         if self.mqtt is None:
             print("mqtt_signalhead: no JMRI MQTT connection; not starting")
@@ -244,6 +254,11 @@ class DigiconMqttSml(
             "(SET requires signalmast; packed topics)"
             % (len(self._masts), len(self._heads))
         )
+
+    def toggle_from_panel(self):
+        """Panel Signals lamp click — same as the main-window SML button."""
+        print("mqtt_signalhead: panel Signals lamp toggle")
+        self._on_toggle()
 
     def _sync_sml_mode_sensor(self):
         """Drive panel Signals lamp (IS:SML_MODE): ACTIVE=enabled, INACTIVE=otherwise."""
@@ -1362,4 +1377,11 @@ class DigiconSmlQuitTask(jmri.implementation.AbstractShutDownTask):
 
 
 controller = DigiconMqttSml()
+DigiconMqttSml.INSTANCE = controller
+try:
+    import __main__
+
+    __main__.digicon_sml_controller = controller
+except Exception:
+    pass
 controller.start()

@@ -47,6 +47,8 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("HEAD_NAMES_BEGIN", text)
         self.assertNotIn("\nHEAD_NAMES =", text)
         self.assertIn("DigiconMqttSml()", text)
+        self.assertIn("toggle_from_panel", text)
+        self.assertIn("DigiconMqttSml.INSTANCE", text)
         self.assertIn("_is_lcos_ih_sys", text)
         self.assertIn("_enroll_packed", text)
         self.assertIn("_packed_is_lcos_signal", text)
