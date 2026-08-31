@@ -3376,7 +3376,7 @@
   </memories>
   <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:TURNOUT_FB</systemName>
+      <systemName>IH9990</systemName>
       <userName>Turnout FB status</userName>
       <comment>Panel Turnouts lamp: Green=TWOSENSOR Yellow=mixed Red=DIRECT; click toggles mode (2-sensor M2T/MTT)</comment>
     </signalhead>
@@ -24912,11 +24912,11 @@
       <iconmaps />
     </sensoricon>
     <positionablelabel x="48" y="558" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="LCOS" fontFamily="Dialog" fontname="Dialog.plain" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <signalheadicon signalhead="IH:TURNOUT_FB" x="24" y="588" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH9990" x="24" y="588" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Click: toggle TWOSENSOR/DIRECT on 2-sensor M2T/MTT</tooltip>
       <icons>
-        <held url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></held>
-        <dark url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></dark>
+        <held url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0"><rotation>0</rotation></held>
+        <dark url="program:resources/icons/USS/sensor/green-off.gif" scale="1.0"><rotation>0</rotation></dark>
         <red url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></red>
         <yellow url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></yellow>
         <green url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></green>

@@ -1,5 +1,5 @@
 # Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout states,
-# drive the HART Railroad Turnouts status lamp (IH:TURNOUT_FB), and wire clicks on
+# drive the HART Railroad Turnouts status lamp (IH9990), and wire clicks on
 # the LCOS / Turnouts / Signals status lamps.
 #
 # CRITICAL: the same ITs are JMRI Route controlTurnouts (fire on THROWN).
@@ -27,7 +27,7 @@ THROWN = jmri.Turnout.THROWN
 TWOSENSOR = jmri.Turnout.TWOSENSOR
 DIRECT = jmri.Turnout.DIRECT
 
-TURNOUT_FB_HEAD = "IH:TURNOUT_FB"
+TURNOUT_FB_HEAD = "IH9990"
 LCOS_SENSOR = "M2S1567"
 SML_MODE_SENSOR = "IS:SML_MODE"
 BRIDGE_CMD_TOPIC = "track/bridge/cmd"
@@ -176,10 +176,15 @@ def _watch_turnouts_present():
 
 
 def _ensure_turnout_fb_head():
-    """Return IH:TURNOUT_FB, creating a VirtualSignalHead if tables omitted it."""
+    """Return IH9990, creating a VirtualSignalHead if tables omitted it."""
     try:
         mgr = jmri.InstanceManager.getDefault(jmri.SignalHeadManager)
         head = mgr.getSignalHead(TURNOUT_FB_HEAD)
+        if head is None:
+            try:
+                head = mgr.getBySystemName(TURNOUT_FB_HEAD)
+            except Exception:
+                head = None
         if head is not None:
             return head
         from jmri.implementation import VirtualSignalHead
@@ -193,12 +198,97 @@ def _ensure_turnout_fb_head():
         return None
 
 
+def _set_head_appearance(head, appearance):
+    """Apply appearance on the layout thread; clear held so icon is not '?'."""
+
+    class _Set(Runnable):
+        def run(self):
+            try:
+                try:
+                    head.setHeld(False)
+                except Exception:
+                    pass
+                try:
+                    head.setLit(True)
+                except Exception:
+                    pass
+                head.setAppearance(appearance)
+            except Exception as e:
+                print("sync_turnout_buttons: setAppearance failed: %s" % e)
+
+    try:
+        if SwingUtilities.isEventDispatchThread():
+            _Set().run()
+        else:
+            SwingUtilities.invokeLater(_Set())
+    except Exception:
+        _Set().run()
+
+
+def _rebind_turnout_fb_icons(head):
+    """If the LE icon loaded before the bean existed, re-point it at IH9990."""
+    if head is None:
+        return
+    try:
+        from jmri.jmrit.display import EditorManager, SignalHeadIcon
+    except Exception:
+        return
+    em = jmri.InstanceManager.getDefault(EditorManager)
+    if em is None:
+        return
+    for ed in list(em.getAll()):
+        try:
+            contents = list(ed.getContents())
+        except Exception:
+            continue
+        for icon in contents:
+            try:
+                if not isinstance(icon, SignalHeadIcon):
+                    continue
+                # Match by name on the icon even when bean was missing at load.
+                name = None
+                try:
+                    name = icon.getName()
+                except Exception:
+                    name = None
+                hn = _head_sys(icon)
+                if hn == TURNOUT_FB_HEAD:
+                    continue
+                if hn is None and (
+                    name == TURNOUT_FB_HEAD
+                    or (name and "TURNOUT" in str(name).upper())
+                    or (name and "9990" in str(name))
+                ):
+                    pass
+                elif hn is not None and hn != TURNOUT_FB_HEAD:
+                    continue
+                else:
+                    # Heuristic: status-lamp strip near LCOS (x~24,y~588).
+                    try:
+                        if int(icon.getX()) > 40 or abs(int(icon.getY()) - 588) > 20:
+                            continue
+                    except Exception:
+                        continue
+                try:
+                    icon.setSignalHead(TURNOUT_FB_HEAD)
+                    print("sync_turnout_buttons: rebound Turnouts icon -> %s" % TURNOUT_FB_HEAD)
+                except Exception:
+                    try:
+                        icon.setSignalHead(head)
+                        print("sync_turnout_buttons: rebound Turnouts icon (bean)")
+                    except Exception as e:
+                        print("sync_turnout_buttons: rebind failed: %s" % e)
+            except Exception:
+                pass
+
+
 def sync_turnout_fb_lamp():
-    """Set IH:TURNOUT_FB Green/Yellow/Red from included plant feedback modes."""
+    """Set IH9990 Green/Yellow/Red from included plant feedback modes."""
     global _last_fb_appearance
     head = _ensure_turnout_fb_head()
     if head is None:
         return
+    _rebind_turnout_fb_icons(head)
 
     included = _included_plant_turnouts()
     if not included:
@@ -225,8 +315,7 @@ def sync_turnout_fb_lamp():
             )
 
     try:
-        if head.getAppearance() != appearance:
-            head.setAppearance(appearance)
+        _set_head_appearance(head, appearance)
         if appearance != _last_fb_appearance:
             _last_fb_appearance = appearance
             print("sync_turnout_buttons: Turnouts lamp %s" % label)
@@ -515,27 +604,28 @@ def _arm_status_lamp_clicks():
 def _arm_listeners():
     """Attach listeners once beans exist. Safe to call only once."""
     global _armed, _listener
-    if _armed:
+    if not _armed:
+        _listener = _TurnoutListener()
+        for sn in WATCH:
+            turnouts.provideTurnout(sn).addPropertyChangeListener(_listener)
+        for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
+            turnouts.provideTurnout(sn)
+        for to in turnouts.getNamedBeanSet():
+            sn = to.getSystemName()
+            if sn.startswith("M2T") or sn.startswith("MTT"):
+                try:
+                    to.addPropertyChangeListener(_listener)
+                except Exception:
+                    pass
+        _armed = True
+        print(
+            "sync_turnout_buttons: armed (%d watch turnouts, close-only + Turnouts lamp)"
+            % len(WATCH)
+        )
+    try:
         _arm_status_lamp_clicks()
-        return True
-    _listener = _TurnoutListener()
-    for sn in WATCH:
-        turnouts.provideTurnout(sn).addPropertyChangeListener(_listener)
-    for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
-        turnouts.provideTurnout(sn)
-    for to in turnouts.getNamedBeanSet():
-        sn = to.getSystemName()
-        if sn.startswith("M2T") or sn.startswith("MTT"):
-            try:
-                to.addPropertyChangeListener(_listener)
-            except Exception:
-                pass
-    _armed = True
-    print(
-        "sync_turnout_buttons: armed (%d watch turnouts, close-only + Turnouts lamp)"
-        % len(WATCH)
-    )
-    _arm_status_lamp_clicks()
+    except Exception as e:
+        print("sync_turnout_buttons: click arm failed: %s" % e)
     return True
 
 
@@ -561,6 +651,11 @@ class _ArmAttempt(ActionListener):
                         "(try %d, LE=%s, watch=%s)"
                         % (self.attempt + 1, le_ok, ready)
                     )
+                # Still try to paint the lamp while waiting (bean may already exist).
+                try:
+                    sync_turnout_fb_lamp()
+                except Exception:
+                    pass
                 t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
                 t.setRepeats(False)
                 t.start()
@@ -568,13 +663,16 @@ class _ArmAttempt(ActionListener):
         try:
             _arm_listeners()
             sync_ladder_buttons()
-            # Icons may appear slightly after LE; retry click wiring a few times.
             if not _clicks_armed:
                 t = Timer(2000, _RetryClicks(0))
                 t.setRepeats(False)
                 t.start()
         except Exception as e:
             print("sync_turnout_buttons: arm failed: %s" % e)
+            try:
+                sync_turnout_fb_lamp()
+            except Exception:
+                pass
             if self.attempt + 1 < _ARM_MAX_ATTEMPTS:
                 t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
                 t.setRepeats(False)
@@ -587,8 +685,11 @@ class _RetryClicks(ActionListener):
 
     def actionPerformed(self, event):
         event.getSource().stop()
-        if _arm_status_lamp_clicks():
-            return
+        try:
+            if _arm_status_lamp_clicks():
+                return
+        except Exception as e:
+            print("sync_turnout_buttons: click retry failed: %s" % e)
         if self.attempt + 1 < 10:
             t = Timer(2000, _RetryClicks(self.attempt + 1))
             t.setRepeats(False)
@@ -601,6 +702,11 @@ print(
     "sync_turnout_buttons: loaded; arming after %dms (waits for Layout Editor)"
     % _ARM_FIRST_MS
 )
+# Early paint: tables may already have IH9990 before LE finishes opening.
+try:
+    sync_turnout_fb_lamp()
+except Exception as e:
+    print("sync_turnout_buttons: early lamp paint: %s" % e)
 _t0 = Timer(_ARM_FIRST_MS, _ArmAttempt(0))
 _t0.setRepeats(False)
 _t0.start()
