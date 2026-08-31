@@ -83,7 +83,7 @@ JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
   "$HART/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$HART/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py"
+  "$HART/jmri/layouts/hart/scripts/sync_turnout_buttons.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/scripts/mqtt_signalhead_publisher.py"
 )
@@ -110,7 +110,7 @@ PATCH="$HART/cats/scripts/patch_jmri_startup.py"
 if [[ -f "$PATCH" ]]; then
   python3 "$PATCH" retarget-jython \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
-    --script sync_yard_ladder_buttons.py \
+    --script sync_turnout_buttons.py \
     --script mqtt_signalhead_publisher.py \
     --script jmri_cmd_watcher.py
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"

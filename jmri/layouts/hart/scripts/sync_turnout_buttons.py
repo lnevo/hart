@@ -1,9 +1,13 @@
-# Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout states.
+# Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout states,
+# and drive the HART Railroad Turnouts status lamp (IH:TURNOUT_FB).
 # Startup + turnout listeners so idle lamps stay mutually exclusive after a click.
 #
 # CRITICAL: the same ITs are JMRI Route controlTurnouts (fire on THROWN).
 # This script must NEVER setCommandedState(THROWN) — that re-fires routes and
 # ping-pongs peels (e.g. R4 ↔ R5). Only CLOSE inactive indicators.
+#
+# Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
+# sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
 
 import jmri
 from java.beans import PropertyChangeListener
@@ -13,6 +17,14 @@ from javax.swing import SwingUtilities, Timer
 
 CLOSED = jmri.Turnout.CLOSED
 THROWN = jmri.Turnout.THROWN
+TWOSENSOR = jmri.Turnout.TWOSENSOR
+DIRECT = jmri.Turnout.DIRECT
+
+TURNOUT_FB_HEAD = "IH:TURNOUT_FB"
+GREEN = jmri.SignalHead.GREEN
+YELLOW = jmri.SignalHead.YELLOW
+RED = jmri.SignalHead.RED
+DARK = jmri.SignalHead.DARK
 
 # First match wins — specific peels before S-5 / S-1.
 LEFT_PATTERNS = [
@@ -39,6 +51,7 @@ WATCH = [
 
 _busy = False
 _last = (None, None)
+_last_fb_appearance = None
 
 
 def _known(to):
@@ -78,7 +91,76 @@ def _close_inactive(indicators, active):
             if to.getCommandedState() != CLOSED:
                 to.setCommandedState(CLOSED)
         except Exception as e:
-            print("sync_yard_ladder_buttons: close %s failed: %s" % (sn, e))
+            print("sync_turnout_buttons: close %s failed: %s" % (sn, e))
+
+
+def _has_two_fb_sensors(to):
+    try:
+        return to.getFirstSensor() is not None and to.getSecondSensor() is not None
+    except Exception:
+        return False
+
+
+def _included_plant_turnouts():
+    """M2T/MTT turnouts with both feedback sensors assigned."""
+    out = []
+    try:
+        for to in turnouts.getNamedBeanSet():
+            sn = to.getSystemName()
+            if not (sn.startswith("M2T") or sn.startswith("MTT")):
+                continue
+            if _has_two_fb_sensors(to):
+                out.append(to)
+    except Exception as e:
+        print("sync_turnout_buttons: scan turnouts failed: %s" % e)
+    return out
+
+
+def sync_turnout_fb_lamp():
+    """Set IH:TURNOUT_FB Green/Yellow/Red from included plant feedback modes."""
+    global _last_fb_appearance
+    try:
+        mgr = jmri.InstanceManager.getDefault(jmri.SignalHeadManager)
+        head = mgr.getSignalHead(TURNOUT_FB_HEAD)
+    except Exception as e:
+        print("sync_turnout_buttons: no Turnouts lamp head: %s" % e)
+        return
+    if head is None:
+        print("sync_turnout_buttons: missing %s" % TURNOUT_FB_HEAD)
+        return
+
+    included = _included_plant_turnouts()
+    if not included:
+        appearance = YELLOW
+        label = "yellow(empty)"
+    else:
+        modes = set()
+        for to in included:
+            try:
+                modes.add(to.getFeedbackMode())
+            except Exception:
+                modes.add(None)
+        if modes == {TWOSENSOR}:
+            appearance = GREEN
+            label = "green(all TWOSENSOR, n=%d)" % len(included)
+        elif modes == {DIRECT}:
+            appearance = RED
+            label = "red(all DIRECT, n=%d)" % len(included)
+        else:
+            appearance = YELLOW
+            label = "yellow(mixed %s, n=%d)" % (
+                sorted(str(m) for m in modes),
+                len(included),
+            )
+
+    try:
+        if head.getAppearance() != appearance:
+            head.setAppearance(appearance)
+        if appearance != _last_fb_appearance:
+            _last_fb_appearance = appearance
+            print("sync_turnout_buttons: Turnouts lamp %s" % label)
+    except Exception as e:
+        print("sync_turnout_buttons: Turnouts lamp set failed: %s" % e)
 
 
 def sync_ladder_buttons(event=None):
@@ -92,13 +174,14 @@ def sync_ladder_buttons(event=None):
         if (left, right) != _last:
             _last = (left, right)
             print(
-                "sync_yard_ladder_buttons: left=%s right=%s"
+                "sync_turnout_buttons: left=%s right=%s"
                 % (left or "none", right or "none")
             )
         _close_inactive(LEFT_INDICATORS, left)
         _close_inactive(RIGHT_INDICATORS, right)
+        sync_turnout_fb_lamp()
     except Exception as e:
-        print("sync_yard_ladder_buttons: sync error: %s" % e)
+        print("sync_turnout_buttons: sync error: %s" % e)
     finally:
         _busy = False
 
@@ -127,16 +210,17 @@ def _schedule_sync():
         else:
             SwingUtilities.invokeLater(_Restart())
     except Exception as e:
-        print("sync_yard_ladder_buttons: schedule failed: %s" % e)
+        print("sync_turnout_buttons: schedule failed: %s" % e)
 
 
 class _TurnoutListener(PropertyChangeListener):
     def propertyChange(self, event):
         try:
-            if event.getPropertyName() == "KnownState":
+            name = event.getPropertyName()
+            if name in ("KnownState", "FeedbackMode", "Sensor1", "Sensor2"):
                 _schedule_sync()
         except Exception as e:
-            print("sync_yard_ladder_buttons: listener error: %s" % e)
+            print("sync_turnout_buttons: listener error: %s" % e)
 
 
 class _StartupAction(ActionListener):
@@ -151,10 +235,21 @@ try:
         turnouts.provideTurnout(sn).addPropertyChangeListener(listener)
     for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
         turnouts.provideTurnout(sn)
+    # Listen for FB mode / sensor assignment changes on all plant turnouts.
+    for to in turnouts.getNamedBeanSet():
+        sn = to.getSystemName()
+        if sn.startswith("M2T") or sn.startswith("MTT"):
+            try:
+                to.addPropertyChangeListener(listener)
+            except Exception:
+                pass
     sync_ladder_buttons()
     t = Timer(3000, _StartupAction())
     t.setRepeats(False)
     t.start()
-    print("sync_yard_ladder_buttons: armed (%d watch turnouts, close-only)" % len(WATCH))
+    print(
+        "sync_turnout_buttons: armed (%d watch turnouts, close-only + Turnouts lamp)"
+        % len(WATCH)
+    )
 except Exception as e:
-    print("sync_yard_ladder_buttons: init failed: %s" % e)
+    print("sync_turnout_buttons: init failed: %s" % e)

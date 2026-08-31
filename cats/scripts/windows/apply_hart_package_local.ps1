@@ -111,7 +111,7 @@ $jythonSrc = @(
   (Join-Path $hart 'jmri\layouts\hart\scripts\patch_dispatcher_facing.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\hart_dispatcher_startup.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_yard_ladder_buttons.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_turnout_buttons.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
   (Join-Path $hart 'jmri\scripts\mqtt_signalhead_publisher.py')
 )
@@ -147,7 +147,7 @@ foreach ($r in ($roots | Select-Object -Unique)) {
 
 $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py')
 $retargetNames = @(
-  'sync_yard_ladder_buttons.py',
+  'sync_turnout_buttons.py',
   'mqtt_signalhead_publisher.py',
   'jmri_cmd_watcher.py'
 )
