@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Layout — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Layout explorer</h1>
+      <p class="muted" id="layout-meta">Loading consolidation layout index…</p>
+    </div>
+    <div class="toolbar">
+      <input id="layout-search" type="search" placeholder="Search name, CP, MQTT…">
+      <label class="chip"><input type="checkbox" data-kind="turnout" checked> Switches</label>
+      <label class="chip"><input type="checkbox" data-kind="signal" checked> Signals</label>
+      <a class="btn btn-ghost" href="../roster/index.html">Open roster</a>
+    </div>
+    <div class="layout-workspace">
+      <div class="map-scroll">
+        <div id="map-stage">
+          <img id="schematic" alt="HART LE schematic">
+        </div>
+      </div>
+      <aside class="detail-panel" id="detail"></aside>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/layout-explorer.js"></script>
+</body>
+</html>

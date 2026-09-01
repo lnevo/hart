@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Digicon system overview — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+<div class="page-head">
+      <h1>Digicon system overview</h1>
+      <p class="muted">From consolidation mirror <code>external/hart-runtime/cats/docs/HART_DIGICON_SYSTEM.md</code></p>
+      <p><a href="index.html">← Guides hub</a></p>
+    </div>
+    <article class="guide-body">
+<h1>HART Digicon (CATS) — System Overview</h1>
+
+<p><strong>Publication:</strong> DS-DIGICON · Rev A · Eff 2026-08-11  </p>
+<p><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations  </p>
+<p><strong>Scope:</strong> Digicon CTC / ABS panels, JMRI MQTT bridge, LCOS signal heads</p>
+
+<p>This is the end-to-end picture of what we built: Digicon panels on Mac / Pi / Windows, how they talk to JMRI and MQTT, and how field signal heads are addressed for LCOS hardware.</p>
+
+<p>Related detail docs (do not duplicate here):</p>
+
+<p>| Topic | Doc |</p>
+<p>|-------|-----|</p>
+<p>| Signal facing / mast bind | [<code>SIGNAL_FACING.md</code>](SIGNAL_FACING.md) |</p>
+<p>| Turnout SoR / retain paint | [<code>TURNOUT_STATE_SOURCES.md</code>](TURNOUT_STATE_SOURCES.md) |</p>
+<p>| Sensor status-only MQTT | [<code>MQTT_SENSOR_STATUS_ONLY.md</code>](MQTT_SENSOR_STATUS_ONLY.md) |</p>
+<p>| Pi install notes | [<code>../scripts/pi/README_CATS.txt</code>](../scripts/pi/README_CATS.txt) |</p>
+<p>| Neville trackplan (reference) | [<code>station_maps/Neville_Island_Trackplan_Clean.png</code>](station_maps/Neville_Island_Trackplan_Clean.png) |</p>
+
+<p>---</p>
+
+<h2>1. What we built</h2>
+
+<p>Two Digicon “Master” launchers for Neville Island ops, plus JMRI tables / scripts so Digicon, MQTT, SML, and LCOS stay in sync.</p>
+
+<p>| Launcher | Panel file | Role |</p>
+<p>|----------|------------|------|</p>
+<p>| <strong>CATS CTC</strong> | <code>cats/panels/HART_Master_CTC_hold.xml</code> | <strong>Live CTC</strong> — Digicon codes routes / throws; signals <code>HOLD_ONLY</code>; <strong>JMRI SML</strong> owns aspects |</p>
+<p>| <strong>CATS ABS</strong> | <code>cats/panels/HART_Master_ABS_hold.xml</code> | <strong>Live ABS</strong> — <code>HOLD_ONLY</code>; SECSIGNALs bound to JMRI masts so Digicon <strong>paints SML</strong>. Geometry source <code>HART_Master_ABS.xml</code> stays unbound. |</p>
+
+<p>Geometry sources (no desktop icons): <code>HART_Master4.xml</code> (Designer) → <code>wire_hart_master4.py --live</code> → <code>HART_Master.xml</code> / HOLD copies. Checkpoint <strong>Masters only</strong> (<code>cats/panels/checkpoints/</code>). West Yard sheets are archived at <code>cats/panels/sheets/archive/west_yard/</code>.</p>
+
+<p>Each Master carries a publication title row (Y=1):</p>
+
+<ul>
+<li>**HART RAILROAD** · **NEVILLE ISLAND OPERATIONS** · **P&amp;CV DIVISION**</li>
+<li>Mode tag (`CTC DIGICON` / `ABS DIGICON`)</li>
+<li>Pub id (`DS-CTC` / `DS-ABS`) · Rev · Effective date</li>
+</ul>
+
+<p>Rebuild hold panels after Master / ABS geometry edits:</p>
+
+<pre>
+python3 cats/scripts/build_hart_master_ctc_hold.py   # CATS CTC (HOLD_ONLY + AAR bridge + header)
+python3 cats/scripts/build_hart_master_abs_hold.py   # CATS ABS (HOLD_ONLY + AAR bridge + header)
+python3 cats/scripts/polish_hart_master_header.py --panel all
+</pre>
+
+<p>---</p>
+
+<h2>2. How the pieces interconnect</h2>
+
+<pre>
+┌─────────────────┐     route / Hold only              ┌──────────────────┐
+│  CATS CTC       │ ── setHeld + ROUTECOMMAND ────────►│  JMRI SignalMast │
+│  HOLD_ONLY      │   bind by mast userName            │  AAR-1946 SHSM   │
+└────────┬────────┘                                    └────────┬─────────┘
+         │ turnout throws                                      │ SML aspects
+         │ occupancy paints from JMRI sensors                  │ Appearance
+         ▼                                                     ▼
+┌─────────────────┐                                  ┌──────────────────┐
+│ JMRI Turnouts / │◄── MQTT retain paint (boot) ────│ MQTT broker       │
+│ Sensors / Blocks│                                  │ minipc / Pi       │
+└────────┬────────┘                                  └────────┬─────────┘
+         │                                                    │
+         │  track/turnout/#  track/sensor/#                   │
+         │  track/signalhead/IH###  (virtual heads)           │
+         ▼                                                    ▼
+┌─────────────────┐                                  ┌──────────────────┐
+│ LCOS / field    │◄─────────────────────────────────│ LED searchlights │
+│ radio nodes     │   packed IH address → DNOU8 port │ on the layout    │
+└─────────────────┘                                  └──────────────────┘
+</pre>
+
+<p><strong>Boot sequence (profile Start Up, after <code>tables.xml</code>):</strong></p>
+
+<p>1. <code>jmri/layouts/hart/scripts/apply_maintain_mqtt.py</code> — read MQTT <strong>retain</strong> for sensors/turnouts; JMRI-only paint (<code>setOwnState</code> / KnownState); never publishes commands. Then Digicon <code>IOSpec.refreshScreen()</code>.</p>
+<p>2. <code>jmri/layouts/hart/scripts/sync_turnout_buttons.py</code> — yard-ladder lamp buttons ↔ internal turnouts.</p>
+<p>3. <code>jmri/scripts/mqtt_signalhead_publisher.py</code> — Digicon SML MQTT bridge: main-window <strong>SML Enabled / SML Disabled</strong> toggle; when Enabled, publish IH appearances on <code>track/signalhead/&lt;packed&gt;</code>; when Disabled (global or per-mast SML off), apply <code>track/signalmast/&lt;packed&gt;</code> → IH and (on per-mast disable edges / operator Disable) publish <code>Unheld</code>. Answers <code>track/bridge/sml_mode</code> <strong>query</strong> / <strong>disabling</strong> with <strong>enabled</strong> while globally Enabled. <strong>Boot:</strong> if Digicon dests loaded <strong>Enabled</strong> (stored tables), warning popup, publish <strong><code>enabling</code></strong> and leave dests on (that instance does not abort). Operator <strong>Force override</strong> (sml_mode already enabled) publishes the same <strong><code>enabling</code></strong> token. Other agents seeing that token publish <strong><code>aborting</code></strong>, uncheck immediately (no Hold/Red/Unheld), then <strong><code>aborted</code></strong>, and stay Disabled. After ~3s the originator publishes <strong><code>enabled</code></strong>. Solo has nobody to abort; if <code>enabled</code> never arrives, the LCOS bridge challenges to <strong>disabled</strong>. Clean boot still holds dests off and <strong>reads</strong> <code>sml_mode</code> only (no retain publish); missing/<code>disabled</code>/<code>disabling</code> → take Digicon (enable); <code>enabled</code> / enabling-abort tokens → stay Disabled with <strong>no Unheld</strong> (originator owns resume). Digicon SML dests should be stored <strong>Enabled=no</strong> in <code>tables.xml</code> (<code>cats/scripts/disable_digicon_sml_in_tables.py</code>).</p>
+
+<p>(<code>unhold_signal_masts.py</code> is retired: masts boot Unheld, so SML runs ABS by default; <strong>Held is CATS CTC&#x27;s channel</strong> — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)</p>
+
+<p>SML dests are <strong>native</strong>: Layout Editor Discover generates them (<code>cats/scripts/run_sml_discover.sh</code> one-shot) and they are stored in <code>tables.xml</code> with <code>useLayoutEditor=yes</code>, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper then runs <code>disable_digicon_sml_in_tables.py</code> so Digicon source→dest pairs stay <strong>Enabled=no</strong> until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). <code>apply_sml_cats_pairs.py</code> is retired — its <code>PAIRS</code> list survives only as the regression oracle for <code>cats/scripts/validate_le_signalling.py</code> (static boundary/routing checks + mini-discovery, run it before deploying panel edits). Facing is in <code>cats/data/le_signal_boundaries.csv</code> (<code>python3 cats/scripts/apply_le_sml_facing.py</code>). Advanced routing is <code>blockrouting=&quot;yes&quot;</code> on <code>&lt;layoutblocks&gt;</code>. Two-head masts use the custom <code>hart-aar</code> signal system (<code>SL-2-digicon</code>) so aspects chain as 3-aspect ABS + diverging; see <code>cats/docs/SIGNAL_FACING.md</code>.</p>
+
+<p><strong>PanelPro vs CATS (same profile, sequential — never simultaneous):</strong></p>
+
+<ul>
+<li>**PanelPro** — edit/store JMRI tables, connections, Start Up. Then quit. Never Store tables while a CATS layout is open (Rodney Black, cats-users #2534).</li>
+<li>**CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them. LogixNG hides **USS CTC** on every host (IQC:AUTO:0002) and, under CATS only, **HART Railroad** (IQC:AUTO:0004 / `hide_cats_desk_windows.py`) so the Digicon stays up.</li>
+<li>Do **not** run both at once (MQTT client-id + profile lock). Only **one** Digicon should be signal authority (**CATS CTC** or **CATS ABS**).</li>
+</ul>
+
+<p>---</p>
+
+<h2>3. Digicon geometry and ops features</h2>
+
+<h3>Geography (Neville Island)</h3>
+
+<p>Digicon schematic covers West Yard / Brick / Plane / OS Barn, South Yard ladder, East End, Princess, OS McKees Rocks / OS McKeesport leads — matching the Neville Island station maps and CSX/POV-era trackplan reference.</p>
+
+<h3>Discipline</h3>
+
+<p>| Panel | Block <code>DISCIPLINE</code> | Dispatcher signal clicks |</p>
+<p>|-------|--------------------|---------------------------|</p>
+<p>| Master CTC | <code>CTC</code> | Left-click entrance = request route + Unhold; <strong>SML</strong> sets the aspect |</p>
+<p>| Master ABS | <code>ABS</code> | No CTC left-click routing; SML follows occupancy / points |</p>
+
+<p>CTC homes start <strong>Held</strong> (CATS holds them at panel load). Left-click codes the route; Digicon drops Hold and SML shows Approach/Clear. Without CATS, masts simply boot Unheld so SML runs ABS — no script needed. <strong>Fleeting</strong> is only for keeping a live route clear for following trains — it is disabled until a route is already ACTIVE.</p>
+
+<h3>Yard ladder buttons</h3>
+
+<p>Lamp buttons beside OS S-R…OS S-4 (left = west ladder + 116; right = east ladder + 112 / 111 for OS S-R):</p>
+
+<ul>
+<li>Digicon and Layout Editor share the same triggers: internal turnouts `IT:HART:YL:L1…R5`</li>
+<li>JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels</li>
+<li>Digicon icons: `cats/resources/buttons/lamp_{left,right}_{idle,active}.png` (paths rewritten per OS)</li>
+<li>Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py` → `tables/new_tables.xml`, synced to `jmri/layouts/hart/output/tables.xml`). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red. Prefer this panel over `hart_prod.xml` (CP labels on hart_prod are oversized).</li>
+</ul>
+
+<h3>Turnout SoR (summary)</h3>
+
+<p>Live Digicon follows field feedback for most plants; Digicon <code>SELECTEDREPORT</code> and <code>ROUTECOMMAND</code> share polarity. Tip SoR for 112 / 114 / 115 is documented in [<code>TURNOUT_STATE_SOURCES.md</code>](TURNOUT_STATE_SOURCES.md). Agents must not throw field points to “fix” paint.</p>
+
+<h3>Load safety</h3>
+
+<p>Installed Digicon jar includes the <code>cats-pts-nullguard</code> overlay so early <code>SELECTEDREPORT</code> cannot kill <code>RREventManager</code> (occupancy freeze).</p>
+
+<p>---</p>
+
+<h2>4. Signals — nature and LCOS heads</h2>
+
+<h3>One family</h3>
+
+<p>| Family | JMRI object | Digicon <code>PHYSIGNAL</code> | MQTT | Field |</p>
+<p>|--------|-------------|---------------------|------|-------|</p>
+<p>| <strong>Virtual head + SHSM</strong> (all Digicon lamps) | Virtual <code>IH###</code> + <code>IF$shsm:hart-aar:SL-2-digicon</code> two-head / <code>IF$shsm:AAR-1946:SL-1-low</code> dwarf | stock <code>single</code> / <code>double</code> (native R-codes remapped to AAR names) | <code>track/signalhead/&lt;packed&gt;</code> | LCOS searchlight ports |</p>
+
+<p>Digicon binds by <strong>mast userName</strong> (exact string match). Panel lamps (<code>LAMP1|2|3</code>) are Digicon cosmetics; field head count comes from JMRI / LCOS wiring.</p>
+
+<h3>Aspect language</h3>
+
+<ul>
+<li>Digicon internals speak rule codes (`R281` Clear, `R285` Approach, `R292` Stop, `RES_*` Restricting, …).</li>
+<li>**AAR-1946** SHSM aspects are Clear / Approach / Stop (2-head) or Slow Clear / Restricting / Stop (dwarf). `aar_aspect_bridge.py` remaps Digicon R-codes → those names.</li>
+<li>Virtual heads get GREEN / YELLOW / RED appearances; `mqtt_signalhead_publisher.py` publishes those names on `track/signalhead/&lt;packed&gt;`.</li>
+</ul>
+
+<h3>Authority</h3>
+
+<p>| Mode | Who drives Clear/Approach/Stop |</p>
+<p>|------|--------------------------------|</p>
+<p>| <strong>CATS CTC</strong> | Occupancy + points via MQTT → JMRI; <strong>SML</strong> sets aspects; Digicon paints (<code>HOLD_ONLY</code>). CTC also Held/Unhold. |</p>
+<p>| <strong>CATS ABS</strong> | Occupancy + points via MQTT → JMRI; <strong>SML</strong> sets aspects; Digicon paints (<code>HOLD_ONLY</code>). SECSIGNALs bind real JMRI mast names. CATS ABS vital logic still Hold/Unhold. |</p>
+
+<h3>LCOS packing (signal heads)</h3>
+
+<p>LCOS addresses searchlights as <strong>packed IDs</strong> on the radio node:</p>
+
+<pre>
+packed = displayNode * 100 + UID
+UID    = 32 + signal_index     # Signal 0..15 → UID 32..47 (mqtt_serial.h)
+JMRI   = IH&lt;packed&gt;            # e.g. node 4, signal 0 → IH432
+MQTT   = track/signalhead/&lt;packed&gt;   # IH432 → topic …/432 (bean stays IH432)
+Payload = appearance name      # Red / Yellow / Green / Dark / …
+</pre>
+
+<p>Full disc × board × G/Y/R map (every mast, every OU including 12V motors and spare/relay pins): [<code>docs/wiring/README.md</code>](../../docs/wiring/README.md#digicon-heads-and-ou-boards).</p>
+
+<p>Head roles: <strong>T</strong> top, <strong>B</strong> bottom; dwarfs are a single 3-pin disc.</p>
+
+<p>Appearances for SHSM:</p>
+
+<ul>
+<li>1 head → `cats-virtual-dwarf` (SL-1-low LE icons)</li>
+<li>2 heads → `cats-virtual-2`</li>
+<li>3 heads → `cats-virtual-3`</li>
+</ul>
+
+<p>XML: <code>cats/resources/signals/cats-masts/</code>.</p>
+
+<h3>Mast index (Digicon name → JMRI)</h3>
+
+<p>Full table: [<code>cats/data/signal_mast_plan.csv</code>](../data/signal_mast_plan.csv)  </p>
+<p>Port / topic / LCOS inventory: [<code>cats/data/signal_wiring.csv</code>](../data/signal_wiring.csv)  </p>
+<p>Head plan: [<code>cats/data/signal_head_plan.csv</code>](../data/signal_head_plan.csv)</p>
+
+<p>Pin map: [<code>docs/wiring/README.md</code>](../../docs/wiring/README.md#digicon-heads-and-ou-boards) · CSVs above.</p>
+
+<h3>JMRI ↔ MQTT for Virtual heads</h3>
+
+<p><code>jmri/scripts/mqtt_signalhead_publisher.py</code> (Start Up): Digicon plants are discovered from JMRI SignalMasts that carry LCOS Virtual <code>IH*</code> heads (UID 32–47). MQTT SET/Unheld requires enrollment from <code>track/signalmast/&lt;packed&gt;</code> (bridge + field status). <code>build_hart_signal_heads.py</code> no longer patches a <code>HEAD_NAMES</code> list.</p>
+
+<p>Digicon SML MQTT controller — toggle <strong>SML Enabled / SML Disabled</strong>, SET publish when Enabled (enrolled heads only), mast→IH when SML off, per-mast <code>Unheld</code> on disable <strong>edges</strong>, <code>track/bridge/sml_mode</code> query ACK. Digicon SML pairs are stored <strong>Enabled=no</strong> in tables. Stored-Enabled boot or Force override publishes <strong><code>enabling</code></strong> and does not abort; other agents abort (immediate uncheck, no RELEASE) then <strong><code>aborted</code></strong>; originator announces <strong><code>enabled</code></strong> after ~3s. Clean boot holds dests off, <strong>reads</strong> <code>sml_mode</code> (no retain publish); missing/<code>disabled</code> → enable Digicon; <code>enabled</code> / enabling-abort tokens → stay Disabled with no Unheld. SML / SHSM still own aspects while Enabled; Held remains CATS/USS veto.</p>
+
+<p><strong>LCOS Nano bridge dual path</strong> (<code>LCOS_ESP32_MQTT_Client</code>, see <code>docs/signal_dual_path.md</code>):</p>
+
+<ul>
+<li>**Send (Digicon → field):** when SML Enabled for that mast, `track/signalhead/&lt;packed&gt;` → `EVENT_SIGNAL_CMD` SET (Red→Stop, Yellow→Approach, Green→Clear). Global Disable or per-mast SML off → `Unheld` RELEASE. Bridge `sml_mode` **query** / **disabling** timeout also Red→Unheld if no Digicon **enabled** ACK.</li>
+<li>**Receive (field → Digicon IH):** when SML is off for that mast (or globally Disabled), LCOS `track/signalmast/&lt;packed&gt;` (`Stop; Lit; Unheld`, …) is applied to the matching `IH*` head. Status is not published on `signalhead` from the field.</li>
+</ul>
+
+<p>Mast 2L is the same packed-head path (<code>IH438</code>/<code>IH439</code> on C3-OU3). JMRI no longer publishes <code>track/signalmast/432</code>.</p>
+
+<p>Rebuild heads + tables (publisher roster is dynamic; build script only verifies it):</p>
+
+<pre>
+python3 cats/scripts/build_hart_signal_heads.py
+</pre>
+
+<p>LE <code>signalmasticon</code>s use stock AAR-1946 schematic GIFs (no custom cats-masts imagelinks required). Digicon binds by userName either way.</p>
+
+<p>---</p>
+
+<h2>5. Launch (all hosts)</h2>
+
+<p>| Host | How |</p>
+<p>|------|-----|</p>
+<p>| <strong>Mac</strong> | <code>/Applications/CATS CTC.app</code> / <code>CATS ABS.app</code> or <code>./cats/scripts/launch_hart_master.sh</code> |</p>
+<p>| <strong>Pi</strong> | Desktop <strong>CATS CTC</strong> / <strong>CATS ABS</strong> |</p>
+<p>| <strong>Windows</strong> | Desktop <strong>CATS CTC</strong> / <strong>CATS ABS</strong> |</p>
+
+<p>Default panel for <code>launch_cats.sh</code> is <code>cats/panels/HART_Master_CTC_hold.xml</code>.</p>
+
+<p>Profile tables (routes, YL internals, signal heads/masts) load from the host’s <code>preference:tables.xml</code> / Pi <code>JMRI_UserFiles/tables.xml</code> (repo mirror <code>jmri/layouts/hart/output/tables.xml</code>). Yard ladders need <code>IO:AUTO:0201–0210</code> and <code>IT:HART:YL:*</code> in that file.</p>
+
+<h3>JMRI package (SSH deploy to hosts)</h3>
+
+<p>Same package carries Digicon Masters, <code>tables.xml</code>, yard-ladder button icons, and the JMRI <strong>web home</strong> override + Start Up scripts:</p>
+
+<p>| Piece | Repo SoR | Installs to |</p>
+<p>|-------|----------|-------------|</p>
+<p>| CTC / ABS hold panels | <code>cats/panels/HART_Master_*hold.xml</code> | host <code>hart/cats/panels/</code> |</p>
+<p>| Tables | <code>jmri/layouts/hart/output/tables.xml</code> | <code>preference:tables.xml</code> / <code>JMRI_UserFiles/tables.xml</code> |</p>
+<p>| Ladder icons | <code>cats/resources/buttons/lamp_*.png</code> | <code>hart/cats/resources/buttons/</code> |</p>
+<p>| Web home + STS | <code>cats/resources/jmri-web/servlet/home/Home.html</code> | profile / UserFiles <code>web/servlet/home/</code> (STS link in Home.html → <code>http://10.0.0.53:8980/sts/</code>) |</p>
+<p>| JMRI Start Up scripts | <code>sync_turnout_buttons.py</code>, <code>mqtt_signalhead_publisher.py</code> | All hosts <code>preference:jython/</code> (Pi <code>JMRI_UserFiles/jython/</code>; Mac/Windows <code>&lt;profile&gt;.jmri/jython/</code> because user-files=<code>profile:</code>). <code>hide_cats_desk_windows.py</code> is LogixNG, same folder. |</p>
+
+<p>Deploy via SSH (agent does this — no manual batch/Dropbox step):</p>
+
+<pre>
+./cats/scripts/sync_hart_package.sh --pi    # Pi (rsync + local apply)
+./cats/scripts/sync_hart_package.sh --win   # Windows SSH :2222 (one tarball + apply)
+./cats/scripts/sync_hart_package.sh --all   # Mac web + Pi + Windows
+./cats/scripts/sync_hart_package.sh --pi --dry-run
+</pre>
+
+<p>---</p>
+
+<h2>6. Source-of-truth scripts</h2>
+
+<p>| Script | Purpose |</p>
+<p>|--------|---------|</p>
+<p>| <code>cats/scripts/wire_hart_master4.py</code> | Live Digicon geometry / plants / lamps (<code>--live</code> → CATS CTC / ABS) |</p>
+<p>| <code>cats/scripts/cats_turnout_io.py</code> | Turnout CSV → SWITCHPOINTS IO (used by Master 4) |</p>
+<p>| <code>cats/scripts/build_hart_master_ctc_hold.py</code> | CTC geometry → CATS CTC (<code>HOLD_ONLY</code> + AAR bridge) + header |</p>
+<p>| <code>cats/scripts/build_hart_master_abs_hold.py</code> | ABS geometry → CATS ABS (<code>HOLD_ONLY</code> + AAR bridge) + header |</p>
+<p>| <code>cats/scripts/aar_aspect_bridge.py</code> | Digicon R-codes ↔ AAR Clear/Approach/Stop |</p>
+<p>| <code>cats/scripts/apply_le_sml_facing.py</code> | AAR SHSM + Layout Editor <code>signalAMast</code> / block-boundary facing |</p>
+<p>| <code>jmri/layouts/hart/scripts/discover_sml.py</code> | PanelPro one-shot SML Discover (background; do not leave on Start Up) |</p>
+<p>| <code>cats/scripts/run_sml_discover.sh</code> | Launch PanelPro, Discover, store <code>tables.xml</code>, quit; then disable Digicon SML dests |</p>
+<p>| <code>cats/scripts/disable_digicon_sml_in_tables.py</code> | Digicon SML dests → Enabled=no. Deploy runs this on the tables file being shipped (<code>--no-sync</code>). <code>--check</code> reports without writing |</p>
+<p>| <code>cats/scripts/polish_hart_master_header.py</code> | Publication title row |</p>
+<p>| <code>cats/scripts/build_hart_signal_heads.py</code> | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |</p>
+<p>| <code>cats/scripts/add_yard_ladder_buttons.py</code> | Ladder lamp buttons on Masters |</p>
+<p>| <code>cats/scripts/sync_hart_package.sh</code> | Stage <code>~/hart</code> package; <strong>rsync</strong> to Pi, <strong>tar+scp</strong> to Windows (no git pull). Host apply copies into JMRI profiles. <code>--dry-run</code>. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped <code>tables.xml</code> |</p>
+<p>| <code>cats/scripts/install_jmri_web_override.sh</code> | STS link into JMRI <code>web/</code> (Mac/Pi) |</p>
+<p>| <code>cats/scripts/windows/install_hart_tables.ps1</code> | Windows local install helper (tables + jars + web); prefer <code>sync_hart_package.sh --win</code> |</p>
+<p>| <code>jmri/layouts/hart/scripts/apply_maintain_mqtt.py</code> | Boot retain paint (sensors/turnouts) |</p>
+<p>| <code>jmri/scripts/mqtt_signalhead_publisher.py</code> | Digicon SML MQTT: SET when Enabled, mast→IH when Disabled, sml_mode guard ACK |</p>
+
+<p>---</p>
+
+<h2>7. Operating rules (short)</h2>
+
+<p>1. <strong>CATS CTC</strong> and <strong>CATS ABS</strong> both <code>HOLD_ONLY</code>: SML sets aspects; Digicon paints JMRI appearances. CTC also Held/Unhold on coded routes. ABS Hold/Unhold follows Digicon ABS vital logic. Layout Editor is always SML.</p>
+<p>2. Never publish turnout “fix” commands at launch; retain paint is read-only.</p>
+<p>3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.</p>
+<p>4. All Digicon lamps are packed <code>IH*</code> SHSM — two-head homes on custom <strong>hart-aar</strong> (<code>SL-2-digicon</code>), dwarfs on stock <strong>AAR-1946</strong> (<code>SL-1-low</code>). Mast 2L is <code>IH438</code>/<code>IH439</code>.</p>
+<p>5. After Master / ABS geometry edits, rebuild both hold copies (<code>build_hart_master_ctc_hold.py</code>, <code>build_hart_master_abs_hold.py</code>) so <code>HOLD_ONLY</code> and mast bindings stay in sync. ABS live panel is <code>HART_Master_ABS_hold.xml</code>.</p>
+<p>6. Without CATS: Unhold + SML = ABS. Do not launch CTC geometry-source <code>HART_Master.xml</code> against live SML.</p>
+
+<p>---</p>
+
+<p>*Office of the Superintendent · Neville Island Operations · DS-DIGICON Rev A*</p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("guides"); });</script>
+</body>
+</html>

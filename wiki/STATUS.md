@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — Operator portal v1 at `consolidation/ops-portal/` (layout browse, roster, guides, maps, tools) sourced only from consolidation SoR/mirrors; linked from consolidation home + START_HERE. Open `consolidation/ops-portal/index.html`. Docs/static — not deployed.
+
 Updated: 2026-08-31 — Yard ladder boot: `sync_turnout_buttons` now reloads MQTT retain (sensors + turnouts) at arm, and lights the matching YL icons via `newKnownState(THROWN)` (it only closed inactive lamps before, so S-R etc. never lit). Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
 
 Updated: 2026-08-31 — LE switch labels format **`SW-N`** (was `Sw N`); **SW-11** nudged left (x 610→570). Reload **PanelPro**. Deploy `--pi --win`.
