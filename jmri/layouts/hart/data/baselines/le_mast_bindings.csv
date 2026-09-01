@@ -5,6 +5,8 @@ point,A36,east,Mast 20R
 point,A37,east,Mast 32L
 point,A39,east,Mast 22R
 point,A41,west,Mast 22L
+point,A45,west,Mast 8LC
+point,A45,east,Mast 8RA
 point,A46,west,Mast 20L
 point,A48,east,Mast 2036
 point,A48,west,Mast 2035
@@ -23,7 +25,10 @@ turnout,TO111,B,Mast 24L
 turnout,TO111,D,Mast 24RB
 turnout,TO113,A,Mast 36RA
 turnout,TO113,D,Mast 36RB
-turnout,TO117,A,Mast 8RA
+turnout,TO1,B,Mast 13R
+turnout,TO10,B,Mast 9LB
+turnout,TO10,C,Mast 9LA
+turnout,TO11,B,Mast 11L
 turnout,TO117,B,Mast 8LB
 turnout,TO117,C,Mast 8LA
 turnout,TO117,D,Mast 8RB

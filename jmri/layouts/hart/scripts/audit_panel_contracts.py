@@ -22,7 +22,7 @@ DEFAULT_SOURCES = (
 BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
 OCCUPANCY_BINDINGS = REPO_ROOT / "cats" / "data" / "occupancy_bindings.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
-DISPATCHER_START_SCRIPT = "preference:jython/hart_dispatcher_startup.py"
+DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
 # Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
@@ -126,8 +126,8 @@ def load_boundaries(path: Path) -> list[Boundary]:
         )
         for row in rows
     ]
-    if len(boundaries) != 23 or len({item.mast for item in boundaries}) != 23:
-        raise ValueError(f"{path}: expected 23 unique boundary mast names")
+    if len(boundaries) != 28 or len({item.mast for item in boundaries}) != 28:
+        raise ValueError(f"{path}: expected 28 unique boundary mast names")
     return boundaries
 
 
@@ -162,28 +162,40 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
+DISPATCHER_VIRTUALS = {"Mast 8LC", "Mast 13R", "Mast 11L", "Mast 9LA", "Mast 9LB"}
+
+
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
     masts = root.find("signalmasts")
     names: set[str] = set()
+    virtual_names: set[str] = set()
     cats_virtual: list[str] = []
     if masts is not None:
-        for mast in masts.findall("signalmast"):
+        for mast in list(masts):
             name = text(mast, "userName")
             system_name = text(mast, "systemName")
             normalized = (system_name + " " + name).upper()
             if "IF$VSM:CATS" in normalized or "CATS1" in normalized or "CATS2" in normalized:
                 cats_virtual.append(f"{name or '<unnamed>'} [{system_name or '<no system name>'}]")
-            if (system_name or "").startswith("IF$vsm:AAR-1946:"):
+            if mast.tag == "virtualsignalmast" or (system_name or "").startswith(
+                "IF$vsm:AAR-1946:"
+            ):
+                if name:
+                    virtual_names.add(name)
                 continue
             if name:
                 names.add(name)
-    missing = sorted(expected - names)
-    extra = sorted(names - expected)
+    field_expected = expected - DISPATCHER_VIRTUALS
+    missing = sorted(field_expected - names)
+    extra = sorted(names - field_expected)
     if missing or extra or len(names) != 23:
         audit.error(
             f"signal mast names are not the exact expected 23; "
             f"missing={missing or 'none'}, extra={extra or 'none'}, count={len(names)}"
         )
+    missing_virtuals = sorted(DISPATCHER_VIRTUALS - virtual_names)
+    if missing_virtuals:
+        audit.error(f"missing dispatcher virtual masts: {missing_virtuals}")
     if cats_virtual:
         audit.error(f"CATS runtime virtual masts stored in file: {cats_virtual}")
     audit.facts["masts"] = tuple(sorted(names))
@@ -281,9 +293,9 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    if (len(destinations), auto, manual, unknown) != (93, 91, 2, 0):
+    if (len(destinations), auto, manual, unknown) != (98, 96, 2, 0):
         message = (
-            "stored SML destinations expected total=93, useLayoutEditor=yes=91, "
+            "stored SML destinations expected total=98, useLayoutEditor=yes=96, "
             f"manual=2; found total={len(destinations)}, yes={auto}, "
             f"manual={manual}, unspecified/other={unknown}"
         )
@@ -569,7 +581,7 @@ def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
 
 
 def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
-    """Run Dispatcher System must load the HART wrapper, not stock Startup.py."""
+    """Run Dispatcher System must load stock Startup.py (no HART overlay)."""
     actions: list[str] = []
     for conditional in root.findall("./conditionals/conditional"):
         user_name = conditional.get("userName") or text(conditional, "userName")
@@ -601,9 +613,9 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         )
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
-    if (sections, transits) != (91, 688):
+    if (sections, transits) != (103, 746):
         audit.error(
-            f"generated Dispatcher graph expected 91 sections / 688 transits, "
+            f"generated Dispatcher graph expected 103 sections / 746 transits, "
             f"found {sections} / {transits}"
         )
     files = sorted(TRAININFO.glob("*.xml"))
@@ -621,8 +633,8 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         ]
         if values != ["TRAINDETECTION_HEADANDTAIL"]:
             bad_detection.append(path.name)
-    if len(files) != 1508:
-        audit.error(f"expected 1508 generated traininfo files, found {len(files)}")
+    if len(files) != 1548:
+        audit.error(f"expected 1548 generated traininfo files, found {len(files)}")
     if bad_detection:
         audit.error(
             "traininfo not HEAD_AND_TAIL: "

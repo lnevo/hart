@@ -1,6 +1,8 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-31 — Digicon Mast 32R lamp slot → LOWRIGHT of OS Switch 31 (was UPLEFT; hard to place in CATS). Portal explorer defaults to 75% zoom, centered; hotspot nudged further SE of the plant. Reload **CATS**. Deploy `--pi`. Portal docs/static — not deployed.
+Updated: 2026-09-01 — Stock Stage 1 after EH-exit virtuals: **45 masts / 103 sections / 746 transits / 1548 HEAD_AND_TAIL traininfo**. Hidden **Mast 11L / 9LA / 9LB** on Switch 11/9 so Engine House can leave for S-1/S-4/S-R (was get_first picking 32L). Full 22×21 station matrix; PanelPro smoke **PASS**. Princess manuals 36RA→40LA and 36RB→38LA re-added. Reload **PanelPro**. Deploy `--pi`.
+
+Updated: 2026-09-01 — Stock Stage 1 on the Mac: **42 masts / 82 sections / 721 transits / 1530 HEAD_AND_TAIL traininfo**. No CreateTransits/JMRI patches. Scale/Switch 7 is A45 8LC west + 8RA east; hidden **Mast 13R** on TO1 B so Discover does not jump 8RA→26L. Reload **PanelPro**. Deploy `--pi`.
 
 Updated: 2026-08-31 — Dropped Start Up `prepare_nx_sml_paths.py` (NX auto-turnouts are runtime-only; not stored in tables). 39 pairs / frozen `ISNX:*` stay in `tables.xml`. Reload **PanelPro**. Deploy `--pi --win`.
 
@@ -513,7 +515,7 @@ Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.
 ## Remaining
 
 - Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
-- Dispatcher traininfo ordered-route smoke (422 files) — Stage 1 re-run, then `fix_traininfo_detection.py`
+- Dispatcher traininfo: 1004 files retargeted `via Track N` → `via OS Switch N`. Fable repair rebound 226; **196 pairs still have no transit** (EH-1/2/3 and McKeesport/McKees Rocks). Stage 1 in PanelPro is only for those holes — then `fix_traininfo_detection.py` + Princess SML pairs.
 
 ## Manual launch (local Mac only)
 

@@ -59,6 +59,7 @@ YARD_BOUNDARY_MASTS = [
     ("A12", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1015)", "107R", 1148, 474, 90),
     ("A81", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1016)", "103L", 720, 300, 270),
     ("A37", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1017)", "110L", 1145, 300, 90),
+    ("A45", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1018)", "Mast 8LC", 382, 305, 270),
 ]
 YARD_VIRTUAL_UNAMES = {row[3] for row in YARD_BOUNDARY_MASTS}
 
@@ -285,6 +286,8 @@ def patch_yard_turnout_masts(root: ET.Element, le: ET.Element) -> int:
                 if attr == "westboundsignalmast"
                 else "westboundsignalmast"
             )
+            if ident == "A45":
+                continue
             if pt.get(other):
                 del pt.attrib[other]
                 n += 1

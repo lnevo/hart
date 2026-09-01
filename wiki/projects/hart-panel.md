@@ -32,7 +32,7 @@ Best geometry and live wiring lived in an ad-hoc folder without a named layout p
 
 ## What landed after phase 2
 
-Native SML (93 dests: 91 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (91 sections / 688 transits / 1508 traininfo; all 22 stations are origins and destinations, including S-1…S-5). Node 13 occupancy walk-down is live (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT channels swapped vs geographic labels). Load `jmri/layouts/hart/output/hart_prod.xml`; writable source `tables/new_tables.xml`.
+Native SML (98 dests: 96 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (103 sections / 746 transits / 1548 traininfo; all 22 stations are origins and destinations, including S-1…S-5 and EH outbound). Node 13 occupancy walk-down is live (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT channels swapped vs geographic labels). Load `jmri/layouts/hart/output/hart_prod.xml`; writable source `tables/new_tables.xml`.
 
 ## Remaining (railroad)
 
