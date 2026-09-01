@@ -1,12 +1,18 @@
 (function () {
   var DATA_URL = "data/layout-index-cats.json";
   var IMAGE_FALLBACK = "assets/layout/HART_cats_digicon.png";
+  var ZOOM_MIN = 0.2;
+  var ZOOM_MAX = 1.2;
+  var ZOOM_STEP = 0.05;
 
   var state = {
     data: null,
     kind: { turnout: true, signal: true },
     q: "",
     activeId: null,
+    zoom: 0.45,
+    naturalW: 0,
+    naturalH: 0,
   };
 
   function $(sel) {
@@ -63,7 +69,6 @@
       "roster/index.html#" +
       encodeURIComponent(item.id) +
       '">Open in roster →</a></p>';
-    el.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
   function matches(item) {
@@ -75,6 +80,33 @@
       .join(" ")
       .toLowerCase()
       .indexOf(q) >= 0;
+  }
+
+  function applyZoom() {
+    var z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, state.zoom));
+    state.zoom = z;
+    var stage = $("#map-stage");
+    var wrap = $("#map-zoom-wrap");
+    var label = $("#zoom-label");
+    var range = $("#zoom-range");
+    if (stage) {
+      stage.style.transform = "scale(" + z + ")";
+      stage.style.transformOrigin = "0 0";
+    }
+    if (wrap && state.naturalW && state.naturalH) {
+      wrap.style.width = Math.ceil(state.naturalW * z) + "px";
+      wrap.style.height = Math.ceil(state.naturalH * z) + "px";
+    }
+    if (label) label.textContent = Math.round(z * 100) + "%";
+    if (range) range.value = String(Math.round(z * 100));
+  }
+
+  function fitWidth() {
+    var scroll = $(".map-scroll");
+    if (!scroll || !state.naturalW) return;
+    var avail = Math.max(200, scroll.clientWidth - 8);
+    state.zoom = Math.max(ZOOM_MIN, Math.min(1, avail / state.naturalW));
+    applyZoom();
   }
 
   function paint() {
@@ -113,7 +145,7 @@
       (c.turnout || 0) +
       " switches · " +
       (c.signal || 0) +
-      " masts";
+      " masts · panel photos in Photos → Control panels";
   }
 
   async function load() {
@@ -124,18 +156,25 @@
     state.data = await res.json();
     var img = $("#schematic");
     var imagePath = (state.data.image && state.data.image.path) || IMAGE_FALLBACK;
+
+    function onReady() {
+      state.naturalW = img.naturalWidth || (state.data.image && state.data.image.width) || 0;
+      state.naturalH = img.naturalHeight || (state.data.image && state.data.image.height) || 0;
+      fitWidth();
+      paint();
+    }
+
     if (img) {
-      img.onload = paint;
+      img.onload = onReady;
       img.onerror = function () {
         var meta = $("#layout-meta");
         if (meta) meta.textContent = "Map image failed to load: " + imagePath;
       };
       img.src = b + imagePath;
-      if (img.complete) paint();
+      if (img.complete && img.naturalWidth) onReady();
     }
     updateMeta();
     showDetail(null);
-    paint();
   }
 
   async function init() {
@@ -152,6 +191,36 @@
         paint();
       });
     }
+
+    var range = $("#zoom-range");
+    if (range) {
+      range.addEventListener("input", function () {
+        state.zoom = Number(range.value) / 100;
+        applyZoom();
+      });
+    }
+    var zin = $("#zoom-in");
+    if (zin) {
+      zin.addEventListener("click", function () {
+        state.zoom = Math.min(ZOOM_MAX, state.zoom + ZOOM_STEP);
+        applyZoom();
+      });
+    }
+    var zout = $("#zoom-out");
+    if (zout) {
+      zout.addEventListener("click", function () {
+        state.zoom = Math.max(ZOOM_MIN, state.zoom - ZOOM_STEP);
+        applyZoom();
+      });
+    }
+    var zfit = $("#zoom-fit");
+    if (zfit) {
+      zfit.addEventListener("click", fitWidth);
+    }
+    window.addEventListener("resize", function () {
+      // Keep current zoom on resize; user can hit Fit.
+    });
+
     await load();
   }
 
