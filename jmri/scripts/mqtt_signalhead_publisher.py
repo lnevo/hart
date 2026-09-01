@@ -712,16 +712,77 @@ class DigiconMqttSml(
         if self._global_enabled:
             self._publish_head_set(head)
 
-    def _add_toggle_button(self):
-        self._button = JButton("SML Disabled")
-        self._button.addActionListener(lambda e: self._on_toggle())
-        try:
-            from apps import Apps
+    def _add_toggle_button(self, attempt=0):
+        """PanelPro main-window strip — kept in addition to the LE Signals lamp."""
+        max_attempts = 12
+        delay_ms = 500
 
-            Apps.buttonSpace().add(self._button)
-            Apps.buttonSpace().revalidate()
-        except Exception as exc:
-            print("mqtt_signalhead: buttonSpace failed: " + _ascii(exc))
+        def _try_attach():
+            try:
+                from apps import Apps
+
+                space = Apps.buttonSpace()
+                if space is None:
+                    raise RuntimeError("Apps.buttonSpace() is None")
+                # Already on the strip (re-run / retry).
+                for i in range(space.getComponentCount()):
+                    c = space.getComponent(i)
+                    try:
+                        if c is self._button:
+                            space.revalidate()
+                            space.repaint()
+                            return True
+                        text = c.getText()
+                        if text in ("SML Enabled", "SML Disabled"):
+                            if self._button is None:
+                                self._button = c
+                            space.revalidate()
+                            space.repaint()
+                            return True
+                    except Exception:
+                        pass
+                if self._button is None:
+                    self._button = JButton("SML Disabled")
+                    self._button.addActionListener(lambda e: self._on_toggle())
+                space.add(self._button)
+                space.revalidate()
+                space.repaint()
+                print("mqtt_signalhead: SML toggle on PanelPro button strip")
+                return True
+            except Exception as exc:
+                print(
+                    "mqtt_signalhead: buttonSpace attempt %d failed: %s"
+                    % (attempt + 1, _ascii(exc))
+                )
+                return False
+
+        class _Attach(Runnable):
+            def run(_self):
+                if _try_attach():
+                    self._set_button_label()
+                    return
+                if attempt + 1 >= max_attempts:
+                    print(
+                        "mqtt_signalhead: giving up on main-window SML button "
+                        "(panel Signals lamp still works)"
+                    )
+                    return
+                self._add_toggle_button(attempt + 1)
+
+        if attempt == 0 and self._button is None:
+            self._button = JButton("SML Disabled")
+            self._button.addActionListener(lambda e: self._on_toggle())
+
+        if attempt == 0:
+            SwingUtilities.invokeLater(_Attach())
+        else:
+
+            class _Retry(Runnable):
+                def run(_self):
+                    Thread.sleep(delay_ms)
+                    SwingUtilities.invokeLater(_Attach())
+
+            Thread(_Retry(), "mqtt-sml-button").start()
 
     def _set_button_label(self):
         if self._button is None:

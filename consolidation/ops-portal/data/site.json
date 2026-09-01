@@ -5,8 +5,8 @@
   "engDesk": "../index.html",
   "tools": {
     "sts": "http://10.0.0.53:8980/sts/",
-    "mimic": "http://10.0.0.53:8765/",
-    "jmri": "http://10.0.0.53:12080/"
+    "mimic": "http://localhost:8765/",
+    "jmri": "http://localhost:12080/"
   },
   "nav": [
     {"id": "home", "href": "index.html", "label": "Home"},
