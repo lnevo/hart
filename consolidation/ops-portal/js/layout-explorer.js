@@ -107,7 +107,7 @@
     var c = (state.data && state.data.counts) || {};
     var meta = $("#layout-meta");
     if (!meta) return;
-    var viewLabel = state.view === "cats" ? "Digicon CATS plants" : "LE schematic devices";
+    var viewLabel = state.view === "cats" ? "Digicon Master plants" : "LE schematic devices";
     meta.textContent =
       viewLabel +
       " · " +
