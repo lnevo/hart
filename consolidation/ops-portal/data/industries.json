@@ -1,0 +1,104 @@
+{
+  "title": "Industries on Neville Island",
+  "lede": "The customers and commodities that make the railroad work. Waybill counts come from the consolidation spot-waybill seed.",
+  "industries": [
+    {
+      "name": "Aristech Plastics",
+      "blurb": "Plastic resins and monomers arrive by covered hopper and tank car. Yellow block on the color board — worked by the Neville Island Turn.",
+      "commodities": [
+        "Ethyl Acrylate",
+        "Methyl Methacrylate",
+        "Plastic Pellets",
+        "Plastic Resins",
+        "Styrene Monomer"
+      ],
+      "waybill_count": 17,
+      "logo": "../external/hart-ops/operator_logos/aristech.png"
+    },
+    {
+      "name": "A Stucki Co",
+      "blurb": "Railway springs, machined parts, and steel for the island's railroad supplier. Green destination.",
+      "commodities": [
+        "Machined Parts",
+        "Railway Springs",
+        "Steel",
+        "Steel Billets",
+        "Steel Coils",
+        "Steel Plate"
+      ],
+      "waybill_count": 11,
+      "logo": "../external/hart-ops/operator_logos/stucki.png"
+    },
+    {
+      "name": "Calgon Carbon",
+      "blurb": "Activated carbon, coal, and process chemicals. Purple block — a busy spot for NVL.",
+      "commodities": [
+        "Activated Carbon",
+        "Caustic Soda",
+        "Coal",
+        "Hydrochloric Acid",
+        "Phosphoric Acid"
+      ],
+      "waybill_count": 15,
+      "logo": "../external/hart-ops/operator_logos/calgon.png"
+    },
+    {
+      "name": "Ferrel Gas",
+      "blurb": "LPG in and out on tank cars. Red destination on the crew sheets.",
+      "commodities": [
+        "LPG"
+      ],
+      "waybill_count": 4,
+      "logo": "../external/hart-ops/operator_logos/ferrellgas.png"
+    },
+    {
+      "name": "Kosmos Cement",
+      "blurb": "Cement and aggregate. Pink block — covered hoppers and bulk moves.",
+      "commodities": [
+        "Aggregate",
+        "Cement"
+      ],
+      "waybill_count": 10,
+      "logo": "../external/hart-ops/operator_logos/kosmos.png"
+    },
+    {
+      "name": "Shenango Coke Works",
+      "blurb": "Coke for steel customers. Black destination — CK1 works the pickup, the weigh, and the reload when hoppers fail the scale.",
+      "commodities": [
+        "Coke"
+      ],
+      "waybill_count": 0,
+      "logo": "../external/hart-ops/operator_logos/shenango.png"
+    },
+    {
+      "name": "Interchange",
+      "blurb": "Off-island shippers and receivers that feed the CSX and POHC connections — the reason cars keep arriving at South Yard.",
+      "commodities": [
+        "Activated Carbon",
+        "Argon",
+        "Cement",
+        "Coal",
+        "Fluorescent Lamps",
+        "Fluorescent Tubes",
+        "Forged Components",
+        "Frozen Foods",
+        "Industrial Gases",
+        "LPG",
+        "Methyl Methacrylate",
+        "Packaged Meats",
+        "Phosphor Compounds",
+        "Plastic Pellets",
+        "Plastic Resins",
+        "Scrap Steel",
+        "Stainless Bar",
+        "Stainless Slab",
+        "Steel Billets",
+        "Steel Coils",
+        "Steel Plate",
+        "Tin Plate"
+      ],
+      "waybill_count": 30,
+      "logo": "../external/hart-ops/operator_logos/hart.png"
+    }
+  ]
+}

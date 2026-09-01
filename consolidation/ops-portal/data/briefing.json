@@ -1,0 +1,155 @@
+{
+  "title": "New Operator Primer",
+  "pub": "HB-01 · Revision A",
+  "lede": "If this is your first Neville Island session, this primer gives you the story behind the railroad and a feel for how a session runs. You do not need to memorize it.",
+  "sections": [
+    {
+      "id": "island",
+      "heading": "Neville Island",
+      "paragraphs": [
+        "Nestled between Pittsburgh and the Chartiers Valley in the Ohio River lies a five-mile strip of land. Originally called Montour's Island and later Long Island, it was renamed Neville Island in honor of Revolutionary War General John Neville. It was once farmland renowned as the \"Market Basket of Pittsburgh,\" which all changed at the turn of the century.",
+        "Bridges and an electric street railway opened easy access to the mainland. American Steel & Wire began the island's first mill in 1900. During World War I the government took land for a munitions plant. After Pearl Harbor, the Dravo Corporation built ships for the Navy—and that sealed the island's industrial future.",
+        "Today the 1,200-acre township is a mix of heavy industry, logistics, and a small residential community. Manufacturing and chemical plants still work here, alongside cleanup and redevelopment."
+      ]
+    },
+    {
+      "id": "railroad",
+      "heading": "The Railroad Today",
+      "paragraphs": [
+        "HART Railroad's Pittsburgh & Chartiers Valley Division sits in the middle of that story. We handle the interchange between CSX and the Pittsburgh & Ohio Central, and we switch the industries on the island.",
+        "Cars arrive from Demmler / McKeesport on one side and from Scully / McKees Rocks on the other. South Yard is where those moves meet—and where most of the sorting gets done.",
+        "On the real railroad, CSX's D749 works the island toward Demmler, and the POHC comes over from McKees Rocks—often waiting for D749 to clear the trestle over the Ohio. There is scrap, steel, chemicals, and fuel for the airport. Our session compresses that into a few overlapping jobs that all share South Yard."
+      ],
+      "industries": [
+        "Aristech Plastics",
+        "A. Stucki Company",
+        "Calgon Carbon",
+        "Ferrellgas",
+        "Kosmos Cement",
+        "Shenango Coke Works"
+      ]
+    },
+    {
+      "id": "jobs",
+      "heading": "Jobs on the Board",
+      "intro": "Here is the usual crew board for a full session. Exact assignments are confirmed in the invitation and again at the briefing.",
+      "jobs": [
+        {
+          "code": "D749",
+          "name": "CSX Neville Island Switcher",
+          "blurb": "The CSX local that comes over from Demmler / McKeesport. It drops its inbound cars at South Yard, visits the engine terminal, then picks up the outbound block and heads back."
+        },
+        {
+          "code": "NVL",
+          "name": "Neville Island Turn",
+          "blurb": "The Pittsburgh & Ohio Central local from Scully Yard. It swaps cars at South Yard, switches the island industries, then takes the return cut back toward McKees Rocks."
+        },
+        {
+          "code": "CK1",
+          "name": "Coke Transfer",
+          "blurb": "Works Shenango Coke Works—the pickup, the weigh, and the sort. Also calibrates the track scale at the start of the session. The Yardmaster assigns the engine."
+        },
+        {
+          "code": "Yardmaster",
+          "name": "South Yard",
+          "blurb": "Keeps South Yard organized. Builds cuts by color, hands work to each train, and keeps D749, NVL, and CK1 from stepping on each other."
+        },
+        {
+          "code": "Dispatcher",
+          "name": "Neville Island Ops",
+          "blurb": "Gives clearance and keeps freight out of the streetcar's way. When things get busy, Route 23 and the main trains come first."
+        },
+        {
+          "code": "Route 23",
+          "name": "Streetcar",
+          "blurb": "A refurbished PCC car running local passenger service across the island. Freight holds until the streetcar clears."
+        }
+      ]
+    },
+    {
+      "id": "colors",
+      "heading": "Destination Colors",
+      "intro": "We sort cars by color. Each color is a place—an industry or an interchange. The same colors show up on switch lists, car cards, and the yard sheets.",
+      "blocks": [
+        {
+          "color": "BLUE",
+          "hex": "#0000CD",
+          "text": "#fff",
+          "dest": "Demmler Yard; McKeesport",
+          "train": "D749"
+        },
+        {
+          "color": "YELLOW",
+          "hex": "#FFFF00",
+          "text": "#000",
+          "dest": "Aristech Plastics",
+          "train": "NVL"
+        },
+        {
+          "color": "GREEN",
+          "hex": "#008000",
+          "text": "#fff",
+          "dest": "A. Stucki Co.",
+          "train": "NVL"
+        },
+        {
+          "color": "PURPLE",
+          "hex": "#800080",
+          "text": "#fff",
+          "dest": "Calgon Carbon",
+          "train": "NVL"
+        },
+        {
+          "color": "RED",
+          "hex": "#FF0000",
+          "text": "#fff",
+          "dest": "Ferrellgas",
+          "train": "NVL"
+        },
+        {
+          "color": "PINK",
+          "hex": "#FFC0CB",
+          "text": "#000",
+          "dest": "Kosmos Cement",
+          "train": "NVL"
+        },
+        {
+          "color": "BLACK",
+          "hex": "#000000",
+          "text": "#fff",
+          "dest": "Shenango Coke Works",
+          "train": "CK1"
+        },
+        {
+          "color": "ORANGE",
+          "hex": "#FFA500",
+          "text": "#000",
+          "dest": "Scully Yard; McKees Rocks",
+          "train": "NVL return"
+        }
+      ]
+    },
+    {
+      "id": "scale",
+      "heading": "The Track Scale",
+      "paragraphs": [
+        "Shenango loads a lot of coke, and not every hopper comes out perfectly. Before those cars leave the island, we weigh them on the scale at South Yard. Cars that check out continue on their way. Cars that are too heavy or out of balance go back for a reload.",
+        "Someone—usually CK1—calibrates the scale before the first weigh of the session. Without that, the readings start to drift."
+      ]
+    }
+  ],
+  "links": [
+    {
+      "label": "Pittsburgh & Ohio Central overview",
+      "href": "https://www.lundsten.dk/railfan_pa/poc/index.html"
+    },
+    {
+      "label": "Neville Island operations notes",
+      "href": "https://railroad.net/post1592461.html#p1592461"
+    },
+    {
+      "label": "Proper balancing of hopper cars (CSX / AAR)",
+      "href": "https://www.csx.com/index.cfm/library/files/customers/leads/proper-balancing-of-hopper-cars/"
+    }
+  ]
+}

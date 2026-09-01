@@ -1,0 +1,53 @@
+{
+  "title": "Session invitations",
+  "lede": "These are the introductions sent to new and returning operators — the place narrative, jobs, and the tone of a Neville Island night.",
+  "sessions": [
+    {
+      "id": "session-1",
+      "title": "Neville Island Operating Session",
+      "when": "Session #1 · doors 6:30 · trains 7–10",
+      "body": [
+        "Nestled between Pittsburgh and the Chartiers Valley in the Ohio River lies a 5-mile long strip of land. Originally called Montour's Island and later Long Island, it was renamed Neville Island in honor of Revolutionary War General John Neville. It was once farmland renowned as the \"Market Basket of Pittsburgh,\" which all changed at the turn of the century.",
+        "We'll be focusing on the Neville Island turn (NVL), classification work in South Yard receiving/sending from Duff Jct, while also working the POV interchange with CSX. We'll also be running the newly acquired streetcar service for the island recreating the Coraopolis–Sewickley route."
+      ],
+      "jobs": [
+        "NVL (local freight)",
+        "Streetcar service",
+        "Yardmaster",
+        "Dispatcher"
+      ]
+    },
+    {
+      "id": "session-2",
+      "title": "Neville Island Operating Session #2",
+      "when": "Session #2 · CSX inspectors gave the green light",
+      "body": [
+        "CSX local D749 works out of Neville Island, heading east towards Demmler Yard. POHC works out of McKees Rocks around noon, heading to Neville Island. Often, they wait for D749 to clear the trestle over the Ohio River, and clearance from the CSX dispatcher.",
+        "There are a number of industries dealing with scrap metal and metal fabrication. Visitors should be wary of the truck traffic — dump trucks and 18 wheelers — and no trespassing signs."
+      ],
+      "jobs": [
+        "Dispatcher",
+        "Yardmaster",
+        "The Local",
+        "Streetcar / Extras"
+      ]
+    },
+    {
+      "id": "session-815",
+      "title": "Neville Island Operating Session — 8/15",
+      "when": "Day session · briefing mid-morning · trains until the work (or lunch) is done",
+      "body": [
+        "Today, the HART Railroad manages the interchange between CSX and POHC and servicing the local industries. After much local demand, we've refurbished a classic PCC Streetcar to provide much needed commuter service.",
+        "The coke works is constantly sending imbalanced or overloaded hoppers, so we'll be weighing the outgoing coke shipment. Our track scale was recently serviced so it will require calibrating. CSX train D749 will be swapping blocks on its way down to McKeesport and back, while the POHC NVL train comes in to switch out the local industries before heading back to McKees Rocks."
+      ],
+      "jobs": [
+        "D749",
+        "NVL",
+        "CK1 / scale",
+        "Yardmaster",
+        "Dispatcher",
+        "Route 23"
+      ]
+    }
+  ]
+}

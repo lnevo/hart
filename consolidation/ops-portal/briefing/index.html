@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Operator Briefing — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="briefing-title">New Operator Briefing</h1>
+      <p class="muted" id="briefing-pub"></p>
+      <p id="briefing-lede"></p>
+    </div>
+    <div id="briefing-body"></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      await HARTOps.mountChrome("briefing");
+      var data = await HARTOps.loadJson("data/briefing.json");
+      document.getElementById("briefing-title").textContent = data.title;
+      document.getElementById("briefing-pub").textContent = data.pub || "";
+      document.getElementById("briefing-lede").textContent = data.lede || "";
+      var root = document.getElementById("briefing-body");
+      root.innerHTML = (data.sections || [])
+        .map(function (sec) {
+          var html = '<section class="panel" id="' + esc(sec.id) + '">';
+          html += "<h2>" + esc(sec.heading) + "</h2>";
+          if (sec.intro) html += '<p class="muted">' + esc(sec.intro) + "</p>";
+          (sec.paragraphs || []).forEach(function (p) {
+            html += "<p>" + esc(p) + "</p>";
+          });
+          if (sec.industries && sec.industries.length) {
+            html +=
+              "<ul>" +
+              sec.industries
+                .map(function (i) {
+                  return "<li>" + esc(i) + "</li>";
+                })
+                .join("") +
+              "</ul>";
+          }
+          if (sec.jobs) {
+            html +=
+              '<div class="job-grid">' +
+              sec.jobs
+                .map(function (j) {
+                  return (
+                    '<article class="job-card"><p class="code">' +
+                    esc(j.code) +
+                    "</p><h3>" +
+                    esc(j.name) +
+                    "</h3><p>" +
+                    esc(j.blurb) +
+                    "</p></article>"
+                  );
+                })
+                .join("") +
+              "</div>";
+          }
+          if (sec.blocks) {
+            html +=
+              '<div class="swatch-row">' +
+              sec.blocks
+                .map(function (b) {
+                  return (
+                    '<div class="swatch"><div class="chip" style="background:' +
+                    esc(b.hex) +
+                    ";color:" +
+                    esc(b.text) +
+                    '">' +
+                    esc(b.color) +
+                    "</div><div>" +
+                    esc(b.dest) +
+                    '</div><div class="train">' +
+                    esc(b.train) +
+                    "</div></div>"
+                  );
+                })
+                .join("") +
+              "</div>";
+          }
+          html += "</section>";
+          return html;
+        })
+        .join("");
+      if (data.links && data.links.length) {
+        root.innerHTML +=
+          '<section class="panel"><h2>If you want to dig deeper</h2><ul>' +
+          data.links
+            .map(function (l) {
+              return (
+                '<li><a href="' +
+                esc(l.href) +
+                '" target="_blank" rel="noopener">' +
+                esc(l.label) +
+                "</a></li>"
+              );
+            })
+            .join("") +
+          "</ul></section>";
+      }
+    });
+  </script>
+</body>
+</html>

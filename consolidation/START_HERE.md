@@ -2,7 +2,7 @@
 
 ## 1. Open the browse portal
 
-**Operator portal (crew / layout browse):** [`ops-portal/index.html`](ops-portal/index.html)
+**Operator portal (crew / Neville Island):** [`ops-portal/index.html`](ops-portal/index.html) — briefing, industries, photo gallery, stories, sessions, layout explorer.
 
 **Engineering consolidation desk (dark SoR / pipelines):**
 
