@@ -120,21 +120,13 @@ def _mqtt_host():
     return _candidate_hosts()[0]
 
 
-def _retained(host):
+def _retained(host, include_turnouts=True):
     """Return list of (topic, payload) from broker retain. Read-only."""
     exe = _mosquitto_sub()
-    cmd = [
-        exe,
-        "-h",
-        host,
-        "-t",
-        "track/turnout/#",
-        "-t",
-        "track/sensor/#",
-        "-v",
-        "-W",
-        WAIT_SECS,
-    ]
+    cmd = [exe, "-h", host, "-t", "track/sensor/#"]
+    if include_turnouts:
+        cmd.extend(["-t", "track/turnout/#"])
+    cmd.extend(["-v", "-W", WAIT_SECS])
     # Hard cap so a stuck mosquitto_sub cannot freeze Digicon main init.
     # Jython 2.7: no communicate(timeout=) — use a watcher thread + kill.
     try:
@@ -235,14 +227,28 @@ def _apply_turnout(addr, payload):
         t.newKnownState(Turnout.CLOSED)
 
 
-def _apply_sensor(addr, payload):
+def _sensor_needs_retain(s):
+    """True when JMRI has not yet taken a live MQTT sensor value."""
+    try:
+        st = s.getKnownState()
+        return st not in (Sensor.ACTIVE, Sensor.INACTIVE)
+    except Exception:
+        return True
+
+
+def _apply_sensor(addr, payload, unknown_only=False):
     name = "M2S" + str(addr)
     s = sensors.provideSensor(name)
+    if unknown_only and not _sensor_needs_retain(s):
+        return False
     p = payload.upper()
     if p == "ACTIVE":
         s.setOwnState(Sensor.ACTIVE)
-    elif p == "INACTIVE":
+        return True
+    if p == "INACTIVE":
         s.setOwnState(Sensor.INACTIVE)
+        return True
+    return False
 
 
 def _turnout_delay_ms():
@@ -385,14 +391,21 @@ def _schedule_turnout_paint(turnout_rows, delay_ms):
         _paint_turnouts(turnout_rows)
 
 
-def reload_mqtt_retain(turnout_delay_ms=None, settle_secs=0.5, log_prefix=None):
-    """Read broker retain; paint sensors now; schedule/paint turnouts.
+def reload_mqtt_retain(
+    turnout_delay_ms=None,
+    settle_secs=0.5,
+    log_prefix=None,
+    paint_turnouts=True,
+    unknown_sensors_only=False,
+):
+    """Read broker retain; paint sensors now; optionally schedule/paint turnouts.
 
-    Returns (sensor_count, turnout_queued). Safe to call again from other
-    Start Up scripts (e.g. sync_turnout_buttons) to regain occupancy / plants.
+    Returns (sensor_count, turnout_queued). Start Up paints both. Yard-ladder
+    boot must pass paint_turnouts=False so this never touches plant turnouts.
 
     turnout_delay_ms: None → HART_TURNOUT_RETAIN_DELAY_MS / default 12000;
     0 → paint turnouts immediately (use only when Digicon PTS is already up).
+    unknown_sensors_only: only setOwnState when the bean is still UNKNOWN.
     """
     prefix = log_prefix or "apply_maintain_mqtt"
     if settle_secs and settle_secs > 0:
@@ -407,7 +420,7 @@ def reload_mqtt_retain(turnout_delay_ms=None, settle_secs=0.5, log_prefix=None):
         % (prefix, _ascii(host), _ascii(_mosquitto_sub()))
     )
 
-    retained = _retained(host)
+    retained = _retained(host, include_turnouts=paint_turnouts)
     turnout_rows = []
     n_s = 0
     for topic, payload in retained:
@@ -420,20 +433,23 @@ def reload_mqtt_retain(turnout_delay_ms=None, settle_secs=0.5, log_prefix=None):
         addr = int(addr_s)
         if kind == "sensor":
             try:
-                _apply_sensor(addr, payload)
-                n_s += 1
+                if _apply_sensor(addr, payload, unknown_only=unknown_sensors_only):
+                    n_s += 1
             except Exception as e:
                 print(
                     "%s: sensor M2S%s failed: %s"
                     % (prefix, addr, _ascii(e))
                 )
-        elif kind == "turnout":
+        elif paint_turnouts and kind == "turnout":
             turnout_rows.append((addr, payload))
 
     print(
         "%s: sensors=%d turnouts_queued=%d"
-        % (prefix, n_s, len(turnout_rows))
+        % (prefix, n_s, len(turnout_rows) if paint_turnouts else 0)
     )
+
+    if not paint_turnouts:
+        return n_s, 0
 
     delay = _turnout_delay_ms() if turnout_delay_ms is None else max(0, int(turnout_delay_ms))
     _schedule_turnout_paint(turnout_rows, delay)
