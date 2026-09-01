@@ -995,13 +995,12 @@ main.explorer-page {
   width: 100%;
 }
 
-/* Leave room so detail stays on-screen under the map */
+/* Leave room so detail stays on-screen under the map.
+   Do not use flex justify-content:center here — it clips the left/top
+   overflow so you cannot scroll to the start of a wide map. */
 .map-scroll-explorer {
   max-height: min(48vh, 420px);
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .zoom-controls {
@@ -1023,7 +1022,8 @@ main.explorer-page {
 
 #map-zoom-wrap {
   position: relative;
-  flex: 0 0 auto;
+  /* Center when the scaled map is smaller than the viewport */
+  margin-inline: auto;
 }
 
 #map-stage {
