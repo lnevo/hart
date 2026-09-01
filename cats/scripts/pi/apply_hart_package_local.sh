@@ -91,7 +91,6 @@ JYTHON=(
   "$HART/jmri/layouts/hart/scripts/sync_turnout_buttons.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/scripts/mqtt_signalhead_publisher.py"
-  "$HART/jmri/layouts/hart/scripts/prepare_nx_sml_paths.py"
 )
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
@@ -118,12 +117,11 @@ if [[ -f "$PATCH" ]]; then
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
     --script sync_turnout_buttons.py \
     --script mqtt_signalhead_publisher.py \
-    --script jmri_cmd_watcher.py \
-    --script prepare_nx_sml_paths.py
-  python3 "$PATCH" insert \
+    --script jmri_cmd_watcher.py
+  python3 "$PATCH" remove \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
-    --script preference:jython/prepare_nx_sml_paths.py \
-    --after mqtt_signalhead_publisher.py
+    --script prepare_nx_sml_paths.py 2>/dev/null || true
+  rm -f "$UF/jython/prepare_nx_sml_paths.py"
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
   for s in apply_sml_cats_pairs.py unhold_signal_masts.py \
            apply_maintain_mqtt.py apply_mqtt_retain_at_startup.py; do

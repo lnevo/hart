@@ -1,8 +1,6 @@
 # JMRI jython — Entry/Exit Discover + Brick occupancy smoke (PanelPro).
 #
 # Requires ISNX sensors bound on HART Railroad and layout-block advanced routing.
-# SML-mode pairs throw from stored SML auto-turnouts when a dest exists; Start Up
-# prepare_nx_sml_paths.py fills those lists without enabling Digicon dests.
 # Do not leave this on Start Up.
 #
 # Optional env (one-shot launcher):
