@@ -32,15 +32,18 @@
       document.getElementById("ind-lede").textContent = data.lede || "";
       document.getElementById("ind-grid").innerHTML = (data.industries || [])
         .map(function (ind) {
-          var logo = ind.logo
-            ? '<img class="logo" src="' +
-              esc(
-                ind.logo.indexOf("../external/") === 0
-                  ? ind.logo.replace(/^\.\.\//, HARTOps.base() === "../" ? "../../" : "../")
-                  : HARTOps.base() + ind.logo
-              ) +
-              '" alt="">'
+          var logoSrc = ind.logo
+            ? ind.logo.indexOf("../external/") === 0
+              ? ind.logo.replace(/^\.\.\//, HARTOps.base() === "../" ? "../../" : "../")
+              : HARTOps.base() + ind.logo
             : "";
+          var logo = logoSrc
+            ? '<div class="logo-band"><img class="logo" src="' +
+              esc(logoSrc) +
+              '" alt="' +
+              esc(ind.name) +
+              ' logo"></div>'
+            : '<div class="logo-band"><span class="meta">No logo on file</span></div>';
           var tags = (ind.commodities || [])
             .map(function (c) {
               return "<li>" + esc(c) + "</li>";
@@ -49,7 +52,7 @@
           return (
             '<article class="industry-card">' +
             logo +
-            "<h3>" +
+            '<div class="industry-body"><h3>' +
             esc(ind.name) +
             "</h3><p>" +
             esc(ind.blurb) +
@@ -57,7 +60,7 @@
             (ind.waybill_count || 0) +
             " spot waybills in the seed</p>" +
             (tags ? '<ul class="tag-list">' + tags + "</ul>" : "") +
-            "</article>"
+            "</div></article>"
           );
         })
         .join("");

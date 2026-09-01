@@ -23,7 +23,7 @@
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("photos");
-        await HARTGallery.mount({});
+        await HARTGallery.mount({ dataUrl: "data/gallery.json" });
       } catch (err) {
         console.error(err);
         document.getElementById("gallery-lede").textContent =

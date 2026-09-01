@@ -3,15 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Layout — HART Operator Portal</title>
+  <title>Panels — HART Operator Portal</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
   <main>
     <div class="page-head">
-      <h1>Layout explorer</h1>
-      <p class="muted" id="layout-meta">Loading consolidation layout index…</p>
+      <h1 id="panels-title">Control panels</h1>
+      <p class="muted" id="panels-lede"></p>
+    </div>
+    <div class="panel-tabs" id="panel-tabs" role="tablist"></div>
+    <div class="panel-stage">
+      <img id="panel-img" alt="Control panel">
+    </div>
+    <p class="panel-caption" id="panel-caption"></p>
+
+    <div class="device-map-note">
+      The interactive device map below uses an older Layout Editor export for hotspot
+      coordinates. Crossover geometry for <strong>SW-7</strong>, <strong>SW-23</strong>, and
+      <strong>SW-35</strong> can look wrong on that drawing — trust the live panels above
+      for how the plant actually looks. Use the map only to look up MQTT / hardware names.
+    </div>
+
+    <div class="page-head" style="margin-top:1.5rem">
+      <h2 style="font-family:var(--font-display);color:var(--brand);margin:0">Device map (LE export)</h2>
+      <p class="muted" id="layout-meta">Loading device map…</p>
     </div>
     <div class="toolbar">
       <input id="layout-search" type="search" placeholder="Search name, CP, MQTT…">
@@ -22,7 +39,7 @@
     <div class="layout-workspace">
       <div class="map-scroll">
         <div id="map-stage">
-          <img id="schematic" alt="HART LE schematic">
+          <img id="schematic" alt="HART LE schematic (device map)">
         </div>
       </div>
       <aside class="detail-panel" id="detail"></aside>
@@ -31,5 +48,49 @@
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script src="../js/layout-explorer.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      // Chrome is also mounted by layout-explorer; mount early so panel tabs paint.
+      await HARTOps.mountChrome("layout");
+      var data = await HARTOps.loadJson("data/panels.json");
+      document.getElementById("panels-title").textContent = data.title || "Panels";
+      document.getElementById("panels-lede").textContent = data.lede || "";
+      var panels = data.panels || [];
+      var tabs = document.getElementById("panel-tabs");
+      var img = document.getElementById("panel-img");
+      var cap = document.getElementById("panel-caption");
+
+      function show(i) {
+        var p = panels[i];
+        if (!p) return;
+        img.src = HARTOps.base() + p.src;
+        img.alt = p.label || "Panel";
+        cap.textContent = p.caption || "";
+        tabs.querySelectorAll("button").forEach(function (btn, idx) {
+          btn.setAttribute("aria-selected", idx === i ? "true" : "false");
+        });
+      }
+
+      tabs.innerHTML = panels
+        .map(function (p, i) {
+          return (
+            '<button type="button" role="tab" aria-selected="' +
+            (i === 0 ? "true" : "false") +
+            '" data-i="' +
+            i +
+            '">' +
+            p.label +
+            "</button>"
+          );
+        })
+        .join("");
+      tabs.querySelectorAll("button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          show(Number(btn.getAttribute("data-i")));
+        });
+      });
+      show(0);
+    });
+  </script>
 </body>
 </html>

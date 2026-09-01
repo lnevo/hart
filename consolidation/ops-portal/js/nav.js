@@ -2,7 +2,7 @@
   function base() {
     var p = (window.location.pathname || "").replace(/\\/g, "/");
     if (
-      /\/ops-portal\/(layout|roster|guides|tools|reference|gallery|briefing|industries|photos|about)\//.test(
+      /\/ops-portal\/(layout|roster|guides|tools|reference|gallery|briefing|industries|photos|fleet|articles|docs|about)\//.test(
         p
       )
     ) {

@@ -2,7 +2,7 @@
 
 ## 1. Open the browse portal
 
-**Operator portal (crew / Neville Island):** [`ops-portal/index.html`](ops-portal/index.html) — briefing, industries, photo gallery, stories, layout explorer.
+**Operator portal (crew / Neville Island):** [`ops-portal/index.html`](ops-portal/index.html) — briefing, industries, photos, rolling stock, articles, official publications, and current Digicon/CTC/LE panels.
 
 Serve over HTTP (JSON pages need it; `file://` will look empty):
 
