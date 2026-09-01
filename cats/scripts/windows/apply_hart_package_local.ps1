@@ -148,7 +148,8 @@ $jythonSrc = @(
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\sync_turnout_buttons.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
-  (Join-Path $hart 'jmri\scripts\mqtt_signalhead_publisher.py')
+  (Join-Path $hart 'jmri\scripts\mqtt_signalhead_publisher.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\prepare_nx_sml_paths.py')
 )
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 $roots = New-Object System.Collections.Generic.List[string]
@@ -184,7 +185,8 @@ $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py')
 $retargetNames = @(
   'sync_turnout_buttons.py',
   'mqtt_signalhead_publisher.py',
-  'jmri_cmd_watcher.py'
+  'jmri_cmd_watcher.py',
+  'prepare_nx_sml_paths.py'
 )
 $patchPy = Join-Path $hart 'cats\scripts\patch_jmri_startup.py'
 $profileRoots = New-Object System.Collections.Generic.List[string]
@@ -218,6 +220,7 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
     }
     & python @pyArgs
     Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
+    & python $patchPy insert --profile $prof --script 'preference:jython/prepare_nx_sml_paths.py' --after mqtt_signalhead_publisher.py
   }
 }
 

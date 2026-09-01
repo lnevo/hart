@@ -28,6 +28,7 @@ PANEL_NAMES = {"HART", "HART Railroad"}
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
 sys.path.insert(0, str(REPO_ROOT / "jmri" / "layouts" / "hart" / "scripts"))
 from lcc_turnout_contract import contract_violations
+from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
 from refresh_bean_comments import BLOCK_COMMENTS
 
 STATION_COMMENTS = {
@@ -220,6 +221,50 @@ def audit_bindings(
     audit.facts["bindings"] = tuple(
         sorted((*key, value) for key, value in actual.items())
     )
+
+
+def audit_nx(root: ET.Element, audit: Audit, *, required: bool) -> None:
+    problem = audit.error if required else audit.warn
+    sensors: dict[str, str] = {}
+    for sensor in root.iter("sensor"):
+        system_name = text(sensor, "systemName")
+        if system_name.startswith("ISNX:"):
+            sensors[system_name] = text(sensor, "userName")
+    expected_user = {sysn: f"NX {mast}" for mast, sysn in ISNX_SYSTEM.items()}
+    if set(sensors) != set(expected_user):
+        missing = sorted(set(expected_user) - set(sensors))
+        extra = sorted(set(sensors) - set(expected_user))
+        problem(
+            f"ISNX sensors expected {len(expected_user)} frozen CTC ids; "
+            f"missing={missing[:8]} extra={extra[:8]}"
+        )
+    for sysn, user in expected_user.items():
+        actual = sensors.get(sysn)
+        if actual and actual != user:
+            problem(f"{sysn} userName expected {user!r}, found {actual!r}")
+    panel_names: list[str] = []
+    pairs: list[tuple[str, str, str]] = []
+    for block in root.findall("./entryexitpairs"):
+        for panel in block.findall("layoutPanel"):
+            panel_names.append(panel.get("name") or "")
+            for source in panel.findall("source"):
+                src = source.get("item") or ""
+                for dest in source.findall("destination"):
+                    pairs.append(
+                        (src, dest.get("item") or "", dest.get("nxType") or "")
+                    )
+    if LAYOUT_PANEL not in panel_names:
+        problem(f"Entry/Exit layoutPanel expected {LAYOUT_PANEL!r}, found {panel_names}")
+    if len(pairs) != EXPECTED_NX_PAIRS:
+        problem(f"NX pairs expected {EXPECTED_NX_PAIRS}, found {len(pairs)}")
+    bad_type = [p for p in pairs if p[2] != NXTYPE_SML]
+    if bad_type:
+        problem(
+            f"NX pairs expected nxType={NXTYPE_SML}; "
+            f"found {sorted({p[2] for p in bad_type})}"
+        )
+    audit.facts["nx_pairs"] = tuple(sorted(pairs))
+    audit.facts["isnx"] = tuple(sorted(sensors.items()))
 
 
 def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
@@ -608,6 +653,7 @@ def audit_source(
     audit_bindings(panel, boundaries, audit)
     if full_config:
         audit_sml(root, audit, required=True)
+        audit_nx(root, audit, required=True)
         audit_stations(root, panel, audit, required=True)
         audit_occupancy_bindings(root, audit, required=True)
         audit_turnout_feedback_sensors(root, audit, required=True)
@@ -658,6 +704,8 @@ def report_drift(audits: list[Audit]) -> list[str]:
         "masts",
         "bindings",
         "sml",
+        "nx_pairs",
+        "isnx",
         "stations",
         "station_sensors",
         "station_icons",

@@ -79,12 +79,14 @@ JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/sync_turnout_buttons.py"
   "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py"
+  "$ROOT/jmri/layouts/hart/scripts/prepare_nx_sml_paths.py"
 )
 
 HART_JYTHON_SCRIPTS=(
   jmri/layouts/hart/scripts/sync_turnout_buttons.py
   jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py
   jmri/layouts/hart/scripts/discover_sml.py
+  jmri/layouts/hart/scripts/prepare_nx_sml_paths.py
   jmri/layouts/hart/scripts/hart_dispatcher_startup.py
   jmri/layouts/hart/scripts/patch_dispatcher_facing.py
   jmri/layouts/hart/scripts/hide_cats_desk_windows.py
@@ -122,7 +124,12 @@ install_dispatcher_facing_patch() {
         --profile "$profxml" \
         --script sync_turnout_buttons.py \
         --script mqtt_signalhead_publisher.py \
-        --script jmri_cmd_watcher.py
+        --script jmri_cmd_watcher.py \
+        --script prepare_nx_sml_paths.py
+      python3 "$patch_startup" insert \
+        --profile "$profxml" \
+        --script preference:jython/prepare_nx_sml_paths.py \
+        --after mqtt_signalhead_publisher.py
       echo "Start Up retargeted -> preference:jython ($profxml)"
     fi
   }

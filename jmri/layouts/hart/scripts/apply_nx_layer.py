@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """Add JMRI Entry/Exit (NX) sensors on CTC masts for HART Railroad.
 
-Creates ISNX:<mast> internals, binds them to the same turnout/point legs as
-the mast, and places a small click target on the approach rail into the switch.
+Creates ISNX:* internals (frozen CTC numbers, see nx_contract.py), binds
+them to the same turnout/point legs as the mast, and places a small click
+target on the approach rail into the switch.
 
 Does not generate pairs — run discover_nx.py in PanelPro for that.
 Does not touch USS paneleditor or Dispatcher System MoveTo icons.
+
+SML-mode NX (the live desk) throws from stored Signal Mast Logic auto-turnouts
+when a dest exists. Digicon dests boot Enabled=no, so those lists stay empty
+until prepare_nx_sml_paths.py runs setupLayoutEditorDetails after routing
+stabilises. Do not enable Digicon dests in the stored tables.
 
 Modes (--mode):
   sml   (default) NX throws turnouts and uses SML. No Hold, no block
@@ -22,6 +28,15 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
+_SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPT_DIR))
+from nx_contract import (
+    ISNX_SYSTEM,
+    NXTYPE_SML,
+    nx_system_name,
+    nx_user_name,
+)
 
 ROOT = Path(__file__).resolve().parents[4]
 DEFAULTS = [
@@ -72,24 +87,35 @@ MAST_ICON_RE = re.compile(
 TURNOUT_RE = re.compile(r"<layoutturnout\b[^>]*>.*?</layoutturnout>", re.S)
 POINT_RE = re.compile(r"<positionablepoint\b[^>]*/>")
 SENSOR_SYS_RE = re.compile(r"<systemName>(ISNX:[^<]+)</systemName>")
+SENSOR_USER_RE = re.compile(r"<userName>(NX [^<]+)</userName>")
 
 
 def user_name(mast: str) -> str:
-    return f"NX {mast}"
+    return nx_user_name(mast)
 
 
 def system_name(mast: str) -> str:
-    return f"ISNX:{mast}"
+    return nx_system_name(mast)
 
 
-def sensor_xml(mast: str) -> str:
+def sensor_comment(mast: str, mode: str) -> str:
     note = CTC_MASTS[mast]
+    if mode == "lock":
+        extra = "Full interlock. CATS CTC and USS Logic off while NX is in use."
+    else:
+        extra = (
+            "SML mode: throws the path from Layout Editor routing. "
+            "Digicon dests stay Disabled until the MQTT publisher enables them."
+        )
+    return f"Entry/Exit at mast {mast}; {note}. {extra}"
+
+
+def sensor_xml(mast: str, mode: str = "sml") -> str:
     return (
         "    <sensor inverted=\"false\">\n"
         f"      <systemName>{system_name(mast)}</systemName>\n"
         f"      <userName>{user_name(mast)}</userName>\n"
-        f"      <comment>Entry/Exit at mast {mast}; {note}. "
-        "Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>\n"
+        f"      <comment>{sensor_comment(mast, mode)}</comment>\n"
         "    </sensor>\n"
     )
 
@@ -253,17 +279,39 @@ def reposition_icons(panel: str) -> tuple[str, int]:
     return re.sub(r'<sensoricon sensor="(NX [^"]+)" x="[^"]+" y="[^"]+"', repl, panel), changed
 
 
-def insert_internal_sensors(text: str) -> tuple[str, int]:
+def insert_internal_sensors(text: str, mode: str = "sml") -> tuple[str, int]:
     if INTERNAL_CLOSE not in text:
         raise SystemExit("internal sensor table close not found")
-    existing = set(SENSOR_SYS_RE.findall(text))
+    existing_sys = set(SENSOR_SYS_RE.findall(text))
+    existing_user = set(SENSOR_USER_RE.findall(text))
     chunks = []
     for mast in CTC_MASTS:
-        if system_name(mast) not in existing:
-            chunks.append(sensor_xml(mast))
+        if system_name(mast) in existing_sys or user_name(mast) in existing_user:
+            continue
+        chunks.append(sensor_xml(mast, mode))
     if not chunks:
         return text, 0
     return text.replace(INTERNAL_CLOSE, "".join(chunks) + INTERNAL_CLOSE, 1), len(chunks)
+
+
+def refresh_sensor_comments(text: str, mode: str) -> tuple[str, int]:
+    changed = 0
+    for mast in CTC_MASTS:
+        comment = sensor_comment(mast, mode)
+        pattern = (
+            rf"(<systemName>{re.escape(system_name(mast))}</systemName>\s*"
+            rf"<userName>{re.escape(user_name(mast))}</userName>\s*"
+            rf"<comment>)([^<]*)(</comment>)"
+        )
+
+        def repl(match: re.Match[str], comment: str = comment) -> str:
+            nonlocal changed
+            if match.group(2) != comment:
+                changed += 1
+            return f"{match.group(1)}{comment}{match.group(3)}"
+
+        text, _n = re.subn(pattern, repl, text, count=1)
+    return text, changed
 
 
 def patch_turnout(xml: str) -> str:
@@ -350,7 +398,6 @@ def apply_panel(panel: str) -> tuple[str, dict[str, int]]:
     return panel, counts
 
 
-NXTYPE_SML = "signalmastlogic"
 NXTYPE_LOCK = "fullinterlocking"
 
 
@@ -391,7 +438,12 @@ def set_pair_type(text: str, nx_type: str) -> tuple[str, int]:
 def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
     if mode not in ("sml", "lock"):
         raise SystemExit(f"unknown NX mode {mode!r}")
-    text, sensors = insert_internal_sensors(text)
+    missing = set(CTC_MASTS) - set(ISNX_SYSTEM)
+    extra = set(ISNX_SYSTEM) - set(CTC_MASTS)
+    if missing or extra:
+        raise SystemExit(f"CTC_MASTS / ISNX_SYSTEM mismatch missing={sorted(missing)} extra={sorted(extra)}")
+    text, sensors = insert_internal_sensors(text, mode)
+    text, comments = refresh_sensor_comments(text, mode)
     end = text.find(NEXT_PANEL_START)
     start = -1
     for name in GEOGRAPHIC_PANEL_NAMES:
@@ -407,6 +459,7 @@ def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
     text, abs_mode = set_abs_mode(text, enabled=not lock)
     text, ntype = set_pair_type(text, NXTYPE_LOCK if lock else NXTYPE_SML)
     counts["sensors"] = sensors
+    counts["comments"] = comments
     counts["abs_mode"] = abs_mode
     counts["nx_type"] = ntype
     counts["mode"] = mode
@@ -438,6 +491,7 @@ def main() -> int:
         counts = apply_file(path, mode=args.mode)
         print(
             f"{path}: mode={counts.get('mode')} sensors+{counts['sensors']} "
+            f"comments~{counts.get('comments', 0)} "
             f"turnouts+{counts['turnouts']} points+{counts['points']} "
             f"aligned+{counts.get('aligned', 0)} "
             f"icons+{counts['icons']} restyled+{counts.get('restyled', 0)} "

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# One-shot PanelPro NX Discover (full interlock) → store tables.xml, then quit.
-# Refuses if CATS/PanelPro is already running (MQTT client-id).
+# One-shot PanelPro NX Discover (SML mode by default) → store tables.xml, then quit.
+# Full interlock: HART_NX_LOCK=1. Refuses if CATS/PanelPro is already running (MQTT client-id).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
