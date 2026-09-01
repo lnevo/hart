@@ -103,5 +103,9 @@ if [[ "$status" != "ok" ]]; then
   exit 1
 fi
 
+# Stage 1 Store writes BlockContentsIcons at level 0 (behind the track).
+python3 "$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py" \
+  --block-labels-only --sync-output
+
 echo "Stage 1 store is $REPO_OUTPUT (also copied to new_tables.xml)"
 echo "log: $LOG"

@@ -474,6 +474,17 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
     return changes, errors
 
 
+def apply_block_labels_only(path: Path, *, check: bool) -> tuple[int, list[str]]:
+    """Lift BlockContentsIcons to level 4. Stage 1 Store resets them to 0."""
+    tree = ET.parse(path)
+    le = find_layout_editor(tree.getroot())
+    changes, errors = ensure_block_contents_visible(le, check=check)
+    if check or not changes:
+        return changes, errors
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    return changes, errors
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, default=DEFAULT_PANEL)
@@ -483,18 +494,24 @@ def main() -> int:
         help="Also patch output/tables.xml and output/hart_prod.xml independently",
     )
     ap.add_argument("--check", action="store_true", help="Validate without writing")
+    ap.add_argument(
+        "--block-labels-only",
+        action="store_true",
+        help="Only restore BlockContentsIcon level/color (safe after Stage 1 Store).",
+    )
     args = ap.parse_args()
 
     paths = [args.panel.resolve()]
     if args.sync_output and args.panel.resolve() == DEFAULT_PANEL.resolve():
         paths.extend([OUTPUT_TABLES, STANDALONE_PANEL])
 
+    apply_fn = apply_block_labels_only if args.block_labels_only else apply_visual_standard
     all_errors: list[str] = []
     for path in paths:
         if not path.is_file():
             all_errors.append(f"missing {path}")
             continue
-        changes, errors = apply_visual_standard(path, check=args.check)
+        changes, errors = apply_fn(path, check=args.check)
         all_errors.extend(errors)
         verb = "checked" if args.check else "updated"
         print(f"{verb} {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}: {changes} changes")
