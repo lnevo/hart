@@ -6,7 +6,7 @@
 # Uses mosquitto_sub (broker pushes retained messages on subscribe).
 # This script must NEVER publish to MQTT.
 #
-#   track/turnout/{addr}  CLOSED | THROWN  -> M2T{addr}  (newKnownState)
+#   track/turnout/{addr}  — ignored as a command; TWOSENSOR KnownState from FB only
 #   track/sensor/{addr}   ACTIVE | INACTIVE -> M2S{addr} (setOwnState)
 #
 # Sensors: applied immediately (setOwnState — JMRI-only, no Digicon PTS race).
@@ -18,6 +18,7 @@
 # so frogs pick up JMRI known state without a manual menu click.
 #
 # TWOSENSOR turnouts: setInitialKnownStateFromFeedback() in the deferred pass.
+# Do not newKnownState MQTT plants — that can publish track/cmd/turnout.
 #
 # Preferences -> Start Up -> Script file (after tables.xml).
 
@@ -212,19 +213,19 @@ def _is_twosensor(t):
 
 
 def _apply_turnout(addr, payload):
+    """Paint KnownState from FB only. Never newKnownState on MQTT plants.
+
+    newKnownState / setCommandedState on M2T* publishes track/cmd/turnout.
+    """
     name = "M2T" + str(addr)
-    t = turnouts.provideTurnout(name)
+    t = turnouts.getTurnout(name)
+    if t is None:
+        return
     if _is_twosensor(t):
         try:
             t.setInitialKnownStateFromFeedback()
         except Exception:
             pass
-        return
-    p = payload.upper()
-    if p == "THROWN":
-        t.newKnownState(Turnout.THROWN)
-    elif p == "CLOSED":
-        t.newKnownState(Turnout.CLOSED)
 
 
 def _sensor_needs_retain(s):
