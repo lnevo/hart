@@ -248,8 +248,8 @@
     {
       "id": "cats-sig-Mast-32R",
       "kind": "signal",
-      "x": 2533.2,
-      "y": 460.8,
+      "x": 2610.0,
+      "y": 525.0,
       "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1239)",
       "publicName": "Mast 32R",
       "cp": "East End",
@@ -495,8 +495,8 @@
     {
       "id": "cats-sig-Mast-34R",
       "kind": "signal",
-      "x": 2670.0,
-      "y": 540.0,
+      "x": 2650.8,
+      "y": 559.2,
       "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)",
       "publicName": "Mast 34R",
       "cp": "East End",

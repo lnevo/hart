@@ -4,13 +4,14 @@
   var ZOOM_MIN = 0.2;
   var ZOOM_MAX = 1.2;
   var ZOOM_STEP = 0.05;
+  var DEFAULT_ZOOM = 0.75;
 
   var state = {
     data: null,
     kind: { turnout: true, signal: true },
     q: "",
     activeId: null,
-    zoom: 0.45,
+    zoom: DEFAULT_ZOOM,
     naturalW: 0,
     naturalH: 0,
   };
@@ -82,6 +83,18 @@
       .indexOf(q) >= 0;
   }
 
+  function centerInView() {
+    var scroll = $(".map-scroll");
+    var wrap = $("#map-zoom-wrap");
+    if (!scroll || !wrap) return;
+    requestAnimationFrame(function () {
+      var maxX = Math.max(0, wrap.offsetWidth - scroll.clientWidth);
+      var maxY = Math.max(0, wrap.offsetHeight - scroll.clientHeight);
+      scroll.scrollLeft = maxX / 2;
+      scroll.scrollTop = maxY / 2;
+    });
+  }
+
   function applyZoom() {
     var z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, state.zoom));
     state.zoom = z;
@@ -99,6 +112,7 @@
     }
     if (label) label.textContent = Math.round(z * 100) + "%";
     if (range) range.value = String(Math.round(z * 100));
+    centerInView();
   }
 
   function fitWidth() {
@@ -106,6 +120,11 @@
     if (!scroll || !state.naturalW) return;
     var avail = Math.max(200, scroll.clientWidth - 8);
     state.zoom = Math.max(ZOOM_MIN, Math.min(1, avail / state.naturalW));
+    applyZoom();
+  }
+
+  function resetDefaultZoom() {
+    state.zoom = DEFAULT_ZOOM;
     applyZoom();
   }
 
@@ -160,7 +179,7 @@
     function onReady() {
       state.naturalW = img.naturalWidth || (state.data.image && state.data.image.width) || 0;
       state.naturalH = img.naturalHeight || (state.data.image && state.data.image.height) || 0;
-      fitWidth();
+      resetDefaultZoom();
       paint();
     }
 

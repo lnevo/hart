@@ -802,6 +802,19 @@ main.explorer-page {
   color: #7a4d00;
 }
 
+.review-badge.suggest {
+  background: #eef3ff;
+  color: #2a4a8a;
+}
+
+.review-excerpt,
+.review-suggested,
+.review-tags {
+  font-size: 0.82rem;
+  margin: 0.35rem 0 0;
+  line-height: 1.45;
+}
+
 .g-item.decided-delete {
   border-color: #e8b4b0;
 }
@@ -986,6 +999,9 @@ main.explorer-page {
 .map-scroll-explorer {
   max-height: min(48vh, 420px);
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .zoom-controls {
@@ -1007,6 +1023,7 @@ main.explorer-page {
 
 #map-zoom-wrap {
   position: relative;
+  flex: 0 0 auto;
 }
 
 #map-stage {

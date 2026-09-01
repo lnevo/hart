@@ -54,6 +54,18 @@ SIG_LOC = {
     "LEFT": (0.18, 0.50),
     "RIGHT": (0.82, 0.50),
     "CENTER": (0.50, 0.50),
+    # Digicon aliases seen on Master CTC
+    "LEFTLOW": (0.18, 0.82),
+    "LEFTUP": (0.18, 0.18),
+    "RIGHTLOW": (0.82, 0.82),
+    "RIGHTUP": (0.82, 0.18),
+}
+
+# Portal-only pixel nudges when Digicon cell slots still sit on top of the plant.
+# Values are absolute image coords (same space as CELL/PAD in render_cats_panel).
+HOTSPOT_OVERRIDE = {
+    # Down + right of OS Switch 31 plant (2550, 480) — clear of points & lower slash.
+    "mast 32r": (2610.0, 525.0),
 }
 
 
@@ -175,6 +187,9 @@ def build() -> dict:
                 fx, fy = SIG_LOC.get(loc.upper(), SIG_LOC["CENTER"])
                 px = x0 + fx * CELL
                 py = y0 + fy * CELL
+                override = HOTSPOT_OVERRIDE.get(key)
+                if override:
+                    px, py = override
                 match = by.get(key) or by.get(name.lower())
                 if not match:
                     bare = re.sub(r"^mast\s+", "", name, flags=re.I).strip().lower()
