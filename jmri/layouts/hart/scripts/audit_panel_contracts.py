@@ -29,6 +29,7 @@ FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
 sys.path.insert(0, str(REPO_ROOT / "jmri" / "layouts" / "hart" / "scripts"))
 from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
+from polish_hart_layout_editor import ensure_block_contents_visible
 from refresh_bean_comments import BLOCK_COMMENTS
 
 STATION_COMMENTS = {
@@ -502,6 +503,15 @@ def audit_stations(
     audit.facts["station_icons"] = tuple(sorted(icon_set))
 
 
+def audit_block_contents_visible(panel: ET.Element | None, audit: Audit) -> None:
+    """Tracks paint at level 3; labels at 0 sit behind the panel background."""
+    if panel is None:
+        return
+    _, errors = ensure_block_contents_visible(panel, check=True)
+    for message in errors:
+        audit.error(message)
+
+
 def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
     placeholders: list[str] = []
     redundant_occupancy_icons: list[str] = []
@@ -686,6 +696,7 @@ def audit_source(
         audit_turnout_systemname_lookups(root, audit, required=True)
         audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
     audit_placeholders(panel, audit)
+    audit_block_contents_visible(panel, audit)
     return audit
 
 

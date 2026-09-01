@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-01 — Stage 1 Store had buried LE block-value labels at **level 0** again (tracks are 3). Restored **level 4**; Stage 1 launcher now re-lifts them; audit fails if they drop. Reload **PanelPro**. Deploy `--pi`.
+
 Updated: 2026-09-01 — Stock Stage 1 after EH-exit virtuals: **45 masts / 103 sections / 746 transits / 1548 HEAD_AND_TAIL traininfo**. Hidden **Mast 11L / 9LA / 9LB** on Switch 11/9 so Engine House can leave for S-1/S-4/S-R (was get_first picking 32L). Full 22×21 station matrix; PanelPro smoke **PASS**. Princess manuals 36RA→40LA and 36RB→38LA re-added. Reload **PanelPro**. Deploy `--pi`.
 
 Updated: 2026-09-01 — Stock Stage 1 on the Mac: **42 masts / 82 sections / 721 transits / 1530 HEAD_AND_TAIL traininfo**. No CreateTransits/JMRI patches. Scale/Switch 7 is A45 8LC west + 8RA east; hidden **Mast 13R** on TO1 B so Discover does not jump 8RA→26L. Reload **PanelPro**. Deploy `--pi`.
