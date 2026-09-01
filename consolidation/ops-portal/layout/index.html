@@ -19,18 +19,15 @@
     </div>
     <p class="panel-caption" id="panel-caption"></p>
 
-    <div class="device-map-note">
-      The interactive device map below uses an older Layout Editor export for hotspot
-      coordinates. Crossover geometry for <strong>SW-7</strong>, <strong>SW-23</strong>, and
-      <strong>SW-35</strong> can look wrong on that drawing — trust the live panels above
-      for how the plant actually looks. Use the map only to look up MQTT / hardware names.
-    </div>
-
     <div class="page-head" style="margin-top:1.5rem">
-      <h2 style="font-family:var(--font-display);color:var(--brand);margin:0">Device map (LE export)</h2>
+      <h2 style="font-family:var(--font-display);color:var(--brand);margin:0">Device browser</h2>
       <p class="muted" id="layout-meta">Loading device map…</p>
     </div>
     <div class="toolbar">
+      <div class="panel-tabs" id="map-view-tabs" role="tablist" aria-label="Device map view">
+        <button type="button" role="tab" data-map="cats" aria-selected="true">Digicon CATS</button>
+        <button type="button" role="tab" data-map="le" aria-selected="false">LE schematic</button>
+      </div>
       <input id="layout-search" type="search" placeholder="Search name, CP, MQTT…">
       <label class="chip"><input type="checkbox" data-kind="turnout" checked> Switches</label>
       <label class="chip"><input type="checkbox" data-kind="signal" checked> Signals</label>
@@ -39,7 +36,7 @@
     <div class="layout-workspace">
       <div class="map-scroll">
         <div id="map-stage">
-          <img id="schematic" alt="HART LE schematic (device map)">
+          <img id="schematic" alt="Device map">
         </div>
       </div>
       <aside class="detail-panel" id="detail"></aside>
@@ -50,7 +47,6 @@
   <script src="../js/layout-explorer.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
-      // Chrome is also mounted by layout-explorer; mount early so panel tabs paint.
       await HARTOps.mountChrome("layout");
       var data = await HARTOps.loadJson("data/panels.json");
       document.getElementById("panels-title").textContent = data.title || "Panels";
@@ -90,6 +86,18 @@
         });
       });
       show(0);
+
+      var mapTabs = document.getElementById("map-view-tabs");
+      if (mapTabs && window.HARTLayoutExplorer) {
+        mapTabs.querySelectorAll("button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            mapTabs.querySelectorAll("button").forEach(function (b) {
+              b.setAttribute("aria-selected", b === btn ? "true" : "false");
+            });
+            HARTLayoutExplorer.setView(btn.getAttribute("data-map"));
+          });
+        });
+      }
     });
   </script>
 </body>

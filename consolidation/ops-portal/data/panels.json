@@ -1,6 +1,6 @@
 {
   "title": "Control panels",
-  "lede": "Current live panels (Aug 2026). Digicon CTC, classic CTC machine, and the Neville Island Layout Editor panel. Use these as the visual source of truth \u2014 the LE device map below is for switch/signal lookup and may show imperfect crossover geometry on SW-7, SW-23, and SW-35.",
+  "lede": "Current live panels (Aug 2026). Digicon CTC, classic CTC machine, and the Neville Island Layout Editor panel. The device browser below defaults to the Digicon CATS board; switch to the LE schematic for full MQTT/hotspot coverage. Crossover plants (SW-7 / SW-23 / SW-35) now render as proper diamonds on the LE view.",
   "panels": [
     {
       "id": "digicon",
