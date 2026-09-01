@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — STS links → `http://localhost:8980/sts/` (runs on Mac; not on Pi yet). Ops Tools Mimic/JMRI already localhost. JMRI `Home.html` STS link updated. Reload web home / refresh portal. Deploy `--pi --win`.
+
 Updated: 2026-08-31 — Ops portal Tools: Mimic → `http://localhost:8765/`, JMRI web → `http://localhost:12080/` (STS still Pi). Digicon publisher retries PanelPro **SML Enabled/Disabled** button attach (LE Signals lamp was additive; main-window button was never intentionally removed). Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-31 — Yard ladder boot no longer paints MQTT turnout retain (that was moving points). `sync_turnout_buttons` only fills UNKNOWN `M2S*` from broker retain (`setOwnState`) and lights `IT:HART:YL:*` via `newKnownState`. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.

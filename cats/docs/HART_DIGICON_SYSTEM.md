@@ -220,7 +220,7 @@ Same package carries Digicon Masters, `tables.xml`, yard-ladder button icons, an
 | CTC / ABS hold panels | `cats/panels/HART_Master_*hold.xml` | host `hart/cats/panels/` |
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
 | Ladder icons | `cats/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
-| Web home + STS | `cats/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://10.0.0.53:8980/sts/`) |
+| Web home + STS | `cats/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
 | JMRI Start Up scripts | `sync_turnout_buttons.py`, `mqtt_signalhead_publisher.py` | All hosts `preference:jython/` (Pi `JMRI_UserFiles/jython/`; Mac/Windows `<profile>.jmri/jython/` because user-files=`profile:`). `hide_cats_desk_windows.py` is LogixNG, same folder. |
 
 Deploy via SSH (agent does this — no manual batch/Dropbox step):

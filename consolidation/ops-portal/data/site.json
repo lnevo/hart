@@ -4,7 +4,7 @@
   "tagline": "Neville Island — layout browse, guides, and live tools from the consolidation workspace",
   "engDesk": "../index.html",
   "tools": {
-    "sts": "http://10.0.0.53:8980/sts/",
+    "sts": "http://localhost:8980/sts/",
     "mimic": "http://localhost:8765/",
     "jmri": "http://localhost:12080/"
   },

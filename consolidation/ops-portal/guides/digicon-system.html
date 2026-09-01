@@ -249,7 +249,7 @@ python3 cats/scripts/build_hart_signal_heads.py
 <p>| CTC / ABS hold panels | <code>cats/panels/HART_Master_*hold.xml</code> | host <code>hart/cats/panels/</code> |</p>
 <p>| Tables | <code>jmri/layouts/hart/output/tables.xml</code> | <code>preference:tables.xml</code> / <code>JMRI_UserFiles/tables.xml</code> |</p>
 <p>| Ladder icons | <code>cats/resources/buttons/lamp_*.png</code> | <code>hart/cats/resources/buttons/</code> |</p>
-<p>| Web home + STS | <code>cats/resources/jmri-web/servlet/home/Home.html</code> | profile / UserFiles <code>web/servlet/home/</code> (STS link in Home.html → <code>http://10.0.0.53:8980/sts/</code>) |</p>
+<p>| Web home + STS | <code>cats/resources/jmri-web/servlet/home/Home.html</code> | profile / UserFiles <code>web/servlet/home/</code> (STS link in Home.html → <code>http://localhost:8980/sts/</code>; STS is Mac-hosted for now) |</p>
 <p>| JMRI Start Up scripts | <code>sync_turnout_buttons.py</code>, <code>mqtt_signalhead_publisher.py</code> | All hosts <code>preference:jython/</code> (Pi <code>JMRI_UserFiles/jython/</code>; Mac/Windows <code>&lt;profile&gt;.jmri/jython/</code> because user-files=<code>profile:</code>). <code>hide_cats_desk_windows.py</code> is LogixNG, same folder. |</p>
 
 <p>Deploy via SSH (agent does this — no manual batch/Dropbox step):</p>
