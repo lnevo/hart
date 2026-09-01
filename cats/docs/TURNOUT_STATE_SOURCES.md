@@ -22,8 +22,9 @@
 8. **Boot state from MQTT retain (standard on Mac / Pi / Windows):** CATS
    profile Start Up runs `jmri/layouts/hart/scripts/apply_maintain_mqtt.py`
    after `tables.xml`. Script **reads** broker retain only (never publishes):
-   sensors via `setOwnState`; non-TWOSENSOR turnouts via `newKnownState`;
-   TWOSENSOR plants via `setInitialKnownStateFromFeedback()`. Auto-picks
+   sensors via `setOwnState`; TWOSENSOR plants via
+   `setInitialKnownStateFromFeedback()` (never `newKnownState` on MQTT
+   turnouts — that can publish `track/cmd/turnout`). Auto-picks
    MQTT host (`MQTT_HOST` / JMRI connection / `127.0.0.1` /
    `192.168.137.2` / `minipc-e5h6x.local`). Alias:
    `apply_mqtt_retain_at_startup.py`. Rebuild tables with

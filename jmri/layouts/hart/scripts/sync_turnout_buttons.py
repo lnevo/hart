@@ -1,14 +1,17 @@
-# Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout
-# / FB sensor states, drive the HART Railroad Turnouts status lamp (IH9990),
-# and wire clicks on the LCOS / Turnouts / Signals status lamps.
+# Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live FB
+# sensors, drive the HART Railroad Turnouts status lamp (IH9990), and wire
+# clicks on the LCOS / Turnouts / Signals status lamps.
 #
-# CRITICAL: the same ITs are JMRI Route controlTurnouts (fire on THROWN).
-# This script must NEVER setCommandedState on plant turnouts (M2T*/MTT*) or
-# publish track/cmd — that moves field points. Paint YL indicators with
-# newKnownState only: active → THROWN (lit), inactive → CLOSED.
+# CRITICAL: IT:HART:YL:* are Route controlTurnouts (fire on THROWN) whose
+# outputs are MQTT plants (M2T308… / M2T1208…). newKnownState(THROWN) still
+# notifies the Route, which setCommandedState → track/cmd/turnout. Always
+# disable the ladder routes while painting lamps. Never setCommandedState
+# on M2T*/MTT*.
 #
-# Boot: fill UNKNOWN MQTT sensors from broker retain (setOwnState), then
-# light the matching YL lamps. Do not apply track/turnout retain here.
+# Match peels from FB N/R only. JMRI KnownState defaults CLOSED, which would
+# light S-R and command that canned alignment — not last field state.
+#
+# Boot: fill UNKNOWN MQTT sensors from broker retain (setOwnState).
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
@@ -107,12 +110,9 @@ def _known_from_fb(to):
 
 
 def _known(to):
-    """Plant position for YL match. Never uses commanded state (would follow a cmd)."""
+    """Plant position for YL match. FB sensors only — never commanded or default CLOSED."""
     if to is None:
         return None
-    st = to.getKnownState()
-    if st == CLOSED or st == THROWN:
-        return st
     return _known_from_fb(to)
 
 
@@ -130,7 +130,7 @@ def _match(patterns):
 
 
 def _set_indicator_known(sn, state):
-    """Paint YL lamp KnownState without commanding (avoids Route re-fire)."""
+    """Paint YL lamp KnownState. Caller must disable ladder routes first."""
     to = turnouts.getTurnout(sn)
     if to is None:
         try:
@@ -151,10 +151,53 @@ def _set_indicator_known(sn, state):
         print("sync_turnout_buttons: indicator %s → %s failed: %s" % (sn, state, e))
 
 
+def _ladder_routes():
+    out = []
+    try:
+        for route in routes.getNamedBeanSet():
+            un = route.getUserName() or ""
+            if "ladder" in un.lower():
+                out.append(route)
+    except Exception as e:
+        print("sync_turnout_buttons: list ladder routes failed: %s" % e)
+    return out
+
+
 def _paint_side_indicators(indicators, active):
     """Lit = THROWN on the matching peel; all others CLOSED."""
     for sn in indicators:
         _set_indicator_known(sn, THROWN if sn == active else CLOSED)
+
+
+def _paint_indicators_without_commanding(left, right):
+    """Light YL lamps with ladder routes disabled so M2T outputs are not commanded."""
+    found = _ladder_routes()
+    if not found:
+        print("sync_turnout_buttons: skip YL paint (ladder routes not loaded)")
+        return
+    disabled = []
+    try:
+        for route in found:
+            try:
+                if route.getEnabled():
+                    route.setEnabled(False)
+                    disabled.append(route)
+            except Exception as e:
+                print(
+                    "sync_turnout_buttons: disable %s failed: %s"
+                    % (route.getUserName(), e)
+                )
+        _paint_side_indicators(LEFT_INDICATORS, left)
+        _paint_side_indicators(RIGHT_INDICATORS, right)
+    finally:
+        for route in disabled:
+            try:
+                route.setEnabled(True)
+            except Exception as e:
+                print(
+                    "sync_turnout_buttons: re-enable %s failed: %s"
+                    % (route.getUserName(), e)
+                )
 
 
 def _has_two_fb_sensors(to):
@@ -587,8 +630,7 @@ def sync_ladder_buttons(event=None):
                 "sync_turnout_buttons: left=%s right=%s"
                 % (left or "none", right or "none")
             )
-        _paint_side_indicators(LEFT_INDICATORS, left)
-        _paint_side_indicators(RIGHT_INDICATORS, right)
+        _paint_indicators_without_commanding(left, right)
         sync_turnout_fb_lamp()
     except Exception as e:
         print("sync_turnout_buttons: sync error: %s" % e)
@@ -814,7 +856,9 @@ def _arm_listeners():
     _listener = _TurnoutListener()
     _sensor_listener = _SensorListener()
     for sn in WATCH:
-        to = turnouts.provideTurnout(sn)
+        to = turnouts.getTurnout(sn)
+        if to is None:
+            continue
         to.addPropertyChangeListener(_listener)
         for getter in ("getFirstSensor", "getSecondSensor"):
             try:
