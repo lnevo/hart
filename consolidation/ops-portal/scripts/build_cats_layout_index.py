@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Build Digicon/CATS device-map hotspots for the operator portal.
 
-Renders cats/panels/HART_ctc.xml and places clickable plants on every SECTION
-that has SWITCHPOINTS. Station / OS names are joined to the consolidation
-layout-index (and LE turnout names) so the detail pane still shows MQTT /
-hardware when we know the mapping.
+Uses the live Digicon panel (same default as cats/scripts/launch_cats.sh):
+cats/panels/HART_Master_CTC_hold.xml — not the older HART_ctc.xml gate board.
+
+Places clickable plants on every SECTION with SWITCHPOINTS and joins station /
+OS names to the consolidation layout-index so the detail pane can still show
+MQTT / hardware when mapped.
 """
 
 from __future__ import annotations
@@ -18,7 +20,8 @@ from pathlib import Path
 PORTAL = Path(__file__).resolve().parents[1]
 CONS = PORTAL.parent
 ROOT = CONS.parent
-PANEL = ROOT / "cats/panels/HART_ctc.xml"
+# Keep in sync with cats/scripts/launch_cats.sh default panel.
+PANEL = ROOT / "cats/panels/HART_Master_CTC_hold.xml"
 RENDER = ROOT / "cats/scripts/render_cats_panel.py"
 OUT_IMG = PORTAL / "assets/layout/HART_cats_digicon.png"
 OUT_JSON = PORTAL / "data/layout-index-cats.json"
@@ -152,7 +155,7 @@ def build() -> dict:
     return {
         "source": {
             "workspace": "consolidation",
-            "panel": "cats/panels/HART_ctc.xml",
+            "panel": "cats/panels/HART_Master_CTC_hold.xml",
             "view": "digicon-cats",
         },
         "image": {
