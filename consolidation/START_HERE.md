@@ -2,6 +2,10 @@
 
 ## 1. Open the browse portal
 
+**Operator portal (crew / layout browse):** [`ops-portal/index.html`](ops-portal/index.html)
+
+**Engineering consolidation desk (dark SoR / pipelines):**
+
 ```
 /Users/lnevo/hart/consolidation/index.html
 ```
@@ -31,9 +35,12 @@ Categories: pipelines, CATS, MQTT, wiring, LCOS, audits, ADRs, archive, repos, b
 ```bash
 cd /Users/lnevo/hart
 bash consolidation/scripts/mirror_all_live.sh   # refresh mirrors + validate
+python3 consolidation/scripts/audit_consolidation_paths.py  # path config check
 # or validators only:
 bash consolidation/validators/run_all.sh
 ```
+
+**Path config:** copy [`env/consolidation.env.example`](env/consolidation.env.example) → `consolidation.env` and set `CONSOLIDATION_ROOT` when moving machines. All scripts source [`env/load_consolidation_env.sh`](env/load_consolidation_env.sh) automatically.
 
 **Workspace map:** [`WORKSPACE.md`](WORKSPACE.md) · **Gaps:** [`audits/standalone-gaps.md`](audits/standalone-gaps.md)
 

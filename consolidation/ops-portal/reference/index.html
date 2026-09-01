@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reference — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Reference</h1>
+      <p class="muted">Curated pointers into the consolidation workspace.</p>
+    </div>
+    <div class="panel">
+      <h2>Names &amp; devices</h2>
+      <ul>
+        <li><code>sor/names/public_name_map.csv</code> — public equipment names</li>
+        <li><code>sor/names/hart_devices_review.json</code> — device review snapshot</li>
+        <li><a href="../html/review/device-map.html">Device map review (HTML)</a></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Wiring</h2>
+      <ul>
+        <li><a href="../wiki/pipelines/wiring-docs.md">wiki/pipelines/wiring-docs.md</a></li>
+        <li><a href="../html/pipelines/08-wiring.html">html/pipelines/08-wiring.html</a></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Publications (hart-ops mirror)</h2>
+      <ul>
+        <li><code>external/hart-ops/docs/</code> — operator primer, station maps, crew sheets (.docx)</li>
+        <li><code>external/hart-ops/publications/assets/</code> — map PNGs used in the Maps gallery</li>
+        <li><a href="../wiki/pipelines/ops-publications.md">ops-publications pipeline</a></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Panel / runtime mirrors</h2>
+      <ul>
+        <li><code>external/hart-runtime/jmri/layouts/hart/output/hart_prod.xml</code></li>
+        <li><code>external/hart-runtime/cats/docs/</code> — Digicon / CTC guides</li>
+      </ul>
+    </div>
+
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("guides"); });</script>
+</body>
+</html>

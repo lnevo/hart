@@ -1,0 +1,20 @@
+{
+  "title": "HART Operator Portal",
+  "brand": "HART",
+  "tagline": "Neville Island — layout browse, guides, and live tools from the consolidation workspace",
+  "engDesk": "../index.html",
+  "tools": {
+    "sts": "http://10.0.0.53:8980/sts/",
+    "mimic": "http://10.0.0.53:8765/",
+    "jmri": "http://10.0.0.53:12080/"
+  },
+  "nav": [
+    {"id": "home", "href": "index.html", "label": "Home"},
+    {"id": "layout", "href": "layout/index.html", "label": "Layout"},
+    {"id": "roster", "href": "roster/index.html", "label": "Roster"},
+    {"id": "guides", "href": "guides/index.html", "label": "Guides"},
+    {"id": "tools", "href": "tools/index.html", "label": "Tools"},
+    {"id": "reference", "href": "reference/index.html", "label": "Reference"},
+    {"id": "gallery", "href": "gallery/index.html", "label": "Maps"}
+  ]
+}

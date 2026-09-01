@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CATS Digicon CTC — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+<div class="page-head">
+      <h1>CATS Digicon CTC</h1>
+      <p class="muted">From consolidation mirror <code>external/hart-runtime/cats/docs/DISPATCHER_GUIDE_CTC.md</code></p>
+      <p><a href="index.html">← Guides hub</a></p>
+    </div>
+    <article class="guide-body">
+<h1>HART Railroad — CATS CTC Dispatcher Guide</h1>
+
+<p><strong>Publication:</strong> DS-CATS-DISP · Rev A · Eff 2026-08-19  </p>
+<p><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations  </p>
+<p><strong>Scope:</strong> CATS Digicon panel (<code>HART_Master_CTC_hold.xml</code>), mouse dispatching in CTC mode</p>
+
+<p>Welcome to the desk. This guide is for <strong>being a dispatcher on the CATS panel</strong> — how you</p>
+<p>grant authority, line routes, and use fleeting, stacking, and call-on. It is <strong>not</strong> a</p>
+<p>software manual (menus, install, Designer, MQTT). For that, see the CATS PDF in</p>
+<p><code>tools/cats/release3.2/catsManual.pdf</code> and [<code>HART_DIGICON_SYSTEM.md</code>](HART_DIGICON_SYSTEM.md).</p>
+
+<p><strong>Do not duplicate the USS machine guide.</strong> HART also has a stock JMRI CTC lever panel</p>
+<p>(code buttons, N/L/R levers, 15 columns). That machine is documented separately:</p>
+
+<p>→ [<code>jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md</code>](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md) (DS-DISP)</p>
+
+<p>To <strong>run a train automatically</strong> between stations (PanelPro, not CATS):</p>
+<p>[<code>../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md</code>](../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md)</p>
+<p>(DS-AUTO).</p>
+
+<p>Run <strong>either</strong> CATS CTC <strong>or</strong> the JMRI USS panel — never both. Both drive Hold on the</p>
+<p>same masts. CATS ABS is a view-only mimic and is fine alongside either.</p>
+
+<p>At CATS start, LogixNG hides the leftover PanelPro desks: <strong>USS CTC</strong> (IQC:AUTO:0002,</p>
+<p>same title on every host), <strong>Dispatcher System</strong>, and <strong>WiThrottle</strong>. IQC:AUTO:0004</p>
+<p>then hides <strong>HART Railroad</strong> only — CATS is detected from the running app</p>
+<p>(<code>cats.apps.Crandic</code> or Windows <code>CatsConfig.xml</code>), not merely from <code>cats.jar</code> on</p>
+<p>the classpath. PanelPro leaves <strong>HART Railroad</strong> visible so the geographic desk</p>
+<p>still works. Reopen <strong>USS CTC</strong> from the Panels menu when you want the lever machine.</p>
+
+<p><strong>Help</strong> and <strong>Quit</strong> on <strong>CTC Panel</strong> sit on the bottom button strip (with Restart</p>
+<p>RPi / Shutdown RPi). The Digicon <strong>Dispatcher Panel</strong> is schematic-only — no</p>
+<p>Help/Quit bar. Do not add a second File -&gt; Quit; CATS already has File -&gt; Exit.</p>
+<p>Quit on the strip uses JMRI <code>Apps.handleQuit()</code> (store prompt, clean shutdown).</p>
+
+<p>---</p>
+
+<h2>1. Reading the Digicon panel</h2>
+
+<p>The schematic runs <strong>west → east</strong> (left → right): Brick → Plane → OS Barn → East End →</p>
+<p>Princess, with South Yard on the ladder and OS McKees Rocks / OS McKeesport at the east end.</p>
+<p>It is an <strong>interlocking diagram</strong>, not a scale map.</p>
+
+<p>| What you see | Meaning |</p>
+<p>|--------------|---------|</p>
+<p>| <strong>Track color</strong> | Occupancy (from JMRI/MQTT detectors) |</p>
+<p>| <strong>Green arrows</strong> | Active route through that block, direction of travel |</p>
+<p>| <strong>Signal icon color</strong> | Rough mirror of field aspect: idle (white/grey), yellow (approach), green (clear path), red (stop / blocked) |</p>
+<p>| <strong>White vs grey signal</strong> | White = engineer sees a mast at that CP; grey = panel-only CP |</p>
+<p>| <strong>Switch alignment</strong> | Normal vs reverse on the schematic (field feedback) |</p>
+
+<p>On HART, <strong>CATS grants routes and throws turnouts</strong>; <strong>JMRI Signal Logic (SML)</strong> computes</p>
+<p>aspects once a mast is released from Hold. You request permission; the plant decides</p>
+<p>Clear vs Approach vs Stop from occupancy and points.</p>
+
+<p>At session start, CTC homes are <strong>Held</strong> (Stop). A successful route <strong>Unholds</strong> the</p>
+<p>entrance mast; SML then shows the best aspect the conditions allow.</p>
+
+<p>---</p>
+
+<h2>2. Lining a route (the everyday move)</h2>
+
+<h3>Quick route — one plant, fixed alignment</h3>
+
+<p>Use when points are already lined and you only need the next interlocking step.</p>
+
+<p>1. Confirm the <strong>entrance block is unoccupied</strong> and no conflicting route is active.</p>
+<p>2. <strong>Left-click</strong> the <strong>signal head</strong> (not the mast base) at the CP where the train enters.</p>
+<p>3. If accepted, the icon colors up and green arrows show the protected path to the **next</p>
+<p>   CP<strong> in that direction. Turnouts are </strong>not** moved — the route follows whatever alignment</p>
+<p>   the track already has.</p>
+<p>4. To <strong>take it back</strong>, left-click the same icon again while it is green/yellow, or wait</p>
+<p>   for the train to clear (sectional release frees blocks behind the train).</p>
+
+<p><strong>Tip:</strong> Click the lamp head; CATS hot zones are picky.</p>
+
+<h3>Extended route (N/X) — multiple plants, CATS lines turnouts</h3>
+
+<p>Use when the move needs <strong>turnouts thrown</strong> across several control points (typical mainline</p>
+<p>run: Brick → Plane → OS Barn → …).</p>
+
+<p>1. <strong>Right-click</strong> the <strong>entry</strong> signal → <strong>Set N/X Route</strong> → <strong>Accept</strong>.</p>
+<p>2. The entry icon <strong>blinks</strong> (entry/exit color) — CATS is waiting for the far end.</p>
+<p>3. <strong>Left-click</strong> the <strong>exit</strong> signal. CATS picks a path (prefers main/normal alignments),</p>
+<p>   waits for turnouts to prove unoccupied, throws points, then builds a chain of quick routes</p>
+<p>   through every CP on the path.</p>
+<p>4. To <strong>shorten</strong> the chain: left-click an intermediate CP (clears that leg) or right-click</p>
+<p>   → <strong>Cancel N/X Route</strong> (drops that CP and everything beyond).</p>
+
+<p>If creation fails, read the pop-up: no path, blockage, occupied block ahead of the entry</p>
+<p>signal, or opposing route. Fix points/occupancy or cancel the conflict — do not hammer clicks.</p>
+
+<p>---</p>
+
+<h2>3. When to use what</h2>
+
+<p>| Situation | Use |</p>
+<p>|-----------|-----|</p>
+<p>| Local move, points already set (e.g. yard lead already aligned) | <strong>Quick route</strong> (left-click entry) |</p>
+<p>| Mainline move across named plants with turnouts to throw | <strong>N/X route</strong> (right-click Set N/X → left-click exit) |</p>
+<p>| Same move needed <strong>after</strong> the first train clears, but path is blocked now | <strong>Stack route</strong> (below) |</p>
+<p>| Second train following the same direction, close behind | <strong>Fleeting</strong> (below) — only after a route is <strong>active</strong> |</p>
+<p>| Engine rejoining cars left on the main, or run-around finish | <strong>Call-on</strong> (below) or track authority on the fouling turnouts |</p>
+<p>| Conflicting or unknown plant | <strong>Nothing</strong> — leave signals at Stop |</p>
+
+<p>---</p>
+
+<h2>4. Route stacking</h2>
+
+<p><strong>Stacking</strong> queues an N/X-style move that <strong>cannot run yet</strong> (block occupied, opposing</p>
+<p>traffic, turnout under a train). When the blocking condition clears, CATS runs the deferred</p>
+<p>route automatically — you do not have to hover over the panel.</p>
+
+<p><strong>Procedure:</strong> Same as N/X, but choose <strong>Stack Route</strong> on the entry signal menu, then</p>
+<p>left-click the exit. Confirm the stack dialog. Repeat to queue more moves.</p>
+
+<p><strong>Manage the queue:</strong> Right-click any signal → <strong>View/Change Stacked Routes</strong>. The <strong>top</strong></p>
+<p>line is the one waiting for a clear path; delete or reorder from this dialog.</p>
+
+<p><strong>Good HART examples:</strong></p>
+
+<ul>
+<li>NVL clears Princess; you stack the **return** move through 113 before the plant is free.</li>
+<li>D749 will need a **South Yard setout** right after clearing OS Barn — stack it while the</li>
+</ul>
+<p>  train is still east of the plant.</p>
+<ul>
+<li>Opposing meets at East End: stack the second train’s route while the first occupies 111/112.</li>
+</ul>
+
+<p><strong>Cautions:</strong></p>
+
+<ul>
+<li>Do not stack contradictory paths through the same plant.</li>
+<li>Stacked routes still respect occupancy — they run when clear, not on a timer.</li>
+<li>On large loops, extended-route search can get confused; keep stacks to sensible CP pairs.</li>
+</ul>
+
+<p>---</p>
+
+<h2>5. Fleeting</h2>
+
+<p><strong>Fleeting</strong> re-creates a route as sectional release drops signals behind a train, so a</p>
+<p><strong>parade</strong> of same-direction trains does not need a fresh click at every plant.</p>
+
+<p><strong>Turn on:</strong> Right-click a signal that <strong>already has an active route</strong> → **Turn on</p>
+<p>Fleeting<strong>. On an N/X chain, fleeting applies from that CP </strong>through the rest of the chain**.</p>
+
+<p><strong>Turn off:</strong> Right-click → <strong>Cancel Fleeting</strong>, or left-click the CP as the train passes</p>
+<p>(cancels fleeting and can drop the CP from an N/X chain).</p>
+
+<p><strong>HART rule:</strong> Fleeting is disabled until a route is <strong>ACTIVE</strong> — you cannot fleet an idle</p>
+<p>signal.</p>
+
+<p><strong>When to use:</strong> D749 strings, CK1 coke moves, repeated NVL turns in the same direction.</p>
+
+<p><strong>When not to use:</strong> Any move where you may need to <strong>snatch authority back</strong> quickly,</p>
+<p>opposing meets, or work that crosses the main at a plant you are fleeting through.</p>
+
+<p>---</p>
+
+<h2>6. Call-on</h2>
+
+<p><strong>Call-on</strong> (Return to Train) is a <strong>one-move override</strong>: permission to pass a Stop signal</p>
+<p>into an <strong>occupied</strong> block ahead — typically to <strong>rejoin cut-off cars</strong> on the main after</p>
+<p>a run-around or helper tie-on.</p>
+
+<p><strong>Procedure:</strong></p>
+
+<p>1. Line the <strong>turnouts</strong> for the join (you keep control; do not grant local switching unless</p>
+<p>   that is your railroad’s rule).</p>
+<p>2. Right-click the <strong>entrance signal</strong> → <strong>Call-on</strong> → <strong>Accept</strong>. The icon blinks; the</p>
+<p>   field mast shows <strong>Restricting</strong> (flashing red / restrictive indication).</p>
+
+<p><strong>CATS will offer call-on only when</strong> (all must be true):</p>
+
+<ul>
+<li>The **immediate** block in front of the signal is **not** occupied.</li>
+<li>The **next** block **is** occupied (the cars or train you are joining).</li>
+<li>No track authority or out-of-service on those blocks.</li>
+</ul>
+
+<p><strong>End call-on:</strong> Cancel from the signal menu, or when the immediate block becomes occupied</p>
+<p>(the engine entered the overlap).</p>
+
+<p><strong>Alternatives:</strong> Grant <strong>track authority</strong> on the fouling turnouts and let the crew</p>
+<p>switch themselves; or line a quick route out to the main and <strong>flag</strong> the return (no CATS</p>
+<p>feature — verbal permission).</p>
+
+<p>---</p>
+
+<h2>7. Other dispatcher tools (brief)</h2>
+
+<p>| Tool | Mouse | Use |</p>
+<p>|------|-------|-----|</p>
+<p>| <strong>Throw turnout</strong> | Right-click switch → align Normal/Reverse | Local plant lining when not in a locked route |</p>
+<p>| <strong>Track authority</strong> | Right-click track | Let crew move within limits without a signaled route |</p>
+<p>| <strong>Out of service</strong> | Right-click track | Take a block off the board for maintenance |</p>
+<p>| <strong>Train label</strong> | Drag label between blocks | Track identity when Train Tracker is off or wrong |</p>
+<p>| <strong>Yard ladder lamps</strong> | Click OS S-R…OS S-4 buttons | Line South Yard ladder tracks (pairs with JMRI auto-routes) |</p>
+
+<p>---</p>
+
+<h2>8. Rules of thumb (HART)</h2>
+
+<p>1. <strong>One dispatcher, one CTC authority</strong> — CATS CTC *or* JMRI USS, not both.</p>
+<p>2. <strong>Signals govern</strong> — if the mast is Stop, the train stops. If CATS rejects a route, find</p>
+<p>   occupancy, points, or an opposing reservation before overriding.</p>
+<p>3. <strong>Line switches before you expect diverging clears</strong> — quick routes do not throw</p>
+<p>   turnouts; N/X does.</p>
+<p>4. <strong>Do not move points under a train</strong> — CATS waits on turnout safety delay; still check</p>
+<p>   the schematic.</p>
+<p>5. <strong>Use stacking for choreography</strong>, <strong>fleeting for parades</strong>, <strong>call-on for joins</strong> — not</p>
+<p>   interchangeably.</p>
+<p>6. <strong>West Yard ladder (116 / 103) and South Yard Switch 17</strong> are **yard</p>
+<p>   territory** — no CTC homes. Westbound into OS Barn from the yard lead is the</p>
+<p>   <strong>T6</strong> dwarf on the 117 plant. K-stub tracks are restricted speed beyond</p>
+<p>   the dwarfs, prepared to stop.</p>
+<p>7. <strong>Refresh Screen</strong> is safe after glitches; avoid <strong>Refresh Layout</strong> during ops (pushes</p>
+<p>   panel state at JMRI).</p>
+
+<p>---</p>
+
+<h2>9. Quick reference</h2>
+
+<p>| I want to… | Do this |</p>
+<p>|------------|---------|</p>
+<p>| Clear one plant, points already set | Left-click entry signal |</p>
+<p>| Route Brick → Princess with turnouts | Right-click entry → Set N/X → left-click exit |</p>
+<p>| Queue a move for when the plant clears | Right-click entry → Stack Route → left-click exit |</p>
+<p>| Run several trains same way close together | Line route → right-click → Turn on Fleeting |</p>
+<p>| Engine back onto cars on the main | Line turnouts → right-click → Call-on |</p>
+<p>| Cancel everything at a CP | Left-click active signal, or Cancel N/X / Cancel Fleeting |</p>
+<p>| See what is queued | View/Change Stacked Routes |</p>
+
+<p>---</p>
+
+<p>*Office of the Superintendent · Neville Island Operations · DS-CATS-DISP Rev A*</p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("guides"); });</script>
+</body>
+</html>

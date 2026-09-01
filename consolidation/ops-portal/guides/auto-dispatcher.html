@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto Dispatcher — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+<div class="page-head">
+      <h1>Auto Dispatcher</h1>
+      <p class="muted">From consolidation mirror <code>external/hart-runtime/jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md</code></p>
+      <p><a href="index.html">← Guides hub</a></p>
+    </div>
+    <article class="guide-body">
+<h1>HART Railroad — Auto Dispatcher Guide</h1>
+
+<p><strong>Publication:</strong> DS-AUTO · Rev A · Eff 2026-08-20</p>
+<p><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations</p>
+<p><strong>Scope:</strong> JMRI Dispatcher System on PanelPro (panels <strong>Dispatcher System</strong> and <strong>HART Railroad</strong>)</p>
+
+<p>This is how you <strong>send a train</strong> from one station to another, or along a</p>
+<p>named list of stations. You click stations; the system picks the path, throws</p>
+<p>turnouts, and runs the locomotive.</p>
+
+<p>It is <strong>not</strong> the CTC machine. Authority and signal Hold still belong to CATS</p>
+<p>or the USS panel. Run <strong>either</strong> CATS CTC <strong>or</strong> the USS machine — never both —</p>
+<p>and do not start Dispatcher System from inside CATS. Use PanelPro.</p>
+
+<p>CTC desks: [<code>../ctc/DISPATCHER_GUIDE.md</code>](../ctc/DISPATCHER_GUIDE.md) (USS) ·</p>
+<p>[<code>../../../cats/docs/DISPATCHER_GUIDE_CTC.md</code>](../../../cats/docs/DISPATCHER_GUIDE_CTC.md)</p>
+<p>(Digicon).</p>
+
+<p>---</p>
+
+<h2>1. What you click</h2>
+
+<p>Two windows:</p>
+
+<p>| Window | What it is |</p>
+<p>|--------|------------|</p>
+<p>| <strong>Dispatcher System</strong> | Command panel: start/stop, register trains, Run Dispatch vs Setup Route vs Run Route |</p>
+<p>| <strong>HART Railroad</strong> | The stations. The <strong>loco + short name</strong> is the destination. The <strong>circuit to its left</strong> is progress. The <strong>circuit below-left of the loco</strong> is occupancy, except Engine House <strong>OS EH-1…OS EH-3</strong> where occupancy sits further left on the same row |</p>
+
+<p>Stations, west → east around the plant, then the yard and house:</p>
+
+<p>| Station | Where it is |</p>
+<p>|---------|-------------|</p>
+<p>| <strong>OS Brick-Plane</strong> | Hairpin between Brick and Plane |</p>
+<p>| <strong>OS East Main Ext</strong> | Main between Plane (102) and OS Barn (117) |</p>
+<p>| <strong>OS Main East</strong> | Main south of the yard, approaching East End |</p>
+<p>| <strong>OS East Lead</strong> | East End lead off 112; destination label <strong>E Lead</strong> |</p>
+<p>| <strong>OS Main West</strong> | OS Main West at East End (around-the-room from Brick) |</p>
+<p>| <strong>OS West Main Ext</strong> | OS Main West between East End and Princess |</p>
+<p>| <strong>OS McKees Rocks</strong> | Princess, north branch |</p>
+<p>| <strong>OS McKeesport</strong> | Princess, south branch |</p>
+<p>| <strong>OS Scale</strong> | Left of the engine house, Plane–117 lead; destination label <strong>OS Scale</strong> |</p>
+<p>| <strong>OS Barn</strong> | Immediately to the right of OS Scale (OS Barn lead); destination label <strong>OS Barn</strong> |</p>
+<p>| <strong>OS EH-1 / OS EH-2 / OS EH-3</strong> | Right of the 116 ladder |</p>
+<p>| <strong>OS S-R…OS S-4</strong> | South Yard body; destination labels <strong>OS S-R…OS S-4</strong>, aligned with Main W / Main E |</p>
+<p>| <strong>OS W-1 / OS W-2</strong> | Brick yard body |</p>
+<p>| <strong>OS K-1 / OS K-2</strong> | Princess stubs east of 115 / 114; destination labels <strong>OS K-1</strong> / <strong>OS K-2</strong> |</p>
+
+<p>You can only start and stop at those stations. Occupancy icons and MoveTo</p>
+<p>buttons are in place. <strong>Stage 1 was re-run 2026-08-22</strong> after hidden yard</p>
+<p>throats (graph is <strong>91 sections / 688 transits / 1508 traininfo</strong>). Every listed</p>
+<p>station is a valid <strong>start and destination</strong>, including <strong>OS S-R…OS S-4</strong></p>
+<p>(enter/leave via 103 or OS East Lead). Manual Princess pairs (<code>Mast 36RA→Mast 40LA</code>,</p>
+<p><code>Mast 36RB→Mast 38LA</code>) were re-added after Discover. After any future Stage 1:</p>
+<p><code>python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py</code> then</p>
+<p><code>reconcile_dispatcher_stations.py</code>. Never run Stage 1 or store tables from</p>
+<p>CATS.</p>
+
+<p>---</p>
+
+<h2>2. Session start (once)</h2>
+
+<p>1. Open <strong>PanelPro</strong> (not CATS). Load the HART tables.</p>
+<p>2. Put the train on the rails at a station. Release it from WiThrottle — do not</p>
+<p>   keep a phone throttle on that address.</p>
+<p>3. On <strong>Dispatcher System</strong>, click <strong>Run Dispatcher System</strong> → OK.</p>
+<p>4. Leave <strong>Simulate Dispatched Trains</strong> <strong>off</strong> for a real train (on only to</p>
+<p>   dry-run with no locomotive).</p>
+<p>5. Turn <strong>Dispatch Path must be clear</strong> <strong>off</strong> unless the whole train sits</p>
+<p>   inside one station block. If the tail occupies the next block, a “path must</p>
+<p>   be clear” wait will never finish.</p>
+<p>6. <strong>Express Train (no stopping)</strong> <strong>on</strong> = go to the destination with as few</p>
+<p>   stops as possible. <strong>Off</strong> = stop at every station on the way.</p>
+
+<p>---</p>
+
+<h2>3. Register the train (once per session, or after you move it by hand)</h2>
+
+<p>1. Click <strong>Setup Train in Section</strong>.</p>
+<p>2. Choose <strong>1 train</strong> (or several if you are registering more than one).</p>
+<p>3. Pick the station block the engine is in, then the roster entry. Every</p>
+<p>   DecoderPro loco with a speed profile is listed (the full HART roster).</p>
+<p>   Dispatcher System hides locos that have no profile; <code>ensure_dispatcher_roster_profiles.py</code></p>
+<p>   writes the same synthetic 10-step / 400 mm/s profile 2091 already had.</p>
+<p>4. A neighbor block highlights. Answer <strong>which way the train is facing</strong> —</p>
+<p>   toward that highlight, or the other way. That is polarity, not the route.</p>
+<p>   Stock Dispatcher System used to invert that answer (see</p>
+<p>   [<code>DISPATCHER_LAYOUT_HOOPS.md</code>](../../../wiki/DISPATCHER_LAYOUT_HOOPS.md));</p>
+<p>   HART’s overlay stores what you clicked and uses it on the <strong>first</strong> dispatch.</p>
+<p>   If the loco still backs, release WiThrottle and re-register — do not “fix</p>
+<p>   facing” by editing mast slots.</p>
+<p>5. Accept length and speed factor if they look right.</p>
+
+<p>The station label on <strong>HART Railroad</strong> should show the train name. If you lift the</p>
+<p>train to another station by hand, register it again there.</p>
+
+<p>---</p>
+
+<h2>4. Send it to one station (no saved route)</h2>
+
+<p>Use this when you just want “go to OS Main East.”</p>
+
+<p>1. Click <strong>Run Dispatch</strong> so it is selected (<strong>Setup Route</strong> must be off).</p>
+<p>2. On <strong>HART Railroad</strong>, click the <strong>wide label</strong> of the destination station.</p>
+<p>3. Pick the train if asked, and Express vs stopping if asked.</p>
+
+<p>The system takes the <strong>shortest</strong> path (block lengths). It does <strong>not</strong> ask</p>
+<p>which plant to go through. From OS East Main Ext to OS Main East that is normally</p>
+<p>east through 117b, not around through Plane.</p>
+
+<p><strong>To force a path that is not the shortest</strong>, do not use this mode. Build a</p>
+<p>route that lists the stations you want it to visit (section 5).</p>
+
+<p>---</p>
+
+<h2>5. Pick a few stations, then reuse that as a named route</h2>
+
+<p>Use this when you want a specific itinerary: stop here, then here, then there.</p>
+
+<h3>Build it once</h3>
+
+<p>1. Click <strong>Setup Route</strong> (<strong>Run Dispatch</strong> turns off).</p>
+<p>2. On <strong>HART Railroad</strong>, click stations **in the order the train should visit</p>
+<p>   them**, starting where it is (or where it should begin).</p>
+<p>3. After each click, choose <strong>Select another station</strong> until the last stop,</p>
+<p>   then <strong>Complete Route</strong>.</p>
+<p>4. Click <strong>Finish selecting routes</strong> when you are done creating.</p>
+
+<p>Skip <strong>Set Action…</strong> unless you know you need a station script.</p>
+
+<p>Name is assigned from the first and last stations. Review it under</p>
+<p><strong>View/Edit Routes</strong>. To drop a stop, edit the route and use the delete-row</p>
+<p>checkbox. To add a stop, build a new route — there is no insert.</p>
+
+<h3>Run it later</h3>
+
+<p>1. Train registered, sitting at (or able to reach) the first station.</p>
+<p>2. Click <strong>Run Route</strong>.</p>
+<p>3. Choose <strong>1 route</strong>.</p>
+<p>4. Pick the train. Prefer <strong>show routes starting at train position</strong>.</p>
+<p>5. Pick the route, then:</p>
+<p>   - <strong>Run the route and stop</strong></p>
+<p>   - <strong>Run the route and return to the start</strong> (shortest way back, not</p>
+<p>     necessarily the same stations)</p>
+<p>   - <strong>Run, return, and repeat</strong></p>
+
+<p>That is the “predefined route” workflow. Build once, run whenever the train</p>
+<p>is in place.</p>
+
+<h3>Example</h3>
+
+<p>Train on <strong>OS East Main Ext</strong>, facing east, want OS Barn then East End without</p>
+<p>going the long way around Plane:</p>
+
+<p><strong>OS East Main Ext</strong> → <strong>OS Main East</strong> → <strong>OS East Lead</strong></p>
+
+<p>To send it the long way on purpose, put <strong>OS Brick-Plane</strong> (and</p>
+<p>whatever else you need) in the list so shortest-path cannot skip it.</p>
+
+<p>---</p>
+
+<h2>6. When it will not start</h2>
+
+<p>| What you see | What to do |</p>
+<p>|--------------|------------|</p>
+<p>| Console: <code>waiting for route … to be clear</code> | The wait started with <strong>Dispatch Path must be clear</strong> on, and some block on that transit is occupied — often <strong>this train’s tail</strong> in the next station. Cancel, turn that button <strong>off</strong>, then click the destination again. Turning it off after the wait has started does nothing. |</p>
+<p>| Train sits, no motion | Confirm <strong>Run Dispatch</strong> (one-shot) or that <strong>Run Route</strong> actually started a route. Confirm the train is registered in the station it occupies. |</p>
+<p>| Goes the “wrong” way around the plant | One-shot dispatch always takes the shortest path. Build a <strong>Setup Route</strong> that includes the stations on the path you want. |</p>
+<p>| Runs backward | Facing was wrong, or a WiThrottle still owns the loco. Release the phone, terminate, re-register facing, dispatch again. Do not nudge an auto train with the throttle. |</p>
+<p>| Stuck after a derail / pickup | <strong>Modify Dispatcher System</strong>: refresh, delete the transit if it is still listed, re-register the train where it now sits. <strong>Change Dir</strong> there if it is pointed the wrong way. |</p>
+
+<p>To abort: <strong>Stop Dispatcher System</strong>, or Modify Dispatcher System → delete the</p>
+<p>active transit. Then <strong>Run Dispatcher System</strong> again before the next move.</p>
+
+<p>---</p>
+
+<h2>7. Buttons you can ignore (for this desk)</h2>
+
+<p>Leave these alone until someone is tuning the railroad: <strong>Set Stopping Length</strong>,</p>
+<p><strong>Set Stop Sensor</strong>, <strong>Set Station Wait Time</strong>, <strong>Set Station Direction</strong>,</p>
+<p><strong>Restrict Transit Operation</strong>, scheduler / timetable / analog clock.</p>
+
+<p><strong>Set Station Direction</strong> is the advanced way to forbid one exit from a</p>
+<p>station (so shortest-path cannot use it). Prefer a named route with extra</p>
+<p>stations unless you are locking a one-way plant for the session.</p>
+
+<p>---</p>
+
+<h2>8. Quick recap</h2>
+
+<p>| Goal | Clicks |</p>
+<p>|------|--------|</p>
+<p>| Register a train | <strong>Setup Train in Section</strong> → block → roster loco → facing |</p>
+<p>| One destination | <strong>Run Dispatch</strong> → click destination label |</p>
+<p>| Same trip every time | <strong>Setup Route</strong> → click stations in order → <strong>Complete Route</strong>; later <strong>Run Route</strong> → pick that route |</p>
+<p>| Stop at every station | <strong>Express Train</strong> <strong>off</strong> |</p>
+<p>| Skip intermediates | <strong>Express Train</strong> <strong>on</strong> |</p>
+<p>| Tail hanging out of the station | <strong>Dispatch Path must be clear</strong> <strong>off</strong> before you click |</p>
+
+<p>---</p>
+
+<h2>9. NX on HART Railroad (separate desk)</h2>
+
+<p>JMRI Entry/Exit lives on <strong>HART Railroad</strong> as a <strong>white USS lamp</strong> on the</p>
+<p>approach track into each CTC switch (<code>NX Mast 2L</code>, <code>NX Mast 6LB</code>, …). It turns</p>
+<p><strong>green</strong> when that end of a route is active. That is not the Dispatcher</p>
+<p>System pair: the <strong>loco</strong> is MoveTo, the <strong>small track-circuit square</strong> is</p>
+<p>progress.</p>
+
+<p><strong>Now (SML mode):</strong> click two white lamps to throw the path and let SML</p>
+<p>set the facing mast. Default AAR icons stay. LE turnout circles still</p>
+<p>work. NX does not Hold or reserve blocks.</p>
+
+<p><strong>Later (lock mode):</strong> <code>python3 jmri/layouts/hart/scripts/apply_nx_layer.py --mode lock</code></p>
+<p>then deploy. After that, NX Holds every source mast at Stop until you</p>
+<p>click a route, and reserves the path. Use that desk <strong>instead of</strong> CATS</p>
+<p>CTC and USS Logic. Switch back with <code>--mode sml</code>.</p>
+
+<p>You can also flip it in PanelPro: <strong>Tools → Entry Exit</strong> — pair type</p>
+<p><strong>Turnout and Signal Mast Logic</strong> vs <strong>Full Interlock</strong>, and **Use ABS</p>
+<p>Signal Mode**. Store from PanelPro if you change it there.</p>
+
+<p>1. Open <strong>PanelPro</strong>.</p>
+<p>2. Click the white lamp, then the exit lamp to line turnouts / SML.</p>
+<p>3. First prove-out pair: <strong>NX Mast 2L → NX Mast 6LB</strong> (Brick main) and</p>
+<p>   <strong>NX Mast 4RA → NX Mast 2L</strong> (OS W-1 out).</p>
+
+<p>Do not click Dispatcher System <strong>MoveTo</strong> labels as NX points — those are a</p>
+<p>different desk. Hand-throws 116/118/119 and yard stubs are not NX ends.</p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("guides"); });</script>
+</body>
+</html>

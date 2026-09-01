@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live tools — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Live tools</h1>
+      <p class="muted">Deep links to hosts on the layout network. URLs live in <code>data/site.json</code>.</p>
+    </div>
+    <div class="card-grid">
+      <a class="card" id="tool-sts" href="http://10.0.0.53:8980/sts/"><h3>STS</h3><p>Shipper Traffic System — sessions and car moves.</p></a>
+      <a class="card" id="tool-mimic" href="http://10.0.0.53:8765/"><h3>MQTT Mimic</h3><p>LCOS / Digicon field QA board.</p></a>
+      <a class="card" id="tool-jmri" href="http://10.0.0.53:12080/"><h3>JMRI web</h3><p>PanelPro / Digicon web home on the layout host.</p></a>
+    </div>
+    <div class="panel">
+      <h2>Inside consolidation</h2>
+      <ul>
+        <li><a href="../packages/sts/README.md">packages/sts</a></li>
+        <li><a href="../wiki/pipelines/mqtt-mimic.md">wiki/pipelines/mqtt-mimic.md</a></li>
+        <li><a href="../wiki/pipelines/sts.md">wiki/pipelines/sts.md</a></li>
+        <li><a href="../html/pipelines/14-sts.html">html/pipelines/14-sts.html</a></li>
+      </ul>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', async function () {
+        const site = await HARTOps.mountChrome('tools');
+        const t = site.tools || {};
+        if (t.sts) document.getElementById('tool-sts').href = t.sts;
+        if (t.mimic) document.getElementById('tool-mimic').href = t.mimic;
+        if (t.jmri) document.getElementById('tool-jmri').href = t.jmri;
+      });
+    </script>
+
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  
+</body>
+</html>

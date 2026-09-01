@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roster — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Device roster</h1>
+      <p class="muted">From <code>consolidation/sor/names/</code> joined to the LE panel mirror.</p>
+    </div>
+    <div class="toolbar">
+      <input id="roster-search" type="search" placeholder="Search…">
+      <select id="kind-filter">
+        <option value="all">All kinds</option>
+        <option value="turnout">Turnout</option>
+        <option value="signal">Signal</option>
+        <option value="occupancy">Occupancy</option>
+        <option value="sensor">Sensor</option>
+      </select>
+      <select id="cp-filter">
+        <option value="all">All CPs</option>
+      </select>
+      <span class="muted" id="roster-count"></span>
+    </div>
+    <div class="table-wrap">
+      <table class="roster">
+        <thead>
+          <tr>
+            <th>Kind</th>
+            <th>Public name</th>
+            <th>System</th>
+            <th>CP</th>
+            <th>Hardware</th>
+            <th>MQTT</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="roster-body"></tbody>
+      </table>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/roster.js"></script>
+</body>
+</html>

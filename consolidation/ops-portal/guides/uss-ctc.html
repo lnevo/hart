@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>USS CTC dispatcher — HART Operator Portal</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+<div class="page-head">
+      <h1>USS CTC dispatcher</h1>
+      <p class="muted">From consolidation mirror <code>external/hart-runtime/jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md</code></p>
+      <p><a href="index.html">← Guides hub</a></p>
+    </div>
+    <article class="guide-body">
+<h1>HART Railroad — CTC Machine Dispatcher Guide</h1>
+
+<p><strong>Publication:</strong> DS-DISP · Rev A · Eff 2026-08-19</p>
+<p><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations</p>
+<p><strong>Scope:</strong> JMRI USS CTC machine (<strong>USS CTC</strong>), basic dispatching rules</p>
+
+<p>Welcome to the desk. This machine is a model of a US&amp;S Centralized Traffic</p>
+<p>Control panel: you line switches and signals from here, and the interlocking</p>
+<p>logic — not you — decides whether a signal can actually clear. Field signal</p>
+<p>aspects are computed by JMRI signal logic (ABS rules behind your CTC</p>
+<p>authority). You grant permission; the plant protects the railroad.</p>
+
+<p>To <strong>run a train automatically</strong> between stations, use Dispatcher System, not</p>
+<p>this machine: [<code>../dispatcher/DISPATCHER_GUIDE.md</code>](../dispatcher/DISPATCHER_GUIDE.md)</p>
+<p>(DS-AUTO).</p>
+
+<p>---</p>
+
+<h2>1. Reading the machine</h2>
+
+<p>The panel is <strong>20 columns, west → east, left → right</strong>, matching the</p>
+<p>railroad: Brick → Plane → Barn → East End → Princess. Each column is one</p>
+<p><strong>OS section</strong> (interlocking plant) with, top to bottom:</p>
+
+<ul>
+<li>**Track diagram row** — OS lamp lights **red while a train occupies the</li>
+</ul>
+<p>  plant**. Crossover columns have a second lamp on the lower track&#x27;s bar.</p>
+<p>  Small searchlight icons on the rails are the <strong>CTC-held masts</strong> for that</p>
+<p>  column (Quaker Valley style): two-head homes and one-head dwarfs, facing</p>
+<p>  the traffic they govern. They paint the field aspect (red at Hold/Stop,</p>
+<p>  yellow Approach / Restricting, green Clear). Hover for the mast name.</p>
+<p>  Yard-ladder plants are <strong>switch-only</strong> (no signal lever) and **default</p>
+<p>  Local**.</p>
+<ul>
+<li>**Switch lever** (odd numbers 1–39) — **every plant has one**. Points **N**</li>
+</ul>
+<p>  (Normal/straight) or <strong>R</strong> (Reverse/diverging), with N/R correspondence</p>
+<p>  indicators. Take the lock back to <strong>Locked</strong> and code to dispatch from the</p>
+<p>  machine.</p>
+<ul>
+<li>**Signal lever** (even numbers where a signal exists) — three positions:</li>
+</ul>
+<p>  <strong>L</strong>, <strong>N</strong>, <strong>R</strong> — with L / N / R indicator lamps above it.</p>
+<ul>
+<li>**Lock toggle** (Locked / Unlocked / Local) — releases the switch for</li>
+</ul>
+<p>  hand operation by a field crew; the Unlocked lamp lights while released.</p>
+<ul>
+<li>**Code button** — nothing you set takes effect until you press it.</li>
+</ul>
+
+<p>| Cols | Station | Lever (SW/SIG) | Plant |</p>
+<p>|------|---------|----------------|-------|</p>
+<p>| 1 | Brick | 1 / 2 | Switch 3 (yard exits OS W-1 / OS W-2) |</p>
+<p>| 2 | Brick | 3 / 4 | Switch 1 |</p>
+<p>| 3 | Plane | 5 / 6 | Switch 5 (main vs OS Scale) |</p>
+<p>| 4 | OS Barn | 7 / 8 | Switch 7 crossover (OS 7 / 117b). One signal lever releases both tracks |</p>
+<p>| 5 | OS Barn | 9 / — | Switch 13 (ladder, switch-only, defaults Local) |</p>
+<p>| 6 | OS Barn | 11 / — | Switch 15 (ladder, switch-only, defaults Local) |</p>
+<p>| 7–8 | East End | 13 / 14, 15 / 16 | Switches 107, 108 (ladder, switch-only) |</p>
+<p>| 9 | East End | 17 / 18 | Switch 23 crossover (OS 23a / 111b) |</p>
+<p>| 10 | East End | 19 / 20 | Switch 29 (ladder, switch-only) |</p>
+<p>| 11 | East End | 21 / 22 | Switch 31 (ladder → OS East Lead; defaults Local) |</p>
+<p>| 12 | East End | 23 / 24 | Switch 33 (OS East Lead vs OS Main East) |</p>
+<p>| 13 | Princess | 25 / 26 | Switch 35 crossover (OS 35b / 113a) |</p>
+<p>| 14 | Princess | 27 / 28 | Switch 37 (OS McKeesport vs OS K-2) |</p>
+<p>| 15 | Princess | 29 / 30 | Switch 39 (OS McKees Rocks vs OS K-1) |</p>
+
+<p>Below the columns: <strong>Fleeting</strong> toggle, <strong>Reload CTC</strong>, and <strong>CTC Debug</strong></p>
+<p>(leave the last two alone in normal operation).</p>
+
+<p>---</p>
+
+<h2>2. Operating the machine</h2>
+
+<h3>Line a signal (grant a route)</h3>
+
+<p>1. Check the OS lamp is <strong>dark</strong> (plant unoccupied).</p>
+<p>2. Set the <strong>switch lever</strong> for the route you want (N or R) and **press</p>
+<p>   code**. Wait for the N or R indicator to light — that is field</p>
+<p>   correspondence, the points actually moved. An unlit pair means the</p>
+<p>   switch is still in motion or failed.</p>
+<p>3. Move the <strong>signal lever</strong>: <strong>R</strong> for an <strong>eastward</strong> (rightward) move</p>
+<p>   through the plant, <strong>L</strong> for a <strong>westward</strong> (leftward) move.</p>
+<p>4. <strong>Press code.</strong> The machine checks traffic locking. If the route is</p>
+<p>   valid, the signal indicator lights and the field mast is released — the</p>
+<p>   signal system then shows the best aspect the track conditions allow</p>
+<p>   (Clear, Approach, Medium Clear on a diverging route, Restricting from a</p>
+<p>   dwarf). If the request conflicts with an opposing route or the points,</p>
+<p>   the machine <strong>rejects it</strong> and the signal stays at Stop. That is the</p>
+<p>   machine doing its job, not a fault.</p>
+
+<h3>Take a signal away</h3>
+
+<p>Return the signal lever to <strong>N</strong> and press code. <strong>Time locking</strong> then runs:</p>
+<p>the indicators go out of correspondence for a few seconds before the</p>
+<p>signal is re-held at Stop. This delay is deliberate — it protects a train</p>
+<p>that may have already accepted the signal. Do not re-line anything until</p>
+<p>the indicators settle.</p>
+
+<h3>Throw a switch</h3>
+
+<p>A switch lever is <strong>locked while its signal lever is off N</strong> — take the</p>
+<p>signal away first, then line the points. This is correct USS behavior:</p>
+<p>never move points under a cleared route.</p>
+
+<h3>Fleeting</h3>
+
+<p>The <strong>Fleeting</strong> toggle keeps a lined route standing so following moves in</p>
+<p>the same direction get successive signals without re-coding each one. Use</p>
+<p>it for a parade of same-direction trains only; turn it off when done.</p>
+<p>Never fleet a route you may need to take back quickly.</p>
+
+<p>---</p>
+
+<h2>3. Basic dispatcher rules</h2>
+
+<p>1. <strong>Signals govern.</strong> A Stop signal means stop — you cannot talk a train</p>
+<p>   past one. If a signal will not clear, find out why (occupancy, points,</p>
+<p>   opposing route) before doing anything else.</p>
+<p>2. <strong>One dispatcher, one machine.</strong> Never run this machine and the CATS</p>
+<p>   CTC panel at the same time — both drive Hold on the same signals and</p>
+<p>   will fight. (The CATS ABS panel is a view-only mimic and is fine.)</p>
+<p>3. <strong>Never move points under a train.</strong> If the OS lamp is red, hands off</p>
+<p>   that column&#x27;s levers until it clears.</p>
+<p>4. <strong>Line switches first, signals second; code after every change.</strong></p>
+<p>   Nothing happens until you press the code button — and wait for the</p>
+<p>   indicator before you trust the field.</p>
+<p>5. <strong>Expect rejections.</strong> Traffic locking refuses conflicting or</p>
+<p>   improperly lined routes. Correct the points or wait for the opposing</p>
+<p>   move; do not hammer the code button.</p>
+<p>6. <strong>Respect time locking.</strong> After you take a signal away, wait out the</p>
+<p>   release delay. Plan far enough ahead that you rarely need to snatch a</p>
+<p>   signal back from an approaching train.</p>
+<p>7. <strong>Keep mainline columns Locked.</strong> Switches <strong>116, 103, and 110</strong> boot</p>
+<p>   <strong>Local</strong> so the yard crew can throw the ladder without a code. Re-lock</p>
+<p>   a column only if you need to take it back from the desk. Other columns</p>
+<p>   stay Locked unless you hand them to a crew — plant unoccupied, signals</p>
+<p>   at Stop — and re-lock the moment they report clear. You have no route</p>
+<p>   protection through an unlocked switch.</p>
+<p>8. <strong>Yard ladder is unsignaled.</strong> Switches 116 and 103 have **no signal</p>
+<p>   levers**. The westbound home into OS Barn from the yard lead is</p>
+<p>   <strong>Mast 8LB</strong> on the 117 column. Switch 17 and the rest</p>
+<p>   of the South Yard ladder are occupancy-only. The OS K-1 / OS K-2 stubs and</p>
+<p>   yard tracks are restricted-speed territory beyond the dwarf.</p>
+<p>9. <strong>During an automated dispatch, hands off the throttle.</strong> A phone</p>
+<p>   throttle press on a dispatched locomotive flips its direction bit and</p>
+<p>   the auto train will run the wrong way. Release the locomotive from</p>
+<p>   WiThrottle before dispatching; if an auto train stalls, terminate the</p>
+<p>   dispatch and re-dispatch — never nudge it.</p>
+<p>10. <strong>Log your railroad.</strong> Note trains, routes granted, and anything</p>
+<p>   abnormal (failed correspondence, unexpected occupancy). The next</p>
+<p>   dispatcher inherits your plant exactly as you leave it.</p>
+<p>11. <strong>When in doubt, leave everything at Stop.</strong> A red railroad is a safe</p>
+<p>    railroad; sort the situation out before granting new authority.</p>
+
+<p>---</p>
+
+<h2>4. Quick reference</h2>
+
+<p>| I want to… | Do this |</p>
+<p>|------------|---------|</p>
+<p>| Route a train east through a plant | Switch lever N/R → code → wait for indicator → signal lever <strong>R</strong> → code |</p>
+<p>| Route a train west | Same, signal lever <strong>L</strong> |</p>
+<p>| Cancel a signal | Signal lever <strong>N</strong> → code → wait out time locking |</p>
+<p>| Throw a switch | Signal lever must be <strong>N</strong> first; then switch lever → code |</p>
+<p>| Run several trains the same way | Line the route, turn <strong>Fleeting</strong> on; off when done |</p>
+<p>| Signal won&#x27;t clear | Check OS lamp, points correspondence, opposing route — the machine is protecting something |</p>
+
+<p><strong>Machine on:</strong> PanelPro <strong>Tools ▸ CTC ▸ Run CTC Logic</strong>. It does not</p>
+<p>auto-start — until you run it, every lever and lamp shows &quot;?&quot; (sensors</p>
+<p>UNKNOWN). Once started, most switch levers initialize <strong>N</strong>. Switches **1, 33,</p>
+<p>37, and 39** rest Thrown in the field — run</p>
+<p><code>jmri/layouts/hart/scripts/ctc_default_reverse_levers.py</code> after CTC</p>
+<p>starts (or add it as a PanelPro startup action after Run CTC Logic) so</p>
+<p>those selectors sit at <strong>R</strong>, and lock toggles for the <strong>yard ladders</strong></p>
+<p>(Switches <strong>9, 11, 13, 15, 17, 19, 21, 25, 27, 29, 31</strong>)</p>
+<p>sit at <strong>Local</strong>. Reload CTC re-applies the same defaults.</p>
+<p>The CTC-held masts go to Stop: that is the correct idle state. <strong>Machine off:</strong> there is no stop</p>
+<p>command — quit and relaunch PanelPro without starting the runtime; masts</p>
+<p>boot Unheld and the railroad runs as plain ABS. The <strong>Reload CTC</strong> button</p>
+<p>on the panel re-reads the machine configuration in place after edits.</p>
+<p>Panel file: <code>jmri/layouts/hart/ctc/GUIObjects.xml</code>; machine config lives</p>
+<p>in <code>tables.xml</code> (<code>&lt;ctcdata&gt;</code>).</p>
+
+<p>---</p>
+
+<h2>Related — CATS Digicon panel</h2>
+
+<p>This guide covers the <strong>USS lever machine</strong> only. For the <strong>CATS mouse panel</strong></p>
+<p>(quick routes, N/X, stacking, fleeting, call-on), see</p>
+<p>[<code>cats/docs/DISPATCHER_GUIDE_CTC.md</code>](../../../../cats/docs/DISPATCHER_GUIDE_CTC.md)</p>
+<p>(DS-CATS-DISP). Do not run both panels as CTC authority at once.</p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("guides"); });</script>
+</body>
+</html>

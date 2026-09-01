@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HART Operator Portal</title>
+  <link rel="stylesheet" href="css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>HART Railroad</h1>
+        <p class="lede">Operator portal for Neville Island — layout browse, dispatcher guides, maps, and live tools. Sourced from the consolidation workspace.</p>
+        <div class="hero-actions">
+          <a class="btn" href="layout/index.html">Browse the layout</a>
+          <a class="btn btn-ghost" href="guides/index.html">Dispatcher guides</a>
+          <a class="btn btn-ghost" href="tools/index.html">Live tools</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="assets/layout/HART_le_schematic.png" alt="HART Layout Editor schematic">
+      </div>
+    </section>
+
+    <h2 class="section-title">Where to go</h2>
+    <p class="section-note">Curated operator surfaces — not the engineering consolidation desk.</p>
+    <div class="card-grid">
+      <a class="card" href="layout/index.html">
+        <h3>Layout explorer</h3>
+        <p>Click switches and signals on the LE schematic for public names, CP, and hardware.</p>
+      </a>
+      <a class="card" href="roster/index.html">
+        <h3>Device roster</h3>
+        <p>Searchable turnout, signal, occupancy, and sensor list from consolidation SoR.</p>
+      </a>
+      <a class="card" href="guides/index.html">
+        <h3>Guides</h3>
+        <p>USS CTC, CATS Digicon CTC, Auto Dispatcher, and Digicon system overview.</p>
+      </a>
+      <a class="card" href="tools/index.html">
+        <h3>Live tools</h3>
+        <p>STS, MQTT Mimic, and JMRI web — when the layout hosts are up.</p>
+      </a>
+      <a class="card" href="gallery/index.html">
+        <h3>Maps &amp; photos</h3>
+        <p>Station maps and dispatcher panel art from hart-ops publications.</p>
+      </a>
+      <a class="card" href="reference/index.html">
+        <h3>Reference</h3>
+        <p>Wiring, publications, pipeline HTML, and paths inside consolidation.</p>
+      </a>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("home"); });</script>
+</body>
+</html>
