@@ -10,12 +10,16 @@
     return document.querySelector(sel);
   }
 
+  function api() {
+    return window.HARTOps || window.HARTOps;
+  }
+
   function base() {
-    return window.HARTOps ? window.HARTOps.base() : "../";
+    return api() ? api().base() : "../";
   }
 
   function escapeHtml(s) {
-    return String(s)
+    return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
@@ -23,7 +27,13 @@
   }
 
   function row(k, v) {
-    return "<dt>" + escapeHtml(k) + "</dt><dd>" + escapeHtml(String(v)) + "</dd>";
+    return (
+      "<dt>" +
+      escapeHtml(k) +
+      "</dt><dd>" +
+      escapeHtml(String(v == null || v === "" ? "—" : v)) +
+      "</dd>"
+    );
   }
 
   function showDetail(item) {
@@ -39,12 +49,12 @@
       "</h2><dl>" +
       row("Kind", item.kind) +
       row("System", item.systemName) +
-      row("Control point", item.cp || "—") +
-      row("Hardware", item.hardware || "—") +
-      row("MQTT", item.mqtt || "—") +
-      row("Block", item.block || "—") +
-      row("Notes", item.comment || "—") +
-      "</dl><p><a href=\"" +
+      row("Control point", item.cp) +
+      row("Hardware", item.hardware) +
+      row("MQTT", item.mqtt) +
+      row("Block", item.block) +
+      row("Notes", item.comment) +
+      '</dl><p><a href="' +
       base() +
       "roster/index.html#" +
       encodeURIComponent(item.id) +
@@ -68,8 +78,8 @@
     stage.querySelectorAll(".hotspot").forEach(function (n) {
       n.remove();
     });
-    state.data.items.forEach(function (item) {
-      if (item.x == null) return;
+    (state.data.items || []).forEach(function (item) {
+      if (item.x == null || item.y == null) return;
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "hotspot " + item.kind + (matches(item) ? "" : " dim");
@@ -89,17 +99,30 @@
   async function init() {
     var b = base();
     var res = await fetch(b + "data/layout-index.json");
+    if (!res.ok) throw new Error("layout-index.json " + res.status);
     state.data = await res.json();
     var img = $("#schematic");
+    var imagePath =
+      (state.data.image && state.data.image.path) ||
+      "assets/layout/HART_le_schematic.png";
     if (img) {
-      img.src = b + ((state.data.image && state.data.image.path) || "assets/layout/HART_le_schematic.png");
+      img.src = b + imagePath;
       img.onload = paint;
+      img.onerror = function () {
+        var meta = $("#layout-meta");
+        if (meta) meta.textContent = "Schematic image failed to load: " + imagePath;
+      };
     }
     var c = state.data.counts || {};
     var meta = $("#layout-meta");
     if (meta) {
       meta.textContent =
-        (c.mapped || 0) + " mapped · " + (c.turnout || 0) + " turnout rows · " + (c.signal || 0) + " signal rows";
+        (c.mapped || 0) +
+        " mapped · " +
+        (c.turnout || 0) +
+        " turnout rows · " +
+        (c.signal || 0) +
+        " signal rows";
     }
     document.querySelectorAll("[data-kind]").forEach(function (el) {
       el.addEventListener("change", function () {
@@ -119,6 +142,15 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    window.HARTOps.mountChrome("layout").then(init);
+    var ops = api();
+    if (!ops) {
+      console.error("HARTOps nav.js did not load");
+      return;
+    }
+    ops.mountChrome("layout").then(init).catch(function (err) {
+      console.error(err);
+      var meta = $("#layout-meta");
+      if (meta) meta.textContent = "Layout failed to load — " + err.message;
+    });
   });
 })();

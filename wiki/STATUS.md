@@ -1,6 +1,8 @@
 # Live status — HART Digicon
 
-Updated: 2026-08-31 — Operator portal rebuilt around Neville Island storytelling: new-operator briefing (HB-01), industries with logos, captioned photo gallery (168 items across place / maps / fleet / aisle / power), HART narrative + STS excerpt, and session-invite archive. Pipeline/reference demoted. Open `consolidation/ops-portal/index.html`. Docs/static — not deployed.
+Updated: 2026-08-31 — Operator portal live QA: removed Sessions nav (invites are author reference only); fixed hero image, layout explorer paint (60 hotspots), gallery (168 captioned items), briefing/about JSON loads. **Must serve over HTTP** — `./consolidation/ops-portal/scripts/serve_portal.sh` → http://127.0.0.1:8760/ops-portal/. Docs/static — not deployed.
+
+Updated: 2026-08-31 — Operator portal rebuilt around Neville Island storytelling: new-operator briefing (HB-01), industries with logos, captioned photo gallery, HART narrative. Pipeline/reference demoted. Serve via `ops-portal/scripts/serve_portal.sh`. Docs/static — not deployed.
 
 Updated: 2026-08-31 — Right Track S-R yard-ladder lamp (`IT:HART:YL:R1`) lights only when Switch 31 and Switch 33 are both CLOSED (was Switch 31 alone, so it stayed lit with SW-33 thrown). Reload **PanelPro**. Deploy `--pi --win`.
 

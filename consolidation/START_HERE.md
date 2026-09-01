@@ -2,7 +2,15 @@
 
 ## 1. Open the browse portal
 
-**Operator portal (crew / Neville Island):** [`ops-portal/index.html`](ops-portal/index.html) — briefing, industries, photo gallery, stories, sessions, layout explorer.
+**Operator portal (crew / Neville Island):** [`ops-portal/index.html`](ops-portal/index.html) — briefing, industries, photo gallery, stories, layout explorer.
+
+Serve over HTTP (JSON pages need it; `file://` will look empty):
+
+```bash
+./consolidation/ops-portal/scripts/serve_portal.sh
+# open http://127.0.0.1:8760/ops-portal/
+```
+
 
 **Engineering consolidation desk (dark SoR / pipelines):**
 
