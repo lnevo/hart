@@ -1,11 +1,14 @@
-# Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout states,
-# drive the HART Railroad Turnouts status lamp (IH9990), and wire clicks on
-# the LCOS / Turnouts / Signals status lamps.
+# Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live turnout
+# / FB sensor states, drive the HART Railroad Turnouts status lamp (IH9990),
+# and wire clicks on the LCOS / Turnouts / Signals status lamps.
 #
 # CRITICAL: the same ITs are JMRI Route controlTurnouts (fire on THROWN).
-# This script must NEVER setCommandedState(THROWN) — that re-fires routes and
-# ping-pongs peels (e.g. R4 ↔ R5). Paint indicators with newKnownState only:
-# active → THROWN (lit), inactive → CLOSED.
+# This script must NEVER setCommandedState on plant turnouts (M2T*/MTT*) or
+# publish track/cmd — that moves field points. Paint YL indicators with
+# newKnownState only: active → THROWN (lit), inactive → CLOSED.
+#
+# Boot: fill UNKNOWN MQTT sensors from broker retain (setOwnState), then
+# light the matching YL lamps. Do not apply track/turnout retain here.
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
@@ -27,6 +30,7 @@ CLOSED = jmri.Turnout.CLOSED
 THROWN = jmri.Turnout.THROWN
 TWOSENSOR = jmri.Turnout.TWOSENSOR
 DIRECT = jmri.Turnout.DIRECT
+ACTIVE = jmri.Sensor.ACTIVE
 
 TURNOUT_FB_HEAD = "IH9990"
 LCOS_SENSOR = "M2S1567"
@@ -76,20 +80,40 @@ _icon_rebound = False
 _last = (None, None)
 _last_fb_appearance = None
 _listener = None
+_sensor_listener = None
 _click_busy = False
 _plant_count = 0
 
 
+def _known_from_fb(to):
+    """TWOSENSOR: sensor1 = thrown (R), sensor2 = closed (N). Read-only."""
+    try:
+        s1 = to.getFirstSensor()
+        s2 = to.getSecondSensor()
+    except Exception:
+        return None
+    if s1 is None or s2 is None:
+        return None
+    try:
+        a1 = s1.getKnownState()
+        a2 = s2.getKnownState()
+    except Exception:
+        return None
+    if a1 == ACTIVE and a2 != ACTIVE:
+        return THROWN
+    if a2 == ACTIVE and a1 != ACTIVE:
+        return CLOSED
+    return None
+
+
 def _known(to):
+    """Plant position for YL match. Never uses commanded state (would follow a cmd)."""
     if to is None:
         return None
     st = to.getKnownState()
     if st == CLOSED or st == THROWN:
         return st
-    cmd = to.getCommandedState()
-    if cmd == CLOSED or cmd == THROWN:
-        return cmd
-    return None
+    return _known_from_fb(to)
 
 
 def _match(patterns):
@@ -118,9 +142,6 @@ def _set_indicator_known(sn, state):
             return
         if hasattr(to, "newKnownState"):
             to.newKnownState(state)
-        elif state == CLOSED:
-            # Fallback: CLOSE is safe (routes arm on THROWN only).
-            to.setCommandedState(CLOSED)
         else:
             print(
                 "sync_turnout_buttons: cannot light %s (no newKnownState)"
@@ -611,6 +632,15 @@ class _TurnoutListener(PropertyChangeListener):
             print("sync_turnout_buttons: listener error: %s" % e)
 
 
+class _SensorListener(PropertyChangeListener):
+    def propertyChange(self, event):
+        try:
+            if event.getPropertyName() == "KnownState":
+                _schedule_sync()
+        except Exception as e:
+            print("sync_turnout_buttons: sensor listener error: %s" % e)
+
+
 def _sensor_sys(icon):
     try:
         s = icon.getSensor()
@@ -714,11 +744,10 @@ def _arm_status_lamp_clicks():
 
 
 def _reload_mqtt_retain_at_boot():
-    """Re-read broker retain for sensors + turnouts before first ladder paint.
+    """Fill UNKNOWN MQTT sensors from broker retain. Do not touch plant turnouts.
 
-    apply_maintain_mqtt may have deferred turnouts (~12s) or occupancy may
-    still be UNKNOWN; this script needs plant KnownState now so YL icons
-    can light, and occupancy sensors should regain last retain.
+    apply_maintain_mqtt already paints turnout KnownState on its own delay.
+    This script only needs occupancy/FB sensors so YL icons can match.
     """
     import os
 
@@ -759,14 +788,16 @@ def _reload_mqtt_retain_at_boot():
         if fn is None:
             print("sync_turnout_buttons: reload_mqtt_retain missing")
             return False
-        # Digicon PTS is up by arm time; paint turnouts immediately.
+        # Sensors only. Never paint M2T/MTT here (that can command field points).
         n_s, n_t = fn(
             turnout_delay_ms=0,
             settle_secs=0,
+            paint_turnouts=False,
+            unknown_sensors_only=True,
             log_prefix="sync_turnout_buttons/mqtt",
         )
         print(
-            "sync_turnout_buttons: MQTT retain reload sensors=%s turnouts=%s"
+            "sync_turnout_buttons: MQTT retain sensors=%s (turnouts skipped, queued=%s)"
             % (n_s, n_t)
         )
         return True
@@ -777,12 +808,21 @@ def _reload_mqtt_retain_at_boot():
 
 def _arm_listeners():
     """Attach ladder/plant listeners once. Independent of panel icons."""
-    global _armed, _listener, _plant_count
+    global _armed, _listener, _sensor_listener, _plant_count
     if _armed:
         return True
     _listener = _TurnoutListener()
+    _sensor_listener = _SensorListener()
     for sn in WATCH:
-        turnouts.provideTurnout(sn).addPropertyChangeListener(_listener)
+        to = turnouts.provideTurnout(sn)
+        to.addPropertyChangeListener(_listener)
+        for getter in ("getFirstSensor", "getSecondSensor"):
+            try:
+                s = getattr(to, getter)()
+                if s is not None:
+                    s.addPropertyChangeListener(_sensor_listener)
+            except Exception:
+                pass
     for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
         turnouts.provideTurnout(sn)
     plants = _included_plant_turnouts()
