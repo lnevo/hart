@@ -1,11 +1,11 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — Dropped Start Up `prepare_nx_sml_paths.py` (NX auto-turnouts are runtime-only; not stored in tables). 39 pairs / frozen `ISNX:*` stay in `tables.xml`. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-31 — Operator portal device browser: Digicon CATS is the default map; LE schematic is a toggle. Fixed RH/LH_XOVER drawing so SW-7 / SW-23 / SW-35 render as proper crossover diamonds (no more star-from-center). Docs/static — not deployed.
 
 
 Updated: 2026-08-31 — Operator portal content pass: bigger industry logos; photos expanded from Desktop/HART + DJ Trains (rolling stock split out); Articles + Official Publications; Layout page hosts current Digicon/classic CTC/Neville Island LE panels (LE map kept for MQTT lookup — SW-7/23/35 crossover caveat). Serve `./consolidation/ops-portal/scripts/serve_portal.sh` → http://127.0.0.1:8760/ops-portal/. Docs/static — not deployed.
-
-Updated: 2026-08-31 — NX east-end routes can throw again with Digicon SML dests stored Disabled: Start Up `prepare_nx_sml_paths.py` fills SML auto-turnouts from Layout Editor routing without enabling dests. Frozen `ISNX:100L`… contract locked. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-31 — Operator portal live QA: removed Sessions nav (invites are author reference only); fixed hero image, layout explorer paint (60 hotspots), gallery (168 captioned items), briefing/about JSON loads. **Must serve over HTTP** — `./consolidation/ops-portal/scripts/serve_portal.sh` → http://127.0.0.1:8760/ops-portal/. Docs/static — not deployed.
 

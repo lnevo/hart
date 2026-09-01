@@ -8,10 +8,10 @@ target on the approach rail into the switch.
 Does not generate pairs — run discover_nx.py in PanelPro for that.
 Does not touch USS paneleditor or Dispatcher System MoveTo icons.
 
-SML-mode NX (the live desk) throws from stored Signal Mast Logic auto-turnouts
-when a dest exists. Digicon dests boot Enabled=no, so those lists stay empty
-until prepare_nx_sml_paths.py runs setupLayoutEditorDetails after routing
-stabilises. Do not enable Digicon dests in the stored tables.
+SML-mode NX (the live desk) throws from Signal Mast Logic auto-turnouts when
+a dest exists. Those lists are computed at runtime (useLayoutEditor=yes);
+they are not stored in tables.xml. Digicon dests boot Enabled=no. Do not
+enable them in the stored tables.
 
 Modes (--mode):
   sml   (default) NX throws turnouts and uses SML. No Hold, no block

@@ -80,20 +80,5 @@ class FrozenIsnx(unittest.TestCase):
         self.assertEqual(contract.nx_system_name("Mast 40LB"), "ISNX:115LB")
 
 
-class PrepareNxScript(unittest.TestCase):
-    def test_does_not_command_turnouts_or_enable_dests(self) -> None:
-        lines = [
-            line
-            for line in (SCRIPTS / "prepare_nx_sml_paths.py").read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
-        body = "\n".join(lines)
-        self.assertIn("setupLayoutEditorDetails", body)
-        self.assertNotIn("setCommandedState", body)
-        self.assertNotIn("setEnabled", body)
-        self.assertNotIn("initialise()", body)
-        self.assertNotIn("track/cmd", body)
-
-
 if __name__ == "__main__":
     unittest.main()
