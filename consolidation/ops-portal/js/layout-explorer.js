@@ -1,6 +1,12 @@
 (function () {
+  var VIEWS = {
+    cats: "data/layout-index-cats.json",
+    le: "data/layout-index.json",
+  };
+
   var state = {
     data: null,
+    view: "cats",
     kind: { turnout: true, signal: true },
     q: "",
     activeId: null,
@@ -40,7 +46,8 @@
     var el = $("#detail");
     if (!el) return;
     if (!item) {
-      el.innerHTML = '<p class="empty">Click a switch or signal on the schematic.</p>';
+      el.innerHTML =
+        '<p class="empty">Click a switch plant on the Digicon board, or a switch/signal on the LE schematic.</p>';
       return;
     }
     el.innerHTML =
@@ -96,34 +103,51 @@
     });
   }
 
-  async function init() {
+  function updateMeta() {
+    var c = (state.data && state.data.counts) || {};
+    var meta = $("#layout-meta");
+    if (!meta) return;
+    var viewLabel = state.view === "cats" ? "Digicon CATS plants" : "LE schematic devices";
+    meta.textContent =
+      viewLabel +
+      " · " +
+      (c.mapped || 0) +
+      " mapped · " +
+      (c.turnout || 0) +
+      " turnout · " +
+      (c.signal || 0) +
+      " signal";
+  }
+
+  async function loadView(view) {
+    state.view = view in VIEWS ? view : "cats";
+    state.activeId = null;
     var b = base();
-    var res = await fetch(b + "data/layout-index.json");
-    if (!res.ok) throw new Error("layout-index.json " + res.status);
+    var url = b + VIEWS[state.view];
+    var res = await fetch(url);
+    if (!res.ok) throw new Error(VIEWS[state.view] + " " + res.status);
     state.data = await res.json();
     var img = $("#schematic");
     var imagePath =
       (state.data.image && state.data.image.path) ||
-      "assets/layout/HART_le_schematic.png";
+      (state.view === "cats"
+        ? "assets/layout/HART_cats_digicon.png"
+        : "assets/layout/HART_le_schematic.png");
     if (img) {
-      img.src = b + imagePath;
       img.onload = paint;
       img.onerror = function () {
         var meta = $("#layout-meta");
-        if (meta) meta.textContent = "Schematic image failed to load: " + imagePath;
+        if (meta) meta.textContent = "Map image failed to load: " + imagePath;
       };
+      img.src = b + imagePath;
+      if (img.complete) paint();
     }
-    var c = state.data.counts || {};
-    var meta = $("#layout-meta");
-    if (meta) {
-      meta.textContent =
-        (c.mapped || 0) +
-        " mapped · " +
-        (c.turnout || 0) +
-        " turnout rows · " +
-        (c.signal || 0) +
-        " signal rows";
-    }
+    updateMeta();
+    showDetail(null);
+    paint();
+  }
+
+  async function init() {
     document.querySelectorAll("[data-kind]").forEach(function (el) {
       el.addEventListener("change", function () {
         state.kind[el.getAttribute("data-kind")] = el.checked;
@@ -137,9 +161,18 @@
         paint();
       });
     }
-    showDetail(null);
-    paint();
+    await loadView("cats");
   }
+
+  window.HARTLayoutExplorer = {
+    setView: function (view) {
+      return loadView(view).catch(function (err) {
+        console.error(err);
+        var meta = $("#layout-meta");
+        if (meta) meta.textContent = "Layout failed to load — " + err.message;
+      });
+    },
+  };
 
   document.addEventListener("DOMContentLoaded", function () {
     var ops = api();
@@ -147,10 +180,13 @@
       console.error("HARTOps nav.js did not load");
       return;
     }
-    ops.mountChrome("layout").then(init).catch(function (err) {
-      console.error(err);
-      var meta = $("#layout-meta");
-      if (meta) meta.textContent = "Layout failed to load — " + err.message;
-    });
+    // layout/index.html may already mount chrome; still safe to call.
+    Promise.resolve(ops.mountChrome("layout"))
+      .then(init)
+      .catch(function (err) {
+        console.error(err);
+        var meta = $("#layout-meta");
+        if (meta) meta.textContent = "Layout failed to load — " + err.message;
+      });
   });
 })();
