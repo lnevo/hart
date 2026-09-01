@@ -11,6 +11,7 @@ class SyncTurnoutBootContractTest(unittest.TestCase):
     def test_boot_reload_skips_plant_turnouts(self) -> None:
         src = (SCRIPTS / "sync_turnout_buttons.py").read_text(encoding="utf-8")
         self.assertIn("paint_turnouts=False", src)
+        self.assertIn('("IT:HART:YL:R1", (("M2T1211", CLOSED), ("M2T1213", CLOSED)))', src)
         self.assertIn("unknown_sensors_only=True", src)
         self.assertIn("route.setEnabled(False)", src)
         self.assertIn("_paint_indicators_without_commanding", src)

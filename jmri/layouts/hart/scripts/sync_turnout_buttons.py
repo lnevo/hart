@@ -58,14 +58,15 @@ RIGHT_PATTERNS = [
     ("IT:HART:YL:R3", (("M2T1211", THROWN), ("M2T1210", CLOSED), ("M2T1209", THROWN), ("M2T1208", CLOSED))),
     ("IT:HART:YL:R2", (("M2T1211", THROWN), ("M2T1210", THROWN), ("M2T1209", CLOSED), ("M2T1208", CLOSED))),
     ("IT:HART:YL:R5", (("M2T1211", THROWN), ("M2T1210", CLOSED), ("M2T1209", CLOSED), ("M2T1208", CLOSED))),
-    ("IT:HART:YL:R1", (("M2T1211", CLOSED),)),
+    # Track S-R east: Switch 31 (110) and Switch 33 (112) both CLOSED.
+    ("IT:HART:YL:R1", (("M2T1211", CLOSED), ("M2T1213", CLOSED))),
 ]
 
 LEFT_INDICATORS = [p[0] for p in LEFT_PATTERNS]
 RIGHT_INDICATORS = [p[0] for p in RIGHT_PATTERNS]
 WATCH = [
     "M2T308", "M2T309", "M2T310", "M2T311",
-    "M2T1211", "M2T1210", "M2T1209", "M2T1208",
+    "M2T1213", "M2T1211", "M2T1210", "M2T1209", "M2T1208",
 ]
 
 # Ladder/lamp: short settle, then arm when watch turnouts exist (no LE gate).
