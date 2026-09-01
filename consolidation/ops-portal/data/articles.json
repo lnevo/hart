@@ -1,0 +1,34 @@
+{
+  "title": "Articles & stories",
+  "lede": "Narratives, history notes, and operations writing from the HART archive.",
+  "items": [
+    {
+      "id": "rails-through-time",
+      "title": "Rails Through Time",
+      "kind": "Narrative",
+      "href": "library/rails-through-time.html",
+      "blurb": "Long-form HART railroad narrative \u2014 updated edition."
+    },
+    {
+      "id": "short-story",
+      "title": "HART Railroad short story",
+      "kind": "Story",
+      "href": "library/short-story.html",
+      "blurb": "Short fiction set on the railroad."
+    },
+    {
+      "id": "sts-ops",
+      "title": "STS operations article",
+      "kind": "Article",
+      "href": "library/sts-operations-article.html",
+      "blurb": "How HART uses STS for car forwarding and operations."
+    },
+    {
+      "id": "history",
+      "title": "Updated railroad history",
+      "kind": "History notes",
+      "href": "library/updated-history.txt",
+      "blurb": "Working history notes for the railroad story."
+    }
+  ]
+}

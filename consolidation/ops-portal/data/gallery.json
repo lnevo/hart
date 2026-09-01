@@ -1,31 +1,31 @@
 {
   "title": "Photo gallery",
-  "lede": "Browse by album. Open any image for the caption — place, maps, car fleet, aisle photos, and power.",
+  "lede": "Place, prototype, layout captures, station maps, and current control panels. Rolling stock lives in its own gallery.",
   "albums": [
     {
       "id": "place",
       "label": "Place & story",
-      "count": 5
+      "count": 32
+    },
+    {
+      "id": "layout",
+      "label": "Layout & aisle",
+      "count": 30
     },
     {
       "id": "maps",
-      "label": "Station maps",
-      "count": 9
+      "label": "Maps & diagrams",
+      "count": 11
     },
     {
-      "id": "fleet",
-      "label": "Car fleet",
-      "count": 82
+      "id": "panels",
+      "label": "Control panels",
+      "count": 3
     },
     {
-      "id": "aisle",
-      "label": "Aisle photos",
-      "count": 70
-    },
-    {
-      "id": "power",
-      "label": "Power",
-      "count": 2
+      "id": "archive",
+      "label": "Archive",
+      "count": 27
     }
   ],
   "items": [
@@ -33,7 +33,7 @@
       "album": "place",
       "src": "assets/media/birdseye-neville-island.jpg",
       "title": "Neville Island from above",
-      "caption": "The five-mile strip in the Ohio River — heavy industry, logistics, and a tight residential community.",
+      "caption": "The five-mile strip in the Ohio River — heavy industry, logistics, and a tight community.",
       "credit": "Published ops photo"
     },
     {
@@ -54,7 +54,7 @@
       "album": "place",
       "src": "assets/media/higbee-glass-postcard.webp",
       "title": "J.B. Higbee Glass postcard",
-      "caption": "Prototype flavor from the Pittsburgh glass era — the industrial DNA of the island.",
+      "caption": "Prototype flavor from the Pittsburgh glass era.",
       "credit": "Archive postcard"
     },
     {
@@ -65,25 +65,606 @@
       "credit": "HART"
     },
     {
-      "album": "power",
-      "src": "assets/media/loco-cr-1993.png",
-      "title": "CR 1993",
-      "caption": "Conrail power on the roster art used in crew publications.",
-      "credit": "hart-ops publications"
+      "album": "place",
+      "src": "../external/desktop-data/f-root/1VFNT00010012.jpg",
+      "title": "1VFNT00010012",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
     },
     {
-      "album": "power",
-      "src": "assets/media/loco-pohc-2091.png",
-      "title": "POHC 2091",
-      "caption": "Pittsburgh & Ohio Central unit — the other side of the island interchange.",
-      "credit": "hart-ops publications"
+      "album": "place",
+      "src": "../external/desktop-data/f-root/IMG_4633.png",
+      "title": "IMG 4633",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/IMG_5437.jpeg",
+      "title": "IMG 5437",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/Shenango1.webp",
+      "title": "Shenango1",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/PRC waiting to return to Coraopolis.jpg",
+      "title": "PRC waiting to return to Coraopolis",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/FZ2_758.jpg",
+      "title": "FZ2 758",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/FZ2_758-1.jpg",
+      "title": "FZ2 758-1",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/ChartiersTrackScheme.jpg",
+      "title": "ChartiersTrackScheme",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/sewickley streetcar.jpg",
+      "title": "sewickley streetcar",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/sewickley_loop.jpg",
+      "title": "sewickley loop",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/trolley_sewickley_bridge.jpg",
+      "title": "trolley sewickley bridge",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/flannery-16-nov-1940.jpg",
+      "title": "flannery-16-nov-1940",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/flannery_bolts_em1.jpg",
+      "title": "flannery bolts em1",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/flannery_em-1.jpg",
+      "title": "flannery em-1",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/allegheny_ludlam.png",
+      "title": "allegheny ludlam",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/ammonium sulphate.png",
+      "title": "ammonium sulphate",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/beckPAdiagram.jpg",
+      "title": "beckPAdiagram",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/beckPAmaners.jpg",
+      "title": "beckPAmaners",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/beckPAoroszi.jpg",
+      "title": "beckPAoroszi",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/bkPAmaners.jpg",
+      "title": "bkPAmaners",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/bkPAsalamon1.jpg",
+      "title": "bkPAsalamon1",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/bkPAsalamon2.jpg",
+      "title": "bkPAsalamon2",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/bkPAunknown.jpg",
+      "title": "bkPAunknown",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/J_B_Higbee_Glass__Postcard02B.webp",
+      "title": "J B Higbee Glass Postcard02B",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/pit.gif",
+      "title": "pit",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/ptry_head.gif",
+      "title": "ptry head",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "place",
+      "src": "../external/desktop-data/f-root/lcn-connection-diagram.webp",
+      "title": "lcn-connection-diagram",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
     },
     {
       "album": "maps",
-      "src": "assets/media/dispatcher-panel.png",
-      "title": "Dispatcher panel — Neville Island",
-      "caption": "Compact dispatcher art for the island plant.",
-      "credit": "Station / dispatcher publications"
+      "src": "../external/desktop-data/f-root/2022-10-16 16_42_35-Google Maps.png",
+      "title": "2022-10-16 16 42 35-Google Maps",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "maps",
+      "src": "../external/desktop-data/f-root/2022-10-16 17_37_39-USGS Historical Topographic Map Explorer.png",
+      "title": "2022-10-16 17 37 39-USGS Historical Topographic Map Explorer",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/305998346_10219295245405407_8127293654381891772_n.jpg",
+      "title": "305998346 10219295245405407 8127293654381891772 n",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/492050449_10224674058232366_5620487153150413068_n.jpg",
+      "title": "492050449 10224674058232366 5620487153150413068 n",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/i650473a770.fp.png",
+      "title": "i650473a770.fp",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/ie50456a737.fp.png",
+      "title": "ie50456a737.fp",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8940.png",
+      "title": "IMG 8940",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8941.png",
+      "title": "IMG 8941",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8942.png",
+      "title": "IMG 8942",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8944.png",
+      "title": "IMG 8944",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8945.png",
+      "title": "IMG 8945",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8946.png",
+      "title": "IMG 8946",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8947.png",
+      "title": "IMG 8947",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8948.png",
+      "title": "IMG 8948",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8949.png",
+      "title": "IMG 8949",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8950.png",
+      "title": "IMG 8950",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8951.png",
+      "title": "IMG 8951",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8952.png",
+      "title": "IMG 8952",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8953.png",
+      "title": "IMG 8953",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8957.png",
+      "title": "IMG 8957",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8958.png",
+      "title": "IMG 8958",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8975.png",
+      "title": "IMG 8975",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/IMG_8976.png",
+      "title": "IMG 8976",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/s-l1600 (1).webp",
+      "title": "s-l1600 (1)",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/s-l1600 (2).webp",
+      "title": "s-l1600 (2)",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/s-l1600 (3).webp",
+      "title": "s-l1600 (3)",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/s-l1600.webp",
+      "title": "s-l1600",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/s-l960.webp",
+      "title": "s-l960",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-04-20 at 9.34.55 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-05-04 at 3.23.02 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-05-15 at 5.37.06 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.03.48 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.37.58 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.41.18 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 9.47.30 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-20 at 12.08.15 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-21 at 3.01.28 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-21 at 3.04.02 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-21 at 9.50.38 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2026-04-23 at 8.55.15 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2026-04-23 at 9.01.52 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2026-04-23 at 9.14.16 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2026-04-23 at 9.15.00 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2026-04-23 at 9.15.10 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2026-04-23 at 9.15.35 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "archive",
+      "src": "../external/desktop-data/f-root/Screenshot 2026-04-23 at 9.19.09 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/IMG_5437.jpeg",
+      "title": "IMG 5437",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-28 at 1.08.34 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-29 at 12.04.15 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-29 at 12.04.29 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-29 at 12.06.05 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-29 at 12.08.33 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-29 at 12.09.26 AM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-29 at 8.32.00 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-30 at 1.52.24 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-30 at 1.52.48 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-30 at 1.52.56 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-30 at 2.02.56 PM.png",
+      "title": "Layout / ops capture",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/ZooPhillyPA2.gif",
+      "title": "ZooPhillyPA2",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
     },
     {
       "album": "maps",
@@ -96,21 +677,21 @@
       "album": "maps",
       "src": "assets/maps/station_map_west_yard.png",
       "title": "West Yard",
-      "caption": "West end of the plant — approach and classification context.",
+      "caption": "West end of the plant.",
       "credit": "Station maps SM-series"
     },
     {
       "album": "maps",
       "src": "assets/maps/station_map_south_yard.png",
       "title": "South Yard",
-      "caption": "Where CSX and POHC meet the island jobs. Color blocking starts here.",
+      "caption": "Where CSX and POHC meet the island jobs.",
       "credit": "Station maps SM-series"
     },
     {
       "album": "maps",
       "src": "assets/maps/station_map_east_end.png",
       "title": "East End",
-      "caption": "East end of Neville Island — industries and leads.",
+      "caption": "East end industries and leads.",
       "credit": "Station maps SM-series"
     },
     {
@@ -123,15 +704,15 @@
     {
       "album": "maps",
       "src": "assets/maps/station_map_shenango_rotated.png",
-      "title": "Shenango (rotated sheet)",
-      "caption": "Alternate orientation of the Shenango station map for the desk.",
+      "title": "Shenango (rotated)",
+      "caption": "Alternate orientation for the desk.",
       "credit": "Station maps SM-series"
     },
     {
       "album": "maps",
       "src": "assets/maps/station_map_diagram_only.png",
       "title": "Track diagram",
-      "caption": "Clean diagram without the publication chrome.",
+      "caption": "Clean diagram without chrome.",
       "credit": "Station maps SM-series"
     },
     {
@@ -142,1068 +723,32 @@
       "credit": "Station maps SM-series"
     },
     {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9106.png",
-      "title": "N&W 32800",
-      "caption": "N&W · Flatcar · N&W fish-belly flatcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9107.png",
-      "title": "B&O 467439",
-      "caption": "B&O · Boxcar · B&O Time-Saver boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9108.png",
-      "title": "B&O 466063",
-      "caption": "B&O · Boxcar · B&O Sentinel silver/black boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9109.png",
-      "title": "B&O 467071",
-      "caption": "B&O · Boxcar · B&O Time-Saver boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9110.png",
-      "title": "KSMX 101",
-      "caption": "KSMX · Hopper · final_ref=CarImagesFinal/IMG_9110.png; Kosmos Portland cement hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9112.png",
-      "title": "B&O 8451",
-      "caption": "B&O · Flatcar · final_ref=CarImagesFinal/IMG_9112.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9113.png",
-      "title": "EL 66410",
-      "caption": "EL · Boxcar · Erie Lackawanna boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9114.png",
-      "title": "UTLX 32642",
-      "caption": "UTLX · Tank · Atlantic Refining tank",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9115.png",
-      "title": "B&O 600409",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9115.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9116.png",
-      "title": "B&O 600401",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9116.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9117.png",
-      "title": "KSMX 105",
-      "caption": "KSMX · Hopper · Kosmos Portland cement hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9118.png",
-      "title": "B&O 631140",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9118.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9119.png",
-      "title": "B&O 600421",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9119.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9120.png",
-      "title": "CB&Q 171856",
-      "caption": "CB&Q · Hopper · Burlington Route hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9121.png",
-      "title": "UTLX 39042",
-      "caption": "UTLX · Tank · Union Tank Car",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9122.png",
-      "title": "C&O 2052",
-      "caption": "C&O · Hopper · Chessie System covered hopper; Chessie System C&O 2052 covered hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9124.png",
-      "title": "B&O 628038",
-      "caption": "B&O · Hopper · Chessie System B&O hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9125.png",
-      "title": "NYC 47516",
-      "caption": "NYC · Boxcar · NYC jade green boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9126.png",
-      "title": "RMLI 2018",
-      "caption": "RMLI · Boxcar · RMLI Steam Up promotional boxcar; not in car roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9127.png",
-      "title": "B&O 371604",
-      "caption": "B&O · Gondola · PRR gondola relettered B&O",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9128.png",
-      "title": "B&O 283057",
-      "caption": "B&O · Boxcar · B&O Sentinel boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9129.png",
-      "title": "CR 477935",
-      "caption": "CR · Hopper · Conrail hopper; not in car roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9130.png",
-      "title": "RMP 50",
-      "caption": "RMP · Boxcar · Railroad Museum of PA 50th anniversary boxcar; not in roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9131.png",
-      "title": "B&O 8417",
-      "caption": "B&O · Flatcar · final_ref=CarImagesFinal/IMG_9131.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9132.png",
-      "title": "B&O 8300",
-      "caption": "B&O · Coil · B&O cushion coil car",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9133.png",
-      "title": "UTLX 36299",
-      "caption": "UTLX · Tank · Eastman Chemical tank",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9134.png",
-      "title": "MOW 0017",
-      "caption": "MOW · MOW · Maintenance of Way weed sprayer tank",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9135.png",
-      "title": "PRR 728012",
-      "caption": "PRR · Hopper · Pennsylvania Lines GLA hopper; not in car roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9136.png",
-      "title": "PRR 702186",
-      "caption": "PRR · Hopper · Pennsylvania GLA hopper; not in car roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9137.png",
-      "title": "C&O ST1",
-      "caption": "C&O · MOW · C&O Chessie scale test car; LT WT 80000 lbs",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9138.png",
-      "title": "C&O 377700",
-      "caption": "C&O · MOW · C&O industrial crane car; side reads WC 2",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9139.png",
-      "title": "C&O W86",
-      "caption": "C&O · MOW · C&O MOW camp/flat car; not in car roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9140.png",
-      "title": "C&O 306607",
-      "caption": "C&O · Coil · C&O/B&O coil car",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9141.png",
-      "title": "B&O 73133",
-      "caption": "B&O · Hopper · Chessie System B&O coal hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9142.png",
-      "title": "B&O 551470",
-      "caption": "B&O · Gondola · final_ref=CarImagesFinal/IMG_9142.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9143.png",
-      "title": "B&O 283069",
-      "caption": "B&O · Boxcar · B&O Sentinel boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9144.png",
-      "title": "PRR 474563",
-      "caption": "PRR · Flatcar · PRR flatcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9145.png",
-      "title": "SHPX 22329",
-      "caption": "SHPX · Tank · Shippers Car Line tank",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9146.png",
-      "title": "GATX 31090",
-      "caption": "GATX · Tank · DuPont leased tank",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9147.png",
-      "title": "EL 8063",
-      "caption": "EL · Flatcar · final_ref=CarImagesFinal/IMG_9147.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9149.png",
-      "title": "B&O 8476",
-      "caption": "B&O · Flatcar · final_ref=CarImagesFinal/IMG_9149.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9150.png",
-      "title": "C&O 2063",
-      "caption": "C&O · Hopper · Chessie System C&O 2063 covered hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9151.png",
-      "title": "KSMX 110",
-      "caption": "KSMX · Hopper · Kosmos Portland cement hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9152.png",
-      "title": "IMG_9152.png",
-      "caption": "Boxcar · United We Stand patriotic boxcar; no road number",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9153.png",
-      "title": "PRR 498647",
-      "caption": "PRR · Tank · final_ref=CarImagesFinal/IMG_9153.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9154.png",
-      "title": "B&O 8405",
-      "caption": "B&O · Flatcar · final_ref=CarImagesFinal/IMG_9154.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9155.png",
-      "title": "RDG 99143",
-      "caption": "RDG · Coil · Reading coil car",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9156.png",
-      "title": "B&O 11137",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9156.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9157.png",
-      "title": "B&O 11027",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9157.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9158.png",
-      "title": "B&O 10389",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9158.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9159.png",
-      "title": "B&O 31000",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9159.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9160.png",
-      "title": "B&O 30963",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9160.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9161.png",
-      "title": "B&O 30222",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9161.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9162.png",
-      "title": "B&O 133007",
-      "caption": "B&O · Hopper · B&O coke hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9163.png",
-      "title": "B&O 132315",
-      "caption": "B&O · Hopper · B&O coke hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9164.png",
-      "title": "N&W 12988",
-      "caption": "N&W · Hopper · final_ref=CarImagesFinal/IMG_9164.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9165.png",
-      "title": "N&W 12986",
-      "caption": "N&W · Hopper · final_ref=CarImagesFinal/IMG_9165.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9166.png",
-      "title": "B&O 625509",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9166.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9167.png",
-      "title": "B&O 625943",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9167.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9168.png",
-      "title": "B&O 625238",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9168.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9169.png",
-      "title": "B&O 625082",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9169.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9170.png",
-      "title": "C&O 142374",
-      "caption": "C&O · Hopper · Chessie System hopper; not in car roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9171.png",
-      "title": "WLE 621",
-      "caption": "WLE · Hopper · Wheeling & Lake Erie hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9172.png",
-      "title": "URR 15003",
-      "caption": "URR · Hopper · final_ref=CarImagesFinal/IMG_9172.png; Union Railroad coal hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9173.png",
-      "title": "B&O 132392",
-      "caption": "B&O · Hopper · final_ref=CarImagesFinal/IMG_9173.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9174.png",
-      "title": "URR 15044",
-      "caption": "URR · Hopper · Union Railroad coal hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9175.png",
-      "title": "URR 15022",
-      "caption": "URR · Hopper · Union Railroad coal hopper",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9176.png",
-      "title": "RDG 107333",
-      "caption": "RDG · Boxcar · Reading boxcar",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9177.png",
-      "title": "MSTL 52673",
-      "caption": "MSTL · Boxcar · Minneapolis & St Louis boxcar; side stencil reads 52673",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9178.png",
-      "title": "URTX 63627",
-      "caption": "URTX · Reefer · Dubuque Packing Company reefer",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9179.png",
-      "title": "REX 350",
-      "caption": "REX · Reefer · Railway Express Agency refrigerator",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9192.png",
-      "title": "Ohio Central 2091",
-      "caption": "Ohio Central · Locomotive · engine_roster_id=CWRY2091; replacement photo for IMG_9180; final_ref=CarImagesFinal/IMG_9192.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9181.png",
-      "title": "B&O 9602",
-      "caption": "B&O · Locomotive · Chessie System B&O SW switcher; not in car roster; engine_roster_id=BO9602",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9182.png",
-      "title": "B&O 572",
-      "caption": "B&O · Locomotive · B&O diesel switcher; not in car roster; engine_roster_id=BO572",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9183.png",
-      "title": "C&O 8216",
-      "caption": "C&O · Locomotive · Chessie System C&O GP40-2 locomotive; not in car roster; Chessie System C&O locomotive; engine_roster_id=CO8216",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9184.png",
-      "title": "B&O 3840",
-      "caption": "B&O · Locomotive · B&O GP-38 locomotive; not in car roster; engine_roster_id=BO3840",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9185.png",
-      "title": "CSX 1827",
-      "caption": "CSX · Locomotive · CSX heritage B&O ES44AH locomotive; not in car roster; CSX heritage B&O locomotive; engine_roster_id=CSX1827",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9186.png",
-      "title": "TTC 4678",
-      "caption": "TTC · Streetcar · Toronto Transit Commission PCC streetcar; not in car roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9187.png",
-      "title": "Conrail 1993",
-      "caption": "Conrail · Locomotive · Conrail Quality B23-7 locomotive; not in car roster; not in engine roster",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9193.png",
-      "title": "B&O 3545",
-      "caption": "B&O · Locomotive · engine_roster_id=BO3545; final_ref=CarImagesFinal/IMG_9193.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9194.png",
-      "title": "B&O 2235",
-      "caption": "B&O · Locomotive · engine_roster_id=BO2235; final_ref=CarImagesFinal/IMG_9194.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "fleet",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9195.png",
-      "title": "B&O 6944",
-      "caption": "B&O · Locomotive · engine_roster_id=BO6944; final_ref=CarImagesFinal/IMG_9195.png",
-      "credit": "CarImagesFinal + image_metadata.csv"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/2.jpg",
-      "title": "Roster photo 2",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/3.jpg",
-      "title": "Roster photo 3",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/4.jpg",
-      "title": "Roster photo 4",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/5.jpg",
-      "title": "Roster photo 5",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/6.jpg",
-      "title": "Roster photo 6",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/9.jpg",
-      "title": "Roster photo 9",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/10.jpg",
-      "title": "Roster photo 10",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/11.jpg",
-      "title": "Roster photo 11",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/12.jpg",
-      "title": "Roster photo 12",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/13.jpg",
-      "title": "Roster photo 13",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/14.jpg",
-      "title": "Roster photo 14",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/15.jpg",
-      "title": "Roster photo 15",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/16.jpg",
-      "title": "Roster photo 16",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/17.jpg",
-      "title": "Roster photo 17",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/18.jpg",
-      "title": "Roster photo 18",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/19.jpg",
-      "title": "Roster photo 19",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/20.jpg",
-      "title": "Roster photo 20",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/21.jpg",
-      "title": "Roster photo 21",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/22.jpg",
-      "title": "Roster photo 22",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/23.jpg",
-      "title": "Roster photo 23",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/24.jpg",
-      "title": "Roster photo 24",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/25.jpg",
-      "title": "Roster photo 25",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/26.jpg",
-      "title": "Roster photo 26",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/27.jpg",
-      "title": "Roster photo 27",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/28.jpg",
-      "title": "Roster photo 28",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/29.jpg",
-      "title": "Roster photo 29",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/30.jpg",
-      "title": "Roster photo 30",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/31.jpg",
-      "title": "Roster photo 31",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/32.jpg",
-      "title": "Roster photo 32",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/33.jpg",
-      "title": "Roster photo 33",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/34.jpg",
-      "title": "Roster photo 34",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/35.jpg",
-      "title": "Roster photo 35",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/36.jpg",
-      "title": "Roster photo 36",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/37.jpg",
-      "title": "Roster photo 37",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/39.jpg",
-      "title": "Roster photo 39",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/40.jpg",
-      "title": "Roster photo 40",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/41.jpg",
-      "title": "Roster photo 41",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/42.jpg",
-      "title": "Roster photo 42",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/43.jpg",
-      "title": "Roster photo 43",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/44.jpg",
-      "title": "Roster photo 44",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/46.jpg",
-      "title": "Roster photo 46",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/47.jpg",
-      "title": "Roster photo 47",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/48.jpg",
-      "title": "Roster photo 48",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/50.jpg",
-      "title": "Roster photo 50",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/51.jpg",
-      "title": "Roster photo 51",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/52.jpg",
-      "title": "Roster photo 52",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/53.jpg",
-      "title": "Roster photo 53",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/54.jpg",
-      "title": "Roster photo 54",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/55.jpg",
-      "title": "Roster photo 55",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/57.jpg",
-      "title": "Roster photo 57",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/58.jpg",
-      "title": "Roster photo 58",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/59.jpg",
-      "title": "Roster photo 59",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/61.jpg",
-      "title": "Roster photo 61",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/62.jpg",
-      "title": "Roster photo 62",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/63.jpg",
-      "title": "Roster photo 63",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/64.jpg",
-      "title": "Roster photo 64",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/65.jpg",
-      "title": "Roster photo 65",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/66.jpg",
-      "title": "Roster photo 66",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/67.jpg",
-      "title": "Roster photo 67",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/68.jpg",
-      "title": "Roster photo 68",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/69.jpg",
-      "title": "Roster photo 69",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/70.jpg",
-      "title": "Roster photo 70",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/71.jpg",
-      "title": "Roster photo 71",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/72.jpg",
-      "title": "Roster photo 72",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/74.jpg",
-      "title": "Roster photo 74",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/75.jpg",
-      "title": "Roster photo 75",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/76.jpg",
-      "title": "Roster photo 76",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/78.jpg",
-      "title": "Roster photo 78",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/79.jpg",
-      "title": "Roster photo 79",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
-    },
-    {
-      "album": "aisle",
-      "src": "../external/sts-docker-data/Rolling Stock photos/80.jpg",
-      "title": "Roster photo 80",
-      "caption": "Photographed rolling stock from the HART fleet — browsable aisle set.",
-      "credit": "STS docker data / Rolling Stock photos"
+      "album": "maps",
+      "src": "assets/media/dispatcher-panel.png",
+      "title": "Dispatcher panel — Neville Island",
+      "caption": "Compact dispatcher art for the island plant.",
+      "credit": "Station / dispatcher publications"
+    },
+    {
+      "album": "panels",
+      "src": "assets/panels/digicon-ctc.png",
+      "title": "Digicon CTC",
+      "caption": "Current Digicon schematic — HART Railroad / Neville Island Operations.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "panels",
+      "src": "assets/panels/classic-ctc.png",
+      "title": "Classic CTC machine",
+      "caption": "Current classic CTC panel with switches and signal levers.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "panels",
+      "src": "assets/panels/neville-island-le.png",
+      "title": "Neville Island LE panel",
+      "caption": "Current Layout Editor / Neville Island panel with SW labels.",
+      "credit": "Live panels · Aug 2026"
     }
   ]
 }

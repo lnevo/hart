@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photos — HART</title>
+  <title>Rolling stock — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
   <main>
     <div class="page-head">
-      <h1 id="gallery-title">Photo gallery</h1>
+      <h1 id="gallery-title">Rolling stock</h1>
       <p class="muted" id="gallery-lede"></p>
     </div>
     <div class="album-bar" id="album-bar"></div>
@@ -22,8 +22,8 @@
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
       try {
-        await HARTOps.mountChrome("photos");
-        await HARTGallery.mount({ dataUrl: "data/gallery.json" });
+        await HARTOps.mountChrome("fleet");
+        await HARTGallery.mount({ dataUrl: "data/fleet-gallery.json" });
       } catch (err) {
         console.error(err);
         document.getElementById("gallery-lede").textContent =

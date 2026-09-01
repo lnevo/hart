@@ -1,0 +1,24 @@
+{
+  "title": "Control panels",
+  "lede": "Current live panels (Aug 2026). Digicon CTC, classic CTC machine, and the Neville Island Layout Editor panel. Use these as the visual source of truth \u2014 the LE device map below is for switch/signal lookup and may show imperfect crossover geometry on SW-7, SW-23, and SW-35.",
+  "panels": [
+    {
+      "id": "digicon",
+      "label": "Digicon CTC",
+      "src": "assets/panels/digicon-ctc.png",
+      "caption": "HART Railroad \u00b7 Neville Island Operations \u00b7 P&CV Division \u00b7 CTC Digicon"
+    },
+    {
+      "id": "classic",
+      "label": "Classic CTC",
+      "src": "assets/panels/classic-ctc.png",
+      "caption": "Classic CTC board with switch and signal levers"
+    },
+    {
+      "id": "le",
+      "label": "Neville Island LE",
+      "src": "assets/panels/neville-island-le.png",
+      "caption": "Layout Editor panel with SW labels (including SW-7 / SW-23 / SW-35)"
+    }
+  ]
+}

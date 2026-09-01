@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Articles — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="art-title">Articles &amp; stories</h1>
+      <p class="muted" id="art-lede"></p>
+    </div>
+    <div class="catalog-grid" id="art-grid"></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("articles");
+        var data = await HARTOps.loadJson("data/articles.json");
+        document.getElementById("art-title").textContent = data.title || "Articles";
+        document.getElementById("art-lede").textContent = data.lede || "";
+        document.getElementById("art-grid").innerHTML = (data.items || [])
+          .map(function (a) {
+            return (
+              '<article class="catalog-card"><p class="kind">' +
+              esc(a.kind) +
+              "</p><h2>" +
+              esc(a.title) +
+              "</h2><p>" +
+              esc(a.blurb) +
+              '</p><div class="actions"><a class="btn" href="' +
+              esc(HARTOps.base() + a.href) +
+              '">Read</a></div></article>'
+            );
+          })
+          .join("");
+      } catch (err) {
+        console.error(err);
+        document.getElementById("art-lede").textContent =
+          "Could not load articles. Serve over HTTP (scripts/serve_portal.sh).";
+      }
+    });
+  </script>
+</body>
+</html>

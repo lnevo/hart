@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publication — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <p class="muted"><a href="index.html">← All publications</a></p>
+      <h1 id="doc-title">Publication</h1>
+      <p class="muted" id="doc-lede"></p>
+    </div>
+    <div class="doc-frame-wrap">
+      <iframe id="doc-frame" title="Official publication"></iframe>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      await HARTOps.mountChrome("docs");
+      var data = await HARTOps.loadJson("data/publications.json");
+      var id = new URLSearchParams(location.search).get("doc");
+      var item = (data.items || []).find(function (d) {
+        return d.id === id;
+      });
+      if (!item || !item.html) {
+        document.getElementById("doc-title").textContent = "Document not found";
+        document.getElementById("doc-lede").textContent =
+          "Pick a publication from the catalog.";
+        return;
+      }
+      document.getElementById("doc-title").textContent = item.title;
+      document.getElementById("doc-lede").textContent = item.blurb || "";
+      document.title = item.title + " — HART";
+      document.getElementById("doc-frame").src = HARTOps.base() + item.html;
+    });
+  </script>
+</body>
+</html>

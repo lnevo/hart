@@ -496,34 +496,53 @@ main.full-bleed {
 
 .industry-grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .industry-card {
   background: var(--card);
   border: 1px solid var(--rule);
-  padding: 1.1rem;
+  padding: 0;
   box-shadow: var(--shadow);
   display: grid;
-  gap: 0.65rem;
+  gap: 0;
+  overflow: hidden;
+}
+
+.industry-card .logo-band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 7.5rem;
+  padding: 1.1rem 1.25rem;
+  background: linear-gradient(180deg, #ffffff 0%, #eef3f6 100%);
+  border-bottom: 1px solid var(--rule);
 }
 
 .industry-card img.logo {
   width: auto;
-  height: 48px;
+  max-width: min(100%, 220px);
+  height: 96px;
   object-fit: contain;
-  justify-self: start;
-  background: #fff;
-  padding: 0.25rem 0.4rem;
-  border: 1px solid var(--rule);
+  justify-self: center;
+  background: transparent;
+  padding: 0;
+  border: 0;
+}
+
+.industry-card .industry-body {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1.1rem 1.15rem 1.25rem;
 }
 
 .industry-card h3 {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   margin: 0;
   color: var(--brand);
+  letter-spacing: 0.02em;
 }
 
 .industry-card .meta {
@@ -906,4 +925,119 @@ table.roster th {
   font-family: var(--font-display);
   margin: 0 0 0.75rem;
   color: var(--brand);
+}
+
+/* —— Panel browser + publications catalog —— */
+.panel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+}
+
+.panel-tabs button {
+  font: inherit;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.panel-tabs button[aria-selected="true"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.panel-stage {
+  background: #0d1216;
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+  padding: 0.75rem;
+  overflow: auto;
+  max-height: min(78vh, 820px);
+}
+
+.panel-stage img {
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.panel-caption {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.device-map-note {
+  margin: 1.5rem 0 0.75rem;
+  padding: 0.85rem 1rem;
+  background: rgba(201, 146, 18, 0.12);
+  border: 1px solid rgba(201, 146, 18, 0.35);
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.catalog-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.catalog-card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  padding: 1.1rem 1.15rem;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.catalog-card .kind {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0;
+}
+
+.catalog-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  margin: 0;
+  color: var(--brand);
+}
+
+.catalog-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.catalog-card .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+.doc-frame-wrap {
+  border: 1px solid var(--rule);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  min-height: 70vh;
+}
+
+.doc-frame-wrap iframe {
+  width: 100%;
+  min-height: 70vh;
+  border: 0;
+  background: #fff;
 }
