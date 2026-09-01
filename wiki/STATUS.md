@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — NX east-end routes can throw again with Digicon SML dests stored Disabled: Start Up `prepare_nx_sml_paths.py` fills SML auto-turnouts from Layout Editor routing without enabling dests. Frozen `ISNX:100L`… contract locked. Reload **PanelPro**. Deploy `--pi --win`.
+
 Updated: 2026-08-31 — Operator portal live QA: removed Sessions nav (invites are author reference only); fixed hero image, layout explorer paint (60 hotspots), gallery (168 captioned items), briefing/about JSON loads. **Must serve over HTTP** — `./consolidation/ops-portal/scripts/serve_portal.sh` → http://127.0.0.1:8760/ops-portal/. Docs/static — not deployed.
 
 Updated: 2026-08-31 — Operator portal rebuilt around Neville Island storytelling: new-operator briefing (HB-01), industries with logos, captioned photo gallery, HART narrative. Pipeline/reference demoted. Serve via `ops-portal/scripts/serve_portal.sh`. Docs/static — not deployed.

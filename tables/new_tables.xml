@@ -2966,117 +2966,117 @@
     <sensor inverted="false">
       <systemName>ISNX:100L</systemName>
       <userName>NX Mast 2L</userName>
-      <comment>Entry/Exit at mast Mast 2L; Brick east main westbound; lever 4 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 2L; Brick east main westbound; lever 4 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:101RA</systemName>
       <userName>NX Mast 4RA</userName>
-      <comment>Entry/Exit at mast Mast 4RA; Brick Track W-1 dwarf eastbound; lever 2 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 4RA; Brick Track W-1 dwarf eastbound; lever 2 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:101RB</systemName>
       <userName>NX Mast 4RB</userName>
-      <comment>Entry/Exit at mast Mast 4RB; Brick Track W-2 dwarf eastbound; lever 2 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 4RB; Brick Track W-2 dwarf eastbound; lever 2 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:102LA</systemName>
       <userName>NX Mast 6LA</userName>
-      <comment>Entry/Exit at mast Mast 6LA; Plane, Track Scale westbound; lever 6 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 6LA; Plane, Track Scale westbound; lever 6 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:102LB</systemName>
       <userName>NX Mast 6LB</userName>
-      <comment>Entry/Exit at mast Mast 6LB; Plane, Track East Main Ext westbound; lever 6 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 6LB; Plane, Track East Main Ext westbound; lever 6 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:110R</systemName>
       <userName>NX Mast 32R</userName>
-      <comment>Entry/Exit at mast Mast 32R; East End, OS Switch 31 dwarf eastbound; lever 20 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 32R; East End, OS Switch 31 dwarf eastbound; lever 20 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:111L</systemName>
       <userName>NX Mast 24L</userName>
-      <comment>Entry/Exit at mast Mast 24L; East End, OS Switch 23a westbound; lever 18 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 24L; East End, OS Switch 23a westbound; lever 18 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:111RA</systemName>
       <userName>NX Mast 24RA</userName>
-      <comment>Entry/Exit at mast Mast 24RA; East End, Track Main West eastbound; lever 18 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 24RA; East End, Track Main West eastbound; lever 18 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:111RB</systemName>
       <userName>NX Mast 24RB</userName>
-      <comment>Entry/Exit at mast Mast 24RB; East End, Track S-R dwarf eastbound; lever 18 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 24RB; East End, Track S-R dwarf eastbound; lever 18 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:112L</systemName>
       <userName>NX Mast 34L</userName>
-      <comment>Entry/Exit at mast Mast 34L; East End lead westbound; lever 24 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 34L; East End lead westbound; lever 24 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:112R</systemName>
       <userName>NX Mast 34R</userName>
-      <comment>Entry/Exit at mast Mast 34R; East End, Track Main East eastbound; lever 24 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 34R; East End, Track Main East eastbound; lever 24 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:113RA</systemName>
       <userName>NX Mast 36RA</userName>
-      <comment>Entry/Exit at mast Mast 36RA; Princess, Track Main West eastbound; lever 26 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 36RA; Princess, Track Main West eastbound; lever 26 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:113RB</systemName>
       <userName>NX Mast 36RB</userName>
-      <comment>Entry/Exit at mast Mast 36RB; Princess, Track East Lead eastbound; lever 26 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 36RB; Princess, Track East Lead eastbound; lever 26 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:114LA</systemName>
       <userName>NX Mast 38LA</userName>
-      <comment>Entry/Exit at mast Mast 38LA; Princess, Track K-2 dwarf westbound; lever 28 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 38LA; Princess, Track K-2 dwarf westbound; lever 28 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:114LB</systemName>
       <userName>NX Mast 38LB</userName>
-      <comment>Entry/Exit at mast Mast 38LB; Princess, Track McKeesport westbound; lever 28 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 38LB; Princess, Track McKeesport westbound; lever 28 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:115LA</systemName>
       <userName>NX Mast 40LA</userName>
-      <comment>Entry/Exit at mast Mast 40LA; Princess, Track K-1 dwarf westbound; lever 30 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 40LA; Princess, Track K-1 dwarf westbound; lever 30 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:115LB</systemName>
       <userName>NX Mast 40LB</userName>
-      <comment>Entry/Exit at mast Mast 40LB; Princess, Track McKees Rocks westbound; lever 30 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 40LB; Princess, Track McKees Rocks westbound; lever 30 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117LA</systemName>
       <userName>NX Mast 8LA</userName>
-      <comment>Entry/Exit at mast Mast 8LA; Track Barn, Track East Main Ext westbound; lever 8 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 8LA; Track Barn, Track East Main Ext westbound; lever 8 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117LB</systemName>
       <userName>NX Mast 8LB</userName>
-      <comment>Entry/Exit at mast Mast 8LB; Track Barn, Track Barn dwarf westbound; lever 8 Left. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 8LB; Track Barn, Track Barn dwarf westbound; lever 8 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117RA</systemName>
       <userName>NX Mast 8RA</userName>
-      <comment>Entry/Exit at mast Mast 8RA; Track Barn, yard eastbound; lever 8 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 8RA; Track Barn, yard eastbound; lever 8 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117RB</systemName>
       <userName>NX Mast 8RB</userName>
-      <comment>Entry/Exit at mast Mast 8RB; Track Barn, Track East Main Ext eastbound; lever 8 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 8RB; Track Barn, Track East Main Ext eastbound; lever 8 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:120L</systemName>
       <userName>NX Mast 2035</userName>
-      <comment>Entry/Exit at mast Mast 2035; Princess, Track McKees Rocks dwarf eastbound; lever 30 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 2035; Princess, Track McKees Rocks dwarf eastbound; lever 30 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:120R</systemName>
       <userName>NX Mast 2036</userName>
-      <comment>Entry/Exit at mast Mast 2036; Princess, Track McKeesport dwarf eastbound; lever 28 Right. Full interlock. CATS CTC and USS Logic off while NX is in use.</comment>
+      <comment>Entry/Exit at mast Mast 2036; Princess, Track McKeesport dwarf eastbound; lever 28 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
     </sensor>
   </sensors>
   <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
