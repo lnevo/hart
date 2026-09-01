@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-08-31 — Digicon Mast 32R lamp slot → LOWRIGHT of OS Switch 31 (was UPLEFT; hard to place in CATS). Portal explorer defaults to 75% zoom, centered; hotspot nudged further SE of the plant. Reload **CATS**. Deploy `--pi`. Portal docs/static — not deployed.
+
 Updated: 2026-08-31 — Dropped Start Up `prepare_nx_sml_paths.py` (NX auto-turnouts are runtime-only; not stored in tables). 39 pairs / frozen `ISNX:*` stay in `tables.xml`. Reload **PanelPro**. Deploy `--pi --win`.
 
 Updated: 2026-08-31 — Operator portal device browser: Digicon CATS is the default map; LE schematic is a toggle. Fixed RH/LH_XOVER drawing so SW-7 / SW-23 / SW-35 render as proper crossover diamonds (no more star-from-center). Docs/static — not deployed.
