@@ -9,24 +9,29 @@
 <body>
   <header class="site-header" data-ops-header></header>
   <main class="explorer-page">
-    <div class="page-head">
+    <div class="page-head page-head-compact">
       <h1>Digicon explorer</h1>
       <p class="muted" id="layout-meta">Loading Digicon map…</p>
-      <p class="muted">
-        Click a switch or mast on the board.
-        Panel screenshots live in
-        <a href="../photos/index.html">Photos → Control panels</a>.
-      </p>
     </div>
     <div class="toolbar">
       <input id="layout-search" type="search" placeholder="Search switch or mast…">
       <label class="chip"><input type="checkbox" data-kind="turnout" checked> Switches</label>
       <label class="chip"><input type="checkbox" data-kind="signal" checked> Masts</label>
-      <a class="btn btn-ghost" href="../roster/index.html">Open roster</a>
+      <div class="zoom-controls" aria-label="Map zoom">
+        <button type="button" id="zoom-out" class="btn btn-ghost" title="Zoom out">−</button>
+        <input id="zoom-range" type="range" min="20" max="120" step="5" value="45" aria-label="Zoom percent">
+        <button type="button" id="zoom-in" class="btn btn-ghost" title="Zoom in">+</button>
+        <button type="button" id="zoom-fit" class="btn btn-ghost">Fit</button>
+        <span class="muted" id="zoom-label">45%</span>
+      </div>
+      <a class="btn btn-ghost" href="../photos/index.html">Panel photos</a>
+      <a class="btn btn-ghost" href="../roster/index.html">Roster</a>
     </div>
-    <div class="map-scroll map-scroll-full">
-      <div id="map-stage">
-        <img id="schematic" alt="Digicon Master device map">
+    <div class="map-scroll map-scroll-explorer">
+      <div id="map-zoom-wrap">
+        <div id="map-stage">
+          <img id="schematic" alt="Digicon Master device map">
+        </div>
       </div>
     </div>
     <section class="detail-below" id="detail" aria-live="polite">
