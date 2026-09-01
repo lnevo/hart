@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="about-title">About HART</h1>
+    </div>
+    <section class="panel">
+      <h2 id="story-title"></h2>
+      <div class="prose story" id="story-body"></div>
+    </section>
+    <section class="panel">
+      <h2 id="narrative-title"></h2>
+      <ul id="narrative-bullets"></ul>
+    </section>
+    <section class="panel">
+      <h2 id="sts-title"></h2>
+      <p class="muted" id="sts-note"></p>
+      <div class="prose" id="sts-excerpt"></div>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+    document.addEventListener("DOMContentLoaded", async function () {
+      await HARTOps.mountChrome("about");
+      var data = await HARTOps.loadJson("data/about.json");
+      document.getElementById("about-title").textContent = data.title;
+      document.getElementById("story-title").textContent = data.story_title;
+      document.getElementById("story-body").innerHTML = (data.story || "")
+        .split(/\n\n+/)
+        .map(function (p) {
+          return "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>";
+        })
+        .join("");
+      document.getElementById("narrative-title").textContent = data.narrative_title;
+      document.getElementById("narrative-bullets").innerHTML = (data.narrative_bullets || [])
+        .map(function (b) {
+          return "<li>" + esc(b) + "</li>";
+        })
+        .join("");
+      document.getElementById("sts-title").textContent = data.sts_title;
+      document.getElementById("sts-note").textContent = data.sts_note || "";
+      document.getElementById("sts-excerpt").innerHTML =
+        "<p>" + esc(data.sts_excerpt || "") + "</p>";
+    });
+  </script>
+</body>
+</html>

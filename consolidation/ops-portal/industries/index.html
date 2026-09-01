@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Industries — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="ind-title">Industries</h1>
+      <p class="muted" id="ind-lede"></p>
+    </div>
+    <div class="industry-grid" id="ind-grid"></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+    document.addEventListener("DOMContentLoaded", async function () {
+      await HARTOps.mountChrome("industries");
+      var data = await HARTOps.loadJson("data/industries.json");
+      document.getElementById("ind-title").textContent = data.title;
+      document.getElementById("ind-lede").textContent = data.lede || "";
+      document.getElementById("ind-grid").innerHTML = (data.industries || [])
+        .map(function (ind) {
+          var logo = ind.logo
+            ? '<img class="logo" src="' +
+              esc(
+                ind.logo.indexOf("../external/") === 0
+                  ? ind.logo.replace(/^\.\.\//, HARTOps.base() === "../" ? "../../" : "../")
+                  : HARTOps.base() + ind.logo
+              ) +
+              '" alt="">'
+            : "";
+          var tags = (ind.commodities || [])
+            .map(function (c) {
+              return "<li>" + esc(c) + "</li>";
+            })
+            .join("");
+          return (
+            '<article class="industry-card">' +
+            logo +
+            "<h3>" +
+            esc(ind.name) +
+            "</h3><p>" +
+            esc(ind.blurb) +
+            '</p><p class="meta">' +
+            (ind.waybill_count || 0) +
+            " spot waybills in the seed</p>" +
+            (tags ? '<ul class="tag-list">' + tags + "</ul>" : "") +
+            "</article>"
+          );
+        })
+        .join("");
+    });
+  </script>
+</body>
+</html>

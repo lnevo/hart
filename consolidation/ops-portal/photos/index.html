@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photos — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="gallery-title">Photo gallery</h1>
+      <p class="muted" id="gallery-lede"></p>
+    </div>
+    <div class="album-bar" id="album-bar"></div>
+    <div class="gallery-masonry" id="gallery-grid"></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/gallery.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      await HARTOps.mountChrome("photos");
+      await HARTGallery.mount({});
+    });
+  </script>
+</body>
+</html>

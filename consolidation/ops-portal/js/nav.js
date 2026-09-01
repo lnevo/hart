@@ -1,7 +1,13 @@
 (function () {
   function base() {
     var p = (window.location.pathname || "").replace(/\\/g, "/");
-    if (/\/ops-portal\/(layout|roster|guides|tools|reference|gallery)\//.test(p)) return "../";
+    if (
+      /\/ops-portal\/(layout|roster|guides|tools|reference|gallery|briefing|industries|photos|about|sessions)\//.test(
+        p
+      )
+    ) {
+      return "../";
+    }
     return "";
   }
 
@@ -34,23 +40,33 @@
     );
   }
 
-  window.HARTOps = {
+  async function mountChrome(pageId) {
+    var site = await loadSite();
+    var header = document.querySelector("[data-ops-header]");
+    var footer = document.querySelector("[data-ops-footer]");
+    if (header) header.innerHTML = headerHtml(site, pageId);
+    if (footer) {
+      footer.innerHTML =
+        "HART Railroad · Neville Island · built from consolidation publications, invites, and media · " +
+        '<a href="' +
+        base() +
+        (site.engDesk || "../index.html") +
+        '">Engineering desk</a>';
+    }
+    return site;
+  }
+
+  async function loadJson(rel) {
+    var res = await fetch(base() + rel);
+    return res.json();
+  }
+
+  var api = {
     base: base,
     loadSite: loadSite,
-    mountChrome: async function (pageId) {
-      var site = await loadSite();
-      var header = document.querySelector("[data-ops-header]");
-      var footer = document.querySelector("[data-ops-footer]");
-      if (header) header.innerHTML = headerHtml(site, pageId);
-      if (footer) {
-        footer.innerHTML =
-          'Built from the <code>consolidation/</code> workspace · ' +
-          '<a href="' +
-          base() +
-          (site.engDesk || "../index.html") +
-          '">Engineering consolidation desk</a>';
-      }
-      return site;
-    },
+    loadJson: loadJson,
+    mountChrome: mountChrome,
   };
+  window.HARTOps = api;
+  window.HARTOps = api;
 })();

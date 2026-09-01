@@ -1,52 +1,29 @@
-# HART Operator Portal (consolidation)
+# HART Operator Portal
 
-Light, operator-facing static site **inside** the consolidation workspace:
+Crew-facing site for **Neville Island** — not the engineering consolidation desk.
 
-`consolidation/ops-portal/`
+Open [`index.html`](index.html) in a browser (or serve the `consolidation/` folder).
 
-It does **not** replace the dark engineering desk at [`../index.html`](../index.html). All content is drawn from consolidation SoR and mirrors (`sor/`, `external/hart-runtime/`, `external/hart-ops/`, `html/`, `wiki/`, `packages/`).
+## What’s here
 
-## Open
+| Section | Content |
+|---------|---------|
+| **Home** | Bird’s-eye hero, story CTAs |
+| **Briefing** | New-operator primer (HB-01): island history, jobs, destination colors, scale |
+| **Industries** | Aristech, Stucki, Calgon, Ferrellgas, Kosmos, Shenango + interchange |
+| **Photos** | Browsable gallery with captions — place, maps, car fleet, aisle, power |
+| **About** | *Rails Through Time*, operational narrative, STS ops article excerpt |
+| **Sessions** | Curated introduction emails from past ops invites |
+| **Layout / Guides / Tools** | Schematic explorer, dispatcher how-tos, STS / Mimic / JMRI |
 
-Open in a browser:
-
-```
-consolidation/ops-portal/index.html
-```
-
-## Rebuild layout data
+## Rebuild content
 
 ```bash
-python3 consolidation/ops-portal/scripts/build_layout_index.py
+python3 ops-portal/scripts/build_ops_content.py
 ```
 
-**Inputs (consolidation only):**
+Pulls from `external/hart-ops`, Desktop HART pubs, car image metadata, and session invite prose. Copies a small media set into `assets/media/`; fleet/aisle photos stay linked under `external/`.
 
-- `external/hart-runtime/jmri/layouts/hart/output/hart_prod.xml`
-- `sor/names/public_name_map.csv`
-- `sor/names/hart_devices_review.json`
-- `external/hart-runtime/jmri/layouts/hart/data/control_points.csv`
-- `external/hart-ops/publications/assets/station_map_*.png`
+## Note
 
-**Outputs:**
-
-- `data/layout-index.json`
-- `assets/layout/HART_le_schematic.png`
-- `assets/maps/*.png`
-
-(The schematic render helper lives at `cats/scripts/render_le_layout.py` but is only fed the consolidation panel XML.)
-
-## Sections
-
-| Path | Role |
-|------|------|
-| `layout/` | Annotated LE schematic + hotspot detail |
-| `roster/` | Filterable device table |
-| `guides/` | USS / CATS Digicon / Auto Dispatcher / Digicon overview |
-| `tools/` | STS, Mimic, JMRI deep links (`data/site.json`) |
-| `reference/` | Pointers into consolidation SoR / pubs / wiring |
-| `gallery/` | Station maps + schematic |
-
-## Hosting
-
-`file://` / static for now. Pi static copy beside STS is deferred (consolidation portal-hosting ADR).
+This portal is for operators and guests. Pipeline / SoR / wiring stay on the [engineering desk](../index.html).

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session invitations — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="inv-title">Session invitations</h1>
+      <p class="muted" id="inv-lede"></p>
+    </div>
+    <div id="inv-list"></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+    document.addEventListener("DOMContentLoaded", async function () {
+      await HARTOps.mountChrome("sessions");
+      var data = await HARTOps.loadJson("data/invites.json");
+      document.getElementById("inv-title").textContent = data.title;
+      document.getElementById("inv-lede").textContent = data.lede || "";
+      document.getElementById("inv-list").innerHTML = (data.sessions || [])
+        .map(function (s) {
+          return (
+            '<article class="invite-card" id="' +
+            esc(s.id) +
+            '"><p class="when">' +
+            esc(s.when) +
+            "</p><h2>" +
+            esc(s.title) +
+            "</h2>" +
+            (s.body || [])
+              .map(function (p) {
+                return "<p>" + esc(p) + "</p>";
+              })
+              .join("") +
+            "<p><strong>Jobs:</strong> " +
+            esc((s.jobs || []).join(" · ")) +
+            "</p></article>"
+          );
+        })
+        .join("");
+    });
+  </script>
+</body>
+</html>
