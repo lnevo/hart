@@ -149,6 +149,12 @@ main.full-bleed {
   padding: 0 0 3rem;
 }
 
+main.explorer-page {
+  max-width: none;
+  width: 100%;
+  padding: 1.25rem 1rem 2.5rem;
+}
+
 .site-footer {
   border-top: 1px solid var(--rule);
   padding: 1.25rem;
@@ -949,19 +955,60 @@ main.full-bleed {
   gap: 0.9rem;
 }
 
-@media (min-width: 960px) {
-  .layout-workspace {
-    grid-template-columns: 1fr 300px;
-    align-items: start;
-  }
-}
-
 .map-scroll {
   overflow: auto;
   max-height: min(78vh, 720px);
   border: 1px solid var(--rule);
   background: #111418;
   box-shadow: var(--shadow);
+}
+
+.explorer-page {
+  max-width: none;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.map-scroll-full {
+  max-height: min(82vh, 980px);
+  width: 100%;
+}
+
+.detail-below {
+  margin: 1rem 0 2rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  padding: 1rem 1.15rem 1.25rem;
+  box-shadow: var(--shadow);
+  min-height: 7rem;
+}
+
+.detail-below h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  margin: 0 0 0.65rem;
+  color: var(--brand);
+}
+
+.detail-below dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.95rem;
+}
+
+.detail-below dt {
+  color: var(--muted);
+}
+
+.detail-below dd {
+  margin: 0;
+}
+
+.detail-below .empty {
+  margin: 0;
+  color: var(--muted);
 }
 
 #map-stage {
