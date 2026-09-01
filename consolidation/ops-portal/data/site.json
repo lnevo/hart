@@ -14,7 +14,6 @@
     {"id": "industries", "href": "industries/index.html", "label": "Industries"},
     {"id": "photos", "href": "photos/index.html", "label": "Photos"},
     {"id": "about", "href": "about/index.html", "label": "About"},
-    {"id": "sessions", "href": "sessions/index.html", "label": "Sessions"},
     {"id": "layout", "href": "layout/index.html", "label": "Layout"},
     {"id": "guides", "href": "guides/index.html", "label": "Guides"},
     {"id": "tools", "href": "tools/index.html", "label": "Tools"}

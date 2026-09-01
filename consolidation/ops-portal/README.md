@@ -1,29 +1,40 @@
 # HART Operator Portal
 
-Crew-facing site for **Neville Island** — not the engineering consolidation desk.
+Crew-facing Neville Island site (not the engineering consolidation desk).
 
-Open [`index.html`](index.html) in a browser (or serve the `consolidation/` folder).
+## Open it (required)
 
-## What’s here
+JSON pages (Briefing, About, Photos, Layout, Industries) need **HTTP**, not `file://`.
 
-| Section | Content |
-|---------|---------|
-| **Home** | Bird’s-eye hero, story CTAs |
-| **Briefing** | New-operator primer (HB-01): island history, jobs, destination colors, scale |
-| **Industries** | Aristech, Stucki, Calgon, Ferrellgas, Kosmos, Shenango + interchange |
-| **Photos** | Browsable gallery with captions — place, maps, car fleet, aisle, power |
-| **About** | *Rails Through Time*, operational narrative, STS ops article excerpt |
-| **Sessions** | Curated introduction emails from past ops invites |
-| **Layout / Guides / Tools** | Schematic explorer, dispatcher how-tos, STS / Mimic / JMRI |
+```bash
+# from repo
+./consolidation/ops-portal/scripts/serve_portal.sh
+# → http://127.0.0.1:8760/ops-portal/
+```
+
+Or:
+
+```bash
+python3 -m http.server 8760 --directory consolidation
+open http://127.0.0.1:8760/ops-portal/
+```
+
+## Sections
+
+| Page | Content |
+|------|---------|
+| **Home** | Bird’s-eye hero into HART |
+| **Briefing** | HB-01 new-operator primer |
+| **Industries** | Customers, commodities, logos |
+| **Photos** | Captioned gallery (place, maps, fleet, aisle, power) |
+| **About** | Rails Through Time + operational narrative |
+| **Layout** | Clickable LE schematic |
+| **Guides / Tools** | Dispatcher how-tos and live links |
+
+Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.
 
 ## Rebuild content
 
 ```bash
-python3 ops-portal/scripts/build_ops_content.py
+python3 consolidation/ops-portal/scripts/build_ops_content.py
 ```
-
-Pulls from `external/hart-ops`, Desktop HART pubs, car image metadata, and session invite prose. Copies a small media set into `assets/media/`; fleet/aisle photos stay linked under `external/`.
-
-## Note
-
-This portal is for operators and guests. Pipeline / SoR / wiring stay on the [engineering desk](../index.html).
