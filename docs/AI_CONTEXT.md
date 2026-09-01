@@ -81,6 +81,7 @@ Registered layouts in `layout_paths.py`: `mac`, `linear3`, `linear4`, `linear5`,
 - **`use-panel-layout`** when applying blocks: track geometry from AnyRail export; styles/defaults from `mac_jmri2.xml`; **no** mac-only hidden segments or labels copied onto the new line.
 - **Mainline flag on new trackwork** — JMRI `<tracksegment mainline="yes">` uses `mainlinetrackwidth` (4px); `mainline="no"` uses `sidetrackwidth` (2px). Track drawn in Layout Editor defaults to **not** mainline. Engine-terminal sidings `T1`/`T3`/`T4`/`T6`/`T7`/`T9`–`T13` are intentionally **mainline=no**; `T5`/`T8` stay yes. `process_linear5_new_panel.py` preserves that split — do not blanket-force all yard idents to yes.
 - **Do not remove `F30-S-0`** — it connects F51-S-0 and F26-S-0 via anchors (see `jmri/layouts/linear3/docs/F30_connectivity_investigation.md`). Same topology in linear4.
+- **Dispatcher System is stock.** Do not monkey-patch `CreateTransits` / `CreateIcons` / `Startup.py`. If Stage 1 or Discover fails, fix `tables/new_tables.xml` (mast bindings, block boundaries). Never invent **Mast 26L → Mast 8RA**.
 
 ### Standard linear4 commands
 

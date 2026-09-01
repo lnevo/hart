@@ -44,6 +44,10 @@ _PORT_ID_RE = re.compile(r"^C(\d+)-(OU|IN)(\d+)-(\d+)$", re.I)
 MAST_SWITCH_OVERRIDE = {
     "Mast 26L": "Switch 21",
     "Mast 26R": "Switch 21",
+    "Mast 8LC": "Switch 7",
+    "Mast 11L": "Switch 11",
+    "Mast 9LA": "Switch 9",
+    "Mast 9LB": "Switch 9",
 }
 
 
@@ -506,6 +510,7 @@ BLOCK_COMMENTS = {
     "OS Switch 11": "Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301",
     "OS Switch 9": "Hand-throw Engine House; occupancy Block 13-8 / M2S1307",
     "Track Scale": "Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop",
+    "Track Scale East": "Hidden Track Scale throat (same detector as Track Scale); occupancy Block 4-8 / M2S407; not a station",
     "Track Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
     "Track S-R": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
     "Track S-R West": "Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8 / M2S207; not a station",
@@ -591,7 +596,7 @@ OCC_SENSOR = {
     "Block 4-5": "Occupancy OS Switch 5; MQTT M2S404",
     "Block 4-6": "Occupancy Track Brick-Plane; MQTT M2S405",
     "Block 4-7": "Occupancy Track East Main Ext; MQTT M2S406",
-    "Block 4-8": "Occupancy Track Scale; MQTT M2S407",
+    "Block 4-8": "Occupancy Track Scale (and hidden Track Scale East throat); MQTT M2S407",
     "Block 12-1": "Occupancy OS Switch 25; MQTT M2S1200",
     "Block 12-3": "Occupancy OS Switch 27; MQTT M2S1202",
     "Block 12-4": "Occupancy OS Switch 23a; MQTT M2S1203",

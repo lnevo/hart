@@ -106,6 +106,7 @@ block,Track S-3,Track S-3,South Yard,Block 2-5,South Yard,
 block,Track S-4,Track S-4,South Yard,Block 2-4,South Yard,
 block,Track S-R,Track S-R,South Yard,Block 2-8,South Yard,
 block,Track Scale,Track Scale,Plane,Block 4-8,Plane,
+block,Track Scale East,Track Scale East,Plane,Block 4-8,,hidden Scale east throat; same occupancy as Track Scale (Block 4-8)
 block,Track W-1,Track W-1,Brick,Block 4-4,Brick,
 block,Track W-2,Track W-2,Brick,Block 4-3,Brick,
 block,Track West Main Ext,Track West Main Ext,East End,Block 1-8,East End,
@@ -375,7 +376,9 @@ occupancy,Block 2-2,BS unused,,M2S201,,historical alias; canvas BS userName; com
 occupancy,Block 3-8,BS unused,,M2S307,,historical alias; canvas BS userName; comment stays Block 3-8
 mast,Mast 10LA,Mast 10LA,Engine House,virtual $1006,Engine House | Switch 9,
 mast,Mast 10LB,Mast 10LB,Engine House,virtual $1007,Engine House | Switch 9,
+mast,Mast 11L,Mast 11L,Engine House,virtual $1020,Engine House | Switch 11,hidden EH-1 exit; Dispatcher Stage 1
 mast,Mast 12L,Mast 12L,Engine House,virtual $1005,Engine House | Switch 11,
+mast,Mast 13R,Mast 13R,Barn,virtual $1019,Barn | Switch 13,hidden Barn into Switch 13; Dispatcher Stage 1
 mast,Mast 16L,Mast 16L,South Yard,virtual $1016,South Yard | Switch 15,
 mast,Mast 18L,Mast 18L,South Yard,virtual $1008,South Yard | Switch 17,
 mast,Mast 18R,Mast 18R,South Yard,virtual $1012,South Yard | Switch 17,
@@ -411,8 +414,11 @@ mast,Mast 6LA,Mast 6LA,Plane,IH434,Plane | Switch 5,
 mast,Mast 6LB,Mast 6LB,Plane,IH432 IH433,Plane | Switch 5,
 mast,Mast 8LA,Mast 8LA,Barn,IH1337 IH1338,Barn | Switch 7,
 mast,Mast 8LB,Mast 8LB,Barn,IH1334,Barn | Switch 7,
+mast,Mast 8LC,Mast 8LC,Barn,virtual $1018,Barn | Switch 7,hidden Scale east westbound; Dispatcher Stage 1
 mast,Mast 8RA,Mast 8RA,Barn,IH1332 IH1333,Barn | Switch 7,
 mast,Mast 8RB,Mast 8RB,Barn,IH1335 IH1336,Barn | Switch 7,
+mast,Mast 9LA,Mast 9LA,Engine House,virtual $1021,Engine House | Switch 9,hidden EH-2 exit; Dispatcher Stage 1
+mast,Mast 9LB,Mast 9LB,Engine House,virtual $1022,Engine House | Switch 9,hidden EH-3 exit; Dispatcher Stage 1
 mast,119LA,Mast 10LA,Engine House,virtual $1006,Engine House | Switch 9,historical alias; hidden EH-2 bumper; Dispatcher Stage 1
 mast,Engine House 2 buffer,Mast 10LA,Engine House,virtual $1006,Engine House | Switch 9,historical alias; hidden stub-end for Dispatcher Stage 1
 mast,119LB,Mast 10LB,Engine House,virtual $1007,Engine House | Switch 9,historical alias; hidden EH-3 bumper; Dispatcher Stage 1

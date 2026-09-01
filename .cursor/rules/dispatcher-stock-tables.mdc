@@ -1,0 +1,20 @@
+---
+description: Dispatcher System stays stock; fix only tables.xml data
+alwaysApply: true
+---
+
+# Dispatcher System is stock
+
+Do not patch, wrap, skip, or monkey-patch JMRI or Dispatcher System (`CreateIcons`, `CreateTransits`, `CreateGraph`, `Startup.py`, `TransitCreationTool`, `MoveTrain`). No overlays. No “skip this hop” generators.
+
+If Stage 1 or Discover fails, the defect is **panel data** (writable `tables/new_tables.xml`, then `--sync-output` into the hart bundle). Fix mast bindings, block boundaries, `stop` / `not a station` comments, and occupancy so stock Discover builds legal consecutive SML hops.
+
+Do not invent **Mast 26L → Mast 8RA**. That pair is opposite-facing. The westbound Scale chain must be a real Discover path (26L → 8LC → 6LA or 34L → 6LA).
+
+Shared-sensor Yes on Stage 1 is a physical occupancy constraint, not a software workaround. Auto-answering that confirm in a one-shot Mac launcher is allowed. Changing CreateTransits is not.
+
+```python
+# BAD — do not do this
+CreateTransits.create_transit = my_wrapper
+CreateTransits.get_last_signal_mast = my_last
+```

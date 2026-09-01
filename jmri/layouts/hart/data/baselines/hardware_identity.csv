@@ -130,6 +130,11 @@ signalmast,IF$vsm:AAR-1946:SL-1-low($1014),Mast 22R
 signalmast,IF$vsm:AAR-1946:SL-1-low($1015),Mast 26R
 signalmast,IF$vsm:AAR-1946:SL-1-low($1016),Mast 16L
 signalmast,IF$vsm:AAR-1946:SL-1-low($1017),Mast 32L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1018),Mast 8LC
+signalmast,IF$vsm:AAR-1946:SL-1-low($1019),Mast 13R
+signalmast,IF$vsm:AAR-1946:SL-1-low($1020),Mast 11L
+signalmast,IF$vsm:AAR-1946:SL-1-low($1021),Mast 9LA
+signalmast,IF$vsm:AAR-1946:SL-1-low($1022),Mast 9LB
 turnout,M2T108,Switch 35
 turnout,M2T109,Switch 37
 turnout,M2T110,Switch 39

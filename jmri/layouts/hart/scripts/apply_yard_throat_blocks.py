@@ -39,25 +39,40 @@ THROAT_SEGMENTS = [
     ("T-ER-TOL19", "S-5 West", "Block 2-4", "S-5"),
     ("T-EL-TOR11", "S-5 East", "Block 2-4", "S-5"),
     ("T-EL-TOR32", "S-1 East", "Block 2-8", "S-1"),
+    # T3 is the west throat of Switch 7, not a Scale station block. Putting
+    # it in OS Switch 7 makes A45 a real Scale|Switch 7 boundary so 26L can
+    # Discover 8LC. A extra "Scale East" block hid 8LC behind Switch 7.
+    ("T3", "OS Switch 7", "BS Scale", "Track Scale"),
 ]
 
 # After throats exist, bind virtuals on the new boundaries (not turnout legs).
 BOUNDARY_MASTS = [
     # ident, attr, systemName, userName, icon x, y, degrees
-    ("A53", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1008)", "104L", 768, 350, 270),
-    ("A61", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1012)", "104R", 1148, 350, 90),
-    ("A46", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1009)", "105L", 843, 397, 270),
-    ("A36", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1013)", "105R", 1148, 397, 90),
-    ("A41", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1010)", "106L", 910, 444, 270),
-    ("A39", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1014)", "106R", 1148, 444, 90),
-    ("A15", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1011)", "107L", 910, 474, 270),
-    ("A12", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1015)", "107R", 1148, 474, 90),
-    ("A81", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1016)", "103L", 720, 300, 270),
-    ("A37", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1017)", "110L", 1145, 300, 90),
+    ("A53", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1008)", "Mast 18L", 768, 350, 270),
+    ("A61", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1012)", "Mast 18R", 1148, 350, 90),
+    ("A46", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1009)", "Mast 20L", 843, 397, 270),
+    ("A36", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1013)", "Mast 20R", 1148, 397, 90),
+    ("A41", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1010)", "Mast 22L", 910, 444, 270),
+    ("A39", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1014)", "Mast 22R", 1148, 444, 90),
+    ("A15", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1011)", "Mast 26L", 910, 474, 270),
+    ("A12", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1015)", "Mast 26R", 1148, 474, 90),
+    ("A81", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1016)", "Mast 16L", 720, 300, 270),
+    ("A37", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1017)", "Mast 32L", 1145, 300, 90),
+    ("A45", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1018)", "Mast 8LC", 382, 305, 270),
 ]
 
 TURNOUT_MAST_TAGS = ("signalAMast", "signalBMast", "signalCMast", "signalDMast")
 YARD_VIRTUALS = {row[3] for row in BOUNDARY_MASTS}
+
+# Engine House exits. Bumper 12L/10LA/10LB are arrival dests only; without a
+# mast at EH-n | Switch 9/11, getBeansInPath(EH→yard) is empty or picks
+# 32L (S-1 East) and Stage 1 never builds EH→S-1/S-4/S-R.
+EH_EXIT_MASTS = [
+    # turnout, tag, sysname, uname, icon x, y, degrees
+    ("TO11", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1020)", "Mast 11L", 620, 270, 270),
+    ("TO10", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1021)", "Mast 9LA", 598, 268, 270),
+    ("TO10", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1022)", "Mast 9LB", 596, 280, 270),
+]
 
 
 def _le(root: ET.Element) -> ET.Element | None:
@@ -119,6 +134,16 @@ def _ensure_virtual_mast(
     unlit = ET.SubElement(el, "unlit")
     unlit.set("allowed", "yes")
     existing.add(sysname)
+    return 1
+
+
+def _ensure_turnout_mast(to: ET.Element, tag: str, uname: str) -> int:
+    for child in to:
+        if child.tag == tag and (child.text or "").strip() == uname:
+            return 0
+    el = ET.Element(tag)
+    el.text = uname
+    to.append(el)
     return 1
 
 
@@ -274,6 +299,106 @@ def _clear_turnout_virtuals(le: ET.Element) -> int:
     return n
 
 
+def _remove_orphan_scale_east(root: ET.Element) -> int:
+    """Drop Track Scale East. T3 is OS Switch 7; no segment uses this block."""
+    n = 0
+    for parent_tag in ("blocks", "layoutblocks"):
+        parent = root.find(parent_tag)
+        if parent is None:
+            continue
+        child_tag = "block" if parent_tag == "blocks" else "layoutblock"
+        for child in list(parent):
+            if child.tag != child_tag:
+                continue
+            un = (child.findtext("userName") or "").strip()
+            if un == "Track Scale East":
+                parent.remove(child)
+                n += 1
+    return n
+
+
+def apply_scale_east(path: Path) -> int:
+    """T3 in OS Switch 7; 8LC west / 8RA east on A45; no Scale East block."""
+    tree = ET.parse(path)
+    root = tree.getroot()
+    le = _le(root)
+    if le is None:
+        print(f"{path}: no Layout Editor")
+        return 0
+    n = _remove_orphan_scale_east(root)
+    segs = {ts.get("ident"): ts for ts in le.findall("tracksegment")}
+    t3 = segs.get("T3")
+    if t3 is not None and t3.get("blockname") != "OS Switch 7":
+        t3.set("blockname", "OS Switch 7")
+        n += 1
+    masts = root.find("signalmasts")
+    existing = set()
+    if masts is not None:
+        existing = {
+            (el.findtext("systemName") or "").strip()
+            for el in list(masts)
+            if el.tag in ("signalmast", "virtualsignalmast")
+        }
+        n += _ensure_virtual_mast(
+            masts,
+            existing,
+            "IF$vsm:AAR-1946:SL-1-low($1018)",
+            "Mast 8LC",
+        )
+    n += _ensure_hidden_icon(le, "Mast 8LC", 382, 305, 270)
+    points = {pt.get("ident"): pt for pt in le.findall("positionablepoint")}
+    pt = points.get("A45")
+    if pt is not None:
+        if pt.get("westboundsignalmast") != "Mast 8LC":
+            pt.set("westboundsignalmast", "Mast 8LC")
+            n += 1
+        if pt.get("eastboundsignalmast") != "Mast 8RA":
+            pt.set("eastboundsignalmast", "Mast 8RA")
+            n += 1
+    for to in le.findall("layoutturnout"):
+        if to.get("ident") != "TO117":
+            continue
+        for child in list(to):
+            if child.tag == "signalAMast" and (child.text or "").strip() == "Mast 8RA":
+                to.remove(child)
+                n += 1
+        break
+    # Switch 13 (TO1) had no mast on the Barn leg. Discover then jumped
+    # 8RA → 26L through Barn; get_last(26L, Track Barn) returned 8RA.
+    if masts is not None:
+        n += _ensure_virtual_mast(
+            masts,
+            existing,
+            "IF$vsm:AAR-1946:SL-1-low($1019)",
+            "Mast 13R",
+        )
+    n += _ensure_hidden_icon(le, "Mast 13R", 620, 305, 90)
+    turnouts = {to.get("ident"): to for to in le.findall("layoutturnout")}
+    to1 = turnouts.get("TO1")
+    if to1 is not None:
+        n += _ensure_turnout_mast(to1, "signalBMast", "Mast 13R")
+    n += _ensure_eh_exits(le, masts, existing, turnouts)
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    return n
+
+
+def _ensure_eh_exits(
+    le: ET.Element,
+    masts: ET.Element | None,
+    existing: set[str],
+    turnouts: dict[str, ET.Element],
+) -> int:
+    n = 0
+    for ident, tag, sysname, uname, x, y, deg in EH_EXIT_MASTS:
+        if masts is not None:
+            n += _ensure_virtual_mast(masts, existing, sysname, uname)
+        n += _ensure_hidden_icon(le, uname, x, y, deg)
+        to = turnouts.get(ident)
+        if to is not None:
+            n += _ensure_turnout_mast(to, tag, uname)
+    return n
+
+
 def apply(path: Path) -> int:
     tree = ET.parse(path)
     root = tree.getroot()
@@ -348,6 +473,9 @@ def apply(path: Path) -> int:
             if attr == "westboundsignalmast"
             else "westboundsignalmast"
         )
+        # A45 keeps both: 8LC westbound (Scale) and 8RA eastbound (Switch 7).
+        if ident == "A45":
+            continue
         if pt.get(other):
             del pt.attrib[other]
             n += 1
@@ -360,15 +488,21 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, default=DEFAULT)
     ap.add_argument("--sync-output", action="store_true")
+    ap.add_argument(
+        "--scale-east-only",
+        action="store_true",
+        help="Only fix Scale/Switch 7 (T3=OS Switch 7, 8LC/8RA on A45). Do not rewrite yard throats.",
+    )
     args = ap.parse_args()
     paths = [args.panel.resolve()]
     if args.sync_output:
         paths.extend([OUTPUT_TABLES, HART_PROD])
+    fn = apply_scale_east if args.scale_east_only else apply
     for path in paths:
         if not path.is_file():
             print(f"missing {path}")
             continue
-        n = apply(path)
+        n = fn(path)
         print(f"{path}: {n} edits")
     return 0
 

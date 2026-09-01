@@ -36,6 +36,7 @@ Sheets push (`.env.local`) stays human-gated. Do not force-push `main`.
 - Remove **F30-S-0** where the layout includes it.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
 - Run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.
+- Patch or wrap Dispatcher System / JMRI (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`). Fix `tables/new_tables.xml` so stock Discover and Stage 1 succeed.
 
 New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Dispatcher sizing is only `dispatcher/export_options.json`.
 

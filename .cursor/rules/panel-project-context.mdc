@@ -16,4 +16,5 @@ Read **[`wiki/home.md`](wiki/home.md)** and **[`docs/AI_CONTEXT.md`](docs/AI_CON
 - **`tables/tables.xml`** is read-only; edit `tables/new_tables.xml` only.
 - Do not remove **F30-S-0** on layouts that include it (connectivity).
 - **New JMRI-drawn track:** set **Mainline → Yes** on segments and turnouts (`mainline="yes"` in XML); editor defaults to sidetrack and blocks can look wrong.
+- **Dispatcher System is stock.** Do not monkey-patch JMRI or CreateTransits. If Stage 1 fails, fix `tables/new_tables.xml` (mast bindings, block boundaries). See `.cursor/rules/dispatcher-stock-tables.mdc`.
 - **Close-out:** commit, push, and deploy — [`AGENTS.md`](AGENTS.md) and `.cursor/rules/close-out.mdc`. CATS source is Bitbucket, not a decompiled jar in `cats/`.
