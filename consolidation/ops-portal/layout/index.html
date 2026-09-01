@@ -3,25 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Panels — HART Operator Portal</title>
+  <title>Digicon explorer — HART Operator Portal</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
-  <main>
+  <main class="explorer-page">
     <div class="page-head">
-      <h1 id="panels-title">Control panels</h1>
-      <p class="muted" id="panels-lede"></p>
-    </div>
-    <div class="panel-tabs" id="panel-tabs" role="tablist"></div>
-    <div class="panel-stage">
-      <img id="panel-img" alt="Control panel">
-    </div>
-    <p class="panel-caption" id="panel-caption"></p>
-
-    <div class="page-head" style="margin-top:1.5rem">
-      <h2 style="font-family:var(--font-display);color:var(--brand);margin:0">Digicon device browser</h2>
+      <h1>Digicon explorer</h1>
       <p class="muted" id="layout-meta">Loading Digicon map…</p>
+      <p class="muted">
+        Click a switch or mast on the board.
+        Panel screenshots live in
+        <a href="../photos/index.html">Photos → Control panels</a>.
+      </p>
     </div>
     <div class="toolbar">
       <input id="layout-search" type="search" placeholder="Search switch or mast…">
@@ -29,64 +24,17 @@
       <label class="chip"><input type="checkbox" data-kind="signal" checked> Masts</label>
       <a class="btn btn-ghost" href="../roster/index.html">Open roster</a>
     </div>
-    <div class="layout-workspace layout-workspace-3">
-      <div class="map-scroll">
-        <div id="map-stage">
-          <img id="schematic" alt="Digicon Master device map">
-        </div>
+    <div class="map-scroll map-scroll-full">
+      <div id="map-stage">
+        <img id="schematic" alt="Digicon Master device map">
       </div>
-      <aside class="device-list-panel">
-        <h3>Devices</h3>
-        <div id="device-list" class="device-list"></div>
-      </aside>
-      <aside class="detail-panel" id="detail"></aside>
     </div>
+    <section class="detail-below" id="detail" aria-live="polite">
+      <p class="empty">Click a switch or mast on the Digicon board.</p>
+    </section>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script src="../js/layout-explorer.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      await HARTOps.mountChrome("layout");
-      var data = await HARTOps.loadJson("data/panels.json");
-      document.getElementById("panels-title").textContent = data.title || "Panels";
-      document.getElementById("panels-lede").textContent = data.lede || "";
-      var panels = data.panels || [];
-      var tabs = document.getElementById("panel-tabs");
-      var img = document.getElementById("panel-img");
-      var cap = document.getElementById("panel-caption");
-
-      function show(i) {
-        var p = panels[i];
-        if (!p) return;
-        img.src = HARTOps.base() + p.src;
-        img.alt = p.label || "Panel";
-        cap.textContent = p.caption || "";
-        tabs.querySelectorAll("button").forEach(function (btn, idx) {
-          btn.setAttribute("aria-selected", idx === i ? "true" : "false");
-        });
-      }
-
-      tabs.innerHTML = panels
-        .map(function (p, i) {
-          return (
-            '<button type="button" role="tab" aria-selected="' +
-            (i === 0 ? "true" : "false") +
-            '" data-i="' +
-            i +
-            '">' +
-            p.label +
-            "</button>"
-          );
-        })
-        .join("");
-      tabs.querySelectorAll("button").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          show(Number(btn.getAttribute("data-i")));
-        });
-      });
-      show(0);
-    });
-  </script>
 </body>
 </html>

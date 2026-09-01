@@ -63,6 +63,7 @@
       "roster/index.html#" +
       encodeURIComponent(item.id) +
       '">Open in roster →</a></p>';
+    el.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
   function matches(item) {
@@ -98,51 +99,6 @@
         showDetail(item);
       });
       stage.appendChild(btn);
-    });
-    renderList();
-  }
-
-  function renderList() {
-    var list = $("#device-list");
-    if (!list || !state.data) return;
-    var rows = (state.data.items || []).filter(matches);
-    rows.sort(function (a, b) {
-      var ka = (a.kind + " " + (a.publicName || a.systemName || "")).toLowerCase();
-      var kb = (b.kind + " " + (b.publicName || b.systemName || "")).toLowerCase();
-      return ka < kb ? -1 : ka > kb ? 1 : 0;
-    });
-    list.innerHTML = rows
-      .map(function (item) {
-        var active = item.id === state.activeId ? " aria-current=\"true\"" : "";
-        return (
-          "<button type=\"button\" class=\"device-list-item\" data-id=\"" +
-          escapeHtml(item.id) +
-          "\"" +
-          active +
-          "><span class=\"kind\">" +
-          escapeHtml(item.kind) +
-          "</span><span class=\"name\">" +
-          escapeHtml(item.publicName || item.systemName) +
-          "</span></button>"
-        );
-      })
-      .join("");
-    list.querySelectorAll("button").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var id = btn.getAttribute("data-id");
-        var item = (state.data.items || []).find(function (it) {
-          return it.id === id;
-        });
-        if (!item) return;
-        state.activeId = id;
-        paint();
-        showDetail(item);
-        var stage = $("#map-stage");
-        var hot = stage && stage.querySelector('.hotspot.active');
-        if (hot && hot.scrollIntoView) {
-          hot.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
-        }
-      });
     });
   }
 
