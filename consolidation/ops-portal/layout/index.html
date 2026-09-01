@@ -20,25 +20,25 @@
     <p class="panel-caption" id="panel-caption"></p>
 
     <div class="page-head" style="margin-top:1.5rem">
-      <h2 style="font-family:var(--font-display);color:var(--brand);margin:0">Device browser</h2>
-      <p class="muted" id="layout-meta">Loading device map…</p>
+      <h2 style="font-family:var(--font-display);color:var(--brand);margin:0">Digicon device browser</h2>
+      <p class="muted" id="layout-meta">Loading Digicon map…</p>
     </div>
     <div class="toolbar">
-      <div class="panel-tabs" id="map-view-tabs" role="tablist" aria-label="Device map view">
-        <button type="button" role="tab" data-map="cats" aria-selected="true">Digicon Master</button>
-        <button type="button" role="tab" data-map="le" aria-selected="false">LE schematic</button>
-      </div>
-      <input id="layout-search" type="search" placeholder="Search name, CP, MQTT…">
+      <input id="layout-search" type="search" placeholder="Search switch or mast…">
       <label class="chip"><input type="checkbox" data-kind="turnout" checked> Switches</label>
-      <label class="chip"><input type="checkbox" data-kind="signal" checked> Signals</label>
+      <label class="chip"><input type="checkbox" data-kind="signal" checked> Masts</label>
       <a class="btn btn-ghost" href="../roster/index.html">Open roster</a>
     </div>
-    <div class="layout-workspace">
+    <div class="layout-workspace layout-workspace-3">
       <div class="map-scroll">
         <div id="map-stage">
-          <img id="schematic" alt="Device map">
+          <img id="schematic" alt="Digicon Master device map">
         </div>
       </div>
+      <aside class="device-list-panel">
+        <h3>Devices</h3>
+        <div id="device-list" class="device-list"></div>
+      </aside>
       <aside class="detail-panel" id="detail"></aside>
     </div>
   </main>
@@ -86,18 +86,6 @@
         });
       });
       show(0);
-
-      var mapTabs = document.getElementById("map-view-tabs");
-      if (mapTabs && window.HARTLayoutExplorer) {
-        mapTabs.querySelectorAll("button").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            mapTabs.querySelectorAll("button").forEach(function (b) {
-              b.setAttribute("aria-selected", b === btn ? "true" : "false");
-            });
-            HARTLayoutExplorer.setView(btn.getAttribute("data-map"));
-          });
-        });
-      }
     });
   </script>
 </body>

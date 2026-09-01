@@ -1,6 +1,6 @@
 {
   "title": "Control panels",
-  "lede": "Current live panels (Aug 2026). Digicon CTC uses the same Master CTC hold board CATS launches today (HART_Master_CTC_hold). Device browser defaults to that Digicon template; toggle LE schematic for full MQTT coverage. SW-7 / SW-23 / SW-35 draw as proper crossover diamonds on the LE view.",
+  "lede": "Current live panels (Aug 2026). Digicon Master is the interactive device browser (switches + masts). Classic CTC and Neville Island LE remain as reference screenshots only.",
   "panels": [
     {
       "id": "digicon",

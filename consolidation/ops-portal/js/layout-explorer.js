@@ -1,12 +1,9 @@
 (function () {
-  var VIEWS = {
-    cats: "data/layout-index-cats.json",
-    le: "data/layout-index.json",
-  };
+  var DATA_URL = "data/layout-index-cats.json";
+  var IMAGE_FALLBACK = "assets/layout/HART_cats_digicon.png";
 
   var state = {
     data: null,
-    view: "cats",
     kind: { turnout: true, signal: true },
     q: "",
     activeId: null,
@@ -47,7 +44,7 @@
     if (!el) return;
     if (!item) {
       el.innerHTML =
-        '<p class="empty">Click a switch plant on the Digicon board, or a switch/signal on the LE schematic.</p>';
+        '<p class="empty">Click a switch or mast on the Digicon board.</p>';
       return;
     }
     el.innerHTML =
@@ -94,6 +91,7 @@
       btn.style.left = item.x + "px";
       btn.style.top = item.y + "px";
       btn.title = item.publicName || item.systemName;
+      btn.setAttribute("aria-label", item.publicName || item.systemName || item.kind);
       btn.addEventListener("click", function () {
         state.activeId = item.id;
         paint();
@@ -101,38 +99,75 @@
       });
       stage.appendChild(btn);
     });
+    renderList();
+  }
+
+  function renderList() {
+    var list = $("#device-list");
+    if (!list || !state.data) return;
+    var rows = (state.data.items || []).filter(matches);
+    rows.sort(function (a, b) {
+      var ka = (a.kind + " " + (a.publicName || a.systemName || "")).toLowerCase();
+      var kb = (b.kind + " " + (b.publicName || b.systemName || "")).toLowerCase();
+      return ka < kb ? -1 : ka > kb ? 1 : 0;
+    });
+    list.innerHTML = rows
+      .map(function (item) {
+        var active = item.id === state.activeId ? " aria-current=\"true\"" : "";
+        return (
+          "<button type=\"button\" class=\"device-list-item\" data-id=\"" +
+          escapeHtml(item.id) +
+          "\"" +
+          active +
+          "><span class=\"kind\">" +
+          escapeHtml(item.kind) +
+          "</span><span class=\"name\">" +
+          escapeHtml(item.publicName || item.systemName) +
+          "</span></button>"
+        );
+      })
+      .join("");
+    list.querySelectorAll("button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-id");
+        var item = (state.data.items || []).find(function (it) {
+          return it.id === id;
+        });
+        if (!item) return;
+        state.activeId = id;
+        paint();
+        showDetail(item);
+        var stage = $("#map-stage");
+        var hot = stage && stage.querySelector('.hotspot.active');
+        if (hot && hot.scrollIntoView) {
+          hot.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+        }
+      });
+    });
   }
 
   function updateMeta() {
     var c = (state.data && state.data.counts) || {};
     var meta = $("#layout-meta");
     if (!meta) return;
-    var viewLabel = state.view === "cats" ? "Digicon Master plants" : "LE schematic devices";
     meta.textContent =
-      viewLabel +
-      " · " +
+      "Digicon Master · " +
       (c.mapped || 0) +
-      " mapped · " +
+      " devices · " +
       (c.turnout || 0) +
-      " turnout · " +
+      " switches · " +
       (c.signal || 0) +
-      " signal";
+      " masts";
   }
 
-  async function loadView(view) {
-    state.view = view in VIEWS ? view : "cats";
+  async function load() {
     state.activeId = null;
     var b = base();
-    var url = b + VIEWS[state.view];
-    var res = await fetch(url);
-    if (!res.ok) throw new Error(VIEWS[state.view] + " " + res.status);
+    var res = await fetch(b + DATA_URL);
+    if (!res.ok) throw new Error(DATA_URL + " " + res.status);
     state.data = await res.json();
     var img = $("#schematic");
-    var imagePath =
-      (state.data.image && state.data.image.path) ||
-      (state.view === "cats"
-        ? "assets/layout/HART_cats_digicon.png"
-        : "assets/layout/HART_le_schematic.png");
+    var imagePath = (state.data.image && state.data.image.path) || IMAGE_FALLBACK;
     if (img) {
       img.onload = paint;
       img.onerror = function () {
@@ -161,12 +196,12 @@
         paint();
       });
     }
-    await loadView("cats");
+    await load();
   }
 
   window.HARTLayoutExplorer = {
-    setView: function (view) {
-      return loadView(view).catch(function (err) {
+    reload: function () {
+      return load().catch(function (err) {
         console.error(err);
         var meta = $("#layout-meta");
         if (meta) meta.textContent = "Layout failed to load — " + err.message;
@@ -180,7 +215,6 @@
       console.error("HARTOps nav.js did not load");
       return;
     }
-    // layout/index.html may already mount chrome; still safe to call.
     Promise.resolve(ops.mountChrome("layout"))
       .then(init)
       .catch(function (err) {

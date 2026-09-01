@@ -12,7 +12,33 @@
   },
   "items": [
     {
-      "id": "cats-40-6",
+      "id": "cats-sig-Mast-40LA",
+      "kind": "signal",
+      "x": 3373.2,
+      "y": 340.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH142)",
+      "publicName": "Mast 40LA",
+      "cp": "Princess",
+      "hardware": "IH142",
+      "mqtt": "",
+      "comment": "Princess | Switch 39",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-24RA",
+      "kind": "signal",
+      "x": 2370.0,
+      "y": 439.2,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233)",
+      "publicName": "Mast 24RA",
+      "cp": "East End",
+      "hardware": "IH1232 IH1233",
+      "mqtt": "",
+      "comment": "East End | Switch 23",
+      "block": ""
+    },
+    {
+      "id": "cats-to-40-6",
       "kind": "turnout",
       "x": 2430.0,
       "y": 420.0,
@@ -21,11 +47,37 @@
       "cp": "Brick",
       "hardware": "Switch 23",
       "mqtt": "",
-      "comment": "CATS Digicon plant @ 40,6; OS OS Switch 23a",
+      "comment": "Digicon plant @ 40,6; OS OS Switch 23a",
       "block": "OS Switch 23a"
     },
     {
-      "id": "cats-52-6",
+      "id": "cats-sig-Mast-24L",
+      "kind": "signal",
+      "x": 2730.0,
+      "y": 400.8,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235)",
+      "publicName": "Mast 24L",
+      "cp": "East End",
+      "hardware": "IH1234 IH1235",
+      "mqtt": "",
+      "comment": "East End | Switch 23",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-36RA",
+      "kind": "signal",
+      "x": 3090.0,
+      "y": 439.2,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136)",
+      "publicName": "Mast 36RA",
+      "cp": "Princess",
+      "hardware": "IH135 IH136",
+      "mqtt": "",
+      "comment": "Princess | Switch 35",
+      "block": ""
+    },
+    {
+      "id": "cats-to-52-6",
       "kind": "turnout",
       "x": 3150.0,
       "y": 420.0,
@@ -34,11 +86,11 @@
       "cp": "Brick",
       "hardware": "Switch 35",
       "mqtt": "",
-      "comment": "CATS Digicon plant @ 52,6; OS OS Switch 35b",
+      "comment": "Digicon plant @ 52,6; OS OS Switch 35b",
       "block": "OS Switch 35b"
     },
     {
-      "id": "cats-55-6",
+      "id": "cats-to-55-6",
       "kind": "turnout",
       "x": 3330.0,
       "y": 420.0,
@@ -47,11 +99,76 @@
       "cp": "",
       "hardware": "",
       "mqtt": "",
-      "comment": "CATS plant @ 55,6",
+      "comment": "Digicon plant @ 55,6",
       "block": ""
     },
     {
-      "id": "cats-15-7",
+      "id": "cats-sig-Mast-40LB",
+      "kind": "signal",
+      "x": 3390.0,
+      "y": 400.8,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133)",
+      "publicName": "Mast 40LB",
+      "cp": "Princess",
+      "hardware": "IH132 IH133",
+      "mqtt": "",
+      "comment": "Princess | Switch 39",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-2035",
+      "kind": "signal",
+      "x": 3690.0,
+      "y": 400.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH141)",
+      "publicName": "Mast 2035",
+      "cp": "Princess",
+      "hardware": "IH141",
+      "mqtt": "",
+      "comment": "Princess",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-2036",
+      "kind": "signal",
+      "x": 3750.0,
+      "y": 439.2,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH134)",
+      "publicName": "Mast 2036",
+      "cp": "Princess",
+      "hardware": "IH134",
+      "mqtt": "",
+      "comment": "Princess",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-6LA",
+      "kind": "signal",
+      "x": 630.0,
+      "y": 460.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH434)",
+      "publicName": "Mast 6LA",
+      "cp": "Plane",
+      "hardware": "IH434",
+      "mqtt": "",
+      "comment": "Plane | Switch 5",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-8RA",
+      "kind": "signal",
+      "x": 853.2,
+      "y": 499.2,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333)",
+      "publicName": "Mast 8RA",
+      "cp": "Barn",
+      "hardware": "IH1332 IH1333",
+      "mqtt": "",
+      "comment": "Barn | Switch 7",
+      "block": ""
+    },
+    {
+      "id": "cats-to-15-7",
       "kind": "turnout",
       "x": 930.0,
       "y": 480.0,
@@ -60,11 +177,24 @@
       "cp": "Barn",
       "hardware": "Switch 7",
       "mqtt": "",
-      "comment": "CATS Digicon plant @ 15,7; OS OS Switch 7",
+      "comment": "Digicon plant @ 15,7; OS OS Switch 7",
       "block": "OS Switch 7"
     },
     {
-      "id": "cats-27-7",
+      "id": "cats-sig-Mast-8LB",
+      "kind": "signal",
+      "x": 973.2,
+      "y": 460.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1334)",
+      "publicName": "Mast 8LB",
+      "cp": "Barn",
+      "hardware": "IH1334",
+      "mqtt": "",
+      "comment": "Barn | Switch 7",
+      "block": ""
+    },
+    {
+      "id": "cats-to-27-7",
       "kind": "turnout",
       "x": 1650.0,
       "y": 480.0,
@@ -73,11 +203,11 @@
       "cp": "Brick",
       "hardware": "Switch 13",
       "mqtt": "",
-      "comment": "CATS Digicon plant @ 27,7; OS OS Switch 13",
+      "comment": "Digicon plant @ 27,7; OS OS Switch 13",
       "block": "OS Switch 13"
     },
     {
-      "id": "cats-30-7",
+      "id": "cats-to-30-7",
       "kind": "turnout",
       "x": 1830.0,
       "y": 480.0,
@@ -90,7 +220,20 @@
       "block": "OS Switch 17"
     },
     {
-      "id": "cats-40-7",
+      "id": "cats-sig-Mast-24RB",
+      "kind": "signal",
+      "x": 2353.2,
+      "y": 499.2,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1236)",
+      "publicName": "Mast 24RB",
+      "cp": "East End",
+      "hardware": "IH1236",
+      "mqtt": "",
+      "comment": "East End | Switch 23",
+      "block": ""
+    },
+    {
+      "id": "cats-to-40-7",
       "kind": "turnout",
       "x": 2430.0,
       "y": 480.0,
@@ -103,7 +246,20 @@
       "block": "OS Switch 23b"
     },
     {
-      "id": "cats-42-7",
+      "id": "cats-sig-Mast-32R",
+      "kind": "signal",
+      "x": 2533.2,
+      "y": 460.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1239)",
+      "publicName": "Mast 32R",
+      "cp": "East End",
+      "hardware": "IH1239",
+      "mqtt": "",
+      "comment": "East End | Switch 31",
+      "block": ""
+    },
+    {
+      "id": "cats-to-42-7",
       "kind": "turnout",
       "x": 2550.0,
       "y": 480.0,
@@ -116,7 +272,7 @@
       "block": "OS Switch 31"
     },
     {
-      "id": "cats-44-7",
+      "id": "cats-to-44-7",
       "kind": "turnout",
       "x": 2670.0,
       "y": 480.0,
@@ -129,7 +285,33 @@
       "block": "OS Switch 33"
     },
     {
-      "id": "cats-52-7",
+      "id": "cats-sig-Mast-34L",
+      "kind": "signal",
+      "x": 2730.0,
+      "y": 460.8,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238)",
+      "publicName": "Mast 34L",
+      "cp": "East End",
+      "hardware": "IH1237 IH1238",
+      "mqtt": "",
+      "comment": "East End | Switch 33",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-36RB",
+      "kind": "signal",
+      "x": 3090.0,
+      "y": 499.2,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138)",
+      "publicName": "Mast 36RB",
+      "cp": "Princess",
+      "hardware": "IH137 IH138",
+      "mqtt": "",
+      "comment": "Princess | Switch 35",
+      "block": ""
+    },
+    {
+      "id": "cats-to-52-7",
       "kind": "turnout",
       "x": 3150.0,
       "y": 480.0,
@@ -142,7 +324,7 @@
       "block": "OS Switch 35a"
     },
     {
-      "id": "cats-55-7",
+      "id": "cats-to-55-7",
       "kind": "turnout",
       "x": 3330.0,
       "y": 480.0,
@@ -151,11 +333,37 @@
       "cp": "",
       "hardware": "",
       "mqtt": "",
-      "comment": "CATS plant @ 55,7",
+      "comment": "Digicon plant @ 55,7",
       "block": ""
     },
     {
-      "id": "cats-4-8",
+      "id": "cats-sig-Mast-38LB",
+      "kind": "signal",
+      "x": 3390.0,
+      "y": 460.8,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140)",
+      "publicName": "Mast 38LB",
+      "cp": "Princess",
+      "hardware": "IH139 IH140",
+      "mqtt": "",
+      "comment": "Princess | Switch 37",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-2L",
+      "kind": "signal",
+      "x": 210.0,
+      "y": 559.2,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439)",
+      "publicName": "Mast 2L",
+      "cp": "Brick",
+      "hardware": "IH438 IH439",
+      "mqtt": "",
+      "comment": "Brick | Switch 1",
+      "block": ""
+    },
+    {
+      "id": "cats-to-4-8",
       "kind": "turnout",
       "x": 270.0,
       "y": 540.0,
@@ -164,11 +372,11 @@
       "cp": "Brick",
       "hardware": "Switch 13",
       "mqtt": "",
-      "comment": "CATS Digicon plant @ 4,8; OS OS Switch 1",
+      "comment": "Digicon plant @ 4,8; OS OS Switch 1",
       "block": "OS Switch 13"
     },
     {
-      "id": "cats-9-8",
+      "id": "cats-to-9-8",
       "kind": "turnout",
       "x": 570.0,
       "y": 540.0,
@@ -177,11 +385,37 @@
       "cp": "",
       "hardware": "",
       "mqtt": "",
-      "comment": "CATS plant @ 9,8",
+      "comment": "Digicon plant @ 9,8",
       "block": ""
     },
     {
-      "id": "cats-15-8",
+      "id": "cats-sig-Mast-6LB",
+      "kind": "signal",
+      "x": 630.0,
+      "y": 520.8,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433)",
+      "publicName": "Mast 6LB",
+      "cp": "Plane",
+      "hardware": "IH432 IH433",
+      "mqtt": "",
+      "comment": "Plane | Switch 5",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-8RB",
+      "kind": "signal",
+      "x": 853.2,
+      "y": 559.2,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336)",
+      "publicName": "Mast 8RB",
+      "cp": "Barn",
+      "hardware": "IH1335 IH1336",
+      "mqtt": "",
+      "comment": "Barn | Switch 7",
+      "block": ""
+    },
+    {
+      "id": "cats-to-15-8",
       "kind": "turnout",
       "x": 930.0,
       "y": 540.0,
@@ -194,7 +428,20 @@
       "block": "OS Switch 7b"
     },
     {
-      "id": "cats-24-8",
+      "id": "cats-sig-Mast-8LA",
+      "kind": "signal",
+      "x": 973.2,
+      "y": 520.8,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338)",
+      "publicName": "Mast 8LA",
+      "cp": "Barn",
+      "hardware": "IH1337 IH1338",
+      "mqtt": "",
+      "comment": "Barn | Switch 7",
+      "block": ""
+    },
+    {
+      "id": "cats-to-24-8",
       "kind": "turnout",
       "x": 1470.0,
       "y": 540.0,
@@ -203,11 +450,11 @@
       "cp": "OS Switch 9",
       "hardware": "Switch 9",
       "mqtt": "",
-      "comment": "CATS Digicon plant @ 24,8; OS OS Switch 9",
+      "comment": "Digicon plant @ 24,8; OS OS Switch 9",
       "block": "OS Switch 9"
     },
     {
-      "id": "cats-26-8",
+      "id": "cats-to-26-8",
       "kind": "turnout",
       "x": 1590.0,
       "y": 540.0,
@@ -216,11 +463,11 @@
       "cp": "Brick",
       "hardware": "Switch 11",
       "mqtt": "",
-      "comment": "CATS Digicon plant @ 26,8; OS OS Switch 11",
+      "comment": "Digicon plant @ 26,8; OS OS Switch 11",
       "block": "OS Switch 11"
     },
     {
-      "id": "cats-31-8",
+      "id": "cats-to-31-8",
       "kind": "turnout",
       "x": 1890.0,
       "y": 540.0,
@@ -233,7 +480,7 @@
       "block": "OS Switch 19"
     },
     {
-      "id": "cats-41-8",
+      "id": "cats-to-41-8",
       "kind": "turnout",
       "x": 2490.0,
       "y": 540.0,
@@ -246,7 +493,33 @@
       "block": "OS Switch 39"
     },
     {
-      "id": "cats-5-9",
+      "id": "cats-sig-Mast-34R",
+      "kind": "signal",
+      "x": 2670.0,
+      "y": 540.0,
+      "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)",
+      "publicName": "Mast 34R",
+      "cp": "East End",
+      "hardware": "IH1240 IH1241",
+      "mqtt": "",
+      "comment": "East End | Switch 33",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-38LA",
+      "kind": "signal",
+      "x": 3373.2,
+      "y": 520.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH143)",
+      "publicName": "Mast 38LA",
+      "cp": "Princess",
+      "hardware": "IH143",
+      "mqtt": "",
+      "comment": "Princess | Switch 37",
+      "block": ""
+    },
+    {
+      "id": "cats-to-5-9",
       "kind": "turnout",
       "x": 330.0,
       "y": 600.0,
@@ -255,11 +528,24 @@
       "cp": "",
       "hardware": "",
       "mqtt": "",
-      "comment": "CATS plant @ 5,9",
+      "comment": "Digicon plant @ 5,9",
       "block": ""
     },
     {
-      "id": "cats-32-9",
+      "id": "cats-sig-Mast-4RB",
+      "kind": "signal",
+      "x": 373.2,
+      "y": 580.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH437)",
+      "publicName": "Mast 4RB",
+      "cp": "Brick",
+      "hardware": "IH437",
+      "mqtt": "",
+      "comment": "Brick | Switch 3",
+      "block": ""
+    },
+    {
+      "id": "cats-to-32-9",
       "kind": "turnout",
       "x": 1950.0,
       "y": 600.0,
@@ -272,7 +558,7 @@
       "block": "OS Switch 21"
     },
     {
-      "id": "cats-40-9",
+      "id": "cats-to-40-9",
       "kind": "turnout",
       "x": 2430.0,
       "y": 600.0,
@@ -285,7 +571,20 @@
       "block": "OS Switch 27"
     },
     {
-      "id": "cats-33-10",
+      "id": "cats-sig-Mast-4RA",
+      "kind": "signal",
+      "x": 373.2,
+      "y": 640.8,
+      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH436)",
+      "publicName": "Mast 4RA",
+      "cp": "Brick",
+      "hardware": "IH436",
+      "mqtt": "",
+      "comment": "Brick | Switch 3",
+      "block": ""
+    },
+    {
+      "id": "cats-to-33-10",
       "kind": "turnout",
       "x": 2010.0,
       "y": 660.0,
@@ -298,7 +597,7 @@
       "block": "OS Switch 21"
     },
     {
-      "id": "cats-39-10",
+      "id": "cats-to-39-10",
       "kind": "turnout",
       "x": 2370.0,
       "y": 660.0,
@@ -313,10 +612,10 @@
   ],
   "counts": {
     "turnout": 23,
-    "signal": 0,
+    "signal": 23,
     "occupancy": 0,
     "sensor": 0,
-    "mapped": 23,
-    "total": 23
+    "mapped": 46,
+    "total": 46
   }
 }
