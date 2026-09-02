@@ -4,7 +4,7 @@ from pathlib import Path
 
 JYTHON_RUNTIME_SCRIPTS = (
     Path(__file__).resolve().parents[1] / "hide_cats_desk_windows.py",
-    Path(__file__).resolve().parents[1] / "sync_turnout_buttons.py",
+    Path(__file__).resolve().parents[1] / "sync_layout_button.py",
     Path(__file__).resolve().parents[1] / "jmri_cmd_watcher.py",
 )
 

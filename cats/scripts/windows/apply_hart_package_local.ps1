@@ -143,10 +143,8 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
 }
 
 $jythonSrc = @(
-  (Join-Path $hart 'jmri\layouts\hart\scripts\patch_dispatcher_facing.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\hart_dispatcher_startup.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_turnout_buttons.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_layout_button.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
   (Join-Path $hart 'jmri\scripts\mqtt_signalhead_publisher.py')
 )
@@ -170,6 +168,10 @@ foreach ($r in ($roots | Select-Object -Unique)) {
   }
   $staleNx = Join-Path $dest 'prepare_nx_sml_paths.py'
   if (Test-Path $staleNx) { Remove-Item $staleNx -Force }
+  foreach ($stale in @('hart_dispatcher_startup.py', 'patch_dispatcher_facing.py')) {
+    $stalePath = Join-Path $dest $stale
+    if (Test-Path $stalePath) { Remove-Item $stalePath -Force }
+  }
   Write-Host ("preference:jython scripts -> {0}\jython" -f $r)
   if (Test-Path $trainInfoSrc) {
     $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
@@ -184,7 +186,7 @@ foreach ($r in ($roots | Select-Object -Unique)) {
 
 $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
 $retargetNames = @(
-  'sync_turnout_buttons.py',
+  'sync_layout_button.py',
   'mqtt_signalhead_publisher.py',
   'jmri_cmd_watcher.py'
 )

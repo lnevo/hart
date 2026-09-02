@@ -8,8 +8,8 @@ HOME = Path.home()
 TABLES = HOME / "JMRI/My_JMRI_Railroad.jmri/tables.xml"
 PROF = HOME / "JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
 FRAG = HOME / "hart/jmri/layouts/hart/scripts/yl_tables_fragment.xml"
-SYNC = HOME / "hart/jmri/layouts/hart/scripts/sync_turnout_buttons.py"
-SYNC_HOME = "preference:jython/sync_turnout_buttons.py"
+SYNC = HOME / "hart/jmri/layouts/hart/scripts/sync_layout_button.py"
+SYNC_HOME = "preference:jython/sync_layout_button.py"
 
 
 def merge_tables() -> None:
@@ -61,7 +61,7 @@ def patch_profile() -> None:
         )
         changed = True
         print("profile: removed retired unhold_signal_masts.py")
-    if "sync_turnout_buttons.py" not in txt:
+    if "sync_layout_button.py" not in txt:
         insert = (
             '        <perform xmlns="" class="jmri.util.startup.configurexml.PerformScriptModelXml" '
             f'enabled="yes" name="{SYNC_HOME}" type="ScriptFile"/>\n'

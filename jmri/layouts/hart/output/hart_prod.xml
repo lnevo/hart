@@ -432,6 +432,11 @@
       <userName>Clock running</userName>
       <comment>JMRI fast-clock running</comment>
     </sensor>
+    <sensor inverted="false">
+      <systemName>IS:TRACK_POWER</systemName>
+      <userName>Track Power</userName>
+      <comment>Panel Track Power lamp; ACTIVE=LCC layout power ON; click toggles PowerManager</comment>
+    </sensor>
     </sensors>
   <turnouts class="jmri.jmrix.mqtt.configurexml.MqttTurnoutManagerXml">
     <operations automate="false">
@@ -2177,6 +2182,15 @@
       <iconmaps />
     </sensoricon>
     <positionablelabel x="48" y="614" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Signals" fontFamily="Dialog" fontname="Dialog.plain" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <sensoricon sensor="Track Power" x="24" y="644" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>LCC layout power: green=ON red=OFF; click toggles track power</tooltip>
+      <active url="program:resources/icons/USS/sensor/green-on.gif" scale="1.0"><rotation>0</rotation></active>
+      <inactive url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0"><rotation>0</rotation></inactive>
+      <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" scale="1.0"><rotation>0</rotation></unknown>
+      <inconsistent url="preference:resources/icons/USS/sensor/yellow-on.gif" scale="1.0"><rotation>0</rotation></inconsistent>
+      <iconmaps />
+    </sensoricon>
+    <positionablelabel x="48" y="642" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track Power" fontFamily="Dialog" fontname="Dialog.plain" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
 
     <positionablelabel x="877" y="48" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Neville Island" size="28" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="113" y="132" level="3" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="West Yard" fontFamily="Dialog" fontname="Dialog.plain" size="16" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />

@@ -24,7 +24,7 @@ PROFILE = """\
             <property name="script" value="program:jython/RaspberryPiRestart.py"/>
         </perform>
         <perform xmlns="" class="jmri.util.startup.configurexml.PerformFileModelXml" enabled="yes" name="preference:tables.xml" type="XmlFile"/>
-        <perform name="/Users/lnevo/hart/jmri/layouts/hart/scripts/sync_turnout_buttons.py" type="ScriptFile" enabled="yes" class="jmri.util.startup.configurexml.PerformScriptModelXml"/>
+        <perform name="/Users/lnevo/hart/jmri/layouts/hart/scripts/sync_layout_button.py" type="ScriptFile" enabled="yes" class="jmri.util.startup.configurexml.PerformScriptModelXml"/>
         <perform xmlns="" class="jmri.util.startup.configurexml.PerformScriptModelXml" enabled="yes" name="/home/pi/hart/jmri/scripts/mqtt_signalhead_publisher.py" type="ScriptFile"/>
         <perform xmlns="" class="jmri.util.startup.configurexml.PerformScriptModelXml" enabled="yes" name="preference:jython/hide_cats_desk_windows.py" type="ScriptFile"/>
     </startup>
@@ -41,7 +41,7 @@ class RetargetJython(unittest.TestCase):
             notes = mod.retarget_to_preference_jython(
                 profile,
                 [
-                    "sync_turnout_buttons.py",
+                    "sync_layout_button.py",
                     "mqtt_signalhead_publisher.py",
                     "hide_cats_desk_windows.py",
                 ],
@@ -50,11 +50,11 @@ class RetargetJython(unittest.TestCase):
         self.assertEqual(
             notes,
             [
-                "/Users/lnevo/hart/jmri/layouts/hart/scripts/sync_turnout_buttons.py -> preference:jython/sync_turnout_buttons.py",
+                "/Users/lnevo/hart/jmri/layouts/hart/scripts/sync_layout_button.py -> preference:jython/sync_layout_button.py",
                 "/home/pi/hart/jmri/scripts/mqtt_signalhead_publisher.py -> preference:jython/mqtt_signalhead_publisher.py",
             ],
         )
-        self.assertIn('name="preference:jython/sync_turnout_buttons.py"', txt)
+        self.assertIn('name="preference:jython/sync_layout_button.py"', txt)
         self.assertIn('name="preference:jython/mqtt_signalhead_publisher.py"', txt)
         self.assertIn('name="preference:jython/hide_cats_desk_windows.py"', txt)
         self.assertIn("program:jython/RaspberryPiRestart.py", txt)
@@ -66,27 +66,43 @@ class RetargetJython(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             profile = Path(td) / "profile.xml"
             profile.write_text(PROFILE, encoding="utf-8")
-            mod.retarget_to_preference_jython(profile, ["sync_turnout_buttons.py"])
+            mod.retarget_to_preference_jython(profile, ["sync_layout_button.py"])
             notes = mod.retarget_to_preference_jython(
-                profile, ["sync_turnout_buttons.py"]
+                profile, ["sync_layout_button.py"]
             )
         self.assertEqual(notes, [])
 
     def test_renames_retired_yard_ladder_basename(self) -> None:
         mod = _load()
         profile_txt = PROFILE.replace(
-            "sync_turnout_buttons.py", "sync_yard_ladder_buttons.py"
+            "sync_layout_button.py", "sync_yard_ladder_buttons.py"
         )
         with tempfile.TemporaryDirectory() as td:
             profile = Path(td) / "profile.xml"
             profile.write_text(profile_txt, encoding="utf-8")
             notes = mod.retarget_to_preference_jython(
-                profile, ["sync_turnout_buttons.py"]
+                profile, ["sync_layout_button.py"]
             )
             txt = profile.read_text(encoding="utf-8")
-        self.assertTrue(any("sync_yard_ladder_buttons.py -> sync_turnout_buttons.py" in n for n in notes))
-        self.assertIn('name="preference:jython/sync_turnout_buttons.py"', txt)
+        self.assertTrue(any("sync_yard_ladder_buttons.py -> sync_layout_button.py" in n for n in notes))
+        self.assertIn('name="preference:jython/sync_layout_button.py"', txt)
         self.assertNotIn("sync_yard_ladder_buttons.py", txt)
+
+    def test_renames_retired_turnout_buttons_basename(self) -> None:
+        mod = _load()
+        profile_txt = PROFILE.replace(
+            "sync_layout_button.py", "sync_turnout_buttons.py"
+        )
+        with tempfile.TemporaryDirectory() as td:
+            profile = Path(td) / "profile.xml"
+            profile.write_text(profile_txt, encoding="utf-8")
+            notes = mod.retarget_to_preference_jython(
+                profile, ["sync_layout_button.py"]
+            )
+            txt = profile.read_text(encoding="utf-8")
+        self.assertTrue(any("sync_turnout_buttons.py -> sync_layout_button.py" in n for n in notes))
+        self.assertIn('name="preference:jython/sync_layout_button.py"', txt)
+        self.assertNotIn("sync_turnout_buttons.py", txt)
 
 
 class HideCatsChromeSource(unittest.TestCase):

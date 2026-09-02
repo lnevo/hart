@@ -74,19 +74,15 @@ fi
 
 JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
-  "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
-  "$ROOT/jmri/layouts/hart/scripts/sync_turnout_buttons.py"
+  "$ROOT/jmri/layouts/hart/scripts/sync_layout_button.py"
   "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py"
 )
 
 HART_JYTHON_SCRIPTS=(
-  jmri/layouts/hart/scripts/sync_turnout_buttons.py
+  jmri/layouts/hart/scripts/sync_layout_button.py
   jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py
   jmri/layouts/hart/scripts/discover_sml.py
-  jmri/layouts/hart/scripts/hart_dispatcher_startup.py
-  jmri/layouts/hart/scripts/patch_dispatcher_facing.py
   jmri/layouts/hart/scripts/hide_cats_desk_windows.py
   jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py
   jmri/layouts/hart/scripts/jmri_cmd_watcher.py
@@ -110,6 +106,7 @@ install_dispatcher_facing_patch() {
     for f in "${JYTHON_STARTUP_SCRIPTS[@]}"; do
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
     done
+    rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"
     echo "preference:jython scripts -> $dest"
     if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
@@ -120,7 +117,7 @@ install_dispatcher_facing_patch() {
     if [[ -f "$profxml" && -f "$patch_startup" ]]; then
       python3 "$patch_startup" retarget-jython \
         --profile "$profxml" \
-        --script sync_turnout_buttons.py \
+        --script sync_layout_button.py \
         --script mqtt_signalhead_publisher.py \
         --script jmri_cmd_watcher.py
       python3 "$patch_startup" remove \
