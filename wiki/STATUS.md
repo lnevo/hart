@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-01 — Block-value labels stay visible: deploy runs `polish_hart_layout_editor --block-labels-only`, Mac profiles get `tables.xml`, and `sync_layout_button` lifts buried BlockContentsIcons to **level 4** at boot (Stage 1 Store resets them to 0). Reload **PanelPro**. Deploy `--all`.
+
 Updated: 2026-09-01 — **Track Scale** block boundary: anchor **A45** moved east to **Mast 8RA** (x=445) so `T1` covers the scale track through 8LC; **OS Switch 7** `T3` now starts at 8RA (was ending at 6LA). Track Power lamp click uses **500 ms** amber hold like Turnouts. Reload **PanelPro**. Deploy `--all`.
 
 # Panel status lamps (HART Railroad lower left): **LCOS** (`M2S1567`), **Turnouts** (`IH9990`), **Signals** (`IS:SML_MODE`), **Track Power** (`IS:TRACK_POWER` / LCC PowerManager). Startup script renamed `sync_turnout_buttons` → **`sync_layout_button.py`** (`patch_jmri_startup` retargets retired basenames). Reload **PanelPro** / **CATS**. Deploy `--all`.

@@ -932,6 +932,57 @@ def _reload_mqtt_retain_at_boot():
         return False
 
 
+_BCI_LEVEL = 4
+_bci_raised = False
+
+
+def _raise_block_labels():
+    """Lift buried BlockContentsIcon labels (Stage 1 Store writes level 0)."""
+    global _bci_raised
+    if _bci_raised:
+        return 0
+    try:
+        from jmri.jmrit.display import BlockContentsIcon, EditorManager
+    except Exception as e:
+        print("sync_layout_button: BlockContentsIcon import failed: %s" % e)
+        return 0
+    em = jmri.InstanceManager.getDefault(EditorManager)
+    if em is None:
+        return 0
+    titles = set(["HART Railroad", "HART", "My Layout"])
+    n = 0
+    for ed in list(em.getAll()):
+        try:
+            if (ed.getTitle() or "") not in titles:
+                continue
+            contents = list(ed.getContents())
+        except Exception:
+            continue
+        for icon in contents:
+            try:
+                if not isinstance(icon, BlockContentsIcon):
+                    continue
+                if icon.getDisplayLevel() != _BCI_LEVEL:
+                    icon.setDisplayLevel(_BCI_LEVEL)
+                    n += 1
+            except Exception as e:
+                print("sync_layout_button: raise BCI failed: %s" % e)
+        if n:
+            try:
+                frame = ed.getTargetFrame()
+                if frame is not None:
+                    frame.repaint()
+            except Exception:
+                pass
+    if n:
+        print(
+            "sync_layout_button: raised %d BlockContentsIcon(s) to level %d"
+            % (n, _BCI_LEVEL)
+        )
+    _bci_raised = True
+    return n
+
+
 def _arm_listeners():
     """Attach ladder/plant listeners once. Independent of panel icons."""
     global _armed, _listener, _sensor_listener, _plant_count
@@ -989,6 +1040,7 @@ class _ArmAttempt(ActionListener):
             _arm_listeners()
             _arm_power_listener()
             _sync_track_power_sensor()
+            _raise_block_labels()
             sync_ladder_buttons()
         except Exception as e:
             print("sync_layout_button: arm failed: %s" % e)
