@@ -455,13 +455,13 @@ def _toggle_turnout_fb_mode_body():
 
 
 # Hold amber long enough to feel like a click landed (FB flip itself is near-instant).
-_TURNOUT_AMBER_MS = 500
+_LAMP_AMBER_MS = 500
 
 
 def toggle_turnout_fb_mode():
     """Click Turnouts lamp: amber hold, then flip TWOSENSOR ↔ DIRECT, then final."""
     _show_amber_head()
-    _after_paint(_toggle_turnout_fb_mode_body, delay_ms=_TURNOUT_AMBER_MS)
+    _after_paint(_toggle_turnout_fb_mode_body, delay_ms=_LAMP_AMBER_MS)
 
 
 def _mqtt_publish(topic, payload):
@@ -693,7 +693,7 @@ def toggle_track_power():
             print("sync_layout_button: Track Power toggle failed: %s" % e)
         _sync_track_power_sensor()
 
-    _after_paint(_do)
+    _after_paint(_do, delay_ms=_LAMP_AMBER_MS)
 
 
 def sync_ladder_buttons(event=None):
