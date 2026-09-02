@@ -81,7 +81,7 @@ Stock `MoveTrain` inverts the facing dialog ([JMRI#14365](https://github.com/JMR
 - CreateTransits talks through **modal `JOptionPane`**. A hidden dialog (behind PanelPro, or on a headless/automation thread) freezes Stage 1. Look for a buried confirm before killing the session.
 - `TransitCreationTool.addNamedBean` is **outside** the `try` in stock `CreateTransits.create_transit`. An unreachable pair kills Stage 1. If that happens, **fix `tables/new_tables.xml`** (mast bindings / block boundaries) so Discover builds legal hops. Do **not** wrap CreateTransits. **26L → 8RA** is opposite-facing; westbound Scale is 26L → 8LC → 6LA (or 26L → 8LB → 6LA).
 - Stage 1 deletes and re-discovers SML. Re-add the two manual Princess pairs (`113RA→115LA`, `113RB→114LA`) after every run. Then `fix_traininfo_detection.py` (HEAD_AND_TAIL) and `reconcile_dispatcher_stations.py`.
-- Stage 1 **Store** writes Layout Editor `BlockContentsIcon`s at **level 0** (behind the track). The Mac launcher runs `polish_hart_layout_editor.py --block-labels-only`. Audit fails if any label is not level 4.
+- Stage 1 **Store** writes Layout Editor `BlockContentsIcon`s at **level 0** (behind the track). The Mac launcher and **`sync_hart_package.sh`** run `polish_hart_layout_editor.py --block-labels-only`; **`sync_layout_button.py`** also lifts them at PanelPro boot. Audit fails if any label is not level 4.
 - **PanelPro only.** Never run Stage 1 or Store tables from CATS. CATS virtuals (`IF$vsm:CATS1/CATS2`) and `IMDECODER_*` memories pollute `tables.xml` and fail to load in plain JMRI.
 
 ---

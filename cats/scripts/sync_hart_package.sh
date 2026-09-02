@@ -51,6 +51,14 @@ ssh_win() { ssh "${SSH_OPTS[@]}" -p "$WIN_PORT" "$WIN_HOST" "$@"; }
 scp_win() { scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"; }
 
 TABLES=""
+POLISH="$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py"
+if [[ -f "$POLISH" && -f "$ROOT/tables/new_tables.xml" ]]; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    python3 "$POLISH" --block-labels-only --sync-output --check
+  else
+    python3 "$POLISH" --block-labels-only --sync-output
+  fi
+fi
 if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
   TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
 elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
@@ -139,6 +147,33 @@ install_dispatcher_facing_patch() {
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
     _install_facing_into "${HOME}/JMRI_UserFiles"
+  fi
+}
+
+install_tables_local() {
+  local src=""
+  if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
+    src="$ROOT/jmri/layouts/hart/output/tables.xml"
+  elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
+    src="$ROOT/tables/new_tables.xml"
+  fi
+  [[ -n "$src" ]] || return 0
+  _copy_tables() {
+    cp -f "$src" "$1/tables.xml"
+    echo "tables.xml -> $1/tables.xml"
+  }
+  if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
+    for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
+      [[ -d "$d" ]] && _copy_tables "$d"
+    done
+  fi
+  if [[ -d "${HOME}/.jmri" ]]; then
+    for d in "${HOME}/.jmri"/*.jmri; do
+      [[ -d "$d" ]] && _copy_tables "$d"
+    done
+  fi
+  if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
+    _copy_tables "${HOME}/JMRI_UserFiles"
   fi
 }
 
@@ -307,6 +342,7 @@ push_tar_scp() {
 
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
+  install_tables_local
   install_ctc_icons_local
   install_dispatcher_facing_patch
 fi
