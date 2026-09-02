@@ -189,7 +189,7 @@ class DigiconMqttSml(
 ):
     """Global SML toggle + Digicon MQTT SET / mast->IH / query ACK."""
 
-    # Cross-script handle for panel status-lamp clicks (sync_turnout_buttons).
+    # Cross-script handle for panel status-lamp clicks (sync_layout_button).
     INSTANCE = None
 
     def __init__(self):

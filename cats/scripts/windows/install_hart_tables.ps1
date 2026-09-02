@@ -350,7 +350,7 @@ function Copy-PackScript([string]$name, [string]$destDir) {
 
 foreach ($s in @(
   'discover_sml.py',
-  'sync_turnout_buttons.py',
+  'sync_layout_button.py',
   'add_yard_ladder_le_icons.py',
   'install_yl_windows.py'
 )) {

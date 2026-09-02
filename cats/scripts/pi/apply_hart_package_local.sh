@@ -85,10 +85,8 @@ for sys in cats-masts hart-aar; do
 done
 
 JYTHON=(
-  "$HART/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
-  "$HART/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$HART/jmri/layouts/hart/scripts/sync_turnout_buttons.py"
+  "$HART/jmri/layouts/hart/scripts/sync_layout_button.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/scripts/mqtt_signalhead_publisher.py"
 )
@@ -96,6 +94,7 @@ mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
   [[ -f "$f" ]] && cp -f "$f" "$UF/jython/"
 done
+rm -f "$UF/jython/hart_dispatcher_startup.py" "$UF/jython/patch_dispatcher_facing.py"
 echo "preference:jython scripts -> $UF/jython"
 
 TRAININFO="$HART/jmri/layouts/hart/dispatcher/traininfo"
@@ -115,7 +114,7 @@ PATCH="$HART/cats/scripts/patch_jmri_startup.py"
 if [[ -f "$PATCH" ]]; then
   python3 "$PATCH" retarget-jython \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
-    --script sync_turnout_buttons.py \
+    --script sync_layout_button.py \
     --script mqtt_signalhead_publisher.py \
     --script jmri_cmd_watcher.py
   python3 "$PATCH" remove \

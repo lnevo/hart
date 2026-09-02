@@ -7,15 +7,19 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1]
 
 
-class SyncTurnoutBootContractTest(unittest.TestCase):
+class SyncLayoutButtonBootContractTest(unittest.TestCase):
     def test_boot_reload_skips_plant_turnouts(self) -> None:
-        src = (SCRIPTS / "sync_turnout_buttons.py").read_text(encoding="utf-8")
+        src = (SCRIPTS / "sync_layout_button.py").read_text(encoding="utf-8")
         self.assertIn("paint_turnouts=False", src)
         self.assertIn('("IT:HART:YL:R1", (("M2T1211", CLOSED), ("M2T1213", CLOSED)))', src)
         self.assertIn("unknown_sensors_only=True", src)
         self.assertIn("route.setEnabled(False)", src)
         self.assertIn("_paint_indicators_without_commanding", src)
         self.assertNotIn("setCommandedState(", src)
+        self.assertIn("TRACK_POWER_SENSOR", src)
+        self.assertIn("toggle_track_power", src)
+        self.assertIn("_sync_track_power_sensor", src)
+        self.assertIn("Track Power", src)
         boot = src.split("def _reload_mqtt_retain_at_boot")[1].split("def _arm_listeners")[0]
         self.assertNotIn("turnout_delay_ms=0,\n            settle_secs=0,\n            log_prefix=", boot)
 
