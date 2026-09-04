@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-03 — Layout Editor C&O icons were the 12×70 Chessie color-light drawings (overlapped track + looked like every virtual mast painted). Overlay `default` imagelinks now use AAR-1946 searchlight GIFs (12×40 / 12×17), same size as hart-aar. Folded Pi nudges for **38LB / 40LB / OS Switch 35a**. Dropped extra occupancy dots Dispatcher stacked on shared sensors (S-1…S-4, S-R, Switch 37/39). Virtuals stay `hidden="yes"`. Reload **PanelPro**. Deploy `--all`.
+
 Updated: 2026-09-03 — Digicon SHSM retargeted to stock **C&O-1980**: homes `CO-33-hi`, dwarfs and dispatcher virtuals `CO-3-dwarf`. User names and IH bindings unchanged; SML pairs kept. USS CTC GIFs added for Approach Medium / Approach Slow / Restricting. Custom `hart-aar` is unused. Reload **PanelPro** / **CATS**. Deploy `--all`. See [ADR-006](decisions/ADR-006-co-1980-signals.md).
 
 Updated: 2026-09-01 — Block-value labels stay visible: deploy runs `polish_hart_layout_editor --block-labels-only`, Mac profiles get `tables.xml`, and `sync_layout_button` lifts buried BlockContentsIcons to **level 4** at boot (Stage 1 Store resets them to 0). Reload **PanelPro**. Deploy `--all`.

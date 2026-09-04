@@ -40,7 +40,7 @@
       <aspectname>Slow Clear</aspectname>
       <show>green</show>
       <reference>Rule 287</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-lo/rule-C1287.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-1-low/rule-287.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-d1-slow-clear.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-d1-slow-clear-w.gif</imagelink>
     </appearance>
@@ -49,7 +49,7 @@
       <aspectname>Restricting</aspectname>
       <show>yellow</show>
       <reference>Rule 290</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-lo/rule-C1290.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-1-low/rule-290.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-d1-restricting.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-d1-restricting-w.gif</imagelink>
     </appearance>
@@ -58,7 +58,7 @@
       <aspectname>Stop</aspectname>
       <show>red</show>
       <reference>Rule 292</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-lo/rule-C1292.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-1-low/rule-292.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-d1-stop.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-d1-stop-w.gif</imagelink>
     </appearance>
@@ -67,7 +67,7 @@
       <aspectname>Unlit</aspectname>
       <show>dark</show>
       <reference>-</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-lo/CO-3-lo.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-1-low/rule-292.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-d1-unknown.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-d1-unknown-w.gif</imagelink>
     </appearance>

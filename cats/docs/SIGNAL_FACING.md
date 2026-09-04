@@ -93,7 +93,7 @@ Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code 
 
 ### Digicon → virtual heads + SHSM (C&O-1980)
 
-All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts. Two-head homes are stock **C&O-1980 `CO-33-hi`** (Clear G/R, Approach Medium Y/G, Medium Clear R/G, Approach Slow Y/Y, Approach Y/R, Restricting R/Y, Stop R/R). Dwarfs and dispatcher virtuals are **`CO-3-dwarf`** (Slow Clear / Restricting / Stop). A user-files overlay (`cats/resources/signals/C&O-1980/`, deployed by `sync_hart_package.sh`) adds USS CTC imagelinks; aspect mappings stay the JMRI 1980 Chessie rulebook.
+All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts. Two-head homes are stock **C&O-1980 `CO-33-hi`** (Clear G/R, Approach Medium Y/G, Medium Clear R/G, Approach Slow Y/Y, Approach Y/R, Restricting R/Y, Stop R/R). Dwarfs and dispatcher virtuals are **`CO-3-dwarf`** (Slow Clear / Restricting / Stop). A user-files overlay (`cats/resources/signals/C&O-1980/`, deployed by `sync_hart_package.sh`) adds USS CTC imagelinks and points Layout Editor `default` imagelinks at AAR-1946 searchlight GIFs (12×40 / 12×17) so LE does not use the 12×70 Chessie color-light drawings; aspect mappings stay the JMRI 1980 Chessie rulebook.
 
 **Why not AAR-1946 `SL-2-high-abs`:** its dest-Approach mapping only offers undisplayable Advance Approach / Approach Medium, so SML pinned masts at Stop. **Why not custom `hart-aar`:** C&O-1980 already lights both heads, includes Restricting (R/Y), and matches leftover Chessie plant language. Thrown turnouts on this layout are Restricted speed, so diverge empty is Restricting rather than Medium Clear.
 

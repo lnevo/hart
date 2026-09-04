@@ -29,33 +29,44 @@ SIGNAL_PLACEMENTS: dict[str, tuple[int, int, int]] = {
     "Mast 2L": (378, 222, 270),
     "Mast 4RA": (185, 258, 90),
     "Mast 4RB": (185, 321, 90),
-    "Mast 6LA": (360, 297, 270),
-    "Mast 6LB": (365, 345, 270),
+    "Mast 6LA": (366, 290, 270),
+    "Mast 6LB": (366, 338, 270),
     # 117 east homes sit just east of the diamond, not out on 116 / engine house.
-    "Mast 8RA": (435, 321, 90),
-    "Mast 8LB": (534, 297, 270),
-    "Mast 8RB": (425, 368, 90),
-    "Mast 8LA": (534, 344, 270),
-    "Mast 24RA": (1095, 258, 90),
-    "Mast 24L": (1225, 222, 270),
-    "Mast 24RB": (1135, 321, 90),
-    "Mast 34L": (1392, 285, 270),
-    "Mast 32R": (1248, 350, 60),
+    "Mast 8RA": (445, 327, 90),
+    "Mast 8LB": (552, 290, 270),
+    "Mast 8RB": (445, 374, 90),
+    "Mast 8LA": (529, 341, 270),
+    "Mast 24RA": (1095, 263, 90),
+    "Mast 24L": (1248, 218, 270),
+    "Mast 24RB": (1095, 326, 90),
+    "Mast 34L": (1392, 289, 270),
+    "Mast 32R": (1265, 349, 60),
     "Mast 34R": (1320, 348, 60),
-    "Mast 40LB": (1608, 185, 225),
-    "Mast 36RA": (1465, 258, 90),
-    "Mast 36RB": (1465, 321, 90),
-    "Mast 38LB": (1628, 322, 310),
-    "Mast 2035": (1810, 276, 180),
-    "Mast 2036": (1855, 276, 0),
-    "Mast 40LA": (1665, 239, 270),
-    "Mast 38LA": (1665, 302, 270),
+    "Mast 40LB": (1602, 161, 225),
+    "Mast 36RA": (1465, 264, 90),
+    "Mast 36RB": (1465, 325, 90),
+    "Mast 38LB": (1645, 311, 310),
+    "Mast 2035": (1848, 245, 0),
+    "Mast 2036": (1804, 291, 180),
+    "Mast 40LA": (1665, 222, 270),
+    "Mast 38LA": (1665, 285, 270),
 }
 
 SIGNAL_ICON_SCALE = "1.0"
 REDUNDANT_OCCUPANCY_SENSOR = re.compile(r"Block \d+-\d+")
 # Dispatcher System Stage 1 occupancy dots on OS / plant blocks.
 # Same circuit-occupied.gif set as CreateIcons.addOccupancyIconsAndLabels.
+# Shared occupancy (body + hidden throats, or OS + stub) gets one circuit dot.
+# Keep the body / points icon; drop the extras CreateIcons stacks on the same sensor.
+SHARED_OCCUPANCY_KEEP = {
+    "BS S-1": (1010, 376),
+    "BS S-2": (1011, 423),
+    "BS S-3": (1005, 470),
+    "BS S-4": (1013, 513),
+    "BS S-R": (947, 325),
+    "BS Switch 37 / BS K-2": (1592, 325),
+    "BS Switch 39 / BS K-1": (1592, 262),
+}
 OS_OCCUPANCY_ICONS = {
     "Block 4-1": (245, 262),
     "Block 4-2": (338, 262),
@@ -274,6 +285,38 @@ def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list
     return changes, errors
 
 
+def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+    """Keep one circuit-occupied.gif per shared occupancy sensor."""
+    changes = 0
+    errors: list[str] = []
+    by_name: dict[str, list[ET.Element]] = {}
+    for icon in le.findall("sensoricon"):
+        name = (icon.get("sensor") or "").strip()
+        if name in SHARED_OCCUPANCY_KEEP:
+            by_name.setdefault(name, []).append(icon)
+    for name, icons in by_name.items():
+        keep_x, keep_y = SHARED_OCCUPANCY_KEEP[name]
+        keepers = [
+            icon
+            for icon in icons
+            if icon.get("x") == str(keep_x) and icon.get("y") == str(keep_y)
+        ]
+        extras = [icon for icon in icons if icon not in keepers]
+        if not keepers:
+            extras = icons[1:]
+        if check:
+            if extras:
+                errors.append(
+                    f"duplicate occupancy icon {name!r} count={len(icons)}, "
+                    f"expected 1 at {keep_x},{keep_y}"
+                )
+            continue
+        for icon in extras:
+            le.remove(icon)
+            changes += 1
+    return changes, errors
+
+
 def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
     tree = ET.parse(path)
     root = tree.getroot()
@@ -381,6 +424,10 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
     changes += os_added
     errors.extend(os_errors)
 
+    shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check)
+    changes += shared_n
+    errors.extend(shared_errors)
+
     # Layout Editor track coloring already provides occupancy indication
     # for leftover Block n-n sensors. Keep Dispatcher System OS occupancy
     # dots; omit other duplicate occupancy icons from the monitor.
@@ -450,6 +497,8 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
                 int(label.get("y", "0")),
             ),
         )
+        if not labels:
+            continue
         if len(labels) != len(positions):
             errors.append(
                 f"{path.name}: label {text!r} count={len(labels)}, "
@@ -467,6 +516,63 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
             else:
                 _set_xy(label, x, y)
                 changes += 1
+
+    if check:
+        return changes, errors
+    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    return changes, errors
+
+
+def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
+    """Shrink-LE companion: keep Pi mast nudges, hide virtuals, drop shared occupancy dups.
+
+    Does not add OS Block n-n icons or restripe station occupancy.
+    """
+    tree = ET.parse(path)
+    le = find_layout_editor(tree.getroot())
+    changes = 0
+    errors: list[str] = []
+
+    for icon in le.findall("signalmasticon"):
+        name = (icon.get("signalmast") or "").strip()
+        if name in SIGNAL_PLACEMENTS:
+            x, y, degrees = SIGNAL_PLACEMENTS[name]
+            expected = {
+                "x": str(x),
+                "y": str(y),
+                "degrees": str(degrees),
+                "hidden": "no",
+            }
+        else:
+            expected = {"hidden": "yes"}
+        for attr, value in expected.items():
+            if icon.get(attr) == value:
+                continue
+            if check:
+                errors.append(
+                    f"{path.name}: {name} {attr}={icon.get(attr)!r}, expected {value!r}"
+                )
+            else:
+                icon.set(attr, value)
+                changes += 1
+
+    for icon in le.findall("sensoricon"):
+        if (icon.get("sensor") or "").strip() != "BS Switch 35a":
+            continue
+        if icon.get("x") == "1499" and icon.get("y") == "287":
+            continue
+        if check:
+            errors.append(
+                f"{path.name}: BS Switch 35a at ({icon.get('x')}, {icon.get('y')}), "
+                "expected (1499, 287)"
+            )
+        else:
+            _set_xy(icon, 1499, 287)
+            changes += 1
+
+    shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check)
+    changes += shared_n
+    errors.extend(shared_errors)
 
     if check:
         return changes, errors
@@ -499,13 +605,23 @@ def main() -> int:
         action="store_true",
         help="Only restore BlockContentsIcon level/color (safe after Stage 1 Store).",
     )
+    ap.add_argument(
+        "--overlap-cleanup",
+        action="store_true",
+        help="Pi mast nudges, hide virtuals, drop shared occupancy duplicates only.",
+    )
     args = ap.parse_args()
 
     paths = [args.panel.resolve()]
     if args.sync_output and args.panel.resolve() == DEFAULT_PANEL.resolve():
         paths.extend([OUTPUT_TABLES, STANDALONE_PANEL])
 
-    apply_fn = apply_block_labels_only if args.block_labels_only else apply_visual_standard
+    if args.overlap_cleanup:
+        apply_fn = apply_overlap_cleanup
+    elif args.block_labels_only:
+        apply_fn = apply_block_labels_only
+    else:
+        apply_fn = apply_visual_standard
     all_errors: list[str] = []
     for path in paths:
         if not path.is_file():

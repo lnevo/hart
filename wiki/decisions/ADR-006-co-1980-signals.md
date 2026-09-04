@@ -14,7 +14,7 @@ Custom `hart-aar` `SL-2-digicon` was a 3-aspect collapse so stock AAR-1946 `SL-2
 
 1. Use stock **C&O-1980** for every JMRI mast: homes `CO-33-hi`, dwarfs and dispatcher virtuals `CO-3-dwarf`.
 2. Keep mast **user names** and IH head bindings. SML pairs stay keyed by user name; do not re-Discover unless facing changes.
-3. Deploy a user-files overlay of C&O-1980 that adds USS CTC imagelinks (`ctc` / `ctc-w`). Aspect mappings stay the JMRI 1980 Chessie rulebook.
+3. Deploy a user-files overlay of C&O-1980 that adds USS CTC imagelinks (`ctc` / `ctc-w`). Layout Editor `default` imagelinks use the AAR-1946 searchlight GIFs (12×40 homes, 12×17 dwarfs) so LE stays the old hart-aar size; stock C&O Chessie drawings are 12×70 color-light masts and overlap this panel. Aspect mappings stay the JMRI 1980 Chessie rulebook.
 4. CATS `aar_aspect_bridge.py` remaps Digicon R-codes onto C&O-1980 names (Restricting is legal on 2-head). Live panels stay `HOLD_ONLY`.
 
 ## Consequences
