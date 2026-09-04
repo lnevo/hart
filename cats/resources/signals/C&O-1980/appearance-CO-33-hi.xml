@@ -41,7 +41,7 @@
       <show>green</show>
       <show>red</show>
       <reference>Rule 281</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/rule-C1281.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-281.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-clear.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-clear-w.gif</imagelink>
     </appearance>
@@ -51,7 +51,7 @@
       <show>yellow</show>
       <show>green</show>
       <reference>Rule 282</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/rule-C1282.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-282.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-approach-medium.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-approach-medium-w.gif</imagelink>
     </appearance>
@@ -61,7 +61,7 @@
       <show>red</show>
       <show>green</show>
       <reference>Rule 283</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/rule-C1283.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-283.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-medium-clear.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-medium-clear-w.gif</imagelink>
     </appearance>
@@ -71,7 +71,7 @@
       <show>yellow</show>
       <show>yellow</show>
       <reference>Rule 284</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/rule-C1284.gif</imagelink>
+      <imagelink>preference:resources/signals/C&amp;O-1980/le/rule-284-yy.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-approach-slow.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-approach-slow-w.gif</imagelink>
     </appearance>
@@ -81,7 +81,7 @@
       <show>yellow</show>
       <show>red</show>
       <reference>Rule 285</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/rule-C1285.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-285.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-approach.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-approach-w.gif</imagelink>
     </appearance>
@@ -91,7 +91,7 @@
       <show>red</show>
       <show>yellow</show>
       <reference>Rule 290</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/rule-C1290.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-286.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-restricting.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-restricting-w.gif</imagelink>
     </appearance>
@@ -101,7 +101,7 @@
       <show>red</show>
       <show>red</show>
       <reference>Rule 292</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/rule-C1292.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-stop.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-stop-w.gif</imagelink>
     </appearance>
@@ -111,7 +111,7 @@
       <show>dark</show>
       <show>dark</show>
       <reference>-</reference>
-      <imagelink>../../../resources/icons/smallschematics/aspects/CSX-2014-Chessie/CO-3-3-hi/CO-3-3-hi.gif</imagelink>
+      <imagelink>../../../resources/icons/smallschematics/aspects/AAR-1946/SL-2-high-abs/rule-292.gif</imagelink>
       <imagelink type="ctc">preference:ctc/icons/sig-h2-unknown.gif</imagelink>
       <imagelink type="ctc-w">preference:ctc/icons/sig-h2-unknown-w.gif</imagelink>
     </appearance>

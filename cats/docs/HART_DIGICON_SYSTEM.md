@@ -165,7 +165,7 @@ Appearances for SHSM:
 - 1 head → C&O-1980 `CO-3-dwarf`
 - 2 heads → C&O-1980 `CO-33-hi`
 
-USS CTC imagelinks live in the user-files overlay `cats/resources/signals/C&O-1980/`. Designer cosmetics still use `cats/resources/signals/cats-masts/` (`cats-virtual-*`).
+USS CTC imagelinks live in the user-files overlay `cats/resources/signals/C&O-1980/`. Layout Editor `default` imagelinks in that overlay use AAR-1946 searchlight GIFs (12×40 / 12×17), not the stock 12×70 Chessie color-light drawings. Designer cosmetics still use `cats/resources/signals/cats-masts/` (`cats-virtual-*`).
 
 ### Mast index (Digicon name → JMRI)
 

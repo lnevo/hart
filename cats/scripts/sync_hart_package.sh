@@ -192,11 +192,14 @@ install_ctc_icons_local() {
   _install_co1980_into() {
     local src="$ROOT/cats/resources/signals/C&O-1980"
     local dest="$1/resources/signals/C&O-1980"
-    mkdir -p "$dest"
+    mkdir -p "$dest/le"
     cp -f "$src/"aspects.xml \
       "$src/"appearance-CO-33-hi.xml \
       "$src/"appearance-CO-3-dwarf.xml \
       "$dest/"
+    if [[ -d "$src/le" ]]; then
+      cp -f "$src/le/"*.gif "$dest/le/"
+    fi
     echo "C&O-1980 -> $dest"
   }
   _install_buttons_into() {
