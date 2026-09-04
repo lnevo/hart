@@ -1,7 +1,7 @@
-# Install custom signal systems (cats-masts, hart-aar) from %USERPROFILE%\hart into JMRI profiles.
+# Install custom signal systems (cats-masts, C&O-1980 overlay) from %USERPROFILE%\hart into JMRI profiles.
 $ErrorActionPreference = 'Stop'
 
-$systems = @('cats-masts', 'hart-aar')
+$systems = @('cats-masts', 'C&O-1980')
 foreach ($sys in $systems) {
   $src = Join-Path $env:USERPROFILE ("hart\cats\resources\signals\" + $sys)
   if (-not (Test-Path $src)) { throw "Missing $src" }

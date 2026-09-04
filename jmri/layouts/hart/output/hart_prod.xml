@@ -857,216 +857,216 @@
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH432)(IH433)</systemName>
       <userName>Mast 6LB</userName>
       <comment>Plane | Switch 5</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH434)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH434)</systemName>
       <userName>Mast 6LA</userName>
       <comment>Plane | Switch 5</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH436)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH436)</systemName>
       <userName>Mast 4RA</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH437)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH437)</systemName>
       <userName>Mast 4RB</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH438)(IH439)</systemName>
       <userName>Mast 2L</userName>
       <comment>Brick | Switch 1</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1332)(IH1333)</systemName>
       <userName>Mast 8RA</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH1334)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH1334)</systemName>
       <userName>Mast 8LB</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1335)(IH1336)</systemName>
       <userName>Mast 8RB</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1337)(IH1338)</systemName>
       <userName>Mast 8LA</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1232)(IH1233)</systemName>
       <userName>Mast 24RA</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1234)(IH1235)</systemName>
       <userName>Mast 24L</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH1236)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH1236)</systemName>
       <userName>Mast 24RB</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1237)(IH1238)</systemName>
       <userName>Mast 34L</userName>
       <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH1239)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH1239)</systemName>
       <userName>Mast 32R</userName>
       <comment>East End | Switch 31</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1240)(IH1241)</systemName>
       <userName>Mast 34R</userName>
       <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH132)(IH133)</systemName>
       <userName>Mast 40LB</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH134)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH134)</systemName>
       <userName>Mast 2036</userName>
       <comment>Princess</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH135)(IH136)</systemName>
       <userName>Mast 36RA</userName>
       <comment>Princess | Switch 35</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH137)(IH138)</systemName>
       <userName>Mast 36RB</userName>
       <comment>Princess | Switch 35</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH139)(IH140)</systemName>
       <userName>Mast 38LB</userName>
       <comment>Princess | Switch 37</comment>
       <unlit allowed="no" />
       </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH141)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH141)</systemName>
       <userName>Mast 2035</userName>
       <comment>Princess</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH142)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH142)</systemName>
       <userName>Mast 40LA</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:AAR-1946:SL-1-low(IH143)</systemName>
+      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH143)</systemName>
       <userName>Mast 38LA</userName>
       <comment>Princess | Switch 37</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1001)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1001)</systemName>
       <userName>Mast 4LA</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1002)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1002)</systemName>
       <userName>Mast 4LB</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1003)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1003)</systemName>
       <userName>Mast 40RA</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1004)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1004)</systemName>
       <userName>Mast 38RA</userName>
       <comment>Princess | Switch 37</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1005)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1005)</systemName>
       <userName>Mast 12L</userName>
       <comment>Engine House | Switch 11</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1006)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1006)</systemName>
       <userName>Mast 10LA</userName>
       <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1007)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1007)</systemName>
       <userName>Mast 10LB</userName>
       <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1008)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1008)</systemName>
       <userName>Mast 18L</userName>
       <comment>South Yard | Switch 17</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1009)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1009)</systemName>
       <userName>Mast 20L</userName>
       <comment>South Yard | Switch 19</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1010)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1010)</systemName>
       <userName>Mast 22L</userName>
       <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:AAR-1946:SL-1-low($1011)</systemName>
+      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1011)</systemName>
       <userName>Mast 26L</userName>
       <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
     </signalmast>
-  <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1012)</systemName><userName>Mast 18R</userName>
-      <comment>South Yard | Switch 17</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1013)</systemName><userName>Mast 20R</userName>
-      <comment>South Yard | Switch 19</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1014)</systemName><userName>Mast 22R</userName>
-      <comment>South Yard | Switch 21</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1015)</systemName><userName>Mast 26R</userName>
-      <comment>South Yard | Switch 21</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1016)</systemName><userName>Mast 16L</userName>
-      <comment>South Yard | Switch 15</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1017)</systemName><userName>Mast 32L</userName>
-      <comment>East End | Switch 31</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1018)</systemName><userName>Mast 8LC</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1019)</systemName><userName>Mast 13R</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1020)</systemName><userName>Mast 11L</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1021)</systemName><userName>Mast 9LA</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:AAR-1946:SL-1-low($1022)</systemName><userName>Mast 9LB</userName><unlit allowed="yes" /></virtualsignalmast></signalmasts>
+  <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1012)</systemName><userName>Mast 18R</userName>
+      <comment>South Yard | Switch 17</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1013)</systemName><userName>Mast 20R</userName>
+      <comment>South Yard | Switch 19</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1014)</systemName><userName>Mast 22R</userName>
+      <comment>South Yard | Switch 21</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1015)</systemName><userName>Mast 26R</userName>
+      <comment>South Yard | Switch 21</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1016)</systemName><userName>Mast 16L</userName>
+      <comment>South Yard | Switch 15</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1017)</systemName><userName>Mast 32L</userName>
+      <comment>East End | Switch 31</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1018)</systemName><userName>Mast 8LC</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1019)</systemName><userName>Mast 13R</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1020)</systemName><userName>Mast 11L</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1021)</systemName><userName>Mast 9LA</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1022)</systemName><userName>Mast 9LB</userName><unlit allowed="yes" /></virtualsignalmast></signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
     <block systemName="IB1" length="0.0" curve="0">

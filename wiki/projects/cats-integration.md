@@ -9,7 +9,7 @@
 
 - JMRI: current (**5.15.4plus** / ≤5.16 for CATS 3.2)
 - CTC **route** authority: **CATS** (`HART_Master_CTC_hold.xml` HOLD_ONLY)
-- Signal **aspects**: **JMRI SML** (`hart-aar` / AAR-1946). Without CATS, Unhold = ABS.
+- Signal **aspects**: **JMRI SML** (C&O-1980 `CO-33-hi` / `CO-3-dwarf`). Without CATS, Unhold = ABS.
 - Never run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.
 
 ## Live artifacts

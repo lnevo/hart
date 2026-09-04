@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert Digicon SHSM masts to AAR-1946 and assign Layout Editor facing.
+"""Assign Layout Editor facing. Does not change C&O-1980 mast types.
 
 Edits tables/new_tables.xml then copies to jmri/layouts/hart/output/tables.xml.
 Also patches hart_prod.xml in place (mast names + facing; not a full copy).

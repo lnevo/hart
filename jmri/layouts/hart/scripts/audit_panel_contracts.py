@@ -179,7 +179,7 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
             if "IF$VSM:CATS" in normalized or "CATS1" in normalized or "CATS2" in normalized:
                 cats_virtual.append(f"{name or '<unnamed>'} [{system_name or '<no system name>'}]")
             if mast.tag == "virtualsignalmast" or (system_name or "").startswith(
-                "IF$vsm:AAR-1946:"
+                "IF$vsm:"
             ):
                 if name:
                     virtual_names.add(name)

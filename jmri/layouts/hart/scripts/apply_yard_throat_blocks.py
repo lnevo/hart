@@ -48,17 +48,17 @@ THROAT_SEGMENTS = [
 # After throats exist, bind virtuals on the new boundaries (not turnout legs).
 BOUNDARY_MASTS = [
     # ident, attr, systemName, userName, icon x, y, degrees
-    ("A53", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1008)", "Mast 18L", 768, 350, 270),
-    ("A61", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1012)", "Mast 18R", 1148, 350, 90),
-    ("A46", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1009)", "Mast 20L", 843, 397, 270),
-    ("A36", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1013)", "Mast 20R", 1148, 397, 90),
-    ("A41", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1010)", "Mast 22L", 910, 444, 270),
-    ("A39", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1014)", "Mast 22R", 1148, 444, 90),
-    ("A15", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1011)", "Mast 26L", 910, 474, 270),
-    ("A12", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1015)", "Mast 26R", 1148, 474, 90),
-    ("A81", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1016)", "Mast 16L", 720, 300, 270),
-    ("A37", "eastboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1017)", "Mast 32L", 1145, 300, 90),
-    ("A45", "westboundsignalmast", "IF$vsm:AAR-1946:SL-1-low($1018)", "Mast 8LC", 382, 305, 270),
+    ("A53", "westboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1008)", "Mast 18L", 768, 350, 270),
+    ("A61", "eastboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1012)", "Mast 18R", 1148, 350, 90),
+    ("A46", "westboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1009)", "Mast 20L", 843, 397, 270),
+    ("A36", "eastboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1013)", "Mast 20R", 1148, 397, 90),
+    ("A41", "westboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1010)", "Mast 22L", 910, 444, 270),
+    ("A39", "eastboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1014)", "Mast 22R", 1148, 444, 90),
+    ("A15", "westboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1011)", "Mast 26L", 910, 474, 270),
+    ("A12", "eastboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1015)", "Mast 26R", 1148, 474, 90),
+    ("A81", "westboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1016)", "Mast 16L", 720, 300, 270),
+    ("A37", "eastboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1017)", "Mast 32L", 1145, 300, 90),
+    ("A45", "westboundsignalmast", "IF$vsm:C&O-1980:CO-3-dwarf($1018)", "Mast 8LC", 382, 305, 270),
 ]
 
 TURNOUT_MAST_TAGS = ("signalAMast", "signalBMast", "signalCMast", "signalDMast")
@@ -69,9 +69,9 @@ YARD_VIRTUALS = {row[3] for row in BOUNDARY_MASTS}
 # 32L (S-1 East) and Stage 1 never builds EH→S-1/S-4/S-R.
 EH_EXIT_MASTS = [
     # turnout, tag, sysname, uname, icon x, y, degrees
-    ("TO11", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1020)", "Mast 11L", 620, 270, 270),
-    ("TO10", "signalCMast", "IF$vsm:AAR-1946:SL-1-low($1021)", "Mast 9LA", 598, 268, 270),
-    ("TO10", "signalBMast", "IF$vsm:AAR-1946:SL-1-low($1022)", "Mast 9LB", 596, 280, 270),
+    ("TO11", "signalBMast", "IF$vsm:C&O-1980:CO-3-dwarf($1020)", "Mast 11L", 620, 270, 270),
+    ("TO10", "signalCMast", "IF$vsm:C&O-1980:CO-3-dwarf($1021)", "Mast 9LA", 598, 268, 270),
+    ("TO10", "signalBMast", "IF$vsm:C&O-1980:CO-3-dwarf($1022)", "Mast 9LB", 596, 280, 270),
 ]
 
 
@@ -342,7 +342,7 @@ def apply_scale_east(path: Path) -> int:
         n += _ensure_virtual_mast(
             masts,
             existing,
-            "IF$vsm:AAR-1946:SL-1-low($1018)",
+            "IF$vsm:C&O-1980:CO-3-dwarf($1018)",
             "Mast 8LC",
         )
     n += _ensure_hidden_icon(le, "Mast 8LC", 382, 305, 270)
@@ -369,7 +369,7 @@ def apply_scale_east(path: Path) -> int:
         n += _ensure_virtual_mast(
             masts,
             existing,
-            "IF$vsm:AAR-1946:SL-1-low($1019)",
+            "IF$vsm:C&O-1980:CO-3-dwarf($1019)",
             "Mast 13R",
         )
     n += _ensure_hidden_icon(le, "Mast 13R", 620, 305, 90)

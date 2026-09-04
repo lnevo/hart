@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-03 — Digicon SHSM retargeted to stock **C&O-1980**: homes `CO-33-hi`, dwarfs and dispatcher virtuals `CO-3-dwarf`. User names and IH bindings unchanged; SML pairs kept. USS CTC GIFs added for Approach Medium / Approach Slow / Restricting. Custom `hart-aar` is unused. Reload **PanelPro** / **CATS**. Deploy `--all`. See [ADR-006](decisions/ADR-006-co-1980-signals.md).
+
 Updated: 2026-09-01 — Block-value labels stay visible: deploy runs `polish_hart_layout_editor --block-labels-only`, Mac profiles get `tables.xml`, and `sync_layout_button` lifts buried BlockContentsIcons to **level 4** at boot (Stage 1 Store resets them to 0). Reload **PanelPro**. Deploy `--all`.
 
 Updated: 2026-09-01 — **Track Scale** block boundary: anchor **A45** moved east to **Mast 8RA** (x=445) so `T1` covers the scale track through 8LC; **OS Switch 7** `T3` now starts at 8RA (was ending at 6LA). Track Power lamp click uses **500 ms** amber hold like Turnouts. Reload **PanelPro**. Deploy `--all`.

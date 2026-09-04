@@ -85,8 +85,8 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     ("Mast 2035", 11, "C11", "Helix (balloon 115)", 1134, "C11-OU3-7", "C11-OU3-8", "C11-OU2-7", "S", "leftover trio (OU2-8 is BS cal)"),
 ]
 
-APPEAR = {1: "SL-1-low", 2: "SL-2-digicon", 3: "SL-3-high"}
-SYSTEM_BY_HEADS = {1: "AAR-1946", 2: "hart-aar", 3: "AAR-1946"}
+APPEAR = {1: "CO-3-dwarf", 2: "CO-33-hi", 3: "SL-3-high"}
+SYSTEM_BY_HEADS = {1: "C&O-1980", 2: "C&O-1980", 3: "AAR-1946"}
 DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
 PIN_ORDER = (("G", "g_port"), ("Y", "y_port"), ("R", "r_port"))
@@ -491,14 +491,14 @@ def _masts_xml(rows: list[dict]) -> str:
         if m in SKIP_MAST or m in seen:
             continue
         seen.add(m)
-        sysname = mast_system_name(m, rows)
+        sysname = mast_system_name(m, rows).replace("&", "&amp;")
         parts.append(
             '    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">'
         )
         parts.append(f"      <systemName>{sysname}</systemName>")
         parts.append(f"      <userName>{m}</userName>")
         parts.append('      <unlit allowed="no" />')
-        # hart-aar SL-2-digicon only defines displayable aspects; no disables needed.
+        # C&O-1980 CO-33-hi / CO-3-dwarf only define displayable lamps; no disables.
         parts.append("    </signalmast>")
     parts.append("  </signalmasts>")
     return "\n".join(parts)

@@ -1209,9 +1209,9 @@ def rebuild_asbuilt_inventory(ws: Worksheet, wiring: list[dict[str, str]], masts
         n = len(packed_seen)
         ports = " ".join(r["port_id"] for r in pin_rows)
         aspect = (
-            "hart-aar SL-2-digicon (two 3-pin STOP/APPROACH/CLEAR discs)"
+            "hart C&O-1980 (two 3-pin STOP/APPROACH/CLEAR discs)"
             if n == 2
-            else "AAR-1946 SL-1-low (3-pin STOP/APPROACH/CLEAR)"
+            else "C&O-1980 CO-3-dwarf (3-pin STOP/APPROACH/CLEAR)"
         )
         ws.append(
             [
@@ -1445,7 +1445,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW115="N",
             ih="IH142",
-            Notes="K-1 dwarf (SL-1-low). SW115 Closed = K-1. Dest 111L when 113 Normal.",
+            Notes="K-1 dwarf (CO-3-dwarf). SW115 Closed = K-1. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="115LA",
@@ -1472,7 +1472,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW114="N",
             ih="IH143",
-            Notes="K-2 dwarf (SL-1-low). SW114 Closed = K-2. Dest 111L when 113 Normal.",
+            Notes="K-2 dwarf (CO-3-dwarf). SW114 Closed = K-2. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="114LA",
@@ -1499,7 +1499,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW114="R",
             ih="IH134",
             Notes=(
-                "Balloon connector (SL-1-low). A48 east ends join: 120R/IH134 on McKeesport "
+                "Balloon connector (CO-3-dwarf). A48 east ends join: 120R/IH134 on McKeesport "
                 "track protects Rocks / OS 115. SW114 Thrown = McKeesport."
             ),
         ),
@@ -1515,7 +1515,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW115="R",
             ih="IH141",
             Notes=(
-                "Balloon connector (SL-1-low). 120L/IH141 on Rocks track protects McKeesport / "
+                "Balloon connector (CO-3-dwarf). 120L/IH141 on Rocks track protects McKeesport / "
                 "OS 114. SML also Stop if McKees Rocks occupied. SW115 Thrown = Rocks."
             ),
         ),
