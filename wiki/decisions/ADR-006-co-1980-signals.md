@@ -21,6 +21,7 @@ Custom `hart-aar` `SL-2-digicon` was a 3-aspect collapse so stock AAR-1946 `SL-2
 
 - Two-head lamps: Clear G/R, Approach Medium Y/G, Medium Clear R/G, Approach Slow Y/Y, Approach Y/R, Restricting R/Y, Stop R/R.
 - Thrown on this layout is Restricted speed, so an empty diverge is Restricting (R/Y), not Medium Clear.
+- Overlay aspectMappings keep the hart-aar 3-aspect collapse on a Normal-speed main: dest Approach / Restricting / Medium Clear / Slow Clear can still grant **Clear**. Stock Chessie dest-Restricting→Approach is why a lined empty main showed only Y/R and R/Y. Dest Stop stays Approach. Digicon SML dests still boot Disabled — **Signals** must be on for JMRI to compute this.
 - Custom `hart-aar` remains in the repo unused; profiles no longer install it.
 - Changing mast **type** again still requires rewriting SHSM system names in tables.
 
