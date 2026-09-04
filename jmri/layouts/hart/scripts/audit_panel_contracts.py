@@ -26,6 +26,7 @@ DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
 # Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
+MQTT_SENSOR_SYSNAME = re.compile(r"^M2S\d+$")
 sys.path.insert(0, str(REPO_ROOT / "jmri" / "layouts" / "hart" / "scripts"))
 from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
@@ -151,15 +152,29 @@ def select_panel(root: ET.Element, audit: Audit) -> ET.Element | None:
 
 def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
     found: list[str] = []
-    for sensor in root.iter("sensor"):
-        sysn = text(sensor, "systemName") or (sensor.get("systemName") or "").strip()
-        if sysn in FORBIDDEN_MQTT_SENSORS:
-            found.append(sysn)
+    garbage: list[str] = []
+    for sensors in root.findall("sensors"):
+        cls = sensors.get("class") or ""
+        if "MqttSensor" not in cls:
+            continue
+        for sensor in sensors.findall("sensor"):
+            sysn = text(sensor, "systemName") or (sensor.get("systemName") or "").strip()
+            if not sysn:
+                continue
+            if sysn in FORBIDDEN_MQTT_SENSORS:
+                found.append(sysn)
+            elif not MQTT_SENSOR_SYSNAME.fullmatch(sysn):
+                garbage.append(sysn)
     if found:
         audit.error(
             "do not add MQTT sensors "
             + ", ".join(FORBIDDEN_MQTT_SENSORS)
             + f"; found {sorted(set(found))}"
+        )
+    if garbage:
+        audit.error(
+            "MQTT sensor systemNames must be M2S plus digits (not M2SBlock1-1); "
+            f"found {sorted(set(garbage))}"
         )
 
 
