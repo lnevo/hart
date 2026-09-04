@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-03 — C&O overlay aspectMappings restore the hart-aar 3-aspect collapse on a Normal main (dest Restricting / Medium Clear / Slow Clear can grant Clear G/R). Stock Chessie dest-Restricting→Approach was why a lined empty main stayed Y/R and R/Y. Dest Stop still Approach. **Signals** (SML Enabled) must be on — Digicon dests boot Disabled. Reload **PanelPro**. Deploy `--all`.
+
 Updated: 2026-09-03 — Layout Editor C&O icons were the 12×70 Chessie color-light drawings (overlapped track + looked like every virtual mast painted). Overlay `default` imagelinks now use AAR-1946 searchlight GIFs (12×40 / 12×17), same size as hart-aar. Folded Pi nudges for **38LB / 40LB / OS Switch 35a**. Dropped extra occupancy dots Dispatcher stacked on shared sensors (S-1…S-4, S-R, Switch 37/39). Virtuals stay `hidden="yes"`. Reload **PanelPro**. Deploy `--all`.
 
 Updated: 2026-09-03 — Digicon SHSM retargeted to stock **C&O-1980**: homes `CO-33-hi`, dwarfs and dispatcher virtuals `CO-3-dwarf`. User names and IH bindings unchanged; SML pairs kept. USS CTC GIFs added for Approach Medium / Approach Slow / Restricting. Custom `hart-aar` is unused. Reload **PanelPro** / **CATS**. Deploy `--all`. See [ADR-006](decisions/ADR-006-co-1980-signals.md).

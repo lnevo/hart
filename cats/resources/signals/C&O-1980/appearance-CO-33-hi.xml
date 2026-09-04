@@ -156,12 +156,14 @@
 
     <aspectMapping>
       <advancedAspect>Medium Clear</advancedAspect>
+      <ourAspect>Clear</ourAspect>
       <ourAspect>Approach Medium</ourAspect>
       <ourAspect>Restricting</ourAspect>
     </aspectMapping>
 
     <aspectMapping>
       <advancedAspect>Medium Approach Slow</advancedAspect>
+      <ourAspect>Clear</ourAspect>
       <ourAspect>Approach Medium</ourAspect>
 	  <ourAspect>Restricting</ourAspect>
     </aspectMapping>
@@ -182,24 +184,28 @@
 
     <aspectMapping>
       <advancedAspect>Medium Approach</advancedAspect>
+      <ourAspect>Clear</ourAspect>
       <ourAspect>Approach Medium</ourAspect>
       <ourAspect>Restricting</ourAspect>
     </aspectMapping>
 
     <aspectMapping>
       <advancedAspect>Slow Clear</advancedAspect>
+      <ourAspect>Clear</ourAspect>
       <ourAspect>Approach Slow</ourAspect>
       <ourAspect>Restricting</ourAspect>
     </aspectMapping>
 
     <aspectMapping>
       <advancedAspect>Slow Approach</advancedAspect>
+      <ourAspect>Clear</ourAspect>
       <ourAspect>Approach Slow</ourAspect>
       <ourAspect>Restricting</ourAspect>
     </aspectMapping>
 
     <aspectMapping>
       <advancedAspect>Restricting</advancedAspect>
+      <ourAspect>Clear</ourAspect>
       <ourAspect>Approach</ourAspect>
       <ourAspect>Restricting</ourAspect>
     </aspectMapping>
