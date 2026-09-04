@@ -77,7 +77,7 @@ if [[ -d "$HART/ctc/icons" ]]; then
   echo "Pi CTC icons + GUIObjects updated"
 fi
 
-for sys in cats-masts hart-aar; do
+for sys in cats-masts "C&O-1980"; do
   if [[ -d "$HART/cats/resources/signals/$sys" ]]; then
     fanout "$HART/cats/resources/signals/$sys" "resources/signals/$sys"
     echo "Pi $sys updated"

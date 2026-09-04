@@ -12,7 +12,7 @@ Writable tables: `tables/new_tables.xml`. Re-apply LE bindings with `jmri/layout
 
 CreateTransits needs a **mast at both ends of a station block**. Stub tracks and South Yard body tracks have no field LCOS heads there, so we added hidden virtual masts. They exist for the dispatcher graph only — not field signals.
 
-Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:AAR-1946:SL-1-low($1001)` … `($1022)`.
+Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:C&O-1980:CO-3-dwarf($1001)` … `($1022)`.
 
 | Station | Mast(s) | Where it sits |
 |---------|---------|----------------|

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Bridge Digicon R-code templates to JMRI AAR-1946 aspect names.
+"""Bridge Digicon R-code templates to JMRI C&O-1980 aspect names.
 
-CATS stock templates call setAspect("R281"|…). AAR masts expect Clear / Approach /
-Stop (2-head) or Slow Clear / Restricting / Stop (dwarf). HOLD_ONLY panels also
+CATS stock templates call setAspect("R281"|…). C&O-1980 CO-33-hi homes expect
+Clear / Approach Medium / Medium Clear / Approach Slow / Approach / Restricting /
+Stop; dwarfs expect Slow Clear / Restricting / Stop. HOLD_ONLY panels also
 need AppearanceKey values that match those JMRI aspect names so Digicon can
 paint from SML. Do not alias RES_* to Approach on 2-head templates: CATS reverse
 lookup is first-match, and RES_NORM sits before R285 (Approach would paint as
-Restricting red). Aspect names with spaces cannot be XML attribute names.
+Restricting). Aspect names with spaces cannot be XML attribute names.
 
 HOLD_ONLY (ABS-RO / CTC SML): map every AAR name SML can post onto a unique
 IndicationNames row whose ICON class is the closest one-disc ABS action
@@ -96,45 +97,43 @@ _ICON = {
     "R292": "STOP",
 }
 
-# CATS IndicationName → AAR aspect (setAspect) when CATS drives the mast.
-# hart-aar SL-2-digicon has no Restricting: RES_* must request Stop, or
-# setAspect throws IllegalArgumentException on the EDT and aborts Screen.init
-# (frozen console/clock/WiThrottle windows). Reverse first-match for Stop then
-# lands on RES_NORM (ICON RESTRICTING, red) which paints the same as R292.
+# CATS IndicationName → C&O-1980 aspect (setAspect) when CATS drives the mast.
+# CO-33-hi has Restricting (R/Y); RES_* can request it. There is no Medium
+# Approach appearance on this mast type (that lamp pair is Restricting).
 _REMAP_2 = {
     "R281": "Clear",
     "R281B": "Clear",
-    "R282": "Clear",
-    "R284": "Clear",
-    "RES_NORM": "Stop",
+    "R282": "Approach Medium",
+    "R284": "Approach Slow",
+    "RES_NORM": "Restricting",
     "ADV_NORM": "Clear",
     "R285": "Approach",
     "R281C": "Clear",
     "C412": "Clear",
     "C413": "Clear",
     "C414": "Clear",
-    "RES_LIM": "Stop",
+    "RES_LIM": "Restricting",
     "ADV_LIM": "Clear",
     "R281D": "Approach",
     "R283": "Medium Clear",
     "C417": "Medium Clear",
     "R283A": "Medium Clear",
     "R283B": "Medium Clear",
-    "RES_MED": "Stop",
+    "RES_MED": "Restricting",
     "ADV_MED": "Medium Clear",
-    "R286": "Medium Approach",
+    "R286": "Restricting",
     "R287": "Medium Clear",
     "C422": "Medium Clear",
     "C423": "Medium Clear",
     "C424": "Medium Clear",
-    "RES_SLO": "Stop",
-    "ADV_SLO": "Medium Clear",
-    "R288": "Medium Approach",
+    "RES_SLO": "Restricting",
+    "ADV_SLO": "Approach Slow",
+    "R288": "Restricting",
     "R292": "Stop",
     "R291": "Stop",
 }
 
-# SL-1-low dwarfs: Slow Clear / Restricting / Stop (no Clear/Approach).
+# CO-3-dwarf: Slow Clear / Restricting / Stop (no Clear/Approach).
 _REMAP_1 = {
     key: (
         "Stop"
@@ -147,25 +146,25 @@ _REMAP_1 = {
 }
 
 # HOLD_ONLY listen map: unique JMRI names on the ICON that matches ABS action.
-# Every value MUST be a valid (and enabled) AAR aspect on that mast type.
+# Every value MUST be a valid (and enabled) C&O-1980 aspect on that mast type.
 # CATS Block.startUp → PhysicalSignal.refresh() calls setAspect(AppearanceKey)
 # even when HOLD_ONLY; placeholders like _RES_NORM abort Screen.init and freeze
 # occupancy / turnout listeners.
 #
-# hart-aar SL-2-digicon aspects: Clear G/R, Approach Y/R, Medium Clear R/G,
-# Medium Approach R/Y, Stop R/R. R283/R286 are the Digicon rule codes for the
-# diverging pair, and the panel ASPECTMAPs already paint them red|green /
-# red|yellow. (SL-1-low dwarfs follow Medium aspects fine: Medium Clear→Slow
-# Clear, Medium Approach→Restricting in the stock AAR-1946 dwarf mapping.)
+# CO-33-hi: Clear G/R, Approach Medium Y/G, Medium Clear R/G, Approach Slow Y/Y,
+# Approach Y/R, Restricting R/Y, Stop R/R. R286 (Medium Approach in AAR) is the
+# same lamp pair as Restricting here.
 _REMAP_2_LISTEN_ASPECTS = {
     "R281": "Clear",
+    "R282": "Approach Medium",
     "R283": "Medium Clear",
+    "R284": "Approach Slow",
     "R285": "Approach",
-    "R286": "Medium Approach",
+    "RES_NORM": "Restricting",
     "R292": "Stop",
 }
 
-# SL-1-low: Slow Clear / Restricting / Stop (Restricting is enabled on dwarfs).
+# CO-3-dwarf: Slow Clear / Restricting / Stop.
 _REMAP_1_LISTEN_ASPECTS = {
     "R281": "Slow Clear",
     "R285": "Restricting",
@@ -177,7 +176,7 @@ _REMAP_1_LISTEN_ASPECTS = {
 _VALID_2 = {
     "CLEAR": "Clear",
     "APPROACH": "Approach",
-    "RESTRICTING": "Stop",
+    "RESTRICTING": "Restricting",
     "STOP": "Stop",
 }
 _VALID_1 = {
@@ -189,6 +188,7 @@ _VALID_1 = {
 
 _PAINT_1 = {
     "Clear": "green",
+    "Slow Clear": "green",
     "Approach": "yellow",
     "Stop": "red",
     "Restricting": "yellow",
@@ -196,8 +196,11 @@ _PAINT_1 = {
 
 _PAINT_2 = {
     "Clear": "green|red",
+    "Approach Medium": "yellow|green",
+    "Medium Clear": "red|green",
+    "Approach Slow": "yellow|yellow",
     "Approach": "yellow|red",
-    "Restricting": "yellow|red",
+    "Restricting": "red|yellow",
     "Stop": "red|red",
 }
 
@@ -223,18 +226,22 @@ _REMAP_1_LISTEN = _fill_listen(_REMAP_1_LISTEN_ASPECTS, _VALID_1)
 
 _ALLOWED_2 = {
     "Clear",
+    "Approach Medium",
     "Medium Clear",
+    "Approach Slow",
     "Approach",
-    "Medium Approach",
+    "Restricting",
     "Stop",
 }
 _ALLOWED_1 = {"Slow Clear", "Restricting", "Stop"}
 
 _LISTEN_2_ICON = {
     "Clear": "CLEAR",
+    "Approach Medium": "CLEAR",
     "Medium Clear": "CLEAR",
+    "Approach Slow": "CLEAR",
     "Approach": "APPROACH",
-    "Medium Approach": "APPROACH",
+    "Restricting": "RESTRICTING",
     "Stop": "STOP",
 }
 
@@ -265,7 +272,7 @@ def _validate_listen_remap(
         if key is None:
             raise RuntimeError(f"AAR listen map missing {aspect!r}")
         got = _ICON[key]
-        # Stop fallback on RES_* is RESTRICTING (same red as STOP).
+        # Stop fallback on RES_* is RESTRICTING (same red as STOP) for dwarfs.
         if aspect == "Stop" and got in ("STOP", "RESTRICTING"):
             continue
         if got != icon:
@@ -317,6 +324,11 @@ def apply_aar_bridge(root: ET.Element, *, hold_only: bool | None = None) -> None
             for key in list(am.attrib):
                 if key not in allowed:
                     del am.attrib[key]
+            paint = _paint_for_heads(heads)
+            for key, aspect in remap.items():
+                color = paint.get(aspect)
+                if color is not None:
+                    am.set(key, color)
             n_maps += 1
     print(f"AAR bridge: {n_tmpl} SIGNALTEMPLATE remaps, {n_maps} ASPECTMAP paint keys")
 

@@ -540,7 +540,7 @@ _PHYS_BY_HEADS = {1: "single", 2: "double", 3: "triple"}
 
 def align_physignal_to_heads(tp: ET.Element) -> int:
     """PHYSIGNAL must match JMRI heads. CATS setAspect uses the template name
-    even when HOLD_ONLY; double→Clear on an SL-1-low dwarf aborts Screen.init.
+    even when HOLD_ONLY; double→Clear on a CO-3-dwarf aborts Screen.init.
     SIGPANTYPE (LAMP1 vs LAMP2) is left for Designer cosmetics (Mast 8RA/Mast 8LA).
     """
     heads = mast_head_counts()
