@@ -6,6 +6,7 @@
    MqttSensor.setKnownState with an empty JMRI send-topic template)
 3) _discard/cmd/sensor/#       — retired 11.3 sink retain
 4) track/signalhead/IH*        — legacy leaf; live is track/signalhead/<packed>
+5) track/sensor/<non-digits>   — JMRI auto-creates M2SBlock1-1 from those topics
 
 Does not touch track/sensor/{addr}, track/turnout/{addr}, or packed
 track/signalhead/<digits> status/set retain.
@@ -79,6 +80,16 @@ def main() -> int:
             _clear(t)
             cleared.append(t)
 
+    # JMRI MQTT receive track/sensor/{0} creates M2S{0}. Non-digit leaves are junk
+    # (M2SBlock1-1). Live occupancy is packed digits (M2S100 ↔ track/sensor/100).
+    for t, _p in _sub("track/sensor/#"):
+        if not t.startswith("track/sensor/"):
+            continue
+        leaf = t[len("track/sensor/") :]
+        if leaf and not leaf.isdigit():
+            _clear(t)
+            cleared.append(t)
+
     left_cmd = [t for t, _ in _sub("track/cmd/sensor/#") if t.startswith("track/cmd/sensor/")]
     left_root = [
         t
@@ -93,18 +104,25 @@ def main() -> int:
         for t, _ in _sub("track/signalhead/#")
         if t.startswith("track/signalhead/IH") or t.startswith("track/signalhead/ih")
     ]
+    left_nondigit = [
+        t
+        for t, _ in _sub("track/sensor/#")
+        if t.startswith("track/sensor/") and not t[len("track/sensor/") :].isdigit()
+    ]
     print(
-        "cleared=%d remaining_cmd=%d remaining_root_numeric=%d remaining_discard=%d remaining_ih_leaf=%d host=%s"
+        "cleared=%d remaining_cmd=%d remaining_root_numeric=%d remaining_discard=%d remaining_ih_leaf=%d remaining_nondigit_sensor=%d host=%s"
         % (
             len(cleared),
             len(left_cmd),
             len(left_root),
             len(left_discard),
             len(left_ih),
+            len(left_nondigit),
             MQTT_HOST,
         )
     )
-    return 0 if not left_cmd and not left_root and not left_discard and not left_ih else 1
+    leftover = left_cmd or left_root or left_discard or left_ih or left_nondigit
+    return 0 if not leftover else 1
 
 
 if __name__ == "__main__":
