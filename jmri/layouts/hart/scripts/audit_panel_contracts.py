@@ -173,7 +173,8 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
     if garbage:
         audit.error(
-            "MQTT sensor systemNames must be M2S plus digits (not M2SBlock1-1); "
+            "MQTT sensor systemNames must be M2S plus digits "
+            "(not M2SBlock 1-1); "
             f"found {sorted(set(garbage))}"
         )
 
@@ -539,64 +540,16 @@ def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
                 continue
             if value.upper().startswith("SIG"):
                 placeholders.append(value)
-        station_occupancy = {
-            "Block 4-6",
-            "Block 4-7",
-            "Block 2-1",
-            "Block 2-3",
-            "Block 1-8",
-            "Block 1-7",
-            "Block 1-1",
-            "Block 1-2",
-            "Block 13-5",
-            "Block 13-6",
-            "Block 13-7",
-            "Block 2-8",
-            "Block 2-7",
-            "Block 2-6",
-            "Block 2-5",
-            "Block 2-4",
-            "Block 4-8",
-            "Block 13-1",
-            "Block 4-4",
-            "Block 4-3",
-            "Block 1-4",
-            "Block 1-3",
-        }
-        os_occupancy = {
-            "Block 4-1",
-            "Block 4-2",
-            "Block 4-5",
-            "Block 3-1",
-            "Block 3-2",
-            "Block 3-3",
-            "Block 3-5",
-            "Block 3-7",
-            "Block 12-1",
-            "Block 12-3",
-            "Block 12-4",
-            "Block 12-5",
-            "Block 12-7",
-            "Block 12-8",
-            "Block 13-2",
-            "Block 13-3",
-            "Block 13-8",
-            "Block 1-5",
-            "Block 1-6",
-        }
         for icon in panel.iter("sensoricon"):
             name = (icon.get("sensor") or "").strip()
-            if (
-                re.fullmatch(r"Block \d+-\d+", name)
-                and name not in station_occupancy
-                and name not in os_occupancy
-            ):
+            if re.fullmatch(r"Block \d+-\d+", name):
                 redundant_occupancy_icons.append(name)
     if placeholders:
         audit.warn(f"stale SIG placeholder labels remain: {sorted(placeholders)}")
     if redundant_occupancy_icons:
-        audit.warn(
-            "redundant block-occupancy sensor icons remain on Layout Editor: "
+        audit.error(
+            "sensoricon still bound to retired Block n-n userNames "
+            "(JMRI MQTT auto-creates M2SBlock n-n); "
             f"{sorted(redundant_occupancy_icons)}"
         )
     audit.facts["sig_placeholders"] = tuple(sorted(placeholders))

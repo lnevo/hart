@@ -6,7 +6,7 @@
    MqttSensor.setKnownState with an empty JMRI send-topic template)
 3) _discard/cmd/sensor/#       — retired 11.3 sink retain
 4) track/signalhead/IH*        — legacy leaf; live is track/signalhead/<packed>
-5) track/sensor/<non-digits>   — JMRI auto-creates M2SBlock1-1 from those topics
+5) track/sensor/<non-digits>   — JMRI auto-creates M2SBlock 1-1 from those topics
 
 Does not touch track/sensor/{addr}, track/turnout/{addr}, or packed
 track/signalhead/<digits> status/set retain.
@@ -81,7 +81,7 @@ def main() -> int:
             cleared.append(t)
 
     # JMRI MQTT receive track/sensor/{0} creates M2S{0}. Non-digit leaves are junk
-    # (M2SBlock1-1). Live occupancy is packed digits (M2S100 ↔ track/sensor/100).
+    # (M2SBlock 1-1). Live occupancy is packed digits (M2S100 ↔ track/sensor/100).
     for t, _p in _sub("track/sensor/#"):
         if not t.startswith("track/sensor/"):
             continue
