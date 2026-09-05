@@ -14,6 +14,8 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 | [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
 | [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). Sequential C1–C13 IDs. |
 
+LCOS Signal Manager punch list (ports + Main/Diverged + OR): [`cats/data/lcos_signal_manager_config_plan.xlsx`](../../cats/data/lcos_signal_manager_config_plan.xlsx). Source table: [`cats/data/lcos_signal_logic.csv`](../../cats/data/lcos_signal_logic.csv).
+
 CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
 **Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is Switch 15–21 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
@@ -22,7 +24,7 @@ CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cat
 
 ## Digicon heads and OU boards
 
-Pin-level source: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). G/Y/R is one 3-pin `STOP/APPROACH/CLEAR` object. **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
+Pin-level source: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Each disc is one 3-pin `STOP/APPROACH/CLEAR` object wired **R then Y then G** on consecutive increasing LCOS ports (Port A Stop, B Approach, C Clear). **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
 
 New 5V **OU4** on C1 / C4 / C13 only.
 
@@ -33,12 +35,12 @@ OU1 stays 12V motors Switch 1 / 3 / 5 / 13 (this box is already at the plant). P
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 1, 3, 5, 13 motors |
-| OU2 | 5V | 6LB T+B, 6LA G; **OU2-8 block-sensor cal** |
-| OU3 | 5V | 2L T+B, 6LA Y/R |
+| OU2 | 5V | 6LB T+B, 6LA R (Stop); **OU2-8 block-sensor cal** |
+| OU3 | 5V | 2L T+B, 6LA Y/G |
 | **OU4** | 5V **new** | 4RA, 4RB; OU4-7/8 spare |
 
-| Mast | Disc | Packed | G | Y | R |
-|------|------|--------|---|---|---|
+| Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
+|------|------|--------|----------|--------------|-----------|
 | 6LB | T | `IH432` | OU2-1 | OU2-2 | OU2-3 |
 | 6LB | B | `IH433` | OU2-4 | OU2-5 | OU2-6 |
 | 6LA | | `IH434` | OU2-7 | OU3-8 | OU3-7 |
@@ -51,17 +53,17 @@ OU1 stays 12V motors Switch 1 / 3 / 5 / 13 (this box is already at the plant). P
 
 ### C13 — Barn (radio 13)
 
-Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU2** with 8LA+8LB (right). 8LB R spills to the 8RB board.
+Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU2** with 8LA+8LB (right). 8LB Clear (G) spills to the 8RB board.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 5V | 8RA T+B; OU1-7 spare; **OU1-8 block-sensor cal** |
-| OU2 | 5V | 8LA T+B, 8LB G/Y |
+| OU2 | 5V | 8LA T+B, 8LB R/Y |
 | OU3 | 12V | Switch 7, 11, 9 motors; OU3-7/8 spare |
-| **OU4** | 5V **new** | 8RB T+B, 8LB R; OU4-8 spare |
+| **OU4** | 5V **new** | 8RB T+B, 8LB G; OU4-8 spare |
 
-| Mast | Disc | Packed | G | Y | R |
-|------|------|--------|---|---|---|
+| Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
+|------|------|--------|----------|--------------|-----------|
 | 8RA | T | `IH1332` | OU1-1 | OU1-2 | OU1-3 |
 | 8RA | B | `IH1333` | OU1-4 | OU1-5 | OU1-6 |
 | 8RB | T | `IH1335` | OU4-1 | OU4-2 | OU4-3 |
@@ -77,12 +79,12 @@ Same box as Switch 25–33. Place **OU2+OU3** at 34. 32R leftover sits on these 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 25, 27, 29, 31 motors |
-| OU2 | 5V | 34L T+B, 32R G; **OU2-8 block-sensor cal** |
-| OU3 | 5V | 34R T+B, 32R Y/R |
+| OU2 | 5V | 34L T+B, 32R R (Stop); **OU2-8 block-sensor cal** |
+| OU3 | 5V | 34R T+B, 32R Y/G |
 | OU4 | 12V | Switch 23, 33 motors |
 
-| Mast | Disc | Packed | G | Y | R |
-|------|------|--------|---|---|---|
+| Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
+|------|------|--------|----------|--------------|-----------|
 | 34L | T | `IH1232` | OU2-1 | OU2-2 | OU2-3 |
 | 34L | B | `IH1233` | OU2-4 | OU2-5 | OU2-6 |
 | 32R | | `IH1234` | OU2-7 | OU3-8 | OU3-7 |
@@ -99,10 +101,10 @@ C2 sits on the **west end of East End** — 24RA / 24L / 24RB only. 24RB lives o
 |-------|------|------------|
 | OU1 | 5V | 24RA T+B; OU1-7 spare; **OU1-8 block-sensor cal** |
 | OU2 | 5V | 24L T+B; OU2-7 spare; **OU2-8 relay** |
-| OU3 | 5V | spare 1–5; **24RB G/Y/R on 6–8** |
+| OU3 | 5V | spare 1–5; **24RB R/Y/G on 6–8** |
 
-| Mast | Disc | Packed | G | Y | R |
-|------|------|--------|---|---|---|
+| Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
+|------|------|--------|----------|--------------|-----------|
 | 24RA | T | `IH232` | OU1-1 | OU1-2 | OU1-3 |
 | 24RA | B | `IH238` | OU1-4 | OU1-5 | OU1-6 |
 | 24RB | | `IH234` | OU3-6 | OU3-7 | OU3-8 |
@@ -111,17 +113,17 @@ C2 sits on the **west end of East End** — 24RA / 24L / 24RB only. 24RB lives o
 
 ### C1 — Princess west (radio 1, packed `1xx`)
 
-Place **OU2+OU3** at Switch 35 (36RA / 36RB), **OU4** at Switch 37 (38LB). 38LA uses the leftover trio on the 36 boards (OU3-7/8 + OU2-7) so G/Y are not on OU4.
+Place **OU2+OU3** at Switch 35 (36RA / 36RB), **OU4** at Switch 37 (38LB). 38LA uses the leftover trio on the 36 boards (OU3-7/8 + OU2-7) so R/Y are not on OU4.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 35, 37, 39 motors; OU1-7/8 reserved |
-| OU2 | 5V | 36RA T+B, 38LA R; **OU2-8 block-sensor cal** |
-| OU3 | 5V | 36RB T+B, 38LA G/Y |
+| OU2 | 5V | 36RA T+B, 38LA G (Clear); **OU2-8 block-sensor cal** |
+| OU3 | 5V | 36RB T+B, 38LA R/Y |
 | **OU4** | 5V **new** | 38LB T+B; OU4-7/8 spare |
 
-| Mast | Disc | Packed | G | Y | R |
-|------|------|--------|---|---|---|
+| Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
+|------|------|--------|----------|--------------|-----------|
 | 36RA | T | `IH135` | OU2-1 | OU2-2 | OU2-3 |
 | 36RA | B | `IH136` | OU2-4 | OU2-5 | OU2-6 |
 | 36RB | T | `IH132` | OU3-1 | OU3-2 | OU3-3 |
@@ -137,11 +139,11 @@ Place **OU2** at Switch 39 (40LB), **OU3** at 40LA + balloon. 2035/2036 are sepa
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 67 / 63 / 65 motors (was SW129 / SW127 / SW138); OU1-7/8 spare |
-| OU2 | 5V | 40LB T+B, 2035 R; **OU2-8 block-sensor cal** |
-| OU3 | 5V | 40LA, 2036, 2035 G/Y |
+| OU2 | 5V | 40LB T+B, 2035 G (Clear); **OU2-8 block-sensor cal** |
+| OU3 | 5V | 40LA, 2036, 2035 R/Y |
 
-| Mast | Disc | Packed | G | Y | R |
-|------|------|--------|---|---|---|
+| Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
+|------|------|--------|----------|--------------|-----------|
 | 40LB | T | `IH1132` | OU2-1 | OU2-2 | OU2-3 |
 | 40LB | B | `IH1135` | OU2-4 | OU2-5 | OU2-6 |
 | 40LA | | `IH1136` | OU3-1 | OU3-2 | OU3-3 |
@@ -149,6 +151,57 @@ Place **OU2** at Switch 39 (40LB), **OU3** at 40LA + balloon. 2035/2036 are sepa
 | 2035 | | `IH1134` | OU3-7 | OU3-8 | OU2-7 |
 
 `signals_split_v8.xlsx` stays the frozen RGB plan.
+
+### LCOS Signal Manager (Unheld)
+
+Each disc is one object. Stock sentence:
+
+```text
+CLEAR if aligned MAIN|DIVERGED  or  set aspect STOP|APPROACH
+```
+
+Occupied blocks still force **STOP**. Packed MQTT IDs are unchanged; this is wiring/config only (`tables.xml` not patched).
+
+| Mast | Head | Aligned | OR | Plant |
+|------|------|---------|----|-------|
+| 6LB | T | Main | Stop | Switch 5 |
+| 6LB | B | Diverged | Stop | Switch 5 |
+| 6LA | | Diverged | Stop | Switch 5 Scale dwarf |
+| 2L | T | Main | Stop | Switch 1 |
+| 2L | B | Diverged | Stop | Switch 1 |
+| 4RA | | Main | Stop | Switch 3 W-1 |
+| 4RB | | Diverged | Stop | Switch 3 W-2 |
+| 8RA | T | Main | Stop | Switch 7 |
+| 8RA | B | Diverged | Stop | Switch 7 |
+| 8RB | T | Main | Stop | Switch 7 |
+| 8RB | B | Diverged | Stop | Switch 7 |
+| 8LA | T | Main | Stop | Switch 7 |
+| 8LA | B | Diverged | Stop | Switch 7 |
+| 8LB | | Diverged | Stop | Switch 7 Barn dwarf |
+| 24RA | T | Main | Stop | Switch 23 |
+| 24RA | B | Diverged | Stop | Switch 23 |
+| 24L | T | Main | Stop | Switch 23 |
+| 24L | B | Diverged | Stop | Switch 23 |
+| 24RB | | Diverged | Stop | Switch 23 S-R |
+| 32R | | Diverged | Stop | Switch 31 ladder |
+| 34L | T | Main | Stop | Switch 33 |
+| 34L | B | Diverged | Stop | Switch 33 |
+| 34R | T | Main | Stop | Switch 33 |
+| 34R | B | Diverged | Stop | Switch 33 |
+| 36RA | T | Main | Stop | Switch 35 |
+| 36RA | B | Diverged | Stop | Switch 35 |
+| 36RB | T | Main | Stop | Switch 35 |
+| 36RB | B | Diverged | Stop | Switch 35 |
+| 38LB | T | Main | Stop | Switch 37 |
+| 38LB | B | Diverged | Stop | Switch 37 |
+| 38LA | | Diverged | Stop | Switch 37 K-2 |
+| 40LB | T | Main | Stop | Switch 39 |
+| 40LB | B | Diverged | Stop | Switch 39 |
+| 40LA | | Diverged | Stop | Switch 39 K-1 |
+| 2035 | | — | Approach | McKees Rocks balloon |
+| 2036 | | — | Approach | McKeesport balloon |
+
+Two-head **B** is the unused-head marker (red on a lined main). Do not OR Approach on a home or dwarf — that paints yellow when the turnout is against the signal.
 
 Block-sensor calibration pin (first 5V OU, channel 8):
 
@@ -216,7 +269,7 @@ python3 docs/wiring/scripts/refresh_wiring_docs.py
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 ```
 
-Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`, and `Wiring_Schematic.pptx` to `~/Desktop/HART/Wiring Documentation/`. Do not refresh Desktop until JMRI XML is applied so the bench pack matches live beans.
+Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`, and `Wiring_Schematic.pptx` to `~/Desktop/HART/Wiring Documentation/`. Copy `cats/data/lcos_signal_manager_config_plan.xlsx` there too when punching Signal Manager. Do not refresh Desktop until JMRI XML is applied so the bench pack matches live beans.
 
 ## What v85 changed vs Desktop v84
 

@@ -2,6 +2,12 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-09-05 — Stop / Approach / Clear pin order (R then Y then G)
+
+Field wiring is consecutive increasing LCOS ports **Stop → Approach → Clear** (R/Y/G). Docs had Clear on the first pin and Stop on the last; Stop and Clear ports are swapped on every disc. Example: Node 4 Signal 0 (Mast 6LB T) is now Stop port 8 (C4-OU2-1), Approach 9, Clear 10 (C4-OU2-3). Packed MQTT IDs unchanged. `tables.xml` not patched.
+
+LCOS Signal Manager punch list: [`cats/data/lcos_signal_manager_config_plan.xlsx`](../../cats/data/lcos_signal_manager_config_plan.xlsx) — **Main** vs **Diverged**, and **OR Stop** vs **Approach**, per disc. Two-head top = Main/Stop; bottom = Diverged/Stop. Diverge dwarfs = Diverged/Stop. Balloon 2035/2036 = — / Approach.
+
 ## 2026-08-29 — Upper deck Switch 61+ / clear leftover S2
 
 Upper plants are Switch 61, 63, 65… with even signal numbers 62L, 64R, 66RA… (same odd/even split as the lower deck). Old SW127/NIX/S4-1 labels are gone from the inventory. Leftover East End `S2-6`/`S2-7` RGB on C2 is cleared; C2-OU3 stays because 24RB needs three pins. `tables.xml` not patched.
