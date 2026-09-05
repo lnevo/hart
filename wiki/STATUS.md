@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-05 — Digicon wiring docs match field pin order: consecutive LCOS ports are **Stop → Approach → Clear** (R/Y/G). Old docs had Stop/Clear reversed. LCOS Signal Manager settings (Main/Diverged + OR Stop/Approach) are in [`cats/data/lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx). Docs-only, not deployed.
+
 Updated: 2026-09-04 — Dispatcher occupancy jewels still said `sensor="Block 1-1"` after occupancy userNames became `BS …`. JMRI MQTT then auto-created `M2SBlock 1-1` (space in the system name) on PanelPro load. Jewels now bind to the real BS sensors. Delete any leftover `M2SBlock *` rows in the Sensor table and do not Store them. Reload **PanelPro**. Deploy `--all`.
 
 Updated: 2026-09-03 — C&O overlay aspectMappings restore the hart-aar 3-aspect collapse on a Normal main (dest Restricting / Medium Clear / Slow Clear can grant Clear G/R). Stock Chessie dest-Restricting→Approach was why a lined empty main stayed Y/R and R/Y. Dest Stop still Approach. **Signals** (SML Enabled) must be on — Digicon dests boot Disabled. Reload **PanelPro**. Deploy `--all`.
