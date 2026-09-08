@@ -1,6 +1,6 @@
 layer,current,proposed,cp,hardware,comment,notes
 turnout,Switch 1,Switch 1,Brick,M2T408,"Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
-turnout,Switch 11,Switch 11,,M2T1309,"Node: 13 Turnout: 1 | DCC: 118 | OU: 3 Ports: 3,4",
+turnout,Switch 11,Switch 11,,M2T1309,"Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4",
 turnout,Switch 13,Switch 13,Engine House,M2T411,"Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",
 turnout,Switch 15,Switch 15,South Yard,M2T308,"Node: 3 Turnout: 0 | DCC: 103 | OU: 1 Ports: 1,2",
 turnout,Switch 17,Switch 17,South Yard,M2T309,"Node: 3 Turnout: 1 | DCC: 104 | OU: 1 Ports: 3,4",
@@ -17,11 +17,11 @@ turnout,Switch 35,Switch 35,Princess,M2T108,"Node: 1 Turnout: 0 | DCC: 113 | OU:
 turnout,Switch 37,Switch 37,Princess,M2T109,"Node: 1 Turnout: 1 | DCC: 114 | OU: 1 Ports: 3,4",
 turnout,Switch 39,Switch 39,Princess,M2T110,"Node: 1 Turnout: 2 | DCC: 115 | OU: 1 Ports: 5,6",
 turnout,Switch 5,Switch 5,Plane,M2T410,"Node: 4 Turnout: 2 | DCC: 102 | OU: 1 Ports: 5,6",
-turnout,Switch 7,Switch 7,Barn,M2T1308,"Node: 13 Turnout: 0 | DCC: 117 | OU: 3 Ports: 1,2",
-turnout,Switch 9,Switch 9,,M2T1310,"Node: 13 Turnout: 2 | DCC: 119 | OU: 3 Ports: 5,6",
+turnout,Switch 7,Switch 7,Barn,M2T1308,"Node: 13 Turnout: 0 | DCC: 117 | OU: 2 Ports: 1,2",
+turnout,Switch 9,Switch 9,,M2T1310,"Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6",
 turnout,Switch 100,Switch 1,Brick,M2T408,"Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",historical alias; CTC Switch 1 (was 100); keep
-turnout,Switch 118,Switch 11,,M2T1309,"Node: 13 Turnout: 1 | DCC: 118 | OU: 3 Ports: 3,4",historical alias; CTC Switch 11 (was 118); hand-throw; Engine House
-turnout,Switch 116,Switch 13,Engine House,M2T411,"Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",historical alias; CTC Switch 13 (was 116); hand-throw
+turnout,Switch 118,Switch 11,,M2T1309,"Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4",historical alias; CTC Switch 11 (was 118); Engine House; C13 OU2 motors
+turnout,Switch 116,Switch 13,Engine House,M2T411,"Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",historical alias; CTC Switch 13 (was 116); motors+FB on C4 OU1
 turnout,Switch 103,Switch 15,South Yard,M2T308,"Node: 3 Turnout: 0 | DCC: 103 | OU: 1 Ports: 1,2",historical alias; CTC Switch 15 (was 103); keep; east of Barn
 turnout,Switch 104,Switch 17,South Yard,M2T309,"Node: 3 Turnout: 1 | DCC: 104 | OU: 1 Ports: 3,4",historical alias; CTC Switch 17 (was 104); keep; hand-throw
 turnout,Switch 105,Switch 19,South Yard,M2T310,"Node: 3 Turnout: 2 | DCC: 105 | OU: 1 Ports: 5,6",historical alias; CTC Switch 19 (was 105); keep; hand-throw
@@ -37,8 +37,8 @@ turnout,Switch 113,Switch 35,Princess,M2T108,"Node: 1 Turnout: 0 | DCC: 113 | OU
 turnout,Switch 114,Switch 37,Princess,M2T109,"Node: 1 Turnout: 1 | DCC: 114 | OU: 1 Ports: 3,4",historical alias; CTC Switch 37 (was 114); keep
 turnout,Switch 115,Switch 39,Princess,M2T110,"Node: 1 Turnout: 2 | DCC: 115 | OU: 1 Ports: 5,6",historical alias; CTC Switch 39 (was 115); keep
 turnout,Switch 102,Switch 5,Plane,M2T410,"Node: 4 Turnout: 2 | DCC: 102 | OU: 1 Ports: 5,6",historical alias; CTC Switch 5 (was 102); keep
-turnout,Switch 117,Switch 7,Barn,M2T1308,"Node: 13 Turnout: 0 | DCC: 117 | OU: 3 Ports: 1,2",historical alias; CTC Switch 7 (was 117); crossover 7/7b; field still hand-throw
-turnout,Switch 119,Switch 9,,M2T1310,"Node: 13 Turnout: 2 | DCC: 119 | OU: 3 Ports: 5,6",historical alias; CTC Switch 9 (was 119); hand-throw; Engine House
+turnout,Switch 117,Switch 7,Barn,M2T1308,"Node: 13 Turnout: 0 | DCC: 117 | OU: 2 Ports: 1,2",historical alias; CTC Switch 7 (was 117); crossover 7/7b; motors+FB on C13 OU2
+turnout,Switch 119,Switch 9,,M2T1310,"Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6",historical alias; CTC Switch 9 (was 119); Engine House; C13 OU2 motors
 turnout,DCC Switch 1,DCC Switch 1,,MTT100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",LCC alias of Switch 1 (M2T408)
 turnout,Switch 1 alias,DCC Switch 1,,MTT100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; was Switch N alias
 turnout,DCC Switch 3,DCC Switch 3,,MTT101,"Node: 4 Turnout: 1 | OU: 1 Ports: 3,4",LCC alias of Switch 3 (M2T409)
@@ -61,9 +61,9 @@ turnout,Switch 37 alias,DCC Switch 37,,MTT114,"Node: 1 Turnout: 1 | OU: 1 Ports:
 turnout,DCC Switch 39,DCC Switch 39,,MTT115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",LCC alias of Switch 39 (M2T110)
 turnout,Switch 39 alias,DCC Switch 39,,MTT115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; was Switch N alias
 turnout,DCC Switch 13,DCC Switch 13,,MTT116,"Node: 4 Turnout: 3 | OU: 1 Ports: 7,8",LCC alias of Switch 13 (M2T411)
-turnout,DCC Switch 7,DCC Switch 7,,MTT117,"Node: 13 Turnout: 0 | OU: 3 Ports: 1,2",LCC alias of Switch 7 (M2T1308)
-turnout,DCC Switch 11,DCC Switch 11,,MTT118,"Node: 13 Turnout: 1 | OU: 3 Ports: 3,4",LCC alias of Switch 11 (M2T1309)
-turnout,DCC Switch 9,DCC Switch 9,,MTT119,"Node: 13 Turnout: 2 | OU: 3 Ports: 5,6",LCC alias of Switch 9 (M2T1310)
+turnout,DCC Switch 7,DCC Switch 7,,MTT117,"Node: 13 Turnout: 0 | OU: 2 Ports: 1,2",LCC alias of Switch 7 (M2T1308)
+turnout,DCC Switch 11,DCC Switch 11,,MTT118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",LCC alias of Switch 11 (M2T1309)
+turnout,DCC Switch 9,DCC Switch 9,,MTT119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",LCC alias of Switch 9 (M2T1310)
 block,OS Switch 1,OS Switch 1,Brick,Block 4-2,Brick,
 block,OS Switch 11,OS Switch 11,Engine House,Block 13-2,Engine House,
 block,OS Switch 13,OS Switch 13,Engine House,Block 3-1,Engine House,
@@ -522,9 +522,9 @@ head,Head 4RB,Head 4RB,Brick,IH437,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",
 head,Head 6LA,Head 6LA,Plane,IH434,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",
 head,Head 6LB Bottom,Head 6LB Bottom,Plane,IH433,"Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6",
 head,Head 6LB Top,Head 6LB Top,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
-head,Head 8LA Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 2 Ports: 4,5,6",
-head,Head 8LA Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 2 Ports: 1,2,3",
-head,Head 8LB,Head 8LB,Barn,IH1334,"Node: 13 Signal: 2 | OU: 2 Ports: 7,8 | OU: 4 Ports: 7",
+head,Head 8LA Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",
+head,Head 8LA Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",
+head,Head 8LB,Head 8LB,Barn,IH1334,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",
 head,Head 8RA Bottom,Head 8RA Bottom,Barn,IH1333,"Node: 13 Signal: 1 | OU: 1 Ports: 4,5,6",
 head,Head 8RA Top,Head 8RA Top,Barn,IH1332,"Node: 13 Signal: 0 | OU: 1 Ports: 1,2,3",
 head,Head 8RB Bottom,Head 8RB Bottom,Barn,IH1336,"Node: 13 Signal: 4 | OU: 4 Ports: 4,5,6",
@@ -587,12 +587,12 @@ head,102LB Bottom,Head 6LB Bottom,Plane,IH433,"Node: 4 Signal: 1 | OU: 2 Ports: 
 head,Plane East East Main Ext Bottom,Head 6LB Bottom,Plane,IH433,"Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6",historical alias of 102LB Bottom
 head,102LB Top,Head 6LB Top,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
 head,Plane East East Main Ext Top,Head 6LB Top,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 102LB Top
-head,117LA Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 2 Ports: 4,5,6",historical alias
-head,West Yard East OS 117b Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 2 Ports: 4,5,6",historical alias of 117LA Bottom
-head,117LA Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 2 Ports: 1,2,3",historical alias
-head,West Yard East OS 117b Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 2 Ports: 1,2,3",historical alias of 117LA Top
-head,117LB,Head 8LB,Barn,IH1334,"Node: 13 Signal: 2 | OU: 2 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
-head,West Yard East Yard T6,Head 8LB,Barn,IH1334,"Node: 13 Signal: 2 | OU: 2 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
+head,117LA Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias
+head,West Yard East OS 117b Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias of 117LA Bottom
+head,117LA Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",historical alias
+head,West Yard East OS 117b Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",historical alias of 117LA Top
+head,117LB,Head 8LB,Barn,IH1334,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
+head,West Yard East Yard T6,Head 8LB,Barn,IH1334,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
 head,117RA Bottom,Head 8RA Bottom,Barn,IH1333,"Node: 13 Signal: 1 | OU: 1 Ports: 4,5,6",historical alias
 head,West Yard West OS 117 Bottom,Head 8RA Bottom,Barn,IH1333,"Node: 13 Signal: 1 | OU: 1 Ports: 4,5,6",historical alias of 117RA Bottom
 head,117RA Top,Head 8RA Top,Barn,IH1332,"Node: 13 Signal: 0 | OU: 1 Ports: 1,2,3",historical alias

@@ -671,9 +671,9 @@ TURNOUT_DIGICON: dict[str, dict[str, object]] = {
         "entry": "8RA",
         "entry_ports": ("C13-OU1-1", "C13-OU1-2", "C13-OU1-3"),
         "normal": "8LA",
-        "normal_ports": ("C13-OU2-1", "C13-OU2-2", "C13-OU2-3"),
+        "normal_ports": ("C13-OU3-1", "C13-OU3-2", "C13-OU3-3"),
         "reverse": "8LB / 8RB",
-        "reverse_ports": ("C13-OU2-7", "C13-OU2-8", "C13-OU4-7"),
+        "reverse_ports": ("C13-OU3-7", "C13-OU3-8", "C13-OU4-7"),
     },
 }
 

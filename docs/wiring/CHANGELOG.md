@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+## 2026-09-08 — C13 Barn motors on OU2; Digicon 8LA/8LB on OU3
+
+Switch **7 / 11 / 9** motors move from **C13-OU3** to **C13-OU2** (12V). Former OU2 Digicon (**8LA** T+B, **8LB** R/Y) moves to **OU3**; **8LB** G stays **OU4-7**. Switch **7 / 11 / 13** are **TWOSENSOR** (FB on C13 IN1 for 7/11, C4 IN1 for 13). Switch 9 stays DIRECT until FB is commissioned. `tables/new_tables.xml` + hart `output/tables.xml` updated from Pi store. Signal Manager plan regen: [`cats/data/lcos_signal_manager_config_plan.xlsx`](../../cats/data/lcos_signal_manager_config_plan.xlsx).
+
 ## 2026-09-05 — Stop / Approach / Clear pin order (R then Y then G)
 
 Field wiring is consecutive increasing LCOS ports **Stop → Approach → Clear** (R/Y/G). Docs had Clear on the first pin and Stop on the last; Stop and Clear ports are swapped on every disc. Example: Node 4 Signal 0 (Mast 6LB T) is now Stop port 8 (C4-OU2-1), Approach 9, Clear 10 (C4-OU2-3). Packed MQTT IDs unchanged. `tables.xml` not patched.

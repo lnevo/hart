@@ -53,13 +53,13 @@ OU1 stays 12V motors Switch 1 / 3 / 5 / 13 (this box is already at the plant). P
 
 ### C13 — Barn (radio 13)
 
-Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU2** with 8LA+8LB (right). 8LB Clear (G) spills to the 8RB board.
+Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU3** with 8LA+8LB (right). **OU2** is 12V motors for Switch 7 / 11 / 9 (TWOSENSOR FB on IN1). 8LB Clear (G) spills to the 8RB board.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 5V | 8RA T+B; OU1-7 spare; **OU1-8 block-sensor cal** |
-| OU2 | 5V | 8LA T+B, 8LB R/Y |
-| OU3 | 12V | Switch 7, 11, 9 motors; OU3-7/8 spare |
+| OU2 | 12V | Switch 7, 11, 9 motors; OU2-7/8 spare |
+| OU3 | 5V | 8LA T+B, 8LB R/Y |
 | **OU4** | 5V **new** | 8RB T+B, 8LB G; OU4-8 spare |
 
 | Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
@@ -68,9 +68,9 @@ Place **OU1** with 8RA (left), **OU4** with 8RB (left), **OU2** with 8LA+8LB (ri
 | 8RA | B | `IH1333` | OU1-4 | OU1-5 | OU1-6 |
 | 8RB | T | `IH1335` | OU4-1 | OU4-2 | OU4-3 |
 | 8RB | B | `IH1336` | OU4-4 | OU4-5 | OU4-6 |
-| 8LA | T | `IH1337` | OU2-1 | OU2-2 | OU2-3 |
-| 8LA | B | `IH1338` | OU2-4 | OU2-5 | OU2-6 |
-| 8LB | | `IH1334` | OU2-7 | OU2-8 | OU4-7 |
+| 8LA | T | `IH1337` | OU3-1 | OU3-2 | OU3-3 |
+| 8LA | B | `IH1338` | OU3-4 | OU3-5 | OU3-6 |
+| 8LB | | `IH1334` | OU3-7 | OU3-8 | OU4-7 |
 
 ### C12 — East End 34 (radio 12, packed `12xx`)
 
