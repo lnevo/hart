@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-08 — Operator portal is on GitHub Pages: https://lnevo.github.io/hart/ (static crew site from `consolidation/ops-portal/`; F-root review and Desktop/HART gallery files stay local). Docs/static — not deployed to layout hosts.
+
 Updated: 2026-09-08 — Barn/EH motors: Switch **7 / 11** (and **13** on C4) are **TWOSENSOR** with MQTT FB. Switch **7 / 9 / 11** motors on **C13-OU2** (was OU3); Digicon **8LA / 8LB** moved to **OU3**. Tables from Pi store → `tables/new_tables.xml`. Wiring inventory + [`lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx) refreshed. Reload **PanelPro**. Deploy `--pi`.
 
 Updated: 2026-09-05 — Digicon wiring docs match field pin order: consecutive LCOS ports are **Stop → Approach → Clear** (R/Y/G). Old docs had Stop/Clear reversed. LCOS Signal Manager settings (Main/Diverged + OR Stop/Approach) are in [`cats/data/lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx). Docs-only, not deployed.

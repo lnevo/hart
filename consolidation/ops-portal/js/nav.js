@@ -1,14 +1,25 @@
 (function () {
   function base() {
-    var p = (window.location.pathname || "").replace(/\\/g, "/");
-    if (
-      /\/ops-portal\/(layout|roster|guides|tools|reference|gallery|briefing|industries|photos|fleet|articles|docs|about)\//.test(
-        p
-      )
-    ) {
-      return "../";
+    var scripts = document.getElementsByTagName("script");
+    for (var i = 0; i < scripts.length; i++) {
+      var attr = scripts[i].getAttribute("src") || "";
+      var m = attr.match(/^((?:\.\.\/)*)js\/nav\.js(?:\?.*)?$/);
+      if (m) return m[1];
     }
-    return "";
+    var p = (window.location.pathname || "").replace(/\\/g, "/");
+    var m2 = p.match(/\/ops-portal\/(.*)$/);
+    if (!m2) return "";
+    var rest = m2[1];
+    if (rest.endsWith("/")) {
+      rest = rest.slice(0, -1);
+    } else {
+      rest = rest.replace(/\/[^/]+$/, "");
+    }
+    if (!rest) return "";
+    var depth = rest.split("/").filter(Boolean).length;
+    var out = "";
+    for (var j = 0; j < depth; j++) out += "../";
+    return out;
   }
 
   async function loadSite() {
@@ -31,6 +42,9 @@
         return '<a href="' + b + item.href + '"' + cur + ">" + item.label + "</a>";
       })
       .join("");
+    var eng = site.engDesk
+      ? '<a class="eng-link" href="' + b + site.engDesk + '">Engineering desk</a>'
+      : "";
     return (
       '<div class="site-header-inner">' +
       '<a class="brand" href="' +
@@ -39,26 +53,17 @@
       '<nav class="nav" aria-label="Primary">' +
       links +
       "</nav>" +
-      '<a class="eng-link" href="' +
-      b +
-      (site.engDesk || "../index.html") +
-      '">Engineering desk</a>' +
+      eng +
       "</div>"
     );
   }
 
   function headerEl() {
-    return (
-      document.querySelector("[data-ops-header]") ||
-      document.querySelector("[data-ops-header]")
-    );
+    return document.querySelector("[data-ops-header]");
   }
 
   function footerEl() {
-    return (
-      document.querySelector("[data-ops-footer]") ||
-      document.querySelector("[data-ops-footer]")
-    );
+    return document.querySelector("[data-ops-footer]");
   }
 
   async function mountChrome(pageId) {
@@ -67,12 +72,10 @@
     var footer = footerEl();
     if (header) header.innerHTML = headerHtml(site, pageId);
     if (footer) {
-      footer.innerHTML =
-        "HART Railroad · Neville Island · " +
-        '<a href="' +
-        base() +
-        (site.engDesk || "../index.html") +
-        '">Engineering desk</a>';
+      var eng = site.engDesk
+        ? '<a href="' + base() + site.engDesk + '">Engineering desk</a>'
+        : "Neville Island";
+      footer.innerHTML = "HART Railroad · Neville Island · " + eng;
     }
     return site;
   }
@@ -83,7 +86,5 @@
     loadJson: loadJson,
     mountChrome: mountChrome,
   };
-  window.HARTOps = api;
-  // Back-compat for older page scripts
   window.HARTOps = api;
 })();

@@ -4,6 +4,8 @@
 
 **Operator portal (crew / Neville Island):** [`ops-portal/index.html`](ops-portal/index.html) — briefing, industries, photos, rolling stock, articles, official publications, and current Digicon/CTC/LE panels.
 
+**Public (GitHub Pages):** https://lnevo.github.io/hart/
+
 Serve over HTTP (JSON pages need it; `file://` will look empty):
 
 ```bash

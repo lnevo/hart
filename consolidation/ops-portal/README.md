@@ -2,7 +2,13 @@
 
 Crew-facing Neville Island site (not the engineering consolidation desk).
 
-## Open it (required)
+## Share it (GitHub Pages)
+
+Public URL: **https://lnevo.github.io/hart/**
+
+GitHub Actions publishes `ops-portal/` on push to `main` (and the current portal branch). Local review, Python scripts, and Desktop/HART gallery files are not uploaded. Re-run from **Actions → Deploy operator portal → Run workflow**.
+
+## Open it locally (required)
 
 JSON pages (Briefing, About, Photos, Layout, Industries) need **HTTP**, not `file://`.
 
