@@ -33,7 +33,8 @@ open http://127.0.0.1:8760/ops-portal/
 | **Briefing** | HB-01 new-operator primer |
 | **Industries** | Customers, commodities, logos |
 | **Photos** | Captioned gallery (place, maps, fleet, aisle, power) |
-| **About** | Rails Through Time + operational narrative |
+| **Articles** | PC&C chronology, POHC-line industries, Chartiers Valley railroads, and the 1951 NYT pig-iron clipping |
+| **About** | Operational narrative |
 | **Layout** | Clickable LE schematic |
 | **Guides / Tools** | Dispatcher how-tos and live links |
 
