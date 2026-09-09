@@ -50,6 +50,10 @@ Browse portal: [`index.html`](index.html)
 - Validators may **read** live XML/CSV and **write** only under `consolidation/audits/`
 - Wrappers call live scripts (`audit_panel_contracts.py`, `check_hart_phase02.py`) — do not fork logic into live tree
 
+## Git
+
+Root [`AGENTS.md`](../AGENTS.md) close-out still applies: **commit by default** after file changes (and push the branch). Bench freeze skips **deploy** only, not git. Skip a commit only if the user says not to.
+
 ## Do not
 
 - Edit `tables/tables.xml` (read-only legacy)

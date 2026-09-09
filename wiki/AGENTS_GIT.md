@@ -36,7 +36,7 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
 2. Agents do not push to `main`.  
 3. Do not amend pushed commits.  
 4. Prefer `git worktree` for parallel agents on the same machine.  
-5. **Close-out:** commit + push the current branch (never `main`). Deploy with `./cats/scripts/sync_hart_package.sh --pi` (and `--win` / `--all` when needed) when live artifacts changed. Google Sheets push stays human-gated.  
+5. **Close-out:** commit by default after any file change, then push the current branch (never `main`). Do not wait to be asked; skip only if the user says not to. This beats the generic Cursor “don’t commit unless asked” protocol. Deploy with `./cats/scripts/sync_hart_package.sh --pi` (and `--win` / `--all` when needed) when live artifacts changed. Google Sheets push stays human-gated.  
 6. Update `wiki/` when a decision changes; chat is not SoR.
 
 ## Layout env
