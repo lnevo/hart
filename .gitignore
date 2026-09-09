@@ -26,6 +26,10 @@ Wiring Documentation
 Wiring Documentation/
 tables/.git/
 
+# GitHub Pages staging tree (prepare_github_pages.py)
+consolidation/.pages-dist/
+
+
 # Consolidation STS runtime data mirror (~465MB; refresh via mirror_sts_docker_data.sh)
 consolidation/external/sts-docker-data/backups/
 consolidation/external/sts-docker-data/database/

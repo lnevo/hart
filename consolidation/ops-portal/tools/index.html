@@ -18,7 +18,7 @@
       <a class="card" id="tool-mimic" href="http://localhost:8765/"><h3>MQTT Mimic</h3><p>LCOS / Digicon field QA board.</p></a>
       <a class="card" id="tool-jmri" href="http://localhost:12080/"><h3>JMRI web</h3><p>PanelPro / Digicon web home (local for now).</p></a>
     </div>
-    <div class="panel">
+    <div class="panel" id="inside-consol">
       <h2>Inside consolidation</h2>
       <ul>
         <li><a href="../packages/sts/README.md">packages/sts</a></li>
@@ -27,19 +27,22 @@
         <li><a href="../html/pipelines/14-sts.html">html/pipelines/14-sts.html</a></li>
       </ul>
     </div>
-    <script>
-      document.addEventListener('DOMContentLoaded', async function () {
-        const site = await HARTOps.mountChrome('tools');
-        const t = site.tools || {};
-        if (t.sts) document.getElementById('tool-sts').href = t.sts;
-        if (t.mimic) document.getElementById('tool-mimic').href = t.mimic;
-        if (t.jmri) document.getElementById('tool-jmri').href = t.jmri;
-      });
-    </script>
 
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      var site = await HARTOps.mountChrome("tools");
+      var t = site.tools || {};
+      if (t.sts) document.getElementById("tool-sts").href = t.sts;
+      if (t.mimic) document.getElementById("tool-mimic").href = t.mimic;
+      if (t.jmri) document.getElementById("tool-jmri").href = t.jmri;
+      if (site.public) {
+        var panel = document.getElementById("inside-consol");
+        if (panel) panel.hidden = true;
+      }
+    });
+  </script>
 </body>
 </html>

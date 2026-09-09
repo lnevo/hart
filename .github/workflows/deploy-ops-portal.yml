@@ -1,0 +1,44 @@
+# Publish consolidation/ops-portal to GitHub Pages.
+# Public URL: https://lnevo.github.io/hart/
+name: Deploy operator portal
+
+on:
+  push:
+    branches:
+      - main
+      - agent/cursor/co-1980-signals
+    paths:
+      - "consolidation/ops-portal/**"
+      - ".github/workflows/deploy-ops-portal.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare static site
+        run: python3 consolidation/ops-portal/scripts/prepare_github_pages.py "$PWD/.pages-dist"
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .pages-dist
+          include-hidden-files: true
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
