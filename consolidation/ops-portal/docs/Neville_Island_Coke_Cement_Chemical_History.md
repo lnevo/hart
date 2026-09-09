@@ -28,7 +28,7 @@ During the 1960s PC&C broke apart:
 
 | Branch | Sequence | HART name |
 | --- | --- | --- |
-| Coke & iron | PC&C → Shenango (1962); pig iron ends ~1990–91; DTE Energy (2008) → last coke 6 January 2016 | Shenango Coke Works |
+| Coke & iron | PC&C → Shenango (1962) → DTE Energy (2008) → last coke 6 January 2016 | Shenango Coke Works |
 | Cement | Green Bag → Marquette (1961) → Lone Star (1982) → Kosmos (by 1996) → Eagle Materials (2020); now a terminal | Kosmos Cement |
 | Activated carbon | PC&C Activated Carbon → Pittsburgh Activated Carbon → Calgon (1965) | Calgon Carbon |
 | Industrial chemicals | PC&C chemicals → U.S. Steel / USS Chemicals (1966) → Aristech (1986) → Mitsubishi-backed buyout (1990) → Sunoco (1 Jan 2001) → plasticizer business to BASF (2004); plant to Ashland (2007) | Aristech Plastics |
