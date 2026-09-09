@@ -541,7 +541,7 @@
       <userName>Switch 11</userName>
       <comment>Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4</comment>
     </turnout>
-    <turnout feedback="DIRECT" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 9 R" sensor2="FB Switch 9 N" inverted="false" automate="Off">
       <systemName>M2T1310</systemName>
       <userName>Switch 9</userName>
       <comment>Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6</comment>
@@ -650,7 +650,7 @@
       <userName>DCC Switch 11</userName>
       <comment>Node: 13 Turnout: 1 | OU: 2 Ports: 3,4</comment>
     </turnout>
-    <turnout feedback="DIRECT" inverted="false" automate="Off">
+    <turnout feedback="TWOSENSOR" sensor1="FB Switch 9 R" sensor2="FB Switch 9 N" inverted="false" automate="Off">
       <systemName>MTT119</systemName>
       <userName>DCC Switch 9</userName>
       <comment>Node: 13 Turnout: 2 | OU: 2 Ports: 5,6</comment>
