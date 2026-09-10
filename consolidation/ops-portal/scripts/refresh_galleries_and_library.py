@@ -229,6 +229,10 @@ def build_place_items() -> list[dict]:
             "South Yard",
             "Where CSX and POHC meet the island jobs.",
         ),
+        "station_map_barn.png": (
+            "Barn",
+            "Switch 7 / 9 / 11 / 13 — Engine House and the Barn crossover, sized for 3/4 in toggles.",
+        ),
         "station_map_east_end.png": ("East End", "East end industries and leads."),
         "station_map_shenango.png": ("Shenango", "Shenango Coke Works and the scale story."),
         "station_map_shenango_rotated.png": (
@@ -489,6 +493,13 @@ def build_publications() -> dict:
             "html": "docs/html/Neville_Island_Station_Map_South_Yard.html",
             "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_South_Yard.docx",
             "blurb": "South Yard station map publication.",
+        },
+        {
+            "id": "sm-barn",
+            "title": "Station Map — Barn",
+            "kind": "Station map",
+            "html": "docs/html/Neville_Island_Station_Map_Barn.html",
+            "blurb": "Barn / Engine House local panel: Switch 7, 9, 11, and 13 with 3/4 in toggle pads.",
         },
         {
             "id": "sm-wy",

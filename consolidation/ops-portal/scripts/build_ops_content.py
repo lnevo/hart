@@ -628,6 +628,10 @@ def build_gallery(media: dict[str, str]) -> dict:
             "South Yard",
             "Where CSX and POHC meet the island jobs. Color blocking starts here.",
         ),
+        "station_map_barn.png": (
+            "Barn",
+            "Switch 7 / 9 / 11 / 13 control sheet — Engine House and the Barn crossover, with 3/4 in toggle pads.",
+        ),
         "station_map_east_end.png": (
             "East End",
             "East end of Neville Island — industries and leads.",

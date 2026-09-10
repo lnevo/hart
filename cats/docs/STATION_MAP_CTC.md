@@ -5,6 +5,7 @@ Source maps (Car Cards docs → extracted under `cats/docs/station_maps/`):
 | Map | Digicon role |
 |-----|----------------|
 | West Yard | CP Brick 100 / 101, Plane 102, OS Barn 117, West Lead |
+| **Barn** | Local control sheet for **Switch 7 / 9 / 11 / 13** (LE plant: TO117 xover, TO10, TO11, TO1). Rebuild: `python3 cats/scripts/render_barn_station_map.py`. Print 11 in wide for 3/4 in touch toggles. South Yard still shows Barn in context. |
 | South Yard | West Lead → ET + ladder 103–106 → OS S-R…OS S-4 (Fall River A/D style) |
 | East End | Ladder 107–110, 111 x-over, 112, mains → Princess |
 | Shenango (+ rotated) | Princess 113–115, OS K-1/OS K-2, Rocks / OS McKeesport |

@@ -107,6 +107,13 @@
       "blurb": "South Yard station map publication."
     },
     {
+      "id": "sm-barn",
+      "title": "Station Map \u2014 Barn",
+      "kind": "Station map",
+      "html": "docs/html/Neville_Island_Station_Map_Barn.html",
+      "blurb": "Barn / Engine House local panel: Switch 7, 9, 11, and 13 with 3/4 in toggle pads."
+    },
+    {
       "id": "sm-wy",
       "title": "Station Map \u2014 West Yard",
       "kind": "Station map",

@@ -689,6 +689,13 @@
     },
     {
       "album": "maps",
+      "src": "assets/maps/station_map_barn.png",
+      "title": "Barn",
+      "caption": "Switch 7 / 9 / 11 / 13 — Engine House and the Barn crossover, sized for 3/4 in toggles.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "maps",
       "src": "assets/maps/station_map_east_end.png",
       "title": "East End",
       "caption": "East end industries and leads.",
