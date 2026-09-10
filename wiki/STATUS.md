@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-09 — Barn station map for the field panel: Switch **7 / 9 / 11 / 13** from Layout Editor topography, spread for 3/4 in touch toggles. `cats/docs/station_maps/Neville_Island_Station_Map_Barn_0.png`. Rebuild `python3 cats/scripts/render_barn_station_map.py`. Docs/static — not deployed.
+
 Updated: 2026-09-08 — Operator portal is on GitHub Pages: https://lnevo.github.io/hart/ (static crew site from `consolidation/ops-portal/`; F-root review and Desktop/HART gallery files stay local). Docs/static — not deployed to layout hosts.
 
 Updated: 2026-09-08 — Barn/EH motors: Switch **7 / 11** (and **13** on C4) are **TWOSENSOR** with MQTT FB. Switch **7 / 9 / 11** motors on **C13-OU2** (was OU3); Digicon **8LA / 8LB** moved to **OU3**. Tables from Pi store → `tables/new_tables.xml`. Wiring inventory + [`lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx) refreshed. Reload **PanelPro**. Deploy `--pi`.
