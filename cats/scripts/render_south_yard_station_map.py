@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""South Yard station map — Switch 7 / 15 / 17 / 19 / 21.
+"""South Yard station map — Switch 7 / 13 / 15 / 17 / 19 / 21.
 
 Starts from the published SM-03 sheet and restamps the frogs with the
-live switch userNames (not Digicon CP / DCC 103–106). Adds the Switch 7
-three-dot crossover at Barn, same language as East End 111.
+live switch userNames (not Digicon CP / DCC 103–106). Switch 7 is the
+three-dot Barn xover; Switch 13 sits on West Lead / Track Barn between
+Barn and the ladder.
 
     python3 cats/scripts/render_south_yard_station_map.py
 """
@@ -41,6 +42,9 @@ SW21 = (953, 661)
 SW7_TOP = (411, 225)
 SW7_BOT = (378, 370)
 SW7_MID = ((SW7_TOP[0] + SW7_BOT[0]) / 2, (SW7_TOP[1] + SW7_BOT[1]) / 2)
+
+# Switch 13 RH on West Lead / Track Barn, east of 7, west of the 15 ladder.
+SW13 = (680, 224)
 
 OLD_BADGES = (
     (862, 184, 49, 27),
@@ -109,10 +113,11 @@ def render(out: Path) -> None:
     for box in OLD_BADGES:
         _cover(d, box, pad=8)
 
-    for pt in (SW7_TOP, SW7_MID, SW7_BOT, SW15, SW17, SW19, SW21):
+    for pt in (SW7_TOP, SW7_MID, SW7_BOT, SW13, SW15, SW17, SW19, SW21):
         _dot(d, pt)
 
     _badge_near(d, SW7_MID, "7", f_num, "w")
+    _badge_near(d, SW13, "13", f_num, "ne")
     _badge_near(d, SW15, "15", f_num, "ne")
     _badge_near(d, SW17, "17", f_num, "ne")
     _badge_near(d, SW19, "19", f_num, "ne")
