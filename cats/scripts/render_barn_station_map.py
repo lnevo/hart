@@ -38,8 +38,9 @@ TRACK = (20, 20, 20)
 INK = (16, 20, 24)
 BADGE = (15, 71, 97)  # same teal as SM-02…SM-05
 BADGE_INK = (255, 255, 255)
-BADGE_H = 27
 DOT_R = 16
+# Clear air between the frog and the pill (103/111 sit off the circle, not on it).
+BADGE_GAP = 18
 COMPASS_RING = (40, 70, 110)
 COMPASS_GOLD = (201, 154, 40)
 COMPASS_N = (70, 110, 160)
@@ -121,24 +122,25 @@ def _dot(d, pt, r=DOT_R):
 
 
 def _badge_near(d, pt, text, font, corner: str = "ne"):
-    """Teal switch pill, same size/offset language as 103 / 110 / 111."""
+    """Teal switch pill off the frog, same language as 103 / 110 / 111."""
     box = d.textbbox((0, 0), text, font=font)
-    tw = box[2] - box[0]
-    w = max(tw + 18, 36)
-    h = BADGE_H
+    tw, th = box[2] - box[0], box[3] - box[1]
+    w = tw + 22
+    h = th + 16
     cx, cy = pt
+    gap = BADGE_GAP
     if corner == "ne":
-        x = cx + DOT_R - 6
-        y = cy - DOT_R - h + 10
+        x = cx + DOT_R + gap
+        y = cy - DOT_R - h - 2
     elif corner == "nw":
-        x = cx - DOT_R - w + 6
-        y = cy - DOT_R - h + 10
+        x = cx - DOT_R - w - gap
+        y = cy - DOT_R - h - 2
     elif corner == "w":
-        x = cx - DOT_R - w - 10
+        x = cx - DOT_R - w - gap
         y = cy - h / 2
     else:
         raise ValueError(corner)
-    d.rounded_rectangle([x, y, x + w, y + h], radius=6, fill=BADGE)
+    d.rounded_rectangle([x, y, x + w, y + h], radius=8, fill=BADGE)
     d.text((x + w / 2, y + h / 2 - 1), text, font=font, fill=BADGE_INK, anchor="mm")
 
 
@@ -171,7 +173,7 @@ def render(out: Path) -> None:
     f_title = _font(56, black=True)
     f_track = _font(22, bold=True)
     f_dest = _font(16)
-    f_num = _font(14, bold=True)
+    f_num = _font(20, bold=True)
 
     # Official SM titles sit at y≈16 with 42 px ink (Arial Black 56).
     d.text((W / 2, 37), "BARN", font=f_title, fill=INK, anchor="mm")
@@ -203,15 +205,20 @@ def render(out: Path) -> None:
     _badge_near(d, SW13, "13", f_num, "nw")
 
     gap = 10
-    d.text((SW7_TOP[0] - 0.55 * IN, Y_BARN - gap), "West Lead", font=f_track, fill=INK, anchor="ms")
-    d.text((4.55 * IN, Y_BARN - gap), "Track Barn", font=f_track, fill=INK, anchor="ms")
+    d.text((SW7_TOP[0] - 0.55 * IN, Y_BARN - gap), "Scale", font=f_track, fill=INK, anchor="ms")
+    d.text((4.55 * IN, Y_BARN - gap), "Barn", font=f_track, fill=INK, anchor="ms")
     d.text((4.55 * IN, Y_MAIN - gap), "Main East", font=f_track, fill=INK, anchor="ms")
     d.text((2.35 * IN, Y_EH1 - gap), "EH-1", font=f_track, fill=INK, anchor="ms")
     d.text((2.35 * IN, Y_EH2 - gap), "EH-2", font=f_track, fill=INK, anchor="ms")
     d.text((2.35 * IN, Y_EH3 - gap), "EH-3", font=f_track, fill=INK, anchor="ms")
 
-    d.text((X_WEST + 0.22 * IN, Y_BARN - 36), "to Scale", font=f_dest, fill=INK, anchor="lm")
-    d.text((X_WEST + 0.22 * IN, Y_MAIN - 36), "to Plane", font=f_dest, fill=INK, anchor="lm")
+    d.text(
+        ((X_WEST + SW7_TOP[0]) / 2, (Y_BARN + Y_MAIN) / 2),
+        "to Plane",
+        font=f_dest,
+        fill=INK,
+        anchor="mm",
+    )
     d.text((X_EAST - 0.08 * IN, Y_BARN - 36), "to South Yard", font=f_dest, fill=INK, anchor="rm")
     d.text((X_EAST - 0.08 * IN, Y_MAIN - 36), "to East End", font=f_dest, fill=INK, anchor="rm")
 
