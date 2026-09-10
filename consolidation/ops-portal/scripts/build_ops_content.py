@@ -630,7 +630,7 @@ def build_gallery(media: dict[str, str]) -> dict:
         ),
         "station_map_barn.png": (
             "Barn",
-            "Switch 7 / 9 / 11 / 13 control sheet — Engine House and the Barn crossover, with 3/4 in toggle pads.",
+            "Switch 7 / 9 / 11 / 13 — Engine House and the Barn crossover.",
         ),
         "station_map_east_end.png": (
             "East End",
