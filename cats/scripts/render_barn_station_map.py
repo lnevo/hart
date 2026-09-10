@@ -36,8 +36,10 @@ IN = float(DPI)
 
 TRACK = (20, 20, 20)
 INK = (16, 20, 24)
-BADGE = (26, 90, 122)
+BADGE = (15, 71, 97)  # same teal as SM-02…SM-05
 BADGE_INK = (255, 255, 255)
+BADGE_H = 27
+DOT_R = 16
 COMPASS_RING = (40, 70, 110)
 COMPASS_GOLD = (201, 154, 40)
 COMPASS_N = (70, 110, 160)
@@ -113,17 +115,29 @@ def _arrow(d: ImageDraw.ImageDraw, tip, direction: str, size=14):
     d.polygon(pts, fill=TRACK)
 
 
-def _dot(d, pt, r=11):
+def _dot(d, pt, r=DOT_R):
     x, y = pt
     d.ellipse([x - r, y - r, x + r, y + r], fill=TRACK)
 
 
-def _badge(d, cx, cy, text, font, dx=28, dy=-22):
-    x, y = cx + dx, cy + dy
-    pad_x = 11
+def _badge_near(d, pt, text, font, corner: str = "ne"):
+    """Teal switch pill, same size/offset language as 103 / 110 / 111."""
     box = d.textbbox((0, 0), text, font=font)
-    tw, th = box[2] - box[0], box[3] - box[1]
-    w, h = tw + pad_x * 2, max(22, th + 8)
+    tw = box[2] - box[0]
+    w = max(tw + 18, 36)
+    h = BADGE_H
+    cx, cy = pt
+    if corner == "ne":
+        x = cx + DOT_R - 6
+        y = cy - DOT_R - h + 10
+    elif corner == "nw":
+        x = cx - DOT_R - w + 6
+        y = cy - DOT_R - h + 10
+    elif corner == "w":
+        x = cx - DOT_R - w - 10
+        y = cy - h / 2
+    else:
+        raise ValueError(corner)
     d.rounded_rectangle([x, y, x + w, y + h], radius=6, fill=BADGE)
     d.text((x + w / 2, y + h / 2 - 1), text, font=font, fill=BADGE_INK, anchor="mm")
 
@@ -154,12 +168,13 @@ def _compass(d, cx, cy, r=58):
 def render(out: Path) -> None:
     img = Image.new("RGB", (W, H), (255, 255, 255))
     d = ImageDraw.Draw(img)
-    f_title = _font(40, black=True)
-    f_track = _font(16, bold=True)
-    f_dest = _font(13)
-    f_num = _font(15, bold=True)
+    f_title = _font(56, black=True)
+    f_track = _font(22, bold=True)
+    f_dest = _font(16)
+    f_num = _font(14, bold=True)
 
-    d.text((W / 2, 38), "BARN", font=f_title, fill=INK, anchor="mm")
+    # Official SM titles sit at y≈16 with 42 px ink (Arial Black 56).
+    d.text((W / 2, 37), "BARN", font=f_title, fill=INK, anchor="mm")
 
     # Horizontals
     _line(d, (X_WEST, Y_BARN), (X_EAST, Y_BARN), 6)
@@ -181,21 +196,24 @@ def render(out: Path) -> None:
     for pt in (SW7_TOP, SW7_MID, SW7_BOT, SW9, SW11, SW13):
         _dot(d, pt)
 
-    _badge(d, SW7_MID[0], SW7_MID[1], "7", f_num, dx=-48, dy=-12)
-    _badge(d, SW9[0], SW9[1], "9", f_num, dx=16, dy=-42)
-    _badge(d, SW11[0], SW11[1], "11", f_num, dx=18, dy=-42)
-    _badge(d, SW13[0], SW13[1], "13", f_num, dx=-62, dy=-40)
+    # 7 like East End 111 (west of the xover); 9/11 like 103 (NE); 13 like 110 (NW).
+    _badge_near(d, SW7_MID, "7", f_num, "w")
+    _badge_near(d, SW9, "9", f_num, "ne")
+    _badge_near(d, SW11, "11", f_num, "ne")
+    _badge_near(d, SW13, "13", f_num, "nw")
 
-    d.text((4.05 * IN, Y_BARN - 0.22 * IN), "West Lead / Track Barn", font=f_track, fill=INK, anchor="mm")
-    d.text((4.20 * IN, Y_MAIN + 0.26 * IN), "Main East", font=f_track, fill=INK, anchor="mm")
-    d.text((2.35 * IN, Y_EH1 - 0.16 * IN), "EH-1", font=f_track, fill=INK, anchor="mm")
-    d.text((2.35 * IN, Y_EH2 - 0.16 * IN), "EH-2", font=f_track, fill=INK, anchor="mm")
-    d.text((2.35 * IN, Y_EH3 - 0.16 * IN), "EH-3", font=f_track, fill=INK, anchor="mm")
+    gap = 10
+    d.text((SW7_TOP[0] - 0.55 * IN, Y_BARN - gap), "West Lead", font=f_track, fill=INK, anchor="ms")
+    d.text((4.55 * IN, Y_BARN - gap), "Track Barn", font=f_track, fill=INK, anchor="ms")
+    d.text((4.55 * IN, Y_MAIN - gap), "Main East", font=f_track, fill=INK, anchor="ms")
+    d.text((2.35 * IN, Y_EH1 - gap), "EH-1", font=f_track, fill=INK, anchor="ms")
+    d.text((2.35 * IN, Y_EH2 - gap), "EH-2", font=f_track, fill=INK, anchor="ms")
+    d.text((2.35 * IN, Y_EH3 - gap), "EH-3", font=f_track, fill=INK, anchor="ms")
 
-    d.text((X_WEST + 0.38 * IN, Y_BARN - 0.24 * IN), "to Scale", font=f_dest, fill=INK, anchor="lm")
-    d.text((X_WEST + 0.38 * IN, Y_MAIN - 0.24 * IN), "to Plane", font=f_dest, fill=INK, anchor="lm")
-    d.text((X_EAST - 0.10 * IN, Y_BARN - 0.24 * IN), "to South Yard", font=f_dest, fill=INK, anchor="rm")
-    d.text((X_EAST - 0.10 * IN, Y_MAIN + 0.24 * IN), "to East End", font=f_dest, fill=INK, anchor="rm")
+    d.text((X_WEST + 0.22 * IN, Y_BARN - 36), "to Scale", font=f_dest, fill=INK, anchor="lm")
+    d.text((X_WEST + 0.22 * IN, Y_MAIN - 36), "to Plane", font=f_dest, fill=INK, anchor="lm")
+    d.text((X_EAST - 0.08 * IN, Y_BARN - 36), "to South Yard", font=f_dest, fill=INK, anchor="rm")
+    d.text((X_EAST - 0.08 * IN, Y_MAIN - 36), "to East End", font=f_dest, fill=INK, anchor="rm")
 
     _compass(d, 0.82 * IN, 4.52 * IN, r=50)
 
