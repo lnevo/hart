@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-09-09 — South Yard station map uses switch userNames **15 / 17 / 19 / 21** (not Digicon 103–106) and the **Switch 7** three-dot Barn xover. Rebuild `python3 cats/scripts/render_south_yard_station_map.py`. Docs/static — not deployed.
+Updated: 2026-09-09 — South Yard station map uses switch userNames **7 / 13 / 15 / 17 / 19 / 21**. Rebuild `python3 cats/scripts/render_south_yard_station_map.py`. Docs/static — not deployed.
 
 Updated: 2026-09-09 — Barn station map (SM-06): Switch **7 / 9 / 11 / 13** from Layout Editor topography, East End **111**-style three-dot xover, one slope for every diverge. `cats/docs/station_maps/Neville_Island_Station_Map_Barn_0.png` · hart-ops `Neville_Island_Station_Map_Barn.docx`. Rebuild `python3 cats/scripts/render_barn_station_map.py`. Docs/static — not deployed.
 
