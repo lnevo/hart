@@ -6,7 +6,7 @@ Source maps (Car Cards docs → extracted under `cats/docs/station_maps/`):
 |-----|----------------|
 | West Yard | CP Brick 100 / 101, Plane 102, OS Barn 117, West Lead |
 | **Barn** | Local sheet for **Switch 7 / 9 / 11 / 13** (LE: TO117 xover, TO10, TO11, TO1). Rebuild: `python3 cats/scripts/render_barn_station_map.py`. SM-06 docx in hart-ops. South Yard still shows Barn in context. |
-| South Yard | West Lead → ET + **Switch 13** + ladder **15 / 17 / 19 / 21**; **Switch 7** Barn xover. Rebuild: `python3 cats/scripts/render_south_yard_station_map.py`. |
+| South Yard | West Lead → **EH-1 / EH-2 / EH-3** (shrunken Barn plant) + **Switch 13** + ladder **15 / 17 / 19 / 21**; **Switch 7** Barn xover. Rebuild: `python3 cats/scripts/render_south_yard_station_map.py`. |
 | East End | Ladder 107–110, 111 x-over, 112, mains → Princess |
 | Shenango (+ rotated) | Princess 113–115, OS K-1/OS K-2, Rocks / OS McKeesport |
 
