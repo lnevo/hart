@@ -1,6 +1,6 @@
 # Live status — HART Digicon
 
-Updated: 2026-09-09 — Barn station map for the field panel: Switch **7 / 9 / 11 / 13** from Layout Editor topography, spread for 3/4 in touch toggles. `cats/docs/station_maps/Neville_Island_Station_Map_Barn_0.png`. Rebuild `python3 cats/scripts/render_barn_station_map.py`. Docs/static — not deployed.
+Updated: 2026-09-09 — Barn station map (SM-06): Switch **7 / 9 / 11 / 13** from Layout Editor topography, East End **111**-style three-dot xover, one slope for every diverge. `cats/docs/station_maps/Neville_Island_Station_Map_Barn_0.png` · hart-ops `Neville_Island_Station_Map_Barn.docx`. Rebuild `python3 cats/scripts/render_barn_station_map.py`. Docs/static — not deployed.
 
 Updated: 2026-09-08 — Operator portal is on GitHub Pages: https://lnevo.github.io/hart/ (static crew site from `consolidation/ops-portal/`; F-root review and Desktop/HART gallery files stay local). Docs/static — not deployed to layout hosts.
 
