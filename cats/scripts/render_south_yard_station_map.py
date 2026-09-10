@@ -4,8 +4,8 @@
 Starts from the published SM-03 sheet and restamps the frogs with the
 live switch userNames (not Digicon CP / DCC 103–106). Switch 7 is the
 three-dot Barn xover. The compact ET stub is replaced with a shrunken
-Barn engine-house plant (EH-1 / EH-2 / EH-3); Switch 13 sits on West Lead
-at that throat.
+Barn engine-house plant (EH-1 / EH-2 / EH-3). Switch 13 sits on Scale
+at that throat; the Barn block is the rail between 7 and 13.
 
     python3 cats/scripts/render_south_yard_station_map.py
 """
@@ -48,8 +48,8 @@ SW7_TOP = (411, 225)
 SW7_BOT = (378, 370)
 SW7_MID = ((SW7_TOP[0] + SW7_BOT[0]) / 2, (SW7_TOP[1] + SW7_BOT[1]) / 2)
 
-# Shrunken Barn EH plant above West Lead (replaces the compact ET stub).
-# Switch 13 is the West Lead frog at the published throat (~x=630).
+# Shrunken Barn EH plant above Scale (replaces the compact ET stub).
+# Switch 13 is the Scale frog at the published throat (~x=630).
 Y_WL = 225.0
 Y_EH1 = 108.0
 Y_EH2 = 140.0
@@ -74,10 +74,14 @@ OLD_BADGES = (
     (932, 475, 49, 27),
     (967, 621, 49, 27),
 )
-# Compact ET-1/2/3 stub + its join onto West Lead (stop above the rail).
+# Compact ET-1/2/3 stub + its join onto Scale (stop above the rail).
 OLD_EH_STUB = (
     (318, 120, 340, 92),
     (618, 200, 24, 16),
+)
+OLD_LABELS = (
+    (201, 199, 108, 16),  # West Lead
+    (350, 392, 88, 32),  # Barn (under Main East)
 )
 
 
@@ -98,7 +102,7 @@ def _font(size: int, bold: bool = False):
     return ImageFont.load_default()
 
 
-def _line(d: ImageDraw.ImageDraw, a, b, width=5):
+def _line(d: ImageDraw.ImageDraw, a, b, width=4):
     d.line([a, b], fill=TRACK, width=width)
     r = width / 2
     for x, y in (a, b):
@@ -151,9 +155,8 @@ def render(out: Path) -> None:
         _cover(d, box, pad=8)
     for box in OLD_EH_STUB:
         _cover(d, box, pad=2)
-
-    # Restore West Lead through the wiped pocket.
-    _line(d, (200, Y_WL), (SW15[0], Y_WL), 6)
+    for box in OLD_LABELS:
+        _cover(d, box, pad=3)
 
     _line(d, (X_EH, Y_EH1), EH1_JOIN)
     _line(d, (X_EH, Y_EH2), EH2_JOIN)
@@ -162,17 +165,18 @@ def render(out: Path) -> None:
     _line(d, EH2_JOIN, SW9)
 
     f_eh = _font(13, bold=True)
+    f_track = _font(18, bold=True)
     gap = 6
     d.text((X_EH + 72, Y_EH1 - gap), "EH-1", font=f_eh, fill=INK, anchor="ms")
     d.text((X_EH + 72, Y_EH2 - gap), "EH-2", font=f_eh, fill=INK, anchor="ms")
     d.text((X_EH + 72, Y_EH3 - gap), "EH-3", font=f_eh, fill=INK, anchor="ms")
+    d.text((254, Y_WL - 12), "Scale", font=f_track, fill=INK, anchor="ms")
+    d.text(((SW7_TOP[0] + SW13[0]) / 2, Y_WL - 12), "Barn", font=f_track, fill=INK, anchor="ms")
 
-    for pt in (SW7_TOP, SW7_MID, SW7_BOT, SW9, SW11, SW13, SW15, SW17, SW19, SW21):
+    for pt in (SW7_TOP, SW7_MID, SW7_BOT, SW13, SW15, SW17, SW19, SW21):
         _dot(d, pt)
 
     _badge_near(d, SW7_MID, "7", f_num, "w")
-    _badge_near(d, SW9, "9", f_num, "e")
-    _badge_near(d, SW11, "11", f_num, "ne")
     _badge_near(d, SW13, "13", f_num, "e")
     _badge_near(d, SW15, "15", f_num, "ne")
     _badge_near(d, SW17, "17", f_num, "ne")
