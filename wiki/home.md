@@ -9,7 +9,7 @@ Chat is a scratchpad. Decisions that count live here.
 | Agent / git conventions | [`AGENTS_GIT.md`](AGENTS_GIT.md) |
 | JMRI AI context | [`../docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md) |
 
-**Active projects:** [`projects/hart-panel.md`](projects/hart-panel.md) · [`projects/cats-integration.md`](projects/cats-integration.md) · [`projects/speedmatching.md`](projects/speedmatching.md) (parked)  
+**Active projects:** [`projects/hart-panel.md`](projects/hart-panel.md) · [`projects/cats-integration.md`](projects/cats-integration.md) · [`projects/speedmatching.md`](projects/speedmatching.md) (parked) · [`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md) (parked — review later)  
 **Public names:** [ADR-002](decisions/ADR-002-naming-contract.md) · [ADR-005](decisions/ADR-005-public-equipment-names.md) · [ADR-006](decisions/ADR-006-co-1980-signals.md) · [`public_name_map.csv`](../jmri/layouts/hart/data/public_name_map.csv)
 **Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`  
 **CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style; source [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/))  

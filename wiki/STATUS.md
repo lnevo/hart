@@ -541,6 +541,7 @@ Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.
 ## Remaining
 
 - Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
+- Cursor skills + MCPs inventory, parked for review ([`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)) — not railroad work; do not build until reviewed
 - Dispatcher traininfo: 1004 files retargeted `via Track N` → `via OS Switch N`. Fable repair rebound 226; **196 pairs still have no transit** (EH-1/2/3 and McKeesport/McKees Rocks). Stage 1 in PanelPro is only for those holes — then `fix_traininfo_detection.py` + Princess SML pairs.
 
 ## Manual launch (local Mac only)
