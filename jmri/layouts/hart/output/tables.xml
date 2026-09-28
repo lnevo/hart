@@ -16945,14 +16945,14 @@
     </ctcProperties>
     <ctcOtherData>
       <CtcVersion>v2.0</CtcVersion>
-      <FleetingToggleInternalSensor>IS:FLEETING</FleetingToggleInternalSensor>
+      <FleetingToggleInternalSensor>CTC fleeting</FleetingToggleInternalSensor>
       <DefaultFleetingEnabled>false</DefaultFleetingEnabled>
       <TUL_EnabledAtStartup>true</TUL_EnabledAtStartup>
       <SignalSystemType>1</SignalSystemType>
       <TUL_SecondsToLockTurnouts>0</TUL_SecondsToLockTurnouts>
       <NextUniqueNumber>36</NextUniqueNumber>
-      <CTCDebugSystemReloadInternalSensor>IS:RELOADCTC</CTCDebugSystemReloadInternalSensor>
-      <CTCDebug_TrafficLockingRuleTriggeredDisplayInternalSensor>IS:DEBUGCTC</CTCDebug_TrafficLockingRuleTriggeredDisplayInternalSensor>
+      <CTCDebugSystemReloadInternalSensor>CTC reload</CTCDebugSystemReloadInternalSensor>
+      <CTCDebug_TrafficLockingRuleTriggeredDisplayInternalSensor>CTC debug</CTCDebug_TrafficLockingRuleTriggeredDisplayInternalSensor>
       <GUIDesign_NumberOfEmptyColumnsAtEnd>1</GUIDesign_NumberOfEmptyColumnsAtEnd>
       <GUIDesign_CTCPanelType>0</GUIDesign_CTCPanelType>
       <GUIDesign_BuilderPlate>false</GUIDesign_BuilderPlate>
@@ -16971,16 +16971,16 @@
       <SwitchNumber>1</SwitchNumber>
       <SignalEtcNumber>2</SignalEtcNumber>
       <GUIColumnNumber>2</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS2:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 3 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 3</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS2:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS2:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS2:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 3 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 3 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 3 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
@@ -16990,12 +16990,12 @@
         <signal>Mast 4RB</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS2:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS2:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS2:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 3 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 3 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 3 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS1:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS1:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 3 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 3 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 3</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17003,9 +17003,9 @@
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS1:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 3 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS2:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 3 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -17058,10 +17058,10 @@
       </TRL_LeftRules>
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS2:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 3 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 3</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS2:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 3 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17075,16 +17075,16 @@
       <SwitchNumber>3</SwitchNumber>
       <SignalEtcNumber>4</SignalEtcNumber>
       <GUIColumnNumber>3</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS4:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 1 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 1</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS4:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS4:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS4:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 1 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 1 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 1 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
@@ -17093,12 +17093,12 @@
       </SIDI_LeftRightTrafficSignals>
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS4:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS4:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS4:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 1 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 1 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 1 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS3:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS3:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 1 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 1 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 1</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17106,9 +17106,9 @@
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS3:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 1 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS4:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 1 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules />
@@ -17163,10 +17163,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS4:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 1 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 1</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS4:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 1 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17180,16 +17180,16 @@
       <SwitchNumber>5</SwitchNumber>
       <SignalEtcNumber>6</SignalEtcNumber>
       <GUIColumnNumber>4</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS6:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 5 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 5</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS6:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS6:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS6:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 5 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 5 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 5 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
@@ -17199,12 +17199,12 @@
         <signal>Mast 6LA</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS6:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS6:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS6:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 5 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 5 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 5 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS5:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS5:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 5 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 5 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 5</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17212,9 +17212,9 @@
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS5:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 5 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS6:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 5 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -17269,10 +17269,10 @@
       </TRL_LeftRules>
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS6:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 5 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 5</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS6:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 5 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17286,16 +17286,16 @@
       <SwitchNumber>7</SwitchNumber>
       <SignalEtcNumber>8</SignalEtcNumber>
       <GUIColumnNumber>6</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS8:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 7 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 7</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2>BS Switch 7b</OSSectionOccupiedExternalSensor2>
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS8:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS8:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS8:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 7 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 7 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 7 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>BOTH</SIDI_TrafficDirection>
@@ -17308,12 +17308,12 @@
         <signal>Mast 8LB</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS8:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS8:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS8:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 7 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 7 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 7 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS7:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS7:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 7 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 7 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 7</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17321,9 +17321,9 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>true</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS7:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 7 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS8:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 7 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -17508,10 +17508,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS8:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 7 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 7</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS8:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 7 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17525,28 +17525,28 @@
       <SwitchNumber>9</SwitchNumber>
       <SignalEtcNumber>10</SignalEtcNumber>
       <GUIColumnNumber>7</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS10:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 13 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 13</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS10:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS10:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS10:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 13 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 13 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 13 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS10:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS10:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS10:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 13 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 13 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 13 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS9:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS9:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 13 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 13 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 13</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17554,18 +17554,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS9:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 13 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS10:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 13 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS10:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 13 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 13</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS10:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 13 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17579,28 +17579,28 @@
       <SwitchNumber>11</SwitchNumber>
       <SignalEtcNumber>12</SignalEtcNumber>
       <GUIColumnNumber>8</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS12:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 15 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 15</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS12:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS12:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS12:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 15 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 15 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 15 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS12:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS12:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS12:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 15 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 15 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 15 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS11:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS11:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 15 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 15 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 15</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17608,18 +17608,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS11:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 15 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS12:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 15 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS12:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 15 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 15</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS12:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 15 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17633,16 +17633,16 @@
       <SwitchNumber>17</SwitchNumber>
       <SignalEtcNumber>18</SignalEtcNumber>
       <GUIColumnNumber>10</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS18:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 23 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 23a</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2>BS Switch 23b</OSSectionOccupiedExternalSensor2>
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS18:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS18:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS18:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 23 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 23 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 23 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>BOTH</SIDI_TrafficDirection>
@@ -17654,12 +17654,12 @@
         <signal>Mast 24L</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS18:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS18:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS18:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 23 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 23 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 23 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS17:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS17:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 23 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 23 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 23</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17667,9 +17667,9 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS17:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 23 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS18:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 23 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -17787,10 +17787,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS18:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 23 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 23</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS18:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 23 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17804,16 +17804,16 @@
       <SwitchNumber>21</SwitchNumber>
       <SignalEtcNumber>22</SignalEtcNumber>
       <GUIColumnNumber>11</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS22:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 31 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 31</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS22:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS22:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS22:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 31 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 31 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 31 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
@@ -17822,12 +17822,12 @@
       </SIDI_LeftRightTrafficSignals>
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS22:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS22:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS22:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 31 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 31 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 31 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS21:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS21:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 31 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 31 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 31</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17835,9 +17835,9 @@
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS21:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 31 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS22:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 31 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules />
@@ -17867,10 +17867,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS22:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 31 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 31</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS22:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 31 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17884,16 +17884,16 @@
       <SwitchNumber>23</SwitchNumber>
       <SignalEtcNumber>24</SignalEtcNumber>
       <GUIColumnNumber>12</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS24:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 33 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 33</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS24:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS24:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS24:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 33 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 33 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 33 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>BOTH</SIDI_TrafficDirection>
@@ -17904,12 +17904,12 @@
         <signal>Mast 34L</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS24:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS24:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS24:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 33 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 33 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 33 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS23:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS23:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 33 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 33 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 33</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -17917,9 +17917,9 @@
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS23:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 33 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS24:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 33 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -18069,10 +18069,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS24:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 33 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 33</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS24:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 33 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18086,16 +18086,16 @@
       <SwitchNumber>25</SwitchNumber>
       <SignalEtcNumber>26</SignalEtcNumber>
       <GUIColumnNumber>14</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS26:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 35 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 35b</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2>BS Switch 35a</OSSectionOccupiedExternalSensor2>
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS26:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS26:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS26:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 35 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 35 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 35 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
@@ -18105,12 +18105,12 @@
       </SIDI_LeftRightTrafficSignals>
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS26:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS26:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS26:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 35 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 35 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 35 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS25:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS25:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 35 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 35 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 35</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18118,9 +18118,9 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>true</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS25:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 35 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS26:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 35 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -18257,10 +18257,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS26:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 35 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 35</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS26:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 35 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18274,16 +18274,16 @@
       <SwitchNumber>27</SwitchNumber>
       <SignalEtcNumber>28</SignalEtcNumber>
       <GUIColumnNumber>15</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS28:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 37 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 37 / BS K-2</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS28:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS28:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS28:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 37 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 37 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 37 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>BOTH</SIDI_TrafficDirection>
@@ -18295,12 +18295,12 @@
         <signal>Mast 38LB</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS28:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS28:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS28:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 37 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 37 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 37 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS27:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS27:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 37 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 37 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 37</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18308,9 +18308,9 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS27:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 37 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS28:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 37 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -18397,10 +18397,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS28:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 37 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 37</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS28:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 37 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18414,16 +18414,16 @@
       <SwitchNumber>29</SwitchNumber>
       <SignalEtcNumber>30</SignalEtcNumber>
       <GUIColumnNumber>16</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS30:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 39 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 39 / BS K-1</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS30:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS30:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS30:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 39 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 39 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 39 sig R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>BOTH</SIDI_TrafficDirection>
@@ -18435,12 +18435,12 @@
         <signal>Mast 40LB</signal>
       </SIDI_RightLeftTrafficSignals>
       <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS30:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS30:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS30:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 39 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 39 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 39 sig R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS29:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS29:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 39 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 39 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 39</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18448,9 +18448,9 @@
       <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS29:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 39 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS30:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 39 sig call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>true</TRL_Enabled>
       <TRL_LeftRules>
@@ -18585,10 +18585,10 @@
         </TRL_TrafficLockingRule>
       </TRL_RightRules>
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS30:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 39 sig local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 39</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS30:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 39 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18602,28 +18602,28 @@
       <SwitchNumber>31</SwitchNumber>
       <SignalEtcNumber>32</SignalEtcNumber>
       <GUIColumnNumber>5</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS32:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 9 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 9</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS32:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS32:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS32:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 9 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 9 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 9 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS32:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS32:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS32:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 9 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 9 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 9 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS31:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS31:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 9 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 9 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 9</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18631,18 +18631,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS31:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 9 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS32:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 9 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS32:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 9 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 9</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS32:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 9 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18656,28 +18656,28 @@
       <SwitchNumber>33</SwitchNumber>
       <SignalEtcNumber>34</SignalEtcNumber>
       <GUIColumnNumber>9</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS34:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 11 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 11</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS34:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS34:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS34:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 11 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 11 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 11 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS34:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS34:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS34:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 11 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 11 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 11 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS33:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS33:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 11 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 11 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 11</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18685,18 +18685,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS33:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 11 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS34:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 11 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS34:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 11 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 11</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS34:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 11 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18710,28 +18710,28 @@
       <SwitchNumber>35</SwitchNumber>
       <SignalEtcNumber>36</SignalEtcNumber>
       <GUIColumnNumber>13</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS36:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 17 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 17</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS36:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS36:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS36:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 17 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 17 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 17 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS36:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS36:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS36:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 17 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 17 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 17 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS35:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS35:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 17 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 17 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 17</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18739,18 +18739,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS35:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 17 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS36:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 17 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS36:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 17 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 17</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS36:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 17 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18764,28 +18764,28 @@
       <SwitchNumber>37</SwitchNumber>
       <SignalEtcNumber>38</SignalEtcNumber>
       <GUIColumnNumber>17</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS38:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 19 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 19</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS38:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS38:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS38:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 19 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 19 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 19 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS38:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS38:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS38:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 19 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 19 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 19 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS37:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS37:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 19 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 19 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 19</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18793,18 +18793,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS37:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 19 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS38:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 19 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS38:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 19 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 19</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS38:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 19 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18818,28 +18818,28 @@
       <SwitchNumber>39</SwitchNumber>
       <SignalEtcNumber>40</SignalEtcNumber>
       <GUIColumnNumber>18</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS40:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 21 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 21</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS40:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS40:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS40:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 21 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 21 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 21 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS40:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS40:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS40:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 21 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 21 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 21 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS39:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS39:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 21 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 21 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 21</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18847,18 +18847,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS39:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 21 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS40:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 21 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS40:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 21 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 21</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS40:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 21 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18872,28 +18872,28 @@
       <SwitchNumber>13</SwitchNumber>
       <SignalEtcNumber>14</SignalEtcNumber>
       <GUIColumnNumber>19</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS14:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 25 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 25</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS14:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS14:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS14:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 25 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 25 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 25 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS14:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS14:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS14:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 25 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 25 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 25 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS13:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS13:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 25 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 25 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 25</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18901,18 +18901,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS13:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 25 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS14:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 25 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS14:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 25 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 25</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS14:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 25 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18926,28 +18926,28 @@
       <SwitchNumber>15</SwitchNumber>
       <SignalEtcNumber>16</SignalEtcNumber>
       <GUIColumnNumber>20</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS16:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 27 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 27</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS16:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS16:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS16:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 27 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 27 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 27 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS16:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS16:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS16:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 27 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 27 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 27 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS15:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS15:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 27 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 27 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 27</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -18955,18 +18955,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS15:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 27 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS16:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 27 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS16:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 27 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 27</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS16:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 27 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -18980,28 +18980,28 @@
       <SwitchNumber>19</SwitchNumber>
       <SignalEtcNumber>20</SignalEtcNumber>
       <GUIColumnNumber>21</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS20:CB</CodeButtonInternalSensor>
+      <CodeButtonInternalSensor>CTC 29 lock code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 29</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS20:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS20:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS20:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>CTC 29 lock L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 29 lock N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 29 lock R lamp</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS20:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS20:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS20:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>CTC 29 lock L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 29 lock N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 29 lock R lever</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS19:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS19:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>CTC 29 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 29 R ind</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>Switch 29</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -19009,18 +19009,18 @@
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS19:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>CTC 29 lever</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS20:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>CTC 29 lock call-on</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS20:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 29 lock local</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>Switch 29</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS20:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 29 lock unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>

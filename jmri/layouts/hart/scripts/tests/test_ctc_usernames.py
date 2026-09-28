@@ -71,6 +71,25 @@ class CtcInternalNamesTest(unittest.TestCase):
         }
         self.assertEqual(len(levers), 20)
 
+    def test_ctc_editor_refs_use_display_names(self) -> None:
+        """CTC editor combos list display names. A system-name value does not match."""
+        root = ET.parse(TABLES).getroot()
+        display = {}
+        for sensor in root.iter("sensor"):
+            system_name = (sensor.findtext("systemName") or "").strip()
+            user_name = (sensor.findtext("userName") or "").strip()
+            if system_name and user_name and user_name != system_name:
+                display[system_name] = user_name
+        ctc = root.find("ctcdata")
+        self.assertIsNotNone(ctc)
+        bad = []
+        for el in ctc.iter():
+            text = (el.text or "").strip()
+            if not text or "#" in text or text not in display:
+                continue
+            bad.append(f"{el.tag}={text} display={display[text]}")
+        self.assertEqual(bad, [])
+
     def test_gui_has_a_lever_icon_per_switch(self) -> None:
         gui = (SCRIPTS.parent / "ctc" / "GUIObjects.xml").read_text(encoding="utf-8")
         found = set()
