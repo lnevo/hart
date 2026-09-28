@@ -1,6 +1,6 @@
 # Pipeline 3 — Digicon signal beans
 
-Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appearances are stock **C&O-1980** (`CO-33-hi` / `CO-3-dwarf`) plus a user-files overlay for USS CTC icons.
+Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appearances are stock **C&O-1980** (`CO-33-hi` / `CO-3-dwarf`). The user-files overlay adds USS CTC imagelinks only; aspect mappings and Layout Editor icons stay stock, sized with icon scale.
 
 **Status:** Live.
 

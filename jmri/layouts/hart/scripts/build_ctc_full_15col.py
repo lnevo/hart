@@ -83,44 +83,44 @@ def add_os(sw_num, col, os_sensor, turnout, ltr_masts, rtl_masts,
 
 
 # Brick + Plane
-add_os(1, 1, "Block 4-1", "Switch 3",
+add_os(1, 1, "BS Switch 3", "Switch 3",
        ["Mast 4RA", "Mast 4RB"], [], left_hand=True)
-add_os(3, 2, "Block 4-2", "Switch 1",
+add_os(3, 2, "BS Switch 1", "Switch 1",
        [], ["Mast 2L"], left_hand=True)
-add_os(5, 3, "Block 4-5", "Switch 5",
+add_os(5, 3, "BS Switch 5", "Switch 5",
        [], ["Mast 6LB", "Mast 6LA"], left_hand=True)
 # OS Barn
-add_os(7, 4, "Block 13-3", "Switch 7",
+add_os(7, 4, "BS Switch 7", "Switch 7",
        ["Mast 8RA", "Mast 8RB"],
        ["Mast 8LA", "Mast 8LB"],
-       secondary="Block 13-4", ttype=CROSSOVER, left_hand=True)
+       secondary="BS Switch 7b", ttype=CROSSOVER, left_hand=True)
 # Yard ladder is switch-only (no CTC homes). Lock toggles default Local
 # via ctc_default_reverse_levers.py / IX:CTC:REVDEF.
-add_os(9, 5, "Block 3-1", "Switch 13", [], [])
-add_os(11, 6, "Block 3-2", "Switch 15", [], [])
+add_os(9, 5, "BS Switch 13", "Switch 13", [], [])
+add_os(11, 6, "BS Switch 15", "Switch 15", [], [])
 # East End
-add_os(13, 7, "Block 12-1", "Switch 25", [], [])
-add_os(15, 8, "Block 12-3", "Switch 27", [], [])
-add_os(17, 9, "Block 12-4", "Switch 23",
+add_os(13, 7, "BS Switch 25", "Switch 25", [], [])
+add_os(15, 8, "BS Switch 27", "Switch 27", [], [])
+add_os(17, 9, "BS Switch 23a", "Switch 23",
        ["Mast 24RA", "Mast 24RB"],
        ["Mast 24L"],
-       secondary="Block 12-6", ttype=CROSSOVER)
-add_os(19, 10, "Block 12-5", "Switch 29", [], [])
-add_os(21, 11, "Block 12-7", "Switch 31",
+       secondary="BS Switch 23b", ttype=CROSSOVER)
+add_os(19, 10, "BS Switch 29", "Switch 29", [], [])
+add_os(21, 11, "BS Switch 31", "Switch 31",
        ["Mast 32R"], [], left_hand=True)
-add_os(23, 12, "Block 12-8", "Switch 33",
+add_os(23, 12, "BS Switch 33", "Switch 33",
        ["Mast 34R"], ["Mast 34L"], left_hand=True)
 # Princess
-add_os(25, 13, "Block 1-5", "Switch 35",
+add_os(25, 13, "BS Switch 35b", "Switch 35",
        ["Mast 36RA", "Mast 36RB"], [],
-       secondary="Block 1-6", ttype=CROSSOVER, left_hand=True)
+       secondary="BS Switch 35a", ttype=CROSSOVER, left_hand=True)
 # Balloon: 114/115 BOTH. Each SIDI list needs a unique mast (JMRI
 # rejects empty lists and forbids sharing a mast across columns).
 # Eastbound homes on the loop were previously unlisted.
-c114 = add_os(27, 14, "Block 1-3", "Switch 37",
+c114 = add_os(27, 14, "BS Switch 37 / BS K-2", "Switch 37",
        ["Mast 2035"],
        ["Mast 38LA", "Mast 38LB"])
-c115 = add_os(29, 15, "Block 1-4", "Switch 39",
+c115 = add_os(29, 15, "BS Switch 39 / BS K-1", "Switch 39",
        ["Mast 2036"],
        ["Mast 40LA", "Mast 40LB"], left_hand=True)
 c114._mSIDI_TrafficDirection = BOTH

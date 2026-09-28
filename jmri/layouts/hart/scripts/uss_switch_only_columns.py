@@ -17,6 +17,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+# Turnout userName → OS occupancy sensor. Single-sensor plants only.
+OS_SENSOR = {
+    "Switch 9": "BS Switch 9",
+    "Switch 11": "BS Switch 11",
+    "Switch 17": "BS Switch 17",
+    "Switch 19": "BS Switch 19",
+    "Switch 21": "BS Switch 21",
+    "Switch 25": "BS Switch 25",
+    "Switch 27": "BS Switch 27",
+    "Switch 29": "BS Switch 29",
+}
+
 # slot, SwitchNumber (IS odd), SignalEtcNumber (existing LOCKTOGGLE), UniqueID, GUIColumn, turnout
 NEW_COLUMNS = (
     (4, 31, 32, 28, 5, "Switch 9"),
@@ -48,7 +60,7 @@ COLUMN_XML = """    <ctcCodeButtonData>
       <SignalEtcNumber>{sig}</SignalEtcNumber>
       <GUIColumnNumber>{col}</GUIColumnNumber>
       <CodeButtonInternalSensor>IS{sig}:CB</CodeButtonInternalSensor>
-      <OSSectionOccupiedExternalSensor />
+      <OSSectionOccupiedExternalSensor>{os}</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
@@ -152,7 +164,9 @@ def ensure_columns(text: str) -> str:
             text,
         ):
             continue
-        xml = COLUMN_XML.format(uid=uid, sw=sw, sig=sig, col=col, turnout=turnout)
+        xml = COLUMN_XML.format(
+            uid=uid, sw=sw, sig=sig, col=col, turnout=turnout, os=OS_SENSOR[turnout]
+        )
         if "</ctcdata>" not in text:
             raise RuntimeError("no </ctcdata>")
         text = text.replace("</ctcdata>", xml + "  </ctcdata>", 1)

@@ -42,7 +42,7 @@
       <revnumber>2</revnumber>
       <date>2020-03-05</date>
       <authorinitials>GM</authorinitials>
-      <revremark>HART overlay of stock C&amp;O-1980: CO-33-hi + CO-3-dwarf only, plus USS CTC imagelinks.</revremark>
+      <revremark>HART ships CO-33-hi and CO-3-dwarf only. Aspect mappings and default icons are stock JMRI; extra imagelinks are USS CTC (ctc / ctc-w).</revremark>
     </revision>
   
   </revhistory>

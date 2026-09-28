@@ -72,11 +72,11 @@ else:
         return c
 
     cols = [
-        add_os(1, 1, "Block 4-1", "Switch 3",
+        add_os(1, 1, "BS Switch 3", "Switch 3",
                ["Mast 4RA", "Mast 4RB"], []),
-        add_os(3, 2, "Block 4-2", "Switch 1",
+        add_os(3, 2, "BS Switch 1", "Switch 1",
                [], ["Mast 2L"]),
-        add_os(5, 3, "Block 4-5", "Switch 5",
+        add_os(5, 3, "BS Switch 5", "Switch 5",
                [], ["Mast 6LB", "Mast 6LA"]),
     ]
 

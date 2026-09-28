@@ -74,24 +74,24 @@ else:
         return c
 
     # East End
-    add_os(7, 4, "Block 12-1", "Switch 25", [], [])
-    add_os(9, 5, "Block 12-3", "Switch 27", [], [])
-    add_os(11, 6, "Block 12-4", "Switch 23",
+    add_os(7, 4, "BS Switch 25", "Switch 25", [], [])
+    add_os(9, 5, "BS Switch 27", "Switch 27", [], [])
+    add_os(11, 6, "BS Switch 23a", "Switch 23",
            ["Mast 24RA", "Mast 24RB"],
            ["Mast 24L"],
-           secondary="Block 12-6", ttype=CROSSOVER)
-    add_os(13, 7, "Block 12-5", "Switch 29", [], [])
-    add_os(15, 8, "Block 12-7", "Switch 31",
+           secondary="BS Switch 23b", ttype=CROSSOVER)
+    add_os(13, 7, "BS Switch 29", "Switch 29", [], [])
+    add_os(15, 8, "BS Switch 31", "Switch 31",
            ["Mast 32R"], [], left_hand=True)
-    add_os(17, 9, "Block 12-8", "Switch 33",
+    add_os(17, 9, "BS Switch 33", "Switch 33",
            ["Mast 34R"], ["Mast 34L"], left_hand=True)
     # Princess
-    add_os(19, 10, "Block 1-5", "Switch 35",
+    add_os(19, 10, "BS Switch 35b", "Switch 35",
            ["Mast 36RA", "Mast 36RB"], [],
-           secondary="Block 1-6", ttype=CROSSOVER, left_hand=True)
-    add_os(21, 11, "Block 1-3", "Switch 37",
+           secondary="BS Switch 35a", ttype=CROSSOVER, left_hand=True)
+    add_os(21, 11, "BS Switch 37 / BS K-2", "Switch 37",
            [], ["Mast 38LA", "Mast 38LB"])
-    add_os(23, 12, "Block 1-4", "Switch 39",
+    add_os(23, 12, "BS Switch 39 / BS K-1", "Switch 39",
            [], ["Mast 40LA", "Mast 40LB"], left_hand=True)
 
     # Traffic locking auto-generate for every signal-equipped column
