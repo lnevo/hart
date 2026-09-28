@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-28 — CTC editor fields now store sensor display names (`CTC 3 sig code`, not `IS2:CB`). A system-name value did not match the combo list, so the editor showed the first sensor, `BS Barn`. Patterns stay `IS#:…`. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
+
 Updated: 2026-09-28 — Masts are stock **basic-enhanced** (`two-searchlight-high` / `one-searchlight-low`). Flashing aspects are disabled on each mast, so a signal whose next aspect is Approach shows Stop. Panel icons are the `discriminated` AAR searchlights (LE scale 1.0, USS two-head scale 0.5). Reload **PanelPro** and **CATS**. Deploy `--all`.
 
 Updated: 2026-09-28 — CTC code buttons now have OS occupancy sensors (every plant, including the three crossovers' second sensor). C&O-1980 aspect mappings and Layout Editor icons are stock Chessie again; LE scale is 0.57 (`CO-33-hi`) and 0.68 (`CO-3-dwarf`). USS `ctc` / `ctc-w` imagelinks stay. Basic is not selected. Reload **PanelPro**. Deploy `--all`.
