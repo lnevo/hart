@@ -77,7 +77,7 @@ python3 cats/scripts/polish_hart_master_header.py --panel all
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
 
-SML dests are **native**: Layout Editor Discover generates them (`cats/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper then runs `disable_digicon_sml_in_tables.py` so Digicon source→dest pairs stay **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). `apply_sml_cats_pairs.py` is retired — its `PAIRS` list survives only as the regression oracle for `cats/scripts/validate_le_signalling.py` (static boundary/routing checks + mini-discovery, run it before deploying panel edits). Facing is in `cats/data/le_signal_boundaries.csv` (`python3 cats/scripts/apply_le_sml_facing.py`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **C&O-1980** `CO-33-hi` (dwarfs `CO-3-dwarf`); see `cats/docs/SIGNAL_FACING.md`.
+SML dests are **native**: Layout Editor Discover generates them (`cats/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper then runs `disable_digicon_sml_in_tables.py` so Digicon source→dest pairs stay **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). `apply_sml_cats_pairs.py` is retired — its `PAIRS` list survives only as the regression oracle for `cats/scripts/validate_le_signalling.py` (static boundary/routing checks + mini-discovery, run it before deploying panel edits). Facing is in `cats/data/le_signal_boundaries.csv` (`python3 cats/scripts/apply_le_sml_facing.py`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **basic-enhanced** `two-searchlight-high` (dwarfs `one-searchlight-low`), with flashing aspects disabled on the mast; see `cats/docs/SIGNAL_FACING.md`.
 
 **PanelPro vs CATS (same profile, sequential — never simultaneous):**
 
@@ -127,7 +127,7 @@ Installed Digicon jar includes the `cats-pts-nullguard` overlay so early `SELECT
 
 | Family | JMRI object | Digicon `PHYSIGNAL` | MQTT | Field |
 |--------|-------------|---------------------|------|-------|
-| **Virtual head + SHSM** (all Digicon lamps) | Virtual `IH###` + `IF$shsm:C&O-1980:CO-33-hi` two-head / `IF$shsm:C&O-1980:CO-3-dwarf` dwarf | stock `single` / `double` (native R-codes remapped to C&O-1980 names) | `track/signalhead/<packed>` | LCOS searchlight ports |
+| **Virtual head + SHSM** (all Digicon lamps) | Virtual `IH###` + `IF$shsm:basic-enhanced:two-searchlight-high` two-head / `IF$shsm:basic-enhanced:one-searchlight-low` dwarf | stock `single` / `double` (native R-codes remapped to basic-enhanced names) | `track/signalhead/<packed>` | LCOS searchlight ports |
 
 Digicon binds by **mast userName** (exact string match). Panel lamps (`LAMP1|2|3`) are Digicon cosmetics; field head count comes from JMRI / LCOS wiring.
 
@@ -162,10 +162,10 @@ Head roles: **T** top, **B** bottom; dwarfs are a single 3-pin disc.
 
 Appearances for SHSM:
 
-- 1 head → C&O-1980 `CO-3-dwarf`
-- 2 heads → C&O-1980 `CO-33-hi`
+- 1 head → basic-enhanced `one-searchlight-low` (Advanced Approach disabled)
+- 2 heads → basic-enhanced `two-searchlight-high` (Advanced Approach and Diverging Advanced Approach disabled)
 
-USS CTC imagelinks live in the user-files overlay `cats/resources/signals/C&O-1980/`. Aspect mappings and Layout Editor `default` icons are stock Chessie drawings; LE scale is 0.57 on `CO-33-hi` and 0.68 on `CO-3-dwarf`. Designer cosmetics still use `cats/resources/signals/cats-masts/` (`cats-virtual-*`).
+Layout Editor icons use basic-enhanced `discriminated` (AAR searchlights) at scale 1.0. USS two-head icons use the same set at scale 0.5. The C&O-1980 user-files overlay is unused. Designer cosmetics still use `cats/resources/signals/cats-masts/` (`cats-virtual-*`).
 
 ### Mast index (Digicon name → JMRI)
 
@@ -262,7 +262,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 1. **CATS CTC** and **CATS ABS** both `HOLD_ONLY`: SML sets aspects; Digicon paints JMRI appearances. CTC also Held/Unhold on coded routes. ABS Hold/Unhold follows Digicon ABS vital logic. Layout Editor is always SML.
 2. Never publish turnout “fix” commands at launch; retain paint is read-only.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
-4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **C&O-1980** (`CO-33-hi`), dwarfs on **`CO-3-dwarf`**. Mast 2L is `IH438`/`IH439`.
+4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **basic-enhanced** (`two-searchlight-high`), dwarfs on **`one-searchlight-low`**. Flashing aspects are disabled on the mast. Mast 2L is `IH438`/`IH439`.
 5. After Master / ABS geometry edits, rebuild both hold copies (`build_hart_master_ctc_hold.py`, `build_hart_master_abs_hold.py`) so `HOLD_ONLY` and mast bindings stay in sync. ABS live panel is `HART_Master_ABS_hold.xml`.
 6. Without CATS: Unhold + SML = ABS. Do not launch CTC geometry-source `HART_Master.xml` against live SML.
 

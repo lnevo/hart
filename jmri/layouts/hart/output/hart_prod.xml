@@ -857,216 +857,364 @@
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH432)(IH433)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH432)(IH433)</systemName>
       <userName>Mast 6LB</userName>
       <comment>Plane | Switch 5</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH434)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH434)</systemName>
       <userName>Mast 6LA</userName>
       <comment>Plane | Switch 5</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH436)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH436)</systemName>
       <userName>Mast 4RA</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH437)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH437)</systemName>
       <userName>Mast 4RB</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH438)(IH439)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH438)(IH439)</systemName>
       <userName>Mast 2L</userName>
       <comment>Brick | Switch 1</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1332)(IH1333)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH1332)(IH1333)</systemName>
       <userName>Mast 8RA</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH1334)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH1334)</systemName>
       <userName>Mast 8LB</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1335)(IH1336)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH1335)(IH1336)</systemName>
       <userName>Mast 8RB</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1337)(IH1338)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH1337)(IH1338)</systemName>
       <userName>Mast 8LA</userName>
       <comment>Barn | Switch 7</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1232)(IH1233)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH1232)(IH1233)</systemName>
       <userName>Mast 24RA</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1234)(IH1235)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH1234)(IH1235)</systemName>
       <userName>Mast 24L</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH1236)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH1236)</systemName>
       <userName>Mast 24RB</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1237)(IH1238)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH1237)(IH1238)</systemName>
       <userName>Mast 34L</userName>
       <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH1239)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH1239)</systemName>
       <userName>Mast 32R</userName>
       <comment>East End | Switch 31</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH1240)(IH1241)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH1240)(IH1241)</systemName>
       <userName>Mast 34R</userName>
       <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH132)(IH133)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH132)(IH133)</systemName>
       <userName>Mast 40LB</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH134)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH134)</systemName>
       <userName>Mast 2036</userName>
       <comment>Princess</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH135)(IH136)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH135)(IH136)</systemName>
       <userName>Mast 36RA</userName>
       <comment>Princess | Switch 35</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH137)(IH138)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH137)(IH138)</systemName>
       <userName>Mast 36RB</userName>
       <comment>Princess | Switch 35</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-33-hi(IH139)(IH140)</systemName>
+      <systemName>IF$shsm:basic-enhanced:two-searchlight-high(IH139)(IH140)</systemName>
       <userName>Mast 38LB</userName>
       <comment>Princess | Switch 37</comment>
       <unlit allowed="no" />
-      </signalmast>
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+        <disabledAspect>Diverging Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH141)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH141)</systemName>
       <userName>Mast 2035</userName>
       <comment>Princess</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH142)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH142)</systemName>
       <userName>Mast 40LA</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:C&amp;O-1980:CO-3-dwarf(IH143)</systemName>
+      <systemName>IF$shsm:basic-enhanced:one-searchlight-low(IH143)</systemName>
       <userName>Mast 38LA</userName>
       <comment>Princess | Switch 37</comment>
       <unlit allowed="no" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1001)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1001)</systemName>
       <userName>Mast 4LA</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1002)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1002)</systemName>
       <userName>Mast 4LB</userName>
       <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1003)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1003)</systemName>
       <userName>Mast 40RA</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1004)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1004)</systemName>
       <userName>Mast 38RA</userName>
       <comment>Princess | Switch 37</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1005)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1005)</systemName>
       <userName>Mast 12L</userName>
       <comment>Engine House | Switch 11</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1006)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1006)</systemName>
       <userName>Mast 10LA</userName>
       <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1007)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1007)</systemName>
       <userName>Mast 10LB</userName>
       <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1008)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1008)</systemName>
       <userName>Mast 18L</userName>
       <comment>South Yard | Switch 17</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1009)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1009)</systemName>
       <userName>Mast 20L</userName>
       <comment>South Yard | Switch 19</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1010)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1010)</systemName>
       <userName>Mast 22L</userName>
       <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1011)</systemName>
+      <systemName>IF$vsm:basic-enhanced:one-searchlight-low($1011)</systemName>
       <userName>Mast 26L</userName>
       <comment>South Yard | Switch 21</comment>
       <unlit allowed="yes" />
+      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
     </signalmast>
-  <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1012)</systemName><userName>Mast 18R</userName>
-      <comment>South Yard | Switch 17</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1013)</systemName><userName>Mast 20R</userName>
-      <comment>South Yard | Switch 19</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1014)</systemName><userName>Mast 22R</userName>
-      <comment>South Yard | Switch 21</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1015)</systemName><userName>Mast 26R</userName>
-      <comment>South Yard | Switch 21</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1016)</systemName><userName>Mast 16L</userName>
-      <comment>South Yard | Switch 15</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1017)</systemName><userName>Mast 32L</userName>
-      <comment>East End | Switch 31</comment><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1018)</systemName><userName>Mast 8LC</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1019)</systemName><userName>Mast 13R</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1020)</systemName><userName>Mast 11L</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1021)</systemName><userName>Mast 9LA</userName><unlit allowed="yes" /></virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:C&amp;O-1980:CO-3-dwarf($1022)</systemName><userName>Mast 9LB</userName><unlit allowed="yes" /></virtualsignalmast></signalmasts>
+  <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1012)</systemName><userName>Mast 18R</userName>
+      <comment>South Yard | Switch 17</comment><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1013)</systemName><userName>Mast 20R</userName>
+      <comment>South Yard | Switch 19</comment><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1014)</systemName><userName>Mast 22R</userName>
+      <comment>South Yard | Switch 21</comment><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1015)</systemName><userName>Mast 26R</userName>
+      <comment>South Yard | Switch 21</comment><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1016)</systemName><userName>Mast 16L</userName>
+      <comment>South Yard | Switch 15</comment><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1017)</systemName><userName>Mast 32L</userName>
+      <comment>East End | Switch 31</comment><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1018)</systemName><userName>Mast 8LC</userName><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1019)</systemName><userName>Mast 13R</userName><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1020)</systemName><userName>Mast 11L</userName><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1021)</systemName><userName>Mast 9LA</userName><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast><virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml"><systemName>IF$vsm:basic-enhanced:one-searchlight-low($1022)</systemName><userName>Mast 9LB</userName><unlit allowed="yes" />      <disabledAspects>
+        <disabledAspect>Advanced Approach</disabledAspect>
+      </disabledAspects>
+    </virtualsignalmast></signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
     <block systemName="IB1" length="0.0" curve="0">
@@ -2272,7 +2420,7 @@
     <BlockContentsIcon blockcontents="OS Switch 7" x="505" y="298" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Barn" x="540" y="344" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 7b" x="465" y="371" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="centre" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <signalmasticon signalmast="Mast 4LA" x="40" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 4LB" x="40" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 40RA" x="1740" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 38RA" x="1740" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 12L" x="548" y="250" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LA" x="548" y="261" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LB" x="548" y="273" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18L" x="768" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20L" x="843" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22L" x="910" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26L" x="1050" y="458" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18R" x="1148" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20R" x="1148" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22R" x="1148" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26R" x="1148" y="474" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 16L" x="720" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 32L" x="1145" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 8LC" x="382" y="305" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 13R" x="620" y="305" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 11L" x="620" y="270" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 9LA" x="598" y="268" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 9LB" x="596" y="280" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="OS Switch 1" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
+    <signalmasticon signalmast="Mast 4LA" x="40" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 4LB" x="40" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 40RA" x="1740" y="236" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 38RA" x="1740" y="299" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 12L" x="548" y="250" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LA" x="548" y="261" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 10LB" x="548" y="273" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18L" x="768" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20L" x="843" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22L" x="910" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26L" x="1050" y="458" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 18R" x="1148" y="350" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 20R" x="1148" y="397" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 22R" x="1148" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 26R" x="1148" y="474" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 16L" x="720" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 32L" x="1145" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 8LC" x="382" y="305" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 13R" x="620" y="305" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 11L" x="620" y="270" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 9LA" x="598" y="268" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><signalmasticon signalmast="Mast 9LB" x="596" y="280" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" /><layoutturnout ident="TOL3" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="348.5" ycen="252.0" xa="372.5" ya="252.0" xb="324.5" yb="252.0" xc="327.29998779296875" yc="260.1000061035156" xd="372.5" yd="252.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="M2T408" blockname="OS Switch 1" connectaname="T-I-TOL3" connectbname="T-ER-TOL3" connectcname="T-EL-TOL3">
       <signalAMast>Mast 2L</signalAMast>
     </layoutturnout>
     <layoutturnout ident="TOR11" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1088.5" ycen="459.5" xa="1103.0" ya="451.0" xb="1074.0" yb="468.0" xc="1075.0999755859375" yc="460.0" xd="1103.0" yd="451.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="M2T1208" blockname="OS Switch 25" connectaname="T-I-TOR11" connectbname="T-EL-TOR11" connectcname="T-ER-TOR11" />
@@ -2528,29 +2676,29 @@
 
 
 
-    <signalmasticon signalmast="Mast 2L" x="378" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 4RA" x="185" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 4RB" x="185" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 6LA" x="366" y="290" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 6LB" x="366" y="338" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 8RA" x="445" y="327" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 8LB" x="552" y="290" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 8RB" x="445" y="374" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 8LA" x="529" y="341" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 24RA" x="1095" y="263" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 24L" x="1248" y="218" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 24RB" x="1095" y="326" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 34L" x="1392" y="289" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 32R" x="1265" y="349" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="60" />
-    <signalmasticon signalmast="Mast 34R" x="1320" y="348" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="60" />
-    <signalmasticon signalmast="Mast 40LB" x="1602" y="161" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="225" />
-    <signalmasticon signalmast="Mast 36RA" x="1465" y="264" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 36RB" x="1465" y="325" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
-    <signalmasticon signalmast="Mast 38LB" x="1645" y="311" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.57" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="310" />
-    <signalmasticon signalmast="Mast 2035" x="1848" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="0" />
-    <signalmasticon signalmast="Mast 2036" x="1804" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="180" />
-    <signalmasticon signalmast="Mast 40LA" x="1665" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
-    <signalmasticon signalmast="Mast 38LA" x="1665" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="0.68" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 2L" x="378" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 4RA" x="185" y="258" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 4RB" x="185" y="321" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 6LA" x="366" y="290" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 6LB" x="366" y="338" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 8RA" x="445" y="327" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 8LB" x="552" y="290" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 8RB" x="445" y="374" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 8LA" x="529" y="341" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 24RA" x="1095" y="263" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 24L" x="1248" y="218" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 24RB" x="1095" y="326" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 34L" x="1392" y="289" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 32R" x="1265" y="349" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="60" />
+    <signalmasticon signalmast="Mast 34R" x="1320" y="348" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="60" />
+    <signalmasticon signalmast="Mast 40LB" x="1602" y="161" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="225" />
+    <signalmasticon signalmast="Mast 36RA" x="1465" y="264" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 36RB" x="1465" y="325" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="90" />
+    <signalmasticon signalmast="Mast 38LB" x="1645" y="311" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="310" />
+    <signalmasticon signalmast="Mast 2035" x="1848" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="0" />
+    <signalmasticon signalmast="Mast 2036" x="1804" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="180" />
+    <signalmasticon signalmast="Mast 40LA" x="1665" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
+    <signalmasticon signalmast="Mast 38LA" x="1665" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" scale="1.0" imageset="discriminated" class="jmri.jmrit.display.configurexml.SignalMastIconXml" degrees="270" />
 </LayoutEditor>
   <filehistory>
     <operation>
