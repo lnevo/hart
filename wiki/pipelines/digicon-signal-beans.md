@@ -1,6 +1,6 @@
 # Pipeline 3 — Digicon signal beans
 
-Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appearances are stock **C&O-1980** (`CO-33-hi` / `CO-3-dwarf`). The user-files overlay adds USS CTC imagelinks only; aspect mappings and Layout Editor icons stay stock, sized with icon scale.
+Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appearances are stock **basic-enhanced** (`two-searchlight-high` / `one-searchlight-low`). Flashing aspects are disabled on the mast. Layout Editor icons are `discriminated` at scale 1.0.
 
 **Status:** Live.
 
@@ -14,8 +14,7 @@ Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `
 
 ## Outputs
 
-- IH / SHSM beans in tables (C&O-1980 `CO-33-hi` two-head; `CO-3-dwarf` dwarfs and dispatcher virtuals)
-- [`cats/resources/signals/C&O-1980/`](../../cats/resources/signals/C&O-1980/) (deployed by `sync_hart_package.sh`)
+- IH / SHSM beans in tables (basic-enhanced `two-searchlight-high` two-head; `one-searchlight-low` dwarfs and dispatcher virtuals). The C&O-1980 user-files overlay is unused.
 
 ## Run
 

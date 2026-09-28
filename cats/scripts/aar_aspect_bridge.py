@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
-"""Bridge Digicon R-code templates to JMRI C&O-1980 aspect names.
+"""Bridge Digicon R-code templates to JMRI basic-enhanced aspect names.
 
-CATS stock templates call setAspect("R281"|…). C&O-1980 CO-33-hi homes expect
-Clear / Approach Medium / Medium Clear / Approach Slow / Approach / Restricting /
-Stop; dwarfs expect Slow Clear / Restricting / Stop. HOLD_ONLY panels also
-need AppearanceKey values that match those JMRI aspect names so Digicon can
-paint from SML. Do not alias RES_* to Approach on 2-head templates: CATS reverse
+CATS stock templates call setAspect("R281"|…). Homes are
+basic-enhanced two-searchlight-high and dwarfs are one-searchlight-low.
+Flashing aspects (Advanced Approach, Diverging Advanced Approach) are disabled
+on the masts, so setAspect may only request Clear, Approach, Stop, Diverging
+Clear, and Diverging Approach (dwarfs: Clear, Approach, Stop). HOLD_ONLY panels
+need AppearanceKey values that match those enabled names so Digicon can paint
+from SML. Do not alias RES_* to Approach on 2-head templates: CATS reverse
 lookup is first-match, and RES_NORM sits before R285 (Approach would paint as
 Restricting). Aspect names with spaces cannot be XML attribute names.
 
-HOLD_ONLY (ABS-RO / CTC SML): map every AAR name SML can post onto a unique
+HOLD_ONLY (ABS-RO / CTC SML): map every aspect SML can post onto a unique
 IndicationNames row whose ICON class is the closest one-disc ABS action
 (CLEAR=green proceed, APPROACH=yellow caution, STOP=red). CATS cannot draw
-two searchlights; unused CATS rows get non-JMRI placeholders so they cannot
+two searchlights; unused CATS rows get a same-ICON fallback so they cannot
 steal a match.
 
-When CATS drives aspects (no HOLD_ONLY), keep the collapsed ladder so setAspect
-only requests Clear / Approach / Stop (or Slow Clear / Restricting / Stop).
+When CATS drives aspects (no HOLD_ONLY), request only those enabled names.
 
 Idempotent: re-running refreshes remap + paint keys without duplicating templates.
 """
@@ -97,77 +98,74 @@ _ICON = {
     "R292": "STOP",
 }
 
-# CATS IndicationName → C&O-1980 aspect (setAspect) when CATS drives the mast.
-# CO-33-hi has Restricting (R/Y); RES_* can request it. There is no Medium
-# Approach appearance on this mast type (that lamp pair is Restricting).
+# CATS IndicationName → basic-enhanced aspect (setAspect) when CATS drives the mast.
+# Enabled two-head aspects: Clear G/R, Approach Y/R, Diverging Clear R/G,
+# Diverging Approach R/Y, Stop R/R. Y/G and Y/Y have no enabled aspect.
 _REMAP_2 = {
     "R281": "Clear",
     "R281B": "Clear",
-    "R282": "Approach Medium",
-    "R284": "Approach Slow",
-    "RES_NORM": "Restricting",
+    "R282": "Approach",
+    "R284": "Approach",
+    "RES_NORM": "Diverging Approach",
     "ADV_NORM": "Clear",
     "R285": "Approach",
     "R281C": "Clear",
     "C412": "Clear",
     "C413": "Clear",
     "C414": "Clear",
-    "RES_LIM": "Restricting",
+    "RES_LIM": "Diverging Approach",
     "ADV_LIM": "Clear",
     "R281D": "Approach",
-    "R283": "Medium Clear",
-    "C417": "Medium Clear",
-    "R283A": "Medium Clear",
-    "R283B": "Medium Clear",
-    "RES_MED": "Restricting",
-    "ADV_MED": "Medium Clear",
-    "R286": "Restricting",
-    "R287": "Medium Clear",
-    "C422": "Medium Clear",
-    "C423": "Medium Clear",
-    "C424": "Medium Clear",
-    "RES_SLO": "Restricting",
-    "ADV_SLO": "Approach Slow",
-    "R288": "Restricting",
+    "R283": "Diverging Clear",
+    "C417": "Diverging Clear",
+    "R283A": "Diverging Clear",
+    "R283B": "Diverging Clear",
+    "RES_MED": "Diverging Approach",
+    "ADV_MED": "Diverging Clear",
+    "R286": "Diverging Approach",
+    "R287": "Diverging Clear",
+    "C422": "Diverging Clear",
+    "C423": "Diverging Clear",
+    "C424": "Diverging Clear",
+    "RES_SLO": "Diverging Approach",
+    "ADV_SLO": "Approach",
+    "R288": "Diverging Approach",
     "R292": "Stop",
     "R291": "Stop",
 }
 
-# CO-3-dwarf: Slow Clear / Restricting / Stop (no Clear/Approach).
+# one-searchlight-low: Clear / Approach / Stop.
 _REMAP_1 = {
     key: (
         "Stop"
         if key in ("R291", "R292")
-        else "Restricting"
-        if key.startswith("RES_") or key in ("R285", "R281D", "R286", "R288")
-        else "Slow Clear"
+        else "Approach"
+        if key.startswith("RES_") or key.startswith("ADV_") or key in ("R285", "R281D", "R286", "R288")
+        else "Clear"
     )
     for key in _REMAP_2
 }
 
 # HOLD_ONLY listen map: unique JMRI names on the ICON that matches ABS action.
-# Every value MUST be a valid (and enabled) C&O-1980 aspect on that mast type.
+# Every value MUST be an enabled basic-enhanced aspect on that mast type.
 # CATS Block.startUp → PhysicalSignal.refresh() calls setAspect(AppearanceKey)
-# even when HOLD_ONLY; placeholders like _RES_NORM abort Screen.init and freeze
+# even when HOLD_ONLY; a disabled or unknown name aborts Screen.init and freezes
 # occupancy / turnout listeners.
 #
-# CO-33-hi: Clear G/R, Approach Medium Y/G, Medium Clear R/G, Approach Slow Y/Y,
-# Approach Y/R, Restricting R/Y, Stop R/R. R286 (Medium Approach in AAR) is the
-# same lamp pair as Restricting here.
+# two-searchlight-high, flash aspects disabled: Clear G/R, Approach Y/R,
+# Diverging Clear R/G, Diverging Approach R/Y, Stop R/R.
 _REMAP_2_LISTEN_ASPECTS = {
     "R281": "Clear",
-    "R282": "Approach Medium",
-    "R283": "Medium Clear",
-    "R284": "Approach Slow",
+    "R283": "Diverging Clear",
     "R285": "Approach",
-    "RES_NORM": "Restricting",
+    "RES_NORM": "Diverging Approach",
     "R292": "Stop",
 }
 
-# CO-3-dwarf: Slow Clear / Restricting / Stop.
+# one-searchlight-low: Clear / Approach / Stop. No Diverging aspects.
 _REMAP_1_LISTEN_ASPECTS = {
-    "R281": "Slow Clear",
-    "R285": "Restricting",
+    "R281": "Clear",
+    "R285": "Approach",
     "R292": "Stop",
 }
 
@@ -176,38 +174,35 @@ _REMAP_1_LISTEN_ASPECTS = {
 _VALID_2 = {
     "CLEAR": "Clear",
     "APPROACH": "Approach",
-    "RESTRICTING": "Restricting",
+    "RESTRICTING": "Diverging Approach",
     "STOP": "Stop",
 }
 _VALID_1 = {
-    "CLEAR": "Slow Clear",
-    "APPROACH": "Slow Clear",
+    "CLEAR": "Clear",
+    "APPROACH": "Approach",
     "RESTRICTING": "Stop",
     "STOP": "Stop",
 }
 
 _PAINT_1 = {
     "Clear": "green",
-    "Slow Clear": "green",
     "Approach": "yellow",
     "Stop": "red",
-    "Restricting": "yellow",
 }
 
 _PAINT_2 = {
     "Clear": "green|red",
-    "Approach Medium": "yellow|green",
-    "Medium Clear": "red|green",
-    "Approach Slow": "yellow|yellow",
     "Approach": "yellow|red",
-    "Restricting": "red|yellow",
+    "Diverging Clear": "red|green",
+    "Diverging Approach": "red|yellow",
     "Stop": "red|red",
 }
 
 _PAINT_3 = {
     "Clear": "green|red|red",
     "Approach": "yellow|red|red",
-    "Restricting": "yellow|red|red",
+    "Diverging Clear": "red|green|red",
+    "Diverging Approach": "red|yellow|red",
     "Stop": "red|red|red",
 }
 
@@ -226,28 +221,24 @@ _REMAP_1_LISTEN = _fill_listen(_REMAP_1_LISTEN_ASPECTS, _VALID_1)
 
 _ALLOWED_2 = {
     "Clear",
-    "Approach Medium",
-    "Medium Clear",
-    "Approach Slow",
     "Approach",
-    "Restricting",
+    "Diverging Clear",
+    "Diverging Approach",
     "Stop",
 }
-_ALLOWED_1 = {"Slow Clear", "Restricting", "Stop"}
+_ALLOWED_1 = {"Clear", "Approach", "Stop"}
 
 _LISTEN_2_ICON = {
     "Clear": "CLEAR",
-    "Approach Medium": "CLEAR",
-    "Medium Clear": "CLEAR",
-    "Approach Slow": "CLEAR",
+    "Diverging Clear": "CLEAR",
     "Approach": "APPROACH",
-    "Restricting": "RESTRICTING",
+    "Diverging Approach": "RESTRICTING",
     "Stop": "STOP",
 }
 
 _LISTEN_1_ICON = {
-    "Slow Clear": "CLEAR",
-    "Restricting": "APPROACH",
+    "Clear": "CLEAR",
+    "Approach": "APPROACH",
     "Stop": "STOP",
 }
 

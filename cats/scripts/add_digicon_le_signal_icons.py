@@ -55,10 +55,9 @@ PLACEMENTS: list[tuple[str, int, int, int]] = [
     ("Mast 38LA", 1665, 285, 270),
 ]
 
-# Stock C&O-1980 drawings: CO-33-hi is 12×70, CO-3-dwarf is 12×25.
-# These scales keep the old 12×40 / 12×17 searchlight footprint.
-HOME_SCALE = "0.57"
-DWARF_SCALE = "0.68"
+# basic-enhanced `discriminated` art is already 12×40 (home) / 12×17 (dwarf).
+HOME_SCALE = "1.0"
+DWARF_SCALE = "1.0"
 DWARF_MASTS = {
     "Mast 2035",
     "Mast 2036",
@@ -78,7 +77,7 @@ def _icon_attrs(name: str) -> str:
     return (
         'level="9" forcecontroloff="false" hidden="no" positionable="true" '
         'showtooltip="true" editable="false" clickmode="0" litmode="false" '
-        f'scale="{scale}" imageset="default" '
+        f'scale="{scale}" imageset="discriminated" '
         'class="jmri.jmrit.display.configurexml.SignalMastIconXml"'
     )
 

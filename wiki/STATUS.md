@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-28 — Masts are stock **basic-enhanced** (`two-searchlight-high` / `one-searchlight-low`). Flashing aspects are disabled on each mast, so a signal whose next aspect is Approach shows Stop. Panel icons are the `discriminated` AAR searchlights (LE scale 1.0, USS two-head scale 0.5). Reload **PanelPro** and **CATS**. Deploy `--all`.
+
 Updated: 2026-09-28 — CTC code buttons now have OS occupancy sensors (every plant, including the three crossovers' second sensor). C&O-1980 aspect mappings and Layout Editor icons are stock Chessie again; LE scale is 0.57 (`CO-33-hi`) and 0.68 (`CO-3-dwarf`). USS `ctc` / `ctc-w` imagelinks stay. Basic is not selected. Reload **PanelPro**. Deploy `--all`.
 
 Updated: 2026-09-10 — South Yard station map: **Scale** / **Barn** (not West Lead); Switch **13** on the Scale throat; EH plant without 9/11 spots; ladder **15 / 17 / 19 / 21**; Switch **7** xover. Rebuild `python3 cats/scripts/render_south_yard_station_map.py`. Docs/static — not deployed.
