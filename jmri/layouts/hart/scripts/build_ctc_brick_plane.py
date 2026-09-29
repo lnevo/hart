@@ -6,8 +6,8 @@
 # topology / SML (same code path as the editor's "Auto-Generate" button).
 #
 # Columns (levers odd switch / even signal), panel left-to-right:
-#   col 1  SW 1/SIG 2   Switch 3, OS Switch 3  - yard tracks converge
-#   col 2  SW 3/SIG 4   Switch 1, OS Switch 1  - Main West / Brick-Plane
+#   col 1  SW 1/SIG 2   Switch 1, OS Switch 1  - Main West / Brick-Plane
+#   col 2  SW 3/SIG 4   Switch 3, OS Switch 3  - yard tracks converge
 #   col 3  SW 5/SIG 6   Switch 5, OS Switch 5  - East Main Ext / Scale
 #
 # Traffic direction sense: JMRI CTC "left" = west. Signals here are
@@ -72,10 +72,10 @@ else:
         return c
 
     cols = [
-        add_os(1, 1, "BS Switch 3", "Switch 3",
-               ["Mast 4RA", "Mast 4RB"], []),
-        add_os(3, 2, "BS Switch 1", "Switch 1",
-               [], ["Mast 2L"]),
+        add_os(1, 1, "BS Switch 1", "Switch 1",
+               ["Mast 2L"], []),
+        add_os(3, 2, "BS Switch 3", "Switch 3",
+               [], ["Mast 4RA", "Mast 4RB"]),
         add_os(5, 3, "BS Switch 5", "Switch 5",
                [], ["Mast 6LB", "Mast 6LA"]),
     ]

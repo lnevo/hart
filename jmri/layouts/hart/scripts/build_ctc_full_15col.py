@@ -2,8 +2,8 @@
 # west -> east, replacing the previous 12-column config (OS Barn inserted as
 # cols 4-6 between Plane and East End).
 #
-#   col  1  SW 1/2    Switch 3  LH        Brick     (yard exits)
-#   col  2  SW 3/4    Switch 1  LH        Brick
+#   col  1  SW 1/2    Switch 1  LH        Brick
+#   col  2  SW 3/4    Switch 3  LH        Brick     (yard exits)
 #   col  3  SW 5/6    Switch 5  LH        Plane
 #   col  4  SW 7/8    Switch 7  LH XOVER  OS Barn      OS 7 + OS 7b
 #   col  5  SW 9/10   Switch 13  RH        OS Barn      (ladder, switch-only + local)
@@ -83,10 +83,10 @@ def add_os(sw_num, col, os_sensor, turnout, ltr_masts, rtl_masts,
 
 
 # Brick + Plane
-add_os(1, 1, "BS Switch 3", "Switch 3",
-       ["Mast 4RA", "Mast 4RB"], [], left_hand=True)
-add_os(3, 2, "BS Switch 1", "Switch 1",
-       [], ["Mast 2L"], left_hand=True)
+add_os(1, 1, "BS Switch 1", "Switch 1",
+       ["Mast 2L"], [], left_hand=True)
+add_os(3, 2, "BS Switch 3", "Switch 3",
+       [], ["Mast 4RA", "Mast 4RB"], left_hand=True)
 add_os(5, 3, "BS Switch 5", "Switch 5",
        [], ["Mast 6LB", "Mast 6LA"], left_hand=True)
 # OS Barn

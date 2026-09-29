@@ -16971,110 +16971,6 @@
       <SwitchNumber>1</SwitchNumber>
       <SignalEtcNumber>2</SignalEtcNumber>
       <GUIColumnNumber>2</GUIColumnNumber>
-      <CodeButtonInternalSensor>CTC 3 sig code</CodeButtonInternalSensor>
-      <OSSectionOccupiedExternalSensor>BS Switch 3</OSSectionOccupiedExternalSensor>
-      <OSSectionOccupiedExternalSensor2 />
-      <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
-      <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
-      <CodeButtonDelayTime>0</CodeButtonDelayTime>
-      <SIDI_Enabled>true</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>CTC 3 sig L lamp</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>CTC 3 sig N lamp</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>CTC 3 sig R lamp</SIDI_RightInternalSensor>
-      <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
-      <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
-      <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
-      <SIDI_LeftRightTrafficSignals />
-      <SIDI_RightLeftTrafficSignals>
-        <signal>Mast 4RA</signal>
-        <signal>Mast 4RB</signal>
-      </SIDI_RightLeftTrafficSignals>
-      <SIDL_Enabled>true</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>CTC 3 sig L lever</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>CTC 3 sig N lever</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>CTC 3 sig R lever</SIDL_RightInternalSensor>
-      <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>CTC 3 N ind</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>CTC 3 R ind</SWDI_ReversedInternalSensor>
-      <SWDI_ExternalTurnout>Switch 3</SWDI_ExternalTurnout>
-      <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
-      <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
-      <SWDI_GUITurnoutType>0</SWDI_GUITurnoutType>
-      <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
-      <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
-      <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>CTC 3 lever</SWDL_InternalSensor>
-      <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>CTC 3 sig call-on</CO_CallOnToggleInternalSensor>
-      <CO_GroupingsList />
-      <TRL_Enabled>true</TRL_Enabled>
-      <TRL_LeftRules>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:1</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Mast 24RA</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>1/2</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>13</UniqueID>
-            </switch>
-            <switch>
-              <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>14</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>BS Switch 3</sensor>
-            <sensor>BS Switch 1</sensor>
-            <sensor>BS Main West</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-        <TRL_TrafficLockingRule>
-          <UserRuleNumber> Rule #:2</UserRuleNumber>
-          <RuleEnabled>Enabled</RuleEnabled>
-          <DestinationSignalOrComment>Mast 24RA</DestinationSignalOrComment>
-          <switches>
-            <switch>
-              <UserText>1/2</UserText>
-              <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>13</UniqueID>
-            </switch>
-            <switch>
-              <UserText>3/4</UserText>
-              <SwitchAlignment>Normal</SwitchAlignment>
-              <UniqueID>14</UniqueID>
-            </switch>
-          </switches>
-          <OccupancyExternalSensors>
-            <sensor>BS Switch 3</sensor>
-            <sensor>BS Switch 1</sensor>
-            <sensor>BS Main West</sensor>
-          </OccupancyExternalSensors>
-          <OptionalExternalSensors />
-        </TRL_TrafficLockingRule>
-      </TRL_LeftRules>
-      <TRL_RightRules />
-      <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>CTC 3 sig local</TUL_DispatcherInternalSensorLockToggle>
-      <TUL_ExternalTurnout>Switch 3</TUL_ExternalTurnout>
-      <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 3 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
-      <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
-      <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
-      <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
-      <TUL_LockImplementation>0</TUL_LockImplementation>
-      <TUL_AdditionalExternalTurnouts />
-      <IL_Enabled>false</IL_Enabled>
-      <IL_Signals />
-    </ctcCodeButtonData>
-    <ctcCodeButtonData>
-      <UniqueID>14</UniqueID>
-      <SwitchNumber>3</SwitchNumber>
-      <SignalEtcNumber>4</SignalEtcNumber>
-      <GUIColumnNumber>3</GUIColumnNumber>
       <CodeButtonInternalSensor>CTC 1 sig code</CodeButtonInternalSensor>
       <OSSectionOccupiedExternalSensor>BS Switch 1</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
@@ -17124,9 +17020,9 @@
               <UniqueID>15</UniqueID>
             </switch>
             <switch>
-              <UserText>3/4</UserText>
+              <UserText>1/2</UserText>
               <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>14</UniqueID>
+              <UniqueID>13</UniqueID>
             </switch>
           </switches>
           <OccupancyExternalSensors>
@@ -17148,9 +17044,9 @@
               <UniqueID>15</UniqueID>
             </switch>
             <switch>
-              <UserText>3/4</UserText>
+              <UserText>1/2</UserText>
               <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>14</UniqueID>
+              <UniqueID>13</UniqueID>
             </switch>
           </switches>
           <OccupancyExternalSensors>
@@ -17167,6 +17063,110 @@
       <TUL_ExternalTurnout>Switch 1</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
       <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 1 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
+      <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
+      <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
+      <TUL_LockImplementation>0</TUL_LockImplementation>
+      <TUL_AdditionalExternalTurnouts />
+      <IL_Enabled>false</IL_Enabled>
+      <IL_Signals />
+    </ctcCodeButtonData>
+    <ctcCodeButtonData>
+      <UniqueID>14</UniqueID>
+      <SwitchNumber>3</SwitchNumber>
+      <SignalEtcNumber>4</SignalEtcNumber>
+      <GUIColumnNumber>3</GUIColumnNumber>
+      <CodeButtonInternalSensor>CTC 3 sig code</CodeButtonInternalSensor>
+      <OSSectionOccupiedExternalSensor>BS Switch 3</OSSectionOccupiedExternalSensor>
+      <OSSectionOccupiedExternalSensor2 />
+      <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
+      <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
+      <CodeButtonDelayTime>0</CodeButtonDelayTime>
+      <SIDI_Enabled>true</SIDI_Enabled>
+      <SIDI_LeftInternalSensor>CTC 3 sig L lamp</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>CTC 3 sig N lamp</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>CTC 3 sig R lamp</SIDI_RightInternalSensor>
+      <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
+      <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
+      <SIDI_TrafficDirection>LEFT</SIDI_TrafficDirection>
+      <SIDI_LeftRightTrafficSignals />
+      <SIDI_RightLeftTrafficSignals>
+        <signal>Mast 4RA</signal>
+        <signal>Mast 4RB</signal>
+      </SIDI_RightLeftTrafficSignals>
+      <SIDL_Enabled>true</SIDL_Enabled>
+      <SIDL_LeftInternalSensor>CTC 3 sig L lever</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>CTC 3 sig N lever</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>CTC 3 sig R lever</SIDL_RightInternalSensor>
+      <SWDI_Enabled>true</SWDI_Enabled>
+      <SWDI_NormalInternalSensor>CTC 3 N ind</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>CTC 3 R ind</SWDI_ReversedInternalSensor>
+      <SWDI_ExternalTurnout>Switch 3</SWDI_ExternalTurnout>
+      <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
+      <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
+      <SWDI_GUITurnoutType>0</SWDI_GUITurnoutType>
+      <SWDI_GUITurnoutLeftHand>true</SWDI_GUITurnoutLeftHand>
+      <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
+      <SWDL_Enabled>true</SWDL_Enabled>
+      <SWDL_InternalSensor>CTC 3 lever</SWDL_InternalSensor>
+      <CO_Enabled>false</CO_Enabled>
+      <CO_CallOnToggleInternalSensor>CTC 3 sig call-on</CO_CallOnToggleInternalSensor>
+      <CO_GroupingsList />
+      <TRL_Enabled>true</TRL_Enabled>
+      <TRL_LeftRules>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:1</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Mast 24RA</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>3/4</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>14</UniqueID>
+            </switch>
+            <switch>
+              <UserText>1/2</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>13</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>BS Switch 3</sensor>
+            <sensor>BS Switch 1</sensor>
+            <sensor>BS Main West</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+        <TRL_TrafficLockingRule>
+          <UserRuleNumber> Rule #:2</UserRuleNumber>
+          <RuleEnabled>Enabled</RuleEnabled>
+          <DestinationSignalOrComment>Mast 24RA</DestinationSignalOrComment>
+          <switches>
+            <switch>
+              <UserText>3/4</UserText>
+              <SwitchAlignment>Reverse</SwitchAlignment>
+              <UniqueID>14</UniqueID>
+            </switch>
+            <switch>
+              <UserText>1/2</UserText>
+              <SwitchAlignment>Normal</SwitchAlignment>
+              <UniqueID>13</UniqueID>
+            </switch>
+          </switches>
+          <OccupancyExternalSensors>
+            <sensor>BS Switch 3</sensor>
+            <sensor>BS Switch 1</sensor>
+            <sensor>BS Main West</sensor>
+          </OccupancyExternalSensors>
+          <OptionalExternalSensors />
+        </TRL_TrafficLockingRule>
+      </TRL_LeftRules>
+      <TRL_RightRules />
+      <TUL_Enabled>true</TUL_Enabled>
+      <TUL_DispatcherInternalSensorLockToggle>CTC 3 sig local</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_ExternalTurnout>Switch 3</TUL_ExternalTurnout>
+      <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>CTC 3 sig unlocked</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -17229,9 +17229,9 @@
               <UniqueID>15</UniqueID>
             </switch>
             <switch>
-              <UserText>3/4</UserText>
+              <UserText>1/2</UserText>
               <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>14</UniqueID>
+              <UniqueID>13</UniqueID>
             </switch>
           </switches>
           <OccupancyExternalSensors>
@@ -17253,9 +17253,9 @@
               <UniqueID>15</UniqueID>
             </switch>
             <switch>
-              <UserText>3/4</UserText>
+              <UserText>1/2</UserText>
               <SwitchAlignment>Reverse</SwitchAlignment>
-              <UniqueID>14</UniqueID>
+              <UniqueID>13</UniqueID>
             </switch>
           </switches>
           <OccupancyExternalSensors>
