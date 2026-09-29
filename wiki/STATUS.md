@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-28 — CTC Switch #1 in column 2 now carries layout Switch 1 (code button, lever, OS, Mast 2L). Switch #3 in column 3 carries layout Switch 3. They had been crossed. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
+
 Updated: 2026-09-28 — CTC editor fields now store sensor display names (`CTC 3 sig code`, not `IS2:CB`). A system-name value did not match the combo list, so the editor showed the first sensor, `BS Barn`. Patterns stay `IS#:…`. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
 
 Updated: 2026-09-28 — Masts are stock **basic-enhanced** (`two-searchlight-high` / `one-searchlight-low`). Flashing aspects are disabled on each mast, so a signal whose next aspect is Approach shows Stop. Panel icons are the `discriminated` AAR searchlights (LE scale 1.0, USS two-head scale 0.5). Reload **PanelPro** and **CATS**. Deploy `--all`.
