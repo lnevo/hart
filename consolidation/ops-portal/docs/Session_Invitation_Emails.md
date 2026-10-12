@@ -30,7 +30,7 @@ CSX local D749 works out of Neville Island, heading east towards Demmler Yard, s
 
 The NVL comes in to switch out the local industries before heading back to McKees Rocks and tying down in Scully Yard. The coke works is constantly sending imbalanced or overloaded hoppers, so we weigh the outgoing coke shipment to make sure the loads are properly distributed and within tolerance. The track scale has been serviced, so it needs calibrating before the first weigh.
 
-Route 23 was Pittsburgh Railways' Coraopolis–Sewickley streetcar. By 1916 it ran out through McKees Rocks and across Neville Island, crossing the Ohio three times: onto the island, off toward Coraopolis, and again over the channel between Coraopolis and Sewickley. On June 22, 1952 the line was cut back from Sewickley to Neville Island, and a bus replaced what was left in 1953. We've restored a PCC and modified the service into an AM and a PM commuter trip for the residents and the employees.
+Pittsburgh Railways ran Route 23, the Coraopolis–Sewickley streetcar, out through McKees Rocks and across Neville Island, crossing the Ohio three times: onto the island, off toward Coraopolis, and again over the channel between Coraopolis and Sewickley. On June 22, 1952 the line was cut back from Sewickley to Neville Island, and a bus replaced what was left in 1953. After popular demand, we've restored and modified a PCC and recreated the service, running the AM and PM route for the residents and the employees.
 
 Jobs available: Dispatcher, Yardmaster, D749, NVL (local freight), CK1 / the scale, and Route 23.
 
