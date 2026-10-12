@@ -6,12 +6,12 @@ Fill in the date, session number, and times. Paste from **Subject** through the 
 
 **Subject:** Neville Island Operating Session [number] — [date]
 
+[ADDRESS]
+
 Greetings team,
 
 Session [number] of Neville Island Operations will be on [date].
 Doors open at [time], bagels and briefings at [time], trains from [time].
-
-[ADDRESS]
 
 Here's a bit of background and updated history to refresh you on the railroad.
 
