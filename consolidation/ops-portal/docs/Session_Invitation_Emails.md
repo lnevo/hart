@@ -1,15 +1,15 @@
 # Neville Island — session invitation
 
-Settled invitation for Sunday, November 8. Paste from **Subject** through the signature. For a later session, change the date and the doors / briefing / trains line.
+Fill in the date, session number, and times. Paste from **Subject** through the signature.
 
 ---
 
-**Subject:** Neville Island Operating Session — Sunday, November 8
+**Subject:** Neville Island Operating Session [number] — [date]
 
 Greetings team,
 
-The next session of Neville Island Operations will be on Sunday November 8th.
-Doors will open at 11:30am with bagels and briefings at 12 and trains running from 12:30-3.
+The next session of Neville Island Operations, Session [number], will be on [date].
+Doors will open at [time] with bagels and briefings at [time] and trains running from [time].
 
 Here's a bit of background and updated history to refresh you on the railroad.
 
