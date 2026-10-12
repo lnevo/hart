@@ -28,9 +28,11 @@ From the Pittsburgh & Ohio Central notes: two jobs start the day around 07:30 at
 
 CSX local D749 works out of Neville Island, heading east towards Demmler Yard, swapping blocks on the way down to McKeesport and back. The POHC works out of McKees Rocks around noon, heading to Neville Island. Often they wait for D749 to clear the trestle over the Ohio River, and for clearance from the CSX dispatcher. The POHC works some shared sidings before switching chemical industries and a fuel transload for the airport. There are a number of industries dealing with scrap metal and metal fabrication. There is a steel building fabricator, which POHC delivers girders and sheet steel on flat cars, entering the building. Visitors should be wary of the truck traffic — dump trucks and 18 wheelers — and the no trespassing signs.
 
-The NVL comes in to switch out the local industries before heading back to McKees Rocks and tying down in Scully Yard. The coke works is constantly sending imbalanced or overloaded hoppers, so we weigh the outgoing coke shipment to make sure the loads are properly distributed and within tolerance. The track scale has been serviced, so it needs calibrating before the first weigh. After much local demand, we've refurbished a classic PCC streetcar for commuter service, recreating the Coraopolis–Sewickley route. A CSX track inspection train may do a run through before the streetcar's PM service.
+The NVL comes in to switch out the local industries before heading back to McKees Rocks and tying down in Scully Yard. The coke works is constantly sending imbalanced or overloaded hoppers, so we weigh the outgoing coke shipment to make sure the loads are properly distributed and within tolerance. The track scale has been serviced, so it needs calibrating before the first weigh.
 
-Jobs available: Dispatcher, Yardmaster, D749, NVL (local freight), CK1 / the scale, and the streetcar.
+Route 23 is the streetcar. After much local demand, we've refurbished a classic PCC for commuter service, recreating the Coraopolis–Sewickley route. There is an AM trip and a PM trip. Freight holds until the streetcar clears. A CSX track inspection train may do a run through before the PM service.
+
+Jobs available: Dispatcher, Yardmaster, D749, NVL (local freight), CK1 / the scale, and Route 23.
 
 We have tons of work to do to build up a nice appetite. [Chicken, burgers, and dogs] is the plan. Let us know if you have any dietary restrictions. Please let me know if you can't make it, so your spot can be covered.
 
