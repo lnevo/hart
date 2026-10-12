@@ -6,9 +6,6 @@ Fill in the date, session number, and times. Paste from **Subject** through the 
 
 **Subject:** Neville Island Operating Session [number] — [date]
 
-Address: [ADDRESS]
-Phone: [PHONE]
-
 Greetings team,
 
 Session [number] of Neville Island Operations will be on [date].
@@ -23,6 +20,9 @@ Davison Coke & Iron bought the furnace in 1929 and built coke ovens and a cement
 Today, the HART Railroad manages all of the train operations on the island: local industry switching, interchange, and commuter transit. The island is presently serviced by CSX train D749, the Pittsburgh & Ohio Central NVL, and the restored Pittsburgh Railways' Coraopolis-Sewickley Route 23 PCC streetcar. We'll need someone for each of those trains, as well as a dispatcher, yardmaster, and someone for the coke works.
 
 Please let me know if you're able to attend so I can ensure our coverage. I look forward to seeing everyone soon!
+
+Address: [ADDRESS]
+Phone: [PHONE]
 
 Sincerely,
 Lee Nevo
