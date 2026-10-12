@@ -6,7 +6,8 @@ Fill in the date, session number, and times. Paste from **Subject** through the 
 
 **Subject:** Neville Island Operating Session [number] — [date]
 
-[ADDRESS]
+Address: [ADDRESS]
+Phone: [PHONE]
 
 Greetings team,
 
