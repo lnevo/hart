@@ -11,7 +11,7 @@ Greetings team,
 Session [number] of Neville Island Operations will be on [date].
 Doors open at [time], bagels and briefings at [time], trains from [time].
 
-Here's a bit of background and updated history to refresh you on the railroad.
+Here's a bit of background on the railroad for those who haven't been here and an updated history to refresh those who have.
 
 Nestled between Pittsburgh and the Chartiers Valley in the Ohio River lies a 5-mile long strip of land. Originally called Montour's Island and later Long Island, it was renamed Neville Island in honor of Revolutionary War General John Neville. It was once farmland renowned as the "Market Basket of Pittsburgh," which all changed at the turn of the century. Construction of the first bridges and electric street railway allowed easy access to the mainland. American Steel & Wire Co began construction on the island's first mill in 1900. The blast furnace was set on former farmland at the east end of the island and served by the company's own railroad, the Pittsburgh & Ohio Valley.
 
