@@ -4,7 +4,7 @@
 
 From 1899 to January 31, 1994, the Pittsburgh & Ohio Valley Railway (P&OV) switched the east end of Neville Island: first as American Steel & Wire's plant railroad, last as Shenango's. HART Railroad's Pittsburgh & Chartiers Valley Division is its successor, and this page collects what is known about the P&OV's jobs, track names, moves, and equipment.
 
-Nearly everything here comes from the [@pittsburghohiovalleyrailroad Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad) kept by Mark Connolly, a P&OV trainman and engineer from 1977 to 1991. Each "p." reference is a page of the blog's PDF export and links to the original post, where the photos are.
+Nearly everything here comes from the [@pittsburghohiovalleyrailroad Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad) kept by Mark Connolly, a P&OV trainman and engineer from 1977 to 1991. Each "p." reference is a page of the blog's PDF export and links to the original post, where the photos are. The crew and their stories are in [Voices of the P&OV](Voices_of_the_POV.md).
 
 ---
 
