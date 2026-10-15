@@ -81,7 +81,7 @@ def build_media() -> dict[str, str]:
 def build_briefing() -> dict:
     return {
         "title": "New Operator Primer",
-        "pub": "HB-01 · Revision A",
+        "pub": "HB-01 · Revision B",
         "lede": (
             "If this is your first Neville Island session, this primer gives you "
             "the story behind the railroad and a feel for how a session runs. "
@@ -119,8 +119,10 @@ def build_briefing() -> dict:
                 "heading": "The Railroad Today",
                 "paragraphs": [
                     (
-                        "HART Railroad's Pittsburgh & Chartiers Valley Division sits in "
-                        "the middle of that story. We handle the interchange between CSX "
+                        "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley "
+                        "Railway switched the island's furnaces, coke ovens, and "
+                        "interchange. HART Railroad's Pittsburgh & Chartiers Valley "
+                        "Division is its successor: we handle the interchange between CSX "
                         "and the Pittsburgh & Ohio Central, and we switch the industries "
                         "on the island."
                     ),
@@ -244,6 +246,10 @@ def build_briefing() -> dict:
             },
         ],
         "links": [
+            {
+                "label": "Pittsburgh & Ohio Valley Railway history",
+                "href": "../library/pittsburgh-ohio-valley-railway.html",
+            },
             {
                 "label": "Pittsburgh & Ohio Central overview",
                 "href": "https://www.lundsten.dk/railfan_pa/poc/index.html",

@@ -1,7 +1,14 @@
 {
   "title": "Articles",
-  "lede": "Prototype history of Pittsburgh Coke & Chemical, the rest of the POHC line, and the railroads of the Chartiers Valley.",
+  "lede": "Prototype history of the Pittsburgh & Ohio Valley, Pittsburgh Coke & Chemical, the rest of the POHC line, and the railroads of the Chartiers Valley.",
   "items": [
+    {
+      "id": "pittsburgh-ohio-valley",
+      "title": "Pittsburgh & Ohio Valley Railway",
+      "kind": "Prototype history",
+      "href": "library/pittsburgh-ohio-valley-railway.html",
+      "blurb": "The steel-plant railroad HART succeeds, 1899–1994: job board, track names, typical moves, and locomotives, linked to the original posts and photos."
+    },
     {
       "id": "neville-industry-history",
       "title": "Neville Island coke, cement, and chemical history",
