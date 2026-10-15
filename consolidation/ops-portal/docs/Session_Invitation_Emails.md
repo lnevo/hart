@@ -21,8 +21,8 @@ HART manages the island: local industry switching, interchange, transload, and c
 
 Please let me know if you're able to attend so I can ensure our coverage. I look forward to seeing everyone soon!
 
-Address: [ADDRESS]
-Phone: [PHONE]
+Address: [house address — add when sending]
+Phone: [phone — add when sending]
 
 Sincerely,
 Lee Nevo
