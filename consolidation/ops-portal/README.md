@@ -37,6 +37,7 @@ open http://127.0.0.1:8760/ops-portal/
 | **About** | Operational narrative |
 | **Layout** | Clickable LE schematic |
 | **Guides / Tools** | Dispatcher how-tos and live links |
+| **Helix** | Neville Island helix construction plan (with the half-lap screw template), build status, and the STL fixture index (`helix/`, built by `scripts/build_helix_page.py`) |
 
 Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.
 

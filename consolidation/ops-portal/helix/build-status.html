@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Helix build status — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    .helix-wrap { max-width: 72rem; }
+    .helix-wrap h2 {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      letter-spacing: 0.03em;
+      color: var(--brand);
+      margin: 2rem 0 0.6rem;
+    }
+    .helix-wrap h3 { font-size: 1.08rem; margin: 1.2rem 0 0.3rem; color: var(--brand-2); }
+    .helix-wrap .card h3 { margin-top: 0; }
+    .helix-wrap .note { border-left: 4px solid var(--brand); padding: 0.5rem 0.9rem; background: var(--card); }
+    .helix-wrap table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.92rem; }
+    .helix-wrap th, .helix-wrap td { vertical-align: top; text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--line, #ddd); }
+    .helix-wrap tr.grp th { background: var(--card); font-family: var(--font-display); letter-spacing: 0.03em; color: var(--brand); padding-top: 0.7rem; }
+    .helix-wrap code { font-size: 0.86em; overflow-wrap: anywhere; }
+    .helix-wrap ul, .helix-wrap ol { padding-left: 1.3rem; }
+    .stl-index td:nth-child(2) { white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+
+    <div class="page-head">
+      <h1>Helix build status</h1>
+      <p class="muted"><a href="index.html">Neville Island helix</a> · rendered from <a href="files/HART_Neville_Helix_BUILD_STATUS.md"><code>HART_Neville_Helix_BUILD_STATUS.md</code></a></p>
+    </div>
+    <div class="guide-body helix-wrap prose">
+<h1>HART Railroad — Neville Island Helix: Build Status</h1>
+<p><strong>Last updated 2026-10-15.</strong> This is the single living status document. <strong>Update it in place; don't start new addenda.</strong> It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in <code>superseded/addenda_2026-09-30_to_10-13/</code> if the history is ever needed.</p>
+<p><strong>Read in this order:</strong>
+1. <a href="files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf"><code>helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf</code></a>: fabrication drawings. Its entry pages (2, 3, 8) are stale; see §8. <strong>Page 13 is the half-lap screw template</strong> (added 2026-10-15; same as <a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a>).
+2. <a href="files/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md"><code>HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md</code></a>: design rationale, alternatives, formulas.
+3. <strong>This file:</strong> as-built facts, decisions that override the two above, every fixture and script, and open items. <strong>Where this file conflicts with the PDF or the FINAL handoff, this file wins.</strong></p>
+<p>Unless marked <em>tested</em>, the fixtures here are verified only in software (watertight, single body, sections checked).</p>
+<hr />
+<h2>1. As-built facts and datums (these override the PDF and the FINAL handoff)</h2>
+<h3>Heights — use these for all math</h3>
+<ul>
+<li><strong>The height stack is definitive for the roadbed TOP.</strong> <code>p1_height_template</code> = <strong>1-1/32 in</strong> (1.03125) above the -15 in deck at bracket 0, then <strong>+1/2 in per 45°</strong>. The user settled on 1-1/32 by test-fit on 2026-10-02 (1-1/16 was too high). The calculated value was 1.100.</li>
+<li><strong>Plywood is 0.72 in measured.</strong> Underside = top − 0.72 (0.311 in at P1). <strong>Don't use a nominal 3/4.</strong></li>
+<li><strong>The first-loop piers</strong> were sized as top − 3/4, so they're 0.03 in under the 0.72-based underside. The user checked: the wood lines up, and they stay as built.</li>
+<li><strong>Grade and clearance:</strong> a constant offset changes neither. Railhead-to-underside clearance in the helix = 4.000 − 0.72 − T = <strong>3.12 in</strong> with T = 0.160 (nominal Code 83; caliper the actual track).</li>
+</ul>
+<h3>Half-lap joints (as built in 0.72 ply)</h3>
+<ul>
+<li><strong>Upper piece keeps 0.26 in, lower piece keeps 0.46 in</strong> (stack 0.72). This replaces the 1/4 + 1/2 split for 3/4 stock. The lap template labels still say LOWER 1/4 | UPPER 1/2.</li>
+<li>The lap is a 3.75° wedge: 1.701 in along the 26 in edge, 2.078 in along 31.75 (2.094 at 32). The shoulder is radial. The nominal joint line is in the middle, 1.875° from each end.</li>
+<li>Label cuts <strong>by piece</strong> (LOWER / UPPER), never "top lap / bottom lap".</li>
+</ul>
+<h3>Bracket grid</h3>
+<ul>
+<li>The grid is relative to the <strong>entry butt joint</strong> (the helix structure is rotated to suit). This supersedes "Post 1 at 6:00 + 21.75°".</li>
+<li><strong>Bracket n</strong> is at <strong>n × 45°</strong> past the butt joint and <strong>n × 0.500 in</strong> above bracket 0. Even n is under a half-lap joint; odd n is mid-piece. The last regular bracket is n = 28 (1260°, +14.000). The final 30° needs separate support.</li>
+<li>Measure every bracket height <strong>from bracket 0</strong>, not bracket to bracket.</li>
+<li>Bracket 0 is under the butt joint. Keep its whole 0.600 strap on the helix side of the cork step.</li>
+<li>Brackets stay square and radial; <strong>grade is tangential</strong>. In the bracket's radial plane the roadbed is level, so grade only leans the bracket sideways (about 1.3°). See the plumb shim in §4.</li>
+</ul>
+<h3>P1 (first roadbed piece)</h3>
+<ul>
+<li>Butt start with no lap: <strong>1.875° trimmed</strong> off the entry end, 0.851 in (≈27/32) on the 26 in edge, 1.039 at 31.75 / 1.047 at 32. Radial cut. That leaves a 91.875° piece, inside chord <strong>37.366 in</strong>.</li>
+<li>The outer radius may be 32 in instead of 31.75 (6 in blank). Every inside-edge check is independent of the outer radius.</li>
+</ul>
+<h3>Entry (approach to the helix)</h3>
+<ul>
+<li>The cookie-cut tongue: <strong>5-3/8 in straight</strong> (inner and outer tracks the same) + a curve starting at <strong>4:30</strong> on the 26 in radius, with the existing track and 6 mm cork. The tongue is a <strong>liftout</strong>.</li>
+<li>At the butt joint the <strong>railheads are continuous</strong>: the tongue plywood is 0.236 in lower than P1, and the cork makes up the difference.</li>
+<li>The tongue is held by <code>entry_wedge_riser_inside/outside.stl</code> (§4). P1 sits on <a href="stl/cork_to_plywood_transition_shim.stl"><code>cork_to_plywood_transition_shim.stl</code></a> (the user calls it the "offset bracket"), which sits in a pocket cut into the deck. <a href="stl/corner_spacer_P1.stl"><code>corner_spacer_P1.stl</code></a> goes under P1's two wing corners.</li>
+<li><strong>Clearance under loop 1 over the approach:</strong> 3.12 in at the butt joint. If the tongue is a straight ramp, it drops to about <strong>3.06 in</strong> at the curve start (inner track 28 in: tongue ≈ 2.09% vs helix 2.27%; outer 30.5 in: ≈ 1.94% vs 2.09%). Cork doesn't reduce it because the railheads are continuous. Field check: <strong>loop-1 underside above the deck = 4.311 − (degrees back from the butt joint ÷ 90) in</strong>; subtract the measured railhead height at that spot.</li>
+<li>Old deck-height chain (-15 in baseline, GRADE 0.02176): rise to nominal 6:00 = 5.375 × 0.02176 + 0.500. This is history only; the height stack (above) is authoritative.</li>
+</ul>
+<h3>Exit</h3>
+<ul>
+<li>The cork may return about 6 in into the 20-15/16 in exit straight (the user's recollection). Helix railhead vs the downstream target there is about +0.26 in at full grade (+0.13 if the grade is flattened at the end of the curve). With 0.72 ply the railhead is 0.03 lower than earlier 3/4-based estimates, which helps slightly.</li>
+<li>Easing the exit early never reduces clearance (the loop below is fixed).</li>
+</ul>
+<hr />
+<h2>2. Frame alignment (advice, 2026-10-14)</h2>
+<p>The posts must line up with the pockets already routed. <strong>Don't resize the frame first.</strong>
+- <strong>Along the circle:</strong> a 0.600 strap on a 1.5 in post face can slide ±0.45 in (about ±1°), so small errors need no frame change.
+- <strong>Radially:</strong> this one is exact. The 2x4 face is <strong>0.263 in inside the 26 in edge</strong>. <a href="stl/bracket_edge_shim.stl"><code>bracket_edge_shim.stl</code></a> is a go/no-go gauge.
+- Dry-fit the roadbed (clamped, not glued). At each post, measure A = the pocket centerline's offset along the circle, and B = the gap from the 26 in edge to the 2x4 face. Then fix in this order:
+  1. A off by the same amount everywhere: <strong>rotate</strong> the frame.
+  2. B tight on one side and loose opposite: <strong>translate</strong> the frame by half the difference.
+  3. B off by the same amount everywhere: <strong>scale</strong>. Change each tie's 18.000 long edge by <strong>0.828 × the radial change</strong>.
+  4. Leftovers: shim behind that bracket, or move that one post. <strong>Don't</strong> change one side's length to fix one post.</p>
+<hr />
+<h2>3. Shop process</h2>
+<h3>Blanks (31.75 / 32 outer)</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>31.75</th>
+<th>32</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inside chord, 26 in corners (93.75°)</td>
+<td>37.953 (37-15/16)</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Outside chord</td>
+<td>46.346</td>
+<td>46.711</td>
+</tr>
+<tr>
+<td>Diagonals (both equal)</td>
+<td>42.333</td>
+<td>42.530</td>
+</tr>
+<tr>
+<td>Nominal 90° mark in from the end</td>
+<td>0.851 in / 1.039 out</td>
+<td>0.851 / 1.047</td>
+</tr>
+<tr>
+<td>Inside chord between the 90° marks</td>
+<td>36.770</td>
+<td>same</td>
+</tr>
+<tr>
+<td>1/32 in on the inside chord ≈ 0.1°.</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3>Nesting (48 × 96, chord along 48, pivots 24 in from the long edge)</h3>
+<p>5.75 wide: 8.611 advance, 10 per sheet. 6.00: 8.918, 10 per sheet. 6.50: 9 per sheet. A fixed 9 in spacing fits 10 at any width up to 6.5 (gap 1.066 / 0.816 / 0.566 / 0.316). Not decided yet; not in the PDF.</p>
+<h3>Cutting</h3>
+<ul>
+<li>Arcs: Sigerio circle jig + AVID POWER MW104, <strong>1/4 in straight or upcut spiral</strong>, 3–4 passes over a spoil board. For the 26 in arc, measure the pivot to the <strong>far</strong> edge of the bit; for the outer arc, to the <strong>near</strong> edge.</li>
+<li>Radial ends: inside corner at 17.773 along the centerline and <strong>18.976 (18-31/32)</strong> perpendicular from the pivot. Strike the line through the pivot. Outside corner check 23.173 (31.75) / 23.356 (32). <strong>No circular saw</strong> (it runs into the nested neighbor). Use the router against a zero-offset straightedge, kerf to kerf, always with the same side of the base on the fence.</li>
+</ul>
+<h3>Router bits</h3>
+<ul>
+<li>User kit (<code>IMG_0718.jpeg</code>): straight bits, flush-trim, profile; no top-bearing bits. <strong>Purchased:</strong> UTRUSTTO 4-pc pattern set (ASIN B0CCFBBVPF), 1/2 in diameter, 1/4 shank, <strong>bearing on top</strong> despite the listing text. Shortest cutter is 1/2 or 25/64 (listings conflict; measure it).</li>
+<li>The bearing must ride the template at every depth: <code>0 ≤ L − depth &lt; T − ~1/8</code>.</li>
+<li>Pockets and lower laps: shortest bit. Upper lap: shortest if L = 1/2; otherwise take it to about 3/8 and finish with the 3/4 bit. Never start a shallow lap with the 3/4 bit.</li>
+</ul>
+<h3>Fasteners</h3>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>Screw</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Half-lap, from the top, with glue</td>
+<td><strong>#6 × 5/8 flat-head wood screw</strong> (Spax-type, not drywall)</td>
+<td>9/64 clearance through the upper piece, 7/64 pilot into the lower; countersink flush. Tip 0.095 above the underside. Keep off the pocket (0.366 left under it). Layout: <a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a>.</td>
+</tr>
+<tr>
+<td>Bracket into the pocket, from below</td>
+<td><strong>#8 × 5/8</strong> (pan, or flat if the holes are countersunk)</td>
+<td>Vix bit through the bracket holes, 1/8 pilot, <strong>tape stop at 1/2 in</strong> (only 0.626 of wood above the pocket). Stops 0.08 below the top. At laps it also clamps the joint.</td>
+</tr>
+<tr>
+<td>Pocket/lap template hold-down</td>
+<td>#6 × 1-1/4 (pocket), #6 × 1 (lap)</td>
+<td>Holes land outside the joint</td>
+</tr>
+<tr>
+<td>Piers to the deck</td>
+<td>#6 × 1 in</td>
+<td>1-1/4 would come through</td>
+</tr>
+<tr>
+<td>Entry risers</td>
+<td>#6: 2 in high side, 1-1/4 low side</td>
+<td>Driven from below</td>
+</tr>
+<tr>
+<td>Corner spacer</td>
+<td>#6 through the 1/4 in hole</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Dry fit, then glue:</strong> drill and screw the laps and brackets snug, number every piece and its up face, take it apart, glue, and re-drive into the same holes. A stripped hole gets a glued toothpick or a #8 in that hole.</p>
+<p><strong>Bracket placement during the dry fit:</strong> put <code>bracket_edge_shim</code> against the 26 in edge, with the bracket back flush in its notch. Center the strap in the pocket (1/32 per side). Pilot through the bracket holes.</p>
+<hr />
+<h2>4. Fixtures and scripts (<code>~/Downloads/stl</code>, all STLs in mm, watertight single bodies)</h2>
+<p>Same filename = overwritten on regeneration. In Creality Print use <strong>Reload from disk</strong>.</p>
+<h3>Router templates</h3>
+<table>
+<thead>
+<tr>
+<th>File(s)</th>
+<th>Script</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>roadbed_halflap_template_A/B.3mf</code> (+ <code>.stl</code>, <code>_CORE100.stl</code>)</td>
+<td><a href="scripts/make_lap_template.py"><code>make_lap_template.py</code></a> + <a href="scripts/router_template_lattice.py"><code>router_template_lattice.py</code></a></td>
+<td>Lip hooks the end cut, fence hooks the 26 in edge. Window to a radial shoulder at 3.75°, r 25.5–32.75. 1/2 in plate, lattice with a 0.25 in <strong>100% core modifier</strong> around the window. 2 countersunk #6 holes. <strong>Open the 3MF</strong> (Bambu-style, part + modifier).</td>
+</tr>
+<tr>
+<td><code>bracket_pocket_template_A/B.3mf</code> (+ <code>.stl</code>, <code>_CORE100.stl</code>)</td>
+<td><a href="scripts/make_bracket_pocket_template.py"><code>make_bracket_pocket_template.py</code></a></td>
+<td>Slot 0.6625 wide, centered on the joint line, r 25.5 → 29.95, <strong>3/4 in plate, 1/2 in bit</strong>, 3/32 deep. Same letter pairs with the same lap letter.</td>
+</tr>
+<tr>
+<td><a href="stl/bracket_pocket_template_MID.3mf"><code>bracket_pocket_template_MID.3mf</code></a> (+ <code>.stl</code>, <code>_CORE100.stl</code>)</td>
+<td><a href="scripts/make_mid_pocket_template.py"><code>make_mid_pocket_template.py</code></a></td>
+<td>Mid-piece brackets (odd n). Symmetric, rides the 26 in edge, no lip. Center on the pencil line (V-notch). Regular piece: chord <strong>20.683</strong> from each inside corner. P1: <strong>19.900</strong> from the butt-end corner. #6 × 1-1/4.</td>
+</tr>
+<tr>
+<td><a href="stl/router_depth_block.stl"><code>router_depth_block.stl</code></a></td>
+<td><a href="scripts/make_router_depth_block.py"><code>make_router_depth_block.py</code></a></td>
+<td>Double-sided; wells 3/32·1/4·3/8 / 1/2·5/8·3/4 (the user's order; keep it). Face 1 = LAP B / PKT A. Print standing on its end with a brim.</td>
+</tr>
+<tr>
+<td><a href="stl/router_depth_gauge.stl"><code>router_depth_gauge.stl</code></a></td>
+<td><a href="scripts/make_router_depth_gauge.py"><code>make_router_depth_gauge.py</code></a></td>
+<td>Checks POCKET 3/32, LOWER 1/4, UPPER 1/2 (3/4-stock values).</td>
+</tr>
+</tbody>
+</table>
+<p>A/B hand logic: templates print plate-down and are flipped for use. One lap hand does both ends by flipping the piece. If a template doesn't seat on both the lip and the fence, use the other letter.</p>
+<h3>Heights</h3>
+<table>
+<thead>
+<tr>
+<th>File(s)</th>
+<th>Script</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="stl/p1_height_template.stl"><code>p1_height_template.stl</code></a></td>
+<td><a href="scripts/make_height_spacers.py"><code>make_height_spacers.py</code></a></td>
+<td><strong>1-1/32 in</strong> = P1 top at bracket 0. Sockets on top.</td>
+</tr>
+<tr>
+<td><code>height_spacer_1_4in/1_2in/3_4in/1in/1_1_2in.stl</code>, <a href="stl/height_base_1_4in.stl"><code>height_base_1_4in.stl</code></a></td>
+<td>same</td>
+<td>Lego-style stack (pegs + crush ribs), sum 4.000. Template + 1/2 per 45° marks the plywood <strong>top</strong>.</td>
+</tr>
+<tr>
+<td><code>first_loop_pier_post2…7.stl</code></td>
+<td><a href="scripts/make_first_loop_piers.py"><code>make_first_loop_piers.py</code></a></td>
+<td>Sized as top − 3/4 (0.03 low; accepted). Top at grade, arrow uphill. Trellis webs, two screw tabs. Posts 1 and 8 skipped.</td>
+</tr>
+<tr>
+<td><a href="stl/layer_spacer_4in_pitch.stl"><code>layer_spacer_4in_pitch.stl</code></a></td>
+<td><a href="scripts/make_layer_spacer.py"><code>make_layer_spacer.py</code></a></td>
+<td>Loop-to-loop check, <strong>3.280 in</strong> = 4.000 − 0.72. 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode.</td>
+</tr>
+<tr>
+<td><a href="stl/layer_spacer_4in_pitch_vase.stl"><code>layer_spacer_4in_pitch_vase.stl</code></a></td>
+<td><a href="scripts/make_layer_spacer_vase.py"><code>make_layer_spacer_vase.py</code></a></td>
+<td>Same envelope, <strong>spiral vase</strong>. Solid with a 1-turn 0.1 mm spiral slit, so a 3-line (~1.95 mm) wall from one path, ~10 g. Vase on, bottom 3–4 layers, <strong>slice gap closing radius 0.01</strong>, outer line 0.45 (<code>LINE_W</code>).</td>
+</tr>
+<tr>
+<td><a href="stl/layer_spacer_4in_pitch_vase_1line.stl"><code>layer_spacer_4in_pitch_vase_1line.stl</code></a></td>
+<td>same</td>
+<td>Plain single-line vase, ~4 g, weakest.</td>
+</tr>
+</tbody>
+</table>
+<h3>Entry</h3>
+<table>
+<thead>
+<tr>
+<th>File(s)</th>
+<th>Script</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>entry_wedge_riser_inside/outside.stl</code></td>
+<td>(none kept)</td>
+<td>1 × 2.25 in footprint, 1.261 tall. Step <strong>0.864</strong> (the chord-corrected calc says 0.859; not regenerated, and the P1 template already absorbs it). Engraved R / L.</td>
+</tr>
+<tr>
+<td><a href="stl/cork_to_plywood_transition_shim.stl"><code>cork_to_plywood_transition_shim.stl</code></a></td>
+<td>(none kept)</td>
+<td>2 in along the track × 3.5 radial. Low foot 0.375 (tongue), high foot 0.611 (P1); step 0.236. 2 countersunk holes per foot. Sits in a deck pocket that should be ~0.300 deep.</td>
+</tr>
+<tr>
+<td><a href="stl/corner_spacer_P1.stl"><code>corner_spacer_P1.stl</code></a></td>
+<td><a href="scripts/make_corner_offset_spacer.py"><code>make_corner_offset_spacer.py</code></a></td>
+<td>Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). <strong>0.311 tall</strong>, 5/8 OD, 1/4 hole. Print 2 at 100% infill. Measure the gap first (<code>P1_GAP</code>).</td>
+</tr>
+</tbody>
+</table>
+<h3>Brackets (Wideskall 4x4, 0.080 steel, 0.600 strap, 0.185 holes)</h3>
+<table>
+<thead>
+<tr>
+<th>File(s)</th>
+<th>Script</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="stl/bracket_edge_shim.stl"><code>bracket_edge_shim.stl</code></a></td>
+<td><a href="scripts/make_bracket_edge_shim.py"><code>make_bracket_edge_shim.py</code></a></td>
+<td>Fills the gap between the 26 in edge and the 2x4 face above the bend. 0.62625 tall (0.72 − 3/32), 1.5 wide, 0.274 thick (r 26 curve vs the 2x4 face at r 25.7258), with a bracket notch. Also the radial gauge. 29 needed. Change <code>POST_FACE_R</code> if the posts are off.</td>
+</tr>
+<tr>
+<td><a href="stl/bracket_plumb_shim.stl"><code>bracket_plumb_shim.stl</code></a></td>
+<td><a href="scripts/make_bracket_plumb_shim.py"><code>make_bracket_plumb_shim.py</code></a></td>
+<td><strong>Brackets lean sideways with the grade.</strong> Strip tapered across its width, 0.20 → 0.56 mm (grade 2.29% × 0.62). <strong>Notched (thick) edge uphill.</strong> Fits the pocket's 0.35 mm slack. Prints flat, 0.2 first layer, 0.08–0.1 after. One per bracket.</td>
+</tr>
+<tr>
+<td><code>bracket_wedge_gap_{1,2,3,4}_64.stl</code></td>
+<td><a href="scripts/make_bracket_wedges.py"><code>make_bracket_wedges.py</code></a></td>
+<td>For a <strong>gap between the leg and the post</strong> (a bend that isn't square, or a roadbed tilted across its width). Taper along the length; notches = gap in 64ths. Bottom of the leg off the post: thick end toward the tip. Top off: thick end toward the post. Set the height by the roadbed top.</td>
+</tr>
+</tbody>
+</table>
+<h3>Paper</h3>
+<ul>
+<li><a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a> (<a href="scripts/make_lap_screw_template.py"><code>make_lap_screw_template.py</code></a>): US Letter, <strong>print at 100%</strong> (print only that page; it is also page 13 of the construction plan PDF), check the 2 in / 50 mm bars. Arc on the 26 in edge, seam line on the visible top seam (symmetric, either hand). Six screws at r 26.75 / 29.25 / 30.85, ±0.56 / 0.62 / 0.60 off the joint line, ≥ 3/16 from the pocket and ≥ 0.31 from the seams.</li>
+</ul>
+<h3>Shop tool</h3>
+<ul>
+<li><code>router_sigerio_test_plate*.stl</code>: MW104 to Sigerio adapter <strong>test</strong> plate. 6 in, 8.32 mm. Router holes 90° countersunk, 3.000 in across the diagonal. Sigerio holes plain on a 4.5 in circle. Hole sizes (0.22, 0.25) and center bore (1.75) are estimates.</li>
+</ul>
+<h3>Obsolete (don't print)</h3>
+<p><code>bracket_pocket_template.stl</code> (no suffix; inches, not watertight), <code>entry_transition_shim*.stl</code>, <code>entry_wedge_riser.stl</code> (no suffix). The old solid router templates are in <code>superseded/router_templates_solid_2026-10-01/</code>.</p>
+<hr />
+<h2>5. Printing (Creality Print 7.3, SPARKX i7 / K2, 260 mm bed)</h2>
+<ul>
+<li>Multipart (modifier) parts ship as Bambu-style 3MF. If the modifier doesn't come in, import the body + <code>_CORE100</code> STL together as one object, set the core to Modifier, sparse infill 100%.</li>
+<li>Templates: router face down, 2–3 walls, 10–15% infill, no supports.</li>
+<li>Thin parts (wedges, plumb shims) print slower. Vase parts need the gap-closing setting above.</li>
+</ul>
+<h2>6. Regenerating</h2>
+<ul>
+<li>Scripts run from <code>~/Downloads/stl</code> with <code>python &lt;script&gt;.py</code>. There's no global trimesh; make a venv with:
+  <code>numpy trimesh manifold3d shapely mapbox_earcut scipy rtree networkx matplotlib pymupdf pypdf</code></li>
+<li>Run with <code>PYTHONDONTWRITEBYTECODE=1</code> to keep <code>__pycache__</code> out of the folder.</li>
+</ul>
+<h2>7. Process lessons</h2>
+<ul>
+<li>Author STLs <strong>in mm</strong> (STL has no units).</li>
+<li>Check <code>len(mesh.split(only_watertight=False)) == 1</code>, not just <code>is_watertight</code>.</li>
+<li>Countersinks: check cone depth against thickness, model them from the screw's entry face, and verify with a section through the actual hole center.</li>
+<li>PDF redactions: keep the rects tight and verify with <code>get_text()</code>.</li>
+<li>After overwriting an STL, remind the user to use <strong>Reload from disk</strong>.</li>
+</ul>
+<h2>8. Open items</h2>
+<ol>
+<li><strong>PDF entry pages (2, 3, 8)</strong> still assume a 6 in straight and the old Post 1 reference. Regenerate them from §1 (5-3/8 straight, butt-joint grid, height stack), and redo the exit table.</li>
+<li><strong>Exit straight plan-view direction</strong> vs the lower loop: needs a field answer.</li>
+<li><strong>Corner spacer:</strong> measure deck-to-P1-underside at both corners (0.311 assumed). The user saw the outside reading higher. By design inside and outside are equal at the same angle, so check the table, the tongue risers and the shim seat. Make inside/outside versions if they really differ.</li>
+<li><strong>Frame vs pockets:</strong> dry-fit, take the 8 A/B readings (§2), and send them in for a rotate/translate/scale fit.</li>
+<li>Measure the shortest UTRUSTTO cutter (1/2 vs 25/64).</li>
+<li>Caliper the actual track height T (0.160 assumed) before clearance sign-off.</li>
+<li>First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase spacers (check the coil in the preview), wedges and plumb shims.</li>
+<li>Nesting spacing (9 in vs 8.611/8.918): decide, then add it to the PDF.</li>
+<li>Delete the obsolete STLs listed in §4 once the user agrees.</li>
+<li>Router adapter: verify the hole sizes against the real router and jig.</li>
+<li>Add the diagonal bracing (PDF p. 12) to the FINAL handoff's locked list. It is in the PDF only: braced bays A-B, C-D, E-F, G-H, two half-diagonals each, 20-5/8 in, 27°.</li>
+</ol>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("helix"); });</script>
+</body>
+</html>

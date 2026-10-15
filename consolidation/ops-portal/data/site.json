@@ -19,6 +19,7 @@
     {"id": "about", "href": "about/index.html", "label": "About"},
     {"id": "layout", "href": "layout/index.html", "label": "Explorer"},
     {"id": "guides", "href": "guides/index.html", "label": "Guides"},
+    {"id": "helix", "href": "helix/index.html", "label": "Helix"},
     {"id": "tools", "href": "tools/index.html", "label": "Tools"}
   ]
 }
