@@ -35,20 +35,62 @@ The P&OV switched Neville Island for 94 years, from 1899 to 1994. It began as Am
 
 The blog does not say when control passed from U.S. Steel to Shenango. By the 1960s P&OV crews were in the Shenango pension plan ([p.11](https://www.tumblr.com/pittsburghohiovalleyrailroad/186515735330), [p.119](https://www.tumblr.com/pittsburghohiovalleyrailroad/45265299696)).
 
-## Job board
+## The jobs
 
-The P&OV ran five numbered jobs plus an EXTRA. The first digit appears to mark the trick (1 = day, 2 = second, 3 = midnight); that is a reading of the pattern, not something the blog states. The board below is Mark Connolly's answer to a modeler's question about job numbers ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)), filled in with details from photo captions.
+The only place the blog lists every job is Mark Connolly's answer to modeler Steve Raque, who asked what the numbers meant and what each job did ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). Mark said the number stood for the shift and the duty. There were five numbered jobs and an EXTRA. Two were daylight jobs with different work. The others were the second trick, the midnight trick, and a relief job that covered the days those jobs had off. Photo captions supply the moves.
 
-| Job | Hours | Days | Territory | Main work | Other details | Source |
-|---|---|---|---|---|---|---|
-| #105 | 7:00 a.m. – 3:30 p.m. | Mon–Fri | West Yard, "clean end" | Iron ore to the Shenango car dumper in 10-car drags | Most sought-after job, held by senior men; drags shoved off the South Runner; coffee at the coke plant lead | [p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176), [p.84](https://www.tumblr.com/pittsburghohiovalleyrailroad/46501750755), [p.105](https://www.tumblr.com/pittsburghohiovalleyrailroad/45668348527), [p.37](https://www.tumblr.com/pittsburghohiovalleyrailroad/96556993685) |
-| #110 | Daylight | Mon–Fri | East end | Two blast furnaces, pig machine, coke plant | "Graphite, coke dust area"; called the Furnace Job; lined the crossing for furnace coke moves | [p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176), [p.57](https://www.tumblr.com/pittsburghohiovalleyrailroad/61492732149), [p.130](https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646), [p.139](https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783) |
-| #115 | Mon & Tue midnight, Wed 2nd trick, Sat & Sun day | 5 days | East and West | Relief job covering the other jobs' rest days | Loco #6 (SW9) on #115, Aug 1979 | [p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176), [p.126](https://www.tumblr.com/pittsburghohiovalleyrailroad/45196985396), [p.67](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060) |
-| #205 | 4:00 p.m. – midnight | Off Wed & Thu | East and West as required | Second-trick switching |  | [p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176), [p.67](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060) |
-| #305 | Midnight – 7:00 a.m. | Off Mon & Tue | East and West | Night switching | Last task: spot the engine for sand on S9 and go home | [p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176), [p.99](https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194) |
-| EXTRA | As called | As needed | Anywhere | Extra work when "super busy" or when the **scale was down** | Extra board crews could wait weeks for work | [p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176), [p.62](https://www.tumblr.com/pittsburghohiovalleyrailroad/60848620277), [p.72](https://www.tumblr.com/pittsburghohiovalleyrailroad/47102644216) |
+| Job | Shift | When it worked |
+|---|---|---|
+| #105 | 7:00 a.m. – 3:30 p.m. | Monday–Friday. Off Saturday and Sunday. |
+| #110 | Daylight | Monday–Friday. Off Saturday and Sunday. |
+| #205 | 4:00 p.m. – midnight | Off Wednesday and Thursday. East and west as required. |
+| #305 | Midnight – 7:00 a.m. | Off Monday and Tuesday. East and west. |
+| #115 | The shift changes with the day | Monday and Tuesday midnight, Wednesday second trick, Saturday and Sunday daylight. |
+| EXTRA | As called | When the plant was super busy, or the scale was down. |
 
-Supervision: a trainmaster wrote the switching orders for each crew ([p.76](https://www.tumblr.com/pittsburghohiovalleyrailroad/47021835262)), and the yard clerks and trainmasters did the weighing ([p.95](https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832)).
+Read across the week, the relief job sits in the holes Mark named. Monday and Tuesday midnight, #115 covers the nights #305 has off. Wednesday afternoon, it covers the second trick #205 has off. Saturday and Sunday, it is the daylight crew, when both #105 and #110 are off. The blog does not say who worked Thursday's second trick.
+
+A trainmaster wrote the switching orders for the crew on duty ([p.76](https://www.tumblr.com/pittsburghohiovalleyrailroad/47021835262)). Weighing belonged to the yard clerks and the trainmasters, at the Toledo scale in the yard office ([p.95](https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832)).
+
+### #105, the ore job
+
+This was the job men wanted. Daylight, Monday through Friday, 7:00 a.m. to 3:30 p.m., mostly in the West Yard. Mark called it the clean end of the plant, and the senior men held it ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176), [p.105](https://www.tumblr.com/pittsburghohiovalleyrailroad/45668348527)).
+
+The work was iron ore for Shenango. The crew shoved ten-car drags off the South Runner to the car dumper. The brakeman was supposed to ride the fifth car ([p.84](https://www.tumblr.com/pittsburghohiovalleyrailroad/46501750755)). At the dumper the hoppers were turned on E2, and a car rider rode the empties back down the hill, braking by hand ([p.39](https://www.tumblr.com/pittsburghohiovalleyrailroad/87216028880), [p.44](https://www.tumblr.com/pittsburghohiovalleyrailroad/85923998090)). Captions show the drag coming up to the coke yard switch, and the engine spotted for fuel in the South Yard between trips ([p.114](https://www.tumblr.com/pittsburghohiovalleyrailroad/45277028350), [p.58](https://www.tumblr.com/pittsburghohiovalleyrailroad/61429804213)).
+
+Coffee belonged to the day. Don Amber and Bob Paulin drank it near the coke plant lead, in the green P&OV hats ([p.105](https://www.tumblr.com/pittsburghohiovalleyrailroad/45668348527)). After a drag to the dumper, around 10:00 or 10:30, the crew stopped at the millwrights on the furnace lead and brought coffee back for the yard office ([p.57](https://www.tumblr.com/pittsburghohiovalleyrailroad/61492033975)). An early quit at the end of the shift was something to smile about ([p.75](https://www.tumblr.com/pittsburghohiovalleyrailroad/47021942624)). A crew coming on duty would sometimes step onto the footboard, relieve the engineer, and weigh the cars or take one more drag, so the crew going home could leave a little early ([p.55](https://www.tumblr.com/pittsburghohiovalleyrailroad/61494804614)).
+
+In the early 1980s the engine on this job was SW9 #4 ([p.37](https://www.tumblr.com/pittsburghohiovalleyrailroad/96556993685)). Nick Niapas conducted it, and sometimes the furnace job as well ([p.9](https://www.tumblr.com/pittsburghohiovalleyrailroad/189650563200)).
+
+### #110, the furnace job
+
+The other daylight job, Monday through Friday, on the east end. Mark called it a graphite and coke dust area. It served the two blast furnaces, the pig machine, and the coke plant ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). John Doubt worked it often enough that a caption names it the Furnace Job ([p.139](https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783), [p.57](https://www.tumblr.com/pittsburghohiovalleyrailroad/61492732149)).
+
+Furnace coke was pulled from the Shenango coke plant, weighed on the yard-office scale, and taken to F1 at the blast furnace. The furnace job lined the crossing for that move, and the conductor rode the lead hopper ([p.130](https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646), [p.120](https://www.tumblr.com/pittsburghohiovalleyrailroad/45264638064), [p.55](https://www.tumblr.com/pittsburghohiovalleyrailroad/61494804614)). While B furnace finished a cast, the crew waited at the rear of the furnace runner, short of the bumping block ([p.14](https://www.tumblr.com/pittsburghohiovalleyrailroad/139367141870)).
+
+The ladle, pig, and barge moves below are described on this east-end territory. The captions do not repeat the job number on every one of them.
+
+Hot metal moved in ladles, switched two at a time out of the ladle house. The crew had to watch the weight or the cut would reach the quench car at the battery ([p.14](https://www.tumblr.com/pittsburghohiovalleyrailroad/139367141870)). Ladles were heated on E9 before they were spotted, and switched from E6 to E4 because they were rarely in the order the furnace wanted ([p.77](https://www.tumblr.com/pittsburghohiovalleyrailroad/47021729095), [p.91](https://www.tumblr.com/pittsburghohiovalleyrailroad/46331368911)). Mark's split was one to the foundry, one to the pig machine, and one for recast ([p.138](https://www.tumblr.com/pittsburghohiovalleyrailroad/44865298831)). Iron for the Shenango foundry, at the other end of the island, left by the pig-yard lead at the Gulf Crossing. The PC&Y interchange was just west of that crossing, and crews bled the ladles and gons there ([p.138](https://www.tumblr.com/pittsburghohiovalleyrailroad/44865298831), [p.105](https://www.tumblr.com/pittsburghohiovalleyrailroad/45668500339)).
+
+At the A-furnace pig machine, bars dropped into gondolas two loads at a time. The crew pulled those two loads and kept the safety car clear of the East Runner ([p.110](https://www.tumblr.com/pittsburghohiovalleyrailroad/45279964421)). Loads of pig iron were spotted on E1 for the barge, on a steep grade ([p.95](https://www.tumblr.com/pittsburghohiovalleyrailroad/45908135223)). Empty pig gons were picked up in the East Yard, near West View Water ([p.92](https://www.tumblr.com/pittsburghohiovalleyrailroad/46331275637)).
+
+### #115, the relief job
+
+Mark lists five shifts, and the trick changes with the day: Monday and Tuesday midnight, Wednesday on the second trick, Saturday and Sunday daylight ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). It covered the rest days of the other jobs, east or west as that day's work required.
+
+In August 1979 Larry Obusek had SW9 #6 on this job, with Joe Adamcik on the front of the engine, about to roll across the scale. Mark thought the scale had been thrown red ([p.126](https://www.tumblr.com/pittsburghohiovalleyrailroad/45196985396)). Elmer Picard worked the relief job as well as the steady second-trick job ([p.67](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060)).
+
+### #205, second trick
+
+4:00 p.m. to midnight, off Wednesday and Thursday, working the east end and the west end as the plant required ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). Elmer Picard held it as a steady job. He came to work in a sport coat and tie, and Mark said he looked like he owned the place when he filled out his time sheet ([p.67](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060)). The blog gives this trick no separate list of moves.
+
+### #305, the midnight job
+
+Midnight to 7:00 a.m., off Monday and Tuesday, east and west ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). The one task a caption names is the last one. The crew spotted the engine on S9 for sand and went home. In a 1980 photo that engine is #3, just west of the scale, with the track gang loading sand by the bucket ([p.99](https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194)).
+
+### EXTRA
+
+An extra was called when the plant was super busy, or when the scale was down ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). The men who covered it were the extra board, and a call could be a long time coming. Scott Morrison was third out most of the time ([p.72](https://www.tumblr.com/pittsburghohiovalleyrailroad/47102644216)). Asked in 1988 why railroad employees were not guaranteed 40 hours a week, John Iwanonkiw answered that they had spent those years on the extra board ([p.62](https://www.tumblr.com/pittsburghohiovalleyrailroad/60848620277)).
 
 ## Track and place names
 
@@ -111,7 +153,7 @@ The P&OV's three yards (West, South and East) already share their names with HAR
 
 ## Typical moves
 
-Almost every P&OV car crossed the yard office scale. The traffic was mostly Shenango's own: ore in, hot metal and pig iron around the island, and coke from the battery to the furnace.
+Almost every P&OV car crossed the yard office scale. The traffic was mostly Shenango's own: ore in, hot metal and pig iron around the island, and coke from the battery to the furnace. The job write-ups above tell that work by crew. This table is the same traffic, one row per move.
 
 | Flow | Route and handling | Job | Source |
 |---|---|---|---|
