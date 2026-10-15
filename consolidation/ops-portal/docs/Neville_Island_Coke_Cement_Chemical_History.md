@@ -133,6 +133,16 @@ The furnaces themselves came off around the same time. There is no company filin
 
 Those Neville Island stacks are not the Shenango Furnace blast furnaces at **Sharpsville**, Pennsylvania. The Sharpsville No. 3 furnace was banked in 1968 and torn down in the late 1970s; No. 1 came down in 1970.
 
+### Furnaces A and B
+
+On the island the two stacks were **A** and **B**, beside the coke battery. A stood at the pig machine. B stood beyond it. A was cut up first and remained in place while B kept casting. Stanley Quick, 38 years at the plant, describes that same order. Mark Connolly's scrap photo shows A going out, the East Runner to the right, and B still up in the background.
+
+Ore and furnace coke were for these furnaces. The P&OV shoved ore to the car dumper and took coke from the battery to track F1. The west-end foundry received the hot iron, in ladles. The track-level account is in [Pittsburgh & Ohio Valley Railway](Pittsburgh_Ohio_Valley_Railway.md).
+
+In 1958 Pittsburgh Coke & Chemical spent about $2.5 million to adapt one of the two furnaces to make ferromanganese and spiegeleisen as well as pig iron. Half of that was a gas-cleaning system. The note does not name the furnace (*Chemical & Engineering News*, 17 February 1958).
+
+HART's Shenango map is the coke works after the iron department closed: tracks K-1 and K-2. The ore dumper, A and B, the pig machine, and the ladle run to the foundry are not on that plan.
+
 Coke outlasted iron by about 25 years. DTE Energy bought Shenango in 2008. Citing the North American steel downturn, DTE announced closure on 17 December 2015. **The last coke came off on 6 January 2016** — that is the coke date, not pig iron. (2014–15 news about Shenango is pollution enforcement against the coke battery.) Demolition included the May 2018 stack implosion. Lindy Paving closed on the site in November 2020.
 
 This is the branch HART cards as Shenango Coke Works.
@@ -360,5 +370,7 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
 26d. Iron-department close-out: Don Marion, general foreman of Shenango’s Neville Island blast-furnace, steam-and-power, and pig-machine departments (June 1973–March 1991), states that after the iron department closed, National Material bought the pig-casting machine and he rebuilt it at Sparrows Point as Maryland Pig Services, where he was plant manager from July 1991. https://www.linkedin.com/in/don-marion-01311087 Maryland later lists Maryland Pig Services / Bethlehem Steel, Sparrows Point, on an air-quality permit (permit 1998-03-02135). TRI for Shenango Inc. Neville Island Foundry Division (3100 Grand Ave.) falls from 58,346 pounds in 1989 to 5 pounds in 1990. January 1990 foundry shutdown and staged furnace demolition are plant-veteran comments collected at http://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html
 
 26e. Sharpsville (not Neville Island): Shenango Furnace No. 3 banked 1968, torn down late 1970s; No. 1 torn down 1970. Development of Sharpsville Furnace / Sharpsville Historical Society.
+
+26f. *Chemical & Engineering News*, 17 February 1958, "Pittsburgh Coke Branches Out": one Neville Island blast furnace adapted for ferromanganese and spiegeleisen, about $2.5 million, half of it a gas-cleaning system. The furnace letter is not given.
 
 27. *New York Times*, 15 Dec 1979, “Donated Park Lies Unused Because of Toxins Beneath.”

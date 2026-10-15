@@ -92,6 +92,36 @@ Midnight to 7:00 a.m., off Monday and Tuesday, east and west ([p.2](https://www.
 
 An extra was called when the plant was super busy, or when the scale was down ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). The men who covered it were the extra board, and a call could be a long time coming. Scott Morrison was third out most of the time ([p.72](https://www.tumblr.com/pittsburghohiovalleyrailroad/47102644216)). Asked in 1988 why railroad employees were not guaranteed 40 hours a week, John Iwanonkiw answered that they had spent those years on the extra board ([p.62](https://www.tumblr.com/pittsburghohiovalleyrailroad/60848620277)).
 
+## The two east-end furnaces
+
+The two furnaces next to the coke plant are Shenango blast furnaces **A** and **B**. They are the iron works on the east end of the island. The Shenango-Penn foundry is a different plant, about two miles west, at 3100 Grand Avenue. Stanley Quick, who spent 38 years at Shenango, put the foundry where the main road bends, a small works compared with the coke plant, and connected to it by rail.
+
+Ore and furnace coke went to A and B. The foundry took the hot iron those furnaces cast, in ladles. A P&OV engine worked that ladle job at the foundry. The PC&Y interchange, just west of the Gulf Crossing, is where ladles and gons changed roads on the way off the east-end plant.
+
+### What the railroad brought in
+
+Iron ore came onto the island over the PC&Y. A PC&Y man recalled hauling it out of Scully Yard. On the island, #105 shoved it from the West Yard to the Shenango car dumper in ten-car drags. A 1980 photo taken from the dumper looks back across the ore yard with both furnaces standing behind it ([p.38](https://www.tumblr.com/pittsburghohiovalleyrailroad/87316582765)). The dumper trestle also looked out on a stockyard of ore, coal, dolomite, and coke ([p.108](https://www.tumblr.com/pittsburghohiovalleyrailroad/45339227064)).
+
+Furnace coke moved the other way. #110 pulled it from the battery, weighed it at the yard-office scale, and took it to track **F1** at the blast furnace. The furnace job lined the crossing for that move.
+
+### Where A and B sat
+
+The captions give a view, not a survey.
+
+The Furnace Runner runs east past the pig machine at **A** furnace and ends at a bumping block. Crews waited there while **B** finished a cast ([p.14](https://www.tumblr.com/pittsburghohiovalleyrailroad/139367141870), [p.120](https://www.tumblr.com/pittsburghohiovalleyrailroad/45264638064)). When A was being cut up for scrap, the gons sat on the old pig-iron holding track, the East Runner was to the right, and B was still standing in the background ([p.60](https://www.tumblr.com/pittsburghohiovalleyrailroad/61428754567)). A is the near furnace, the one with the pig machine. B is the one beyond it.
+
+Hot metal left the ladle house two ladles at a time. Mark's split was one to the foundry, one to the pig machine, and one for recast. At A's pig machine the bars dropped into gondolas two loads at a time, and the loads were spotted on E1 for the barge.
+
+### How the pair got there, and when it left
+
+The first stack is the American Steel & Wire furnace of about 1900. The company history Mark posted says that when Davison bought it from U.S. Steel it was a 550-ton-a-day furnace on 159 acres at the upstream end of the island. Davison enlarged it, built the coke plant to feed it, and built the cement plant to use the slag. The pig iron was sold to foundries in the Pittsburgh district ([p.116](https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824)).
+
+In 1951 Pittsburgh Coke & Chemical raised money to double pig-iron output from 300,000 to 600,000 net tons a year. That program is the second furnace, which EPA dates to about 1952. In 1958 the company spent about $2.5 million to adapt one of the two furnaces to make ferromanganese and spiegeleisen as well as pig iron. Half of that money was a gas-cleaning system. The published note does not say whether the converted furnace was A or B.
+
+Shenango Furnace bought the coke-and-iron works in 1962 and kept both stacks. A came down first and stayed in place while B kept running. Stanley Quick describes the shutdowns as staged. Mark's scrap photo is the same moment: A going out, B still up. The last casts at B were around 1990. The foundry closed in January 1990. The iron department closed over 1990–91, and the pig machine was sold and rebuilt at Sparrows Point. After that the east end was a coke plant. HART's Shenango map is that later plant: tracks K-1 and K-2 at the coke works. The ore dumper, furnaces A and B, the pig machine, the ladle house, and the ladle run to the foundry are not on it.
+
+The longer corporate history is in [Neville Island coke, cement, and chemical history](Neville_Island_Coke_Cement_Chemical_History.md).
+
 ## Track and place names
 
 The P&OV's three yards (West, South and East) already share their names with HART's station maps. Its scale also sat just east of S9 at the yard office, which matches HART's scale on the South Yard west lead. Track numbers seem to carry a yard prefix (E = East, S = South, F = furnace; C is unclear). That is inferred from the captions, not stated.
@@ -202,6 +232,7 @@ By the late 1970s the P&OV ran green diesel switchers numbered 3 to 6, with SW9s
 - [p.83](https://www.tumblr.com/pittsburghohiovalleyrailroad/46527784674) says Shenango sold the Neville plant to Dravo two years after buying it in 1939. Which plant was that?
 - Is Calgon Carbon descended from Pittsburgh Coke & Chemical's 1942 activated-carbon plant? The blog does not say.
 - Did Kosmos Cement take over the Marquette Cement plant on the East Runner?
+- Which stack was the 1952 furnace, and which one was adapted for ferromanganese in 1958? No hearth diameter or surveyed furnace-track map has turned up.
 
 ## Sources
 
@@ -211,3 +242,7 @@ By the late 1970s the P&OV ran green diesel switchers numbered 3 to 6, with SW9s
 - Pittsburgh Coke & Chemical company history (quoted on [p.116](https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824))
 - Hugh Gorman, "Manufacturing Brownfields: The Case of Neville Island, Pennsylvania," *Technology and Culture* 38, no. 3 (Jul 1997): 539–574 (cited on [p.21](https://www.tumblr.com/pittsburghohiovalleyrailroad/135257663985))
 - Cia Tatone and Dan Holland, *Neville Island* (book; cited on [p.35](https://www.tumblr.com/pittsburghohiovalleyrailroad/96560242450))
+- *New York Times*, 6 July 1951: the rights offering that doubled Neville Island pig iron from 300,000 to 600,000 net tons a year. Portal scan: [Pittsburgh Coke & Chemical doubles pig iron](../library/pcc-pig-iron-1951.html).
+- U.S. EPA, Shenango Incorporated, Neville Island: 1962 purchase, ovens about 1930, second blast furnace about 1952. https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-shenango-incorporated-neville-island
+- *Chemical & Engineering News*, 17 February 1958, "Pittsburgh Coke Branches Out": one Neville Island furnace adapted for ferromanganese and spiegeleisen, about $2.5 million.
+- Dennis DeBruler, "Neville Island, PA: Shenango Steel Works," *Towns and Nature*, 17 October 2022, including Stanley Quick on A coming down before B, and on the foundry two miles west. http://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html
