@@ -121,8 +121,7 @@
       "credit_confidence": "verified",
       "rights": "Journal article; check JSTOR terms before reuse.",
       "reason": "",
-      "origin": "~/Documents (JSTOR page scan, Oct 2026)",
-      "public": false
+      "origin": "~/Documents (JSTOR page scan, Oct 2026)"
     },
     {
       "id": "pov-locomotive-4-kobus-1994",
@@ -141,8 +140,7 @@
       "credit_confidence": "verified",
       "rights": "In Copyright (rights statement on the ULS record).",
       "reason": "",
-      "origin": "~/Documents (saved ULS page, Oct 2026)",
-      "public": false
+      "origin": "~/Documents (saved ULS page, Oct 2026)"
     },
     {
       "id": "pov-sw8-defranco-1978",
@@ -245,8 +243,7 @@
       "credit_confidence": "verified",
       "rights": "Newspaper page; see the Articles page for the transcription.",
       "reason": "",
-      "origin": "ops-portal/assets/history",
-      "public": false
+      "origin": "ops-portal/assets/history"
     },
     {
       "id": "neville-davis-island-aerial",
@@ -287,8 +284,7 @@
       "credit_confidence": "likely",
       "rights": "Watermarked by the Society; ask before reuse.",
       "reason": "",
-      "origin": "ops-portal/assets/media",
-      "public": false
+      "origin": "ops-portal/assets/media"
     },
     {
       "id": "flannery-railway-age-1940",
@@ -927,8 +923,7 @@
       "credit_confidence": "likely",
       "rights": "Copyrighted news photo.",
       "reason": "Modern copyrighted news photo, out of period.",
-      "origin": "Desktop/HART (F-root)",
-      "public": false
+      "origin": "Desktop/HART (F-root)"
     },
     {
       "id": "chartiers-track-scheme",
