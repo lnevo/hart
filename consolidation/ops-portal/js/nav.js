@@ -123,12 +123,11 @@
       localStorage.setItem("hart.voice", String(i));
     } catch (e) {}
     var q = quotes[i];
-    // Credit the original Tumblr post; the Voices page is the summary.
+    // Credit the original Tumblr post.
     var post = q.url || "https://www.tumblr.com/pittsburghohiovalleyrailroad";
     el.innerHTML =
       '<a class="voice-quote" style="color:inherit;text-decoration:none" href="' + esc(post) + '">“' + esc(q.quote) + "”</a>" +
-      "<cite>" + esc(q.who) + ' · <a href="' + esc(post) + '">Original post on Tumblr</a>' +
-      ' · <a href="' + base() + 'library/voices-of-the-pov.html">Voices of the P&amp;OV</a></cite>';
+      "<cite>" + esc(q.who) + ' · <a href="' + esc(post) + '">Original post on Tumblr</a></cite>';
   }
 
   async function mountChrome(pageId) {
