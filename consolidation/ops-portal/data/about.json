@@ -1,16 +1,127 @@
 {
   "title": "About HART",
-  "story_title": "Rails Through Time",
-  "story": "In the steel-shadowed corners of Pittsburgh, where the smoke of industry once crowned the skyline and the Ohio River cut a glinting scar through the city's heart, a quiet revolution took place. It didn't roar like the iron beasts it ushered in. It whispered, rumbling through the railyards and slipping past forgotten sidings. It was the birth of HART Railroad.\n\nIn the winter of 1975, a group of visionaries stood on the cracked pavement of McKees Rocks, a crossroads of history and decay. Industry was retreating. The great Baltimore & Ohio was withdrawing from its Wheeling Division, and communities like Bridgeville, Houston, and Neville Island watched their steel and coal lifelines shrivel. But these people saw something more: a second chance.\n\nHART Industries was born that year—not a corporation of steel and cement, but of hope and grit. Led by former railroaders, local investors, and civic leaders, they sought to lease the aging corridor. Their pitch? Preserve the legacy. Restore local service. Reawaken the rails.\n\nFortune favored the bold. In 1976, the federal government passed the Rail Revitalization and Regulatory Reform Act, offering financial lifelines for rail preservation. HART Industries moved quickly. With grant in hand and blueprints rolled underarm, they courted the Chessie System, the proud but cautious steward of the B&O.\n\nAnd then came the moment—February 1977, at the 150th birthday celebration of the B&O, held in the grand halls of the Baltimore & Ohio Railroad Museum. Amid speeches, steam whistles, and antique engines dressed in garland, the deal was announced. By April 1, 1977, HART Railroad was official. A fifty-year lease. Renewal guaranteed. A handshake across history.\n\nThe work began in earnest. Scully Yard was scrubbed and rebuilt. Old depots in Carnegie and Washington saw fresh paint and warm coal stoves. Rails long buried under weeds rang once more beneath the wheels of NW2s and GP30s. HART revived the river interchange at McKees Rocks, floating cars across the water like whispers of the past.\n\nFreight ran again: chemical cars to Neville, steel coils from Pittsburgh, coal drags grinding south with RF-16s grumbling at dusk. Tank cars, hoppers, gondolas—all part of the symphony. And through it all, the passenger service never died.\n\nThey called it the Pittsburgh-Wheeling Limited, a daily run with varnished coaches and silverware in the dining car. But hearts truly stirred when the Royal Blue Excursion steamed to life, pulled by the resurrected P-7 \"President Washington.\" A living monument, cloaked in smoke and memory.\n\nEven now, as decades fold into the past, the HART Railroad carries more than freight. It hauls pride, tradition, and the collective heartbeat of a region. Each mile of rail, each whistle echoing off the river, tells a story—not just of commerce, but of community.\n\nThis is not just a railroad.\nIt is a legacy that rides the rails.",
-  "narrative_title": "Operational narrative",
-  "narrative_bullets": [
-    "Privately held regional railroad operated by HART Industries, headquartered in McKees Rocks.",
-    "Leases the former B&O Wheeling Division from CSX; Neville Island to Washington, PA, with rights toward Wheeling, WV.",
-    "Formed to preserve local freight, heritage passenger service, and industrial lifelines in the Ohio River Valley.",
-    "50-year Chessie lease announced at the B&O's 150th birthday (1977); river float revived at McKees Rocks.",
-    "Core freight: Neville chemicals and plastics, Pittsburgh steel, Bridgeville/Houston quarry traffic, seasonal coal and coke."
+  "lede": "HART Railroad is an HO scale model railroad of Neville Island, the industrial island in the Ohio River just downstream of Pittsburgh. The places, industries, and connecting railroads are real. HART itself, and its Pittsburgh & Chartiers Valley Division, are our own.",
+  "sections": [
+    {
+      "heading": "What HART is",
+      "paragraphs": [
+        "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley Railway switched the island's furnaces, coke ovens, and interchange. HART is modeled as its successor: the railroad that takes over that job once the P&OV is gone.",
+        "HART handles the interchange between CSX and the Pittsburgh & Ohio Central (POHC) and switches the industries on the island. South Yard is where the two connections meet and where most of the sorting gets done."
+      ],
+      "links": [
+        {
+          "label": "Pittsburgh & Ohio Valley Railway history",
+          "href": "library/pittsburgh-ohio-valley-railway.html"
+        },
+        {
+          "label": "New operator briefing",
+          "href": "briefing/index.html"
+        }
+      ]
+    },
+    {
+      "heading": "Prototype target",
+      "paragraphs": [
+        "The island between 1994, when the P&OV shut down, and January 2016, when Shenango Coke Works made its last coke."
+      ],
+      "bullets": [
+        "CSX local D749 works the island from Demmler and McKeesport.",
+        "The POHC comes over from Scully Yard and McKees Rocks, often waiting for D749 to clear the trestle over the Ohio.",
+        "Customers: Aristech Plastics, A. Stucki Company, Calgon Carbon, Ferrellgas, Kosmos Cement, and Shenango Coke Works.",
+        "Signals are Chessie / early CSX searchlights: 13 two-head searchlights and 10 dwarfs.",
+        "Not prototype: HART and the P&CV Division are invented, and Route 23, a PCC streetcar crossing the island, is a liberty."
+      ],
+      "links": [
+        {
+          "label": "Industries",
+          "href": "industries/index.html"
+        },
+        {
+          "label": "Neville Island coke, cement, and chemical history",
+          "href": "library/neville-island-coke-cement-chemical-history.html"
+        },
+        {
+          "label": "Railroads of the Chartiers Valley",
+          "href": "library/chartiers-valley-railroads.html"
+        }
+      ]
+    },
+    {
+      "heading": "Aims",
+      "bullets": [
+        "Operations that feel like a real railroad, not a pile of car cards.",
+        "Shipper-driven traffic: shippers create demand, the railroad fills it with cars, and the paperwork follows the move. Traffic and waybills come from STS, the Shipper-driven Traffic Simulator.",
+        "A track scale at South Yard. Coke hoppers from Shenango are weighed mid-move, and cars that are overloaded or out of balance go back for a reload, the practice AAR General Information Bulletin No. 5 describes.",
+        "A dispatcher running Digicon-style CTC with working signals in the aisle.",
+        "Repeatable sessions: each session is saved as a recipe, so it can be rerun, tuned, or handed to someone else.",
+        "A small roster where every car earns its keep."
+      ],
+      "links": [
+        {
+          "label": "Setting up car movement with STS",
+          "href": "library/sts-operations-article.html"
+        },
+        {
+          "label": "Dispatcher guides",
+          "href": "guides/index.html"
+        }
+      ]
+    },
+    {
+      "heading": "Where the layout stands (October 2026)",
+      "bullets": [
+        "Operating sessions have started. Session #2 was the first run with STS traffic, car cards, and waybills.",
+        "Control runs on JMRI, with turnouts and occupancy detection reported over MQTT.",
+        "CATS provides the Digicon CTC and ABS panels. JMRI Signal Mast Logic sets the aspects, and LCOS drives the LED searchlights. Signal rules are still being tuned.",
+        "The Neville Island helix is under construction."
+      ],
+      "links": [
+        {
+          "label": "Digicon explorer",
+          "href": "layout/index.html"
+        },
+        {
+          "label": "Helix build",
+          "href": "helix/index.html"
+        },
+        {
+          "label": "Official publications",
+          "href": "docs/index.html"
+        }
+      ]
+    }
   ],
-  "sts_title": "Building operations (STS)",
-  "sts_excerpt": "My layout is the HART Railroad, Pittsburgh & Chartiers Valley Division — a Pittsburgh-area shortline centered on Neville Island. It interchanges with CSX and POHC and works mainland staging and yards at Scully, Demmler, McKees Rocks, and McKeesport. On the island are the industries crews switch — Aristech Plastics, Calgon Carbon, A Stucki Co, Ferrel Gas, and Kosmos Cement — plus South Yard for classification and interchange. Nearby, Shenango Coke Works loads coke for steel customers such as U.S. Steel. The goal was simple: operations that feel like a real railroad, not a pile of car cards.",
-  "sts_note": "From the July 2026 article on setting up car movement with the Shipper-driven Traffic Simulator — track scale, session recipes, and traffic balance."
+  "more_title": "Read more",
+  "more": [
+    {
+      "label": "Operator briefing",
+      "href": "briefing/index.html",
+      "blurb": "Island history, jobs on the board, destination colors, and the track scale."
+    },
+    {
+      "label": "Industries",
+      "href": "industries/index.html",
+      "blurb": "The six customers, their commodities, and logos."
+    },
+    {
+      "label": "Articles",
+      "href": "articles/index.html",
+      "blurb": "P&OV, Pittsburgh Coke & Chemical, POHC-line plants, and Chartiers Valley railroads."
+    },
+    {
+      "label": "Voices of the P&OV",
+      "href": "library/voices-of-the-pov.html",
+      "blurb": "The crews and clerks of the railroad HART succeeds."
+    },
+    {
+      "label": "Photos",
+      "href": "photos/index.html",
+      "blurb": "The island, maps, the layout, and control panels."
+    },
+    {
+      "label": "Rolling stock",
+      "href": "fleet/index.html",
+      "blurb": "Car fleet and published power."
+    }
+  ]
 }

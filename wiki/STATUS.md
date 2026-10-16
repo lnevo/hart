@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-10-16 — Operator portal About page rewritten as fact: HO scale Neville Island, HART as P&OV successor, prototype target 1994–2016 (P&OV end to Shenango's last coke), aims, and current layout status, linking to the Briefing, Industries, and Articles. The fictional "Rails Through Time" story is off the page. Source is `build_about()` in `consolidation/ops-portal/scripts/build_ops_content.py`. Deployed to www.hartrailroad.com; not deployed to layout hosts.
+
 Updated: 2026-10-16 — Operator portal is also at http://www.hartrailroad.com/ (VestaCP web domain `hartrailroad.com` + alias `www` on www.easte.net; same public tree as GitHub Pages; Vesta nginx template `static-revalidate` sends `Cache-Control: no-cache` so redeploys show up without a hard refresh). Redeploy `./consolidation/ops-portal/scripts/deploy_hartrailroad.sh`. HTTP only: bare `hartrailroad.com` has no DNS A record yet, and Vesta Let's Encrypt needs it. Docs/static — not deployed to layout hosts.
 
 Updated: 2026-09-28 — CTC Switch #1 in column 2 now carries layout Switch 1 (code button, lever, OS, Mast 2L). Switch #3 in column 3 carries layout Switch 3. They had been crossed. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
