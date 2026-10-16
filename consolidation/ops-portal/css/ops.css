@@ -401,6 +401,10 @@ main:not(.full-bleed) .btn-ghost:hover {
   max-width: 54ch;
 }
 
+.home-band > .section-note {
+  max-width: 62ch;
+}
+
 .card-grid {
   display: grid;
   gap: 0.9rem;
@@ -1542,6 +1546,7 @@ table.roster th {
 
 .hub-group {
   margin: 0 0 2rem;
+  scroll-margin-top: 6rem; /* homepage links jump here; clear the site header */
 }
 
 .hub-group > h2 {
