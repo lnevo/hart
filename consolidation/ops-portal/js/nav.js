@@ -104,6 +104,32 @@
     return document.querySelector("[data-ops-footer]");
   }
 
+  // Fill [data-voice] with a random P&OV saying, never the one shown on the last visit.
+  // The quote already in the HTML stays as the fallback if voices.json can't load.
+  async function mountVoice() {
+    var el = document.querySelector("[data-voice]");
+    if (!el) return;
+    var quotes = ((await loadJson("data/voices.json")).quotes || []).filter(function (q) {
+      return q && q.quote;
+    });
+    if (!quotes.length) return;
+    var last = -1;
+    try {
+      last = parseInt(localStorage.getItem("hart.voice") || "-1", 10);
+    } catch (e) {}
+    var i = Math.floor(Math.random() * quotes.length);
+    if (quotes.length > 1 && i === last) i = (i + 1 + Math.floor(Math.random() * (quotes.length - 1))) % quotes.length;
+    try {
+      localStorage.setItem("hart.voice", String(i));
+    } catch (e) {}
+    var q = quotes[i];
+    var who = esc(q.who);
+    if (q.url) who += ' (<a href="' + esc(q.url) + '">source</a>)';
+    el.innerHTML =
+      "“" + esc(q.quote) + "”" +
+      "<cite>" + who + ' · <a href="' + base() + 'library/voices-of-the-pov.html">Voices of the P&amp;OV</a></cite>';
+  }
+
   async function mountChrome(pageId) {
     var site = await loadSite();
     var header = headerEl();
@@ -121,6 +147,9 @@
         : "";
       footer.innerHTML = "HART Railroad · Neville Island" + eng;
     }
+    mountVoice().catch(function (err) {
+      console.error(err);
+    });
     return site;
   }
 
