@@ -28,6 +28,101 @@
 
       var items = data.items || [];
       var currentAlbum = opts.album || "all";
+
+      // Local curation (engineering desk only): opts.curate names the API; it is used only
+      // when the site is not public and the local review server answers.
+      var canEdit = false;
+      if (opts.curate) {
+        try {
+          var site = await HARTOps.loadSite();
+          if (!site.public) canEdit = (await fetch(opts.curate + "/ping", { cache: "no-cache" })).ok;
+        } catch (e) {
+          canEdit = false;
+        }
+      }
+      var editbar = document.querySelector(opts.editbar || "#gallery-editbar");
+      if (editbar) editbar.hidden = !canEdit;
+      var toast = document.querySelector(opts.toast || "#gallery-toast");
+
+      function showToast(msg, bad) {
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.toggle("bad", !!bad);
+        toast.classList.add("show");
+        clearTimeout(showToast.t);
+        showToast.t = setTimeout(function () {
+          toast.classList.remove("show");
+        }, 2600);
+      }
+
+      async function save(src, changes) {
+        var res = await fetch(opts.curate + "/item", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(Object.assign({ src: src }, changes)),
+        });
+        var payload = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(payload.error || "HTTP " + res.status);
+        data = payload.gallery;
+        items = data.items || [];
+      }
+
+      function curateControls(it) {
+        var albumOpts = (data.albums || [])
+          .map(function (a) {
+            return '<option value="' + esc(a.id) + '"' + (a.id === it.album ? " selected" : "") + ">" + esc(a.label) + "</option>";
+          })
+          .join("");
+        var s = esc(it.src);
+        return (
+          '<div class="g-curate">' +
+          '<select data-c-album="' + s + '" aria-label="Album">' + albumOpts + "</select>" +
+          '<button type="button" data-c-move="up" data-src="' + s + '" aria-label="Move earlier">↑</button>' +
+          '<button type="button" data-c-move="down" data-src="' + s + '" aria-label="Move later">↓</button>' +
+          '<button type="button" data-c-edit="' + s + '">Edit</button>' +
+          '<button type="button" data-c-archive="' + s + '">→ Photos review</button>' +
+          "</div>"
+        );
+      }
+
+      function bindCurate() {
+        async function run(src, changes, msg) {
+          try {
+            await save(src, changes);
+            showToast(msg);
+            renderAlbums();
+            renderGrid();
+          } catch (err) {
+            showToast("Not saved: " + err.message, true);
+          }
+        }
+        grid.querySelectorAll("[data-c-album]").forEach(function (el) {
+          el.addEventListener("change", function () {
+            run(el.getAttribute("data-c-album"), { album: el.value }, "Moved to " + el.options[el.selectedIndex].text);
+          });
+        });
+        grid.querySelectorAll("[data-c-move]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            run(el.getAttribute("data-src"), { move: el.getAttribute("data-c-move") }, "Reordered");
+          });
+        });
+        grid.querySelectorAll("[data-c-edit]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            var src = el.getAttribute("data-c-edit");
+            var it = items.find(function (x) { return x.src === src; }) || {};
+            var t = window.prompt("Title", it.title || "");
+            if (t === null) return;
+            var c = window.prompt("Caption", it.caption || "");
+            if (c === null) return;
+            run(src, { title: t, caption: c }, "Saved “" + t + "”");
+          });
+        });
+        grid.querySelectorAll("[data-c-archive]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            run(el.getAttribute("data-c-archive"), { to_archive: true }, "Sent to Photos › To review");
+          });
+        });
+      }
       var visible = items.slice();
       var lbIndex = 0;
 
@@ -76,6 +171,7 @@
         grid.innerHTML = visible
           .map(function (it, i) {
             return (
+              (canEdit ? '<div class="g-cell">' : "") +
               '<button type="button" class="g-item" data-idx="' +
               i +
               '">' +
@@ -88,10 +184,12 @@
               esc(it.title) +
               "</strong><span>" +
               esc(it.caption) +
-              "</span></figcaption></button>"
+              "</span></figcaption></button>" +
+              (canEdit ? curateControls(it) + "</div>" : "")
             );
           })
           .join("");
+        if (canEdit) bindCurate();
         grid.querySelectorAll(".g-item").forEach(function (el) {
           el.addEventListener("click", function () {
             openLightbox(Number(el.getAttribute("data-idx")));

@@ -18,6 +18,8 @@ ARCHIVE_LOG = CONSOL / "sor/desktop/archive_review_log.jsonl"
 API_ARCHIVE = "/api/archive/item"
 API_ARCHIVE_PING = "/api/archive/ping"
 API_ARCHIVE_TO_LAYOUT = "/api/archive/to-layout"
+API_GALLERY = "/api/gallery/item"
+API_GALLERY_PING = "/api/gallery/ping"
 GALLERY_PATH = CONSOL / "ops-portal/data/gallery.json"
 ARCHIVE_BUCKETS = {"curated", "review", "discard"}
 ARCHIVE_KINDS = {"photo", "ad", "clipping", "map", "document", "graphic"}
@@ -34,7 +36,7 @@ class PortalHandler(SimpleHTTPRequestHandler):
         if route == API_LOG:
             self._send_json(200, {"entries": _read_log()})
             return
-        if route == API_ARCHIVE_PING:
+        if route in (API_ARCHIVE_PING, API_GALLERY_PING):
             self._send_json(200, {"ok": True})
             return
         super().do_GET()
@@ -60,6 +62,12 @@ class PortalHandler(SimpleHTTPRequestHandler):
             body = self._read_body()
             if body is not None:
                 code, payload = _update_archive_item(body)
+                self._send_json(code, payload)
+            return
+        if route == API_GALLERY:
+            body = self._read_body()
+            if body is not None:
+                code, payload = _update_gallery_item(body)
                 self._send_json(code, payload)
             return
         if route == API_ARCHIVE_TO_LAYOUT:
@@ -205,6 +213,80 @@ def _move_archive_item_to_layout(body: dict) -> tuple[int, dict]:
         entry = {"ts": datetime.now(timezone.utc).isoformat(), "id": item_id, "before": {"bucket": item.get("bucket")}, "after": {"moved_to": "layout-photos"}}
         fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return 200, {"moved": item_id}
+
+
+def _update_gallery_item(body: dict) -> tuple[int, dict]:
+    """Curate the layout-room gallery (data/gallery.json): album, text, order, or send back to Photos."""
+    src = str(body.get("src") or "")
+    if not src:
+        return 400, {"error": "src required"}
+    gallery = json.loads(GALLERY_PATH.read_text(encoding="utf-8"))
+    items = gallery.setdefault("items", [])
+    idx = next((i for i, it in enumerate(items) if it.get("src") == src), None)
+    if idx is None:
+        return 404, {"error": f"no gallery item {src}"}
+    item = items[idx]
+    before = {k: item.get(k) for k in ("album", "title", "caption")}
+    after: dict = {}
+
+    if body.get("to_archive"):
+        # Back to the Photos archive's To review tab, where it can be curated or discarded.
+        data = json.loads(ARCHIVE_PATH.read_text(encoding="utf-8"))
+        ids = {it.get("id") for it in data.get("items", [])}
+        base = "layout-" + "".join(c if c.isalnum() else "-" for c in Path(src).stem.lower()).strip("-")
+        new_id, n = base, 2
+        while new_id in ids:
+            new_id, n = f"{base}-{n}", n + 1
+        data.setdefault("items", []).append(
+            {
+                "id": new_id,
+                "src": src,
+                "bucket": "review",
+                "kind": "photo",
+                "title": item.get("title") or "",
+                "caption": item.get("caption") or "",
+                "date": "",
+                "tags": [],
+                "credit": item.get("credit") or "",
+                "source_url": "",
+                "credit_confidence": "none",
+                "rights": "",
+                "reason": "Sent back from the layout room gallery.",
+            }
+        )
+        del items[idx]
+        after = {"moved_to": "photos-review", "id": new_id}
+        _write_json_atomic(ARCHIVE_PATH, data)
+    else:
+        albums = {a.get("id") for a in gallery.get("albums", [])}
+        if "album" in body:
+            if body["album"] not in albums:
+                return 400, {"error": "unknown album"}
+            item["album"] = after["album"] = body["album"]
+        for field in ("title", "caption"):
+            if field in body:
+                item[field] = after[field] = str(body[field] or "").strip()
+        move = body.get("move")
+        if move in ("up", "down"):
+            # Swap with the neighbouring item in the same album.
+            same = [i for i, it in enumerate(items) if it.get("album") == item.get("album")]
+            pos = same.index(idx)
+            other = pos - 1 if move == "up" else pos + 1
+            if 0 <= other < len(same):
+                j = same[other]
+                items[idx], items[j] = items[j], items[idx]
+            after["move"] = move
+        if not after:
+            return 400, {"error": "nothing to change"}
+
+    for album in gallery.get("albums", []):
+        album["count"] = sum(1 for g in items if g.get("album") == album.get("id"))
+    _write_json_atomic(GALLERY_PATH, gallery)
+    ARCHIVE_LOG.parent.mkdir(parents=True, exist_ok=True)
+    with ARCHIVE_LOG.open("a", encoding="utf-8") as fh:
+        entry = {"ts": datetime.now(timezone.utc).isoformat(), "gallery_src": src, "before": before, "after": after}
+        fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    return 200, {"gallery": gallery}
 
 
 def main() -> int:

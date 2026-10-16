@@ -298,3 +298,41 @@
     flex: 1 1 100%;
   }
 }
+
+/* Layout-room gallery curation (operators/room, local server only). */
+.g-cell {
+  break-inside: avoid;
+  margin: 0 0 0.85rem;
+}
+
+.g-cell .g-item {
+  margin: 0;
+}
+
+.g-curate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.45rem 0.5rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 0;
+}
+
+.g-curate select,
+.g-curate button {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink-soft);
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.g-curate button:hover,
+.g-curate select:hover {
+  border-color: var(--brand-2);
+  color: var(--brand);
+}
