@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Copy the operator portal into a static GitHub Pages tree.
 
-Excludes the local review API, Python scripts, and gallery items that
+Excludes the local review API, Python scripts, and photo-gallery items that
 point at gitignored Desktop/HART mirrors (those stay on the LAN server).
+Rolling-stock photos from those mirrors are vendored in, resized, when present.
 """
 
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -55,6 +57,37 @@ def _filter_gallery(path: Path, dest_root: Path) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600) -> None:
+    """Copy ../external/ rolling-stock photos into the tree as web-sized JPEGs.
+
+    The originals (~150 MB of 2200 px PNG/JPEG) live in gitignored mirrors, so this
+    only fills in on a local build (deploy_hartrailroad.sh); CI builds drop them
+    in _filter_gallery as before.
+    """
+    if not path.is_file():
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    for item in data.get("items") or []:
+        src_rel = str(item.get("src") or "")
+        if not src_rel.startswith("../external/"):
+            continue
+        src = (PORTAL / src_rel).resolve()
+        if not src.is_file():
+            continue
+        from PIL import Image  # local builds only; CI has no mirrors to resize
+
+        album = re.sub(r"[^a-z0-9]+", "-", str(item.get("album") or "misc").lower())
+        rel = Path("assets") / "fleet" / album / f"{src.stem}.jpg"
+        out = dest_root / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with Image.open(src) as im:
+            im = im.convert("RGB")
+            im.thumbnail((max_px, max_px))
+            im.save(out, "JPEG", quality=82, optimize=True, progressive=True)
+        item["src"] = rel.as_posix()
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def _vendor_industry_logos(path: Path, dest_root: Path) -> None:
     """Copy ../external/ logos into the tree; the public site has no external/ mirror."""
     if not path.is_file():
@@ -90,6 +123,7 @@ def main() -> int:
 
     _vendor_industry_logos(dest / "data" / "industries.json", dest)
     _filter_gallery(dest / "data" / "gallery.json", dest)
+    _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
     _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
 
     (dest / ".nojekyll").write_text("", encoding="utf-8")

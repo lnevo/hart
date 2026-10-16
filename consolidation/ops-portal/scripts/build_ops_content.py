@@ -708,9 +708,9 @@ def build_gallery(media: dict[str, str]) -> dict:
                 num = (row.get("road_number") or "").strip()
                 ctype = (row.get("car_type") or "").strip()
                 road = (row.get("road_name") or "").strip()
-                note = notes
-                if ";" in note:
-                    note = note.split(";", 1)[-1].strip()
+                note = "; ".join(
+                    p.strip() for p in notes.split(";") if p.strip() and not p.strip().startswith("final_ref=")
+                )
                 title = f"{marks} {num}".strip() or src_name
                 caption_parts = [p for p in (road, ctype, note) if p]
                 caption = " · ".join(caption_parts) if caption_parts else ctype or "Roster car"
