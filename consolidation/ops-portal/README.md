@@ -67,7 +67,7 @@ The header has four links (`data/site.json` → `nav`): **Home · History & Indu
 | **Layout room** | `operators/room/`: Session night, Panels & screens, Track plan development albums from `data/gallery.json` (album id `layout` = Session night, which the archive's "Layout photos" button writes to) |
 | **Industries** | Customers, commodities, logos |
 | **Photos** | `photos/` redirects to `operators/room/` |
-| **Articles** | Pittsburgh & Ohio Valley Railway history, Voices of the P&OV, PC&C chronology, POHC-line industries, Chartiers Valley railroads, and the 1951 NYT pig-iron clipping |
+| **Articles** | Pittsburgh & Ohio Valley Railway history, Voices of the P&OV, PC&C chronology, POHC-line industries, Chartiers Valley railroads, the 1951 NYT pig-iron clipping, and two Coraopolis Record opinion pieces (2016–17) |
 | **About** | Operational narrative |
 | **Layout** | Clickable LE schematic |
 | **Guides / Tools** | Dispatcher how-tos and live links |
