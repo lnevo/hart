@@ -14,16 +14,26 @@
       <p class="muted" id="gallery-lede"></p>
     </div>
     <div class="album-bar" id="album-bar"></div>
-    <div class="gallery-masonry" id="gallery-grid"></div>
+    <div class="fleet-controls">
+      <div class="fleet-filters" role="search">
+        <label>Road <select id="filter-road"></select></label>
+        <label>Car type <select id="filter-type"></select></label>
+        <label>Number <input type="search" id="filter-number" inputmode="search" placeholder="e.g. 4674"></label>
+        <button type="button" class="btn btn-ghost" id="filter-clear" hidden>Clear</button>
+        <span class="muted fleet-count" id="filter-count"></span>
+      </div>
+      <div class="album-bar fleet-viewbar" id="view-bar" aria-label="View"></div>
+    </div>
+    <div class="fleet-view" id="fleet-view"></div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
-  <script src="../js/gallery.js"></script>
+  <script src="../js/fleet.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("fleet");
-        await HARTGallery.mount({ dataUrl: "data/fleet-gallery.json" });
+        await HARTFleet.mount();
       } catch (err) {
         console.error(err);
         document.getElementById("gallery-lede").textContent =
