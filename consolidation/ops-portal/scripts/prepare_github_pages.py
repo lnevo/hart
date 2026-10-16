@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Copy the operator portal into a static GitHub Pages tree.
 
-Excludes the local review API, Python scripts, and photo-gallery items that
-point at gitignored Desktop/HART mirrors (those stay on the LAN server).
-Rolling-stock and historical-archive photos from those mirrors are vendored in,
-resized, when present.
+Excludes the local review API and Python scripts. Gallery, rolling-stock, and
+historical-archive photos that live in gitignored ../external/ mirrors are
+vendored in, resized, when present (local deploys); CI builds drop them.
 """
 
 from __future__ import annotations
@@ -58,8 +57,8 @@ def _filter_gallery(path: Path, dest_root: Path) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600) -> None:
-    """Copy ../external/ rolling-stock photos into the tree as web-sized JPEGs.
+def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir: str = "fleet") -> None:
+    """Copy ../external/ gallery photos (rolling stock, layout) into the tree as web-sized JPEGs.
 
     The originals (~150 MB of 2200 px PNG/JPEG) live in gitignored mirrors, so this
     only fills in on a local build (deploy_hartrailroad.sh); CI builds drop them
@@ -78,7 +77,7 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600) -> Non
         from PIL import Image  # local builds only; CI has no mirrors to resize
 
         album = re.sub(r"[^a-z0-9]+", "-", str(item.get("album") or "misc").lower())
-        rel = Path("assets") / "fleet" / album / f"{src.stem}.jpg"
+        rel = Path("assets") / subdir / album / f"{src.stem}.jpg"
         out = dest_root / rel
         out.parent.mkdir(parents=True, exist_ok=True)
         with Image.open(src) as im:
@@ -180,6 +179,7 @@ def main() -> int:
     site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     _vendor_industry_logos(dest / "data" / "industries.json", dest)
+    _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
     _filter_gallery(dest / "data" / "gallery.json", dest)
     _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
     _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
