@@ -8,6 +8,12 @@ Public URL: **https://lnevo.github.io/hart/**
 
 GitHub Actions publishes `ops-portal/` on push to `main` (and the current portal branch). Local review, Python scripts, and Desktop/HART gallery files are not uploaded. Re-run from **Actions → Deploy operator portal → Run workflow**.
 
+Also at **http://www.hartrailroad.com/** (VestaCP on www.easte.net). Redeploy:
+
+```bash
+./consolidation/ops-portal/scripts/deploy_hartrailroad.sh
+```
+
 ## Open it locally (required)
 
 JSON pages (Briefing, About, Photos, Layout, Industries) need **HTTP**, not `file://`.

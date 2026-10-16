@@ -1,5 +1,7 @@
 # Live status — HART Digicon
 
+Updated: 2026-10-16 — Operator portal is also at http://www.hartrailroad.com/ (VestaCP web domain `hartrailroad.com` + alias `www` on www.easte.net; same public tree as GitHub Pages). Redeploy `./consolidation/ops-portal/scripts/deploy_hartrailroad.sh`. HTTP only: bare `hartrailroad.com` has no DNS A record yet, and Vesta Let's Encrypt needs it. Docs/static — not deployed to layout hosts.
+
 Updated: 2026-09-28 — CTC Switch #1 in column 2 now carries layout Switch 1 (code button, lever, OS, Mast 2L). Switch #3 in column 3 carries layout Switch 3. They had been crossed. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
 
 Updated: 2026-09-28 — CTC editor fields now store sensor display names (`CTC 3 sig code`, not `IS2:CB`). A system-name value did not match the combo list, so the editor showed the first sensor, `BS Barn`. Patterns stay `IS#:…`. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
