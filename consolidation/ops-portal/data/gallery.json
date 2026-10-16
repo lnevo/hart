@@ -10,12 +10,12 @@
     {
       "id": "panels",
       "label": "Panels & screens",
-      "count": 5
+      "count": 3
     },
     {
       "id": "plans",
       "label": "Track plan development",
-      "count": 7
+      "count": 5
     }
   ],
   "items": [
@@ -140,13 +140,6 @@
     },
     {
       "album": "panels",
-      "src": "assets/media/dispatcher-panel.png",
-      "title": "Dispatcher panel — Neville Island",
-      "caption": "Compact dispatcher art for the island plant.",
-      "credit": "Station / dispatcher publications"
-    },
-    {
-      "album": "panels",
       "src": "assets/panels/digicon-ctc.png",
       "title": "Digicon CTC",
       "caption": "Current Digicon schematic — HART Railroad / Neville Island Operations.",
@@ -167,11 +160,11 @@
       "credit": "Live panels · Aug 2026"
     },
     {
-      "album": "panels",
-      "src": "../external/desktop-data/f-root/lcn-connection-diagram.webp",
-      "title": "LCN connection diagram",
-      "caption": "Wiring for one client node on the Layout Control Bus: input and output boards, a PWM board, block occupancy detection, and the power supply.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "album": "plans",
+      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06.png",
+      "title": "Track plan, July 2025",
+      "caption": "The full plan as of July 2025: the coke retort on the peninsula, the double-track helix leads down to staging, the yards and industries along the walls, and the tracks continuing into the closet.",
+      "credit": "HART layout photos"
     },
     {
       "album": "plans",
@@ -200,27 +193,6 @@
       "title": "Track plan, June 2025: main, helix and spurs",
       "caption": "The double-track main laid over the helix plan, with industry spurs (red) along the walls.",
       "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
-    },
-    {
-      "album": "plans",
-      "src": "../external/desktop-data/f-root/Screenshot 2025-06-20 at 12.08.15 AM.png",
-      "title": "Coke oven kit: typical arrangement",
-      "caption": "Kit instruction sheet showing the quencher, oven, conveyor, grate, and crusher along two tracks.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
-    },
-    {
-      "album": "plans",
-      "src": "../external/desktop-data/f-root/Screenshot 2025-06-21 at 9.50.38 PM.png",
-      "title": "Track plan, June 2025: coke plant on the peninsula",
-      "caption": "The peninsula as a coke plant: coke retort, gas plant with washing tanks, and a wide oil tank inside the loop.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
-    },
-    {
-      "album": "plans",
-      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-30 at 1.52.48 PM.png",
-      "title": "Neville Island video still",
-      "caption": "A frame from the DJ Trains Neville Island local video: a wooded hillside with a highway bridge in the distance.",
-      "credit": "Desktop/HART/DJ Trains"
     }
   ]
 }
