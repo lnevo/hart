@@ -5,6 +5,7 @@
 (function () {
   var API_ITEM = "/api/archive/item";
   var API_PING = "/api/archive/ping";
+  var API_TO_LAYOUT = "/api/archive/to-layout";
 
   var BUCKET_NOTES = {
     curated: "Historical, on-topic, and captioned. Credits link to the original where one was found.",
@@ -201,6 +202,7 @@
               );
             })
             .join("") +
+          '<button type="button" class="to-layout" data-to-layout="' + esc(it.id) + '">Layout photos</button>' +
           "</div>"
         );
       }
@@ -259,7 +261,33 @@
         return payload.item;
       }
 
+      async function moveToLayout(id) {
+        var res = await fetch(API_TO_LAYOUT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: id }),
+        });
+        var payload = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(payload.error || "HTTP " + res.status);
+        var idx = items.findIndex(function (it) { return it.id === id; });
+        var gone = idx !== -1 ? items.splice(idx, 1)[0] : null;
+        return gone;
+      }
+
       function bindMoves(root) {
+        root.querySelectorAll("[data-to-layout]").forEach(function (btn) {
+          btn.addEventListener("click", async function (e) {
+            e.stopPropagation();
+            try {
+              var it = await moveToLayout(btn.getAttribute("data-to-layout"));
+              showToast("Moved “" + ((it && it.title) || "item") + "” to Layout photos");
+              closeLightbox();
+              renderAll();
+            } catch (err) {
+              showToast("Not saved: " + err.message, true);
+            }
+          });
+        });
         root.querySelectorAll("[data-move]").forEach(function (btn) {
           btn.addEventListener("click", async function (e) {
             e.stopPropagation();

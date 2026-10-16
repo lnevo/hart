@@ -17,8 +17,10 @@ ARCHIVE_PATH = CONSOL / "ops-portal/data/archive.json"
 ARCHIVE_LOG = CONSOL / "sor/desktop/archive_review_log.jsonl"
 API_ARCHIVE = "/api/archive/item"
 API_ARCHIVE_PING = "/api/archive/ping"
+API_ARCHIVE_TO_LAYOUT = "/api/archive/to-layout"
+GALLERY_PATH = CONSOL / "ops-portal/data/gallery.json"
 ARCHIVE_BUCKETS = {"curated", "review", "discard"}
-ARCHIVE_KINDS = {"photo", "ad", "clipping", "map", "document"}
+ARCHIVE_KINDS = {"photo", "ad", "clipping", "map", "document", "graphic"}
 ARCHIVE_CONFIDENCE = {"verified", "likely", "none"}
 ARCHIVE_TEXT_FIELDS = ("title", "caption", "date", "credit", "source_url", "reason", "rights")
 
@@ -58,6 +60,12 @@ class PortalHandler(SimpleHTTPRequestHandler):
             body = self._read_body()
             if body is not None:
                 code, payload = _update_archive_item(body)
+                self._send_json(code, payload)
+            return
+        if route == API_ARCHIVE_TO_LAYOUT:
+            body = self._read_body()
+            if body is not None:
+                code, payload = _move_archive_item_to_layout(body)
                 self._send_json(code, payload)
             return
         if route != API_LOG:
@@ -157,6 +165,46 @@ def _update_archive_item(body: dict) -> tuple[int, dict]:
         entry = {"ts": datetime.now(timezone.utc).isoformat(), "id": item_id, "before": before, "after": changes}
         fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return 200, {"item": item}
+
+
+def _write_json_atomic(path: Path, data: dict) -> None:
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def _move_archive_item_to_layout(body: dict) -> tuple[int, dict]:
+    """Move an archive item into the Layout photos gallery (data/gallery.json, album "layout")."""
+    item_id = str(body.get("id") or "")
+    if not item_id:
+        return 400, {"error": "id required"}
+    data = json.loads(ARCHIVE_PATH.read_text(encoding="utf-8"))
+    items = data.get("items", [])
+    item = next((it for it in items if it.get("id") == item_id), None)
+    if item is None:
+        return 404, {"error": f"no archive item {item_id}"}
+    gallery = json.loads(GALLERY_PATH.read_text(encoding="utf-8"))
+    g_items = gallery.setdefault("items", [])
+    if not any(g.get("src") == item.get("src") for g in g_items):
+        g_items.append(
+            {
+                "album": "layout",
+                "src": item.get("src"),
+                "title": item.get("title") or "",
+                "caption": item.get("caption") or "",
+                "credit": item.get("credit") or "HART layout photos",
+            }
+        )
+    for album in gallery.get("albums", []):
+        album["count"] = sum(1 for g in g_items if g.get("album") == album.get("id"))
+    data["items"] = [it for it in items if it.get("id") != item_id]
+    _write_json_atomic(GALLERY_PATH, gallery)
+    _write_json_atomic(ARCHIVE_PATH, data)
+    ARCHIVE_LOG.parent.mkdir(parents=True, exist_ok=True)
+    with ARCHIVE_LOG.open("a", encoding="utf-8") as fh:
+        entry = {"ts": datetime.now(timezone.utc).isoformat(), "id": item_id, "before": {"bucket": item.get("bucket")}, "after": {"moved_to": "layout-photos"}}
+        fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    return 200, {"moved": item_id}
 
 
 def main() -> int:

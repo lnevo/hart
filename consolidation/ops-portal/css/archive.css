@@ -173,6 +173,15 @@
   cursor: default;
 }
 
+/* Leaves the archive for the Operations "Layout photos" gallery. */
+.archive-move button.to-layout {
+  border-style: dashed;
+}
+
+.archive-move button.to-layout::before {
+  content: "→ ";
+}
+
 /* Lightbox additions */
 .archive-lightbox .lb-full {
   display: block;
