@@ -38,6 +38,13 @@
       "blurb": "Chartiers Branch and PC&Y as two different railroads, then PIR and POHC, plus the Class I connections around McKees Rocks and Duff Junction."
     },
     {
+      "id": "kirwan-heights",
+      "title": "The Kirwan Heights Industrial District",
+      "kind": "Prototype history",
+      "href": "library/kirwan-heights-industrial-district.html",
+      "blurb": "C. P. Mayer's industrial park on the PRR Chartiers Branch: Mayer Brick, Flannery Bolt staybolts, American Vanadium, Higbee Glass, and Universal Steel, 1903 into the 1950s."
+    },
+    {
       "id": "pcc-pig-iron-1951",
       "title": "Pittsburgh Coke & Chemical doubles pig iron (1951)",
       "kind": "Clipping",
