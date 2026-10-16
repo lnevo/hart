@@ -8,7 +8,7 @@ Public URL: **https://lnevo.github.io/hart/**
 
 GitHub Actions publishes `ops-portal/` on push to `main` (and the current portal branch). Local review, Python scripts, and Desktop/HART gallery files are not uploaded. Re-run from **Actions → Deploy operator portal → Run workflow**.
 
-Also at **http://www.hartrailroad.com/** (VestaCP on www.easte.net). Redeploy:
+Also at **https://www.hartrailroad.com/** (VestaCP on www.easte.net). Redeploy:
 
 ```bash
 ./consolidation/ops-portal/scripts/deploy_hartrailroad.sh
@@ -25,7 +25,7 @@ Server notes (ssh `lnevo@www.easte.net`, passwordless sudo):
 - Rolling stock photos (car sides, aisle set) come from the gitignored `external/desktop-data` and `external/sts-docker-data` mirrors; `prepare_github_pages.py` resizes them into `assets/fleet/` (needs Pillow). Without the mirrors those albums drop out (GitHub Pages only shows Power).
 - Historical archive images (`data/archive.json`) also live in those mirrors (`f-root/`, plus new finds in `desktop-data/archive-incoming/`); `prepare_github_pages.py` resizes them into `assets/archive/` with grid thumbnails in `assets/archive/thumbs/`, and drops items whose original is missing.
 - Pages fetch JSON with `cache: "no-cache"`; keep that on new fetches so browsers don't hold stale data.
-- **HTTP only.** Bare `hartrailroad.com` has no DNS A record (registrar Network Solutions). Once it points at 35.169.202.14: `v-add-letsencrypt-domain lnevo hartrailroad.com www.hartrailroad.com`.
+- **HTTPS** via Vesta Let's Encrypt (`v-add-letsencrypt-domain lnevo hartrailroad.com www.hartrailroad.com`, issued 2026-10-16). Both names resolve to 35.169.202.14 (registrar Network Solutions); the admin cron `v-update-letsencrypt-ssl` renews it. Plain HTTP still serves the site (no redirect).
 - Live tools page links to `localhost` services, which are dead from the public site.
 
 ## Open it locally (required)
