@@ -170,7 +170,7 @@
   async function load() {
     state.activeId = null;
     var b = base();
-    var res = await fetch(b + DATA_URL);
+    var res = await fetch(b + DATA_URL, { cache: "no-cache" });
     if (!res.ok) throw new Error(DATA_URL + " " + res.status);
     state.data = await res.json();
     var img = $("#schematic");

@@ -62,7 +62,7 @@
   }
 
   async function init() {
-    var res = await fetch(base() + "data/layout-index.json");
+    var res = await fetch(base() + "data/layout-index.json", { cache: "no-cache" });
     data = await res.json();
     var cps = {};
     (data.items || []).forEach(function (it) {

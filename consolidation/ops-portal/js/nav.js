@@ -23,13 +23,13 @@
   }
 
   async function loadSite() {
-    var res = await fetch(base() + "data/site.json");
+    var res = await fetch(base() + "data/site.json", { cache: "no-cache" });
     if (!res.ok) throw new Error("site.json " + res.status);
     return res.json();
   }
 
   async function loadJson(rel) {
-    var res = await fetch(base() + rel);
+    var res = await fetch(base() + rel, { cache: "no-cache" });
     if (!res.ok) throw new Error(rel + " " + res.status);
     return res.json();
   }
