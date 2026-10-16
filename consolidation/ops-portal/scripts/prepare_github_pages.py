@@ -55,6 +55,27 @@ def _filter_gallery(path: Path, dest_root: Path) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _vendor_industry_logos(path: Path, dest_root: Path) -> None:
+    """Copy ../external/ logos into the tree; the public site has no external/ mirror."""
+    if not path.is_file():
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    items = data if isinstance(data, list) else data.get("industries") or data.get("items") or []
+    for ind in items:
+        logo = str(ind.get("logo") or "")
+        if not logo.startswith("../"):
+            continue
+        src = (PORTAL / logo).resolve()
+        if not src.is_file():
+            ind["logo"] = ""
+            continue
+        rel = Path("assets") / "logos" / src.name
+        (dest_root / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest_root / rel)
+        ind["logo"] = rel.as_posix()
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     dest = Path(sys.argv[1] if len(sys.argv) > 1 else PORTAL.parent / ".pages-dist").resolve()
     if dest.exists():
@@ -67,6 +88,7 @@ def main() -> int:
     site["public"] = True
     site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
+    _vendor_industry_logos(dest / "data" / "industries.json", dest)
     _filter_gallery(dest / "data" / "gallery.json", dest)
     _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
 
