@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shenango station map — HART</title>
+  <meta name="description" content="Princess junction, Shenango Coke Works on K-1 and K-2, and the loops to McKees Rocks / Scully and McKeesport / Demmler.">
+  <link rel="stylesheet" href="../../../css/ops.css">
+  <style media="print">
+    @page { size: 8in 5in; margin: 0.15in; }
+  </style>
+</head>
+<body class="crew-map">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="page-title">Shenango</h1>
+      <p class="sheet-pub" id="page-pub">Publication SM-05 · Revision A · Effective 23 July 2026</p>
+      <p class="muted" id="page-lede">Princess junction, Shenango Coke Works on K-1 and K-2, and the loops to McKees Rocks / Scully and McKeesport / Demmler.</p>
+    </div>
+    <div id="crew-root"><p class="muted">Loading…</p></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../../js/nav.js"></script>
+  <script src="../../../js/crew.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTCrew.page("map", "shenango");
+    });
+  </script>
+</body>
+</html>

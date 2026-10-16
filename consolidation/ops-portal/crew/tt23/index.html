@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Route 23 timetable (TT-23) — HART</title>
+  <link rel="stylesheet" href="../../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="page-title">Route 23 Timetable (TT-23)</h1>
+      <p class="sheet-pub" id="page-pub">Publication TT-23 · Revision A</p>
+      <p class="muted" id="page-lede">Station times for the Route 23 streetcar. Freight holds until the streetcar clears.</p>
+    </div>
+    <div id="crew-root"><p class="muted">Loading…</p></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/crew.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTCrew.page("tt23", "");
+    });
+  </script>
+</body>
+</html>

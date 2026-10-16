@@ -56,15 +56,17 @@ python3 consolidation/ops-portal/scripts/curate_f_root_review.py --gpt   # OPENA
 The header has four links (`data/site.json` → `nav`): **Home · History & Industries · Operators · About**. Each nav entry lists the page ids (the argument to `HARTOps.mountChrome(id)`) that belong to it in `pages`; `js/nav.js` underlines the parent section and adds a small section link above the child page's title. Add a new page's id to the right section's `pages`.
 
 - **History & Industries** (`history/index.html`): Articles (+ `library/*`), Industries, Photos, Rolling stock.
-- **Operators** (`operators/index.html`): Briefing, Publications (`docs/`), Guides, Layout Explorer, Device roster, Live tools, Helix.
+- **Operations** (`operators/index.html`), grouped by role: **Your first session** (Primer `briefing/`, the layout room `operators/room/`, Rolling stock), **Session paperwork** (`crew/`: crew sheets, YM-01, DS-01, station maps, TT-23, colors, EQ-01, industry spot sheets), **Dispatcher's desk** (Guides, Layout Explorer, Live tools), **Shop & build** (Helix, Device roster, Shop guides). Publications (`docs/`) is the print/download shelf.
 - Elements marked `data-local-only` are hidden on the public build (`site.public`), for localhost and workspace links.
 
 | Page | Content |
 |------|---------|
 | **Home** | Bird’s-eye hero, then doors into the two sections |
-| **Briefing** | HB-01 new-operator primer |
+| **Briefing** | HB-01 New Operator Primer (Revision B), the single canonical page; `docs/html/Neville_Island_New_Operator_Primer.html` redirects here |
+| **Session paperwork** | `crew/`: crew sheets (`crew/d749/`, `nvl/`, `ck1/`), YM-01 (`crew/yardmaster/`), DS-01 (`crew/dispatcher/`), station maps (`crew/maps/<area>/`), TT-23, destination colors, EQ-01, industry spot sheets. All rendered by `js/crew.js` from `data/crew.json`, which is hand-copied from `external/hart-ops/publications/rebuild_*.py` and the published docx (those stay canonical). Each sheet prints as a 5×8 in card; maps print 8×5 landscape |
+| **Layout room** | `operators/room/`: Session night, Panels & screens, Track plan development albums from `data/gallery.json` (album id `layout` = Session night, which the archive's "Layout photos" button writes to) |
 | **Industries** | Customers, commodities, logos |
-| **Photos** | Captioned gallery (place, maps, fleet, aisle, power) |
+| **Photos** | `photos/` redirects to `operators/room/` |
 | **Articles** | Pittsburgh & Ohio Valley Railway history, Voices of the P&OV, PC&C chronology, POHC-line industries, Chartiers Valley railroads, and the 1951 NYT pig-iron clipping |
 | **About** | Operational narrative |
 | **Layout** | Clickable LE schematic |
@@ -75,6 +77,8 @@ The header has four links (`data/site.json` → `nav`): **Home · History & Indu
 Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.
 
 ## Rebuild content
+
+`build_ops_content.py` and `refresh_galleries_and_library.py` predate the hand-edited `briefing.json`, `gallery.json`, and `publications.json`; running them overwrites those files with older content. Check the diff before committing.
 
 ```bash
 python3 consolidation/ops-portal/scripts/build_ops_content.py

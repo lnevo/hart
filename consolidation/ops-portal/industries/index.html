@@ -12,6 +12,7 @@
     <div class="page-head">
       <h1 id="ind-title">Industries</h1>
       <p class="muted" id="ind-lede"></p>
+      <p class="small">Working a session? The <a href="../crew/industries/index.html">industry spot sheets</a> show which car goes on which spot.</p>
     </div>
     <div class="industry-grid" id="ind-grid"></div>
   </main>
@@ -25,6 +26,16 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
     }
+    // Anchors on the crew spot-sheet page (crew/industries/).
+    var SPOTS = {
+      "Aristech Plastics": "aristech",
+      "A. Stucki Company": "stucki",
+      "Calgon Carbon": "calgon",
+      Ferrellgas: "ferrellgas",
+      "Kosmos Cement": "kosmos",
+      "Shenango Coke Works": "shenango",
+      Interchange: "scully",
+    };
     document.addEventListener("DOMContentLoaded", async function () {
       await HARTOps.mountChrome("industries");
       var data = await HARTOps.loadJson("data/industries.json");
@@ -58,6 +69,10 @@
             esc(ind.blurb) +
             '</p>' +
             (tags ? '<ul class="tag-list">' + tags + "</ul>" : "") +
+            (SPOTS[ind.name]
+              ? '<p class="meta"><a href="../crew/industries/index.html#' + SPOTS[ind.name] + '">' +
+                (ind.name === "Interchange" ? "Interchange spot sheets" : "Spot sheet") + " ›</a></p>"
+              : "") +
             "</div></article>"
           );
         })

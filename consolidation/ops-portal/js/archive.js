@@ -205,7 +205,7 @@
               );
             })
             .join("") +
-          '<button type="button" class="to-layout" data-to-layout="' + esc(it.id) + '">Layout photos</button>' +
+          '<button type="button" class="to-layout" data-to-layout="' + esc(it.id) + '">Session night</button>' +
           "</div>"
         );
       }
@@ -283,7 +283,7 @@
             e.stopPropagation();
             try {
               var it = await moveToLayout(btn.getAttribute("data-to-layout"));
-              showToast("Moved “" + ((it && it.title) || "item") + "” to Layout photos");
+              showToast("Moved “" + ((it && it.title) || "item") + "” to Session night (Operations)");
               closeLightbox();
               renderAll();
             } catch (err) {

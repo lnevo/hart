@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Industry spot sheets — HART</title>
+  <link rel="stylesheet" href="../../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="page-title">Industry Spot Sheets</h1>
+      <p class="sheet-pub" id="page-pub">From the HART Operator Sheet</p>
+      <p class="muted" id="page-lede">Which car goes on which spot, industry by industry.</p>
+    </div>
+    <div id="crew-root"><p class="muted">Loading…</p></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/crew.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTCrew.page("industries", "");
+    });
+  </script>
+</body>
+</html>

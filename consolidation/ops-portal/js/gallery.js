@@ -9,18 +9,9 @@
 
   function resolveSrc(src) {
     if (!src) return "";
-    if (/^https?:\/\//i.test(src) || src.startsWith("data:") || src.startsWith("../")) {
-      // Already rooted outside the page (e.g. ../external/...) — leave alone.
-      // For nested pages, ../external from portal JSON is wrong; rewrite to ../../external.
-      var depth = HARTOps.base();
-      if (src.startsWith("../external/") && depth === "../") {
-        return src.replace(/^\.\.\//, "../../");
-      }
-      if (src.startsWith("assets/") || src.startsWith("data/")) {
-        return depth + src;
-      }
-      return src;
-    }
+    if (/^https?:\/\//i.test(src) || src.startsWith("data:")) return src;
+    // Paths in the JSON (assets/…, ../external/…) are relative to the portal root;
+    // prefix the page's depth so they resolve from any nesting level.
     return HARTOps.base() + src;
   }
 
@@ -36,7 +27,7 @@
       if (lede) lede.textContent = data.lede || "";
 
       var items = data.items || [];
-      var currentAlbum = "all";
+      var currentAlbum = opts.album || "all";
       var visible = items.slice();
       var lbIndex = 0;
 

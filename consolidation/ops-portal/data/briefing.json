@@ -1,7 +1,7 @@
 {
-  "title": "New Operator Primer",
-  "pub": "HB-01 · Revision B",
-  "lede": "If this is your first Neville Island session, this primer gives you the story behind the railroad and a feel for how a session runs. You do not need to memorize it.",
+  "title": "New Operator Primer (HB-01)",
+  "pub": "HB-01 · Revision B · Effective 15 October 2026",
+  "lede": "If this is your first Neville Island session, this primer is meant to give you the story behind the railroad and a feel for how a session runs. You do not need to memorize it. At the session you will get a simple job sheet for whatever you are assigned—and the Yardmaster and Dispatcher are there to help.",
   "sections": [
     {
       "id": "island",
@@ -37,39 +37,45 @@
         {
           "code": "D749",
           "name": "CSX Neville Island Switcher",
-          "blurb": "The CSX local that comes over from Demmler / McKeesport. It drops its inbound cars at South Yard, visits the engine terminal, then picks up the outbound block and heads back."
+          "blurb": "The CSX local that comes over from Demmler / McKeesport. It drops its inbound cars at South Yard, visits the engine terminal, then picks up the outbound block and heads back.",
+          "href": "crew/d749/index.html"
         },
         {
           "code": "NVL",
           "name": "Neville Island Turn",
-          "blurb": "The Pittsburgh & Ohio Central local from Scully Yard. It swaps cars at South Yard, switches the island industries, then takes the return cut back toward McKees Rocks."
+          "blurb": "The Pittsburgh & Ohio Central local from Scully Yard. It swaps cars at South Yard, switches the island industries, then takes the return cut back toward McKees Rocks.",
+          "href": "crew/nvl/index.html"
         },
         {
           "code": "CK1",
           "name": "Coke Transfer",
-          "blurb": "Works Shenango Coke Works—the pickup, the weigh, and the sort. Also calibrates the track scale at the start of the session. The Yardmaster assigns the engine."
+          "blurb": "Works Shenango Coke Works—the pickup, the weigh, and the sort. Also calibrates the track scale at the start of the session. The Yardmaster assigns the engine.",
+          "href": "crew/ck1/index.html"
         },
         {
           "code": "Yardmaster",
           "name": "South Yard",
-          "blurb": "Keeps South Yard organized. Builds cuts by color, hands work to each train, and keeps D749, NVL, and CK1 from stepping on each other."
+          "blurb": "Keeps South Yard organized. Builds cuts by color, hands work to each train, and keeps D749, NVL, and CK1 from stepping on each other. YM-01 is the working sequence.",
+          "href": "crew/yardmaster/index.html"
         },
         {
           "code": "Dispatcher",
           "name": "Neville Island Ops",
-          "blurb": "Gives clearance and keeps freight out of the streetcar's way. When things get busy, Route 23 and the main trains come first."
+          "blurb": "Gives clearance and keeps freight out of the streetcar's way. When things get busy, Route 23 and the main trains come first. DS-01 has the full lineup.",
+          "href": "crew/dispatcher/index.html"
         },
         {
           "code": "Route 23",
           "name": "Streetcar",
-          "blurb": "A refurbished PCC car running local passenger service across the island. Freight holds until the streetcar clears."
+          "blurb": "A refurbished PCC car running local passenger service across the island. Freight holds until the streetcar clears.",
+          "href": "crew/tt23/index.html"
         }
       ]
     },
     {
       "id": "colors",
       "heading": "Destination Colors",
-      "intro": "We sort cars by color. Each color is a place—an industry or an interchange. The same colors show up on switch lists, car cards, and the yard sheets.",
+      "intro": "We sort cars by color. Each color is a place—an industry or an interchange. The same colors show up on switch lists, car cards, and the yard sheets, so everyone is speaking the same language.",
       "blocks": [
         {
           "color": "BLUE",
@@ -134,7 +140,24 @@
       "heading": "The Track Scale",
       "paragraphs": [
         "Shenango loads a lot of coke, and not every hopper comes out perfectly. Before those cars leave the island, we weigh them on the scale at South Yard. Cars that check out continue on their way. Cars that are too heavy or out of balance go back for a reload.",
-        "Someone—usually CK1—calibrates the scale before the first weigh of the session. Without that, the readings start to drift."
+        "Someone—usually CK1—calibrates the scale before the first weigh of the session. Without that, the readings start to drift. The full how-to is on the Scale Operating Instructions sheet (EQ-01) if you draw that job."
+      ],
+      "link": {
+        "label": "Scale Operating Instructions (EQ-01)",
+        "href": "crew/scale/index.html"
+      }
+    },
+    {
+      "id": "expect",
+      "heading": "What to Expect",
+      "paragraphs": [
+        "Times and food plans are in the invitation. Evening sessions usually open around 6:30 p.m., with trains from about 7:00 to 10:00. Daytime sessions often start mid-morning with a short briefing before anyone moves a locomotive."
+      ],
+      "bullets": [
+        "The house address is in your invitation email",
+        "We will cover job assignments and anything unusual at the briefing",
+        "You will get a crew sheet for your job; ask if something is unclear",
+        "Please let us know early if you cannot make it so we can cover the board"
       ]
     }
   ],
@@ -152,8 +175,70 @@
       "href": "https://railroad.net/post1592461.html#p1592461"
     },
     {
-      "label": "Proper balancing of hopper cars (CSX / AAR)",
+      "label": "Proper balancing of hopper cars",
       "href": "https://www.csx.com/index.cfm/library/files/customers/leads/proper-balancing-of-hopper-cars/"
     }
-  ]
+  ],
+  "source": "../external/hart-ops/docs/published/Neville_Island_New_Operator_Primer.docx",
+  "arrive": {
+    "heading": "What you'll see when you arrive",
+    "more": "operators/room/index.html",
+    "photos": [
+      {
+        "match": "IMG_8944",
+        "caption": "The crew lounge, where the session starts."
+      },
+      {
+        "match": "IMG_8953",
+        "caption": "The layout room."
+      },
+      {
+        "match": "IMG_8949",
+        "caption": "The dispatcher's desk."
+      },
+      {
+        "match": "IMG_8947",
+        "caption": "South Yard, where the jobs meet."
+      },
+      {
+        "match": "IMG_8952",
+        "caption": "The track scale."
+      },
+      {
+        "match": "IMG_8950",
+        "caption": "Crew sheets on clipboards at the fascia."
+      }
+    ]
+  },
+  "deeper": {
+    "heading": "If You Want to Dig Deeper",
+    "paragraphs": [
+      "At the session you may also see yardmaster and dispatcher sheets, the station map, and the Route 23 timetable. Those are handy references once trains are rolling—not homework beforehand."
+    ],
+    "refs": [
+      {
+        "label": "Yardmaster sequence (YM-01)",
+        "href": "crew/yardmaster/index.html"
+      },
+      {
+        "label": "Dispatcher train list (DS-01)",
+        "href": "crew/dispatcher/index.html"
+      },
+      {
+        "label": "Station maps",
+        "href": "crew/maps/index.html"
+      },
+      {
+        "label": "Route 23 timetable (TT-23)",
+        "href": "crew/tt23/index.html"
+      }
+    ],
+    "linksIntro": "A few prototype links, if you are curious:"
+  },
+  "signoff": {
+    "text": "Looking forward to having you over.",
+    "name": "Lee Nevo",
+    "title": "Superintendent, Neville Island Operations",
+    "org": "HART Railroad · P&CV Division"
+  }
 }

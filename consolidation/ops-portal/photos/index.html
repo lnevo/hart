@@ -2,34 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Layout photos — HART</title>
+  <meta http-equiv="refresh" content="0; url=../operators/room/index.html">
+  <title>Moved — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
-  <header class="site-header" data-ops-header></header>
-  <main>
-    <div class="page-head">
-      <h1 id="gallery-title">Layout photos</h1>
-      <p class="muted" id="gallery-lede"></p>
-    </div>
-    <div class="album-bar" id="album-bar"></div>
-    <div class="gallery-masonry" id="gallery-grid"></div>
+  <main class="page-head" style="padding:2rem">
+    <h1>Layout photos moved</h1>
+    <p>The layout-room photos are now <a href="../operators/room/index.html">Session night: the layout room</a> under Operations.</p>
   </main>
-  <footer class="site-footer" data-ops-footer></footer>
-  <script src="../js/nav.js"></script>
-  <script src="../js/gallery.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      try {
-        await HARTOps.mountChrome("photos");
-        await HARTGallery.mount({ dataUrl: "data/gallery.json" });
-      } catch (err) {
-        console.error(err);
-        document.getElementById("gallery-lede").textContent =
-          "Gallery failed to load. Serve over HTTP (scripts/serve_portal.sh), not file://.";
-      }
-    });
-  </script>
 </body>
 </html>

@@ -36,14 +36,23 @@
       "pages": [
         "operators",
         "briefing",
+        "room",
+        "fleet",
+        "crew",
+        "crew-sheet",
+        "crew-maps",
+        "crew-map",
+        "crew-tt23",
+        "crew-colors",
+        "crew-scale",
+        "crew-industries",
         "docs",
         "guides",
         "layout",
-        "roster",
-        "fleet",
-        "photos",
         "tools",
-        "helix"
+        "helix",
+        "roster",
+        "photos"
       ]
     },
     {

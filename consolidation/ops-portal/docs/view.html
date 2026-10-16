@@ -3,42 +3,39 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Publication — HART</title>
+  <title>Publication moved — HART</title>
+  <script>
+    // Old iframe viewer links (view.html?doc=<id>) now go to each publication's own page.
+    (function () {
+      var pages = {
+        primer: "../briefing/index.html",
+        "scale-ops": "../crew/scale/index.html",
+        "ym-seq": "../crew/yardmaster/index.html",
+        "ds-list": "../crew/dispatcher/index.html",
+        "crew-d749": "../crew/d749/index.html",
+        "crew-nvl": "../crew/nvl/index.html",
+        "crew-ck1": "../crew/ck1/index.html",
+        "op-sheet": "../crew/industries/index.html",
+        standards: "html/HART_Railroad_Publication_Standards_v1.0.html",
+        "sm-sub": "../crew/maps/index.html",
+        "sm-ee": "../crew/maps/east-end/index.html",
+        "sm-sh": "../crew/maps/shenango/index.html",
+        "sm-sy": "../crew/maps/south-yard/index.html",
+        "sm-barn": "../crew/maps/barn/index.html",
+        "sm-wy": "../crew/maps/west-yard/index.html",
+        strr: "STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf",
+        tt23: "../crew/tt23/index.html"
+      };
+      var id = new URLSearchParams(location.search).get("doc");
+      location.replace(pages[id] || "index.html");
+    })();
+  </script>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
-  <header class="site-header" data-ops-header></header>
-  <main>
-    <div class="page-head">
-      <p class="muted"><a href="index.html">← All publications</a></p>
-      <h1 id="doc-title">Publication</h1>
-      <p class="muted" id="doc-lede"></p>
-    </div>
-    <div class="doc-frame-wrap">
-      <iframe id="doc-frame" title="Official publication"></iframe>
-    </div>
+  <main class="page-head" style="padding:2rem">
+    <h1>Publication moved</h1>
+    <p>Publications now have their own pages. See the <a href="index.html">publications shelf</a>.</p>
   </main>
-  <footer class="site-footer" data-ops-footer></footer>
-  <script src="../js/nav.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      await HARTOps.mountChrome("docs");
-      var data = await HARTOps.loadJson("data/publications.json");
-      var id = new URLSearchParams(location.search).get("doc");
-      var item = (data.items || []).find(function (d) {
-        return d.id === id;
-      });
-      if (!item || !item.html) {
-        document.getElementById("doc-title").textContent = "Document not found";
-        document.getElementById("doc-lede").textContent =
-          "Pick a publication from the catalog.";
-        return;
-      }
-      document.getElementById("doc-title").textContent = item.title;
-      document.getElementById("doc-lede").textContent = item.blurb || "";
-      document.title = item.title + " — HART";
-      document.getElementById("doc-frame").src = HARTOps.base() + item.html;
-    });
-  </script>
 </body>
 </html>

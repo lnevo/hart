@@ -11,20 +11,36 @@
   <main>
     <div class="page-head">
       <h1>Guides</h1>
-      <p class="muted">Desk references for when you are on the railroad: USS CTC, CATS Digicon, Auto Dispatcher, and a Digicon overview.</p>
-    </div>
-    <div class="card-grid">
-      <a class="card" href="uss-ctc.html"><h3>USS CTC dispatcher</h3><p>Lever-machine desk for Digicon / USS CTC.</p></a><a class="card" href="cats-ctc.html"><h3>CATS Digicon CTC</h3><p>Mouse Digicon CTC on CATS Masters.</p></a><a class="card" href="auto-dispatcher.html"><h3>Auto Dispatcher</h3><p>JMRI Dispatcher System auto runs.</p></a><a class="card" href="digicon-system.html"><h3>Digicon system overview</h3><p>End-to-end Digicon / MQTT / LCOS picture.</p></a>
-    </div>
-    <div class="panel" data-local-only>
-      <h2>Also see</h2>
-      <ul>
-        <li><a href="../html/pipelines/07-dispatcher.html">Pipeline 07 — Dispatcher System</a> (engineering HTML)</li>
-        <li><a href="../html/pipelines/06-uss-ctc.html">Pipeline 06 — USS CTC</a></li>
-        <li><a href="../html/pipelines/05-cats-masters.html">Pipeline 05 — CATS Masters</a></li>
-      </ul>
+      <p class="muted">How-to references: the dispatcher's desk first, then the shop.</p>
     </div>
 
+    <section class="hub-group" id="dispatcher" aria-labelledby="disp-title">
+      <h2 id="disp-title">Dispatcher guides</h2>
+      <div class="card-grid">
+        <a class="card" href="uss-ctc.html"><p class="card-kind">DS-DISP</p><h3>USS CTC dispatcher</h3><p>The lever machine: reading the panel, lining routes, and the basic rules.</p></a>
+        <a class="card" href="cats-ctc.html"><p class="card-kind">DS-CATS-DISP</p><h3>CATS Digicon CTC</h3><p>Mouse dispatching on the Digicon panel: quick routes, N/X, stacking, fleeting, call-on.</p></a>
+        <a class="card" href="auto-dispatcher.html"><p class="card-kind">DS-AUTO</p><h3>Auto Dispatcher</h3><p>Sending trains automatically with the JMRI Dispatcher System.</p></a>
+      </div>
+      <p class="small muted">Run either the USS machine or CATS CTC as the CTC authority, never both at once.</p>
+    </section>
+
+    <section class="hub-group is-quiet" id="shop" aria-labelledby="shop-title">
+      <h2 id="shop-title">Shop guides</h2>
+      <div class="card-grid">
+        <a class="card" href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf"><p class="card-kind">STRR SOP · Rev 2 · PDF, 37 pp</p><h3>Speed matching &amp; measure table</h3><p>Shop procedure for speed-matching locomotives on the measure table.</p></a>
+        <a class="card" href="digicon-system.html"><p class="card-kind">DS-DIGICON</p><h3>Digicon system overview</h3><p>How the Digicon panels, the JMRI MQTT bridge, and the LCOS signal heads fit together.</p></a>
+      </div>
+    </section>
+
+    <div class="panel" data-local-only>
+      <h2>Also see (engineering desk)</h2>
+      <ul>
+        <li><a href="../../html/pipelines/07-dispatcher.html">Pipeline 07 — Dispatcher System</a></li>
+        <li><a href="../../html/pipelines/06-uss-ctc.html">Pipeline 06 — USS CTC</a></li>
+        <li><a href="../../html/pipelines/05-cats-masters.html">Pipeline 05 — CATS Masters</a></li>
+        <li><a href="../../html/pipelines/11-speed-matching.html">Pipeline 11 — Speed matching</a></li>
+      </ul>
+    </div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>

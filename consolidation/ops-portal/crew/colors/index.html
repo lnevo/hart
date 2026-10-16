@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Destination colors — HART</title>
+  <link rel="stylesheet" href="../../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="page-title">Destination Colors</h1>
+      <p class="sheet-pub" id="page-pub"></p>
+      <p class="muted" id="page-lede">We sort cars by color. Each color is a place: an industry or an interchange. The same colors show up on switch lists, car cards, and the yard sheets.</p>
+    </div>
+    <div id="crew-root"><p class="muted">Loading…</p></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/crew.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTCrew.page("colors", "");
+    });
+  </script>
+</body>
+</html>

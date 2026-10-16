@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>New Operator Briefing — HART</title>
+  <title>New Operator Primer (HB-01) — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
   <main>
     <div class="page-head">
-      <h1 id="briefing-title">New Operator Briefing</h1>
-      <p class="muted" id="briefing-pub"></p>
+      <h1 id="briefing-title">New Operator Primer (HB-01)</h1>
+      <p class="sheet-pub"><span id="briefing-pub">HB-01 · Revision B</span> <span id="briefing-dl"></span></p>
       <p id="briefing-lede"></p>
     </div>
     <div id="briefing-body"></div>
@@ -27,14 +27,46 @@
         .replace(/"/g, "&quot;");
     }
 
+    function href(rel) {
+      if (/^https?:/i.test(rel) || rel.indexOf("../") === 0) return rel;
+      return HARTOps.base() + rel;
+    }
+
+    function arriveHtml(arrive, gallery) {
+      var items = (gallery && gallery.items) || [];
+      var cells = (arrive.photos || [])
+        .map(function (ph) {
+          var it = items.filter(function (g) {
+            return String(g.src || "").indexOf(ph.match) !== -1;
+          })[0];
+          if (!it) return "";
+          var src = /^https?:/i.test(it.src) ? it.src : HARTOps.base() + it.src;
+          return (
+            '<li><figure><img src="' + esc(src) + '" alt="' + esc(it.title) + '" loading="lazy">' +
+            "<figcaption>" + esc(ph.caption) + "</figcaption></figure></li>"
+          );
+        })
+        .join("");
+      if (!cells) return "";
+      return (
+        '<section class="panel" id="arrive"><h2>' + esc(arrive.heading) + '</h2><ul class="arrive-strip">' + cells +
+        '</ul><p class="small"><a href="' + href(arrive.more) + '">More photos of the room</a></p></section>'
+      );
+    }
+
     document.addEventListener("DOMContentLoaded", async function () {
-      await HARTOps.mountChrome("briefing");
+      var site = await HARTOps.mountChrome("briefing");
       var data = await HARTOps.loadJson("data/briefing.json");
       document.getElementById("briefing-title").textContent = data.title;
       document.getElementById("briefing-pub").textContent = data.pub || "";
       document.getElementById("briefing-lede").textContent = data.lede || "";
+      if (data.source && !site.public) {
+        // The docx lives in ../external, which the public site does not carry.
+        document.getElementById("briefing-dl").innerHTML =
+          '· <a href="' + esc(encodeURI(HARTOps.base() + data.source)) + '">Download docx</a>';
+      }
       var root = document.getElementById("briefing-body");
-      root.innerHTML = (data.sections || [])
+      var html = (data.sections || [])
         .map(function (sec) {
           var html = '<section class="panel" id="' + esc(sec.id) + '">';
           html += "<h2>" + esc(sec.heading) + "</h2>";
@@ -42,6 +74,11 @@
           (sec.paragraphs || []).forEach(function (p) {
             html += "<p>" + esc(p) + "</p>";
           });
+          if (sec.bullets && sec.bullets.length) {
+            html += "<ul>" + sec.bullets.map(function (b) {
+              return "<li>" + esc(b) + "</li>";
+            }).join("") + "</ul>";
+          }
           if (sec.industries && sec.industries.length) {
             html +=
               "<ul>" +
@@ -57,14 +94,12 @@
               '<div class="job-grid">' +
               sec.jobs
                 .map(function (j) {
+                  var code = j.href
+                    ? '<a class="code" href="' + href(j.href) + '">' + esc(j.code) + "</a>"
+                    : esc(j.code);
                   return (
-                    '<article class="job-card"><p class="code">' +
-                    esc(j.code) +
-                    "</p><h3>" +
-                    esc(j.name) +
-                    "</h3><p>" +
-                    esc(j.blurb) +
-                    "</p></article>"
+                    '<article class="job-card"><p class="code">' + code + "</p><h3>" + esc(j.name) +
+                    "</h3><p>" + esc(j.blurb) + "</p></article>"
                   );
                 })
                 .join("") +
@@ -76,42 +111,57 @@
               sec.blocks
                 .map(function (b) {
                   return (
-                    '<div class="swatch"><div class="chip" style="background:' +
-                    esc(b.hex) +
-                    ";color:" +
-                    esc(b.text) +
-                    '">' +
-                    esc(b.color) +
-                    "</div><div>" +
-                    esc(b.dest) +
-                    '</div><div class="train">' +
-                    esc(b.train) +
+                    '<div class="swatch"><div class="chip" style="background:' + esc(b.hex) + ";color:" + esc(b.text) +
+                    '">' + esc(b.color) + "</div><div>" + esc(b.dest) + '</div><div class="train">' + esc(b.train) +
                     "</div></div>"
                   );
                 })
                 .join("") +
               "</div>";
           }
+          if (sec.link) {
+            html += '<p><a href="' + href(sec.link.href) + '">' + esc(sec.link.label) + "</a></p>";
+          }
           html += "</section>";
           return html;
         })
         .join("");
+      if (data.arrive) {
+        try {
+          html += arriveHtml(data.arrive, await HARTOps.loadJson("data/gallery.json"));
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      var deeper = data.deeper || { heading: "If you want to dig deeper", paragraphs: [] };
+      html += '<section class="panel" id="deeper"><h2>' + esc(deeper.heading) + "</h2>";
+      (deeper.paragraphs || []).forEach(function (p) {
+        html += "<p>" + esc(p) + "</p>";
+      });
+      if (deeper.refs && deeper.refs.length) {
+        html += "<ul>" + deeper.refs.map(function (r) {
+          return '<li><a href="' + href(r.href) + '">' + esc(r.label) + "</a></li>";
+        }).join("") + "</ul>";
+      }
       if (data.links && data.links.length) {
-        root.innerHTML +=
-          '<section class="panel"><h2>If you want to dig deeper</h2><ul>' +
+        if (deeper.linksIntro) html += "<p>" + esc(deeper.linksIntro) + "</p>";
+        html +=
+          "<ul>" +
           data.links
             .map(function (l) {
-              return (
-                '<li><a href="' +
-                esc(l.href) +
-                '" target="_blank" rel="noopener">' +
-                esc(l.label) +
-                "</a></li>"
-              );
+              return '<li><a href="' + esc(l.href) + '" target="_blank" rel="noopener">' + esc(l.label) + "</a></li>";
             })
             .join("") +
-          "</ul></section>";
+          "</ul>";
       }
+      if (data.signoff) {
+        var so = data.signoff;
+        html +=
+          '<div class="signoff"><p>' + esc(so.text) + "</p><p><strong>" + esc(so.name) + "</strong></p><p>" +
+          esc(so.title) + '</p><p class="muted">' + esc(so.org) + "</p></div>";
+      }
+      html += "</section>";
+      root.innerHTML = html;
     });
   </script>
 </body>
