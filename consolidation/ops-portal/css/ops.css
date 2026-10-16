@@ -391,6 +391,10 @@ main.explorer-page {
   color: var(--accent);
 }
 
+.quote-strip cite a {
+  color: inherit;
+}
+
 /* —— Pages —— */
 .page-head {
   margin-bottom: 1.35rem;
