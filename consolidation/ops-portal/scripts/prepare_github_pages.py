@@ -3,7 +3,8 @@
 
 Excludes the local review API, Python scripts, and photo-gallery items that
 point at gitignored Desktop/HART mirrors (those stay on the LAN server).
-Rolling-stock photos from those mirrors are vendored in, resized, when present.
+Rolling-stock and historical-archive photos from those mirrors are vendored in,
+resized, when present.
 """
 
 from __future__ import annotations
@@ -88,6 +89,60 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600) -> Non
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
+    """Write a resized JPEG; False when Pillow is missing (CI runner without it)."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return False
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with Image.open(src) as im:
+        im.seek(0)  # first frame of an animated GIF/WebP
+        if im.mode in ("RGBA", "LA", "P"):
+            rgba = im.convert("RGBA")
+            im = Image.new("RGB", rgba.size, (255, 255, 255))
+            im.paste(rgba, mask=rgba.getchannel("A"))
+        else:
+            im = im.convert("RGB")
+        im.thumbnail((max_px, max_px))
+        im.save(out, "JPEG", quality=82, optimize=True, progressive=True)
+    return True
+
+
+def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thumb_px: int = 640) -> None:
+    """Resize historical-archive images from ../external/ mirrors into assets/archive/.
+
+    Every item gets a small grid thumbnail; mirror-only originals also get a web-sized
+    copy. Items whose original is missing (CI, no mirrors) are dropped, and local-only
+    fields (PDF paths, where the owner found the file) are stripped.
+    """
+    if not path.is_file():
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    kept = []
+    for item in data.get("items") or []:
+        src_rel = str(item.get("src") or "")
+        src = (PORTAL / src_rel).resolve()
+        if not src_rel or not src.is_file():
+            continue
+        slug = re.sub(r"[^a-z0-9]+", "-", str(item.get("id") or src.stem).lower()).strip("-")
+        if src_rel.startswith("../"):
+            rel = Path("assets") / "archive" / f"{slug}.jpg"
+            if not _web_jpeg(src, dest_root / rel, max_px):
+                continue
+            item["src"] = rel.as_posix()
+        thumb = Path("assets") / "archive" / "thumbs" / f"{slug}.jpg"
+        if _web_jpeg(src, dest_root / thumb, thumb_px):
+            item["thumb"] = thumb.as_posix()
+        if str(item.get("pdf") or "").startswith("../"):
+            item.pop("pdf")
+        item.pop("origin", None)
+        kept.append(item)
+    data["items"] = kept
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def _vendor_industry_logos(path: Path, dest_root: Path) -> None:
     """Copy ../external/ logos into the tree; the public site has no external/ mirror."""
     if not path.is_file():
@@ -125,6 +180,7 @@ def main() -> int:
     _filter_gallery(dest / "data" / "gallery.json", dest)
     _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
     _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
+    _vendor_archive_images(dest / "data" / "archive.json", dest)
 
     (dest / ".nojekyll").write_text("", encoding="utf-8")
     (dest / "404.html").write_text(

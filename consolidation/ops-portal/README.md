@@ -23,6 +23,7 @@ Server notes (ssh `lnevo@www.easte.net`, passwordless sudo):
 - nginx `open_file_cache_valid 60s`: a deploy can take up to a minute to appear. Verify with `until curl -s http://www.hartrailroad.com/… | grep -q "<new text>"; do sleep 3; done`.
 - Industry logos come from the `consolidation/external/hart-ops` submodule (`operator_logos/`); deploy from a checkout with it initialised or logos drop out (`--delete`).
 - Rolling stock photos (car sides, aisle set) come from the gitignored `external/desktop-data` and `external/sts-docker-data` mirrors; `prepare_github_pages.py` resizes them into `assets/fleet/` (needs Pillow). Without the mirrors those albums drop out (GitHub Pages only shows Power).
+- Historical archive images (`data/archive.json`) also live in those mirrors (`f-root/`, plus new finds in `desktop-data/archive-incoming/`); `prepare_github_pages.py` resizes them into `assets/archive/` with grid thumbnails in `assets/archive/thumbs/`, and drops items whose original is missing.
 - Pages fetch JSON with `cache: "no-cache"`; keep that on new fetches so browsers don't hold stale data.
 - **HTTP only.** Bare `hartrailroad.com` has no DNS A record (registrar Network Solutions). Once it points at 35.169.202.14: `v-add-letsencrypt-domain lnevo hartrailroad.com www.hartrailroad.com`.
 - Live tools page links to `localhost` services, which are dead from the public site.
@@ -68,6 +69,7 @@ The header has four links (`data/site.json` → `nav`): **Home · History & Indu
 | **About** | Operational narrative |
 | **Layout** | Clickable LE schematic |
 | **Guides / Tools** | Dispatcher how-tos and live links |
+| **Archive** | Historical photos, ads, clippings, and period maps in three tabs (Curated / To review / Discard) with credits (`archive/`, data in `data/archive.json`). On `serve_portal.sh` the owner can move items between tabs and edit captions; saves go to `data/archive.json`, with a log in `sor/desktop/archive_review_log.jsonl`. Public site is read-only. |
 | **Helix** | Neville Island helix construction plan (with the half-lap screw template), build status, and the STL fixture index (`helix/`, built by `scripts/build_helix_page.py`) |
 
 Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.

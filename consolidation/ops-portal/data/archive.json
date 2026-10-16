@@ -1,0 +1,1191 @@
+{
+  "title": "Historical archive",
+  "lede": "Photographs, advertisements, clippings, and printed maps from Neville Island, the P&OV and PC&Y, and the Pittsburgh river valleys. Credits link to the original wherever it could be found.",
+  "buckets": [
+    {
+      "id": "curated",
+      "label": "Curated"
+    },
+    {
+      "id": "review",
+      "label": "To review"
+    },
+    {
+      "id": "discard",
+      "label": "Discard"
+    }
+  ],
+  "kinds": [
+    {
+      "id": "photo",
+      "label": "Photos"
+    },
+    {
+      "id": "ad",
+      "label": "Ads"
+    },
+    {
+      "id": "clipping",
+      "label": "Clippings"
+    },
+    {
+      "id": "map",
+      "label": "Maps"
+    },
+    {
+      "id": "document",
+      "label": "Documents"
+    }
+  ],
+  "items": [
+    {
+      "id": "pcc-ad-1949-isle-of-chemicals",
+      "src": "../external/desktop-data/f-root/i650473a770.fp.png",
+      "bucket": "curated",
+      "kind": "ad",
+      "title": "“New Products from Pittsburgh’s Isle of Chemicals”",
+      "caption": "Pittsburgh Coke & Chemical Co. advertisement showing the Neville Island plant from the air and three new units: pipe-line enamel, agricultural chemicals, and phthalic anhydride.",
+      "date": "1949-05",
+      "tags": [
+        "pittsburgh-coke-chemical",
+        "neville-island",
+        "chemicals"
+      ],
+      "credit": "Industrial & Engineering Chemistry 41(5), p. 75A (American Chemical Society)",
+      "source_url": "https://doi.org/10.1021/i650473a770",
+      "credit_confidence": "verified",
+      "rights": "Trade-journal advertisement; ACS hosts the page image.",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "pcc-ad-1947-coal-chemicals",
+      "src": "../external/desktop-data/f-root/ie50456a737.fp.png",
+      "bucket": "curated",
+      "kind": "ad",
+      "title": "“Pittsburgh … a dependable source for coal chemicals”",
+      "caption": "Pittsburgh Coke & Chemical Co. Chemical Sales Division advertisement listing Neville Island products: benzol, toluol, tar bases, sulphate of ammonia, pig iron, Neville coke, and cement.",
+      "date": "1947-12",
+      "tags": [
+        "pittsburgh-coke-chemical",
+        "neville-island",
+        "chemicals",
+        "coke"
+      ],
+      "credit": "Industrial & Engineering Chemistry 39(12), p. 40A (American Chemical Society)",
+      "source_url": "https://doi.org/10.1021/ie50456a737",
+      "credit_confidence": "verified",
+      "rights": "Trade-journal advertisement; ACS hosts the page image.",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "uss-chemicals-proud-of-our-progress",
+      "src": "../external/desktop-data/archive-incoming/documents/tumblr_2fb398b098fbdec3f04dab7bfdca5c50_102c771f_2048.jpg",
+      "bucket": "curated",
+      "kind": "ad",
+      "title": "USS Chemicals Neville Island Plant: “Proud of Our Progress”",
+      "caption": "Full-page advertisement tracing the plant's lineage: Davison Coke & Iron (1928), Pittsburgh Coke & Chemical (1944), and USS Chemicals, a division of U.S. Steel (from 1964). Page 59 of an unidentified Coraopolis-area community booklet.",
+      "date": "after 1964",
+      "tags": [
+        "uss-chemicals",
+        "pittsburgh-coke-chemical",
+        "neville-island",
+        "coraopolis"
+      ],
+      "credit": "Unidentified booklet, p. 59; via the Pittsburgh & Ohio Valley Railway Tumblr",
+      "source_url": "https://pittsburghohiovalleyrailroad.tumblr.com/",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "~/Documents (downloaded from Tumblr, Oct 2026)"
+    },
+    {
+      "id": "pcy-saunders-article",
+      "src": "../external/desktop-data/archive-incoming/documents/pc_and_y_ry.gif",
+      "bucket": "curated",
+      "kind": "clipping",
+      "title": "Pittsburgh, Chartiers & Youghiogheny Railway, by Ivan W. Saunders",
+      "caption": "First page of a short PC&Y history: chartered 26 October 1881, built McKees Rocks–Beechmont 1882–83, and joined to the Neville Island Branch over the back-channel bridge, the only rail entrance to the island it shared with the P&OV.",
+      "date": "c. 1950s (from the text)",
+      "tags": [
+        "pc-y",
+        "pittsburgh-ohio-valley",
+        "neville-island",
+        "mckees-rocks",
+        "p-le",
+        "prr"
+      ],
+      "credit": "Ivan W. Saunders, p. 159; page scan via JSTOR",
+      "source_url": "https://www.jstor.org/stable/43520170",
+      "credit_confidence": "verified",
+      "rights": "Journal article; check JSTOR terms before reuse.",
+      "reason": "",
+      "origin": "~/Documents (JSTOR page scan, Oct 2026)"
+    },
+    {
+      "id": "pov-locomotive-4-kobus-1994",
+      "src": "../external/desktop-data/archive-incoming/documents/uls-pitt-200618.20.3.23_pov-locomotive-4.jpg",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "P&OV Locomotive 4 at the Monongahela Railroad shop",
+      "caption": "Pittsburgh & Ohio Valley Railway No. 4 at the Monongahela Railroad locomotive repair shop. The P&OV served the steel and coke plants on Neville Island and shut down in the 1990s.",
+      "date": "1994-06",
+      "tags": [
+        "pittsburgh-ohio-valley",
+        "locomotive"
+      ],
+      "credit": "Ken Kobus. Ken Kobus Photograph Collection, AIS.2006.18, Archives & Special Collections, University of Pittsburgh Library System",
+      "source_url": "https://digital.library.pitt.edu/islandora/object/pitt:200618.20.3.23",
+      "credit_confidence": "verified",
+      "rights": "In Copyright (rights statement on the ULS record).",
+      "reason": "",
+      "origin": "~/Documents (saved ULS page, Oct 2026)"
+    },
+    {
+      "id": "pov-sw8-defranco-1978",
+      "src": "../external/desktop-data/archive-incoming/documents/tumblr_f057069e2ffd1f4dee7b86d26e4a48e3_870b1030_1280.jpg",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "P&OV SW8 at Neville Island, 1978",
+      "caption": "Pittsburgh & Ohio Valley SW8 switching beside a plant building on Neville Island. The caption on the print reads “P&OV SW8, Neville Island PA, 1978, Joe DeFranco.”",
+      "date": "1978",
+      "tags": [
+        "pittsburgh-ohio-valley",
+        "neville-island",
+        "locomotive"
+      ],
+      "credit": "Joe DeFranco (caption on photo); via the Pittsburgh & Ohio Valley Railway Tumblr",
+      "source_url": "https://pittsburghohiovalleyrailroad.tumblr.com/",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "~/Documents (downloaded from Tumblr, Oct 2026)"
+    },
+    {
+      "id": "ple-district-stations",
+      "src": "../external/desktop-data/archive-incoming/documents/tumblr_58ad73c98082d7fab99de8b2db94a871_59fa3e35_400.jpg",
+      "bucket": "curated",
+      "kind": "clipping",
+      "title": "P&LE District stations and connections",
+      "caption": "Station list for the Lake Erie R.R. on the Pittsburgh and Lake Erie District, Aliquippa to McKees Rocks. Lists P&OV Jct. (70059) and Neville Island (78002, connections PCY and POV).",
+      "date": "",
+      "tags": [
+        "p-le",
+        "pittsburgh-ohio-valley",
+        "pc-y",
+        "neville-island",
+        "mckees-rocks",
+        "coraopolis"
+      ],
+      "credit": "Unidentified station list; via the Pittsburgh & Ohio Valley Railway Tumblr",
+      "source_url": "https://pittsburghohiovalleyrailroad.tumblr.com/",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "~/Documents (downloaded from Tumblr, Oct 2026)"
+    },
+    {
+      "id": "pov-scale-ticket-sj2047",
+      "src": "../external/desktop-data/archive-incoming/desktop/scale_ticket_cropped.png",
+      "bucket": "curated",
+      "kind": "document",
+      "title": "P&OV scale ticket, Form SJ2047",
+      "caption": "Blank Pittsburgh & Ohio Valley Railway Co. weigh ticket: car initial and number, gross, tare and net, contents, from/to, weather, and the weigher's name.",
+      "date": "",
+      "tags": [
+        "pittsburgh-ohio-valley",
+        "track-scale",
+        "paperwork"
+      ],
+      "credit": "Via the Pittsburgh & Ohio Valley Railway Tumblr",
+      "source_url": "https://pittsburghohiovalleyrailroad.tumblr.com/",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "~/Desktop (crop of scale_ticket.jpg, Oct 2026)"
+    },
+    {
+      "id": "scale-manifest-carle-1967",
+      "src": "../external/desktop-data/f-root/s-l1600 (1).webp",
+      "bucket": "curated",
+      "kind": "document",
+      "title": "“To Be Weighed” scale manifest: asphalt to Neville Island, 1967",
+      "caption": "Scale manifest for car ROG 79674 shipped from Bendersville, Pa., to Neville Island, Pa., with asphalt, waybill 161 dated 7/26/67, and weighed at Carl[e], Pa.",
+      "date": "1967-07",
+      "tags": [
+        "neville-island",
+        "track-scale",
+        "paperwork"
+      ],
+      "credit": "eBay listing (seller not recorded)",
+      "source_url": "https://www.ebay.com/itm/335924006516",
+      "credit_confidence": "likely",
+      "rights": "Listing photo; seller owns the item.",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "nyt-1951-pcc-pig-iron",
+      "src": "assets/history/nytimes_1951-07-06_pcc-pig-iron.png",
+      "bucket": "curated",
+      "kind": "clipping",
+      "title": "Pittsburgh Coke & Chemical to double pig iron (NYT, 1951)",
+      "caption": "Financial page item on PC&C's rights offering to fund a second Neville Island blast furnace, raising output from 300,000 to 600,000 net tons a year.",
+      "date": "1951-07-06",
+      "tags": [
+        "pittsburgh-coke-chemical",
+        "neville-island",
+        "blast-furnace"
+      ],
+      "credit": "The New York Times, 6 July 1951, p. 26",
+      "source_url": "",
+      "credit_confidence": "verified",
+      "rights": "Newspaper page; see the Articles page for the transcription.",
+      "reason": "",
+      "origin": "ops-portal/assets/history"
+    },
+    {
+      "id": "neville-davis-island-aerial",
+      "src": "assets/media/birdseye-neville-island.jpg",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "End of Neville Island and Davis Island from the air",
+      "caption": "Early aerial view of the upper end of Neville Island with its plants, the back-channel bridge, and the rail yards on the mainland. A hand-lettered caption reads “End of Neville Island & Davis Island.”",
+      "date": "",
+      "tags": [
+        "neville-island",
+        "aerial",
+        "ohio-river"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "",
+      "origin": "hart-ops/docs/published (birdseye view)"
+    },
+    {
+      "id": "higbee-glass-postcard",
+      "src": "assets/media/higbee-glass-postcard.webp",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "J. B. Higbee Glass Factory, Bridgeville",
+      "caption": "Postcard view of the Higbee glass works in Kirwan Heights, Bridgeville, on the Chartiers Valley line. General Electric later bought the plant for bulb glass.",
+      "date": "c. 1907–1918",
+      "tags": [
+        "chartiers-valley",
+        "bridgeville",
+        "glass",
+        "postcard"
+      ],
+      "credit": "© Bridgeville Area Historical Society (watermark on image)",
+      "source_url": "https://bridgevillehistory.org/the-j-b-higbee-glass-company/",
+      "credit_confidence": "likely",
+      "rights": "Watermarked by the Society; ask before reuse.",
+      "reason": "",
+      "origin": "ops-portal/assets/media"
+    },
+    {
+      "id": "flannery-railway-age-1940",
+      "src": "../external/desktop-data/f-root/flannery-16-nov-1940.jpg",
+      "bucket": "curated",
+      "kind": "ad",
+      "title": "Flannery Bolt Co.: “From the Pacific to the Atlantic”",
+      "caption": "Two-page Railway Age advertisement for Flannery hollow flexible staybolts, made in Bridgeville, Pa., on the Chartiers Valley line.",
+      "date": "1940-11-16",
+      "tags": [
+        "flannery-bolt",
+        "bridgeville",
+        "chartiers-valley"
+      ],
+      "credit": "Railway Age, 16 November 1940; scan from martynbane.co.uk",
+      "source_url": "https://www.martynbane.co.uk/images/us-ads/flannery-16-nov-1940.jpg",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "flannery-railway-age-em1",
+      "src": "../external/desktop-data/f-root/flannery_em-1.jpg",
+      "bucket": "curated",
+      "kind": "ad",
+      "title": "Flannery Bolt Co.: staybolts for the B&O 2-8-8-4s",
+      "caption": "Railway Age advertisement: “Hollow Flexible Staybolts on the 20 new 2-8-8-4s for the Baltimore and Ohio — and now ten more on order” (B&O EM-1 class).",
+      "date": "c. 1944–45",
+      "tags": [
+        "flannery-bolt",
+        "bridgeville",
+        "b-o"
+      ],
+      "credit": "Railway Age (page footer); copy from a Facebook post",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "flannery-boiler-maker-1923",
+      "src": "../external/desktop-data/f-root/s-l1600.webp",
+      "bucket": "curated",
+      "kind": "ad",
+      "title": "Flannery Bolt Co.: F.B.C. universal welded flexible staybolts",
+      "caption": "The Boiler Maker advertisement for Flannery Bolt Company, then at 3528 Forbes Street, Pittsburgh.",
+      "date": "1923-12",
+      "tags": [
+        "flannery-bolt",
+        "pittsburgh"
+      ],
+      "credit": "The Boiler Maker, December 1923 (tear sheet); eBay listing photo",
+      "source_url": "https://i.ebayimg.com/images/g/6DQAAOSwL~ZjPuzk/s-l1600.webp",
+      "credit_confidence": "likely",
+      "rights": "Pre-1930 US publication: likely public domain.",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "neville-island-streetcar",
+      "src": "../external/desktop-data/f-root/s-l960.webp",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "Streetcar signed NEVILLE ISLAND",
+      "caption": "Streetcar No. 9x signed NEVILLE ISLAND, on street track under the trolley wire.",
+      "date": "",
+      "tags": [
+        "streetcar",
+        "neville-island"
+      ],
+      "credit": "eBay listing photo (photographer unknown)",
+      "source_url": "https://i.ebayimg.com/images/g/11cAAOSwrDVnL7tO/s-l960.webp",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "prr-ob-interlocking-becks-run",
+      "src": "../external/desktop-data/f-root/beckPAdiagram.jpg",
+      "bucket": "curated",
+      "kind": "document",
+      "title": "PRR “OB” interlocking, Becks Run, Pa.",
+      "caption": "Pennsylvania Railroad Monongahela Division track and signal diagram for OB interlocking at Becks Run, a 35-lever electro-pneumatic machine also controlling the Scully lines. Plan last corrected 1-18-46.",
+      "date": "1946",
+      "tags": [
+        "prr",
+        "interlocking",
+        "becks-run"
+      ],
+      "credit": "Pennsylvania Railroad; via North American Interlockings",
+      "source_url": "https://northamericaninterlockings.com/images/beckPAdiagram.jpg",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "ple-bk-tower-salamon-1984",
+      "src": "../external/desktop-data/f-root/bkPAsalamon1.jpg",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "P&LE Becks Run tower with a freight, 1984",
+      "caption": "P&LE BK tower at Becks Run on the Monongahela River line, with a P&LE freight passing.",
+      "date": "1984-03-31",
+      "tags": [
+        "p-le",
+        "interlocking",
+        "becks-run"
+      ],
+      "credit": "Steve Salamon (on photo); via North American Interlockings",
+      "source_url": "https://northamericaninterlockings.com/images/bkPAsalamon1.jpg",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "ple-bk-tower-salamon-1983",
+      "src": "../external/desktop-data/f-root/bkPAsalamon2.jpg",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "P&LE 1561 at Becks Run tower, 1983",
+      "caption": "P&LE switcher 1561 beside BK tower at Becks Run.",
+      "date": "1983-03-05",
+      "tags": [
+        "p-le",
+        "interlocking",
+        "becks-run",
+        "locomotive"
+      ],
+      "credit": "Steve Salamon (on photo); via North American Interlockings",
+      "source_url": "https://northamericaninterlockings.com/images/bkPAsalamon2.jpg",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "ple-rebuilds-interlocking-1951",
+      "src": "../external/desktop-data/archive-incoming/pdf-covers/p-le-rebuilds-interlocking.jpg",
+      "bucket": "curated",
+      "kind": "clipping",
+      "title": "“P. & L. E. Rebuilds Interlocking” (1951)",
+      "caption": "Railway Signaling and Communications article on the new all-relay CH interlocking at McKees Rocks, the gateway to the P&LE yards, PC&Y, and Neville Island.",
+      "date": "1951-08",
+      "tags": [
+        "p-le",
+        "mckees-rocks",
+        "interlocking"
+      ],
+      "credit": "Railway Signaling and Communications, Aug. 1951 (Google-digitized); PDF from jonroma.net",
+      "source_url": "https://jonroma.net/media/signaling/railway-signaling/1951/P%26LE%20Rebuilds%20Interlocking.pdf",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root PDF; cover rendered)",
+      "pdf": "../external/desktop-data/f-root/P&LE Rebuilds Interlocking.pdf"
+    },
+    {
+      "id": "pwv-timetable-27-1956",
+      "src": "../external/desktop-data/archive-incoming/pdf-covers/1956-07-07pwv27-seabass.jpg",
+      "bucket": "curated",
+      "kind": "document",
+      "title": "Pittsburgh & West Virginia Time Table No. 27 (1956)",
+      "caption": "Employee timetable cover (“Safety Always”), effective Sunday, January 1, 1956. R. N. Shields, President.",
+      "date": "1956-01-01",
+      "tags": [
+        "p-wv",
+        "timetable"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root PDF; cover rendered)",
+      "pdf": "../external/desktop-data/f-root/1956-07-07PWV27-seabass.pdf"
+    },
+    {
+      "id": "prr-panhandle-tt19-1934",
+      "src": "../external/desktop-data/archive-incoming/pdf-covers/prr-ett-panhandledivision-no19-04-29-1934-300dpi-timzukas-2up.jpg",
+      "bucket": "curated",
+      "kind": "document",
+      "title": "PRR Panhandle Division Time Table No. 19 (1934)",
+      "caption": "Pennsylvania Railroad Central Region, Eastern Ohio Division, Panhandle Division employee timetable, in effect April 29, 1934.",
+      "date": "1934-04-29",
+      "tags": [
+        "prr",
+        "timetable",
+        "panhandle"
+      ],
+      "credit": "Scan by Tim Zukas (per file name)",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root PDF; cover rendered)",
+      "pdf": "../external/desktop-data/f-root/PRR_ETT_PanhandleDivision_No19_04-29-1934_300dpi_TimZukas_2up.pdf"
+    },
+    {
+      "id": "ple-system-map",
+      "src": "../external/desktop-data/archive-incoming/pdf-covers/p-le-system-map.jpg",
+      "bucket": "curated",
+      "kind": "map",
+      "title": "Pittsburgh & Lake Erie Railroad system map",
+      "caption": "Printed P&LE system map: Pittsburgh–Youngstown main line with its branches and connections in Pennsylvania and Ohio.",
+      "date": "",
+      "tags": [
+        "p-le",
+        "map"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root PDF; cover rendered)",
+      "pdf": "../external/desktop-data/f-root/P&LE System Map.pdf"
+    },
+    {
+      "id": "this-is-shenango-booklet",
+      "src": "../external/desktop-data/archive-incoming/pdf-covers/thisisshenango.jpg",
+      "bucket": "curated",
+      "kind": "document",
+      "title": "“This is Shenango!” company booklet",
+      "caption": "Cover of the Shenango company booklet, showing the lake freighter William P. Snyder Jr. Shenango later owned the Neville Island coke works.",
+      "date": "",
+      "tags": [
+        "shenango",
+        "coke"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "",
+      "origin": "Desktop/HART (F-root PDF) and ~/Documents (identical copy)",
+      "pdf": "../external/desktop-data/f-root/ThisIsShenango.pdf"
+    },
+    {
+      "id": "pov-switcher-6-facebook",
+      "src": "../external/desktop-data/archive-incoming/documents/798664159_4063776670590737_5077291405641959402_n.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Switcher No. 6 on plant trackage",
+      "caption": "End-cab switcher No. 6 (probably P&OV SW9 No. 6) on plank crossings, with the plant stacks behind.",
+      "date": "",
+      "tags": [
+        "pittsburgh-ohio-valley",
+        "neville-island",
+        "locomotive"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Railroad, place, and date not confirmed; photographer unknown.",
+      "origin": "~/Documents (downloaded from Facebook, Oct 2026)"
+    },
+    {
+      "id": "ple-1583-shenango-facebook",
+      "src": "../external/desktop-data/f-root/825328949_1080852464663004_4104262415226203451_n.jpeg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "P&LE 1583 by a Shenango building",
+      "caption": "P&LE switcher 1583 in front of a metal plant building; a Shenango sign is visible at left.",
+      "date": "",
+      "tags": [
+        "p-le",
+        "shenango",
+        "locomotive"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Photographer and date unknown; may show Neville Island.",
+      "origin": "consolidation f-root mirror (Facebook download, Sep 2026)"
+    },
+    {
+      "id": "ple-switchers-plant-facebook",
+      "src": "../external/desktop-data/f-root/825329960_28603732875924171_577698570713943906_n.jpeg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "P&LE switchers at a plant building",
+      "caption": "Two P&LE switchers, one nose-on, at the same plant building as the 1583 photo.",
+      "date": "",
+      "tags": [
+        "p-le",
+        "shenango",
+        "locomotive"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Photographer and date unknown; companion to the 1583 photo.",
+      "origin": "consolidation f-root mirror (Facebook download, Sep 2026)"
+    },
+    {
+      "id": "neville-coke-battery",
+      "src": "../external/desktop-data/archive-incoming/desktop/neville_island_coke_battery.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Coke battery and coal yard",
+      "caption": "Coke oven battery with pusher and quench cars, coal piles, and hoppers; a gas holder stands behind. The file name places it on Neville Island.",
+      "date": "",
+      "tags": [
+        "coke",
+        "neville-island",
+        "pittsburgh-coke-chemical"
+      ],
+      "credit": "Tumblr repost (original source unknown)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Plant and date not confirmed; original archive not found.",
+      "origin": "~/Desktop (Tumblr download, Oct 2026)"
+    },
+    {
+      "id": "pcc-plant-painting",
+      "src": "../external/desktop-data/f-root/s-l1600 (3).webp",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Painting of the Pittsburgh Coke & Chemical plant",
+      "caption": "Color painting or postcard art: the Pittsburgh Coke & Chemical gas holder and plant across the back channel, with a truss bridge and rail line.",
+      "date": "",
+      "tags": [
+        "pittsburgh-coke-chemical",
+        "neville-island",
+        "postcard"
+      ],
+      "credit": "eBay listing photo (artist not identified)",
+      "source_url": "https://i.ebayimg.com/images/g/dAIAAeSweR9pf43s/s-l1600.webp",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "Artist, date, and medium unknown; signature at lower left unread.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "streetcar-93-curve",
+      "src": "../external/desktop-data/f-root/s-l1600 (2).webp",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Streetcar 93 on a curve",
+      "caption": "Older wooden streetcar, No. 93, on curved track with men standing alongside.",
+      "date": "",
+      "tags": [
+        "streetcar"
+      ],
+      "credit": "eBay listing photo (photographer unknown)",
+      "source_url": "https://i.ebayimg.com/images/g/CAoAAOSw5PtnL7tD/s-l1600.webp",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "Destination not legible; may be the Neville Island car, same set as the NEVILLE ISLAND photo.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "pcc-1709-coraopolis",
+      "src": "../external/desktop-data/f-root/PRC waiting to return to Coraopolis.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "PCC waiting to return to Coraopolis",
+      "caption": "Pittsburgh Railways PCC car signed CORAOPOLIS at a wooded terminal.",
+      "date": "",
+      "tags": [
+        "streetcar",
+        "coraopolis"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Photographer and date unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "sewickley-streetcar-tinted",
+      "src": "../external/desktop-data/f-root/sewickley streetcar.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Sewickley–Coraopolis PCC (tinted)",
+      "caption": "Color-tinted print of a PCC car signed for route 23 Sewickley–Coraopolis.",
+      "date": "",
+      "tags": [
+        "streetcar",
+        "sewickley",
+        "coraopolis"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Possible duplicate of the Coraopolis PCC photo; heavily tinted, low resolution.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "sewickley-loop",
+      "src": "../external/desktop-data/f-root/sewickley_loop.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Streetcar loop at Sewickley",
+      "caption": "Street-level view of a trolley loop, with a PCC in the distance.",
+      "date": "",
+      "tags": [
+        "streetcar",
+        "sewickley"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Photographer and date unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "trolley-sewickley-bridge",
+      "src": "../external/desktop-data/f-root/trolley_sewickley_bridge.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Streetcar on the Sewickley Bridge",
+      "caption": "Mercury sedan and a streetcar on the Sewickley Bridge across the Ohio, 1950s.",
+      "date": "c. 1950s (from the car)",
+      "tags": [
+        "streetcar",
+        "sewickley",
+        "ohio-river",
+        "bridge"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Book or magazine scan; source and photographer unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "barrel-storage-yard",
+      "src": "../external/desktop-data/f-root/FZ2_758.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Drum storage yard with boxcars",
+      "caption": "Rows of steel drums stored in an open yard, with boxcars beyond.",
+      "date": "",
+      "tags": [
+        "industry"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Location unknown; not confirmed as Neville Island.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "riverfront-aerial-bw",
+      "src": "../external/desktop-data/f-root/1VFNT00010012.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Riverfront plant from the air",
+      "caption": "Black-and-white aerial view of a riverfront plant with tank farm, rail yard, and docks at the tip of an island.",
+      "date": "",
+      "tags": [
+        "aerial",
+        "industry",
+        "ohio-river"
+      ],
+      "credit": "Blogger-hosted copy (blog not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Plant not identified; may be Neville Island. Date unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "shenango-aerial-color",
+      "src": "../external/desktop-data/f-root/305998346_10219295245405407_8127293654381891772_n.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Shenango coke works from the air",
+      "caption": "Color aerial view along the Ohio River of a coke works with coal piles, stacks, and barge dock.",
+      "date": "",
+      "tags": [
+        "shenango",
+        "coke",
+        "aerial",
+        "neville-island"
+      ],
+      "credit": "Facebook photo via a Blogger-hosted copy",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Modern color photo (before 2016); date and photographer unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "shenango-works-color",
+      "src": "../external/desktop-data/f-root/492050449_10224674058232366_5620487153150413068_n.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Shenango coke works and stack",
+      "caption": "Color photo of the coke works, with its stack, the river, and the hillside beyond.",
+      "date": "",
+      "tags": [
+        "shenango",
+        "coke",
+        "neville-island"
+      ],
+      "credit": "Facebook post (poster not recorded)",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Modern photo; date and photographer unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "ple-bk-tower-unknown",
+      "src": "../external/desktop-data/f-root/bkPAunknown.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Becks Run tower, black and white",
+      "caption": "Black-and-white view of the Becks Run tower and multiple-track main line beside the river.",
+      "date": "",
+      "tags": [
+        "p-le",
+        "interlocking",
+        "becks-run"
+      ],
+      "credit": "Photographer unknown (marked “unknown”); via North American Interlockings",
+      "source_url": "https://northamericaninterlockings.com/images/bkPAunknown.jpg",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "Photographer and date unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "ple-bk-tower-maners-2002",
+      "src": "../external/desktop-data/f-root/bkPAmaners.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Becks Run tower, abandoned (2002)",
+      "caption": "Graffitied, disused BK tower at Becks Run.",
+      "date": "2002-10-30",
+      "tags": [
+        "p-le",
+        "interlocking",
+        "becks-run"
+      ],
+      "credit": "Dan Maners (on photo); via North American Interlockings",
+      "source_url": "https://northamericaninterlockings.com/images/bkPAmaners.jpg",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "After the c. 1980 era; keep only for tower history.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "prr-beck-tower-maners-2002",
+      "src": "../external/desktop-data/f-root/beckPAmaners.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "PRR Beck tower, abandoned (2002)",
+      "caption": "Former PRR tower at Becks Run, graffitied and disused.",
+      "date": "2002",
+      "tags": [
+        "prr",
+        "interlocking",
+        "becks-run"
+      ],
+      "credit": "Dan Maners (on photo); via North American Interlockings",
+      "source_url": "https://northamericaninterlockings.com/images/beckPAmaners.jpg",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "After the c. 1980 era; keep only for tower history.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "prr-beck-tower-oroszi",
+      "src": "../external/desktop-data/f-root/beckPAoroszi.jpg",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "PRR Beck tower (Oroszi)",
+      "caption": "Black-and-white view of the former PRR tower at Becks Run, with cars parked along the track.",
+      "date": "",
+      "tags": [
+        "prr",
+        "interlocking",
+        "becks-run"
+      ],
+      "credit": "David P. Oroszi (on photo); via North American Interlockings",
+      "source_url": "https://northamericaninterlockings.com/images/beckPAoroszi.jpg",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "Date unknown.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "haer-tar-ammonium-sulphate",
+      "src": "../external/desktop-data/f-root/ammonium sulphate.png",
+      "bucket": "review",
+      "kind": "document",
+      "title": "Tar and ammonium sulphate recovery, 1952 (HAER drawing)",
+      "caption": "Historic American Engineering Record isometric drawing of by-product recovery from coke-oven gas: tar decanter, detarrer, ammonia stills, and sulphate dryers.",
+      "date": "1952 (process shown)",
+      "tags": [
+        "coke",
+        "by-products",
+        "chemicals"
+      ],
+      "credit": "Historic American Engineering Record, HAER AL-14 (Thomas By-Product Coke Works, Alabama); copy via Steel Mill Modelers Supply",
+      "source_url": "https://steelmillmodelerssupply.com/product/by-product-plant-ammonia-absorber/",
+      "credit_confidence": "likely",
+      "rights": "HAER drawings are US government work: public domain.",
+      "reason": "Alabama plant, not Neville Island; generic process reference.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "usgs-topo-neville",
+      "src": "../external/desktop-data/f-root/2022-10-16 17_37_39-USGS Historical Topographic Map Explorer.png",
+      "bucket": "review",
+      "kind": "map",
+      "title": "USGS historical topo of Neville Island",
+      "caption": "Screenshot of a USGS historical topographic quadrangle covering Neville Island, the back channel, and Coraopolis.",
+      "date": "",
+      "tags": [
+        "neville-island",
+        "map",
+        "ohio-river"
+      ],
+      "credit": "U.S. Geological Survey (via the Historical Topographic Map Explorer)",
+      "source_url": "https://livingatlas.arcgis.com/topoexplorer/",
+      "credit_confidence": "likely",
+      "rights": "USGS maps are public domain.",
+      "reason": "Screenshot; replace with a clean dated quad from the USGS topoView download.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "canonsburg-potteries-header",
+      "src": "../external/desktop-data/f-root/ptry_head.gif",
+      "bucket": "review",
+      "kind": "photo",
+      "title": "Canonsburg's Potteries (web banner)",
+      "caption": "Web page banner for “Canonsburg's Potteries” by James T. Herron, Jr., built around an engraving of new pottery buildings from the Canonsburg Daily Notes, 29 September 1900.",
+      "date": "1900 (engraving)",
+      "tags": [
+        "canonsburg",
+        "chartiers-valley",
+        "industry"
+      ],
+      "credit": "James T. Herron, Jr. (web banner); engraving from Canonsburg Daily Notes",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "1900 engraving is public domain; the banner design is not.",
+      "reason": "Web banner, not the original engraving; find a clean scan.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "pcc-shenango-deposition-exhibit",
+      "src": "../external/desktop-data/archive-incoming/pdf-covers/pittsburgh-coke-chemical-details.jpg",
+      "bucket": "review",
+      "kind": "document",
+      "title": "US Steel Neville Island plant: deposition exhibit",
+      "caption": "Plaintiff's exhibit summarizing Pittsburgh Coke & Chemical's split into Shenango and Pittsburgh Chemical, U.S. Steel's 1964 purchase, and the later plant layout.",
+      "date": "c. 1998",
+      "tags": [
+        "pittsburgh-coke-chemical",
+        "shenango",
+        "uss-chemicals",
+        "neville-island"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Modern legal document; useful history but not a period item.",
+      "origin": "Desktop/HART (F-root PDF; cover rendered)",
+      "pdf": "../external/desktop-data/f-root/pittsburgh coke & Chemical details.pdf"
+    },
+    {
+      "id": "dup-flannery-em1",
+      "src": "../external/desktop-data/f-root/flannery_bolts_em1.jpg",
+      "bucket": "discard",
+      "kind": "ad",
+      "title": "Flannery Bolt Co. B&O 2-8-8-4 ad (duplicate)",
+      "caption": "Byte-identical copy of flannery_em-1.jpg.",
+      "date": "",
+      "tags": [
+        "flannery-bolt"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Duplicate of the curated EM-1 ad.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "dup-higbee-postcard",
+      "src": "../external/desktop-data/f-root/J_B_Higbee_Glass__Postcard02B.webp",
+      "bucket": "discard",
+      "kind": "photo",
+      "title": "J. B. Higbee Glass postcard (duplicate)",
+      "caption": "Identical to assets/media/higbee-glass-postcard.webp.",
+      "date": "",
+      "tags": [
+        "glass",
+        "bridgeville"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Duplicate of the curated postcard.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "dup-barrel-yard",
+      "src": "../external/desktop-data/f-root/FZ2_758-1.jpg",
+      "bucket": "discard",
+      "kind": "photo",
+      "title": "Drum storage yard (duplicate)",
+      "caption": "Byte-identical copy of FZ2_758.jpg.",
+      "date": "",
+      "tags": [
+        "industry"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Duplicate.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "dup-pov-scale-ticket-scan",
+      "src": "../external/desktop-data/archive-incoming/desktop/scale_ticket.jpg",
+      "bucket": "discard",
+      "kind": "document",
+      "title": "P&OV scale ticket (full-page scan)",
+      "caption": "Uncropped page; the ticket fills the top right corner.",
+      "date": "",
+      "tags": [
+        "pittsburgh-ohio-valley",
+        "track-scale"
+      ],
+      "credit": "Via the Pittsburgh & Ohio Valley Railway Tumblr",
+      "source_url": "https://pittsburghohiovalleyrailroad.tumblr.com/",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "Superseded by the cropped ticket.",
+      "origin": "~/Desktop (Tumblr download, Oct 2026)"
+    },
+    {
+      "id": "raque-model-display",
+      "src": "../external/desktop-data/archive-incoming/documents/tumblr_fd37595273a5095b14032b3b5980e610_876459f0_2048.jpg",
+      "bucket": "discard",
+      "kind": "photo",
+      "title": "Model display: P&OV and Shenango hot-metal cars",
+      "caption": "Steve Raque's HO models of P&OV/PC&Y SW9s and Shenango ladle cars on a show table.",
+      "date": "",
+      "tags": [
+        "models"
+      ],
+      "credit": "Steve Raque models; via the Pittsburgh & Ohio Valley Railway Tumblr",
+      "source_url": "https://pittsburghohiovalleyrailroad.tumblr.com/",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "Model photos, not a historical image.",
+      "origin": "~/Documents (Tumblr download, Oct 2026)"
+    },
+    {
+      "id": "shenango-allegheny-front-2018",
+      "src": "../external/desktop-data/f-root/Shenango1.webp",
+      "bucket": "discard",
+      "kind": "photo",
+      "title": "Shenango coke works (news photo, c. 2016–18)",
+      "caption": "Color news photo of the closed Shenango works across the back channel.",
+      "date": "c. 2018",
+      "tags": [
+        "shenango"
+      ],
+      "credit": "The Allegheny Front",
+      "source_url": "https://www.alleghenyfront.org/",
+      "credit_confidence": "likely",
+      "rights": "Copyrighted news photo.",
+      "reason": "Modern copyrighted news photo, out of period.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "lundsten-pittsburgh-rail-map",
+      "src": "../external/desktop-data/f-root/pit.gif",
+      "bucket": "discard",
+      "kind": "map",
+      "title": "Pittsburgh railroads map (2016)",
+      "caption": "Modern railfan map of Pittsburgh lines and yards.",
+      "date": "2016",
+      "tags": [
+        "map"
+      ],
+      "credit": "© 2016 Carsten S. Lundsten",
+      "source_url": "https://lundsten.dk/railfan_pa/pit.gif",
+      "credit_confidence": "verified",
+      "rights": "",
+      "reason": "Modern map, not a period item; copyrighted.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "chartiers-track-scheme",
+      "src": "../external/desktop-data/f-root/ChartiersTrackScheme.jpg",
+      "bucket": "discard",
+      "kind": "map",
+      "title": "Chartiers branch track scheme",
+      "caption": "Modern schematic of Chartiers Valley stations from Carnegie to Washington, with mileposts.",
+      "date": "",
+      "tags": [
+        "chartiers-valley",
+        "map"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Modern track diagram, not a period item.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "allegheny-ludlum-logo",
+      "src": "../external/desktop-data/f-root/allegheny_ludlam.png",
+      "bucket": "discard",
+      "kind": "ad",
+      "title": "Allegheny Ludlum star logo",
+      "caption": "Company logo artwork.",
+      "date": "",
+      "tags": [
+        "logo"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Logo artwork; belongs with the industry logos, not the archive.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "zoo-interlocking-philadelphia",
+      "src": "../external/desktop-data/dj-trains/ZooPhillyPA2.gif",
+      "bucket": "discard",
+      "kind": "document",
+      "title": "Zoo interlocking, Philadelphia",
+      "caption": "Hand-drawn diagram of Zoo interlocking and the north limits of Penn.",
+      "date": "",
+      "tags": [
+        "interlocking"
+      ],
+      "credit": "",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Philadelphia; out of scope.",
+      "origin": "Desktop/HART/DJ Trains"
+    },
+    {
+      "id": "google-maps-neville",
+      "src": "../external/desktop-data/f-root/2022-10-16 16_42_35-Google Maps.png",
+      "bucket": "discard",
+      "kind": "map",
+      "title": "Google Maps aerial (2022)",
+      "caption": "Satellite screenshot of an Ohio River industrial site.",
+      "date": "2022",
+      "tags": [
+        "aerial"
+      ],
+      "credit": "Google Maps imagery",
+      "source_url": "",
+      "credit_confidence": "none",
+      "rights": "",
+      "reason": "Modern screenshot; not historical.",
+      "origin": "Desktop/HART (F-root)"
+    },
+    {
+      "id": "kirwan-heights-article-2018",
+      "src": "../external/desktop-data/archive-incoming/pdf-covers/kirwan-heights-history-201811080720099575.jpg",
+      "bucket": "discard",
+      "kind": "clipping",
+      "title": "“Kirwan Heights Industrial District explored” (2018)",
+      "caption": "Newspaper column printout on the Mayer brickworks, Flannery Bolt, and Higbee Glass in Kirwan Heights.",
+      "date": "2018-11-01",
+      "tags": [
+        "bridgeville",
+        "flannery-bolt",
+        "glass"
+      ],
+      "credit": "John F. Oyler (column byline)",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "Modern text article; cite it from Articles instead of archiving the printout.",
+      "origin": "Desktop/HART (F-root PDF; cover rendered)",
+      "pdf": "../external/desktop-data/f-root/Kirwan-Heights-History_201811080720099575.pdf"
+    }
+  ]
+}
