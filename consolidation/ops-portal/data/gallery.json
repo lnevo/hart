@@ -16,6 +16,11 @@
       "id": "plans",
       "label": "Track plan development",
       "count": 5
+    },
+    {
+      "id": "build",
+      "label": "Build & wiring",
+      "count": 4
     }
   ],
   "items": [
@@ -193,6 +198,34 @@
       "title": "Track plan, June 2025: main, helix and spurs",
       "caption": "The double-track main laid over the helix plan, with industry spurs (red) along the walls.",
       "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "build",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-20 at 12.08.15 AM.png",
+      "title": "Coke oven kit: typical arrangement",
+      "caption": "The kit maker's typical arrangement for the coke oven battery, used to plan the coke plant on the peninsula.",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "build",
+      "src": "../external/desktop-data/f-root/lcn-connection-diagram.webp",
+      "title": "LCN connection diagram",
+      "caption": "How the LCN boards connect: the wiring reference for the layout's control bus.",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "build",
+      "src": "../external/desktop-data/archive-incoming/desktop/psx-ar-reverse-loop-wiring.png",
+      "title": "PSX-AR reverse loop wiring",
+      "caption": "Booster power through a PSX-AR auto-reverser to the reverse loop, with rail gaps at each end, a Tortoise switch machine on the loop turnout, and a momentary toggle switch.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "build",
+      "src": "../external/desktop-data/archive-incoming/desktop/touch-toggle-dimensions.png",
+      "title": "Touch toggle dimensions",
+      "caption": "Drilling template for the fascia touch toggles: a 3/4 in square plate with 3/16 in holes on 3/8 in spacing, in two-hole and one-hole versions.",
+      "credit": "HART layout photos"
     }
   ]
 }
