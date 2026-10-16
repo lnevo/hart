@@ -227,7 +227,7 @@ main.explorer-page {
   text-transform: uppercase;
   font-size: 0.95rem;
   color: var(--accent);
-  margin: 0 0 0.6rem;
+  margin: 0 0 1.1rem;
 }
 
 .hero-bleed h1 {
