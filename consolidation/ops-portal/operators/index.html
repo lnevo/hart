@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operators — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Operators</h1>
+      <p class="section-note">
+        Everything a crew member needs, from a first look at the railroad to the dispatcher's desk.
+        New to Neville Island? Read the briefing first; the rest is here when you need it.
+      </p>
+    </div>
+
+    <section class="hub-group" aria-labelledby="first-title">
+      <h2 id="first-title">Before your first session</h2>
+      <div class="card-grid">
+        <a class="card" href="../briefing/index.html">
+          <p class="card-kind">Start here</p>
+          <h3>New operator briefing</h3>
+          <p>The island's story, the jobs on the board, destination colors, and how the track scale works. No memorizing required.</p>
+        </a>
+        <a class="card" href="../docs/index.html">
+          <p class="card-kind">Paperwork</p>
+          <h3>Official publications</h3>
+          <p>The operator primer, crew sheets for D749, NVL, and CK1, station maps, the yardmaster sequence, and scale instructions.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" aria-labelledby="desk-title">
+      <h2 id="desk-title">At the desk</h2>
+      <div class="card-grid">
+        <a class="card" href="../guides/index.html">
+          <p class="card-kind">How-to</p>
+          <h3>Dispatcher guides</h3>
+          <p>The USS CTC lever machine, the CATS Digicon CTC panel, JMRI auto-dispatching, and how the Digicon system fits together.</p>
+        </a>
+        <a class="card" href="../layout/index.html">
+          <p class="card-kind">Interactive</p>
+          <h3>Layout Explorer</h3>
+          <p>The full Digicon board. Click any switch or signal mast for its control point and hardware.</p>
+        </a>
+        <a class="card" href="../roster/index.html">
+          <p class="card-kind">Reference</p>
+          <h3>Device roster</h3>
+          <p>A searchable list of every switch, signal, and sensor on the railroad.</p>
+        </a>
+        <a class="card" href="../tools/index.html" data-local-only>
+          <p class="card-kind">At the layout</p>
+          <h3>Live tools</h3>
+          <p>STS, MQTT Mimic, and JMRI web. These links only work on the layout's own network.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" aria-labelledby="build-title">
+      <h2 id="build-title">Building the railroad</h2>
+      <div class="card-grid">
+        <a class="card" href="../helix/index.html">
+          <p class="card-kind">Under construction</p>
+          <h3>Neville Island helix</h3>
+          <p>The construction plan, half-lap screw template, build status, and every printed fixture.</p>
+        </a>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("operators").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

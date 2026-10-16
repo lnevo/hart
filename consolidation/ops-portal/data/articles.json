@@ -46,10 +46,10 @@
     },
     {
       "id": "sts-ops",
-      "title": "STS operations article",
-      "kind": "Article",
+      "title": "Setting up car movement on the HART Railroad",
+      "kind": "Operations",
       "href": "library/sts-operations-article.html",
-      "blurb": "How HART uses STS for car forwarding and operations."
+      "blurb": "How HART builds repeatable session traffic with STS: car cards and waybills, a readable ops desk, and the track scale."
     }
   ]
 }

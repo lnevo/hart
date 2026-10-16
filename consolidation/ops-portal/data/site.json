@@ -9,17 +9,49 @@
     "jmri": "http://localhost:12080/"
   },
   "nav": [
-    {"id": "home", "href": "index.html", "label": "Home"},
-    {"id": "briefing", "href": "briefing/index.html", "label": "Briefing"},
-    {"id": "industries", "href": "industries/index.html", "label": "Industries"},
-    {"id": "photos", "href": "photos/index.html", "label": "Photos"},
-    {"id": "fleet", "href": "fleet/index.html", "label": "Rolling stock"},
-    {"id": "articles", "href": "articles/index.html", "label": "Articles"},
-    {"id": "docs", "href": "docs/index.html", "label": "Publications"},
-    {"id": "about", "href": "about/index.html", "label": "About"},
-    {"id": "layout", "href": "layout/index.html", "label": "Layout Explorer"},
-    {"id": "guides", "href": "guides/index.html", "label": "Guides"},
-    {"id": "helix", "href": "helix/index.html", "label": "Helix"},
-    {"id": "tools", "href": "tools/index.html", "label": "Tools"}
+    {
+      "id": "home",
+      "href": "index.html",
+      "label": "Home",
+      "pages": [
+        "home"
+      ]
+    },
+    {
+      "id": "history",
+      "href": "history/index.html",
+      "label": "History & Industries",
+      "short": "History",
+      "pages": [
+        "history",
+        "articles",
+        "industries",
+        "photos",
+        "fleet"
+      ]
+    },
+    {
+      "id": "operators",
+      "href": "operators/index.html",
+      "label": "Operators",
+      "pages": [
+        "operators",
+        "briefing",
+        "docs",
+        "guides",
+        "layout",
+        "roster",
+        "tools",
+        "helix"
+      ]
+    },
+    {
+      "id": "about",
+      "href": "about/index.html",
+      "label": "About",
+      "pages": [
+        "about"
+      ]
+    }
   ]
 }

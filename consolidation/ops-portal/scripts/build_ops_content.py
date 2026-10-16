@@ -434,6 +434,9 @@ def build_industries() -> dict:
             out.extend(by_ind.get(k, []))
         return out
 
+    # Waybill keys keep the STS spelling; show the companies' real names.
+    display_names = {"A Stucki Co": "A. Stucki Company", "Ferrel Gas": "Ferrellgas"}
+
     industries = []
     for name in [
         "Aristech Plastics",
@@ -452,7 +455,7 @@ def build_industries() -> dict:
         )
         industries.append(
             {
-                "name": name,
+                "name": display_names.get(name, name),
                 "blurb": blurbs.get(name, ""),
                 "commodities": commodities,
                 "waybill_count": len(rows),
@@ -492,8 +495,7 @@ def build_industries() -> dict:
     return {
         "title": "Industries on Neville Island",
         "lede": (
-            "The customers and commodities that make the railroad work. "
-            "Waybill counts come from the consolidation spot-waybill seed."
+            "The customers and commodities that make the railroad work."
         ),
         "industries": industries,
     }
@@ -575,6 +577,21 @@ def build_invites() -> dict:
     }
 
 
+# Car-note fragments that are roster bookkeeping, not something a visitor should read.
+_INTERNAL_NOTE_PREFIXES = ("final_ref=", "engine_roster_id=", "replacement photo for", "not in ")
+
+
+def public_car_note(notes: str) -> str:
+    kept: list[str] = []
+    for part in (p.strip() for p in notes.split(";")):
+        if not part or part.lower().startswith(_INTERNAL_NOTE_PREFIXES):
+            continue
+        if any(part.lower() in k.lower() for k in kept):
+            continue
+        kept.append(part)
+    return "; ".join(kept)
+
+
 def build_gallery(media: dict[str, str]) -> dict:
     items: list[dict] = []
 
@@ -631,14 +648,14 @@ def build_gallery(media: dict[str, str]) -> dict:
         media.get("loco_cr"),
         "CR 1993",
         "Conrail power on the roster art used in crew publications.",
-        "hart-ops publications",
+        "HART publications",
     )
     add(
         "power",
         media.get("loco_pohc"),
         "POHC 2091",
         "Pittsburgh & Ohio Central unit — the other side of the island interchange.",
-        "hart-ops publications",
+        "HART publications",
     )
     add(
         "maps",
@@ -708,10 +725,8 @@ def build_gallery(media: dict[str, str]) -> dict:
                 num = (row.get("road_number") or "").strip()
                 ctype = (row.get("car_type") or "").strip()
                 road = (row.get("road_name") or "").strip()
-                note = "; ".join(
-                    p.strip() for p in notes.split(";") if p.strip() and not p.strip().startswith("final_ref=")
-                )
-                title = f"{marks} {num}".strip() or src_name
+                note = public_car_note(notes)
+                title = f"{marks} {num}".strip() or (note.split(";")[0] if note else ctype) or "Roster car"
                 caption_parts = [p for p in (road, ctype, note) if p]
                 caption = " · ".join(caption_parts) if caption_parts else ctype or "Roster car"
                 add(
@@ -719,7 +734,7 @@ def build_gallery(media: dict[str, str]) -> dict:
                     f"../external/desktop-data/car-images/CarImagesFinal/{img.name}",
                     title,
                     caption,
-                    "CarImagesFinal + image_metadata.csv",
+                    "HART car roster",
                 )
 
     rs = STS_DATA / "Rolling Stock photos"
@@ -733,7 +748,7 @@ def build_gallery(media: dict[str, str]) -> dict:
                 f"../external/sts-docker-data/Rolling Stock photos/{img.name}",
                 f"Roster photo {img.stem}",
                 "Photographed rolling stock from the HART fleet — browsable aisle set.",
-                "STS docker data / Rolling Stock photos",
+                "HART aisle photos",
             )
 
     albums = [

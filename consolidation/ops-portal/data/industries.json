@@ -1,6 +1,6 @@
 {
   "title": "Industries on Neville Island",
-  "lede": "The customers and commodities that make the railroad work. Waybill counts come from the consolidation spot-waybill seed.",
+  "lede": "The customers and commodities that make the railroad work.",
   "industries": [
     {
       "name": "Aristech Plastics",
@@ -16,7 +16,7 @@
       "logo": "../external/hart-ops/operator_logos/aristech.png"
     },
     {
-      "name": "A Stucki Co",
+      "name": "A. Stucki Company",
       "blurb": "Railway springs, machined parts, and steel for the island's railroad supplier. Green destination.",
       "commodities": [
         "Machined Parts",
@@ -43,7 +43,7 @@
       "logo": "../external/hart-ops/operator_logos/calgon.png"
     },
     {
-      "name": "Ferrel Gas",
+      "name": "Ferrellgas",
       "blurb": "LPG in and out on tank cars. Red destination on the crew sheets.",
       "commodities": [
         "LPG"

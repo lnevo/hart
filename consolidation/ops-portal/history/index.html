@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>History &amp; Industries — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>History &amp; Industries</h1>
+      <p class="section-note">
+        Neville Island went from farmland to furnaces, coke ovens, and chemical plants in a
+        generation, and a small railroad switched all of it. Here is that story, the industries
+        HART serves today, and the photographs and cars that bring it to the layout.
+      </p>
+    </div>
+
+    <section class="hub-group" aria-labelledby="explore-title">
+      <h2 id="explore-title">Explore</h2>
+      <div class="card-grid">
+        <a class="card" href="../articles/index.html">
+          <p class="card-kind">Reading</p>
+          <h3>Articles</h3>
+          <p>Histories of the Pittsburgh &amp; Ohio Valley, the island's coke, cement, and chemical plants, the POHC line, and the Chartiers Valley railroads.</p>
+        </a>
+        <a class="card" href="../industries/index.html">
+          <p class="card-kind">Customers</p>
+          <h3>Industries</h3>
+          <p>Aristech, Stucki, Calgon Carbon, Ferrellgas, Kosmos Cement, and Shenango: what each one ships and receives.</p>
+        </a>
+        <a class="card" href="../photos/index.html">
+          <p class="card-kind">Gallery</p>
+          <h3>Photos</h3>
+          <p>The island and its plants, station maps and track diagrams, and the layout's control panels.</p>
+        </a>
+        <a class="card" href="../fleet/index.html">
+          <p class="card-kind">Gallery</p>
+          <h3>Rolling stock</h3>
+          <p>The car fleet side by side, photos of cars on the layout, and the locomotives that work the island.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group panel" aria-labelledby="reading-title">
+      <h2 id="reading-title">Start reading</h2>
+      <ul class="reading-list" id="reading-list">
+        <li><a href="../library/pittsburgh-ohio-valley-railway.html">Pittsburgh &amp; Ohio Valley Railway</a></li>
+        <li><a href="../library/voices-of-the-pov.html">Voices of the P&amp;OV</a></li>
+        <li><a href="../library/neville-island-coke-cement-chemical-history.html">Neville Island coke, cement, and chemical history</a></li>
+        <li><a href="../library/pohc-line-industries.html">POHC line industries, McKees Rocks to Washington</a></li>
+        <li><a href="../library/chartiers-valley-railroads.html">Railroads of the Chartiers Valley</a></li>
+      </ul>
+      <p class="muted"><a href="../articles/index.html">All articles</a></p>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("history");
+        // The static list above is the fallback; articles.json (fetched no-cache) keeps it current.
+        var data = await HARTOps.loadJson("data/articles.json");
+        var items = (data.items || []).filter(function (a) {
+          return a.href && a.href.indexOf("library/") === 0;
+        });
+        if (!items.length) return;
+        document.getElementById("reading-list").innerHTML = items
+          .map(function (a) {
+            return (
+              '<li><a href="' + esc(HARTOps.base() + a.href) + '">' + esc(a.title) + "</a>" +
+              (a.kind ? '<span class="kind">' + esc(a.kind) + "</span>" : "") +
+              (a.blurb ? "<p>" + esc(a.blurb) + "</p>" : "") +
+              "</li>"
+            );
+          })
+          .join("");
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

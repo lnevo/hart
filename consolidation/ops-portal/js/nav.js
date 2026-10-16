@@ -34,12 +34,38 @@
     return res.json();
   }
 
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  // The nav entry (section) a page belongs to: a section lists its page ids in "pages".
+  function sectionFor(site, pageId) {
+    var nav = site.nav || [];
+    for (var i = 0; i < nav.length; i++) {
+      var pages = nav[i].pages || [nav[i].id];
+      if (pages.indexOf(pageId) !== -1) return nav[i];
+    }
+    return null;
+  }
+
   function headerHtml(site, pageId) {
     var b = base();
+    var section = sectionFor(site, pageId);
     var links = (site.nav || [])
       .map(function (item) {
-        var cur = item.id === pageId ? ' aria-current="page"' : "";
-        return '<a href="' + b + item.href + '"' + cur + ">" + item.label + "</a>";
+        var cur = "";
+        if (item.id === pageId) cur = ' aria-current="page"';
+        else if (section && item.id === section.id) cur = ' aria-current="true"';
+        var label = item.short
+          ? '<span class="nav-full">' + esc(item.label) + '</span><span class="nav-short">' +
+            esc(item.short) + "</span>"
+          : esc(item.label);
+        var cls = item.id === "home" ? ' class="nav-home"' : "";
+        return '<a href="' + b + item.href + '"' + cls + cur + ">" + label + "</a>";
       })
       .join("");
     var eng = site.engDesk
@@ -49,13 +75,25 @@
       '<div class="site-header-inner">' +
       '<a class="brand" href="' +
       b +
-      'index.html">HART<span>Operator portal · Neville Island</span></a>' +
+      'index.html">HART<span>Railroad · Neville Island</span></a>' +
       '<nav class="nav" aria-label="Primary">' +
       links +
       "</nav>" +
       eng +
       "</div>"
     );
+  }
+
+  // Small "Section ›" link above a child page's title so visitors can get back to the hub.
+  function mountCrumb(site, pageId) {
+    var section = sectionFor(site, pageId);
+    if (!section || section.id === pageId || section.id === "home") return;
+    var head = document.querySelector("main .page-head");
+    if (!head || head.querySelector(".crumb")) return;
+    var p = document.createElement("p");
+    p.className = "crumb";
+    p.innerHTML = '<a href="' + base() + section.href + '">' + esc(section.label) + "</a>";
+    head.insertBefore(p, head.firstChild);
   }
 
   function headerEl() {
@@ -71,11 +109,17 @@
     var header = headerEl();
     var footer = footerEl();
     if (header) header.innerHTML = headerHtml(site, pageId);
+    mountCrumb(site, pageId);
+    if (site.public) {
+      // Links to localhost services and the engineering workspace are dead on the public site.
+      var local = document.querySelectorAll("[data-local-only]");
+      for (var i = 0; i < local.length; i++) local[i].hidden = true;
+    }
     if (footer) {
       var eng = site.engDesk
-        ? '<a href="' + base() + site.engDesk + '">Engineering desk</a>'
-        : "Neville Island";
-      footer.innerHTML = "HART Railroad · Neville Island · " + eng;
+        ? ' · <a href="' + base() + site.engDesk + '">Engineering desk</a>'
+        : "";
+      footer.innerHTML = "HART Railroad · Neville Island" + eng;
     }
     return site;
   }

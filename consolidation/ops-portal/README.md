@@ -52,9 +52,15 @@ python3 consolidation/ops-portal/scripts/curate_f_root_review.py --gpt   # OPENA
 
 ## Sections
 
+The header has four links (`data/site.json` → `nav`): **Home · History & Industries · Operators · About**. Each nav entry lists the page ids (the argument to `HARTOps.mountChrome(id)`) that belong to it in `pages`; `js/nav.js` underlines the parent section and adds a small section link above the child page's title. Add a new page's id to the right section's `pages`.
+
+- **History & Industries** (`history/index.html`): Articles (+ `library/*`), Industries, Photos, Rolling stock.
+- **Operators** (`operators/index.html`): Briefing, Publications (`docs/`), Guides, Layout Explorer, Device roster, Live tools, Helix.
+- Elements marked `data-local-only` are hidden on the public build (`site.public`), for localhost and workspace links.
+
 | Page | Content |
 |------|---------|
-| **Home** | Bird’s-eye hero into HART |
+| **Home** | Bird’s-eye hero, then doors into the two sections |
 | **Briefing** | HB-01 new-operator primer |
 | **Industries** | Customers, commodities, logos |
 | **Photos** | Captioned gallery (place, maps, fleet, aisle, power) |

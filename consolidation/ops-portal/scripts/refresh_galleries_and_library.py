@@ -365,15 +365,15 @@ def split_fleet(old: dict) -> tuple[dict, dict]:
                     "src": src,
                     "title": title,
                     "caption": cap,
-                    "credit": "hart-ops publications",
+                    "credit": "HART publications",
                 }
             )
 
     fleet = {
         "title": "Rolling stock gallery",
         "lede": (
-            "Car fleet sides from CarImagesFinal, aisle roster photos, and published power art. "
-            "Separate from the place / layout photo gallery."
+            "The car fleet side by side, photos of cars on the layout, and the locomotives that "
+            "work the island. Place and layout photos are in the photo gallery."
         ),
         "albums": album_counts(
             stock_items,
@@ -539,8 +539,8 @@ def build_publications() -> dict:
     return {
         "title": "Official publications",
         "lede": (
-            "Documents produced by the HART publication pipeline "
-            "(hart-ops/docs/published). These are the official operator-facing sheets."
+            "The official operator-facing sheets: the primer, crew sheets, station maps, "
+            "and operating procedures issued for sessions."
         ),
         "items": docs,
     }

@@ -1,6 +1,6 @@
 {
   "title": "Official publications",
-  "lede": "Documents produced by the HART publication pipeline (hart-ops/docs/published). These are the official operator-facing sheets.",
+  "lede": "The official operator-facing sheets: the primer, crew sheets, station maps, and operating procedures issued for sessions.",
   "items": [
     {
       "id": "primer",

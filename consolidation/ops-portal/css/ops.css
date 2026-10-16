@@ -118,9 +118,71 @@ a:hover {
 }
 
 .nav a:hover,
-.nav a[aria-current="page"] {
+.nav a[aria-current] {
   color: var(--ink);
   border-bottom-color: var(--accent);
+}
+
+.nav .nav-short {
+  display: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Phone: brand on its own line, the section links share the row below it. */
+@media (max-width: 640px) {
+  .site-header-inner {
+    padding: 0.6rem 1rem;
+    gap: 0.45rem 0.8rem;
+  }
+
+  .nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    gap: 0.25rem 1.1rem;
+  }
+
+  .nav .nav-home {
+    display: none;
+  }
+
+  .eng-link {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 400px) {
+  .nav .nav-full {
+    display: none;
+  }
+
+  .nav .nav-short {
+    display: inline;
+  }
+}
+
+.crumb {
+  margin: 0 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.crumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.crumb a::after {
+  content: " ›";
+}
+
+.crumb a:hover {
+  color: var(--ink);
 }
 
 .eng-link {
@@ -283,6 +345,18 @@ main.explorer-page {
   background: rgba(243, 246, 248, 0.12);
   color: #fff;
   border-color: #fff;
+}
+
+/* Ghost buttons on light page backgrounds (catalog cards, toolbars) need dark ink. */
+main:not(.full-bleed) .btn-ghost {
+  border-color: var(--rule);
+  color: var(--ink);
+}
+
+main:not(.full-bleed) .btn-ghost:hover {
+  background: var(--paper-2);
+  border-color: var(--brand-2);
+  color: var(--ink);
 }
 
 .btn-ink {
@@ -1391,4 +1465,172 @@ table.roster th {
   min-height: 70vh;
   border: 0;
   background: #fff;
+}
+
+/* —— Section doors (home) and section hubs —— */
+.section-doors {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+.section-door {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 4px solid var(--brand);
+  padding: 1.25rem 1.3rem 1.35rem;
+  box-shadow: var(--shadow);
+}
+
+.section-door.is-ops {
+  border-top-color: var(--accent);
+}
+
+.section-door .kind {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.section-door h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.section-door h3 a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.section-door h3 a:hover {
+  color: var(--brand-2);
+}
+
+.section-door > p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.door-links {
+  list-style: none;
+  margin: 0.2rem 0 0.4rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.section-door .btn {
+  justify-self: start;
+}
+
+.home-about {
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+}
+
+.hub-group {
+  margin: 0 0 2rem;
+}
+
+.hub-group > h2 {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.25rem;
+  color: var(--brand);
+}
+
+.hub-group > .section-note {
+  margin-bottom: 0.9rem;
+}
+
+.card .card-kind {
+  margin: 0 0 0.2rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.reading-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.reading-list li {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.reading-list li:last-child {
+  border-bottom: 0;
+}
+
+.reading-list a {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--brand);
+}
+
+.reading-list a:hover {
+  color: var(--brand-2);
+}
+
+.reading-list .kind {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.reading-list p {
+  margin: 0.15rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  main {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  main.full-bleed {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .hero-inner,
+  .home-band,
+  .quote-strip {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Long file paths in guide text would otherwise push phone pages sideways. */
+.guide-body code {
+  overflow-wrap: anywhere;
 }

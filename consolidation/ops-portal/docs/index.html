@@ -34,7 +34,7 @@
     }
     document.addEventListener("DOMContentLoaded", async function () {
       try {
-        await HARTOps.mountChrome("docs");
+        var site = await HARTOps.mountChrome("docs");
         var data = await HARTOps.loadJson("data/publications.json");
         document.getElementById("pub-title").textContent = data.title || "Publications";
         document.getElementById("pub-lede").textContent = data.lede || "";
@@ -51,7 +51,7 @@
             if (d.pdf) {
               actions.push('<a class="btn btn-ghost" href="' + esc(encodeURI(resolve(d.pdf))) + '">PDF</a>');
             }
-            if (d.source) {
+            if (d.source && !site.public) {
               actions.push(
                 '<a class="btn btn-ghost" href="' + esc(encodeURI(resolve(d.source))) + '">Source</a>'
               );

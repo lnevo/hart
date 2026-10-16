@@ -11,7 +11,7 @@
   <main>
     <div class="page-head">
       <h1>Live tools</h1>
-      <p class="muted">Local Mac links for now (STS is not on the Pi yet). URLs live in <code>data/site.json</code>.</p>
+      <p class="muted" id="tools-lede">Local Mac links for now (STS is not on the Pi yet). URLs live in <code>data/site.json</code>.</p>
     </div>
     <div class="card-grid">
       <a class="card" id="tool-sts" href="http://localhost:8980/sts/"><h3>STS</h3><p>Shipper Traffic System — Mac host for now.</p></a>
@@ -39,6 +39,8 @@
       if (t.mimic) document.getElementById("tool-mimic").href = t.mimic;
       if (t.jmri) document.getElementById("tool-jmri").href = t.jmri;
       if (site.public) {
+        document.getElementById("tools-lede").textContent =
+          "These links open services running on the layout's own computers, so they only work from the layout's network.";
         var panel = document.getElementById("inside-consol");
         if (panel) panel.hidden = true;
       }
