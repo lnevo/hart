@@ -7,7 +7,7 @@
 | Runbook | `wiki/pipelines/sts.md` | this file |
 | Runtime | `consolidation/external/sts-docker` | submodule @ pin |
 | Helpers | `consolidation/external/sts-helpers` | submodule @ pin |
-| Runtime data | `consolidation/external/sts-docker-data/` | mirror of `~/sts/*` bind mounts |
+| Runtime data | `consolidation/external/sts-docker-data/` | mirror of live `~/sts/*` (`backups/`, `images/`, `database/`) |
 | Roster / waybills | `consolidation/external/hart-ops/data/` | hart-ops SoR |
 | Legacy bench | `~/Desktop/HART/Car Cards/` | read-only (D12) |
 
@@ -40,17 +40,15 @@ Canonical PHP runtime: **`consolidation/external/sts-docker/sts/`**. Read `conso
 
 ## Standalone Docker (consolidation workspace)
 
-Refresh runtime data from live (read-only rsync):
-
 ```bash
 bash consolidation/scripts/mirror_sts_docker_data.sh
 cd consolidation/external/sts-docker
-docker compose -f docker-compose.yml \
-  -f ../sts-docker-data/docker-compose.consolidation.yml \
-  --profile build up -d --build
+docker compose up -d --build
 # http://localhost:8980/sts/
 ```
 
-Live `~/sts/*` is not modified. Gaps: [`audits/standalone-gaps.md`](../../audits/standalone-gaps.md).
+[`docker-compose.yml`](../../external/sts-docker/docker-compose.yml) is generated with **literal** bind paths (no compose `${VAR}`). Template: [`scripts/templates/sts-docker-compose.yml`](../../scripts/templates/sts-docker-compose.yml). Re-render: `bash consolidation/scripts/refresh_sts_docker_compose.sh`.
+
+Live `~/sts/*` is rsync source only.
 
 Switch-list docs: `consolidation/external/sts-helpers/docs/SWITCHLIST_BUILDING.md`.

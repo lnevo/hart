@@ -217,6 +217,7 @@ class DigiconMqttSml(
         self._enabling_wait_scheduled = False
         self._shutting_down = False
         self._shutdown_released = False
+        self._last_mqtt_appearance = {}
 
     def start(self):
         DigiconMqttSml.INSTANCE = self
@@ -1066,7 +1067,7 @@ class DigiconMqttSml(
         # Push current appearances once Digicon owns SET again.
         for head in self._heads:
             if self._mast_logic_enabled(self._mast_for_head(head)):
-                self._publish_head_set(head)
+                self._publish_head_set(head, force=True)
 
     def _mast_for_head(self, head):
         if head is None:
@@ -1143,7 +1144,11 @@ class DigiconMqttSml(
         if sys_name not in self.mqtt_wanted:
             return
         topic = TOPIC_PREFIX + _topic_suffix(sys_name)
-        self._publish(topic, "Unheld", retain=False)
+        prev = self._last_mqtt_appearance.get(sys_name)
+        if prev == "Unheld":
+            return
+        self._last_mqtt_appearance[sys_name] = "Unheld"
+        self._publish(topic, "Unheld", retain=True)
 
     def _mqtt_heads_on_mast(self, mast):
         heads = []
@@ -1186,13 +1191,13 @@ class DigiconMqttSml(
         self._source_field_owned[mast] = False
         heads = self._mqtt_heads_on_mast(mast)
         for head in heads:
-            self._publish_head_set(head)
+            self._publish_head_set(head, force=True)
         print(
             "mqtt_signalhead: SML dest on -> SET %s (Digicon owns)"
             % _ascii(mast.getDisplayName())
         )
 
-    def _publish_head_set(self, head):
+    def _publish_head_set(self, head, force=False):
         if self.mqtt is None or head is None:
             return
         if not self._global_enabled:
@@ -1205,7 +1210,15 @@ class DigiconMqttSml(
             return
         topic = TOPIC_PREFIX + _topic_suffix(sys_name)
         data = head.getAppearanceName()
-        self._publish(topic, data, retain=False)
+        prev = self._last_mqtt_appearance.get(sys_name)
+        # Skip unchanged chatter on property churn — but Enable must always SET
+        # so the field/bridge re-applies even if the aspect string is the same.
+        if not force and prev is not None and prev == data:
+            return
+        self._last_mqtt_appearance[sys_name] = data
+        # Retain so LCOS bridge can resume Flashing Red / … after restart
+        # (color/Dark toggles stay bridge-local and never appear on MQTT).
+        self._publish(topic, data, retain=True)
 
     def _apply_mast_payload_to_head(self, packed, payload):
         """track/signalmast/<packed> -> IH heads + source SignalMast when field owns."""

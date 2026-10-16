@@ -29,6 +29,9 @@
 | Industry matrix | `external/hart-ops/industries/` | hart-ops | 16 |
 | LCOS firmware | `external/lcos-bridge/` | sibling repo | 9 |
 | STS runtime | `external/sts-docker/` + `external/sts-docker-data/` | sibling + `~/sts/*` | 14 |
+| STS backups (mirror) | `external/sts-docker-data/backups/` | `~/sts/sts-backups` | 14 |
+| STS car images (mirror) | `external/sts-docker-data/images/` | `~/sts/sts-images` | 14 |
+| STS database (mirror) | `external/sts-docker-data/database/` | `~/sts/sts-database` | 14 |
 | STS helpers | `external/sts-helpers/` | sibling repo | 14 |
 | Layout ops mirror | `external/hart-runtime/` | `hart/` repo | cross |
 | Desktop bench mirror | `external/desktop-data/` | `~/Desktop/HART/` | cross |

@@ -3,9 +3,12 @@
 # Read-only rsync — does not modify ~/Desktop/HART/.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-DEST="$ROOT/consolidation/external/desktop-data"
-DESKTOP="${DESKTOP_HART:-$HOME/Desktop/HART}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=../env/load_consolidation_env.sh
+source "${SCRIPT_DIR}/../env/load_consolidation_env.sh"
+
+DEST="$DESKTOP_DATA_ROOT"
+DESKTOP="$DESKTOP_HART"
 
 mkdir -p "$DEST"
 

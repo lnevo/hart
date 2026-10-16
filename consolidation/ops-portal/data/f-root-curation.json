@@ -1,0 +1,1501 @@
+{
+  "version": 1,
+  "model": "gpt-5.4-mini",
+  "items": {
+    "1956-07-07PWV27-seabass.pdf": {
+      "summary": "A scanned cover page for Pittsburgh & West Virginia Railway Company Time Table No. 27, effective January 1, 1956. It is a safety/employee information timetable document rather than a photo or layout image.",
+      "suggestedCategory": "narrative_timetables",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "P&WV",
+        "timetable",
+        "1956",
+        "safety",
+        "railroad"
+      ],
+      "curatedAt": "2026-09-01T14:12:37.942655+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "1VFNT00010012.jpg": {
+      "summary": "High-resolution aerial photo of a large riverfront industrial complex (tanks, rail, docks) — prototype reference for Neville Island / Pittsburgh industry.",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Neville",
+        "aerial",
+        "industry",
+        "prototype"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "2022-10-16 16_42_35-Google Maps.png": {
+      "summary": "Google Maps aerial of Ohio River industrial site (coal yard, tanks, river docks) — geographic reference for Neville/Pittsburgh area scouting.",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Google Maps",
+        "Ohio River",
+        "aerial"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "2022-10-16 17_37_39-USGS Historical Topographic Map Explorer.png": {
+      "summary": "Historical / design reference: 2022-10-16 17 37 39-USGS Historical Topographic Map Explorer",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.075485+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "305998346_10219295245405407_8127293654381891772_n.jpg": {
+      "summary": "Aerial photo of an industrial riverfront complex with stockpiles, tanks, smokestacks, and docks along a wide waterway. It appears to be a general reference image rather than a HART document or layout photo.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "aerial",
+        "industrial",
+        "riverfront",
+        "docks",
+        "reference"
+      ],
+      "curatedAt": "2026-09-01T14:11:49.304761+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "492050449_10224674058232366_5620487153150413068_n.jpg": {
+      "summary": "A social-media style photo showing an industrial riverside plant complex with smokestacks, processing buildings, and a river in the background. It appears to be a prototype or reference image rather than a HART document.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "industrial plant",
+        "riverfront",
+        "prototype",
+        "smokestacks",
+        "photo"
+      ],
+      "curatedAt": "2026-09-01T14:11:51.729975+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "ammonium sulphate.png": {
+      "summary": "1952 isometric flow diagram: tar and ammonium sulphate recovery from coke-oven gas (by-product chemistry reference).",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "coke",
+        "ammonium sulphate",
+        "process diagram"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "basic_schematic.pptx": {
+      "summary": "Other root documents: basic schematic",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079013+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "beckPAdiagram.jpg": {
+      "summary": "Prototype & layout reference: beckPAdiagram",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079062+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "beckPAmaners.jpg": {
+      "summary": "Prototype & layout reference: beckPAmaners",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079083+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "beckPAoroszi.jpg": {
+      "summary": "Prototype & layout reference: beckPAoroszi",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079140+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "bkPAmaners.jpg": {
+      "summary": "Prototype & layout reference: bkPAmaners",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079197+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "bkPAsalamon1.jpg": {
+      "summary": "Prototype & layout reference: bkPAsalamon1",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079215+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "bkPAsalamon2.jpg": {
+      "summary": "Color slide/photo of a P&LE locomotive 1561 beside a brick industrial building and waterfront tracks, labeled \"Steve Salamon 5 Mar 1983.\" It appears to be a prototype/reference railroad scene rather than a HART document.",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "P&LE",
+        "locomotive 1561",
+        "industrial building",
+        "waterfront",
+        "1983"
+      ],
+      "curatedAt": "2026-09-01T14:12:43.997572+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "bkPAunknown.jpg": {
+      "summary": "Prototype & layout reference: bkPAunknown",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079247+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "ChartiersTrackScheme.jpg": {
+      "summary": "Prototype & layout reference: ChartiersTrackScheme",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART",
+        "Chartiers"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.079265+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Coke_Ovens.dmg": {
+      "summary": "Installers & junk: Coke Ovens",
+      "suggestedCategory": "installer",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079283+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "flannery-16-nov-1940.jpg": {
+      "summary": "Prototype & layout reference: flannery-16-nov-1940",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079299+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "flannery_bolts_em1.jpg": {
+      "summary": "Prototype & layout reference: flannery bolts em1",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079317+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "flannery_em-1.jpg": {
+      "summary": "Prototype & layout reference: flannery em-1",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.079333+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Freight_Flow_Map_HART_Railroad_Final.png": {
+      "summary": "Prototype & layout reference: Freight Flow Map HART Railroad Final",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.079352+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Freight_Flow_Summary_HART_Railroad_Cleaned.pdf": {
+      "summary": "Prototype & layout reference: Freight Flow Summary HART Railroad Cleaned",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.083543+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "FZ2_758-1.jpg": {
+      "summary": "Black-and-white industrial yard photo showing many large cylindrical rolls or coils stacked in rows, with a few railcars and equipment in the background. It appears to be a reference image of freight handling or a storage yard rather than a document.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "industrial yard",
+        "freight",
+        "railcars",
+        "black-and-white",
+        "reference"
+      ],
+      "curatedAt": "2026-09-01T14:11:54.444898+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "FZ2_758.jpg": {
+      "summary": "Vintage photo of vast barrel storage yards with rail boxcars — likely regional industrial/shipping reference photo.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "barrels",
+        "rail",
+        "historical"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "Hart Railroad Locations and Vendors.docx": {
+      "summary": "Background & Rationale HART Railroad is a privately held regional railroad operated by HART Industries, headquartered in McKees Rocks, Pennsylvania. It leases the former B&O Wheeling Division right-of-way from CSX…",
+      "suggestedCategory": "narrative_hart_branded",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.104147+00:00",
+      "model": "local",
+      "excerpt": "Background & Rationale HART Railroad is a privately held regional railroad operated by HART Industries, headquartered in McKees Rocks, Pennsylvania. It leases the former B&O Wheeling Division right-of-way from CSX (formerly B&O) and maintains operations from Neville Island to Washington, PA, with trackage rights into Wheeling, WV. HART Railroad was formed during the decline of the B&O Wheeling Division in the late 1960s to preserve vital local rail service, heritage passenger experiences, and to"
+    },
+    "HART Railroad updated history.docx": {
+      "summary": "HART Railroad is a privately held regional railroad operated by HART Industries, based in McKees Rocks, Pennsylvania. It leases former B&O right-of-way from CSX and maintains operations from Neville Island to…",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.106358+00:00",
+      "model": "local",
+      "excerpt": "HART Railroad is a privately held regional railroad operated by HART Industries, based in McKees Rocks, Pennsylvania. It leases former B&O right-of-way from CSX and maintains operations from Neville Island to Washington, PA, with trackage rights into Wheeling, WV. Formed in the late 1960s to preserve local rail service and industrial connections as major carriers shifted focus, HART was established to maintain vital freight routes and support heritage passenger operations across the Ohio River V"
+    },
+    "HART_Branch_Line_History.xlsx": {
+      "summary": "Branch Endpoints Railroad Company Years Relevant Destinations On Layout Baltimore & Ohio W&P Branch (Mainline) Pittsburgh, PA (Glenwood Yard) ↔ Washington, PA Baltimore & Ohio Railroad (B&O) 1950–1987 Carnegie,…",
+      "suggestedCategory": "narrative_hart_branded",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Chartiers"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.107354+00:00",
+      "model": "local",
+      "excerpt": "Branch Endpoints Railroad Company Years Relevant Destinations On Layout Baltimore & Ohio W&P Branch (Mainline) Pittsburgh, PA (Glenwood Yard) ↔ Washington, PA Baltimore & Ohio Railroad (B&O) 1950–1987 Carnegie, Heidelsburg, Bridgeville ✓ Baltimore & Ohio W&P Branch (Mainline) Pittsburgh, PA (Glenwood Yard) ↔ Washington, PA CSX Transportation 1987–present Carnegie, Heidelsburg, Bridgeville ✓ CSX Buffalo Line Buffalo, NY ↔ Harrisburg, PA Pennsylvania Railroad 1950–1968 Buffalo (Bethlehem Steel) CS"
+    },
+    "HART_Branch_Line_History_With_Directions_UPDATED.xlsx": {
+      "summary": "Branch Endpoints Direction from Layout Railroad Company Years Relevant Destinations On Layout Baltimore & Ohio W&P Branch (Mainline) Pittsburgh, PA (Glenwood Yard) ↔ Washington, PA South Baltimore & Ohio Railroad (B&O)…",
+      "suggestedCategory": "narrative_hart_branded",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Chartiers"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.108685+00:00",
+      "model": "local",
+      "excerpt": "Branch Endpoints Direction from Layout Railroad Company Years Relevant Destinations On Layout Baltimore & Ohio W&P Branch (Mainline) Pittsburgh, PA (Glenwood Yard) ↔ Washington, PA South Baltimore & Ohio Railroad (B&O) 1950–1987 Carnegie, Heidelsburg, Bridgeville ✓ Baltimore & Ohio W&P Branch (Mainline) Pittsburgh, PA (Glenwood Yard) ↔ Washington, PA South CSX Transportation 1987–present Carnegie, Heidelsburg, Bridgeville ✓ CSX Buffalo Line Buffalo, NY ↔ Harrisburg, PA North Pennsylvania Railroa"
+    },
+    "HART_Coal_Types.png": {
+      "summary": "HART-branded documents: HART Coal Types",
+      "suggestedCategory": "narrative_hart_branded",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.108787+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "HART_Full_Timetable.xlsx": {
+      "summary": "TK01 MF01 FX00 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 TK01 MF01 FX00 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 NW2 ES44AH AS-16 GP30 U30B RF-16 A/B P-7 RF-16 A/B RF-16 A/B…",
+      "suggestedCategory": "narrative_timetables",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Neville",
+        "timetable"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.109513+00:00",
+      "model": "local",
+      "excerpt": "TK01 MF01 FX00 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 TK01 MF01 FX00 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 NW2 ES44AH AS-16 GP30 U30B RF-16 A/B P-7 RF-16 A/B RF-16 A/B RF-16 A/B P-7 GP35 AS-16 ES44AH GP38 Tank cars to Neville Island (loaded), powered by NW2 or light road unit Manifest drop from Pittsburgh (mixed freight), road freight consist Scheduled ferry run (interchange cars), short transfer power Steel empties returning to Pittsburgh, 4-ax"
+    },
+    "HART_Full_Timetable_Updated.xlsx": {
+      "summary": "TK01 MF01 FX00 DX01 FX01 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 TK01 MF01 FX00 DX01 FX01 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 NW2 ES44AH AS-16 Switcher (Assigned Yard…",
+      "suggestedCategory": "narrative_timetables",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Neville",
+        "timetable"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.110645+00:00",
+      "model": "local",
+      "excerpt": "TK01 MF01 FX00 DX01 FX01 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 TK01 MF01 FX00 DX01 FX01 MS10 CD06 710 RB01 704 Station 709 703 RB02 MS11 IL02 MF02 CD05 NW2 ES44AH AS-16 Switcher (Assigned Yard Power) Float Car Ferry GP30 U30B RF-16 A/B P-7 RF-16 A/B RF-16 A/B RF-16 A/B P-7 GP35 AS-16 ES44AH GP38 Tank cars to Neville Island (loaded), powered by NW2 or light road unit Manifest drop from Pittsburgh (mixed freight), road freight consist Scheduled ferry run (interchange cars"
+    },
+    "HART_Orientation_Packet_Final.docx": {
+      "summary": "Welcome to the HART Railroad Motto: Heritage. Steel. Heart. Slogan: Rooted in Heritage. Forged in Steel. Driven with Heart. 1. Rationale & Background The HART Railroad was born out of necessity and passion. In the…",
+      "suggestedCategory": "narrative_safety",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.111541+00:00",
+      "model": "local",
+      "excerpt": "Welcome to the HART Railroad Motto: Heritage. Steel. Heart. Slogan: Rooted in Heritage. Forged in Steel. Driven with Heart. 1. Rationale & Background The HART Railroad was born out of necessity and passion. In the winter of 1975, with freight traffic declining and B&O branch lines in jeopardy, a coalition of civic leaders, railroad employees, and local shippers gathered to chart a new path forward. The Pittsburgh–Wheeling corridor remained vital to industries ranging from steel and chemicals to "
+    },
+    "HART_Railroad_Heritage_Calendar.docx": {
+      "summary": "HART Railroad Heritage Calendar – Chronologically Ordered by Date Month Title Focus Key Date(s) January B&O Beginnings First B&O operations in Baltimore Jan 7, 1830 February Founders’ Day B&O chartered Feb 28, 1827…",
+      "suggestedCategory": "narrative_hart_branded",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.112678+00:00",
+      "model": "local",
+      "excerpt": "HART Railroad Heritage Calendar – Chronologically Ordered by Date Month Title Focus Key Date(s) January B&O Beginnings First B&O operations in Baltimore Jan 7, 1830 February Founders’ Day B&O chartered Feb 28, 1827 March Sentinel Spring Sentinel Service for fast freight begins Mar 3, 1947 April C&O Celebration B&O formally merges into C&O Apr 30, 1987 May Amtrak Ascends Amtrak assumes U.S. passenger service May 1, 1971 June Chessie in Charge Formation of the Chessie System June 15, 1973 July Gro"
+    },
+    "HART_Railroad_Landmarks_and_Timetable.pdf": {
+      "summary": "Timetables & schedules: HART Railroad Landmarks and Timetable",
+      "suggestedCategory": "narrative_timetables",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART",
+        "timetable"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.116346+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "HART_Railroad_Narrative_Updated.docx": {
+      "summary": "HART Railroad: Operational Narrative and Schedule --- Background & Rationale HART Railroad is a privately held regional railroad operated by HART Industries, headquartered in McKees Rocks, Pennsylvania. It leases the…",
+      "suggestedCategory": "narrative_hart_branded",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.118428+00:00",
+      "model": "local",
+      "excerpt": "HART Railroad: Operational Narrative and Schedule --- Background & Rationale HART Railroad is a privately held regional railroad operated by HART Industries, headquartered in McKees Rocks, Pennsylvania. It leases the former B&O Wheeling Division right-of-way from CSX (formerly B&O) and maintains operations from Neville Island to Washington, PA, with trackage rights into Wheeling, WV. HART Railroad was formed during the decline of the B&O Wheeling Division in the late 1960s to preserve vital loca"
+    },
+    "HART_Railroad_Short_Story.docx": {
+      "summary": "Rails Through Time: The Story of HART Railroad Title: Rails Through Time: The Story of HART Railroad In the steel-shadowed corners of Pittsburgh, where the smoke of industry once crowned the skyline and the Ohio River…",
+      "suggestedCategory": "narrative_hart_branded",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART",
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.119449+00:00",
+      "model": "local",
+      "excerpt": "Rails Through Time: The Story of HART Railroad Title: Rails Through Time: The Story of HART Railroad In the steel-shadowed corners of Pittsburgh, where the smoke of industry once crowned the skyline and the Ohio River cut a glinting scar through the city’s heart, a quiet revolution took place. It didn’t roar like the iron beasts it ushered in. It whispered, rumbling through the railyards and slipping past forgotten sidings. It was the birth of HART Railroad. In the winter of 197 5 , a group of v"
+    },
+    "HART_Railroad_Train_List_Abridged_Routes.pdf": {
+      "summary": "Train lists & routing: HART Railroad Train List Abridged Routes",
+      "suggestedCategory": "narrative_train_lists",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.124460+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "HART_Railroad_Train_List_Sorted.docx": {
+      "summary": "HART Railroad - Final Train List (Sorted by Class) Symbol Name Route Purpose Railroad Class 703 Westbound Passenger Wheeling (Benwood) > Pittsburgh (Glenwood) Regular westbound passenger service (Historic) B&O (HART) 1…",
+      "suggestedCategory": "narrative_train_lists",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "HART"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.126058+00:00",
+      "model": "local",
+      "excerpt": "HART Railroad - Final Train List (Sorted by Class) Symbol Name Route Purpose Railroad Class 703 Westbound Passenger Wheeling (Benwood) > Pittsburgh (Glenwood) Regular westbound passenger service (Historic) B&O (HART) 1 704 Westbound Passenger Wheeling (Benwood) > Pittsburgh (Glenwood) Regular westbound passenger service (Historic) B&O (HART) 1 709 Eastbound Passenger Pittsburgh (Glenwood) > Wheeling (Benwood) Regular eastbound passenger service (Historic) B&O (HART) 1 710 Eastbound Passenger Pit"
+    },
+    "HART_Safety_First_Horizontal_FullPage.pdf": {
+      "summary": "Safety & orientation: HART Safety First Horizontal FullPage",
+      "suggestedCategory": "narrative_safety",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART",
+        "safety"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.129383+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "HART_Safety_First_Horizontal_Poster.pdf": {
+      "summary": "Safety & orientation: HART Safety First Horizontal Poster",
+      "suggestedCategory": "narrative_safety",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "HART",
+        "safety"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.132495+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "i650473a770.fp.png": {
+      "summary": "1949 Industrial & Engineering Chemistry ad for Pittsburgh Coke & Chemical on Neville Island (pipe-line enamel, ag chemicals, phthalic anhydride plants).",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Pittsburgh Coke",
+        "Neville Island",
+        "reference",
+        "1949"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "ICG Operators Primer for Web2.pdf": {
+      "summary": "Other root documents: ICG Operators Primer for Web2",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.135979+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "ie50456a737.fp.png": {
+      "summary": "Vintage Pittsburgh Coke & Chemical Co. journal ad listing coal chemicals and Neville Island products (benzol, tar, sulphate of ammonia, etc.).",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Pittsburgh Coke",
+        "coal chemicals",
+        "reference"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "IMG_4633.png": {
+      "summary": "Technical cross-section profile drawing (likely extrusion/window or bracket) — unclear railroad tie; probably skip unless used in layout build docs.",
+      "suggestedCategory": "misc_media",
+      "suggestedAction": "review",
+      "confidence": "low",
+      "tags": [
+        "drawing",
+        "profile"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "IMG_5437.jpeg": {
+      "summary": "CSX Neville Island track schematic map labeling Shenango, Aristech, Kosmos, Calgon, yards and river — strong layout/ops reference.",
+      "suggestedCategory": "iphone_photos",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Neville Island",
+        "CSX",
+        "track map",
+        "Shenango",
+        "Aristech"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "IMG_8940.png": {
+      "summary": "Wiring schematic drafts: IMG 8940",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136132+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8941.png": {
+      "summary": "Wiring schematic drafts: IMG 8941",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136148+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8942.png": {
+      "summary": "Wiring schematic drafts: IMG 8942",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136166+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8944.png": {
+      "summary": "Wiring schematic drafts: IMG 8944",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136181+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8945.png": {
+      "summary": "Wiring schematic drafts: IMG 8945",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136196+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8946.png": {
+      "summary": "Wiring schematic drafts: IMG 8946",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136210+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8947.png": {
+      "summary": "Wiring schematic drafts: IMG 8947",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136224+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8948.png": {
+      "summary": "Wiring schematic drafts: IMG 8948",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136238+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8949.png": {
+      "summary": "Wiring schematic drafts: IMG 8949",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136254+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8950.png": {
+      "summary": "Wiring schematic drafts: IMG 8950",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136268+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8951.png": {
+      "summary": "Wiring schematic drafts: IMG 8951",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136283+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8952.png": {
+      "summary": "Wiring schematic drafts: IMG 8952",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136298+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8953.png": {
+      "summary": "Wiring schematic drafts: IMG 8953",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136312+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8957.png": {
+      "summary": "Wiring schematic drafts: IMG 8957",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136327+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8958.png": {
+      "summary": "Wiring schematic drafts: IMG 8958",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136342+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8975.png": {
+      "summary": "Wiring schematic drafts: IMG 8975",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136357+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "IMG_8976.png": {
+      "summary": "Wiring schematic drafts: IMG 8976",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.136371+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Industry Priorities.docx": {
+      "summary": "🏭 Pittsburgh Coke & Chemical, Neville Island 200 Neville Road, Neville Island, Pittsburgh, PA 15225 🏭 Pressed Steel Car Company, McKees Rocks 75 Nichol Avenue, McKees Rocks, PA 15136 . 🏭 J.B. Higbee Glass, Bridgeville…",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.137649+00:00",
+      "model": "local",
+      "excerpt": "🏭 Pittsburgh Coke & Chemical, Neville Island 200 Neville Road, Neville Island, Pittsburgh, PA 15225 🏭 Pressed Steel Car Company, McKees Rocks 75 Nichol Avenue, McKees Rocks, PA 15136 . 🏭 J.B. Higbee Glass, Bridgeville 540 Mayer Street, Bridgeville, PA 15017 🏭 Universal Rolling Mill, Bridgeville 600 Mayer Street, Bridgeville, PA 15017 🏭 Flannery Bolt Company, Bridgeville 580 Mayer Street, Bridgeville, PA 15017 🏭 Bridgeville Lumber, Bridgeville 100 Union St, Bridgeville, PA 15017 🏭 Fort Pitt Bridg"
+    },
+    "J_B_Higbee_Glass__Postcard02B.webp": {
+      "summary": "Prototype & layout reference: J B Higbee Glass Postcard02B",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.137703+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "jmri_opspro_clinic_stevetodd.pdf": {
+      "summary": "Historical / design reference: jmri opspro clinic stevetodd",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "JMRI"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.141126+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Kirwan-Heights-History_201811080720099575.pdf": {
+      "summary": "Historical / design reference: Kirwan-Heights-History 201811080720099575",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.144868+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "lcn-connection-diagram.webp": {
+      "summary": "Prototype & layout reference: lcn-connection-diagram",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.144958+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Lee Nevo Design Version 3.3. Main Level.pdf": {
+      "summary": "Historical / design reference: Lee Nevo Design Version 3.3. Main Level",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.148156+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Lee Nevo Design Version 3.3. Staging Level.pdf": {
+      "summary": "Historical / design reference: Lee Nevo Design Version 3.3. Staging Level",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.153090+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Lee Nevo Design Version 4.0.pdf": {
+      "summary": "Historical / design reference: Lee Nevo Design Version 4.0",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.157095+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Lee Nevo Design Version 4.7.pdf": {
+      "summary": "Historical / design reference: Lee Nevo Design Version 4.7",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.163895+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "letter_of_explanation.docx": {
+      "summary": "Dear Goldman Sachs, The Fusion Scale Hobbies website allowed me to add an item to the cart that was not in stock. I did not realize until after checkout was completed that an alternate model was put into my cart and…",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.164897+00:00",
+      "model": "local",
+      "excerpt": "Dear Goldman Sachs, The Fusion Scale Hobbies website allowed me to add an item to the cart that was not in stock. I did not realize until after checkout was completed that an alternate model was put into my cart and purchased. I took responsibility for not checking, but as soon as I realized the error after checkout, I contacted Fusion Scale Hobbies via email and web contact form. The next day I called as well to explain the situation and cancel the order with no answer. After receiving confirma"
+    },
+    "locomotive_functions.xlsx": {
+      "summary": "572 4536 5496 3545 6944 3840 1827 2235 8216 5300 F0 Headlights Headlights Headlights Headlights Headlights Headlights Headlights Headlights Headlights Headlights F1 Bell Bell Bell Bell Bell Bell Bell Bell Bell Bell F2…",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.166182+00:00",
+      "model": "local",
+      "excerpt": "572 4536 5496 3545 6944 3840 1827 2235 8216 5300 F0 Headlights Headlights Headlights Headlights Headlights Headlights Headlights Headlights Headlights Headlights F1 Bell Bell Bell Bell Bell Bell Bell Bell Bell Bell F2 Horn Horn Horn Horn Horn Horn Horn Horn Horn Whistle F3 Coupler Coupler Coupler Coupler Coupler Coupler Coupler Coupler Coupler Whistle - Short Toot F4 Dynamic Brake Dynamic Brake Dynamic Brake Auto Break Set/Release Auto Break Set/Release Dynamic Brake Dynamic Brake Dynamic Brake "
+    },
+    "mv44.pdf": {
+      "summary": "This is a New York State Department of Motor Vehicles application form for a permit, driver license, or non-driver ID card. The form is filled out with personal information and appears to be a scanned administrative document rather than railroad-related content.",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "DMV",
+        "application",
+        "New York",
+        "form",
+        "administrative"
+      ],
+      "curatedAt": "2026-09-01T14:12:32.394826+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Neville Island Industrial Railroads - RAILROAD.NET.pdf": {
+      "summary": "Historical / design reference: Neville Island Industrial Railroads - RAILROAD.NET",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.175702+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Neville Trackplan Clean copy.png": {
+      "summary": "Prototype & layout reference: Neville Trackplan Clean copy",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.175818+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Neville Trackplan Clean.png": {
+      "summary": "Prototype & layout reference: Neville Trackplan Clean",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "Neville"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.175842+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Opinion.pdf": {
+      "summary": "Other root documents: Opinion",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.180847+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Opinion_Corapolis.pdf": {
+      "summary": "Other root documents: Opinion Corapolis",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.185500+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "P&LE Rebuilds Interlocking.pdf": {
+      "summary": "Historical / design reference: P&LE Rebuilds Interlocking",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "P&LE"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.190001+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "P&LE System Map.pdf": {
+      "summary": "Historical / design reference: P&LE System Map",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "P&LE"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.194486+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "pit.gif": {
+      "summary": "Prototype & layout reference: pit",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.194584+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "pittsburgh coke & Chemical details.pdf": {
+      "summary": "Other root documents: pittsburgh coke & Chemical details",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.198450+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "port perry.docx": {
+      "summary": "ChatGPT said: The Port Perry Secondary is a key Norfolk Southern (NS) freight corridor in the Pittsburgh region, providing a vital bypass and connection route for east-west traffic. It’s especially important for heavy…",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "PRR"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.206042+00:00",
+      "model": "local",
+      "excerpt": "ChatGPT said: The Port Perry Secondary is a key Norfolk Southern (NS) freight corridor in the Pittsburgh region, providing a vital bypass and connection route for east-west traffic. It’s especially important for heavy and high-clearance trains, including those interchanging with the Pittsburgh & Ohio Central (POHC) at Duff Junction . 🛤️ Port Perry Secondary – Overview Attribute Details Owner Norfolk Southern (NS) Former Owner Pennsylvania Railroad (PRR) Length Approx. 10–12 miles Endpoints Port "
+    },
+    "PRC waiting to return to Coraopolis.jpg": {
+      "summary": "PCC streetcar #1709 with destination sign CORAOPOLIS at a wooded stop — Pittsburgh-area trolley prototype reference.",
+      "suggestedCategory": "misc_media",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Coraopolis",
+        "streetcar",
+        "PCC",
+        "P&LE"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "print2.pdf": {
+      "summary": "Other root documents: print2",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.210718+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "PRR_ETT_PanhandleDivision_No19_04-29-1934_300dpi_TimZukas_2up.pdf": {
+      "summary": "Historical / design reference: PRR ETT PanhandleDivision No19 04-29-1934 300dpi TimZukas 2up",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "PRR"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.214525+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "ptry_head.gif": {
+      "summary": "Prototype & layout reference: ptry head",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.214611+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "s-l1600 (1).webp": {
+      "summary": "A scanned scale manifest form titled \"TO BE WEIGHED\" for a car at Carle, PA, showing shipping point, car number, destination, waybill number, date, and weight entries. It appears to be a railroad operations document rather than a photo.",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "scale manifest",
+        "Carle PA",
+        "Nevilleville PA",
+        "waybill",
+        "operations"
+      ],
+      "curatedAt": "2026-09-01T14:11:56.669775+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "s-l1600 (2).webp": {
+      "summary": "Black-and-white historical photo of a streetcar or interurban car on a curved track, with people standing nearby and houses in the background. It appears to be a railroad/prototype reference image rather than a document or layout photo.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "streetcar",
+        "interurban",
+        "prototype",
+        "historical photo"
+      ],
+      "curatedAt": "2026-09-01T14:11:58.872338+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "s-l1600 (3).webp": {
+      "summary": "A color illustration or postcard-style image showing a riverfront industrial scene with a bridge, railroad tracks, and the Pittsburgh Coke & Chemical plant in the background. The image appears to be a historical reference view rather than a document.",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "Pittsburgh",
+        "bridge",
+        "industrial",
+        "railroad",
+        "riverfront"
+      ],
+      "curatedAt": "2026-09-01T14:12:00.658660+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "s-l1600.webp": {
+      "summary": "1923 Boiler Maker ad for Flannery Bolt Co. universal welded flexible staybolts — Pittsburgh locomotive boiler hardware.",
+      "suggestedCategory": "ebay_listings",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Flannery",
+        "Pittsburgh",
+        "locomotive",
+        "reference"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "s-l960.webp": {
+      "summary": "Historic photo of a PCC streetcar signed NEVILLE ISLAND (#91) on street track with overhead wire — prototype transit reference.",
+      "suggestedCategory": "ebay_listings",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Neville Island",
+        "streetcar",
+        "PCC",
+        "prototype"
+      ],
+      "curatedAt": "2026-09-01T14:07:56.369609+00:00",
+      "model": "cursor-agent"
+    },
+    "Screenshot 2025-04-20 at 9.34.55 PM.png": {
+      "summary": "A screenshot of a video frame showing HART model railroad benchwork under construction, with wooden framing and vertical supports in a basement-like room. It appears to document layout building progress rather than a finished scene.",
+      "suggestedCategory": "layout_photos",
+      "suggestedAction": "delete",
+      "confidence": "high",
+      "tags": [
+        "HART",
+        "benchwork",
+        "layout construction",
+        "Neville Island",
+        "model railroad"
+      ],
+      "curatedAt": "2026-09-01T14:12:02.491702+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-05-04 at 3.23.02 PM.png": {
+      "summary": "A screenshot of a map titled \"Pittsburgh & Ohio Central Railroad and major landmarks,\" showing the Pittsburgh Railfan route diagram around Neville Island, McKees Rocks, and nearby towns. It appears to be a web or presentation image rather than an original archive document.",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "Pittsburgh & Ohio Central",
+        "Neville Island",
+        "McKees Rocks",
+        "map",
+        "railfan"
+      ],
+      "curatedAt": "2026-09-01T14:12:05.190072+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-05-15 at 5.37.06 PM.png": {
+      "summary": "A screenshot of an aerial satellite view showing an industrial rail-served area with multiple buildings, tracks, and surrounding streets. It appears to be a location reference image rather than a document or layout photo.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "aerial",
+        "industrial",
+        "rail-served",
+        "location reference"
+      ],
+      "curatedAt": "2026-09-01T14:12:06.912116+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-06 at 12.03.48 AM.png": {
+      "summary": "This is a screenshot of a model railroad track plan or layout diagram, showing benchwork outlines, aisles, and measured track curves/segments. It appears to be a planning or design reference rather than a photo of the actual layout.",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "track plan",
+        "layout design",
+        "benchwork",
+        "aisles",
+        "measurements"
+      ],
+      "curatedAt": "2026-09-01T14:12:08.919968+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-06 at 12.37.58 AM.png": {
+      "summary": "This is a screenshot of a model railroad track plan or layout diagram with measured dimensions, aisles, and curved track sections. It appears to be a design/reference image rather than a finished photo or document.",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "track plan",
+        "layout design",
+        "dimensions",
+        "aisle",
+        "model railroad"
+      ],
+      "curatedAt": "2026-09-01T14:12:11.173418+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-06 at 12.41.18 AM.png": {
+      "summary": "This is a screenshot of a model railroad track plan or layout drawing, showing benchwork outlines, aisles, and measured track curves/turnouts. It appears to be a design reference rather than a photo of the actual layout.",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "track plan",
+        "layout design",
+        "benchwork",
+        "aisle",
+        "measurements"
+      ],
+      "curatedAt": "2026-09-01T14:12:13.193857+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-06 at 9.47.30 PM.png": {
+      "summary": "This is a screenshot of a model railroad track plan with multiple loops, turnouts, and dimension markings laid out on a gridded background. It appears to be a layout design or planning diagram rather than a photo of the built railroad.",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "track plan",
+        "layout design",
+        "dimensions",
+        "model railroad"
+      ],
+      "curatedAt": "2026-09-01T14:12:17.060166+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-20 at 12.08.15 AM.png": {
+      "summary": "This image is a screenshot of a technical diagram labeled \"Typical Arrangement,\" showing an industrial conveyor, oven, quencher, crusher, and grate. It appears to be a reference illustration rather than a HART-specific railroad document.",
+      "suggestedCategory": "reference",
+      "suggestedAction": "review",
+      "confidence": "medium",
+      "tags": [
+        "industrial diagram",
+        "conveyor",
+        "quencher",
+        "crusher",
+        "reference"
+      ],
+      "curatedAt": "2026-09-01T14:12:18.828969+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-21 at 3.01.28 AM.png": {
+      "summary": "A screenshot of a presentation slide titled \"SHENANGO COKE PLANT SITE PRE 2016\" showing an annotated industrial site photo with labeled stacks, towers, and plant features. It appears to be a reference image rather than a railroad document.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "Shenango Coke",
+        "industrial site",
+        "coke plant",
+        "reference photo",
+        "Delta Institute"
+      ],
+      "curatedAt": "2026-09-01T14:12:21.890473+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-21 at 3.04.02 AM.png": {
+      "summary": "A screenshot of a document page describing adjacent land uses around an industrial riverfront site, with an aerial map labeled for several facilities. It appears to be a reference or report image rather than a railroad-specific document.",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "aerial map",
+        "industrial site",
+        "riverfront",
+        "CSX",
+        "reference"
+      ],
+      "curatedAt": "2026-09-01T14:13:17.656309+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2025-06-21 at 9.50.38 PM.png": {
+      "summary": "This is a screenshot of a model railroad track plan showing a large loop/helix area with multiple tracks, dimensions, and labels such as Coke Retort and Gas Plant with Washing Tanks. It appears to be a design or layout reference rather than a photo of the physical railroad.",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "high",
+      "tags": [
+        "track plan",
+        "helix",
+        "Coke Retort",
+        "layout design",
+        "Neville Island"
+      ],
+      "curatedAt": "2026-09-01T14:13:20.786486+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2026-04-23 at 8.55.15 PM.png": {
+      "summary": "Screenshots: Layout / ops capture",
+      "suggestedCategory": "screenshots",
+      "suggestedAction": "review",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.214931+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Screenshot 2026-04-23 at 9.01.52 PM.png": {
+      "summary": "A screenshot of an aerial railroad scene showing multiple freight cars and locomotives on parallel tracks beside a large aggregate or gravel facility. It appears to be a rail operations or reference image rather than a document.",
+      "suggestedCategory": "reference_photos",
+      "suggestedAction": "archive",
+      "confidence": "medium",
+      "tags": [
+        "railroad",
+        "freight",
+        "aerial",
+        "aggregate",
+        "tracks"
+      ],
+      "curatedAt": "2026-09-01T14:12:25.517193+00:00",
+      "model": "gpt-5.4-mini"
+    },
+    "Screenshot 2026-04-23 at 9.14.16 PM.png": {
+      "summary": "Screenshots: Layout / ops capture",
+      "suggestedCategory": "screenshots",
+      "suggestedAction": "review",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.214963+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Screenshot 2026-04-23 at 9.15.00 PM.png": {
+      "summary": "Screenshots: Layout / ops capture",
+      "suggestedCategory": "screenshots",
+      "suggestedAction": "review",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.214979+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Screenshot 2026-04-23 at 9.15.10 PM.png": {
+      "summary": "Screenshots: Layout / ops capture",
+      "suggestedCategory": "screenshots",
+      "suggestedAction": "review",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.214994+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Screenshot 2026-04-23 at 9.15.35 PM.png": {
+      "summary": "Screenshots: Layout / ops capture",
+      "suggestedCategory": "screenshots",
+      "suggestedAction": "review",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.215010+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Screenshot 2026-04-23 at 9.19.09 PM.png": {
+      "summary": "Screenshots: Layout / ops capture",
+      "suggestedCategory": "screenshots",
+      "suggestedAction": "review",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.215026+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "sewickley streetcar.jpg": {
+      "summary": "Prototype & layout reference: sewickley streetcar",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.215044+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "sewickley_loop.jpg": {
+      "summary": "Prototype & layout reference: sewickley loop",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.215060+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Shenango1.webp": {
+      "summary": "Prototype & layout reference: Shenango1",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "Shenango"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.215076+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "SP op rules.pdf": {
+      "summary": "Historical / design reference: SP op rules",
+      "suggestedCategory": "reference",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.219797+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "ThisIsShenango.pdf": {
+      "summary": "Prototype & layout reference: ThisIsShenango",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [
+        "Shenango"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.223520+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Thumbs.db": {
+      "summary": "Installers & junk: Thumbs",
+      "suggestedCategory": "installer",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.223623+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "track_diagram.pdf": {
+      "summary": "Other root documents: track diagram",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.228572+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "trolley_sewickley_bridge.jpg": {
+      "summary": "Prototype & layout reference: trolley sewickley bridge",
+      "suggestedCategory": "prototype",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.228662+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "WHD+Version+of+Cards+to+Switch+Lists+-+with+notes.pdf": {
+      "summary": "Other root documents: WHD+Version+of+Cards+to+Switch+Lists+-+with+notes",
+      "suggestedCategory": "narrative_other",
+      "suggestedAction": "archive",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.232074+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "Wiring Schematic [Autosaved].pptx": {
+      "summary": "PSXX-2 PSXX-1 PSX-AR (3) CS B1 B2 PSXX-2 PSX-AR (2) Main Line Branch Line Scully Yard Canonsburg Branch Loop West Loop Helix PC&C PC&C Loop East Loop Power Districts – Day 1 PSXX-2 PSXX-1 PSX-AR (3) CS B1 B2 PSXX-2…",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "medium",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.237506+00:00",
+      "model": "local",
+      "excerpt": "PSXX-2 PSXX-1 PSX-AR (3) CS B1 B2 PSXX-2 PSX-AR (2) Main Line Branch Line Scully Yard Canonsburg Branch Loop West Loop Helix PC&C PC&C Loop East Loop Power Districts – Day 1 PSXX-2 PSXX-1 PSX-AR (3) CS B1 B2 PSXX-2 PSX-AR (2) Main Line Branch Line Scully Yard Canonsburg Branch Loop West Loop Helix PC&C PC&C Loop East Loop Power Districts – Day 1 PSXX-2 PSXX-1 CS B1 B2 Bus Wiring DNCT2B DNCTA DNCT2B DNCT2B DNCT2B LCN PS Output DCC – Control Bus +12V LCB Terminal Bus Description DCC1 –Red/Black fo"
+    },
+    "Wiring_Schematic  -  Repaired.pptx": {
+      "summary": "Wiring Schematic - Node Summary Node ID Location Radio Address 12V Boards 5V Boards Input Boards Num Blocks C1 Helix - Lower 1 1 2 2 8 C2 North - Lower 12 1 2 1 8 C3 North - Lower 2 1 2 2 8 C4 West - Lower 3 1 2 2 8 C5…",
+      "suggestedCategory": "wiring_drafts",
+      "suggestedAction": "delete",
+      "confidence": "medium",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.240313+00:00",
+      "model": "local",
+      "excerpt": "Wiring Schematic - Node Summary Node ID Location Radio Address 12V Boards 5V Boards Input Boards Num Blocks C1 Helix - Lower 1 1 2 2 8 C2 North - Lower 12 1 2 1 8 C3 North - Lower 2 1 2 2 8 C4 West - Lower 3 1 2 2 8 C5 West - Lower 13 0 2 0 0 C6 Peninsula - Lower 4 1 2 2 8 C7 Helix 11 1 2 0 4 C8 Helix - Upper 21 1 2 2 8 C9 North - Upper 22 1 2 2 8 C10 North - Upper 32 1 1 0 0 C11 West - Upper 23 1 2 1 8 C12 West - Upper 14 1 2 2 8 C13 Peninsula - Upper 24 1 2 2 8 Node C8 - Helix - Upper C8-OU1 C"
+    },
+    "~$track_diagram.xlsx": {
+      "summary": "Office temp files: ~$track diagram",
+      "suggestedCategory": "temp_files",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [],
+      "curatedAt": "2026-09-01T13:45:44.240615+00:00",
+      "model": "local",
+      "excerpt": ""
+    },
+    "~$Wiring Schematic.pptx": {
+      "summary": "Office temp files: ~$Wiring Schematic",
+      "suggestedCategory": "temp_files",
+      "suggestedAction": "delete",
+      "confidence": "low",
+      "tags": [
+        "wiring"
+      ],
+      "curatedAt": "2026-09-01T13:45:44.240827+00:00",
+      "model": "local",
+      "excerpt": ""
+    }
+  }
+}

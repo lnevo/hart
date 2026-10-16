@@ -26,14 +26,16 @@ Wiring Documentation
 Wiring Documentation/
 tables/.git/
 
+# Consolidation local path overrides (copy from consolidation.env.example)
+consolidation/env/consolidation.env
+
 # GitHub Pages staging tree (prepare_github_pages.py)
 consolidation/.pages-dist/
-
 
 # Consolidation STS runtime data mirror (~465MB; refresh via mirror_sts_docker_data.sh)
 consolidation/external/sts-docker-data/backups/
 consolidation/external/sts-docker-data/database/
-consolidation/external/sts-docker-data/Rolling Stock photos/
+consolidation/external/sts-docker-data/images/
 consolidation/external/sts-docker-data/MIRROR_MANIFEST.txt
 
 # Consolidation HART layout ops mirror (~55MB; refresh via mirror_hart_runtime.sh)
@@ -49,6 +51,9 @@ consolidation/audits/run_all_*.log
 # Consolidation Desktop/HART data mirror (~200MB+; refresh via mirror_desktop_data.sh)
 consolidation/external/desktop-data/
 !consolidation/external/desktop-data/README.md
+
+# F-root review preview thumbs (regenerate with curate_f_root_review.py --previews)
+consolidation/ops-portal/assets/f-root-previews/
 
 *.bak
 *.bak-*

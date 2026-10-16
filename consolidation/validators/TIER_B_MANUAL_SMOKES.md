@@ -21,7 +21,7 @@ Checklist for when the consolidation tree is authoritative and layout hosts are 
 
 - [ ] Graph baseline: **91** sections / **688** transits / **1508** traininfo (or documented delta in STATUS)
 - [ ] Stage 1 CreateTransits not required every deploy — only after graph edits
-- [ ] Facing overlay jython still loads (`hart_dispatcher_startup.py`)
+- [ ] Run Dispatcher uses stock `program:jython/DispatcherSystem/Startup.py` (no facing overlay)
 
 ## Pipeline 9 — LCOS / MQTT
 

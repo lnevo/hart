@@ -6,12 +6,17 @@
 
 **Public (GitHub Pages):** https://lnevo.github.io/hart/
 
-Serve over HTTP (JSON pages need it; `file://` will look empty):
+Serve over HTTP locally (JSON pages need it; `file://` will look empty):
 
 ```bash
-./consolidation/ops-portal/scripts/serve_portal.sh
-# open http://127.0.0.1:8760/ops-portal/
+./consolidation/ops-portal/scripts/install_portal_launchagent.sh   # stay-up LaunchAgent
+# or one-shot: ./consolidation/ops-portal/scripts/serve_portal.sh
 ```
+
+Then open (click in preview or browser):
+
+- **Operator portal:** http://127.0.0.1:8760/ops-portal/
+- **F-root document review:** http://127.0.0.1:8760/ops-portal/review/f-root/
 
 
 **Engineering consolidation desk (dark SoR / pipelines):**
@@ -31,6 +36,16 @@ Serve over HTTP (JSON pages need it; `file://` will look empty):
 Regenerate: `python3 consolidation/scripts/build_review_canvases.py`
 
 Static HTML fallbacks: [`html/review/device-map.html`](html/review/device-map.html) · [`html/review/industry-matrix.html`](html/review/industry-matrix.html)
+
+**F-root document review (124 class-F files):** http://127.0.0.1:8760/ops-portal/review/f-root/ — gallery UI; mark delete / archive / review; edits append to `sor/desktop/f_root_review_log.jsonl`.
+
+**Enrich with previews + GPT summaries:**
+
+```bash
+python3 consolidation/ops-portal/scripts/curate_f_root_review.py --previews   # qlmanage thumbs (all files)
+python3 consolidation/ops-portal/scripts/curate_f_root_review.py --gpt        # needs OPENAI_API_KEY in .env.local
+python3 consolidation/ops-portal/scripts/curate_f_root_review.py --previews --gpt --merge
+```
 
 Categories: pipelines, CATS, MQTT, wiring, LCOS, audits, ADRs, archive, repos, backlog.
 

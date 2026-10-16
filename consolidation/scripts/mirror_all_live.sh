@@ -2,8 +2,10 @@
 # Refresh all consolidation mirrors from live (read-only sources).
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-cd "$ROOT"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=../env/load_consolidation_env.sh
+source "${SCRIPT_DIR}/../env/load_consolidation_env.sh"
+cd "$HART_REPO_ROOT"
 
 echo "=== mirror STS runtime data ==="
 bash consolidation/scripts/mirror_sts_docker_data.sh

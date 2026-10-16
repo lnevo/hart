@@ -13,16 +13,22 @@ GitHub Actions publishes `ops-portal/` on push to `main` (and the current portal
 JSON pages (Briefing, About, Photos, Layout, Industries) need **HTTP**, not `file://`.
 
 ```bash
-# from repo
+# from repo — includes review log API (POST /api/f-root-review/log)
+# Login LaunchAgent (survives Cursor quit; starts at login):
+./consolidation/ops-portal/scripts/install_portal_launchagent.sh
+# Foreground only (dies when the terminal/Cursor session ends):
 ./consolidation/ops-portal/scripts/serve_portal.sh
 # → http://127.0.0.1:8760/ops-portal/
+# F-root review → http://127.0.0.1:8760/ops-portal/review/f-root/
 ```
 
-Or:
+Plain `python3 -m http.server` works for read-only pages but **cannot save** review decisions.
+
+**F-root review curation** (previews + optional GPT summaries):
 
 ```bash
-python3 -m http.server 8760 --directory consolidation
-open http://127.0.0.1:8760/ops-portal/
+python3 consolidation/ops-portal/scripts/curate_f_root_review.py --previews
+python3 consolidation/ops-portal/scripts/curate_f_root_review.py --gpt   # OPENAI_API_KEY in .env.local
 ```
 
 ## Sections

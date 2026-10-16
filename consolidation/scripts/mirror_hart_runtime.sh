@@ -3,9 +3,12 @@
 # Read-only rsync from hart repo — does not modify live sources.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SRC="${HART_MIRROR_SRC:-$ROOT}"
-DEST="$ROOT/consolidation/external/hart-runtime"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=../env/load_consolidation_env.sh
+source "${SCRIPT_DIR}/../env/load_consolidation_env.sh"
+
+SRC="$HART_MIRROR_SRC"
+DEST="$HART_RUNTIME_ROOT"
 
 mkdir -p "$DEST"
 

@@ -11,6 +11,7 @@ also flip FB N/R sensors so JMRI KnownState follows feedback.
 
   python3 cats/scripts/lcos_mqtt_mimic.py
   python3 cats/scripts/lcos_mqtt_mimic.py --mqtt-host 192.168.137.2 --http-port 8765
+  ./cats/scripts/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
 """
 
 from __future__ import annotations

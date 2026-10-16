@@ -1,6 +1,6 @@
 # Consolidation backlog
 
-**Updated:** 2026-08-31 (finalize pass)
+**Updated:** 2026-09-07 (Aristech STS shipments)
 
 **Central SoR:** [`sor/CENTRAL_SOR.md`](sor/CENTRAL_SOR.md) · **Pipeline matrix:** [`audits/pipeline-review-matrix.md`](audits/pipeline-review-matrix.md)
 
@@ -68,6 +68,8 @@ Core workspace, portal, F-root categories, hart-ops, validators, audits.
 
 | Item | Notes |
 |------|-------|
+| **67 — Refresh STS Aristech shipments** | Neville Island prototype made **plasticizer** (tank cars: phthalic anhydride / 2-EH in from Pasadena; plasticizer out to vinyl/PVC compounders). **Keep existing pellet and resin lanes** for operational diversity (covered hoppers / boxcars). Add plasticizer traffic to STS seed + `HART_Spot_Waybills.csv` / industry matrix; do not replace the hopper/boxcar mix. History: `ops-portal/docs/Neville_Island_Coke_Cement_Chemical_History.md` §7. Do not apply seed to live Docker until asked. |
+| **68 — Cursor skills + MCPs (review later)** | Reusable skill/MCP investment list from git history + pipelines. Parked; do not write `SKILL.md` or MCP servers until reviewed. SoR: [`../../wiki/projects/agent-skills-and-mcps.md`](../../wiki/projects/agent-skills-and-mcps.md). |
 | Tier B manual smokes | CATS/USS/LCOS — documented in `TIER_B_MANUAL_SMOKES.md`; not run during build |
 | STS Tier C session | begin_session / switch lists — needs Docker ops session |
 | Live promotion (D2, cutover) | **Not scheduled** — consolidation build continues; see `cutover/` reference archive only |

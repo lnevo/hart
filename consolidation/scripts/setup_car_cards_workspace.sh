@@ -2,10 +2,13 @@
 # Wire car-cards workspace under consolidation (symlinks + empty dirs).
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-CAR="$ROOT/consolidation/external/desktop-data/car-cards"
-HOPS="$ROOT/consolidation/external/hart-ops"
-FINAL="$ROOT/consolidation/external/desktop-data/car-images/CarImagesFinal"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=../env/load_consolidation_env.sh
+source "${SCRIPT_DIR}/../env/load_consolidation_env.sh"
+
+CAR="$HART_CAR_CARDS_ROOT"
+HOPS="$HART_OPS_ROOT"
+FINAL="$HART_CAR_IMAGES_FINAL"
 
 mkdir -p "$CAR/incoming" "$CAR/CarImages" "$CAR/OcrZoom"
 mkdir -p "$FINAL"

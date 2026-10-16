@@ -5,19 +5,23 @@
 ## Quick start
 
 ```bash
+cp consolidation/env/consolidation.env.example consolidation/env/consolidation.env  # once; edit CONSOLIDATION_ROOT if needed
 bash consolidation/scripts/mirror_all_live.sh
 bash consolidation/scripts/setup_car_cards_workspace.sh
+python3 consolidation/scripts/audit_consolidation_paths.py
 open consolidation/index.html
 ```
 
-Optional: `cp consolidation/env/consolidation.env.example consolidation/env/consolidation.env`
+Path config: [`env/consolidation.env.example`](env/consolidation.env.example) · STS compose: `bash consolidation/scripts/refresh_sts_docker_compose.sh`
 
 ## Where everything lives
 
 | Was scattered at… | Consolidation home |
 |-------------------|-------------------|
 | `hart/` jmri + cats + tables | `external/hart-runtime/` |
-| `~/sts/*` | `external/sts-docker-data/` |
+| `~/sts/sts-backups` | `external/sts-docker-data/backups/` |
+| `~/sts/sts-images` | `external/sts-docker-data/images/` |
+| `~/sts/sts-database` | `external/sts-docker-data/database/` |
 | CarImagesFinal | `external/desktop-data/car-images/CarImagesFinal/` |
 | New raw car photos | `external/desktop-data/car-cards/incoming/` |
 | Wiring Documentation | `external/desktop-data/wiring-bench/` |

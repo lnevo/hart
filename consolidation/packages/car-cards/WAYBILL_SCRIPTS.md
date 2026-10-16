@@ -31,9 +31,12 @@ cd consolidation/external/hart-ops
 
 ```bash
 # STS must be running (consolidation compose)
-cd consolidation/external/sts-docker
-docker compose -f docker-compose.yml \
-  -f ../sts-docker-data/docker-compose.consolidation.yml up -d
+## STS session (consolidation lab)
+
+```bash
+bash consolidation/scripts/refresh_sts_docker_compose.sh
+cd consolidation/external/sts-docker && docker compose up -d
+```
 
 cd ../hart-ops
 export HART_CAR_CARDS_ROOT="../desktop-data/car-cards"

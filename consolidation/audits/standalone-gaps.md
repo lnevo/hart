@@ -26,7 +26,9 @@ See [`packages/README.md`](packages/README.md).
 | Mirror | Source | Refresh |
 |--------|--------|---------|
 | `external/hart-runtime/` | `hart/` repo | `mirror_hart_runtime.sh` |
-| `external/sts-docker-data/` | `~/sts/*` | `mirror_sts_docker_data.sh` |
+| `external/sts-docker-data/backups/` | `~/sts/sts-backups` | `mirror_sts_docker_data.sh` |
+| `external/sts-docker-data/images/` | `~/sts/sts-images` | same |
+| `external/sts-docker-data/database/` | `~/sts/sts-database` | same |
 | `external/desktop-data/` | `~/Desktop/HART/` | `mirror_desktop_data.sh` |
 | `external/desktop-data/dj-trains/` | DJ Trains prototype | same |
 | `external/desktop-data/car-cards/incoming/` | *(empty drop folder)* | `setup_car_cards_workspace.sh` |

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>F-root review — HART</title>
+  <link rel="stylesheet" href="../../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="gallery-title">F-root document review</h1>
+      <p class="muted" id="gallery-lede"></p>
+      <p class="review-stats muted" id="review-stats"></p>
+    </div>
+    <div class="review-toolbar">
+      <span class="toolbar-label">Status</span>
+      <div class="album-bar status-bar" id="status-bar"></div>
+    </div>
+    <div class="review-toolbar">
+      <span class="toolbar-label">Category</span>
+      <div class="album-bar" id="album-bar"></div>
+    </div>
+    <div class="gallery-masonry" id="gallery-grid"></div>
+    <div class="review-toast" id="review-toast" role="status" aria-live="polite"></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/f-root-review.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("photos");
+        await HARTFRootReview.mount({ dataUrl: "data/f-root-review.json" });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("gallery-lede").textContent =
+          "Review gallery failed to load. Run serve_portal.py (not plain http.server) for save API.";
+      }
+    });
+  </script>
+</body>
+</html>
