@@ -1,6 +1,6 @@
 """Spiral-vase version of the layer spacer (see make_layer_spacer.py for the height rationale).
 
-Same envelope: 3.345 in tall (4.000 pitch - 0.72 plywood + 1.65 mm field correction), 1 in OD, bottom 1/4 in flared at
+Same envelope: 3.280 in tall (4.000 pitch - 0.72 plywood), 1 in OD, bottom 1/4 in flared at
 45 deg to 1.5 in. Vase mode prints one line per layer, so the extra walls are modeled: the part
 is solid with one thin SPIRAL slit winding in from the outside (user, 2026-10-13: "more
 walls"). The single outline runs in along the slit and back out, so every band between turns
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         body.export(path)
         print(path.split("/")[-1], "watertight", body.is_watertight, "reload ok", lat.stl_roundtrip_ok(path),
               "bodies", len(body.split(only_watertight=False)), "size mm", np.round(body.extents, 2))
-        for z in (1, 40, 84):
+        for z in (1, 40, 83):
             sec = body.section(plane_origin=[0, 0, z], plane_normal=[0, 0, 1]).to_2D()[0]
             print("  z", z, "regions", len(sec.polygons_full), "holes", sum(len(p.interiors) for p in sec.polygons_full),
                   "outline mm", round(sum(p.exterior.length for p in sec.polygons_full), 1))

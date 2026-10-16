@@ -7,8 +7,9 @@ roadbed and the barrel into the deck. The barrel holds the roadbed at height, so
 clamps against it instead of pulling the wing down.
 
   * P1 barrels = P1 underside above the deck at bracket 0 = 1-1/32 (P1 top, p1_height_template)
-    - 0.72 measured plywood = 0.311 in. The height stack (p1_height_template + spacers) is the
-    definitive roadbed TOP; underside = top - 0.72.
+    - 0.72 measured plywood = 0.311 in, plus a 1.65 mm field correction (2026-10-15: the
+    0.311 prints came out 1.65 mm short of the gap) = 0.376 in (9.56 mm). The height stack
+    (p1_height_template + spacers) is the definitive roadbed TOP; underside = top - 0.72.
   * 5/8 in OD, 1/4 in hole (user, 2026-10-13: narrower to fit where it can, wider hole so the
     #6 screw has play). Print 100% infill to make up for the thin wall.
   * P1 corners only: the tongue is already held by entry_wedge_riser_inside/outside.stl.
@@ -22,7 +23,8 @@ import trimesh
 import router_template_lattice as lat
 
 IN = 25.4
-P1_GAP = 1 + 1 / 32 - 0.72      # 0.31125 in, deck top to P1 underside
+FIELD_ADD = 1.65 / IN           # 2026-10-15: 0.311 prints were 1.65 mm too short
+P1_GAP = 1 + 1 / 32 - 0.72 + FIELD_ADD   # 0.376 in (9.56 mm), deck top to P1 underside
 OD = 5 / 8
 HOLE = 1 / 4                    # #6 screw with play
 

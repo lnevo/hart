@@ -16,8 +16,8 @@ Unless marked *tested*, the fixtures here are verified only in software (waterti
 ### Heights — use these for all math
 - **The height stack is definitive for the roadbed TOP.** `p1_height_template` = **1-1/32 in** (1.03125) above the -15 in deck at bracket 0, then **+1/2 in per 45°**. The user settled on 1-1/32 by test-fit on 2026-10-02 (1-1/16 was too high). The calculated value was 1.100.
 - **Plywood is 0.72 in measured.** Underside = top − 0.72 (0.311 in at P1). **Don't use a nominal 3/4.**
+- **P1 corner spacers are 0.376 in (9.56 mm), not 0.311.** The 0.311 prints came out 1.65 mm short of the deck-to-P1-underside gap (2026-10-15). The stack math still says 0.311, so the extra 1.65 mm is a measured field correction (`FIELD_ADD`). Its source isn't known yet (see §8 item 3).
 - **The first-loop piers** were sized as top − 3/4, so they're 0.03 in under the 0.72-based underside. The user checked: the wood lines up, and they stay as built.
-- **Layer spacers** (§4) are **3.345 in (84.96 mm)**, not 3.280: the 3.280 prints came out 1.65 mm short of the loop-to-loop gap (2026-10-15).
 - **Grade and clearance:** a constant offset changes neither. Railhead-to-underside clearance in the helix = 4.000 − 0.72 − T = **3.12 in** with T = 0.160 (nominal Code 83; caliper the actual track).
 
 ### Half-lap joints (as built in 0.72 ply)
@@ -122,7 +122,7 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 | `p1_height_template.stl` | `make_height_spacers.py` | **1-1/32 in** = P1 top at bracket 0. Sockets on top. |
 | `height_spacer_1_4in/1_2in/3_4in/1in/1_1_2in.stl`, `height_base_1_4in.stl` | same | Lego-style stack (pegs + crush ribs), sum 4.000. Template + 1/2 per 45° marks the plywood **top**. |
 | `first_loop_pier_post2…7.stl` | `make_first_loop_piers.py` | Sized as top − 3/4 (0.03 low; accepted). Top at grade, arrow uphill. Trellis webs, two screw tabs. Posts 1 and 8 skipped. |
-| `layer_spacer_4in_pitch.stl` | `make_layer_spacer.py` | Loop-to-loop check, **3.345 in (84.96 mm)** = 4.000 − 0.72 + **1.65 mm field correction** (2026-10-15: the 3.280 in prints were 1.65 mm short; `FIELD_ADD`). 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode. |
+| `layer_spacer_4in_pitch.stl` | `make_layer_spacer.py` | Loop-to-loop check, **3.280 in** = 4.000 − 0.72. 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode. |
 | `layer_spacer_4in_pitch_vase.stl` | `make_layer_spacer_vase.py` | Same envelope, **spiral vase**. Solid with a 1-turn 0.1 mm spiral slit, so a 3-line (~1.95 mm) wall from one path, ~10 g. Vase on, bottom 3–4 layers, **slice gap closing radius 0.01**, outer line 0.45 (`LINE_W`). |
 | `layer_spacer_4in_pitch_vase_1line.stl` | same | Plain single-line vase, ~4 g, weakest. |
 
@@ -131,7 +131,7 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 |---|---|---|
 | `entry_wedge_riser_inside/outside.stl` | (none kept) | 1 × 2.25 in footprint, 1.261 tall. Step **0.864** (the chord-corrected calc says 0.859; not regenerated, and the P1 template already absorbs it). Engraved R / L. |
 | `cork_to_plywood_transition_shim.stl` | (none kept) | 2 in along the track × 3.5 radial. Low foot 0.375 (tongue), high foot 0.611 (P1); step 0.236. 2 countersunk holes per foot. Sits in a deck pocket that should be ~0.300 deep. |
-| `corner_spacer_P1.stl` | `make_corner_offset_spacer.py` | Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). **0.311 tall**, 5/8 OD, 1/4 hole. Print 2 at 100% infill. Measure the gap first (`P1_GAP`). |
+| `corner_spacer_P1.stl` | `make_corner_offset_spacer.py` | Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). **0.376 tall (9.56 mm)** = 0.311 + 1.65 mm field correction (`FIELD_ADD`; the 0.311 prints were short). 5/8 OD, 1/4 hole. Print 2 at 100% infill. |
 
 ### Brackets (Wideskall 4x4, 0.080 steel, 0.600 strap, 0.185 holes)
 | File(s) | Script | Notes |
@@ -171,11 +171,11 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 ## 8. Open items
 1. **PDF entry pages (2, 3, 8)** still assume a 6 in straight and the old Post 1 reference. Regenerate them from §1 (5-3/8 straight, butt-joint grid, height stack), and redo the exit table.
 2. **Exit straight plan-view direction** vs the lower loop: needs a field answer.
-3. **Corner spacer:** measure deck-to-P1-underside at both corners (0.311 assumed). The user saw the outside reading higher. By design inside and outside are equal at the same angle, so check the table, the tongue risers and the shim seat. Make inside/outside versions if they really differ.
+3. **Corner spacer:** the 0.311 prints were 1.65 mm short, so it's now 0.376 (2026-10-15). The stack predicts 0.311, so find where the extra 1.65 mm comes from before it shows up somewhere else. The user saw the outside reading higher. By design inside and outside are equal at the same angle, so check the table, the tongue risers and the shim seat. Make inside/outside versions if they really differ.
 4. **Frame vs pockets:** dry-fit, take the 8 A/B readings (§2), and send them in for a rotate/translate/scale fit.
 5. Measure the shortest UTRUSTTO cutter (1/2 vs 25/64).
 6. Caliper the actual track height T (0.160 assumed) before clearance sign-off.
-7. First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase coil (check it in the preview), wedges and plumb shims. The layer spacers were tested at 3.280 and came out 1.65 mm short; reprint all three at 3.345 and recheck.
+7. First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase spacers (check the coil in the preview), wedges and plumb shims.
 8. Nesting spacing (9 in vs 8.611/8.918): decide, then add it to the PDF.
 9. Delete the obsolete STLs listed in §4 once the user agrees.
 10. Router adapter: verify the hole sizes against the real router and jig.

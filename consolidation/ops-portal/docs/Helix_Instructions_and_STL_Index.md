@@ -52,9 +52,9 @@
 | [`first_loop_pier_post5.stl`](../helix/stl/first_loop_pier_post5.stl) | 97 KB | 101.6 × 38.1 × 58.4 (4.00 × 1.50 × 2.30) | ″ | ″ |
 | [`first_loop_pier_post6.stl`](../helix/stl/first_loop_pier_post6.stl) | 107 KB | 101.6 × 38.1 × 71.1 (4.00 × 1.50 × 2.80) | ″ | ″ |
 | [`first_loop_pier_post7.stl`](../helix/stl/first_loop_pier_post7.stl) | 97 KB | 101.6 × 38.1 × 83.8 (4.00 × 1.50 × 3.30) | ″ | ″ |
-| [`layer_spacer_4in_pitch.stl`](../helix/stl/layer_spacer_4in_pitch.stl) | 63 KB | 38.1 × 38.1 × 85.0 (1.50 × 1.50 × 3.35) | [`make_layer_spacer.py`](../helix/scripts/make_layer_spacer.py) | Loop-to-loop check, 3.345 in (4.000 − 0.72 + 1.65 mm field correction; the 3.280 prints were short). Normal mode, ~22 g. |
-| [`layer_spacer_4in_pitch_vase.stl`](../helix/stl/layer_spacer_4in_pitch_vase.stl) | 100 KB | 38.1 × 38.1 × 85.0 (1.50 × 1.50 × 3.35) | [`make_layer_spacer_vase.py`](../helix/scripts/make_layer_spacer_vase.py) | Same spacer in spiral vase mode (~10 g, or ~4 g single line). Slice gap closing radius 0.01. |
-| [`layer_spacer_4in_pitch_vase_1line.stl`](../helix/stl/layer_spacer_4in_pitch_vase_1line.stl) | 28 KB | 38.1 × 38.1 × 85.0 (1.50 × 1.50 × 3.35) | ″ | ″ |
+| [`layer_spacer_4in_pitch.stl`](../helix/stl/layer_spacer_4in_pitch.stl) | 63 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | [`make_layer_spacer.py`](../helix/scripts/make_layer_spacer.py) | Loop-to-loop check, 3.280 in (4.000 − 0.72). Normal mode, ~22 g. |
+| [`layer_spacer_4in_pitch_vase.stl`](../helix/stl/layer_spacer_4in_pitch_vase.stl) | 100 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | [`make_layer_spacer_vase.py`](../helix/scripts/make_layer_spacer_vase.py) | Same spacer in spiral vase mode (~10 g, or ~4 g single line). Slice gap closing radius 0.01. |
+| [`layer_spacer_4in_pitch_vase_1line.stl`](../helix/stl/layer_spacer_4in_pitch_vase_1line.stl) | 28 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | ″ | ″ |
 
 ### Entry
 
@@ -63,7 +63,7 @@
 | [`entry_wedge_riser_inside.stl`](../helix/stl/entry_wedge_riser_inside.stl) | 28 KB | 25.4 × 57.2 × 32.0 (1.00 × 2.25 × 1.26) | none kept | Tongue risers, 1 × 2.25 in, 1.261 tall, step 0.864. Engraved R / L. |
 | [`entry_wedge_riser_outside.stl`](../helix/stl/entry_wedge_riser_outside.stl) | 24 KB | 25.4 × 57.2 × 32.0 (1.00 × 2.25 × 1.26) | ″ | ″ |
 | [`cork_to_plywood_transition_shim.stl`](../helix/stl/cork_to_plywood_transition_shim.stl) | 68 KB | 50.8 × 88.9 × 15.5 (2.00 × 3.50 × 0.61) | none kept | The “offset bracket” under P1: low foot 0.375 (tongue), high foot 0.611 (P1). Sits in a ~0.300 deep deck pocket. |
-| [`corner_spacer_P1.stl`](../helix/stl/corner_spacer_P1.stl) | 28 KB | 15.9 × 15.9 × 7.9 (0.62 × 0.62 × 0.31) | [`make_corner_offset_spacer.py`](../helix/scripts/make_corner_offset_spacer.py) | Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first. |
+| [`corner_spacer_P1.stl`](../helix/stl/corner_spacer_P1.stl) | 28 KB | 15.9 × 15.9 × 9.6 (0.62 × 0.62 × 0.38) | [`make_corner_offset_spacer.py`](../helix/scripts/make_corner_offset_spacer.py) | Barrel under each P1 wing corner, 0.376 tall (0.311 + 1.65 mm field correction), 5/8 OD. Print 2 at 100% infill. |
 
 ### Brackets
 
