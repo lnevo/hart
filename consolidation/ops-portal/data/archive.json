@@ -121,7 +121,8 @@
       "credit_confidence": "verified",
       "rights": "Journal article; check JSTOR terms before reuse.",
       "reason": "",
-      "origin": "~/Documents (JSTOR page scan, Oct 2026)"
+      "origin": "~/Documents (JSTOR page scan, Oct 2026)",
+      "public": false
     },
     {
       "id": "pov-locomotive-4-kobus-1994",
@@ -140,7 +141,8 @@
       "credit_confidence": "verified",
       "rights": "In Copyright (rights statement on the ULS record).",
       "reason": "",
-      "origin": "~/Documents (saved ULS page, Oct 2026)"
+      "origin": "~/Documents (saved ULS page, Oct 2026)",
+      "public": false
     },
     {
       "id": "pov-sw8-defranco-1978",
@@ -243,7 +245,8 @@
       "credit_confidence": "verified",
       "rights": "Newspaper page; see the Articles page for the transcription.",
       "reason": "",
-      "origin": "ops-portal/assets/history"
+      "origin": "ops-portal/assets/history",
+      "public": false
     },
     {
       "id": "neville-davis-island-aerial",
@@ -284,7 +287,8 @@
       "credit_confidence": "likely",
       "rights": "Watermarked by the Society; ask before reuse.",
       "reason": "",
-      "origin": "ops-portal/assets/media"
+      "origin": "ops-portal/assets/media",
+      "public": false
     },
     {
       "id": "flannery-railway-age-1940",
@@ -1073,7 +1077,8 @@
       "credit_confidence": "likely",
       "rights": "Copyrighted news photo.",
       "reason": "Modern copyrighted news photo, out of period.",
-      "origin": "Desktop/HART (F-root)"
+      "origin": "Desktop/HART (F-root)",
+      "public": false
     },
     {
       "id": "lundsten-pittsburgh-rail-map",
@@ -1091,7 +1096,8 @@
       "credit_confidence": "verified",
       "rights": "",
       "reason": "Modern map, not a period item; copyrighted.",
-      "origin": "Desktop/HART (F-root)"
+      "origin": "Desktop/HART (F-root)",
+      "public": false
     },
     {
       "id": "chartiers-track-scheme",

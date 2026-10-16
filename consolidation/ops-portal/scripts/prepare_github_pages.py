@@ -114,7 +114,8 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
     """Resize historical-archive images from ../external/ mirrors into assets/archive/.
 
     Every item gets a small grid thumbnail; mirror-only originals also get a web-sized
-    copy. Items whose original is missing (CI, no mirrors) are dropped, and local-only
+    copy. Items marked "public": false or whose original is missing (CI, no mirrors)
+    are dropped, and local-only
     fields (PDF paths, where the owner found the file) are stripped.
     """
     if not path.is_file():
@@ -122,6 +123,8 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
     data = json.loads(path.read_text(encoding="utf-8"))
     kept = []
     for item in data.get("items") or []:
+        if item.get("public") is False:  # rights not cleared; local review only
+            continue
         src_rel = str(item.get("src") or "")
         src = (PORTAL / src_rel).resolve()
         if not src_rel or not src.is_file():
