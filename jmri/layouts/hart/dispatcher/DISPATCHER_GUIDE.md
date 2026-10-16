@@ -48,11 +48,13 @@ Stations, west → east around the plant, then the yard and house:
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
 buttons are in place. **Stage 1 was re-run 2026-08-22** after hidden yard
-throats (graph is **91 sections / 688 transits / 1508 traininfo**). Every listed
+throats (graph is **103 sections / 746 transits / 1548 traininfo**). Every listed
 station is a valid **start and destination**, including **OS S-R…OS S-4**
 (enter/leave via 103 or OS East Lead). Manual Princess pairs (`Mast 36RA→Mast 40LA`,
 `Mast 36RB→Mast 38LA`) were re-added after Discover. After any future Stage 1:
-`python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py` then
+`python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py`
+(rewrites `via Track N` → `via OS Switch N`; do this before assuming Stage 1
+is required), then `fix_traininfo_detection.py` and
 `reconcile_dispatcher_stations.py`. Never run Stage 1 or store tables from
 CATS.
 
@@ -84,11 +86,9 @@ CATS.
    writes the same synthetic 10-step / 400 mm/s profile 2091 already had.
 4. A neighbor block highlights. Answer **which way the train is facing** —
    toward that highlight, or the other way. That is polarity, not the route.
-   Stock Dispatcher System used to invert that answer (see
-   [`DISPATCHER_LAYOUT_HOOPS.md`](../../../wiki/DISPATCHER_LAYOUT_HOOPS.md));
-   HART’s overlay stores what you clicked and uses it on the **first** dispatch.
-   If the loco still backs, release WiThrottle and re-register — do not “fix
-   facing” by editing mast slots.
+   Stock Dispatcher System may invert that answer ([JMRI#15407](https://github.com/JMRI/JMRI/issues/15407)).
+   If the loco runs the wrong way, use **Modify Dispatcher System → Change Dir**.
+   Release WiThrottle before dispatch. Do not “fix facing” by editing mast slots.
 5. Accept length and speed factor if they look right.
 
 The station label on **HART Railroad** should show the train name. If you lift the

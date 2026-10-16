@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}} — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    .helix-wrap { max-width: 72rem; }
+    .helix-wrap h2 {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      letter-spacing: 0.03em;
+      color: var(--brand);
+      margin: 2rem 0 0.6rem;
+    }
+    .helix-wrap h3 { font-size: 1.08rem; margin: 1.2rem 0 0.3rem; color: var(--brand-2); }
+    .helix-wrap .card h3 { margin-top: 0; }
+    .helix-wrap .note { border-left: 4px solid var(--brand); padding: 0.5rem 0.9rem; background: var(--card); }
+    .helix-wrap table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.92rem; }
+    .helix-wrap th, .helix-wrap td { vertical-align: top; text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--line, #ddd); }
+    .helix-wrap tr.grp th { background: var(--card); font-family: var(--font-display); letter-spacing: 0.03em; color: var(--brand); padding-top: 0.7rem; }
+    .helix-wrap code { font-size: 0.86em; overflow-wrap: anywhere; }
+    .helix-wrap ul, .helix-wrap ol { padding-left: 1.3rem; }
+    .stl-index td:nth-child(2) { white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+{{BODY}}
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("helix"); });</script>
+</body>
+</html>

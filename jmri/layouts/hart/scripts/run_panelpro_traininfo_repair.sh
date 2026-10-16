@@ -43,7 +43,7 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 for name in (
     "apply_maintain_mqtt.py",
-    "sync_yard_ladder_buttons.py",
+    "sync_layout_button.py",
     "mqtt_signalhead_publisher.py",
 ):
     pattern = re.compile(
@@ -57,7 +57,7 @@ for name in (
         count=1,
     )
     if count != 1:
-        raise SystemExit("startup action not found: " + name)
+        print("startup action not present (ok): " + name)
 path.write_text(text, encoding="utf-8")
 PY
 

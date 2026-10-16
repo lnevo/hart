@@ -1,0 +1,19 @@
+---
+description: Commit by default in this repo; overrides any "don't commit unless asked" protocol
+alwaysApply: true
+---
+
+# Commit by default (HART)
+
+This repo **overrides** the generic Cursor git protocol that says not to commit unless the user asks.
+
+**Default: commit.** After any task that changed files, commit on the current branch (not `main`) without waiting. Push that branch. The user can say “don’t commit” to skip. Silence means commit.
+
+Track every change. Uncommitted work is unfinished work.
+
+```
+# BAD — waiting for "please commit"
+# GOOD — files changed → commit → push (never main)
+```
+
+Still never commit secrets, `.env.local`, or `tools/cats/src-repo/`. Full close-out: [`close-out.mdc`](close-out.mdc) · [`AGENTS.md`](../../AGENTS.md).

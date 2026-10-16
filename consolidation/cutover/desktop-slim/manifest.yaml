@@ -1,0 +1,13 @@
+id: desktop-slim
+name: Slim ~/Desktop/HART bench folder
+status: planned
+desktop_read_only: true
+
+depends_on:
+  - class-c-migration
+  - history-archive
+  - names-d2
+
+inventory:
+  - sor/desktop/hart_root_inventory.csv
+  - sor/desktop/hart_subtree_inventory.csv

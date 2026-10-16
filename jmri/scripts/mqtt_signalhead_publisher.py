@@ -28,10 +28,9 @@
 #   because JMRI run() is after windows close. Abort does not RELEASE.
 #
 # Topic leaf is packed digits only (IH432 -> .../432). Beans stay IH*.
-# Generated HEAD_NAMES: cats/scripts/build_hart_signal_heads.py
-# (signal_wiring.csv). Keep the HEAD_NAMES_BEGIN/END markers. SML Enable uses
-# that catalog. MQTT SET/Unheld/paint starts empty and grows from
-# track/signalmast/<packed> (node + UID 32-47, IH bean present).
+# Digicon plants: SignalMasts that carry LCOS Virtual IH heads (UID 32-47) in
+# JMRI tables — no hardcoded HEAD_NAMES. MQTT SET/Unheld/paint still requires
+# enrollment from track/signalmast/<packed> (bridge + field status up).
 
 import java
 import jmri
@@ -44,6 +43,7 @@ from jmri.jmrix.mqtt import MqttEventListener
 TOPIC_PREFIX = "track/signalhead/"
 MAST_TOPIC_PREFIX = "track/signalmast/"
 SML_MODE_TOPIC = "track/bridge/sml_mode"
+SML_MODE_SENSOR = "IS:SML_MODE"
 HOLD_WAIT_MS = 3000
 BOOT_MODE_WAIT_MS = 1000
 # After enabling, originator waits then Holds and announces sml_mode enabled.
@@ -52,47 +52,6 @@ SML_ABORT_RESUME_MS = 1000
 PROBE_WAIT_MS = 1000
 # Only abort mutes bean MQTT: dests uncheck without Hold/Red/Unheld because
 # another agent owns Digicon. Operator Enable/Disable Hold wait publishes.
-
-# HEAD_NAMES_BEGIN
-HEAD_NAMES = [
-    'IH432',
-    'IH433',
-    'IH434',
-    'IH436',
-    'IH437',
-    'IH438',
-    'IH439',
-    'IH1332',
-    'IH1333',
-    'IH1334',
-    'IH1335',
-    'IH1336',
-    'IH1337',
-    'IH1338',
-    'IH1232',
-    'IH1233',
-    'IH1234',
-    'IH1235',
-    'IH1236',
-    'IH1237',
-    'IH1238',
-    'IH1239',
-    'IH1240',
-    'IH1241',
-    'IH132',
-    'IH133',
-    'IH134',
-    'IH135',
-    'IH136',
-    'IH137',
-    'IH138',
-    'IH139',
-    'IH140',
-    'IH141',
-    'IH142',
-    'IH143',
-]
-# HEAD_NAMES_END
 
 # LCOS signal UIDs: UID_OFFSET_SIGNALS .. UID_OFFSET_CROSSINGS-1 (lcos.h).
 _LCOS_SIGNAL_UID_MIN = 32
@@ -153,6 +112,16 @@ def _packed_is_lcos_signal(packed):
     except Exception:
         return False
     return True
+
+
+def _is_lcos_ih_sys(sys_name):
+    """True if system name is IH<packed> for an LCOS signal UID."""
+    if sys_name is None:
+        return False
+    name = str(sys_name)
+    if len(name) <= 2 or name[:2].upper() != "IH":
+        return False
+    return _packed_is_lcos_signal(name[2:])
 
 
 def _mqtt_adapter():
@@ -220,8 +189,10 @@ class DigiconMqttSml(
 ):
     """Global SML toggle + Digicon MQTT SET / mast->IH / query ACK."""
 
-    def __init__(self, head_names):
-        self.wanted = set(head_names)
+    # Cross-script handle for panel status-lamp clicks (sync_layout_button).
+    INSTANCE = None
+
+    def __init__(self):
         # MQTT live roster: empty until track/signalmast/<packed> reports.
         self.mqtt_wanted = set()
         self.mqtt = None
@@ -246,8 +217,16 @@ class DigiconMqttSml(
         self._enabling_wait_scheduled = False
         self._shutting_down = False
         self._shutdown_released = False
+        self._last_mqtt_appearance = {}
 
     def start(self):
+        DigiconMqttSml.INSTANCE = self
+        try:
+            import __main__
+
+            __main__.digicon_sml_controller = self
+        except Exception:
+            pass
         self.mqtt = _mqtt_adapter()
         if self.mqtt is None:
             print("mqtt_signalhead: no JMRI MQTT connection; not starting")
@@ -270,11 +249,31 @@ class DigiconMqttSml(
             self._boot_hold_sml_off()
             self._schedule_boot_check()
         self._register_shutdown_task()
+        self._sync_sml_mode_sensor()
         print(
-            "mqtt_signalhead: Digicon SML MQTT, %d masts, %d MQTT heads "
-            "(of %d Digicon; packed topics)"
-            % (len(self._masts), len(self._heads), len(self.wanted))
+            "mqtt_signalhead: Digicon SML MQTT, %d LCOS masts, %d MQTT heads enrolled "
+            "(SET requires signalmast; packed topics)"
+            % (len(self._masts), len(self._heads))
         )
+
+    def toggle_from_panel(self):
+        """Panel Signals lamp click — same as the main-window SML button."""
+        print("mqtt_signalhead: panel Signals lamp toggle")
+        self._on_toggle()
+
+    def _sync_sml_mode_sensor(self):
+        """Drive panel Signals lamp (IS:SML_MODE): ACTIVE=enabled, INACTIVE=otherwise."""
+        try:
+            s = sensors.provideSensor(SML_MODE_SENSOR)
+            want = (
+                jmri.Sensor.ACTIVE
+                if self._global_enabled
+                else jmri.Sensor.INACTIVE
+            )
+            if s.getKnownState() != want:
+                s.setKnownState(want)
+        except Exception as e:
+            print("mqtt_signalhead: SML mode sensor update failed: %s" % e)
 
     def _register_shutdown_task(self):
         """Register before windows/MQTT close. Work runs in call(), not run()."""
@@ -378,6 +377,7 @@ class DigiconMqttSml(
                 pass
         self._global_enabled = False
         self._enabling_originator = False
+        self._sync_sml_mode_sensor()
 
     def _stored_enabled_source_names(self):
         """UserNames of Digicon sources that loaded with any dest Enabled."""
@@ -448,6 +448,7 @@ class DigiconMqttSml(
         self._boot_pending = False
         self._busy = True
         self._global_enabled = False
+        self._sync_sml_mode_sensor()
         self._suppress_sml = True
         try:
             print("mqtt_signalhead: sml_mode aborting (immediate uncheck, no RELEASE)")
@@ -500,6 +501,7 @@ class DigiconMqttSml(
         self._boot_pending = True
         self._set_all_digicon_sml_destinations(False)
         self._global_enabled = False
+        self._sync_sml_mode_sensor()
         self._snapshot_mast_sml_state()
         self._set_button_label()
 
@@ -533,7 +535,7 @@ class DigiconMqttSml(
         that wait returns so dest uncheck does not publish (another agent owns SET).
         """
         # SML may finish discovering after Start Up -- refresh before bulk set.
-        self._attach_sml_listeners()
+        self._attach_sml_listeners(quiet=True)
 
         def _do():
             n = 0
@@ -614,20 +616,23 @@ class DigiconMqttSml(
                 _do()
 
     def _collect_beans(self):
+        """Digicon plants = SHSM masts with LCOS Virtual IH heads (tables, not a static list).
+
+        MQTT SET/Unheld heads attach later via _enroll_packed from signalmast.
+        """
         mm = _mast_manager()
         self._masts = []
         self._heads = []
         self._head_to_mast = {}
-        if mm is not None:
-            for mast in mm.getNamedBeanSet():
-                heads = _head_names_on_mast(mast)
-                wanted_heads = [n for n in heads if n in self.wanted]
-                if not wanted_heads:
-                    continue
-                self._masts.append(mast)
-                for n in wanted_heads:
-                    self._head_to_mast[n] = mast
-        # MQTT heads attach on enroll from track/signalmast/<packed>.
+        if mm is None:
+            return
+        for mast in mm.getNamedBeanSet():
+            lcos_heads = [n for n in _head_names_on_mast(mast) if _is_lcos_ih_sys(n)]
+            if not lcos_heads:
+                continue
+            self._masts.append(mast)
+            for n in lcos_heads:
+                self._head_to_mast[n] = mast
 
     def _attach_bean_listeners(self):
         for mast in self._masts:
@@ -635,7 +640,7 @@ class DigiconMqttSml(
         for head in self._heads:
             head.addPropertyChangeListener(self)
 
-    def _attach_sml_listeners(self):
+    def _attach_sml_listeners(self, quiet=False):
         smlm = _sml_manager()
         if smlm is None:
             return
@@ -657,10 +662,15 @@ class DigiconMqttSml(
             sml.addPropertyChangeListener(self)
             self._smls.append(sml)
             self._sml_by_mast[src] = sml
+        n = len(self._smls)
+        # Refresh before bulk set is normal; only log when the count changes.
+        if quiet and n == getattr(self, "_sml_watch_logged", None):
+            return
         print(
             "mqtt_signalhead: watching %d Digicon SignalMastLogic sources"
-            % len(self._smls)
+            % n
         )
+        self._sml_watch_logged = n
 
     def _subscribe_mqtt(self):
         try:
@@ -703,16 +713,77 @@ class DigiconMqttSml(
         if self._global_enabled:
             self._publish_head_set(head)
 
-    def _add_toggle_button(self):
-        self._button = JButton("SML Disabled")
-        self._button.addActionListener(lambda e: self._on_toggle())
-        try:
-            from apps import Apps
+    def _add_toggle_button(self, attempt=0):
+        """PanelPro main-window strip — kept in addition to the LE Signals lamp."""
+        max_attempts = 12
+        delay_ms = 500
 
-            Apps.buttonSpace().add(self._button)
-            Apps.buttonSpace().revalidate()
-        except Exception as exc:
-            print("mqtt_signalhead: buttonSpace failed: " + _ascii(exc))
+        def _try_attach():
+            try:
+                from apps import Apps
+
+                space = Apps.buttonSpace()
+                if space is None:
+                    raise RuntimeError("Apps.buttonSpace() is None")
+                # Already on the strip (re-run / retry).
+                for i in range(space.getComponentCount()):
+                    c = space.getComponent(i)
+                    try:
+                        if c is self._button:
+                            space.revalidate()
+                            space.repaint()
+                            return True
+                        text = c.getText()
+                        if text in ("SML Enabled", "SML Disabled"):
+                            if self._button is None:
+                                self._button = c
+                            space.revalidate()
+                            space.repaint()
+                            return True
+                    except Exception:
+                        pass
+                if self._button is None:
+                    self._button = JButton("SML Disabled")
+                    self._button.addActionListener(lambda e: self._on_toggle())
+                space.add(self._button)
+                space.revalidate()
+                space.repaint()
+                print("mqtt_signalhead: SML toggle on PanelPro button strip")
+                return True
+            except Exception as exc:
+                print(
+                    "mqtt_signalhead: buttonSpace attempt %d failed: %s"
+                    % (attempt + 1, _ascii(exc))
+                )
+                return False
+
+        class _Attach(Runnable):
+            def run(_self):
+                if _try_attach():
+                    self._set_button_label()
+                    return
+                if attempt + 1 >= max_attempts:
+                    print(
+                        "mqtt_signalhead: giving up on main-window SML button "
+                        "(panel Signals lamp still works)"
+                    )
+                    return
+                self._add_toggle_button(attempt + 1)
+
+        if attempt == 0 and self._button is None:
+            self._button = JButton("SML Disabled")
+            self._button.addActionListener(lambda e: self._on_toggle())
+
+        if attempt == 0:
+            SwingUtilities.invokeLater(_Attach())
+        else:
+
+            class _Retry(Runnable):
+                def run(_self):
+                    Thread.sleep(delay_ms)
+                    SwingUtilities.invokeLater(_Attach())
+
+            Thread(_Retry(), "mqtt-sml-button").start()
 
     def _set_button_label(self):
         if self._button is None:
@@ -896,6 +967,7 @@ class DigiconMqttSml(
                 finally:
                     controller._busy = False
                     controller._set_button_label()
+                    controller._sync_sml_mode_sensor()
 
         Thread(_Run(), "digicon-sml-enable").start()
 
@@ -914,6 +986,7 @@ class DigiconMqttSml(
                 finally:
                     controller._busy = False
                     controller._set_button_label()
+                    controller._sync_sml_mode_sensor()
 
         Thread(_Run(), "digicon-sml-disable").start()
 
@@ -947,6 +1020,7 @@ class DigiconMqttSml(
         self._global_enabled = False
         if publish_mode:
             self._publish_mode("disabled")
+        self._sync_sml_mode_sensor()
 
     def _hand_off_disabled(self, release):
         print("mqtt_signalhead: global -> SML Disabled (release=%s)" % release)
@@ -989,10 +1063,11 @@ class DigiconMqttSml(
         # Ownership announce for the bridge (not a boot retain republish).
         self._publish_mode("enabled")
         self._enabling_originator = False
+        self._sync_sml_mode_sensor()
         # Push current appearances once Digicon owns SET again.
         for head in self._heads:
             if self._mast_logic_enabled(self._mast_for_head(head)):
-                self._publish_head_set(head)
+                self._publish_head_set(head, force=True)
 
     def _mast_for_head(self, head):
         if head is None:
@@ -1069,7 +1144,11 @@ class DigiconMqttSml(
         if sys_name not in self.mqtt_wanted:
             return
         topic = TOPIC_PREFIX + _topic_suffix(sys_name)
-        self._publish(topic, "Unheld", retain=False)
+        prev = self._last_mqtt_appearance.get(sys_name)
+        if prev == "Unheld":
+            return
+        self._last_mqtt_appearance[sys_name] = "Unheld"
+        self._publish(topic, "Unheld", retain=True)
 
     def _mqtt_heads_on_mast(self, mast):
         heads = []
@@ -1112,13 +1191,13 @@ class DigiconMqttSml(
         self._source_field_owned[mast] = False
         heads = self._mqtt_heads_on_mast(mast)
         for head in heads:
-            self._publish_head_set(head)
+            self._publish_head_set(head, force=True)
         print(
             "mqtt_signalhead: SML dest on -> SET %s (Digicon owns)"
             % _ascii(mast.getDisplayName())
         )
 
-    def _publish_head_set(self, head):
+    def _publish_head_set(self, head, force=False):
         if self.mqtt is None or head is None:
             return
         if not self._global_enabled:
@@ -1131,7 +1210,15 @@ class DigiconMqttSml(
             return
         topic = TOPIC_PREFIX + _topic_suffix(sys_name)
         data = head.getAppearanceName()
-        self._publish(topic, data, retain=False)
+        prev = self._last_mqtt_appearance.get(sys_name)
+        # Skip unchanged chatter on property churn — but Enable must always SET
+        # so the field/bridge re-applies even if the aspect string is the same.
+        if not force and prev is not None and prev == data:
+            return
+        self._last_mqtt_appearance[sys_name] = data
+        # Retain so LCOS bridge can resume Flashing Red / … after restart
+        # (color/Dark toggles stay bridge-local and never appear on MQTT).
+        self._publish(topic, data, retain=True)
 
     def _apply_mast_payload_to_head(self, packed, payload):
         """track/signalmast/<packed> -> IH heads + source SignalMast when field owns."""
@@ -1365,5 +1452,12 @@ class DigiconSmlQuitTask(jmri.implementation.AbstractShutDownTask):
             print("mqtt_signalhead: ShutDownTask run failed: " + _ascii(exc))
 
 
-controller = DigiconMqttSml(HEAD_NAMES)
+controller = DigiconMqttSml()
+DigiconMqttSml.INSTANCE = controller
+try:
+    import __main__
+
+    __main__.digicon_sml_controller = controller
+except Exception:
+    pass
 controller.start()

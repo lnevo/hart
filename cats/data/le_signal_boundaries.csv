@@ -4,7 +4,12 @@ turnout,TOL38,B,Mast 4RA,B=Track W-1 continuing
 turnout,TOL38,C,Mast 4RB,C=Track W-2 diverge
 turnout,TOL42,B,Mast 6LB,B=Track East Main Ext continuing
 turnout,TOL42,C,Mast 6LA,C=Track Scale / east upper face; 1-head IH434
-turnout,TO117,A,Mast 8RA,A=Track Scale west upper
+anchor,A45,east,Mast 8RA,Scale|Switch 7 eastbound; not TO117 A
+anchor,A45,west,Mast 8LC,Scale|Switch 7 westbound
+turnout,TO1,B,Mast 13R,Barn into Switch 13; breaks Discover 8RA→26L
+turnout,TO10,B,Mast 9LB,EH-3 into Switch 9; EH outbound Stage 1
+turnout,TO10,C,Mast 9LA,EH-2 into Switch 9; EH outbound Stage 1
+turnout,TO11,B,Mast 11L,EH-1 into Switch 11; EH outbound Stage 1
 turnout,TO117,B,Mast 8LB,B=Track Barn east upper
 turnout,TO117,C,Mast 8LA,C=Track Main East east lower
 turnout,TO117,D,Mast 8RB,D=Track East Main Ext west lower

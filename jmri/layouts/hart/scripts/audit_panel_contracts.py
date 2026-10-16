@@ -22,11 +22,15 @@ DEFAULT_SOURCES = (
 BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
 OCCUPANCY_BINDINGS = REPO_ROOT / "cats" / "data" / "occupancy_bindings.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
-DISPATCHER_START_SCRIPT = "preference:jython/hart_dispatcher_startup.py"
+DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
 # Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
+MQTT_SENSOR_SYSNAME = re.compile(r"^M2S\d+$")
 sys.path.insert(0, str(REPO_ROOT / "jmri" / "layouts" / "hart" / "scripts"))
+from lcc_turnout_contract import contract_violations
+from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
+from polish_hart_layout_editor import ensure_block_contents_visible
 from refresh_bean_comments import BLOCK_COMMENTS
 
 STATION_COMMENTS = {
@@ -124,8 +128,8 @@ def load_boundaries(path: Path) -> list[Boundary]:
         )
         for row in rows
     ]
-    if len(boundaries) != 23 or len({item.mast for item in boundaries}) != 23:
-        raise ValueError(f"{path}: expected 23 unique boundary mast names")
+    if len(boundaries) != 28 or len({item.mast for item in boundaries}) != 28:
+        raise ValueError(f"{path}: expected 28 unique boundary mast names")
     return boundaries
 
 
@@ -148,40 +152,67 @@ def select_panel(root: ET.Element, audit: Audit) -> ET.Element | None:
 
 def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
     found: list[str] = []
-    for sensor in root.iter("sensor"):
-        sysn = text(sensor, "systemName") or (sensor.get("systemName") or "").strip()
-        if sysn in FORBIDDEN_MQTT_SENSORS:
-            found.append(sysn)
+    garbage: list[str] = []
+    for sensors in root.findall("sensors"):
+        cls = sensors.get("class") or ""
+        if "MqttSensor" not in cls:
+            continue
+        for sensor in sensors.findall("sensor"):
+            sysn = text(sensor, "systemName") or (sensor.get("systemName") or "").strip()
+            if not sysn:
+                continue
+            if sysn in FORBIDDEN_MQTT_SENSORS:
+                found.append(sysn)
+            elif not MQTT_SENSOR_SYSNAME.fullmatch(sysn):
+                garbage.append(sysn)
     if found:
         audit.error(
             "do not add MQTT sensors "
             + ", ".join(FORBIDDEN_MQTT_SENSORS)
             + f"; found {sorted(set(found))}"
         )
+    if garbage:
+        audit.error(
+            "MQTT sensor systemNames must be M2S plus digits "
+            "(not M2SBlock 1-1); "
+            f"found {sorted(set(garbage))}"
+        )
+
+
+DISPATCHER_VIRTUALS = {"Mast 8LC", "Mast 13R", "Mast 11L", "Mast 9LA", "Mast 9LB"}
 
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
     masts = root.find("signalmasts")
     names: set[str] = set()
+    virtual_names: set[str] = set()
     cats_virtual: list[str] = []
     if masts is not None:
-        for mast in masts.findall("signalmast"):
+        for mast in list(masts):
             name = text(mast, "userName")
             system_name = text(mast, "systemName")
             normalized = (system_name + " " + name).upper()
             if "IF$VSM:CATS" in normalized or "CATS1" in normalized or "CATS2" in normalized:
                 cats_virtual.append(f"{name or '<unnamed>'} [{system_name or '<no system name>'}]")
-            if (system_name or "").startswith("IF$vsm:AAR-1946:"):
+            if mast.tag == "virtualsignalmast" or (system_name or "").startswith(
+                "IF$vsm:"
+            ):
+                if name:
+                    virtual_names.add(name)
                 continue
             if name:
                 names.add(name)
-    missing = sorted(expected - names)
-    extra = sorted(names - expected)
+    field_expected = expected - DISPATCHER_VIRTUALS
+    missing = sorted(field_expected - names)
+    extra = sorted(names - field_expected)
     if missing or extra or len(names) != 23:
         audit.error(
             f"signal mast names are not the exact expected 23; "
             f"missing={missing or 'none'}, extra={extra or 'none'}, count={len(names)}"
         )
+    missing_virtuals = sorted(DISPATCHER_VIRTUALS - virtual_names)
+    if missing_virtuals:
+        audit.error(f"missing dispatcher virtual masts: {missing_virtuals}")
     if cats_virtual:
         audit.error(f"CATS runtime virtual masts stored in file: {cats_virtual}")
     audit.facts["masts"] = tuple(sorted(names))
@@ -221,6 +252,50 @@ def audit_bindings(
     )
 
 
+def audit_nx(root: ET.Element, audit: Audit, *, required: bool) -> None:
+    problem = audit.error if required else audit.warn
+    sensors: dict[str, str] = {}
+    for sensor in root.iter("sensor"):
+        system_name = text(sensor, "systemName")
+        if system_name.startswith("ISNX:"):
+            sensors[system_name] = text(sensor, "userName")
+    expected_user = {sysn: f"NX {mast}" for mast, sysn in ISNX_SYSTEM.items()}
+    if set(sensors) != set(expected_user):
+        missing = sorted(set(expected_user) - set(sensors))
+        extra = sorted(set(sensors) - set(expected_user))
+        problem(
+            f"ISNX sensors expected {len(expected_user)} frozen CTC ids; "
+            f"missing={missing[:8]} extra={extra[:8]}"
+        )
+    for sysn, user in expected_user.items():
+        actual = sensors.get(sysn)
+        if actual and actual != user:
+            problem(f"{sysn} userName expected {user!r}, found {actual!r}")
+    panel_names: list[str] = []
+    pairs: list[tuple[str, str, str]] = []
+    for block in root.findall("./entryexitpairs"):
+        for panel in block.findall("layoutPanel"):
+            panel_names.append(panel.get("name") or "")
+            for source in panel.findall("source"):
+                src = source.get("item") or ""
+                for dest in source.findall("destination"):
+                    pairs.append(
+                        (src, dest.get("item") or "", dest.get("nxType") or "")
+                    )
+    if LAYOUT_PANEL not in panel_names:
+        problem(f"Entry/Exit layoutPanel expected {LAYOUT_PANEL!r}, found {panel_names}")
+    if len(pairs) != EXPECTED_NX_PAIRS:
+        problem(f"NX pairs expected {EXPECTED_NX_PAIRS}, found {len(pairs)}")
+    bad_type = [p for p in pairs if p[2] != NXTYPE_SML]
+    if bad_type:
+        problem(
+            f"NX pairs expected nxType={NXTYPE_SML}; "
+            f"found {sorted({p[2] for p in bad_type})}"
+        )
+    audit.facts["nx_pairs"] = tuple(sorted(pairs))
+    audit.facts["isnx"] = tuple(sorted(sensors.items()))
+
+
 def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     destinations: list[tuple[str, str, str]] = []
     for logic in root.findall("./signalmastlogics/signalmastlogic"):
@@ -235,9 +310,9 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    if (len(destinations), auto, manual, unknown) != (93, 91, 2, 0):
+    if (len(destinations), auto, manual, unknown) != (98, 96, 2, 0):
         message = (
-            "stored SML destinations expected total=93, useLayoutEditor=yes=91, "
+            "stored SML destinations expected total=98, useLayoutEditor=yes=96, "
             f"manual=2; found total={len(destinations)}, yes={auto}, "
             f"manual={manual}, unspecified/other={unknown}"
         )
@@ -358,6 +433,22 @@ def audit_turnout_systemname_lookups(
     audit.facts["turnout_lookups"] = tuple(sorted(missing))
 
 
+def audit_lcc_mqtt_turnout_aliases(
+    root: ET.Element, audit: Audit, *, required: bool
+) -> None:
+    """Every MQTT DCC turnout has MTT{dcc} named and wired from the device map."""
+    problem = audit.error if required else audit.warn
+    csv_path = REPO_ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
+    issues = contract_violations(root, csv_path)
+    if issues:
+        problem(
+            "LCC turnout aliases do not match MQTT plants / device map: "
+            + "; ".join(issues[:8])
+            + (" ..." if len(issues) > 8 else "")
+        )
+    audit.facts["lcc_turnout_aliases"] = tuple(issues)
+
+
 def audit_stations(
     root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool
 ) -> None:
@@ -428,72 +519,37 @@ def audit_stations(
     audit.facts["station_icons"] = tuple(sorted(icon_set))
 
 
+def audit_block_contents_visible(panel: ET.Element | None, audit: Audit) -> None:
+    """Tracks paint at level 3; labels at 0 sit behind the panel background."""
+    if panel is None:
+        return
+    _, errors = ensure_block_contents_visible(panel, check=True)
+    for message in errors:
+        audit.error(message)
+
+
 def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
     placeholders: list[str] = []
     redundant_occupancy_icons: list[str] = []
+    # Intentional status-lamp captions (not temporary SIG… placeholders).
+    _status_lamp_labels = {"LCOS", "Turnouts", "Signals", "Track Power"}
     if panel is not None:
         for label in panel.iter("positionablelabel"):
             value = (label.get("text") or text(label, "text")).strip()
+            if value in _status_lamp_labels:
+                continue
             if value.upper().startswith("SIG"):
                 placeholders.append(value)
-        station_occupancy = {
-            "Block 4-6",
-            "Block 4-7",
-            "Block 2-1",
-            "Block 2-3",
-            "Block 1-8",
-            "Block 1-7",
-            "Block 1-1",
-            "Block 1-2",
-            "Block 13-5",
-            "Block 13-6",
-            "Block 13-7",
-            "Block 2-8",
-            "Block 2-7",
-            "Block 2-6",
-            "Block 2-5",
-            "Block 2-4",
-            "Block 4-8",
-            "Block 13-1",
-            "Block 4-4",
-            "Block 4-3",
-            "Block 1-4",
-            "Block 1-3",
-        }
-        os_occupancy = {
-            "Block 4-1",
-            "Block 4-2",
-            "Block 4-5",
-            "Block 3-1",
-            "Block 3-2",
-            "Block 3-3",
-            "Block 3-5",
-            "Block 3-7",
-            "Block 12-1",
-            "Block 12-3",
-            "Block 12-4",
-            "Block 12-5",
-            "Block 12-7",
-            "Block 12-8",
-            "Block 13-2",
-            "Block 13-3",
-            "Block 13-8",
-            "Block 1-5",
-            "Block 1-6",
-        }
         for icon in panel.iter("sensoricon"):
             name = (icon.get("sensor") or "").strip()
-            if (
-                re.fullmatch(r"Block \d+-\d+", name)
-                and name not in station_occupancy
-                and name not in os_occupancy
-            ):
+            if re.fullmatch(r"Block \d+-\d+", name):
                 redundant_occupancy_icons.append(name)
     if placeholders:
         audit.warn(f"stale SIG placeholder labels remain: {sorted(placeholders)}")
     if redundant_occupancy_icons:
-        audit.warn(
-            "redundant block-occupancy sensor icons remain on Layout Editor: "
+        audit.error(
+            "sensoricon still bound to retired Block n-n userNames "
+            "(JMRI MQTT auto-creates M2SBlock n-n); "
             f"{sorted(redundant_occupancy_icons)}"
         )
     audit.facts["sig_placeholders"] = tuple(sorted(placeholders))
@@ -503,7 +559,7 @@ def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
 
 
 def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
-    """Run Dispatcher System must load the HART wrapper, not stock Startup.py."""
+    """Run Dispatcher System must load stock Startup.py (no HART overlay)."""
     actions: list[str] = []
     for conditional in root.findall("./conditionals/conditional"):
         user_name = conditional.get("userName") or text(conditional, "userName")
@@ -535,9 +591,9 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         )
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
-    if (sections, transits) != (91, 688):
+    if (sections, transits) != (103, 746):
         audit.error(
-            f"generated Dispatcher graph expected 91 sections / 688 transits, "
+            f"generated Dispatcher graph expected 103 sections / 746 transits, "
             f"found {sections} / {transits}"
         )
     files = sorted(TRAININFO.glob("*.xml"))
@@ -555,8 +611,8 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         ]
         if values != ["TRAINDETECTION_HEADANDTAIL"]:
             bad_detection.append(path.name)
-    if len(files) != 1508:
-        audit.error(f"expected 1508 generated traininfo files, found {len(files)}")
+    if len(files) != 1548:
+        audit.error(f"expected 1548 generated traininfo files, found {len(files)}")
     if bad_detection:
         audit.error(
             "traininfo not HEAD_AND_TAIL: "
@@ -587,10 +643,12 @@ def audit_source(
     audit_bindings(panel, boundaries, audit)
     if full_config:
         audit_sml(root, audit, required=True)
+        audit_nx(root, audit, required=True)
         audit_stations(root, panel, audit, required=True)
         audit_occupancy_bindings(root, audit, required=True)
         audit_turnout_feedback_sensors(root, audit, required=True)
         audit_turnout_systemname_lookups(root, audit, required=True)
+        audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
         audit_dispatcher_startup(root, audit)
         if label == "deployment":
             audit_generated_dispatcher(root, audit)
@@ -604,7 +662,9 @@ def audit_source(
         audit_occupancy_bindings(root, audit, required=True)
         audit_turnout_feedback_sensors(root, audit, required=True)
         audit_turnout_systemname_lookups(root, audit, required=True)
+        audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
     audit_placeholders(panel, audit)
+    audit_block_contents_visible(panel, audit)
     return audit
 
 
@@ -635,6 +695,8 @@ def report_drift(audits: list[Audit]) -> list[str]:
         "masts",
         "bindings",
         "sml",
+        "nx_pairs",
+        "isnx",
         "stations",
         "station_sensors",
         "station_icons",

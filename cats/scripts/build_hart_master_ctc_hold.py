@@ -5,7 +5,7 @@ Derived from HART_Master.xml:
 
 1. HOLD_ONLY=true — CATS only Held/Unheld; SML owns Clear/Approach/Stop.
 2. Keep DISCIPLINE=CTC and ROUTECOMMAND — left-click still codes routes / throws.
-3. AAR-1946 aspect name bridge so Digicon paints from JMRI appearances.
+3. AAR/C&O-1980 aspect name bridge so Digicon paints from JMRI appearances.
 
 Legacy aspect-driving CTC remains HART_Master.xml (rollback).
 """

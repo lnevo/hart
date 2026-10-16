@@ -1,0 +1,37 @@
+mast,head,turnout_polarity,or_aspect,notes
+Mast 2L,T,Main,Stop,Brick east home; CLEAR if aligned MAIN else STOP
+Mast 2L,B,Diverged,Stop,Unused-head marker; green only if Switch 1 Reverse
+Mast 4RA,S,Main,Stop,Brick west W-1; Switch 3 Normal
+Mast 4RB,S,Diverged,Stop,Brick west W-2 dwarf; Switch 3 Reverse
+Mast 6LB,T,Main,Stop,Plane main exit; Switch 5 Normal
+Mast 6LB,B,Diverged,Stop,Unused-head marker; Scale is 6LA not this disc
+Mast 6LA,S,Diverged,Stop,Scale dwarf; Switch 5 Reverse
+Mast 8RA,T,Main,Stop,Barn west cluster; Switch 7
+Mast 8RA,B,Diverged,Stop,Unused-head marker
+Mast 8RB,T,Main,Stop,Barn west lower; Switch 7
+Mast 8RB,B,Diverged,Stop,Unused-head marker
+Mast 8LA,T,Main,Stop,Barn east Main East; Switch 7 Normal
+Mast 8LA,B,Diverged,Stop,Unused-head marker
+Mast 8LB,S,Diverged,Stop,Barn dwarf; Switch 7 Reverse
+Mast 24RA,T,Main,Stop,East End west Main West; Switch 23 Normal
+Mast 24RA,B,Diverged,Stop,Unused-head marker
+Mast 24L,T,Main,Stop,West Main Ext entrance; Switch 23
+Mast 24L,B,Diverged,Stop,Unused-head marker
+Mast 24RB,S,Diverged,Stop,S-R siding dwarf; Switch 23 Reverse
+Mast 32R,S,Diverged,Stop,East End ladder dwarf; Switch 31 Reverse
+Mast 34L,T,Main,Stop,East Lead home; Switch 33
+Mast 34L,B,Diverged,Stop,Unused-head marker
+Mast 34R,T,Main,Stop,Main East face; Switch 33
+Mast 34R,B,Diverged,Stop,Unused-head marker
+Mast 36RA,T,Main,Stop,West Main Ext into Switch 35
+Mast 36RA,B,Diverged,Stop,Unused-head marker
+Mast 36RB,T,Main,Stop,East Lead into Switch 35
+Mast 36RB,B,Diverged,Stop,Unused-head marker
+Mast 38LB,T,Main,Stop,McKeesport home; Switch 37 Normal
+Mast 38LB,B,Diverged,Stop,Unused-head marker
+Mast 38LA,S,Diverged,Stop,K-2 dwarf; Switch 37 Reverse
+Mast 40LB,T,Main,Stop,McKees Rocks home; Switch 39 Normal
+Mast 40LB,B,Diverged,Stop,Unused-head marker
+Mast 40LA,S,Diverged,Stop,K-1 dwarf; Switch 39 Reverse
+Mast 2035,S,—,Approach,McKees Rocks balloon; no plant turnout
+Mast 2036,S,—,Approach,McKeesport balloon; no plant turnout

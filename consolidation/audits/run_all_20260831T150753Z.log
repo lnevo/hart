@@ -1,0 +1,61 @@
+=== HART consolidation validators ===
+Root: /Users/lnevo/hart
+Report: /Users/lnevo/hart/consolidation/audits/run_all_20260831T150753Z.log
+
+--- audit_strict ---
+working: tables/new_tables.xml (panel=HART Railroad, errors=0, warnings=0)
+deployment: jmri/layouts/hart/output/tables.xml (panel=HART Railroad, errors=0, warnings=0)
+standalone: jmri/layouts/hart/output/hart_prod.xml (panel=HART Railroad, errors=0, warnings=0)
+source drift: 0 difference(s)
+RESULT: PASS (strict; hard errors=0, warnings=0, drift=0)
+OK: audit_strict
+
+--- phase02 ---
+PASS hart phase 0–2 checks
+OK: phase02
+
+--- names_diff ---
+Map names (excl DCC comment rows): 237
+Bean userNames in deploy tables: 862
+Map names not on beans: 18
+WARN: 17 equipment-like map rows not matched (first 15):
+  - Mast 10LA
+  - Mast 10LB
+  - Mast 12L
+  - Mast 16L
+  - Mast 18L
+  - Mast 18R
+  - Mast 20L
+  - Mast 20R
+  - Mast 22L
+  - Mast 22R
+  - Mast 26L
+  - Mast 26R
+  - Mast 32L
+  - Mast 38RA
+  - Mast 40RA
+OK: names diff within consolidation tolerance
+OK: names_diff
+
+--- sml_invariants ---
+SML destinationMast entries: 93 (expected 93)
+ISNX sensors: 23
+OK: destination count
+OK: NX uses ISNX:* systemNames
+OK: sml_invariants
+
+--- mqtt_static ---
+OK: no static MQTT head allow-lists in publisher/bridge/build
+OK: mqtt_static
+
+--- wiring_crosswalk ---
+Packed IDs from signal_wiring.csv: 36
+IH packed IDs from deploy tables: 36
+INFO: 10 wiring IDs without IH (first 5): ['1132', '1133', '1134', '1135', '1136']
+INFO: 10 IH not in wiring CSV (first 5): ['1237', '1238', '1239', '1240', '1241']
+Crosswalk overlap: 26/36 (72%)
+OK: wiring crosswalk
+OK: wiring_crosswalk
+
+=== Summary ===
+ALL PASSED

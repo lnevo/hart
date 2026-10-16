@@ -126,6 +126,19 @@ class BeanCommentFormatTest(unittest.TestCase):
             "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
         )
 
+    def test_lcc_aliases_use_device_map_names(self) -> None:
+        self.assertEqual(self.m.user_name_for("turnout", "MTT100"), "DCC Switch 1")
+        self.assertEqual(self.m.user_name_for("turnout", "MTT102"), "DCC Switch 5")
+        self.assertEqual(self.m.user_name_for("turnout", "MTT119"), "DCC Switch 9")
+        self.assertEqual(
+            self.m.comment_for("turnout", "MTT100", "DCC Switch 1", ""),
+            "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
+        )
+        leftover = self.m.comment_for("turnout", "MTT102", "DCC Switch 5", "")
+        self.assertEqual(leftover, "Node: 4 Turnout: 2 | OU: 1 Ports: 5,6")
+        self.assertNotIn("leftover", leftover.lower())
+        self.assertNotIn("alias", leftover.lower())
+
 
 if __name__ == "__main__":
     unittest.main()

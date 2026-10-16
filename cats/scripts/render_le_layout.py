@@ -214,17 +214,79 @@ def render_view(
         if bx0 <= x <= bx1 and by0 <= y <= by1:
             d.ellipse([X(x) - 2, Y(y) - 2, X(x) + 2, Y(y) + 2], fill=ANCHOR)
 
-    # turnouts (control points) — draw legs + points first
+    # turnouts (control points) — draw legs + points first.
+    # Crossovers (RH/LH_XOVER) must NOT be drawn as a star from the center —
+    # that makes SW-7 / SW-23 / SW-35 look like broken geometry. Draw the two
+    # continuing parallels (A–B, D–C) and the correct thrown diagonals instead.
     f_os = _font(19, bold=True)
     f_sub = _font(13)
     f_id = _font(12)
     for t in vturn:
         cx, cy = t["cen"]
-        for leg in ("TURNOUT_A", "TURNOUT_B", "TURNOUT_C", "TURNOUT_D"):
-            lp = legs.get((t["ident"], leg))
-            if lp:
-                col = THRU if leg in ("TURNOUT_A", "TURNOUT_B") else DIVERGE
-                d.line([(X(cx), Y(cy)), (X(lp[0]), Y(lp[1]))], fill=col, width=5)
+        ident = t["ident"]
+        ttype = (t.get("type") or "").upper()
+        a = legs.get((ident, "TURNOUT_A"))
+        b = legs.get((ident, "TURNOUT_B"))
+        c = legs.get((ident, "TURNOUT_C"))
+        dd = legs.get((ident, "TURNOUT_D"))
+        if "XOVER" in ttype and a and b and c and dd:
+            def _pt(p):
+                return (X(p[0]), Y(p[1]))
+
+            def _orient(p, q, r):
+                v = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1])
+                if abs(v) < 1e-9:
+                    return 0
+                return 1 if v > 0 else 2
+
+            def _on_seg(p, q, r):
+                return (
+                    min(p[0], r[0]) - 1e-9 <= q[0] <= max(p[0], r[0]) + 1e-9
+                    and min(p[1], r[1]) - 1e-9 <= q[1] <= max(p[1], r[1]) + 1e-9
+                )
+
+            def _crosses(p, q, r, s):
+                o1, o2 = _orient(p, q, r), _orient(p, q, s)
+                o3, o4 = _orient(r, s, p), _orient(r, s, q)
+                if o1 != o2 and o3 != o4:
+                    return True
+                if o1 == 0 and _on_seg(p, r, q):
+                    return True
+                if o2 == 0 and _on_seg(p, s, q):
+                    return True
+                if o3 == 0 and _on_seg(r, p, s):
+                    return True
+                if o4 == 0 and _on_seg(r, q, s):
+                    return True
+                return False
+
+            # Continuing routes (parallel rails)
+            d.line([_pt(a), _pt(b)], fill=THRU, width=5)
+            d.line([_pt(dd), _pt(c)], fill=THRU, width=5)
+            # Pick the diagonal pair that actually forms the diamond. JMRI RH/LH
+            # naming can be mirrored in LE so type alone is not enough.
+            rh_pair = (a, dd, b, c)  # A–D & B–C
+            lh_pair = (a, c, b, dd)  # A–C & B–D
+            if _crosses(*rh_pair):
+                d1, d2, d3, d4 = rh_pair
+            elif _crosses(*lh_pair):
+                d1, d2, d3, d4 = lh_pair
+            elif "RH" in ttype:
+                d1, d2, d3, d4 = rh_pair
+            else:
+                d1, d2, d3, d4 = lh_pair
+            d.line([_pt(d1), _pt(d2)], fill=DIVERGE, width=5)
+            d.line([_pt(d3), _pt(d4)], fill=DIVERGE, width=5)
+        else:
+            for leg, lp in (
+                ("TURNOUT_A", a),
+                ("TURNOUT_B", b),
+                ("TURNOUT_C", c),
+                ("TURNOUT_D", dd),
+            ):
+                if lp:
+                    col = THRU if leg in ("TURNOUT_A", "TURNOUT_B") else DIVERGE
+                    d.line([(X(cx), Y(cy)), (X(lp[0]), Y(lp[1]))], fill=col, width=5)
         d.ellipse([X(cx) - 6, Y(cy) - 6, X(cx) + 6, Y(cy) + 6], fill=POINT)
 
     # labels with simple anti-collision (stagger above/below the point)

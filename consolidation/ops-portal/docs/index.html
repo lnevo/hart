@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Official publications — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="pub-title">Official publications</h1>
+      <p class="muted" id="pub-lede"></p>
+    </div>
+    <div class="catalog-grid" id="pub-grid"></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+    function resolve(rel) {
+      if (!rel) return "";
+      if (rel.indexOf("../external/") === 0) {
+        return rel.replace(/^\.\.\//, HARTOps.base() === "../" ? "../../" : "../");
+      }
+      return HARTOps.base() + rel;
+    }
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("docs");
+        var data = await HARTOps.loadJson("data/publications.json");
+        document.getElementById("pub-title").textContent = data.title || "Publications";
+        document.getElementById("pub-lede").textContent = data.lede || "";
+        document.getElementById("pub-grid").innerHTML = (data.items || [])
+          .map(function (d) {
+            var actions = [];
+            if (d.html) {
+              actions.push(
+                '<a class="btn" href="view.html?doc=' +
+                  encodeURIComponent(d.id) +
+                  '">Browse</a>'
+              );
+            }
+            if (d.pdf) {
+              actions.push('<a class="btn btn-ghost" href="' + esc(encodeURI(resolve(d.pdf))) + '">PDF</a>');
+            }
+            if (d.source) {
+              actions.push(
+                '<a class="btn btn-ghost" href="' + esc(encodeURI(resolve(d.source))) + '">Source</a>'
+              );
+            }
+            return (
+              '<article class="catalog-card"><p class="kind">' +
+              esc(d.kind) +
+              "</p><h2>" +
+              esc(d.title) +
+              "</h2><p>" +
+              esc(d.blurb) +
+              '</p><div class="actions">' +
+              actions.join("") +
+              "</div></article>"
+            );
+          })
+          .join("");
+      } catch (err) {
+        console.error(err);
+        document.getElementById("pub-lede").textContent =
+          "Could not load publications. Serve over HTTP (scripts/serve_portal.sh).";
+      }
+    });
+  </script>
+</body>
+</html>

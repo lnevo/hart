@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADR-consolidation-sor — HART Consolidation</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="../index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="../index.html">Home</a>
+  <a href="../objective.html">Objective</a>
+  <a href="../decisions.html">Decisions recorded</a>
+  <a href="../next-round.html">Next round</a>
+  <a href="../live-sources.html">Live sources</a>
+  <a href="../manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="../pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="../pipelines/02-public-names.html">Public names</a>
+  <a href="../pipelines/tables-merge.html">Tables merge (D3)</a>
+  <a href="../pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="../projects/cats-integration.html">CATS integration</a>
+  <a href="../pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="../pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="../pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="../pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="../pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="../cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="../pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="../pipelines/08-wiring.html">Wiring docs</a>
+  <a href="../pipelines/12-car-cards.html">Car cards</a>
+  <a href="../pipelines/14-sts.html">STS</a>
+  <a href="../pipelines/15-publications.html">Publications</a>
+  <a href="../pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Reference archive</h4>
+  <a href="../cutover/index.html">Cutover manifests (future)</a>
+  <a href="../sor-central.html">Central SoR index</a>
+  <a href="../audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="../archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="../archive/index.html">Archive taxonomy A–F</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="../review/device-map.html"><strong>Device Map (D2)</strong></a>
+  <a href="../review/industry-matrix.html">Industry matrix</a>
+  <a href="../audits/index.html">Audits</a>
+  <a href="../backlog.html">Backlog</a>
+  <a href="../repos.html">Repos &amp; submodules</a>
+  <a href="../decisions/index.html">ADR index</a>
+  <a href="../validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>ADR — Consolidation source of record</h1>
+
+<p><strong>Status:</strong> Accepted (consolidation) · 2026-08-31  </p>
+<p><strong>Locks:</strong> D2, D4 · <a href="../../DECISIONS_RECORDED.md"><code>DECISIONS_RECORDED.md</code></a></p>
+
+<h2>Principle</h2>
+
+<p>One canonical file per <strong>fact type</strong>. Generators read SoR; humans do not hand-edit generated XML/XLSX.</p>
+
+<h2>Live vs consolidation</h2>
+
+<table>
+<tr><td>Fact type</td><td>Live SoR (read-only)</td><td>Consolidation draft</td></tr>
+<tr><td>Public identity map</td><td>`jmri/layouts/hart/data/public_name_map.csv`</td><td>`sor/names/public_name_map_merged.csv` (D2b)</td></tr>
+<tr><td>Legacy name index</td><td>`block_display_names.csv`</td><td>retire on promotion (D2a)</td></tr>
+<tr><td>Writable tables</td><td>`tables/new_tables.xml`</td><td>documented chain only</td></tr>
+<tr><td>Deploy bundle</td><td>`jmri/layouts/hart/output/tables.xml`</td><td>never hand-edit</td></tr>
+<tr><td>Digicon wiring</td><td>`cats/data/signal_wiring.csv`</td><td>`sor/wiring/packed_id_crosswalk.csv`</td></tr>
+<tr><td>Wiring pack</td><td>`docs/wiring/` (git)</td><td>`sor/wiring/` snapshots</td></tr>
+<tr><td>CATS live desk</td><td>`cats/panels/HART_Master_*_hold.xml`</td><td>regenerate via scripts only</td></tr>
+<tr><td>Desktop ops</td><td>`~/Desktop/HART/` subtrees</td><td>`sor/desktop/hart_root_inventory.csv`</td></tr>
+</table>
+
+<h2>Bench copies (not SoR)</h2>
+
+<table>
+<tr><td>Path</td><td>Role</td></tr>
+<tr><td>`~/Desktop/HART/Wiring Documentation/`</td><td>export mirror (D4)</td></tr>
+<tr><td>`~/Desktop/HART/Car Cards/`</td><td>Tier C ops — future `hart-ops` (P3 pending)</td></tr>
+<tr><td>`~/Desktop/HART/Industries/`</td><td>Tier C matrix</td></tr>
+</table>
+
+<p>Detail: <a href="../../audits/desktop-inventory.md"><code>audits/desktop-inventory.md</code></a></p>
+  </main>
+</body>
+</html>

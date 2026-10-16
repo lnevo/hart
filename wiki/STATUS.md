@@ -1,10 +1,95 @@
 # Live status — HART Digicon
 
+Updated: 2026-09-28 — CTC Switch #1 in column 2 now carries layout Switch 1 (code button, lever, OS, Mast 2L). Switch #3 in column 3 carries layout Switch 3. They had been crossed. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
+
+Updated: 2026-09-28 — CTC editor fields now store sensor display names (`CTC 3 sig code`, not `IS2:CB`). A system-name value did not match the combo list, so the editor showed the first sensor, `BS Barn`. Patterns stay `IS#:…`. Reload **PanelPro** before opening the CTC editor. Deploy `--all`.
+
+Updated: 2026-09-28 — Masts are stock **basic-enhanced** (`two-searchlight-high` / `one-searchlight-low`). Flashing aspects are disabled on each mast, so a signal whose next aspect is Approach shows Stop. Panel icons are the `discriminated` AAR searchlights (LE scale 1.0, USS two-head scale 0.5). Reload **PanelPro** and **CATS**. Deploy `--all`.
+
+Updated: 2026-09-28 — CTC code buttons now have OS occupancy sensors (every plant, including the three crossovers' second sensor). C&O-1980 aspect mappings and Layout Editor icons are stock Chessie again; LE scale is 0.57 (`CO-33-hi`) and 0.68 (`CO-3-dwarf`). USS `ctc` / `ctc-w` imagelinks stay. Basic is not selected. Reload **PanelPro**. Deploy `--all`.
+
+Updated: 2026-09-10 — South Yard station map: **Scale** / **Barn** (not West Lead); Switch **13** on the Scale throat; EH plant without 9/11 spots; ladder **15 / 17 / 19 / 21**; Switch **7** xover. Rebuild `python3 cats/scripts/render_south_yard_station_map.py`. Docs/static — not deployed.
+
+Updated: 2026-09-09 — Barn station map (SM-06): Switch **7 / 9 / 11 / 13** from Layout Editor topography, East End **111**-style three-dot xover, one slope for every diverge. `cats/docs/station_maps/Neville_Island_Station_Map_Barn_0.png` · hart-ops `Neville_Island_Station_Map_Barn.docx`. Rebuild `python3 cats/scripts/render_barn_station_map.py`. Docs/static — not deployed.
+
+Updated: 2026-09-08 — Operator portal is on GitHub Pages: https://lnevo.github.io/hart/ (static crew site from `consolidation/ops-portal/`; F-root review and Desktop/HART gallery files stay local). Docs/static — not deployed to layout hosts.
+
+Updated: 2026-09-08 — Barn/EH motors: Switch **7 / 11** (and **13** on C4) are **TWOSENSOR** with MQTT FB. Switch **7 / 9 / 11** motors on **C13-OU2** (was OU3); Digicon **8LA / 8LB** moved to **OU3**. Tables from Pi store → `tables/new_tables.xml`. Wiring inventory + [`lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx) refreshed. Reload **PanelPro**. Deploy `--pi`.
+
+Updated: 2026-09-05 — Digicon wiring docs match field pin order: consecutive LCOS ports are **Stop → Approach → Clear** (R/Y/G). Old docs had Stop/Clear reversed. LCOS Signal Manager settings (Main/Diverged + OR Stop/Approach) are in [`cats/data/lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx). Docs-only, not deployed.
+
+Updated: 2026-09-04 — Dispatcher occupancy jewels still said `sensor="Block 1-1"` after occupancy userNames became `BS …`. JMRI MQTT then auto-created `M2SBlock 1-1` (space in the system name) on PanelPro load. Jewels now bind to the real BS sensors. Delete any leftover `M2SBlock *` rows in the Sensor table and do not Store them. Reload **PanelPro**. Deploy `--all`.
+
+Updated: 2026-09-03 — C&O overlay aspectMappings restore the hart-aar 3-aspect collapse on a Normal main (dest Restricting / Medium Clear / Slow Clear can grant Clear G/R). Stock Chessie dest-Restricting→Approach was why a lined empty main stayed Y/R and R/Y. Dest Stop still Approach. **Signals** (SML Enabled) must be on — Digicon dests boot Disabled. Reload **PanelPro**. Deploy `--all`.
+
+Updated: 2026-09-03 — Layout Editor C&O icons were the 12×70 Chessie color-light drawings (overlapped track + looked like every virtual mast painted). Overlay `default` imagelinks now use AAR-1946 searchlight GIFs (12×40 / 12×17), same size as hart-aar. Folded Pi nudges for **38LB / 40LB / OS Switch 35a**. Dropped extra occupancy dots Dispatcher stacked on shared sensors (S-1…S-4, S-R, Switch 37/39). Virtuals stay `hidden="yes"`. Reload **PanelPro**. Deploy `--all`.
+
+Updated: 2026-09-03 — Digicon SHSM retargeted to stock **C&O-1980**: homes `CO-33-hi`, dwarfs and dispatcher virtuals `CO-3-dwarf`. User names and IH bindings unchanged; SML pairs kept. USS CTC GIFs added for Approach Medium / Approach Slow / Restricting. Custom `hart-aar` is unused. Reload **PanelPro** / **CATS**. Deploy `--all`. See [ADR-006](decisions/ADR-006-co-1980-signals.md).
+
+Updated: 2026-09-01 — Block-value labels stay visible: deploy runs `polish_hart_layout_editor --block-labels-only`, Mac profiles get `tables.xml`, and `sync_layout_button` lifts buried BlockContentsIcons to **level 4** at boot (Stage 1 Store resets them to 0). Reload **PanelPro**. Deploy `--all`.
+
+Updated: 2026-09-01 — **Track Scale** block boundary: anchor **A45** moved east to **Mast 8RA** (x=445) so `T1` covers the scale track through 8LC; **OS Switch 7** `T3` now starts at 8RA (was ending at 6LA). Track Power lamp click uses **500 ms** amber hold like Turnouts. Reload **PanelPro**. Deploy `--all`.
+
+# Panel status lamps (HART Railroad lower left): **LCOS** (`M2S1567`), **Turnouts** (`IH9990`), **Signals** (`IS:SML_MODE`), **Track Power** (`IS:TRACK_POWER` / LCC PowerManager). Startup script renamed `sync_turnout_buttons` → **`sync_layout_button.py`** (`patch_jmri_startup` retargets retired basenames). Reload **PanelPro** / **CATS**. Deploy `--all`.
+
+Updated: 2026-09-01 — Stage 1 Store had buried LE block-value labels at **level 0** again (tracks are 3). Restored **level 4**; Stage 1 launcher now re-lifts them; audit fails if they drop. Reload **PanelPro**. Deploy `--pi`.
+
+Updated: 2026-09-01 — Stock Stage 1 after EH-exit virtuals: **45 masts / 103 sections / 746 transits / 1548 HEAD_AND_TAIL traininfo**. Hidden **Mast 11L / 9LA / 9LB** on Switch 11/9 so Engine House can leave for S-1/S-4/S-R (was get_first picking 32L). Full 22×21 station matrix; PanelPro smoke **PASS**. Princess manuals 36RA→40LA and 36RB→38LA re-added. Reload **PanelPro**. Deploy `--pi`.
+
+Updated: 2026-09-01 — Stock Stage 1 on the Mac: **42 masts / 82 sections / 721 transits / 1530 HEAD_AND_TAIL traininfo**. No CreateTransits/JMRI patches. Scale/Switch 7 is A45 8LC west + 8RA east; hidden **Mast 13R** on TO1 B so Discover does not jump 8RA→26L. Reload **PanelPro**. Deploy `--pi`.
+
+Updated: 2026-08-31 — Dropped Start Up `prepare_nx_sml_paths.py` (NX auto-turnouts are runtime-only; not stored in tables). 39 pairs / frozen `ISNX:*` stay in `tables.xml`. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Operator portal device browser: Digicon CATS is the default map; LE schematic is a toggle. Fixed RH/LH_XOVER drawing so SW-7 / SW-23 / SW-35 render as proper crossover diamonds (no more star-from-center). Docs/static — not deployed.
+
+
+Updated: 2026-08-31 — Operator portal content pass: bigger industry logos; photos expanded from Desktop/HART + DJ Trains (rolling stock split out); Articles + Official Publications; Layout page hosts current Digicon/classic CTC/Neville Island LE panels (LE map kept for MQTT lookup — SW-7/23/35 crossover caveat). Serve `./consolidation/ops-portal/scripts/serve_portal.sh` → http://127.0.0.1:8760/ops-portal/. Docs/static — not deployed.
+
+Updated: 2026-08-31 — Operator portal live QA: removed Sessions nav (invites are author reference only); fixed hero image, layout explorer paint (60 hotspots), gallery (168 captioned items), briefing/about JSON loads. **Must serve over HTTP** — `./consolidation/ops-portal/scripts/serve_portal.sh` → http://127.0.0.1:8760/ops-portal/. Docs/static — not deployed.
+
+Updated: 2026-08-31 — Operator portal rebuilt around Neville Island storytelling: new-operator briefing (HB-01), industries with logos, captioned photo gallery, HART narrative. Pipeline/reference demoted. Serve via `ops-portal/scripts/serve_portal.sh`. Docs/static — not deployed.
+
+Updated: 2026-08-31 — Right Track S-R yard-ladder lamp (`IT:HART:YL:R1`) lights only when Switch 31 and Switch 33 are both CLOSED (was Switch 31 alone, so it stayed lit with SW-33 thrown). Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — LE destination labels: **McKees Rocks, PA →** and **McKeesport, PA →** (dropped leading `Track`). Block bean names unchanged. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Yard-ladder lamps no longer fire the ladder Routes. `newKnownState(THROWN)` on `IT:HART:YL:*` was `setCommandedState` on MQTT plants (`track/cmd/turnout`) and lined canned S-R because JMRI defaults CLOSED. Routes are disabled while painting; match is FB-only. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Ops portal Tools: Mimic → `http://localhost:8765/`, JMRI web → `http://localhost:12080/` (STS still Pi). Digicon publisher retries PanelPro **SML Enabled/Disabled** button attach (LE Signals lamp was additive; main-window button was never intentionally removed). Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Yard ladder boot no longer paints MQTT turnout retain (that was moving points). `sync_turnout_buttons` only fills UNKNOWN `M2S*` from broker retain (`setOwnState`) and lights `IT:HART:YL:*` via `newKnownState`. Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Operator portal v1 at `consolidation/ops-portal/` (layout browse, roster, guides, maps, tools) sourced only from consolidation SoR/mirrors; linked from consolidation home + START_HERE. Open `consolidation/ops-portal/index.html`. Docs/static — not deployed.
+
+Updated: 2026-08-31 — Yard ladder boot: `sync_turnout_buttons` now reloads MQTT retain (sensors + turnouts) at arm, and lights the matching YL icons via `newKnownState(THROWN)` (it only closed inactive lamps before, so S-R etc. never lit). Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — LE switch labels format **`SW-N`** (was `Sw N`); **SW-11** nudged left (x 610→570). Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — `sync_turnout_buttons` no longer waits ~60s on Layout Editor (`LE=False` spam); arms ladder/lamp when watch turnouts exist (~1s), retries clicks quietly. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Turnouts lamp bean renamed `IH:TURNOUT_FB` → **`IH9990`** (colon name left icon as `?`); paint early + rebind; dark/held icons no longer s-unknown. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Status lamp clicks (sync_turnout_buttons): **Turnouts** toggles TWOSENSOR↔DIRECT on 2-sensor M2T/MTT; **Signals** toggles Digicon SML (same as main-window button); **LCOS** publishes `track/bridge/cmd` RESUBSCRIBE (not FORCE). Icons `forcecontroloff=true`. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Turnouts lamp / yard ladder: Profile Start Up still pointed at retired `sync_yard_ladder_buttons.py` after the rename (lamp stayed `?`; ladder never armed). `patch_jmri_startup` now renames that entry → `sync_turnout_buttons.py`; script waits for Layout Editor + watch turnouts (5s then 2s retries) and creates `IH:TURNOUT_FB` if missing. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-31 — Panel status lamps (HART Railroad lower left): **LCOS** (`M2S1567` / `track/sensor/1567` from Windows bridge HBLOOP), **Turnouts** (`IH:TURNOUT_FB` via `sync_turnout_buttons.py`, 2-sensor M2T/MTT only), **Signals** (`IS:SML_MODE` from Digicon publisher). Renamed `sync_yard_ladder_buttons` → `sync_turnout_buttons`. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
+
+Updated: 2026-08-30 — Restored all 20 OpenLCB turnout aliases **MTT100–MTT119** (`DCC Switch N` from the device map, same FB/DIRECT sensors as the MQTT plant, comment omits DCC). Audit `--strict` fails if any MQTT DCC turnout lacks its MTT twin. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-30 — Layout Editor BlockContentsIcons sit at **level 4** (tracks are 3) with Dialog/black text. Live tables had them at level 0 behind the panel so 2091 on Track West Main Ext never painted. Reload **PanelPro**. Deploy `--pi --win`.
+
+Updated: 2026-08-30 — Wiki: [`WAITING_ON_HUMAN.md`](WAITING_ON_HUMAN.md) is empty (Gate 1 Brick / Switch 100 steps retired). Node 13 occupancy walk-down closed — 1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT swap is the live map. Docs-only, not deployed.
+
+Updated: 2026-08-30 — Digicon publisher: no `HEAD_NAMES`; plants = LCOS `IH*` masts in tables; SET/Unheld only after `track/signalmast` enroll (bridge required). Reload **PanelPro** / **CATS**. Deploy `--pi --win`.
+
+Updated: 2026-08-30 — Pipeline inventory is [`wiki/pipelines/README.md`](pipelines/README.md) (16 flows; NextTrain not listed). Docs-only, not deployed.
+
 Updated: 2026-08-29 — Digicon Hold stays **3s**; JMRI `sml_mode` chatter is **1s**. ACK `query`/`disabling` while owning or taking Digicon (Hold included). Bridge query/disabling **1s**, boot-abort watch **5s**. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — TODO: revisit USB serial ACK/pacing (turnout 0.35s, signalhead 50ms).
 
-Updated: 2026-08-29 — MQTT SET/Unheld roster is live from retained `track/signalmast/<packed>` (UID 32–47, IH bean present). Empty at boot; 432/433 enroll from broker retain. SML Enable still uses `HEAD_NAMES`. Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
+Updated: 2026-08-29 — MQTT SET/Unheld roster is live from retained `track/signalmast/<packed>` (UID 32–47, IH bean present). Empty at boot; Digicon plants from LCOS IH masts in tables (no `HEAD_NAMES`). Reload **PanelPro** / **CATS**. Restart Windows bridge. Deploy `--pi --win`.
 
 Updated: 2026-08-29 — JMRI comments: turnout `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC omits DCC); occupancy `Node: 4 Block: 1`; feedback `Sensor: N`; heads `Signal: N` from wiring. Reload **PanelPro**. Deploy `--pi --win`.
 
@@ -464,7 +549,8 @@ Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.
 ## Remaining
 
 - Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
-- Dispatcher traininfo ordered-route smoke (422 files) — Stage 1 re-run, then `fix_traininfo_detection.py`
+- Cursor skills + MCPs inventory, parked for review ([`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)) — not railroad work; do not build until reviewed
+- Dispatcher traininfo: 1004 files retargeted `via Track N` → `via OS Switch N`. Fable repair rebound 226; **196 pairs still have no transit** (EH-1/2/3 and McKeesport/McKees Rocks). Stage 1 in PanelPro is only for those holes — then `fix_traininfo_detection.py` + Princess SML pairs.
 
 ## Manual launch (local Mac only)
 

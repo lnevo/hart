@@ -1,19 +1,21 @@
 # Panel workspace — context for AI assistants
 
-This document explains what this repository is for, how the two pipelines connect, and what was established in recent work (especially **linear4** — including the **production MQTT panel** rolled out May 2026 — and the **NextTrain dispatcher** Google Sheets flow). Read this before making layout or dispatcher changes.
+**Live pipeline inventory (16 flows, NextTrain not listed):** [`wiki/pipelines/README.md`](../wiki/pipelines/README.md).
+
+This document is still the landmine list for **linear4** AnyRail geometry and the **abandoned** NextTrain Google Sheets flow. hart does not re-run either. Read [`wiki/home.md`](../wiki/home.md) first.
 
 ---
 
 ## What this project is
 
-**Panel** is a workspace for a model railroad JMRI layout and a **NextTrain dispatcher** web app. Two pipelines share geometry but use different outputs:
+**Panel** is a workspace for a model railroad JMRI layout. Historically two pipelines shared geometry:
 
 | Pipeline | Folder | Output | Consumer |
 |----------|--------|--------|----------|
 | **1. JMRI panel** | `jmri/` | Blocked panel (`*_blocked.xml`); linear4 also **`linear4_prod.xml`** (MQTT + LogixNG) | JMRI Layout Editor |
-| **2. Dispatcher schematic** | `dispatcher/` + per-layout `jmri/layouts/<name>/dispatcher/` | `NextTrainDispatcherApp.xlsx` → Google Sheets | `NextTrainDispatcherApp/` (Next.js) |
+| **2. Dispatcher schematic (abandoned for hart)** | `dispatcher/` + per-layout `jmri/layouts/<name>/dispatcher/` | `NextTrainDispatcherApp.xlsx` → Google Sheets | `NextTrainDispatcherApp/` (Next.js) |
 
-**Flow:** AnyRail export → prepare (optional) → blocks Excel → apply blocks → JMRI panel → export coordinates → local xlsx → **push to Google Sheets** → app reads live sheet.
+**linear4 flow:** AnyRail export → prepare (optional) → blocks Excel → apply blocks → JMRI panel → export coordinates → local xlsx → **push to Google Sheets** → app reads live sheet.
 
 ---
 
@@ -79,6 +81,7 @@ Registered layouts in `layout_paths.py`: `mac`, `linear3`, `linear4`, `linear5`,
 - **`use-panel-layout`** when applying blocks: track geometry from AnyRail export; styles/defaults from `mac_jmri2.xml`; **no** mac-only hidden segments or labels copied onto the new line.
 - **Mainline flag on new trackwork** — JMRI `<tracksegment mainline="yes">` uses `mainlinetrackwidth` (4px); `mainline="no"` uses `sidetrackwidth` (2px). Track drawn in Layout Editor defaults to **not** mainline. Engine-terminal sidings `T1`/`T3`/`T4`/`T6`/`T7`/`T9`–`T13` are intentionally **mainline=no**; `T5`/`T8` stay yes. `process_linear5_new_panel.py` preserves that split — do not blanket-force all yard idents to yes.
 - **Do not remove `F30-S-0`** — it connects F51-S-0 and F26-S-0 via anchors (see `jmri/layouts/linear3/docs/F30_connectivity_investigation.md`). Same topology in linear4.
+- **Dispatcher System is stock.** Do not monkey-patch `CreateTransits` / `CreateIcons` / `Startup.py`. If Stage 1 or Discover fails, fix `tables/new_tables.xml` (mast bindings, block boundaries). Never invent **Mast 26L → Mast 8RA**.
 
 ### Standard linear4 commands
 

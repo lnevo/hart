@@ -630,7 +630,7 @@ GREEN_JEWEL = """<sensoricon sensor="IS{uid}:{kind}" x="{x}" y="454" level="10" 
       <iconmaps />
     </sensoricon>"""
 
-MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>{name}</tooltip>
     </signalmasticon>"""
 
@@ -939,7 +939,7 @@ def build_block(cells: dict) -> str:
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,
-                imageset="ctc-w" if facing == "W" else "ctc"))
+                imageset="discriminated"))
         else:
             parts.append(HEAD.format(
                 name=name, head=head, x=x, y=y,

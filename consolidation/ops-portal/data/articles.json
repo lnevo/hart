@@ -1,0 +1,55 @@
+{
+  "title": "Articles",
+  "lede": "Prototype history of the Pittsburgh & Ohio Valley, Pittsburgh Coke & Chemical, the rest of the POHC line, and the railroads of the Chartiers Valley.",
+  "items": [
+    {
+      "id": "pittsburgh-ohio-valley",
+      "title": "Pittsburgh & Ohio Valley Railway",
+      "kind": "Prototype history",
+      "href": "library/pittsburgh-ohio-valley-railway.html",
+      "blurb": "The steel-plant railroad HART succeeds, 1899–1994: what each job did, track names, typical moves, and locomotives, linked to the original posts and photos."
+    },
+    {
+      "id": "voices-of-the-pov",
+      "title": "Voices of the P&OV",
+      "kind": "Crew stories",
+      "href": "library/voices-of-the-pov.html",
+      "blurb": "The crews, trainmasters, and clerks of the P&OV in Mark Connolly's words: sayings, yard-office life, Local 150, and the people remembered."
+    },
+    {
+      "id": "neville-industry-history",
+      "title": "Neville Island coke, cement, and chemical history",
+      "kind": "Prototype history",
+      "href": "library/neville-island-coke-cement-chemical-history.html",
+      "blurb": "American Steel & Wire through Davison, PC&C, Shenango, Calgon, Kosmos, and Aristech — pig iron to about 1990–91, coke to 2016."
+    },
+    {
+      "id": "pohc-line-industries",
+      "title": "POHC line industries, McKees Rocks to Washington",
+      "kind": "Prototype history",
+      "href": "library/pohc-line-industries.html",
+      "blurb": "Pressed Steel Car, Kirwan Heights, Canonsburg pottery and transformers, Washington Steel, and the other plants along Chartiers Creek."
+    },
+    {
+      "id": "chartiers-valley-railroads",
+      "title": "Railroads of the Chartiers Valley",
+      "kind": "Prototype history",
+      "href": "library/chartiers-valley-railroads.html",
+      "blurb": "Chartiers Branch and PC&Y as two different railroads, then PIR and POHC, plus the Class I connections around McKees Rocks and Duff Junction."
+    },
+    {
+      "id": "pcc-pig-iron-1951",
+      "title": "Pittsburgh Coke & Chemical doubles pig iron (1951)",
+      "kind": "Clipping",
+      "href": "library/pcc-pig-iron-1951.html",
+      "blurb": "New York Times financial page, 6 July 1951: rights offering to raise Neville Island pig iron from 300,000 to 600,000 net tons a year."
+    },
+    {
+      "id": "sts-ops",
+      "title": "STS operations article",
+      "kind": "Article",
+      "href": "library/sts-operations-article.html",
+      "blurb": "How HART uses STS for car forwarding and operations."
+    }
+  ]
+}

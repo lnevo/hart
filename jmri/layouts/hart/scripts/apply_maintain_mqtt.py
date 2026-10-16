@@ -6,7 +6,7 @@
 # Uses mosquitto_sub (broker pushes retained messages on subscribe).
 # This script must NEVER publish to MQTT.
 #
-#   track/turnout/{addr}  CLOSED | THROWN  -> M2T{addr}  (newKnownState)
+#   track/turnout/{addr}  — ignored as a command; TWOSENSOR KnownState from FB only
 #   track/sensor/{addr}   ACTIVE | INACTIVE -> M2S{addr} (setOwnState)
 #
 # Sensors: applied immediately (setOwnState — JMRI-only, no Digicon PTS race).
@@ -18,6 +18,7 @@
 # so frogs pick up JMRI known state without a manual menu click.
 #
 # TWOSENSOR turnouts: setInitialKnownStateFromFeedback() in the deferred pass.
+# Do not newKnownState MQTT plants — that can publish track/cmd/turnout.
 #
 # Preferences -> Start Up -> Script file (after tables.xml).
 
@@ -120,21 +121,13 @@ def _mqtt_host():
     return _candidate_hosts()[0]
 
 
-def _retained(host):
+def _retained(host, include_turnouts=True):
     """Return list of (topic, payload) from broker retain. Read-only."""
     exe = _mosquitto_sub()
-    cmd = [
-        exe,
-        "-h",
-        host,
-        "-t",
-        "track/turnout/#",
-        "-t",
-        "track/sensor/#",
-        "-v",
-        "-W",
-        WAIT_SECS,
-    ]
+    cmd = [exe, "-h", host, "-t", "track/sensor/#"]
+    if include_turnouts:
+        cmd.extend(["-t", "track/turnout/#"])
+    cmd.extend(["-v", "-W", WAIT_SECS])
     # Hard cap so a stuck mosquitto_sub cannot freeze Digicon main init.
     # Jython 2.7: no communicate(timeout=) — use a watcher thread + kill.
     try:
@@ -220,29 +213,43 @@ def _is_twosensor(t):
 
 
 def _apply_turnout(addr, payload):
+    """Paint KnownState from FB only. Never newKnownState on MQTT plants.
+
+    newKnownState / setCommandedState on M2T* publishes track/cmd/turnout.
+    """
     name = "M2T" + str(addr)
-    t = turnouts.provideTurnout(name)
+    t = turnouts.getTurnout(name)
+    if t is None:
+        return
     if _is_twosensor(t):
         try:
             t.setInitialKnownStateFromFeedback()
         except Exception:
             pass
-        return
-    p = payload.upper()
-    if p == "THROWN":
-        t.newKnownState(Turnout.THROWN)
-    elif p == "CLOSED":
-        t.newKnownState(Turnout.CLOSED)
 
 
-def _apply_sensor(addr, payload):
+def _sensor_needs_retain(s):
+    """True when JMRI has not yet taken a live MQTT sensor value."""
+    try:
+        st = s.getKnownState()
+        return st not in (Sensor.ACTIVE, Sensor.INACTIVE)
+    except Exception:
+        return True
+
+
+def _apply_sensor(addr, payload, unknown_only=False):
     name = "M2S" + str(addr)
     s = sensors.provideSensor(name)
+    if unknown_only and not _sensor_needs_retain(s):
+        return False
     p = payload.upper()
     if p == "ACTIVE":
         s.setOwnState(Sensor.ACTIVE)
-    elif p == "INACTIVE":
+        return True
+    if p == "INACTIVE":
         s.setOwnState(Sensor.INACTIVE)
+        return True
+    return False
 
 
 def _turnout_delay_ms():
@@ -385,35 +392,71 @@ def _schedule_turnout_paint(turnout_rows, delay_ms):
         _paint_turnouts(turnout_rows)
 
 
-# Brief settle so MQTT connection / tables are present.
-try:
-    time.sleep(0.5)
-except Exception:
-    pass
+def reload_mqtt_retain(
+    turnout_delay_ms=None,
+    settle_secs=0.5,
+    log_prefix=None,
+    paint_turnouts=True,
+    unknown_sensors_only=False,
+):
+    """Read broker retain; paint sensors now; optionally schedule/paint turnouts.
 
-host = _mqtt_host()
-print("apply_maintain_mqtt: host=" + _ascii(host) + " exe=" + _ascii(_mosquitto_sub()))
+    Returns (sensor_count, turnout_queued). Start Up paints both. Yard-ladder
+    boot must pass paint_turnouts=False so this never touches plant turnouts.
 
-retained = _retained(host)
-turnout_rows = []
-n_s = 0
-for topic, payload in retained:
-    parts = topic.split("/")
-    if len(parts) != 3 or parts[0] != "track":
-        continue
-    kind, addr_s = parts[1], parts[2]
-    if not addr_s.isdigit():
-        continue
-    addr = int(addr_s)
-    if kind == "sensor":
-        _apply_sensor(addr, payload)
-        n_s += 1
-    elif kind == "turnout":
-        turnout_rows.append((addr, payload))
+    turnout_delay_ms: None → HART_TURNOUT_RETAIN_DELAY_MS / default 12000;
+    0 → paint turnouts immediately (use only when Digicon PTS is already up).
+    unknown_sensors_only: only setOwnState when the bean is still UNKNOWN.
+    """
+    prefix = log_prefix or "apply_maintain_mqtt"
+    if settle_secs and settle_secs > 0:
+        try:
+            time.sleep(settle_secs)
+        except Exception:
+            pass
 
-print(
-    "apply_maintain_mqtt: sensors=%d turnouts_queued=%d"
-    % (n_s, len(turnout_rows))
-)
+    host = _mqtt_host()
+    print(
+        "%s: host=%s exe=%s"
+        % (prefix, _ascii(host), _ascii(_mosquitto_sub()))
+    )
 
-_schedule_turnout_paint(turnout_rows, _turnout_delay_ms())
+    retained = _retained(host, include_turnouts=paint_turnouts)
+    turnout_rows = []
+    n_s = 0
+    for topic, payload in retained:
+        parts = topic.split("/")
+        if len(parts) != 3 or parts[0] != "track":
+            continue
+        kind, addr_s = parts[1], parts[2]
+        if not addr_s.isdigit():
+            continue
+        addr = int(addr_s)
+        if kind == "sensor":
+            try:
+                if _apply_sensor(addr, payload, unknown_only=unknown_sensors_only):
+                    n_s += 1
+            except Exception as e:
+                print(
+                    "%s: sensor M2S%s failed: %s"
+                    % (prefix, addr, _ascii(e))
+                )
+        elif paint_turnouts and kind == "turnout":
+            turnout_rows.append((addr, payload))
+
+    print(
+        "%s: sensors=%d turnouts_queued=%d"
+        % (prefix, n_s, len(turnout_rows) if paint_turnouts else 0)
+    )
+
+    if not paint_turnouts:
+        return n_s, 0
+
+    delay = _turnout_delay_ms() if turnout_delay_ms is None else max(0, int(turnout_delay_ms))
+    _schedule_turnout_paint(turnout_rows, delay)
+    return n_s, len(turnout_rows)
+
+
+# Start Up entry point. Importers set _HART_MQTT_RETAIN_AS_LIBRARY first.
+if not globals().get("_HART_MQTT_RETAIN_AS_LIBRARY"):
+    reload_mqtt_retain()

@@ -4,7 +4,10 @@
 Eight Master 4 yard plants (Switches 9, 11, 17, 19, 21, 25, 27, 29) already have
 LOCKTOGGLE icons on the 20-column board. They were never given switch levers, so
 the field can still throw them while the dispatcher has no N/R handle. This
-module inserts the missing CTC internals + code-button data.
+module inserts the missing CTC internals + code-button data. Code-button sensor
+fields store the sensor display name (the user name). The CTC editor combo
+boxes only list display names; a system name such as IS32:CB does not match
+and the box falls back to the first sensor.
 
 Safe to re-run.
 """
@@ -16,6 +19,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# Turnout userName → OS occupancy sensor. Single-sensor plants only.
+OS_SENSOR = {
+    "Switch 9": "BS Switch 9",
+    "Switch 11": "BS Switch 11",
+    "Switch 17": "BS Switch 17",
+    "Switch 19": "BS Switch 19",
+    "Switch 21": "BS Switch 21",
+    "Switch 25": "BS Switch 25",
+    "Switch 27": "BS Switch 27",
+    "Switch 29": "BS Switch 29",
+}
 
 # slot, SwitchNumber (IS odd), SignalEtcNumber (existing LOCKTOGGLE), UniqueID, GUIColumn, turnout
 NEW_COLUMNS = (
@@ -47,28 +62,28 @@ COLUMN_XML = """    <ctcCodeButtonData>
       <SwitchNumber>{sw}</SwitchNumber>
       <SignalEtcNumber>{sig}</SignalEtcNumber>
       <GUIColumnNumber>{col}</GUIColumnNumber>
-      <CodeButtonInternalSensor>IS{sig}:CB</CodeButtonInternalSensor>
-      <OSSectionOccupiedExternalSensor />
+      <CodeButtonInternalSensor>{cb}</CodeButtonInternalSensor>
+      <OSSectionOccupiedExternalSensor>{os}</OSSectionOccupiedExternalSensor>
       <OSSectionOccupiedExternalSensor2 />
       <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
       <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
       <CodeButtonDelayTime>0</CodeButtonDelayTime>
       <SIDI_Enabled>false</SIDI_Enabled>
-      <SIDI_LeftInternalSensor>IS{sig}:LDGK</SIDI_LeftInternalSensor>
-      <SIDI_NormalInternalSensor>IS{sig}:NGK</SIDI_NormalInternalSensor>
-      <SIDI_RightInternalSensor>IS{sig}:RDGK</SIDI_RightInternalSensor>
+      <SIDI_LeftInternalSensor>{sidi_l}</SIDI_LeftInternalSensor>
+      <SIDI_NormalInternalSensor>{sidi_n}</SIDI_NormalInternalSensor>
+      <SIDI_RightInternalSensor>{sidi_r}</SIDI_RightInternalSensor>
       <SIDI_CodingTimeInMilliseconds>2000</SIDI_CodingTimeInMilliseconds>
       <SIDI_TimeLockingTimeInMilliseconds>3000</SIDI_TimeLockingTimeInMilliseconds>
       <SIDI_TrafficDirection>RIGHT</SIDI_TrafficDirection>
       <SIDI_LeftRightTrafficSignals />
       <SIDI_RightLeftTrafficSignals />
       <SIDL_Enabled>false</SIDL_Enabled>
-      <SIDL_LeftInternalSensor>IS{sig}:LDGL</SIDL_LeftInternalSensor>
-      <SIDL_NormalInternalSensor>IS{sig}:NGL</SIDL_NormalInternalSensor>
-      <SIDL_RightInternalSensor>IS{sig}:RDGL</SIDL_RightInternalSensor>
+      <SIDL_LeftInternalSensor>{sidl_l}</SIDL_LeftInternalSensor>
+      <SIDL_NormalInternalSensor>{sidl_n}</SIDL_NormalInternalSensor>
+      <SIDL_RightInternalSensor>{sidl_r}</SIDL_RightInternalSensor>
       <SWDI_Enabled>true</SWDI_Enabled>
-      <SWDI_NormalInternalSensor>IS{sw}:SWNI</SWDI_NormalInternalSensor>
-      <SWDI_ReversedInternalSensor>IS{sw}:SWRI</SWDI_ReversedInternalSensor>
+      <SWDI_NormalInternalSensor>{swdi_n}</SWDI_NormalInternalSensor>
+      <SWDI_ReversedInternalSensor>{swdi_r}</SWDI_ReversedInternalSensor>
       <SWDI_ExternalTurnout>{turnout}</SWDI_ExternalTurnout>
       <SWDI_CodingTimeInMilliseconds>2000</SWDI_CodingTimeInMilliseconds>
       <SWDI_FeedbackDifferent>false</SWDI_FeedbackDifferent>
@@ -76,18 +91,18 @@ COLUMN_XML = """    <ctcCodeButtonData>
       <SWDI_GUITurnoutLeftHand>false</SWDI_GUITurnoutLeftHand>
       <SWDI_GUICrossoverLeftHand>false</SWDI_GUICrossoverLeftHand>
       <SWDL_Enabled>true</SWDL_Enabled>
-      <SWDL_InternalSensor>IS{sw}:LEVER</SWDL_InternalSensor>
+      <SWDL_InternalSensor>{swdl}</SWDL_InternalSensor>
       <CO_Enabled>false</CO_Enabled>
-      <CO_CallOnToggleInternalSensor>IS{sig}:CALLON</CO_CallOnToggleInternalSensor>
+      <CO_CallOnToggleInternalSensor>{callon}</CO_CallOnToggleInternalSensor>
       <CO_GroupingsList />
       <TRL_Enabled>false</TRL_Enabled>
       <TRL_LeftRules />
       <TRL_RightRules />
       <TUL_Enabled>true</TUL_Enabled>
-      <TUL_DispatcherInternalSensorLockToggle>IS{sig}:LOCKTOGGLE</TUL_DispatcherInternalSensorLockToggle>
+      <TUL_DispatcherInternalSensorLockToggle>{lock}</TUL_DispatcherInternalSensorLockToggle>
       <TUL_ExternalTurnout>{turnout}</TUL_ExternalTurnout>
       <TUL_ExternalTurnoutFeedbackDifferent>false</TUL_ExternalTurnoutFeedbackDifferent>
-      <TUL_DispatcherInternalSensorUnlockedIndicator>IS{sig}:UNLOCKEDINDICATOR</TUL_DispatcherInternalSensorUnlockedIndicator>
+      <TUL_DispatcherInternalSensorUnlockedIndicator>{unlocked}</TUL_DispatcherInternalSensorUnlockedIndicator>
       <TUL_NoDispatcherControlOfSwitch>false</TUL_NoDispatcherControlOfSwitch>
       <TUL_ndcos_WhenLockedSwitchStateIsClosed>true</TUL_ndcos_WhenLockedSwitchStateIsClosed>
       <TUL_GUI_IconsEnabled>true</TUL_GUI_IconsEnabled>
@@ -152,7 +167,31 @@ def ensure_columns(text: str) -> str:
             text,
         ):
             continue
-        xml = COLUMN_XML.format(uid=uid, sw=sw, sig=sig, col=col, turnout=turnout)
+        def display(number: int, suffix: str) -> str:
+            system = "IS%d:%s" % (number, suffix)
+            return ctc_user_name(system) or system
+
+        xml = COLUMN_XML.format(
+            uid=uid,
+            sw=sw,
+            sig=sig,
+            col=col,
+            turnout=turnout,
+            os=OS_SENSOR[turnout],
+            cb=display(sig, "CB"),
+            sidi_l=display(sig, "LDGK"),
+            sidi_n=display(sig, "NGK"),
+            sidi_r=display(sig, "RDGK"),
+            sidl_l=display(sig, "LDGL"),
+            sidl_n=display(sig, "NGL"),
+            sidl_r=display(sig, "RDGL"),
+            swdi_n=display(sw, "SWNI"),
+            swdi_r=display(sw, "SWRI"),
+            swdl=display(sw, "LEVER"),
+            callon=display(sig, "CALLON"),
+            lock=display(sig, "LOCKTOGGLE"),
+            unlocked=display(sig, "UNLOCKEDINDICATOR"),
+        )
         if "</ctcdata>" not in text:
             raise RuntimeError("no </ctcdata>")
         text = text.replace("</ctcdata>", xml + "  </ctcdata>", 1)

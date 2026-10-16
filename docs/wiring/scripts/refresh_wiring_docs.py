@@ -605,75 +605,75 @@ def sort_nodes_by_address(ws: Worksheet) -> None:
 TURNOUT_DIGICON: dict[str, dict[str, object]] = {
     "Switch 100": {
         "entry": "2L",
-        "entry_ports": ("C4-OU3-3", "C4-OU3-2", "C4-OU3-1"),
+        "entry_ports": ("C4-OU3-1", "C4-OU3-2", "C4-OU3-3"),
         "normal": None,
         "reverse": None,
     },
     "Switch 101": {
         "entry": None,
         "normal": "4RA",
-        "normal_ports": ("C4-OU4-3", "C4-OU4-2", "C4-OU4-1"),
+        "normal_ports": ("C4-OU4-1", "C4-OU4-2", "C4-OU4-3"),
         "reverse": "4RB",
-        "reverse_ports": ("C4-OU4-6", "C4-OU4-5", "C4-OU4-4"),
+        "reverse_ports": ("C4-OU4-4", "C4-OU4-5", "C4-OU4-6"),
     },
     "Switch 102": {
         "entry": "6LA",
-        "entry_ports": ("C4-OU3-7", "C4-OU3-8", "C4-OU2-7"),
+        "entry_ports": ("C4-OU2-7", "C4-OU3-8", "C4-OU3-7"),
         "normal": None,
         "reverse": "6LB",
-        "reverse_ports": ("C4-OU2-3", "C4-OU2-2", "C4-OU2-1"),
+        "reverse_ports": ("C4-OU2-1", "C4-OU2-2", "C4-OU2-3"),
     },
     "Switch 111": {
         "entry": "24L",
-        "entry_ports": ("C2-OU2-3", "C2-OU2-2", "C2-OU2-1"),
+        "entry_ports": ("C2-OU2-1", "C2-OU2-2", "C2-OU2-3"),
         "normal": "24RA",
-        "normal_ports": ("C2-OU1-3", "C2-OU1-2", "C2-OU1-1"),
+        "normal_ports": ("C2-OU1-1", "C2-OU1-2", "C2-OU1-3"),
         "reverse": "24RB",
-        "reverse_ports": ("C2-OU3-8", "C2-OU3-7", "C2-OU3-6"),
+        "reverse_ports": ("C2-OU3-6", "C2-OU3-7", "C2-OU3-8"),
     },
     "Switch 110": {
         "entry": "32R",
-        "entry_ports": ("C12-OU3-7", "C12-OU3-8", "C12-OU2-7"),
+        "entry_ports": ("C12-OU2-7", "C12-OU3-8", "C12-OU3-7"),
         "normal": None,
         "reverse": None,
     },
     "Switch 112": {
         "entry": "34L",
-        "entry_ports": ("C12-OU2-3", "C12-OU2-2", "C12-OU2-1"),
+        "entry_ports": ("C12-OU2-1", "C12-OU2-2", "C12-OU2-3"),
         "normal": None,
         "reverse": "34R",
-        "reverse_ports": ("C12-OU3-3", "C12-OU3-2", "C12-OU3-1"),
+        "reverse_ports": ("C12-OU3-1", "C12-OU3-2", "C12-OU3-3"),
     },
     "Switch 113": {
         "entry": "36RA",
-        "entry_ports": ("C1-OU2-3", "C1-OU2-2", "C1-OU2-1"),
+        "entry_ports": ("C1-OU2-1", "C1-OU2-2", "C1-OU2-3"),
         "normal": None,
         "reverse": "36RB",
-        "reverse_ports": ("C1-OU3-3", "C1-OU3-2", "C1-OU3-1"),
+        "reverse_ports": ("C1-OU3-1", "C1-OU3-2", "C1-OU3-3"),
     },
     "Switch 114": {
         "entry": "2036",
-        "entry_ports": ("C11-OU3-6", "C11-OU3-5", "C11-OU3-4"),
+        "entry_ports": ("C11-OU3-4", "C11-OU3-5", "C11-OU3-6"),
         "normal": "38LB",
-        "normal_ports": ("C1-OU4-3", "C1-OU4-2", "C1-OU4-1"),
+        "normal_ports": ("C1-OU4-1", "C1-OU4-2", "C1-OU4-3"),
         "reverse": "38LA",
-        "reverse_ports": ("C1-OU2-7", "C1-OU3-8", "C1-OU3-7"),
+        "reverse_ports": ("C1-OU3-7", "C1-OU3-8", "C1-OU2-7"),
     },
     "Switch 115": {
         "entry": "2035",
-        "entry_ports": ("C11-OU2-7", "C11-OU3-8", "C11-OU3-7"),
+        "entry_ports": ("C11-OU3-7", "C11-OU3-8", "C11-OU2-7"),
         "normal": "40LB",
-        "normal_ports": ("C11-OU2-3", "C11-OU2-2", "C11-OU2-1"),
+        "normal_ports": ("C11-OU2-1", "C11-OU2-2", "C11-OU2-3"),
         "reverse": "40LA",
-        "reverse_ports": ("C11-OU3-3", "C11-OU3-2", "C11-OU3-1"),
+        "reverse_ports": ("C11-OU3-1", "C11-OU3-2", "C11-OU3-3"),
     },
     "Switch 117": {
         "entry": "8RA",
-        "entry_ports": ("C13-OU1-3", "C13-OU1-2", "C13-OU1-1"),
+        "entry_ports": ("C13-OU1-1", "C13-OU1-2", "C13-OU1-3"),
         "normal": "8LA",
-        "normal_ports": ("C13-OU2-3", "C13-OU2-2", "C13-OU2-1"),
+        "normal_ports": ("C13-OU3-1", "C13-OU3-2", "C13-OU3-3"),
         "reverse": "8LB / 8RB",
-        "reverse_ports": ("C13-OU4-7", "C13-OU2-8", "C13-OU2-7"),
+        "reverse_ports": ("C13-OU3-7", "C13-OU3-8", "C13-OU4-7"),
     },
 }
 
@@ -1209,9 +1209,9 @@ def rebuild_asbuilt_inventory(ws: Worksheet, wiring: list[dict[str, str]], masts
         n = len(packed_seen)
         ports = " ".join(r["port_id"] for r in pin_rows)
         aspect = (
-            "hart-aar SL-2-digicon (two 3-pin STOP/APPROACH/CLEAR discs)"
+            "hart C&O-1980 (two 3-pin STOP/APPROACH/CLEAR discs)"
             if n == 2
-            else "AAR-1946 SL-1-low (3-pin STOP/APPROACH/CLEAR)"
+            else "basic-enhanced one-searchlight-low (3-pin STOP/APPROACH/CLEAR)"
         )
         ws.append(
             [
@@ -1445,7 +1445,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW115="N",
             ih="IH142",
-            Notes="K-1 dwarf (SL-1-low). SW115 Closed = K-1. Dest 111L when 113 Normal.",
+            Notes="K-1 dwarf (one-searchlight-low). SW115 Closed = K-1. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="115LA",
@@ -1472,7 +1472,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW114="N",
             ih="IH143",
-            Notes="K-2 dwarf (SL-1-low). SW114 Closed = K-2. Dest 111L when 113 Normal.",
+            Notes="K-2 dwarf (one-searchlight-low). SW114 Closed = K-2. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="114LA",
@@ -1499,7 +1499,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW114="R",
             ih="IH134",
             Notes=(
-                "Balloon connector (SL-1-low). A48 east ends join: 120R/IH134 on McKeesport "
+                "Balloon connector (one-searchlight-low). A48 east ends join: 120R/IH134 on McKeesport "
                 "track protects Rocks / OS 115. SW114 Thrown = McKeesport."
             ),
         ),
@@ -1515,7 +1515,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW115="R",
             ih="IH141",
             Notes=(
-                "Balloon connector (SL-1-low). 120L/IH141 on Rocks track protects McKeesport / "
+                "Balloon connector (one-searchlight-low). 120L/IH141 on Rocks track protects McKeesport / "
                 "OS 114. SML also Stop if McKees Rocks occupied. SW115 Thrown = Rocks."
             ),
         ),

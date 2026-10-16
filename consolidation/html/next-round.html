@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Next round — HART Consolidation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <a class="brand" href="index.html">HART Consolidation</a>
+    
+<div class="nav-section"><h4>Overview</h4>
+  <a href="index.html">Home</a>
+  <a href="objective.html">Objective</a>
+  <a href="decisions.html">Decisions recorded</a>
+  <a href="next-round.html">Next round</a>
+  <a href="live-sources.html">Live sources</a>
+  <a href="manifest.html">Manifest</a>
+</div>
+<div class="nav-section"><h4>Desks &amp; panel</h4>
+  <a href="pipelines/01-jmri-anyrail.html">JMRI / AnyRail</a>
+  <a href="pipelines/02-public-names.html">Public names</a>
+  <a href="pipelines/tables-merge.html">Tables merge (D3)</a>
+  <a href="pipelines/05-cats-masters.html">CATS Masters</a>
+  <a href="projects/cats-integration.html">CATS integration</a>
+  <a href="pipelines/06-uss-ctc.html">USS CTC</a>
+  <a href="pipelines/07-dispatcher.html">Dispatcher System</a>
+</div>
+<div class="nav-section"><h4>Signals &amp; MQTT</h4>
+  <a href="pipelines/03-digicon-beans.html">Digicon beans</a>
+  <a href="pipelines/04-native-sml.html">Native SML + NX</a>
+  <a href="pipelines/09-lcos-firmware.html">LCOS firmware</a>
+  <a href="cross-repo/lcos-tier-b.html">LCOS Tier B spec</a>
+  <a href="pipelines/mimic.html">MQTT mimic QA</a>
+</div>
+<div class="nav-section"><h4>Ops &amp; wiring</h4>
+  <a href="pipelines/08-wiring.html">Wiring docs</a>
+  <a href="pipelines/12-car-cards.html">Car cards</a>
+  <a href="pipelines/14-sts.html">STS</a>
+  <a href="pipelines/15-publications.html">Publications</a>
+  <a href="pipelines/16-industries.html">Industries</a>
+</div>
+<div class="nav-section"><h4>Reference archive</h4>
+  <a href="cutover/index.html">Cutover manifests (future)</a>
+  <a href="sor-central.html">Central SoR index</a>
+  <a href="audits/pipeline-review-matrix.html">Pipeline review matrix</a>
+</div>
+<div class="nav-section"><h4>Desktop / archive</h4>
+  <a href="archive/f-root-index.html"><strong>F-root browse (124 files)</strong></a>
+  <a href="archive/index.html">Archive taxonomy A–F</a>
+</div>
+<div class="nav-section"><h4>Review</h4>
+  <a href="review/device-map.html"><strong>Device Map (D2)</strong></a>
+  <a href="review/industry-matrix.html">Industry matrix</a>
+  <a href="audits/index.html">Audits</a>
+  <a href="backlog.html">Backlog</a>
+  <a href="repos.html">Repos &amp; submodules</a>
+  <a href="decisions/index.html">ADR index</a>
+  <a href="validators/tier-b-smokes.html">Tier B smokes</a>
+</div>
+
+  </nav>
+  <main class="content">
+    <h1>Next round — consolidation</h1>
+
+<p><strong>Portal:</strong> <a href="index.html"><code>index.html</code></a> · <strong>F-root:</strong> <a href="html/archive/f-root-index.html"><code>html/archive/f-root-index.html</code></a> · <strong>Backlog:</strong> <a href="BACKLOG.md"><code>BACKLOG.md</code></a></p>
+
+<p>---</p>
+
+<h2>Scope</h2>
+
+<p><strong>Consolidation workspace only</strong> — SoR snapshots, validators, pipeline guides, hart-ops submodule, review canvases. Live layout, Desktop/HART, Pi, and STS runtime are <strong>out of scope</strong> (D12 bench freeze). <strong>No cutover execution</strong> — cutover manifests under <a href="cutover/"><code>cutover/</code></a> are reference archive only.</p>
+
+<p>---</p>
+
+<h2>Completed</h2>
+
+<table>
+<tr><td>Area</td><td>Output</td></tr>
+<tr><td>Meta-repo</td><td>`consolidation/external/*` submodules + manifest pins</td></tr>
+<tr><td>hart-ops</td><td>github.com/lnevo/hart-ops submodule</td></tr>
+<tr><td>Tranche A</td><td>manifest + pipeline guides 1–16</td></tr>
+<tr><td>Tranche B</td><td>`class_f_ingest_manifest.csv` (124 rows; skip/browse/archive)</td></tr>
+<tr><td>Tranche B+</td><td>F-root browse portal — `html/archive/f-root-index.html`</td></tr>
+<tr><td>Tranche C</td><td>metadata-first roster + golden smoke (NW32800)</td></tr>
+<tr><td>Tables merge</td><td>[`wiki/pipelines/tables-merge.md`](wiki/pipelines/tables-merge.md) + audit refresh</td></tr>
+<tr><td>Decisions</td><td>D1–D12, ADRs, bench freeze</td></tr>
+<tr><td>Validators</td><td>Tier A — ALL PASSED after mirror refresh</td></tr>
+<tr><td>D2 review</td><td>Device map + legacy canvases — owner approved</td></tr>
+<tr><td>Publications</td><td>Full rebuild via `rebuild_publications.sh`</td></tr>
+<tr><td>Industry matrix</td><td>Review canvas — owner approved for now</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Continue here (ongoing consolidation work)</h2>
+
+<p>Focus: <strong>keep SoRs current and validators green</strong> across all pipelines. Promotion to live and cutover are <strong>not</strong> on this list.</p>
+
+<table>
+<tr><td>Item</td><td>Path</td></tr>
+<tr><td>Mirror + validate</td><td>`bash consolidation/scripts/mirror_all_live.sh`</td></tr>
+<tr><td>Review canvases</td><td>`python3 consolidation/scripts/build_review_canvases.py`</td></tr>
+<tr><td>Portal rebuild</td><td>`python3 consolidation/scripts/build_site.py`</td></tr>
+<tr><td>Pipeline matrix</td><td>[`audits/pipeline-review-matrix.md`](audits/pipeline-review-matrix.md)</td></tr>
+<tr><td>Tier B smokes</td><td>[`validators/TIER_B_MANUAL_SMOKES.md`](validators/TIER_B_MANUAL_SMOKES.md) — reference only until lab host</td></tr>
+<tr><td>Class-F browse sort (optional)</td><td>`sor/desktop/class_f_ingest_manifest.csv` + F-root HTML</td></tr>
+</table>
+
+<p>---</p>
+
+<h2>Commands</h2>
+
+<pre><code>
+bash consolidation/scripts/mirror_all_live.sh
+python3 consolidation/scripts/build_review_canvases.py
+python3 consolidation/scripts/build_site.py
+python3 consolidation/scripts/classify_f_ingest.py   # refresh F-root browse
+cd consolidation/external/hart-ops &amp;&amp; python tests/test_golden_card.py
+bash consolidation/scripts/rebuild_publications.sh
+</code></pre>
+  </main>
+</body>
+</html>

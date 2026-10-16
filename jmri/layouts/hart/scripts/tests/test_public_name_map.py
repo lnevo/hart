@@ -113,7 +113,7 @@ HEAD_PROPOSED_RE = re.compile(
 )
 
 HARDWARE_TOKEN_RE = re.compile(
-    r"^(?:M2T\d+|M2S\d+|IH\d+|Block \d+-\d+)$"
+    r"^(?:M2T\d+|M2S\d+|IH\d+|MTT\d+|Block \d+-\d+)$"
 )
 
 
@@ -425,7 +425,7 @@ class PublicNameMapContractTest(unittest.TestCase):
         violations: list[str] = []
         for row in rows:
             system_name = (row.get("systemName") or "").strip()
-            if not system_name.startswith(("M2T", "M2S", "IH")):
+            if not system_name.startswith(("M2T", "M2S", "IH", "MTT")):
                 continue
             if system_name not in self.tables_system_names:
                 violations.append(
@@ -442,10 +442,28 @@ class PublicNameMapContractTest(unittest.TestCase):
             if row["layer"] not in {"occupancy", "fb", "head", "turnout"}:
                 continue
             hardware = (row.get("hardware") or "").split()[0]
-            if not hardware.startswith(("M2T", "M2S", "IH")):
+            if not hardware.startswith(("M2T", "M2S", "IH", "MTT")):
                 continue
             if not (row.get("comment") or "").strip():
                 missing.append(f"{row['layer']} {row['current']!r}")
+        self.assertEqual(missing, [])
+
+    def test_lcc_turnout_identity_rows_cover_mtt_100_119(self) -> None:
+        identities = {
+            (row.get("hardware") or "").split()[0]: row
+            for row in self.by_layer["turnout"]
+            if row["current"] == row["proposed"]
+            and (row.get("hardware") or "").startswith("MTT")
+        }
+        missing: list[str] = []
+        for number in range(100, 120):
+            hardware = f"MTT{number}"
+            row = identities.get(hardware)
+            if row is None:
+                missing.append(hardware)
+                continue
+            if not row["proposed"].startswith("DCC Switch "):
+                missing.append(f"{hardware} proposed {row['proposed']!r}")
         self.assertEqual(missing, [])
 
     def test_mast_comments_name_the_protected_switch(self) -> None:

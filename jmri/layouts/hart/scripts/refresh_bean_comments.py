@@ -44,6 +44,10 @@ _PORT_ID_RE = re.compile(r"^C(\d+)-(OU|IN)(\d+)-(\d+)$", re.I)
 MAST_SWITCH_OVERRIDE = {
     "Mast 26L": "Switch 21",
     "Mast 26R": "Switch 21",
+    "Mast 8LC": "Switch 7",
+    "Mast 11L": "Switch 11",
+    "Mast 9LA": "Switch 9",
+    "Mast 9LB": "Switch 9",
 }
 
 
@@ -436,13 +440,27 @@ SPECIAL_SENSOR_USERNAMES = {
     "MS01.01.02.00.00.FF.00.EC;01.01.02.00.00.FF.00.ED": "OLCB leftover 115",
 }
 
-MTT_USERNAMES = {
-    "MTT100": "Switch 1 alias",
-    "MTT111": "Switch 23 alias",
-    "MTT113": "Switch 35 alias",
-    "MTT114": "Switch 37 alias",
-    "MTT115": "Switch 39 alias",
-}
+
+def load_mtt_usernames() -> dict[str, str]:
+    """Identity-row userNames for MTT* (device map: DCC Switch N)."""
+    out: dict[str, str] = {}
+    if not PUBLIC_NAME_MAP.is_file():
+        return out
+    with PUBLIC_NAME_MAP.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            if (row.get("layer") or "").strip() != "turnout":
+                continue
+            current = (row.get("current") or "").strip()
+            proposed = (row.get("proposed") or "").strip()
+            if not current or current != proposed:
+                continue
+            for token in (row.get("hardware") or "").split():
+                if token.startswith("MTT"):
+                    out[token] = proposed
+    return out
+
+
+MTT_USERNAMES = load_mtt_usernames()
 
 MEMORY_USERNAMES = {
     "IMCURRENTTIME": "Current time",
@@ -492,6 +510,7 @@ BLOCK_COMMENTS = {
     "OS Switch 11": "Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301",
     "OS Switch 9": "Hand-throw Engine House; occupancy Block 13-8 / M2S1307",
     "Track Scale": "Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop",
+    "Track Scale East": "Hidden Track Scale throat (same detector as Track Scale); occupancy Block 4-8 / M2S407; not a station",
     "Track Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
     "Track S-R": "Run-through east of 103; occupancy Block 2-8 / M2S207; stop",
     "Track S-R West": "Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8 / M2S207; not a station",
@@ -577,7 +596,7 @@ OCC_SENSOR = {
     "Block 4-5": "Occupancy OS Switch 5; MQTT M2S404",
     "Block 4-6": "Occupancy Track Brick-Plane; MQTT M2S405",
     "Block 4-7": "Occupancy Track East Main Ext; MQTT M2S406",
-    "Block 4-8": "Occupancy Track Scale; MQTT M2S407",
+    "Block 4-8": "Occupancy Track Scale (and hidden Track Scale East throat); MQTT M2S407",
     "Block 12-1": "Occupancy OS Switch 25; MQTT M2S1200",
     "Block 12-3": "Occupancy OS Switch 27; MQTT M2S1202",
     "Block 12-4": "Occupancy OS Switch 23a; MQTT M2S1203",
@@ -794,16 +813,11 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
         if system_name.startswith("IT:HART:YL:"):
             return f"Internal yard-ladder control {user_name}"
         if system_name.startswith("MTT"):
-            alias = {
-                "MTT100": "Switch 1; same FB as MQTT hardware (Switch 4-1)",
-                "MTT111": "Switch 23; same FB as MQTT hardware (Switch 12-5)",
-                "MTT113": "Switch 35; same FB as MQTT hardware (Switch 1-1)",
-                "MTT114": "Switch 37; same FB as MQTT hardware (Switch 1-2)",
-                "MTT115": "Switch 39; same FB as MQTT hardware (Switch 1-3)",
-            }.get(system_name)
-            if alias:
-                return f"OpenLCB alias of {alias}"
-            return "Unused OpenLCB leftover; not connected on the railroad"
+            # Device-map comments come from CSV identity rows above. Never
+            # invent "leftover" text that would let cleanup treat MTT as junk.
+            if existing and existing.startswith("Node:"):
+                return existing
+            return None
         return None
     if kind == "sensor":
         if user_name in OCC_SENSOR:

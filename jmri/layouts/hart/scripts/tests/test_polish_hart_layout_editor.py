@@ -91,6 +91,54 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             ]
             self.assertEqual(before_topology, after_topology)
 
+    def test_block_contents_icons_move_to_label_layer(self):
+        xml = """<?xml version='1.0' encoding='UTF-8'?>
+        <layout-config>
+          <LayoutEditor name="HART Railroad">
+            <BlockContentsIcon blockcontents="Track West Main Ext" x="1394" y="232" level="0" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="12" red="51" green="51" blue="51" />
+            <tracksegment ident="T1" />
+          </LayoutEditor>
+        </layout-config>
+        """
+        root = ET.fromstring(xml)
+        le = root.find("LayoutEditor")
+        assert le is not None
+        changes, errors = polish.ensure_block_contents_visible(le, check=False)
+        self.assertEqual([], errors)
+        self.assertGreater(changes, 0)
+        icon = le.find("BlockContentsIcon")
+        assert icon is not None
+        self.assertEqual("4", icon.get("level"))
+        self.assertEqual("0", icon.get("red"))
+        self.assertNotIn("fontFamily", icon.attrib)
+        self.assertNotIn("fontname", icon.attrib)
+        _, leftover = polish.ensure_block_contents_visible(le, check=True)
+        self.assertEqual([], leftover)
+
+    def test_shared_occupancy_dedupe_keeps_body_dot(self):
+        xml = """<?xml version='1.0' encoding='UTF-8'?>
+        <layout-config>
+          <LayoutEditor name="HART Railroad">
+            <sensoricon sensor="BS S-1" x="762" y="376" />
+            <sensoricon sensor="BS S-1" x="1010" y="376" />
+            <sensoricon sensor="BS S-1" x="1204" y="376" />
+            <tracksegment ident="T1" />
+          </LayoutEditor>
+        </layout-config>
+        """
+        root = ET.fromstring(xml)
+        le = root.find("LayoutEditor")
+        assert le is not None
+        changes, errors = polish.dedupe_shared_occupancy_icons(le, check=False)
+        self.assertEqual([], errors)
+        self.assertEqual(2, changes)
+        kept = [
+            (icon.get("x"), icon.get("y"))
+            for icon in le.findall("sensoricon")
+            if icon.get("sensor") == "BS S-1"
+        ]
+        self.assertEqual([("1010", "376")], kept)
+
 
 if __name__ == "__main__":
     unittest.main()

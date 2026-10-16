@@ -29,6 +29,7 @@ class CtcInternalNamesTest(unittest.TestCase):
         self.assertEqual(refresh.ctc_user_name("IS1:LEVER"), "CTC 3 lever")
         self.assertEqual(refresh.ctc_user_name("IS32:LOCKTOGGLE"), "CTC 9 lock local")
         self.assertEqual(refresh.ctc_user_name("IS14:LOCKTOGGLE"), "CTC 25 lock local")
+
     def test_tables_have_no_old_ctc_or_olcb_leftovers(self) -> None:
 
         root = ET.parse(TABLES).getroot()
@@ -43,14 +44,8 @@ class CtcInternalNamesTest(unittest.TestCase):
                 num = user_name.split()[1]
                 if num.isdigit() and int(num) >= 100:
                     old_ctc.append(user_name)
-        mtt = [
-            (el.findtext("systemName") or "").strip()
-            for el in root.iter("turnout")
-            if (el.findtext("systemName") or "").startswith("MTT")
-        ]
         self.assertEqual(leftover, [])
         self.assertEqual(old_ctc, [])
-        self.assertEqual(mtt, [])
 
     def test_every_switch_has_a_ctc_lever(self) -> None:
         root = ET.parse(TABLES).getroot()
@@ -75,6 +70,25 @@ class CtcInternalNamesTest(unittest.TestCase):
             and (sensor.findtext("systemName") or "").startswith("IS")
         }
         self.assertEqual(len(levers), 20)
+
+    def test_ctc_editor_refs_use_display_names(self) -> None:
+        """CTC editor combos list display names. A system-name value does not match."""
+        root = ET.parse(TABLES).getroot()
+        display = {}
+        for sensor in root.iter("sensor"):
+            system_name = (sensor.findtext("systemName") or "").strip()
+            user_name = (sensor.findtext("userName") or "").strip()
+            if system_name and user_name and user_name != system_name:
+                display[system_name] = user_name
+        ctc = root.find("ctcdata")
+        self.assertIsNotNone(ctc)
+        bad = []
+        for el in ctc.iter():
+            text = (el.text or "").strip()
+            if not text or "#" in text or text not in display:
+                continue
+            bad.append(f"{el.tag}={text} display={display[text]}")
+        self.assertEqual(bad, [])
 
     def test_gui_has_a_lever_icon_per_switch(self) -> None:
         gui = (SCRIPTS.parent / "ctc" / "GUIObjects.xml").read_text(encoding="utf-8")

@@ -70,6 +70,41 @@ if (Test-Path $btnSrc) {
   }
 }
 
+$ussSrc = Join-Path $hart 'cats\resources\icons\USS\sensor'
+if (Test-Path $ussSrc) {
+  $roots = New-Object System.Collections.Generic.List[string]
+  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  $jmri = Join-Path $env:USERPROFILE 'JMRI'
+  if (Test-Path $jmri) {
+    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+      [void]$roots.Add($_.FullName)
+    }
+  }
+  $gifs = @(Get-ChildItem $ussSrc -Filter 'yellow-*.gif' -ErrorAction SilentlyContinue)
+  foreach ($r in ($roots | Select-Object -Unique)) {
+    if (-not (Test-Path $r)) { continue }
+    $dest = Join-Path $r 'resources\icons\USS\sensor'
+    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+    foreach ($g in $gifs) {
+      Copy-Item $g.FullName $dest -Force
+    }
+    Write-Host ("USS sensor icons -> {0}\resources\icons\USS\sensor" -f $r)
+  }
+  foreach ($prog in @(
+    'C:\Program Files (x86)\JMRI\resources\icons\USS\sensor',
+    'C:\Program Files\JMRI\resources\icons\USS\sensor'
+  )) {
+    $parent = Split-Path $prog -Parent
+    if (Test-Path $parent) {
+      New-Item -ItemType Directory -Force -Path $prog | Out-Null
+      foreach ($g in $gifs) {
+        Copy-Item $g.FullName $prog -Force
+      }
+      Write-Host ("USS sensor icons (program) -> {0}" -f $prog)
+    }
+  }
+}
+
 $ctcSrc = Join-Path $hart 'ctc'
 if (Test-Path (Join-Path $ctcSrc 'icons')) {
   $roots = New-Object System.Collections.Generic.List[string]
@@ -108,10 +143,8 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
 }
 
 $jythonSrc = @(
-  (Join-Path $hart 'jmri\layouts\hart\scripts\patch_dispatcher_facing.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\hart_dispatcher_startup.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_yard_ladder_buttons.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_layout_button.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
   (Join-Path $hart 'jmri\scripts\mqtt_signalhead_publisher.py')
 )
@@ -133,6 +166,12 @@ foreach ($r in ($roots | Select-Object -Unique)) {
       Copy-Item $src (Join-Path $dest (Split-Path $src -Leaf)) -Force
     }
   }
+  $staleNx = Join-Path $dest 'prepare_nx_sml_paths.py'
+  if (Test-Path $staleNx) { Remove-Item $staleNx -Force }
+  foreach ($stale in @('hart_dispatcher_startup.py', 'patch_dispatcher_facing.py')) {
+    $stalePath = Join-Path $dest $stale
+    if (Test-Path $stalePath) { Remove-Item $stalePath -Force }
+  }
   Write-Host ("preference:jython scripts -> {0}\jython" -f $r)
   if (Test-Path $trainInfoSrc) {
     $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
@@ -145,9 +184,9 @@ foreach ($r in ($roots | Select-Object -Unique)) {
   }
 }
 
-$retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py')
+$retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
 $retargetNames = @(
-  'sync_yard_ladder_buttons.py',
+  'sync_layout_button.py',
   'mqtt_signalhead_publisher.py',
   'jmri_cmd_watcher.py'
 )

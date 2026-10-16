@@ -1,0 +1,80 @@
+---
+services:
+  web:
+    build: .
+    profiles: ["build"]
+    ports:
+      - "8980:80" # Change the port on the LEFT of the colon to the desired port you want to advertise the service on your PC.
+    environment:
+    # Change these 3 if you wish - as a bare minimum I recommend changing the password.
+      - MYSQL_HOST=db
+      - MYSQL_USER=sts_user
+      - MYSQL_PASSWORD=sts_password # This must match the MYSQL_PASSWORD variable below.
+      - MYSQL_DATABASE=sts_db3
+      # Set to 1 to provision the database by running the MySQL setup script
+      # It is STRONGLY RECOMMENDED that you set this to 0 once initially deployed,
+      # So you don't inadverdently wipe your database when deploying a new container instance!
+      - PROVISION_DATABASE=0
+
+    # Uncomment below and change the path you with to store your backups for STS in. format is <Source Path on PC>:<Path on Container>
+    # You only want to change the <Source Path on PC> Variable.
+    volumes:
+      - @STS_BACKUPS_DIR@:/var/www/html/sts/backups
+      - @STS_IMAGES_DIR@:/var/www/html/sts/ImageStore/DB_Images/RollingStock/
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web_prebuilt:
+    image: ghcr.io/aaron9589/shipper-driven-traffic-simulator:latest
+    profiles: ["prebuilt"]
+    ports:
+      - "8980:80" # Change the port on the LEFT of the colon to the desired port you want to advertise the service on your PC.
+    environment:
+    # Change these 3 if you wish - as a bare minimum I recommend changing the password.
+      - MYSQL_HOST=db
+      - MYSQL_USER=sts_user
+      - MYSQL_PASSWORD=sts_password # This must match the MYSQL_PASSWORD variable below.
+      - MYSQL_DATABASE=sts_db3
+      # Set to 1 to provision the database by running the MySQL setup script
+      # It is STRONGLY RECOMMENDED that you set this to 0 once initially deployed,
+      # So you don't inadverdently wipe your database when deploying a new container instance!
+      - PROVISION_DATABASE=0
+
+    # Uncomment below and change the path you with to store your backups for STS in. format is <Source Path on PC>:<Path on Container>
+    # You only want to change the <Source Path on PC> Variable.
+    volumes:
+      - @STS_BACKUPS_DIR@:/var/www/html/sts/backups
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  db:
+    image: mariadb:latest
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=sts_db3
+      - MYSQL_USER=sts_user
+      - MYSQL_PASSWORD=sts_password # ensure this matches the MYSQL_DATABASE variable you set earlier.
+
+    command: --sql_mode="" # Required to disable STRICT_TRANS_TABLES. Causes issues with pu_criteria.php
+
+    # If you want to persist your database somewhere outside of the container (you should) uncomment this line,
+    # and change the path on the left hand side of the colon.
+    volumes:
+      - @STS_DATABASE_DB@:/var/lib/mysql
+
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized"
+        ]
+      timeout: 10s

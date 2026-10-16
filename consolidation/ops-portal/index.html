@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HART Railroad — Neville Island</title>
+  <link rel="stylesheet" href="css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main class="full-bleed">
+    <section class="hero-bleed">
+      <img
+        class="hero-media"
+        src="assets/media/birdseye-neville-island.jpg"
+        alt="Neville Island from above"
+      >
+      <div class="hero-inner">
+        <p class="hero-kicker">Pittsburgh &amp; Chartiers Valley Division</p>
+        <h1>HART Railroad</h1>
+        <p class="lede">
+          Welcome to Neville Island — five miles of river industry, South Yard
+          classification, and the crews who keep CSX and the POHC moving.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="briefing/index.html">New operator briefing</a>
+          <a class="btn btn-ghost" href="photos/index.html">Browse photos</a>
+          <a class="btn btn-ghost" href="docs/index.html">Official publications</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="home-band">
+      <h2 class="section-title">Step into the island</h2>
+      <p class="section-note">
+        Primers, industries, photographs, official publications, and the railroad story —
+        the same world we hand to new crew.
+      </p>
+      <div class="card-grid">
+        <a class="card" href="briefing/index.html">
+          <h3>Operator briefing</h3>
+          <p>Island history, jobs on the board, destination colors, and the track scale.</p>
+        </a>
+        <a class="card" href="industries/index.html">
+          <h3>Industries</h3>
+          <p>Aristech, Stucki, Calgon, Ferrellgas, Kosmos, Shenango — commodities and logos.</p>
+        </a>
+        <a class="card" href="photos/index.html">
+          <h3>Photo gallery</h3>
+          <p>Place, layout captures, maps, and current control panels — rolling stock is separate.</p>
+        </a>
+        <a class="card" href="fleet/index.html">
+          <h3>Rolling stock</h3>
+          <p>Car fleet sides, aisle roster photos, and published power.</p>
+        </a>
+        <a class="card" href="articles/index.html">
+          <h3>Articles</h3>
+          <p>Pittsburgh Coke &amp; Chemical chronology, POHC-line plants, and Chartiers Valley railroads.</p>
+        </a>
+        <a class="card" href="docs/index.html">
+          <h3>Official publications</h3>
+          <p>Pipeline-published primers, crew sheets, station maps, and SOPs.</p>
+        </a>
+        <a class="card" href="layout/index.html">
+          <h3>Digicon explorer</h3>
+          <p>Full-width Digicon Master board — click switches and masts for hardware details.</p>
+        </a>
+        <a class="card" href="photos/index.html">
+          <h3>Panel gallery</h3>
+          <p>Digicon, classic CTC, and Neville Island LE screenshots in Photos → Control panels.</p>
+        </a>
+        <a class="card" href="guides/index.html">
+          <h3>Dispatcher guides</h3>
+          <p>USS CTC, CATS Digicon, Auto Dispatcher, Digicon system.</p>
+        </a>
+        <a class="card" href="helix/index.html">
+          <h3>Neville Island helix</h3>
+          <p>Construction plan, half-lap screw template, build status, and an index of every printed fixture (STL).</p>
+        </a>
+      </div>
+    </div>
+
+    <aside class="quote-strip">
+      <div class="quote-strip-inner">
+        The later names still used on HART — Shenango, Calgon, Kosmos, and Aristech — are the pieces of that one plant.
+        <cite>Neville Island coke, cement, and chemical history</cite>
+      </div>
+    </aside>
+
+    <div class="home-band" style="padding-bottom: 2rem">
+      <h2 class="section-title">When trains are running</h2>
+      <p class="section-note">Live tools and the device roster stay available for the desk.</p>
+      <div class="card-grid">
+        <a class="card" href="tools/index.html">
+          <h3>Live tools</h3>
+          <p>STS, MQTT Mimic, and JMRI web on this Mac.</p>
+        </a>
+        <a class="card" href="roster/index.html">
+          <h3>Device roster</h3>
+          <p>Searchable turnout, signal, and sensor list for the desk.</p>
+        </a>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("home").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -58,6 +58,11 @@ if [[ -d "$HART/cats/resources/buttons" ]]; then
   echo "Pi button icons updated"
 fi
 
+if [[ -d "$HART/cats/resources/icons/USS/sensor" ]]; then
+  fanout "$HART/cats/resources/icons/USS/sensor" "resources/icons/USS/sensor"
+  echo "Pi USS sensor icons updated"
+fi
+
 if [[ -d "$HART/ctc/icons" ]]; then
   fanout "$HART/ctc/icons" "ctc/icons"
   if [[ -f "$HART/ctc/GUIObjects.xml" ]]; then
@@ -72,7 +77,7 @@ if [[ -d "$HART/ctc/icons" ]]; then
   echo "Pi CTC icons + GUIObjects updated"
 fi
 
-for sys in cats-masts hart-aar; do
+for sys in cats-masts "C&O-1980"; do
   if [[ -d "$HART/cats/resources/signals/$sys" ]]; then
     fanout "$HART/cats/resources/signals/$sys" "resources/signals/$sys"
     echo "Pi $sys updated"
@@ -80,10 +85,8 @@ for sys in cats-masts hart-aar; do
 done
 
 JYTHON=(
-  "$HART/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
-  "$HART/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$HART/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py"
+  "$HART/jmri/layouts/hart/scripts/sync_layout_button.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/scripts/mqtt_signalhead_publisher.py"
 )
@@ -91,6 +94,7 @@ mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
   [[ -f "$f" ]] && cp -f "$f" "$UF/jython/"
 done
+rm -f "$UF/jython/hart_dispatcher_startup.py" "$UF/jython/patch_dispatcher_facing.py"
 echo "preference:jython scripts -> $UF/jython"
 
 TRAININFO="$HART/jmri/layouts/hart/dispatcher/traininfo"
@@ -110,9 +114,13 @@ PATCH="$HART/cats/scripts/patch_jmri_startup.py"
 if [[ -f "$PATCH" ]]; then
   python3 "$PATCH" retarget-jython \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
-    --script sync_yard_ladder_buttons.py \
+    --script sync_layout_button.py \
     --script mqtt_signalhead_publisher.py \
     --script jmri_cmd_watcher.py
+  python3 "$PATCH" remove \
+    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --script prepare_nx_sml_paths.py 2>/dev/null || true
+  rm -f "$UF/jython/prepare_nx_sml_paths.py"
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
   for s in apply_sml_cats_pairs.py unhold_signal_masts.py \
            apply_maintain_mqtt.py apply_mqtt_retain_at_startup.py; do

@@ -1,0 +1,24 @@
+{
+  "title": "Control panels",
+  "lede": "Current live panels (Aug 2026). Digicon Master is the interactive device browser (switches + masts). Classic CTC and Neville Island LE remain as reference screenshots only.",
+  "panels": [
+    {
+      "id": "digicon",
+      "label": "Digicon CTC",
+      "src": "assets/panels/digicon-ctc.png",
+      "caption": "HART Railroad \u00b7 Neville Island Operations \u00b7 P&CV Division \u00b7 CTC Digicon (live Master board \u2014 Aug 2026)"
+    },
+    {
+      "id": "classic",
+      "label": "Classic CTC",
+      "src": "assets/panels/classic-ctc.png",
+      "caption": "Classic CTC board with switch and signal levers"
+    },
+    {
+      "id": "le",
+      "label": "Neville Island LE",
+      "src": "assets/panels/neville-island-le.png",
+      "caption": "Layout Editor panel with SW labels (including SW-7 / SW-23 / SW-35)"
+    }
+  ]
+}

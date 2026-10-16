@@ -23,6 +23,7 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 | Signal mast | `Mast <n><L\|R>[A\|B]` or `Mast` + 4-digit field | `Mast 8LA`, `Mast 2L`, `Mast 2035` |
 | Signal head | `Head` + mast, or + ` Top` / ` Bottom` | `Head 2L Top`, `Head 2035` |
 | Feedback | `FB Switch <n> N\|R` | `FB Switch 1 N` |
+| LCC switch alias | `DCC Switch <n>` | `DCC Switch 1` (`MTT100`; same FB as MQTT `Switch 1`; comment omits DCC) |
 
 **L** = westbound (USS signal lever Left). **R** = eastbound (Right).  
 **A/B** only when that lever lists two masts.  
@@ -30,7 +31,7 @@ Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R
 
 ## Live inventory (2026-08-27)
 
-CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS Switch 1`, `Track S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; occupancy comments are `Node: 4 Block: 1`. MQTT turnout comments are `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC aliases omit DCC; it is in `systemName`). Heads are `Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3` (pipe between OU groups on spills). Feedback is `Node: 4 Sensor: 3 | IN: 1 Ports: 1`. Mast comments are `Brick | Switch 1` (CP plus the switch that lamp protects; Princess intermediates stay CP-only). Track-block comments keep occupancy/`stop` text with live names (`Track Barn`, `Switch 7`). Dispatcher station blocks keep the `stop` contract. USS CTC internals (`IS*:`) keep frozen systemNames; userNames are live (`CTC 1 lever`). Dispatcher MoveTo sensors are `MoveToTrack_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 20 columns / 23 SIDI masts.
+CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS Switch 1`, `Track S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; occupancy comments are `Node: 4 Block: 1`. MQTT turnout comments are `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC aliases omit DCC; it is in `systemName`). Heads are `Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3` (pipe between OU groups on spills). Feedback is `Node: 4 Sensor: 3 | IN: 1 Ports: 1`. Mast comments are `Brick | Switch 1` (CP plus the switch that lamp protects; Princess intermediates stay CP-only). Track-block comments keep occupancy/`stop` text with live names (`Track Barn`, `Switch 7`). Dispatcher station blocks keep the `stop` contract. USS CTC internals (`IS*:`) keep frozen systemNames; userNames are live (`CTC 1 lever`). CTC editor fields store those user names, because the editor’s combo boxes list display names and a system-name value falls through to the first sensor. Dispatcher MoveTo sensors are `MoveToTrack_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 20 columns / 23 SIDI masts.
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 
@@ -55,9 +56,9 @@ Identity rows are `current` == `proposed` == live userName, with Device-map text
 
 ## Attack (executed 2026-08-21)
 
-Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. CTC-number convert + SML Discover + NX Discover + CTC Logic smoke + `--pi --win` done 2026-08-27. Node 13 occupancy walk-down stuck (EH-1↔EH-3 swap). Do not change MQTT topics.
+Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longest-first). Hardware ids unchanged. CTC-number convert + SML Discover + NX Discover + CTC Logic smoke + `--pi --win` done 2026-08-27. Node 13 occupancy walk-down is done (EH-1/EH-3 MQTT channels stay swapped vs geographic labels). Do not change MQTT topics.
 
-1. Walk-down node 13 (done: 1301=OS Switch 11/118, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9/119). Freeze the CSV.  
+1. Walk-down node 13 (done: 1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9). Live map: `Block 13-7` / M2S1306 = EH-1, `Block 13-5` / M2S1304 = EH-3. Freeze the CSV.  
 2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
 3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_hart_master4.py` then `build_hart_master_abs_hold.py`.  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  

@@ -22,7 +22,7 @@ OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
 
-# Digicon PANELSIGNAL SIGORIENT → LE SignalMastIcon degrees (AAR schematic GIFs):
+# Digicon PANELSIGNAL SIGORIENT → LE SignalMastIcon degrees:
 #   RIGHT → 90  (horizontal, heads east / post west)
 #   LEFT  → 270 (horizontal, heads west / post east)
 #   TOP   → 0   (vertical upright)
@@ -45,28 +45,47 @@ PLACEMENTS: list[tuple[str, int, int, int]] = [
     ("Mast 34L", 1392, 289, 270),
     ("Mast 32R", 1265, 349, 60),
     ("Mast 34R", 1320, 348, 60),
-    ("Mast 40LB", 1608, 185, 225),
+    ("Mast 40LB", 1602, 161, 225),
     ("Mast 36RA", 1465, 264, 90),
     ("Mast 36RB", 1465, 325, 90),
-    ("Mast 38LB", 1628, 322, 310),
+    ("Mast 38LB", 1645, 311, 310),
     ("Mast 2035", 1848, 245, 0),
     ("Mast 2036", 1804, 291, 180),
     ("Mast 40LA", 1665, 222, 270),
     ("Mast 38LA", 1665, 285, 270),
 ]
 
-ICON_ATTRS = (
-    'level="9" forcecontroloff="false" hidden="no" positionable="true" '
-    'showtooltip="true" editable="false" clickmode="0" litmode="false" '
-    'scale="1.0" imageset="default" '
-    'class="jmri.jmrit.display.configurexml.SignalMastIconXml"'
-)
+# basic-enhanced `discriminated` art is already 12×40 (home) / 12×17 (dwarf).
+HOME_SCALE = "1.0"
+DWARF_SCALE = "1.0"
+DWARF_MASTS = {
+    "Mast 2035",
+    "Mast 2036",
+    "Mast 24RB",
+    "Mast 32R",
+    "Mast 38LA",
+    "Mast 40LA",
+    "Mast 4RA",
+    "Mast 4RB",
+    "Mast 6LA",
+    "Mast 8LB",
+}
+
+
+def _icon_attrs(name: str) -> str:
+    scale = DWARF_SCALE if name in DWARF_MASTS else HOME_SCALE
+    return (
+        'level="9" forcecontroloff="false" hidden="no" positionable="true" '
+        'showtooltip="true" editable="false" clickmode="0" litmode="false" '
+        f'scale="{scale}" imageset="discriminated" '
+        'class="jmri.jmrit.display.configurexml.SignalMastIconXml"'
+    )
 
 
 def _icon_xml(name: str, x: int, y: int, degrees: int) -> str:
     return (
         f'    <signalmasticon signalmast="{name}" x="{x}" y="{y}" '
-        f'{ICON_ATTRS} degrees="{degrees}" />\n'
+        f'{_icon_attrs(name)} degrees="{degrees}" />\n'
     )
 
 

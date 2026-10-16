@@ -51,6 +51,14 @@ ssh_win() { ssh "${SSH_OPTS[@]}" -p "$WIN_PORT" "$WIN_HOST" "$@"; }
 scp_win() { scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"; }
 
 TABLES=""
+POLISH="$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py"
+if [[ -f "$POLISH" && -f "$ROOT/tables/new_tables.xml" ]]; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    python3 "$POLISH" --block-labels-only --sync-output --check
+  else
+    python3 "$POLISH" --block-labels-only --sync-output
+  fi
+fi
 if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
   TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
 elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
@@ -74,19 +82,15 @@ fi
 
 JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$ROOT/jmri/layouts/hart/scripts/hart_dispatcher_startup.py"
-  "$ROOT/jmri/layouts/hart/scripts/patch_dispatcher_facing.py"
-  "$ROOT/jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py"
+  "$ROOT/jmri/layouts/hart/scripts/sync_layout_button.py"
   "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py"
 )
 
 HART_JYTHON_SCRIPTS=(
-  jmri/layouts/hart/scripts/sync_yard_ladder_buttons.py
+  jmri/layouts/hart/scripts/sync_layout_button.py
   jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py
   jmri/layouts/hart/scripts/discover_sml.py
-  jmri/layouts/hart/scripts/hart_dispatcher_startup.py
-  jmri/layouts/hart/scripts/patch_dispatcher_facing.py
   jmri/layouts/hart/scripts/hide_cats_desk_windows.py
   jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py
   jmri/layouts/hart/scripts/jmri_cmd_watcher.py
@@ -110,6 +114,7 @@ install_dispatcher_facing_patch() {
     for f in "${JYTHON_STARTUP_SCRIPTS[@]}"; do
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
     done
+    rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"
     echo "preference:jython scripts -> $dest"
     if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
@@ -120,9 +125,13 @@ install_dispatcher_facing_patch() {
     if [[ -f "$profxml" && -f "$patch_startup" ]]; then
       python3 "$patch_startup" retarget-jython \
         --profile "$profxml" \
-        --script sync_yard_ladder_buttons.py \
+        --script sync_layout_button.py \
         --script mqtt_signalhead_publisher.py \
         --script jmri_cmd_watcher.py
+      python3 "$patch_startup" remove \
+        --profile "$profxml" \
+        --script prepare_nx_sml_paths.py || true
+      rm -f "$dest/prepare_nx_sml_paths.py"
       echo "Start Up retargeted -> preference:jython ($profxml)"
     fi
   }
@@ -141,6 +150,33 @@ install_dispatcher_facing_patch() {
   fi
 }
 
+install_tables_local() {
+  local src=""
+  if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
+    src="$ROOT/jmri/layouts/hart/output/tables.xml"
+  elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
+    src="$ROOT/tables/new_tables.xml"
+  fi
+  [[ -n "$src" ]] || return 0
+  _copy_tables() {
+    cp -f "$src" "$1/tables.xml"
+    echo "tables.xml -> $1/tables.xml"
+  }
+  if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
+    for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
+      [[ -d "$d" ]] && _copy_tables "$d"
+    done
+  fi
+  if [[ -d "${HOME}/.jmri" ]]; then
+    for d in "${HOME}/.jmri"/*.jmri; do
+      [[ -d "$d" ]] && _copy_tables "$d"
+    done
+  fi
+  if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
+    _copy_tables "${HOME}/JMRI_UserFiles"
+  fi
+}
+
 install_ctc_icons_local() {
   local src="$ROOT/jmri/layouts/hart/ctc"
   [[ -d "$src/icons" ]] || return 0
@@ -153,13 +189,18 @@ install_ctc_icons_local() {
     fi
     echo "CTC icons -> $dest"
   }
-  _install_hart_aar_into() {
-    local dest="$1/resources/signals/hart-aar"
-    mkdir -p "$dest"
-    cp -f "$ROOT/cats/resources/signals/hart-aar/"aspects.xml \
-      "$ROOT/cats/resources/signals/hart-aar/"appearance-SL-2-digicon.xml \
+  _install_co1980_into() {
+    local src="$ROOT/cats/resources/signals/C&O-1980"
+    local dest="$1/resources/signals/C&O-1980"
+    mkdir -p "$dest/le"
+    cp -f "$src/"aspects.xml \
+      "$src/"appearance-CO-33-hi.xml \
+      "$src/"appearance-CO-3-dwarf.xml \
       "$dest/"
-    echo "hart-aar -> $dest"
+    if [[ -d "$src/le" ]]; then
+      cp -f "$src/le/"*.gif "$dest/le/"
+    fi
+    echo "C&O-1980 -> $dest"
   }
   _install_buttons_into() {
     local dest="$1/resources/buttons"
@@ -170,20 +211,32 @@ install_ctc_icons_local() {
     done
     echo "button icons -> $dest"
   }
+  _install_uss_sensor_icons_into() {
+    local dest="$1/resources/icons/USS/sensor"
+    local src="$ROOT/cats/resources/icons/USS/sensor"
+    [[ -d "$src" ]] || return 0
+    mkdir -p "$dest"
+    local f
+    for f in "$src/"yellow-*.gif; do
+      [[ -f "$f" ]] && cp -f "$f" "$dest/"
+    done
+    echo "USS sensor icons -> $dest"
+  }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_co1980_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/.jmri" ]]; then
     for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_hart_aar_into "$d" && _install_buttons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_co1980_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
     _install_ctc_into "${HOME}/JMRI_UserFiles"
-    _install_hart_aar_into "${HOME}/JMRI_UserFiles"
+    _install_co1980_into "${HOME}/JMRI_UserFiles"
     _install_buttons_into "${HOME}/JMRI_UserFiles"
+    _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
   fi
 }
 
@@ -195,6 +248,7 @@ stage_package() {
   mkdir -p \
     "$stage/cats/panels" \
     "$stage/cats/resources/buttons" \
+    "$stage/cats/resources/icons/USS/sensor" \
     "$stage/cats/scripts" \
     "$stage/ctc/icons" \
     "$stage/jmri/layouts/hart/scripts" \
@@ -218,10 +272,14 @@ stage_package() {
            "$ROOT/cats/resources/buttons/"triangle_*.png; do
     [[ -f "$f" ]] && cp -f "$f" "$stage/cats/resources/buttons/"
   done
+  if [[ -d "$ROOT/cats/resources/icons/USS/sensor" ]]; then
+    cp -f "$ROOT/cats/resources/icons/USS/sensor/"yellow-*.gif \
+      "$stage/cats/resources/icons/USS/sensor/" 2>/dev/null || true
+  fi
 
   rsync -a "$ROOT/cats/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   rsync -a "$ROOT/cats/resources/signals/cats-masts/" "$stage/cats/resources/signals/cats-masts/"
-  rsync -a "$ROOT/cats/resources/signals/hart-aar/" "$stage/cats/resources/signals/hart-aar/"
+  rsync -a "$ROOT/cats/resources/signals/C&O-1980/" "$stage/cats/resources/signals/C&O-1980/"
   rsync -a "$ROOT/cats/scripts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "$ROOT/cats/scripts/windows/" "$stage/cats/scripts/windows/"
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \
@@ -289,6 +347,7 @@ push_tar_scp() {
 
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
+  install_tables_local
   install_ctc_icons_local
   install_dispatcher_facing_patch
 fi
