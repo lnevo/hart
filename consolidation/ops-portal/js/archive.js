@@ -68,7 +68,7 @@
       var grid = document.getElementById("archive-grid");
       var emptyEl = document.getElementById("archive-empty");
       var toast = document.getElementById("archive-toast");
-      document.getElementById("archive-title").textContent = data.title || "Historical archive";
+      document.getElementById("archive-title").textContent = data.title || "Photos";
       document.getElementById("archive-lede").textContent = data.lede || "";
       document.getElementById("archive-editbar").hidden = !canEdit;
 

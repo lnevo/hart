@@ -26,7 +26,6 @@
         "history",
         "articles",
         "industries",
-        "photos",
         "archive"
       ]
     },
@@ -42,6 +41,7 @@
         "layout",
         "roster",
         "fleet",
+        "photos",
         "tools",
         "helix"
       ]
