@@ -3,24 +3,12 @@
   "lede": "The HART layout and the room it lives in. Historical photographs, ads, and clippings of the island are on the Photos page under History & Industries.",
   "albums": [
     {
-      "id": "place",
-      "label": "Neville Island",
-      "count": 1
-    },
-    {
       "id": "layout",
       "label": "The layout",
-      "count": 17
+      "count": 38
     }
   ],
   "items": [
-    {
-      "album": "place",
-      "src": "assets/media/birdseye-neville-island.jpg",
-      "title": "Neville Island from above",
-      "caption": "The five-mile strip in the Ohio River — heavy industry, logistics, and a tight community.",
-      "credit": "Published ops photo"
-    },
     {
       "album": "layout",
       "src": "../external/desktop-data/f-root/IMG_8953.png",
@@ -139,6 +127,153 @@
       "title": "Railroad reading",
       "caption": "Railroad history books on the lounge table.",
       "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/lcn-connection-diagram.webp",
+      "title": "LCN connection diagram",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "assets/media/dispatcher-panel.png",
+      "title": "Dispatcher panel — Neville Island",
+      "caption": "Compact dispatcher art for the island plant.",
+      "credit": "Station / dispatcher publications"
+    },
+    {
+      "album": "layout",
+      "src": "assets/panels/digicon-ctc.png",
+      "title": "Digicon CTC",
+      "caption": "Current Digicon schematic — HART Railroad / Neville Island Operations.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "layout",
+      "src": "assets/panels/classic-ctc.png",
+      "title": "Classic CTC machine",
+      "caption": "Current classic CTC panel with switches and signal levers.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "layout",
+      "src": "assets/panels/neville-island-le.png",
+      "title": "Neville Island LE panel",
+      "caption": "Current Layout Editor / Neville Island panel with SW labels.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.03.48 AM.png",
+      "title": "Screenshot, 2025-06-06",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.37.58 AM.png",
+      "title": "Screenshot, 2025-06-06",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.41.18 AM.png",
+      "title": "Screenshot, 2025-06-06",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 9.47.30 PM.png",
+      "title": "Screenshot, 2025-06-06",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-20 at 12.08.15 AM.png",
+      "title": "Screenshot, 2025-06-20",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/f-root/Screenshot 2025-06-21 at 9.50.38 PM.png",
+      "title": "Screenshot, 2025-06-21",
+      "caption": "From the HART Desktop archive (mirrored in consolidation).",
+      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+    },
+    {
+      "album": "layout",
+      "src": "../external/desktop-data/dj-trains/Screenshot 2025-04-30 at 1.52.48 PM.png",
+      "title": "DJ Trains capture, 2025-04-30",
+      "caption": "DJ Trains / layout capture from the Desktop HART folder.",
+      "credit": "Desktop/HART/DJ Trains"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_barn.png",
+      "title": "Station map: Barn",
+      "caption": "Switch 7 / 9 / 11 / 13 — Engine House and the Barn crossover.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_east_end.png",
+      "title": "Station map: East End",
+      "caption": "East end industries and leads.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_south_yard.png",
+      "title": "Station map: South Yard",
+      "caption": "Where CSX and POHC meet the island jobs.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_shenango.png",
+      "title": "Station map: Shenango",
+      "caption": "Shenango Coke Works and the scale story.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_shenango_rotated.png",
+      "title": "Station map: Shenango (rotated)",
+      "caption": "Alternate orientation for the desk.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_diagram_only.png",
+      "title": "Station map: Track diagram",
+      "caption": "Clean diagram without chrome.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_subdivision_tt23_panel.png",
+      "title": "Station map: Route 23 panel",
+      "caption": "Streetcar / TT-23 context on the subdivision.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_subdivision.png",
+      "title": "Station map: Subdivision overview",
+      "caption": "Neville Island subdivision — the big picture for new operators.",
+      "credit": "Station maps SM-series"
+    },
+    {
+      "album": "layout",
+      "src": "assets/maps/station_map_west_yard.png",
+      "title": "Station map: West Yard",
+      "caption": "West end of the plant.",
+      "credit": "Station maps SM-series"
     }
   ]
 }

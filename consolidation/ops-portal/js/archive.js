@@ -74,8 +74,11 @@
       document.getElementById("archive-editbar").hidden = !canEdit;
 
       var hash = (location.hash || "").replace("#", "");
+      // Curated / To review / Discard tabs are an engineering-desk tool: only the local
+      // review server shows them. Everyone else sees the curated set.
+      tabsEl.hidden = noteEl.hidden = !canEdit;
       var state = {
-        bucket: buckets.some(function (b) { return b.id === hash; }) ? hash : "curated",
+        bucket: canEdit && buckets.some(function (b) { return b.id === hash; }) ? hash : "curated",
         kind: "all",
         tag: "",
         q: "",

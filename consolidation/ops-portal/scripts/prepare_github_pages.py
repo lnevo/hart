@@ -124,6 +124,8 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
     for item in data.get("items") or []:
         if item.get("public") is False:  # rights not cleared; local review only
             continue
+        if item.get("bucket", "curated") != "curated":  # review/discard stay on the engineering desk
+            continue
         src_rel = str(item.get("src") or "")
         src = (PORTAL / src_rel).resolve()
         if not src_rel or not src.is_file():
