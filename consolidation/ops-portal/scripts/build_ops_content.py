@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import shutil
 from collections import defaultdict
 from pathlib import Path
@@ -592,6 +593,54 @@ def public_car_note(notes: str) -> str:
     return "; ".join(kept)
 
 
+# STS stores each car's photo as <cars.Id>.jpg; this backup's Ids match "Rolling Stock photos".
+STS_CARS_DUMP = STS_DATA / "backups" / "hart_session_mid4"
+_STS_ROAD_MARKS = {"BO": "B&O", "CO": "C&O", "NW": "N&W", "CBQ": "CB&Q"}
+
+
+def _sts_rows(dump: str, table: str) -> list[list[str]]:
+    prefix = f"insert into `{table}` values("
+    return [
+        next(csv.reader([line[len(prefix) : line.rindex(")")]], escapechar="\\"))
+        for line in dump.splitlines()
+        if line.startswith(prefix)
+    ]
+
+
+def _display_marks(sts_marks: str) -> str:
+    """BO8300 → B&O 8300, GATX31090 → GATX 31090, COST1 → C&O ST1."""
+    for short, road in sorted(_STS_ROAD_MARKS.items(), key=lambda kv: -len(kv[0])):
+        if sts_marks.startswith(short):
+            return f"{road} {sts_marks[len(short):]}"
+    m = re.match(r"([A-Z]+)(\d.*)", sts_marks)
+    return f"{m.group(1)} {m.group(2)}" if m else sts_marks
+
+
+def sts_aisle_cars() -> dict[str, tuple[str, str]]:
+    """Map aisle photo stem (STS car Id) → (title, caption) from the STS roster."""
+    if not STS_CARS_DUMP.is_file():
+        return {}
+    meta_by_roster: dict[str, dict] = {}
+    meta = HART_OPS / "data" / "image_metadata.csv"
+    if meta.is_file():
+        with meta.open(newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                meta_by_roster.setdefault((row.get("roster_id") or "").strip(), row)
+    out: dict[str, tuple[str, str]] = {}
+    for row in _sts_rows(STS_CARS_DUMP.read_text(encoding="utf-8"), "cars"):
+        car_id, sts_marks, remarks = row[0], row[1], row[7].strip()
+        m = meta_by_roster.get(sts_marks, {})
+        title = _display_marks(sts_marks)
+        road = (m.get("road_name") or "").strip() or title.split(" ")[0]
+        # One description per car; skip reviewer remarks like "check road number in OCR zoom".
+        note = next(
+            (n for n in public_car_note(m.get("notes") or "").split("; ") if not re.search(r"(?i)\bocr\b|\bcheck\b", n)),
+            "",
+        )
+        out[car_id] = (title, " · ".join(p for p in (road, remarks, note) if p))
+    return out
+
+
 def build_gallery(media: dict[str, str]) -> dict:
     items: list[dict] = []
 
@@ -739,15 +788,17 @@ def build_gallery(media: dict[str, str]) -> dict:
 
     rs = STS_DATA / "Rolling Stock photos"
     if rs.is_dir():
+        aisle_cars = sts_aisle_cars()
         for img in sorted(
             rs.glob("*.jpg"),
             key=lambda p: int(p.stem) if p.stem.isdigit() else 9999,
         ):
+            title, caption = aisle_cars.get(img.stem, ("HART car", "Rolling stock on the HART layout."))
             add(
                 "aisle",
                 f"../external/sts-docker-data/Rolling Stock photos/{img.name}",
-                f"Roster photo {img.stem}",
-                "Photographed rolling stock from the HART fleet — browsable aisle set.",
+                title,
+                caption,
                 "HART aisle photos",
             )
 
