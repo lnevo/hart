@@ -48,6 +48,7 @@
 <li><strong>The height stack is definitive for the roadbed TOP.</strong> <code>p1_height_template</code> = <strong>1-1/32 in</strong> (1.03125) above the -15 in deck at bracket 0, then <strong>+1/2 in per 45°</strong>. The user settled on 1-1/32 by test-fit on 2026-10-02 (1-1/16 was too high). The calculated value was 1.100.</li>
 <li><strong>Plywood is 0.72 in measured.</strong> Underside = top − 0.72 (0.311 in at P1). <strong>Don't use a nominal 3/4.</strong></li>
 <li><strong>The first-loop piers</strong> were sized as top − 3/4, so they're 0.03 in under the 0.72-based underside. The user checked: the wood lines up, and they stay as built.</li>
+<li><strong>Layer spacers</strong> (§4) are <strong>3.345 in (84.96 mm)</strong>, not 3.280: the 3.280 prints came out 1.65 mm short of the loop-to-loop gap (2026-10-15).</li>
 <li><strong>Grade and clearance:</strong> a constant offset changes neither. Railhead-to-underside clearance in the helix = 4.000 − 0.72 − T = <strong>3.12 in</strong> with T = 0.160 (nominal Code 83; caliper the actual track).</li>
 </ul>
 <h3>Half-lap joints (as built in 0.72 ply)</h3>
@@ -262,7 +263,7 @@
 <tr>
 <td><a href="stl/layer_spacer_4in_pitch.stl"><code>layer_spacer_4in_pitch.stl</code></a></td>
 <td><a href="scripts/make_layer_spacer.py"><code>make_layer_spacer.py</code></a></td>
-<td>Loop-to-loop check, <strong>3.280 in</strong> = 4.000 − 0.72. 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode.</td>
+<td>Loop-to-loop check, <strong>3.345 in (84.96 mm)</strong> = 4.000 − 0.72 + <strong>1.65 mm field correction</strong> (2026-10-15: the 3.280 in prints were 1.65 mm short; <code>FIELD_ADD</code>). 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode.</td>
 </tr>
 <tr>
 <td><a href="stl/layer_spacer_4in_pitch_vase.stl"><code>layer_spacer_4in_pitch_vase.stl</code></a></td>
@@ -369,7 +370,7 @@
 <li><strong>Frame vs pockets:</strong> dry-fit, take the 8 A/B readings (§2), and send them in for a rotate/translate/scale fit.</li>
 <li>Measure the shortest UTRUSTTO cutter (1/2 vs 25/64).</li>
 <li>Caliper the actual track height T (0.160 assumed) before clearance sign-off.</li>
-<li>First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase spacers (check the coil in the preview), wedges and plumb shims.</li>
+<li>First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase coil (check it in the preview), wedges and plumb shims. The layer spacers were tested at 3.280 and came out 1.65 mm short; reprint all three at 3.345 and recheck.</li>
 <li>Nesting spacing (9 in vs 8.611/8.918): decide, then add it to the PDF.</li>
 <li>Delete the obsolete STLs listed in §4 once the user agrees.</li>
 <li>Router adapter: verify the hole sizes against the real router and jig.</li>

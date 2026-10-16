@@ -52,9 +52,9 @@
 | [`first_loop_pier_post5.stl`](../helix/stl/first_loop_pier_post5.stl) | 97 KB | 101.6 × 38.1 × 58.4 (4.00 × 1.50 × 2.30) | ″ | ″ |
 | [`first_loop_pier_post6.stl`](../helix/stl/first_loop_pier_post6.stl) | 107 KB | 101.6 × 38.1 × 71.1 (4.00 × 1.50 × 2.80) | ″ | ″ |
 | [`first_loop_pier_post7.stl`](../helix/stl/first_loop_pier_post7.stl) | 97 KB | 101.6 × 38.1 × 83.8 (4.00 × 1.50 × 3.30) | ″ | ″ |
-| [`layer_spacer_4in_pitch.stl`](../helix/stl/layer_spacer_4in_pitch.stl) | 63 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | [`make_layer_spacer.py`](../helix/scripts/make_layer_spacer.py) | Loop-to-loop check, 3.280 in (4.000 − 0.72). Normal mode, ~22 g. |
-| [`layer_spacer_4in_pitch_vase.stl`](../helix/stl/layer_spacer_4in_pitch_vase.stl) | 100 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | [`make_layer_spacer_vase.py`](../helix/scripts/make_layer_spacer_vase.py) | Same spacer in spiral vase mode (~10 g, or ~4 g single line). Slice gap closing radius 0.01. |
-| [`layer_spacer_4in_pitch_vase_1line.stl`](../helix/stl/layer_spacer_4in_pitch_vase_1line.stl) | 28 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | ″ | ″ |
+| [`layer_spacer_4in_pitch.stl`](../helix/stl/layer_spacer_4in_pitch.stl) | 63 KB | 38.1 × 38.1 × 85.0 (1.50 × 1.50 × 3.35) | [`make_layer_spacer.py`](../helix/scripts/make_layer_spacer.py) | Loop-to-loop check, 3.345 in (4.000 − 0.72 + 1.65 mm field correction; the 3.280 prints were short). Normal mode, ~22 g. |
+| [`layer_spacer_4in_pitch_vase.stl`](../helix/stl/layer_spacer_4in_pitch_vase.stl) | 100 KB | 38.1 × 38.1 × 85.0 (1.50 × 1.50 × 3.35) | [`make_layer_spacer_vase.py`](../helix/scripts/make_layer_spacer_vase.py) | Same spacer in spiral vase mode (~10 g, or ~4 g single line). Slice gap closing radius 0.01. |
+| [`layer_spacer_4in_pitch_vase_1line.stl`](../helix/stl/layer_spacer_4in_pitch_vase_1line.stl) | 28 KB | 38.1 × 38.1 × 85.0 (1.50 × 1.50 × 3.35) | ″ | ″ |
 
 ### Entry
 

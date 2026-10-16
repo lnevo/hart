@@ -1,8 +1,10 @@
 """Layer spacer: checks the 4.000 in roadbed-to-roadbed pitch past the first loop.
 
 Stands on the top of the lower loop's roadbed and carries the underside of the loop above:
-height = 4.000 pitch - 0.72 measured plywood = 3.280 in. (Height datum: the stack sets the
-roadbed TOP; underside = top - 0.72. See HART_Neville_Helix_BUILD_STATUS.md section 1.)
+height = 4.000 pitch - 0.72 measured plywood = 3.280 in, plus a 1.65 mm field correction
+(2026-10-15: the 3.280 prints came out 1.65 mm short of the gap) = 3.345 in (84.96 mm).
+(Height datum: the stack sets the roadbed TOP; underside = top - 0.72. See
+HART_Neville_Helix_BUILD_STATUS.md section 1.)
 
 Cheap and fast: an open tube (no top, bottom or infill), so the slicer prints only walls.
 Stiffened 2026-10-13 (user: "a little bit stronger"): 2.0 mm wall plus an internal + of
@@ -22,7 +24,8 @@ import router_template_lattice as lat
 IN = 25.4
 PITCH = 4.000
 PLY_T = 0.72                    # measured
-H = PITCH - PLY_T               # 3.280 in
+FIELD_ADD = 1.65 / IN           # 2026-10-15: 3.280 prints were 1.65 mm too short
+H = PITCH - PLY_T + FIELD_ADD   # 3.345 in (84.96 mm)
 OD = 1.0
 WALL = 2.0 / IN                 # 2.0 mm: ~5 slicer lines, no infill
 RIB = 1.6 / IN                  # internal + ribs

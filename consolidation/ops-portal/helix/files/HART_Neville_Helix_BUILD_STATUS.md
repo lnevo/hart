@@ -17,6 +17,7 @@ Unless marked *tested*, the fixtures here are verified only in software (waterti
 - **The height stack is definitive for the roadbed TOP.** `p1_height_template` = **1-1/32 in** (1.03125) above the -15 in deck at bracket 0, then **+1/2 in per 45°**. The user settled on 1-1/32 by test-fit on 2026-10-02 (1-1/16 was too high). The calculated value was 1.100.
 - **Plywood is 0.72 in measured.** Underside = top − 0.72 (0.311 in at P1). **Don't use a nominal 3/4.**
 - **The first-loop piers** were sized as top − 3/4, so they're 0.03 in under the 0.72-based underside. The user checked: the wood lines up, and they stay as built.
+- **Layer spacers** (§4) are **3.345 in (84.96 mm)**, not 3.280: the 3.280 prints came out 1.65 mm short of the loop-to-loop gap (2026-10-15).
 - **Grade and clearance:** a constant offset changes neither. Railhead-to-underside clearance in the helix = 4.000 − 0.72 − T = **3.12 in** with T = 0.160 (nominal Code 83; caliper the actual track).
 
 ### Half-lap joints (as built in 0.72 ply)
@@ -121,7 +122,7 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 | `p1_height_template.stl` | `make_height_spacers.py` | **1-1/32 in** = P1 top at bracket 0. Sockets on top. |
 | `height_spacer_1_4in/1_2in/3_4in/1in/1_1_2in.stl`, `height_base_1_4in.stl` | same | Lego-style stack (pegs + crush ribs), sum 4.000. Template + 1/2 per 45° marks the plywood **top**. |
 | `first_loop_pier_post2…7.stl` | `make_first_loop_piers.py` | Sized as top − 3/4 (0.03 low; accepted). Top at grade, arrow uphill. Trellis webs, two screw tabs. Posts 1 and 8 skipped. |
-| `layer_spacer_4in_pitch.stl` | `make_layer_spacer.py` | Loop-to-loop check, **3.280 in** = 4.000 − 0.72. 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode. |
+| `layer_spacer_4in_pitch.stl` | `make_layer_spacer.py` | Loop-to-loop check, **3.345 in (84.96 mm)** = 4.000 − 0.72 + **1.65 mm field correction** (2026-10-15: the 3.280 in prints were 1.65 mm short; `FIELD_ADD`). 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode. |
 | `layer_spacer_4in_pitch_vase.stl` | `make_layer_spacer_vase.py` | Same envelope, **spiral vase**. Solid with a 1-turn 0.1 mm spiral slit, so a 3-line (~1.95 mm) wall from one path, ~10 g. Vase on, bottom 3–4 layers, **slice gap closing radius 0.01**, outer line 0.45 (`LINE_W`). |
 | `layer_spacer_4in_pitch_vase_1line.stl` | same | Plain single-line vase, ~4 g, weakest. |
 
@@ -174,7 +175,7 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 4. **Frame vs pockets:** dry-fit, take the 8 A/B readings (§2), and send them in for a rotate/translate/scale fit.
 5. Measure the shortest UTRUSTTO cutter (1/2 vs 25/64).
 6. Caliper the actual track height T (0.160 assumed) before clearance sign-off.
-7. First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase spacers (check the coil in the preview), wedges and plumb shims.
+7. First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase coil (check it in the preview), wedges and plumb shims. The layer spacers were tested at 3.280 and came out 1.65 mm short; reprint all three at 3.345 and recheck.
 8. Nesting spacing (9 in vs 8.611/8.918): decide, then add it to the PDF.
 9. Delete the obsolete STLs listed in §4 once the user agrees.
 10. Router adapter: verify the hole sizes against the real router and jig.
