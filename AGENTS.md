@@ -10,6 +10,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 |----|---------|
 | Checks | `python3 jmri/scripts/check_hart_phase02.py` · `python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict` |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
+| Deploy operator portal (www.hartrailroad.com) | `./consolidation/ops-portal/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`consolidation/ops-portal/README.md`](consolidation/ops-portal/README.md) |
 | CATS source (Bitbucket) | `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` |
 | CATS binaries | `./tools/cats/fetch_cats_3.2.sh` then `./tools/cats/install_into_jmri.sh` |
 

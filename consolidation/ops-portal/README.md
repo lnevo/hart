@@ -14,6 +14,18 @@ Also at **http://www.hartrailroad.com/** (VestaCP on www.easte.net). Redeploy:
 ./consolidation/ops-portal/scripts/deploy_hartrailroad.sh
 ```
 
+Deploys from your **local working tree** (any branch), so it shows changes GitHub Pages won't until they merge to `main`. Run it after every portal change; it is separate from `sync_hart_package.sh` (layout hosts).
+
+Server notes (ssh `lnevo@www.easte.net`, passwordless sudo):
+
+- Vesta web domain `hartrailroad.com`, alias `www.hartrailroad.com`, docroot `/home/lnevo/web/hartrailroad.com/public_html/`. Run Vesta CLI as `sudo VESTA=/usr/local/vesta /usr/local/vesta/bin/v-…`.
+- Proxy template `static-revalidate` (`/usr/local/vesta/data/templates/web/nginx/php-fpm/static-revalidate.{tpl,stpl}`) = `no-php` plus `Cache-Control: no-cache`. **Do not add a `types {}` block** — it replaces nginx's MIME map and breaks CSS/JS site-wide.
+- nginx `open_file_cache_valid 60s`: a deploy can take up to a minute to appear. Verify with `until curl -s http://www.hartrailroad.com/… | grep -q "<new text>"; do sleep 3; done`.
+- Industry logos come from the `consolidation/external/hart-ops` submodule (`operator_logos/`); deploy from a checkout with it initialised or logos drop out (`--delete`).
+- Pages fetch JSON with `cache: "no-cache"`; keep that on new fetches so browsers don't hold stale data.
+- **HTTP only.** Bare `hartrailroad.com` has no DNS A record (registrar Network Solutions). Once it points at 35.169.202.14: `v-add-letsencrypt-domain lnevo hartrailroad.com www.hartrailroad.com`.
+- Live tools page links to `localhost` services, which are dead from the public site.
+
 ## Open it locally (required)
 
 JSON pages (Briefing, About, Photos, Layout, Industries) need **HTTP**, not `file://`.
