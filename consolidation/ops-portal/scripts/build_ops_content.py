@@ -351,7 +351,7 @@ def build_about() -> dict:
                     "The Neville Island helix is under construction.",
                 ],
                 "links": [
-                    {"label": "Digicon explorer", "href": "layout/index.html"},
+                    {"label": "Layout Explorer", "href": "layout/index.html"},
                     {"label": "Helix build", "href": "helix/index.html"},
                     {"label": "Official publications", "href": "docs/index.html"},
                 ],

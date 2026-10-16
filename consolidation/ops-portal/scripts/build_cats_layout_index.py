@@ -81,8 +81,10 @@ def le_by_keys() -> dict[str, dict]:
     if not LE_JSON.is_file():
         return {}
     data = json.loads(LE_JSON.read_text(encoding="utf-8"))
+    items = data.get("items") or []
     out: dict[str, dict] = {}
-    for it in data.get("items") or []:
+    # Names first; they are authoritative.
+    for it in items:
         for key in (
             it.get("publicName"),
             it.get("systemName"),
@@ -90,26 +92,27 @@ def le_by_keys() -> dict[str, dict]:
             (it.get("block") or "").replace("OS ", "").strip(),
         ):
             if key:
-                out[str(key).strip().lower()] = it
+                out.setdefault(str(key).strip().lower(), it)
+        # Mast 24RA style
+        for key in (it.get("publicName"), it.get("systemName")):
+            if key and "mast" in str(key).lower():
+                out.setdefault(str(key).strip().lower(), it)
+                bare = re.sub(r"^mast\s+", "", str(key).strip(), flags=re.I)
+                out.setdefault(bare.lower(), it)
+                out.setdefault(f"mast {bare.lower()}", it)
+    # Id-derived keys only fill gaps: LE id "to-TO1" is Switch 13, not Switch 1.
+    for it in items:
         sn = (it.get("systemName") or "").strip()
         if sn.startswith("Switch "):
-            out[sn.replace("Switch ", "to").lower()] = it
-            out[f"to{sn.split()[-1]}".lower()] = it
+            out.setdefault(f"to{sn.split()[-1]}".lower(), it)
         iid = it.get("id") or ""
         if "TO" in iid.upper():
             to = iid.upper().split("TO")[-1]
             digits = "".join(ch for ch in to if ch.isdigit())
             if digits:
-                out[f"to{digits}"] = it
-                out[digits] = it
-                out[f"switch {digits}"] = it
-        # Mast 24RA style
-        for key in (it.get("publicName"), it.get("systemName")):
-            if key and "mast" in str(key).lower():
-                out[str(key).strip().lower()] = it
-                bare = re.sub(r"^mast\s+", "", str(key).strip(), flags=re.I)
-                out[bare.lower()] = it
-                out[f"mast {bare.lower()}"] = it
+                out.setdefault(f"to{digits}", it)
+                out.setdefault(digits, it)
+                out.setdefault(f"switch {digits}", it)
     return out
 
 
@@ -130,6 +133,10 @@ def cell_origin(x: int, y: int, minx: int, miny: int) -> tuple[float, float]:
 
 
 def match_turnout(by: dict, stations: set[str], blocks: set[str]) -> dict | None:
+    for bl in blocks:
+        match = by.get(bl.replace("OS ", "").lower())
+        if match:
+            return match
     for st in stations:
         pref = STATION_TO_SWITCH.get(st)
         match = None
@@ -156,6 +163,15 @@ def build() -> dict:
 
     by = le_by_keys()
     items: list[dict] = []
+
+    # (x, y) -> OS blocks / stations on that cell's edges, for switch cells that carry none.
+    cell_blocks: dict[tuple[int, int], list[tuple[str, str]]] = {}
+    for s in sections:
+        key = (int(s.get("X")), int(s.get("Y")))
+        for e in s.findall("SEC_EDGE"):
+            for b in e.findall("BLOCK"):
+                if b.get("NAME"):
+                    cell_blocks.setdefault(key, []).append((b.get("NAME"), b.get("STATION") or ""))
     seen_masts: set[str] = set()
 
     for s in sections:
@@ -213,6 +229,18 @@ def build() -> dict:
 
         if not has_points:
             continue
+
+        if not blocks and not stations:
+            # Points cell with no OS of its own: take the OS that surrounds it.
+            near: dict[tuple[str, str], int] = {}
+            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                for nb in cell_blocks.get((x + dx, y + dy), []):
+                    near[nb] = near.get(nb, 0) + 1
+            if near:
+                name, station = max(near, key=near.get)
+                blocks.add(name)
+                if station:
+                    stations.add(station)
 
         match = match_turnout(by, stations, blocks)
         public = (match or {}).get("publicName")
