@@ -472,3 +472,8 @@ table.lineage-table .sep { border-left: 2px solid var(--rule); }
   background: none;
   color: var(--brand);
 }
+
+/* The chart pages open with a few paragraphs of history: let them use the page width. */
+.lineage-page .page-head .section-note {
+  max-width: none;
+}
