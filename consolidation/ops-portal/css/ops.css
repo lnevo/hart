@@ -3330,8 +3330,8 @@ html.zoomer-open body {
   font-size: 0.95rem;
 }
 
-/* Four homepage doors: two by two on wider screens. */
-@media (min-width: 720px) {
+/* Four homepage doors: two by two everywhere but phone width. */
+@media (min-width: 540px) {
   .section-doors {
     grid-template-columns: repeat(2, 1fr);
   }
