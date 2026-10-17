@@ -800,11 +800,11 @@
         "chartiers-valley",
         "map"
       ],
-      "credit": "",
-      "source_url": "",
-      "credit_confidence": "none",
+      "credit": "Peter A. Vanvliet, The PRR Chartiers Branch (Peter's Model Railroading)",
+      "source_url": "https://www.pmrr.org/Prototype/Intro/index.php",
+      "credit_confidence": "verified",
       "rights": "",
-      "reason": "Modern track diagram, not a period item.",
+      "reason": "Source confirmed by the owner.",
       "origin": "Desktop/HART (F-root)"
     },
     {
