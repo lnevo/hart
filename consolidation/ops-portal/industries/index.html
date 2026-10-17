@@ -37,9 +37,26 @@
       "Shenango Coke Works": "shenango",
       Interchange: "scully",
     };
+    // Destination colors (data/crew.json) for the stripe under each logo, as on the printed operator sheet.
+    var STRIPES = {
+      "Aristech Plastics": ["yellow"],
+      "A. Stucki Company": ["green"],
+      "Calgon Carbon": ["purple"],
+      Ferrellgas: ["red"],
+      "Kosmos Cement": ["pink"],
+      "Shenango Coke Works": ["black"],
+      Interchange: ["orange", "blue"],
+    };
+    // The operator sheet prints a deeper yellow; pure #FFFF00 washes out as a thin rule.
+    var PRINT_HEX = { yellow: "#FFD400" };
     document.addEventListener("DOMContentLoaded", async function () {
       await HARTOps.mountChrome("industries");
       var data = await HARTOps.loadJson("data/industries.json");
+      var crew = await HARTOps.loadJson("data/crew.json");
+      var colors = {};
+      (crew.colors || []).forEach(function (c) {
+        colors[c.id] = c;
+      });
       document.getElementById("ind-title").textContent = data.title;
       document.getElementById("ind-lede").textContent = data.lede || "";
       document.getElementById("ind-grid").innerHTML = (data.industries || [])
@@ -56,6 +73,17 @@
               esc(ind.name) +
               ' logo"></div>'
             : '<div class="logo-band"><span class="meta">No logo on file</span></div>';
+          var stripes = (STRIPES[ind.name] || [])
+            .filter(function (id) {
+              return colors[id];
+            })
+            .map(function (id) {
+              var c = colors[id];
+              return '<span style="background:' + esc(PRINT_HEX[id] || c.hex) + '" title="' + esc(c.label + " · " + c.dest) + '"></span>';
+            })
+            .join("");
+          if (stripes) logo += '<div class="color-stripes" role="img" aria-label="Destination color: ' +
+            esc((STRIPES[ind.name] || []).map(function (id) { return colors[id] ? colors[id].label : ""; }).join(" and ")) + '">' + stripes + "</div>";
           var tags = (ind.commodities || [])
             .map(function (c) {
               return "<li>" + esc(c) + "</li>";

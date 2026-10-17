@@ -608,6 +608,18 @@ main:not(.full-bleed) .btn-ghost:hover {
   border-bottom: 1px solid var(--rule);
 }
 
+/* Destination color stripe under the logo, like the 4 pt rule on the printed operator sheet. */
+.industry-card .color-stripes {
+  display: grid;
+  gap: 3px;
+  margin-top: -1px;
+}
+
+.industry-card .color-stripes span {
+  display: block;
+  height: 7px;
+}
+
 .industry-card img.logo {
   width: auto;
   max-width: min(100%, 220px);
