@@ -3482,3 +3482,129 @@ html.zoomer-open body {
 .section-door.is-build {
   border-top-color: var(--ok);
 }
+
+/* —— Car cards & waybills (operators/cards/) —— */
+.cw-intro {
+  display: grid;
+  gap: 1.25rem 2rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (min-width: 760px) {
+  .cw-intro {
+    grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+  }
+  .cw-intro .cw-photo {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .cw-intro:has(.cw-photo) {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 46%);
+  }
+  .cw-intro .cw-photo + .cw-text {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+.cw-text {
+  max-width: 62ch;
+}
+
+.cw-text ul {
+  padding-left: 1.2rem;
+  margin: 0 0 1.1rem;
+}
+
+.cw-text li {
+  margin-bottom: 0.35rem;
+}
+
+.cw-fig {
+  margin: 0;
+}
+
+.cw-fig img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+}
+
+.cw-card,
+.cw-grid .cw-fig {
+  max-width: 300px;
+}
+
+.cw-card {
+  justify-self: center;
+}
+
+.cw-fig figcaption {
+  margin-top: 0.55rem;
+  font-size: 0.93rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.cw-fig figcaption .cchip {
+  margin-right: 0.3rem;
+  vertical-align: 0.1em;
+}
+
+.cw-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 300px));
+  justify-content: start;
+}
+
+@media (max-width: 520px) {
+  .cw-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+.cw-note {
+  max-width: 68ch;
+  margin: 0 0 1rem;
+}
+
+.cw-read,
+.cw-steps {
+  max-width: 68ch;
+  padding-left: 1.4rem;
+  margin: 0 0 1rem;
+}
+
+.cw-read li,
+.cw-steps li {
+  margin-bottom: 0.55rem;
+  line-height: 1.5;
+}
+
+.cw-steps li::marker {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.cw-colors {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 0.6rem;
+  align-items: center;
+  max-width: 34rem;
+  padding: 0.8rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  font-size: 0.95rem;
+}
+
+.cw-colors .cchip {
+  min-width: 4.6rem;
+}
