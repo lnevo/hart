@@ -108,6 +108,15 @@
           curate: "/api/gallery",
         });
         await HARTGallery.mount({ dataUrl: "data/gallery.json", albums: ["plans", "build"], heading: false });
+        // Deep links: #plans and #wiring open that album; any hash scrolls again once the galleries have filled in.
+        var hash = location.hash.slice(1);
+        var album = { plans: "plans", wiring: "build" }[hash];
+        if (album) {
+          var btn = document.querySelector('#album-bar [data-album="' + album + '"]');
+          if (btn) btn.click();
+        }
+        var target = document.getElementById(album ? "photos" : hash);
+        if (target) target.scrollIntoView();
       } catch (err) {
         console.error(err);
         var lede = document.getElementById("gallery-lede");
