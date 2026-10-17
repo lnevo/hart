@@ -25,7 +25,6 @@
       "pages": [
         "history",
         "articles",
-        "industries",
         "plants",
         "railroads",
         "archive"
@@ -40,6 +39,7 @@
         "briefing",
         "room",
         "fleet",
+        "industries",
         "crew",
         "crew-sheet",
         "crew-maps",
