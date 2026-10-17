@@ -1,0 +1,901 @@
+{
+  "title": "Who became who",
+  "lede": "The plants at the east end of Neville Island began as one American Steel & Wire blast furnace. They grew into Pittsburgh Coke & Chemical, which was broken up in the 1960s. Follow each branch down to today.",
+  "article": "library/neville-island-coke-cement-chemical-history.html",
+  "trunk": [
+    {
+      "name": "American Steel & Wire",
+      "years": "1899–1929",
+      "from": 1899,
+      "to": 1928,
+      "made": "Blast furnace, pig iron",
+      "wordmark": "American Steel & Wire",
+      "note": "Built the P&OV to serve it"
+    },
+    {
+      "handoff": "1929 · furnace site sold"
+    },
+    {
+      "name": "Davison Coke & Iron",
+      "years": "1929–1936",
+      "from": 1929,
+      "to": 1935,
+      "made": "Coke, pig iron, slag cement",
+      "wordmark": "Davison Coke & Iron",
+      "note": "New coke ovens and cement plant"
+    },
+    {
+      "handoff": "1936 · reorganized after bankruptcy"
+    },
+    {
+      "name": "Pittsburgh Coke & Iron",
+      "years": "1936–c. 1942",
+      "from": 1936,
+      "to": 1941,
+      "made": "Coke, iron, cement. Chemicals from 1940",
+      "wordmark": "Pittsburgh Coke & Iron"
+    },
+    {
+      "handoff": "c. 1942 · renamed"
+    },
+    {
+      "name": "Pittsburgh Coke & Chemical",
+      "years": "c. 1942–1960s",
+      "from": 1942,
+      "to": 1965,
+      "made": "Coke, pig iron, cement, carbon, chemicals",
+      "logo": "../external/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
+      "note": "Second blast furnace c. 1952"
+    }
+  ],
+  "split": "1960–1966 · broken up",
+  "lanes": [
+    {
+      "id": "coke",
+      "title": "Coke & iron",
+      "hart": "Shenango Coke Works",
+      "steps": [
+        {
+          "name": "PC&C Coke and Iron Division",
+          "years": "to 1962",
+          "from": 1942,
+          "to": 1961,
+          "made": "Coke and pig iron",
+          "logo": "../external/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
+          "pcc": true
+        },
+        {
+          "handoff": "1962 · sold to Shenango Furnace"
+        },
+        {
+          "name": "Shenango",
+          "years": "1962–2008",
+          "from": 1962,
+          "to": 2007,
+          "made": "Coke and pig iron, then coke only",
+          "logo": "../external/hart-ops/operator_logos/downloads/shenango-trim.png",
+          "note": "Iron off 1990–91"
+        },
+        {
+          "handoff": "2008 · DTE Energy buys Shenango"
+        },
+        {
+          "name": "DTE Energy",
+          "years": "2008–2016",
+          "from": 2008,
+          "to": 2016,
+          "made": "Merchant coke, one 56-oven battery",
+          "logo": "../external/hart-ops/operator_logos/downloads/dte-energy.png"
+        }
+      ],
+      "end": {
+        "text": "Last coke 6 Jan 2016. Stacks down 2018. Site sold to Lindy Paving 2020.",
+        "state": "closed"
+      }
+    },
+    {
+      "id": "cement",
+      "title": "Cement",
+      "hart": "Kosmos Cement",
+      "steps": [
+        {
+          "name": "Green Bag Cement",
+          "years": "to 1961",
+          "from": 1942,
+          "to": 1960,
+          "made": "Slag portland-pozzolan cement",
+          "wordmark": "Green Bag",
+          "note": "Owned by PC&C",
+          "pcc": true
+        },
+        {
+          "handoff": "1961 · sold to Marquette Cement"
+        },
+        {
+          "name": "Marquette Cement",
+          "years": "1961–1982",
+          "from": 1961,
+          "to": 1981,
+          "made": "Slag portland cement",
+          "wordmark": "Marquette",
+          "note": "Gulf & Western from 1976"
+        },
+        {
+          "handoff": "1982 · sold to Lone Star Industries"
+        },
+        {
+          "name": "Lone Star Cement",
+          "years": "1982–mid 1990s",
+          "from": 1982,
+          "to": 1995,
+          "made": "Portland cement",
+          "wordmark": "Lone Star"
+        },
+        {
+          "handoff": "By 1996 · Kosmos Cement"
+        },
+        {
+          "name": "Kosmos Cement",
+          "years": "by 1996–2020",
+          "from": 1996,
+          "to": 2019,
+          "made": "Portland cement",
+          "logo": "../external/hart-ops/operator_logos/downloads/kosmos-trim.png",
+          "note": "Southdown and Lone Star"
+        },
+        {
+          "handoff": "2020 · Eagle Materials buys Kosmos"
+        },
+        {
+          "name": "Eagle Materials",
+          "years": "2020–",
+          "from": 2020,
+          "to": null,
+          "made": "Cement terminal, 200 Neville Road",
+          "logo": "../external/hart-ops/operator_logos/downloads/eagle-materials.png"
+        }
+      ],
+      "end": {
+        "text": "Open today as a cement terminal. No kiln.",
+        "state": "open"
+      }
+    },
+    {
+      "id": "carbon",
+      "title": "Activated carbon",
+      "hart": "Calgon Carbon",
+      "steps": [
+        {
+          "name": "Pittsburgh Activated Carbon",
+          "years": "1942–1965",
+          "from": 1942,
+          "to": 1964,
+          "made": "Granular carbon made from coal",
+          "wordmark": "Pittsburgh Activated Carbon",
+          "note": "Gas masks 1942, drinking water 1960",
+          "pcc": true
+        },
+        {
+          "handoff": "1965 · Calgon Corporation buys it"
+        },
+        {
+          "name": "Calgon Corporation",
+          "years": "1965–1985",
+          "from": 1965,
+          "to": 1984,
+          "made": "Activated carbon",
+          "wordmark": "Calgon",
+          "note": "Merck owned Calgon from 1968"
+        },
+        {
+          "handoff": "1985 · bought out from Merck"
+        },
+        {
+          "name": "Calgon Carbon",
+          "years": "1985–2018",
+          "from": 1985,
+          "to": 2017,
+          "made": "Activated carbon, reactivation",
+          "logo": "../external/hart-ops/operator_logos/downloads/calgon-carbon-no-tagline.png"
+        },
+        {
+          "handoff": "2018 · Kuraray buys Calgon Carbon"
+        },
+        {
+          "name": "Calgon Carbon (Kuraray)",
+          "years": "2018–",
+          "from": 2018,
+          "to": null,
+          "made": "Carbon reactivation",
+          "logo": "../external/hart-ops/operator_logos/downloads/calgon-trim.png"
+        }
+      ],
+      "end": {
+        "text": "Still reactivating carbon on the island today.",
+        "state": "open"
+      }
+    },
+    {
+      "id": "chemicals",
+      "title": "Chemicals",
+      "hart": "Aristech Plastics",
+      "steps": [
+        {
+          "name": "PC&C chemical works",
+          "years": "1940–1966",
+          "from": 1940,
+          "to": 1965,
+          "made": "Coal-tar chemicals, phthalic and maleic anhydride",
+          "logo": "../external/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
+          "note": "Pesticides 1949–55",
+          "pcc": true
+        },
+        {
+          "handoff": "1964–66 · into U.S. Steel"
+        },
+        {
+          "name": "USS Chemicals",
+          "years": "1966–1986",
+          "from": 1966,
+          "to": 1985,
+          "made": "Resins, maleic anhydride, plasticizers",
+          "logo": "../external/hart-ops/operator_logos/downloads/uss-chemicals-neville-island.png"
+        },
+        {
+          "handoff": "1986 · U.S. Steel forms Aristech"
+        },
+        {
+          "name": "Aristech Chemical",
+          "years": "1986–2000",
+          "from": 1986,
+          "to": 2000,
+          "made": "Plasticizers for flexible PVC",
+          "logo": "../external/hart-ops/operator_logos/downloads/aristech-trim.png",
+          "note": "Mitsubishi buyout 1990. Resin and maleic units to Ashland 1995"
+        },
+        {
+          "handoff": "1 Jan 2001 · Sunoco buys Aristech"
+        },
+        {
+          "name": "Sunoco",
+          "years": "2001–2007",
+          "from": 2001,
+          "to": 2007,
+          "made": "Plasticizers, made for BASF from 2004",
+          "logo": "../external/hart-ops/operator_logos/downloads/sunoco-1999.png",
+          "note": "Stopped by 31 Mar 2007"
+        },
+        {
+          "handoff": "Dec 2007 · Ashland buys the plant"
+        },
+        {
+          "name": "Ashland",
+          "years": "2007–",
+          "from": 2007,
+          "to": null,
+          "made": "Terminal shipping BASF plasticizers",
+          "logo": "../external/hart-ops/operator_logos/downloads/ashland-wordmark.png"
+        }
+      ],
+      "end": {
+        "text": "A shipping terminal. Chemical making ended in 2007.",
+        "state": "closed"
+      }
+    }
+  ],
+  "table": {
+    "note": "Each row is a run of years with no change. The ingot-mold foundry at 3100 Grand Avenue was a separate plant, fed with hot iron from the east-end furnaces.",
+    "headers": [
+      "Coke & iron",
+      "Cement",
+      "Carbon",
+      "Chemicals",
+      "3100 Grand Ave",
+      "Plant railroad",
+      "Ohio River main",
+      "Island line"
+    ],
+    "rows": [
+      {
+        "years": "1899",
+        "from": 1899,
+        "to": 1899,
+        "cells": [
+          "American Steel & Wire: furnace announced",
+          "Not yet built",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: incorporated 5 Dec",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1900–1902",
+        "from": 1900,
+        "to": 1902,
+        "cells": [
+          "American Steel & Wire: furnace under construction",
+          "Not yet built",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: under construction",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1903–1917",
+        "from": 1903,
+        "to": 1917,
+        "cells": [
+          "American Steel & Wire: pig iron",
+          "Not yet built",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1918",
+        "from": 1918,
+        "to": 1918,
+        "cells": [
+          "American Steel & Wire: pig iron",
+          "Not yet built",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Ordnance Department takes it over from 20 Sept",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1919",
+        "from": 1919,
+        "to": 1919,
+        "cells": [
+          "American Steel & Wire: pig iron",
+          "Not yet built",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: returned 1 July",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1920–1928",
+        "from": 1920,
+        "to": 1928,
+        "cells": [
+          "American Steel & Wire: pig iron",
+          "Not yet built",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1929",
+        "from": 1929,
+        "to": 1929,
+        "cells": [
+          "Davison Coke & Iron: coke and pig iron",
+          "Davison Coke & Iron: cement plant being built",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1930–1935",
+        "from": 1930,
+        "to": 1935,
+        "cells": [
+          "Davison Coke & Iron: coke and pig iron",
+          "Davison Coke & Iron: slag cement",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1936–1938",
+        "from": 1936,
+        "to": 1938,
+        "cells": [
+          "Pittsburgh Coke & Iron: coke and pig iron",
+          "Pittsburgh Coke & Iron: slag cement",
+          "Not yet made",
+          "Not yet made",
+          "Not yet built",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1939",
+        "from": 1939,
+        "to": 1939,
+        "cells": [
+          "Pittsburgh Coke & Iron: coke and pig iron",
+          "Pittsburgh Coke & Iron: slag cement",
+          "Not yet made",
+          "Not yet made",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1940–1941",
+        "from": 1940,
+        "to": 1941,
+        "cells": [
+          "Pittsburgh Coke & Iron: coke and pig iron",
+          "Pittsburgh Coke & Iron: slag cement",
+          "Not yet made",
+          "Pittsburgh Coke & Iron: chemicals from oven gas and tar",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1942–1948",
+        "from": 1942,
+        "to": 1948,
+        "cells": [
+          "Pittsburgh Coke & Chemical: coke and pig iron",
+          "Pittsburgh Coke & Chemical: Green Bag cement",
+          "Pittsburgh Coke & Chemical: activated carbon",
+          "Pittsburgh Coke & Chemical: coal-tar chemicals",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1949–1951",
+        "from": 1949,
+        "to": 1951,
+        "cells": [
+          "Pittsburgh Coke & Chemical: coke and pig iron",
+          "Pittsburgh Coke & Chemical: Green Bag cement",
+          "Pittsburgh Coke & Chemical: activated carbon",
+          "Pittsburgh Coke & Chemical: coal-tar chemicals, including pesticides",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1952–1955",
+        "from": 1952,
+        "to": 1955,
+        "cells": [
+          "Pittsburgh Coke & Chemical: coke and pig iron (second furnace)",
+          "Pittsburgh Coke & Chemical: Green Bag cement",
+          "Pittsburgh Coke & Chemical: activated carbon",
+          "Pittsburgh Coke & Chemical: coal-tar chemicals, including pesticides",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1956–1958",
+        "from": 1956,
+        "to": 1958,
+        "cells": [
+          "Pittsburgh Coke & Chemical: coke and pig iron (second furnace)",
+          "Pittsburgh Coke & Chemical: Green Bag cement",
+          "Pittsburgh Coke & Chemical: activated carbon",
+          "Pittsburgh Coke & Chemical: phthalic anhydride added",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1959–1960",
+        "from": 1959,
+        "to": 1960,
+        "cells": [
+          "Pittsburgh Coke & Chemical: coke and pig iron (second furnace)",
+          "Pittsburgh Coke & Chemical: Green Bag cement",
+          "Pittsburgh Coke & Chemical: activated carbon",
+          "Pittsburgh Coke & Chemical: phthalic and maleic anhydride",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1961",
+        "from": 1961,
+        "to": 1961,
+        "cells": [
+          "Pittsburgh Coke & Chemical: coke and pig iron (second furnace)",
+          "Marquette Cement: slag portland",
+          "Pittsburgh Coke & Chemical: activated carbon",
+          "Pittsburgh Coke & Chemical: phthalic and maleic anhydride",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1962–1964",
+        "from": 1962,
+        "to": 1964,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Marquette Cement: slag portland",
+          "Pittsburgh Coke & Chemical: activated carbon",
+          "Pittsburgh Coke & Chemical: phthalic and maleic anhydride",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1965",
+        "from": 1965,
+        "to": 1965,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Marquette Cement: slag portland",
+          "Calgon: activated carbon",
+          "Pittsburgh Coke & Chemical: phthalic and maleic anhydride",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1966–1967",
+        "from": 1966,
+        "to": 1967,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Marquette Cement: slag portland",
+          "Calgon: activated carbon",
+          "USS Chemicals: resins, maleic anhydride, plasticizers",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1968–1975",
+        "from": 1968,
+        "to": 1975,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Marquette Cement: slag portland",
+          "Calgon (Merck): activated carbon",
+          "USS Chemicals: resins, maleic anhydride, plasticizers",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1976–1981",
+        "from": 1976,
+        "to": 1981,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Marquette Cement (Gulf & Western): slag portland",
+          "Calgon (Merck): activated carbon",
+          "USS Chemicals: resins, maleic anhydride, plasticizers",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1982–1984",
+        "from": 1982,
+        "to": 1984,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Lone Star Cement: portland cement",
+          "Calgon (Merck): activated carbon",
+          "USS Chemicals: resins, maleic anhydride, plasticizers",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1985",
+        "from": 1985,
+        "to": 1985,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "USS Chemicals: resins, maleic anhydride, plasticizers",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1986–1989",
+        "from": 1986,
+        "to": 1989,
+        "cells": [
+          "Shenango: coke and pig iron",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech: plasticizers and maleic anhydride",
+          "Shenango-Penn Mold: ingot molds",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1990",
+        "from": 1990,
+        "to": 1990,
+        "cells": [
+          "Shenango: coke; pig iron shutting down",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech (Mitsubishi from March 1990): plasticizers",
+          "Foundry closed in January",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1991",
+        "from": 1991,
+        "to": 1991,
+        "cells": [
+          "Shenango: merchant coke; iron off by mid-year",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech (Mitsubishi from March 1990): plasticizers",
+          "Closed; next operator not dated",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1992",
+        "from": 1992,
+        "to": 1992,
+        "cells": [
+          "Shenango: merchant coke",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech (Mitsubishi from March 1990): plasticizers",
+          "Closed; next operator not dated",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "Pittsburgh & Lake Erie",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1993",
+        "from": 1993,
+        "to": 1993,
+        "cells": [
+          "Shenango: merchant coke",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech (Mitsubishi from March 1990): plasticizers",
+          "Closed; next operator not dated",
+          "Pittsburgh & Ohio Valley: plant switcher",
+          "CSX (former P&LE)",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1994",
+        "from": 1994,
+        "to": 1994,
+        "cells": [
+          "Shenango: merchant coke",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech (Mitsubishi from March 1990): plasticizers",
+          "Closed; next operator not dated",
+          "Pittsburgh & Ohio Valley: ends 31 Jan",
+          "CSX (former P&LE)",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1995",
+        "from": 1995,
+        "to": 1995,
+        "cells": [
+          "Shenango: merchant coke",
+          "Lone Star Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech: plasticizers. Ashland: polyester and maleic from April",
+          "Neville Metals name filed 30 Nov",
+          "Gone",
+          "CSX (former P&LE)",
+          "PC&Y"
+        ]
+      },
+      {
+        "years": "1996",
+        "from": 1996,
+        "to": 1996,
+        "cells": [
+          "Shenango: merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech: plasticizers. Ashland: polyester and maleic",
+          "Neville Metals (Heidelberg Metals): scrap",
+          "Gone",
+          "CSX (former P&LE)",
+          "PC&Y; Pittsburgh Industrial Railroad from 6 Dec"
+        ]
+      },
+      {
+        "years": "1997–1999",
+        "from": 1997,
+        "to": 1999,
+        "cells": [
+          "Shenango: merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech: plasticizers. Ashland: polyester and maleic",
+          "Neville Metals (Heidelberg Metals): scrap",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh Industrial Railroad"
+        ]
+      },
+      {
+        "years": "2000",
+        "from": 2000,
+        "to": 2000,
+        "cells": [
+          "Shenango: merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Aristech: plasticizers. Ashland: polyester and maleic",
+          "Neville Metals (Heidelberg Metals): scrap",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh Industrial until December, then Pittsburgh & Ohio Central"
+        ]
+      },
+      {
+        "years": "2001–2003",
+        "from": 2001,
+        "to": 2003,
+        "cells": [
+          "Shenango: merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Sunoco: plasticizers",
+          "Neville Metals (Heidelberg Metals): scrap",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh & Ohio Central"
+        ]
+      },
+      {
+        "years": "2004–2006",
+        "from": 2004,
+        "to": 2006,
+        "cells": [
+          "Shenango: merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Sunoco: plasticizers, toll-made for BASF",
+          "Neville Metals (Heidelberg Metals): scrap",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh & Ohio Central"
+        ]
+      },
+      {
+        "years": "2007",
+        "from": 2007,
+        "to": 2007,
+        "cells": [
+          "Shenango: merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Sunoco through March; Ashland terminal from December",
+          "Neville Metals (Heidelberg Metals): scrap",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh & Ohio Central"
+        ]
+      },
+      {
+        "years": "2008",
+        "from": 2008,
+        "to": 2008,
+        "cells": [
+          "DTE (Shenango): merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Ashland: terminal shipping BASF plasticizers",
+          "Metalico Pittsburgh: Neville Metals scrap yard (bought May 2008)",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh & Ohio Central"
+        ]
+      },
+      {
+        "years": "2009–2015",
+        "from": 2009,
+        "to": 2015,
+        "cells": [
+          "DTE (Shenango): merchant coke",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Ashland: terminal shipping BASF plasticizers",
+          "Metalico Pittsburgh: Neville Metals scrap yard (bought May 2008)",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh & Ohio Central (Genesee & Wyoming)"
+        ]
+      },
+      {
+        "years": "2016",
+        "from": 2016,
+        "to": 2016,
+        "cells": [
+          "DTE (Shenango): last coke 6 Jan, then closed",
+          "Kosmos Cement: portland cement",
+          "Calgon Carbon: activated carbon",
+          "Ashland: terminal shipping BASF plasticizers",
+          "Metalico Pittsburgh: Neville Metals scrap yard (bought May 2008)",
+          "Gone",
+          "CSX (former P&LE)",
+          "Pittsburgh & Ohio Central (Genesee & Wyoming)"
+        ]
+      }
+    ]
+  }
+}

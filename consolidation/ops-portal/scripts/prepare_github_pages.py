@@ -147,24 +147,41 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _vendor_industry_logos(path: Path, dest_root: Path) -> None:
-    """Copy ../external/ logos into the tree; the public site has no external/ mirror."""
+def _vendor_logo(logo: str, dest_root: Path) -> str:
+    """Copy one ../external/ logo into assets/logos/ and return its public path ("" if missing)."""
+    src = (PORTAL / logo).resolve()
+    if not src.is_file():
+        return ""
+    rel = Path("assets") / "logos" / src.name
+    out = dest_root / rel
+    if out.exists() and out.read_bytes() != src.read_bytes():
+        # Same file name from another folder (e.g. operator_logos/ and downloads/).
+        rel = Path("assets") / "logos" / f"{src.parent.name}-{src.name}"
+        out = dest_root / rel
+    out.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, out)
+    return rel.as_posix()
+
+
+def _vendor_logos_in(node: object, dest_root: Path) -> None:
+    """Rewrite every "logo" field under node that points into ../external/."""
+    if isinstance(node, dict):
+        logo = node.get("logo")
+        if isinstance(logo, str) and logo.startswith("../"):
+            node["logo"] = _vendor_logo(logo, dest_root)
+        for value in node.values():
+            _vendor_logos_in(value, dest_root)
+    elif isinstance(node, list):
+        for value in node:
+            _vendor_logos_in(value, dest_root)
+
+
+def _vendor_json_logos(path: Path, dest_root: Path) -> None:
+    """Copy ../external/ logos named in a data file into the tree; the public site has no external/ mirror."""
     if not path.is_file():
         return
     data = json.loads(path.read_text(encoding="utf-8"))
-    items = data if isinstance(data, list) else data.get("industries") or data.get("items") or []
-    for ind in items:
-        logo = str(ind.get("logo") or "")
-        if not logo.startswith("../"):
-            continue
-        src = (PORTAL / logo).resolve()
-        if not src.is_file():
-            ind["logo"] = ""
-            continue
-        rel = Path("assets") / "logos" / src.name
-        (dest_root / rel).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dest_root / rel)
-        ind["logo"] = rel.as_posix()
+    _vendor_logos_in(data, dest_root)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
@@ -180,7 +197,8 @@ def main() -> int:
     site["public"] = True
     site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-    _vendor_industry_logos(dest / "data" / "industries.json", dest)
+    _vendor_json_logos(dest / "data" / "industries.json", dest)
+    _vendor_json_logos(dest / "data" / "plants-lineage.json", dest)
     _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
     _filter_gallery(dest / "data" / "gallery.json", dest)
     _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
