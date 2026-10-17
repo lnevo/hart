@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chartiers Valley railroads — HART</title>
+  <meta name="description" content="Who ran the railroads of the Chartiers Valley and Neville Island, 1853 to today: the Chartiers Branch, PC&amp;Y, P&amp;LE, P&amp;WV, P&amp;OV, and today's POHC and CSX.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/lineage.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main class="lineage-page">
+    <div class="page-head">
+      <h1 id="lin-title">Who ran the railroads</h1>
+      <p class="section-note" id="lin-lede"></p>
+      <p class="small">The full story, with sources: <a id="lin-article" href="../library/chartiers-valley-railroads.html">Railroads of the Chartiers Valley</a>. The plants they served: <a href="../plants/index.html">Who became who</a>.</p>
+    </div>
+
+    <div class="year-pick">
+      <label for="year">Who ran it in <output id="year-out" for="year">…</output>?</label>
+      <input type="range" id="year" min="1853" max="2026" step="1" value="1960">
+      <button type="button" id="year-clear" disabled>Clear</button>
+    </div>
+
+    <div class="panel-tabs" role="tablist" aria-label="View">
+      <button type="button" role="tab" id="tab-lineage" aria-controls="panel-lineage" aria-selected="true">Lineage</button>
+      <button type="button" role="tab" id="tab-years" aria-controls="panel-years" aria-selected="false">Year by year</button>
+    </div>
+
+    <section class="tab-panel" id="panel-lineage" role="tabpanel" aria-labelledby="tab-lineage">
+      <ol class="trunk" id="trunk" aria-label="Shared start"></ol>
+      <div class="split" aria-hidden="true"><span class="drop"></span><span class="bar"></span><span class="label" id="split-label"></span></div>
+      <div class="lanes" id="lanes"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-years" role="tabpanel" aria-labelledby="tab-years" hidden>
+      <div class="table-wrap"><table class="data-table lineage-table" id="year-table"></table></div>
+      <p class="table-note" id="table-note"></p>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/lineage.js"></script>
+  <script>
+    HARTLineage.mount("railroads", "data/chartiers-lineage.json");
+  </script>
+</body>
+</html>

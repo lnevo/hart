@@ -201,7 +201,8 @@ def main() -> int:
     site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     _vendor_json_logos(dest / "data" / "industries.json", dest)
-    _vendor_json_logos(dest / "data" / "plants-lineage.json", dest)
+    for lineage in sorted((dest / "data").glob("*-lineage.json")):  # Who became who charts
+        _vendor_json_logos(lineage, dest)
     _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
     _filter_gallery(dest / "data" / "gallery.json", dest)
     _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)

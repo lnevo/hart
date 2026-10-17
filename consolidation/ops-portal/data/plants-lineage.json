@@ -2,6 +2,7 @@
   "title": "Who became who",
   "lede": "The plants at the east end of Neville Island began as one American Steel & Wire blast furnace. They grew into Pittsburgh Coke & Chemical, which was broken up in the 1960s. Follow each branch down to today.",
   "article": "library/neville-island-coke-cement-chemical-history.html",
+  "trunkColor": "#1f5f8b",
   "trunk": [
     {
       "name": "American Steel & Wire",
@@ -54,6 +55,7 @@
       "id": "coke",
       "title": "Coke & iron",
       "hart": "Shenango Coke Works",
+      "color": "#2b3036",
       "steps": [
         {
           "name": "PC&C Coke and Iron Division",
@@ -97,6 +99,7 @@
       "id": "cement",
       "title": "Cement",
       "hart": "Kosmos Cement",
+      "color": "#b8467a",
       "steps": [
         {
           "name": "Green Bag Cement",
@@ -164,6 +167,7 @@
       "id": "carbon",
       "title": "Activated carbon",
       "hart": "Calgon Carbon",
+      "color": "#67489a",
       "steps": [
         {
           "name": "Pittsburgh Activated Carbon",
@@ -219,6 +223,7 @@
       "id": "chemicals",
       "title": "Chemicals",
       "hart": "Aristech Plastics",
+      "color": "#b88a0c",
       "steps": [
         {
           "name": "PC&C chemical works",
@@ -896,6 +901,7 @@
           "Pittsburgh & Ohio Central (Genesee & Wyoming)"
         ]
       }
-    ]
+    ],
+    "separator": 4
   }
 }

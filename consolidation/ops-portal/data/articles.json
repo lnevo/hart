@@ -45,6 +45,13 @@
       "blurb": "Chartiers Branch and PC&Y as two different railroads, then PIR and POHC, plus the Class I connections around McKees Rocks and Duff Junction."
     },
     {
+      "id": "chartiers-railroads-lineage",
+      "title": "Who ran the railroads: Chartiers Valley and Neville Island",
+      "kind": "Chart",
+      "href": "railroads/index.html",
+      "blurb": "The Chartiers Branch, PC&Y, P&LE, P&WV, and P&OV, owner by owner, from 1853 to today's POHC and CSX."
+    },
+    {
       "id": "kirwan-heights",
       "title": "The Kirwan Heights Industrial District",
       "kind": "Prototype history",
