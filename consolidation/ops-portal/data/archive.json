@@ -105,6 +105,26 @@
       "origin": "~/Documents (downloaded from Tumblr, Oct 2026)"
     },
     {
+      "id": "nyt-1899-steel-mill-to-be-erected",
+      "src": "../external/desktop-data/archive-incoming/tumblr/nyt-1899-10-27-steel-mill-neville-island.jpg",
+      "bucket": "curated",
+      "kind": "clipping",
+      "title": "“Steel Mill to Be Erected” (1899)",
+      "caption": "American Steel and Wire announces a $1,000,000 plant on Neville Island, opposite its two Woods Run blast furnaces in Allegheny, to be joined to them by a bridge over the Ohio. The plans called for Bessemer, blooming, rolling, rod and wire mills and docks for river coal. What was built instead was a single blast furnace and the P&OV.",
+      "date": "1899-10-27",
+      "tags": [
+        "neville-island",
+        "american-steel-wire",
+        "pittsburgh-ohio-valley"
+      ],
+      "credit": "The New York Times, 27 October 1899; clipping posted by Mark Connolly on the Pittsburgh & Ohio Valley Railway Tumblr",
+      "source_url": "https://www.tumblr.com/pittsburghohiovalleyrailroad/45202096317",
+      "credit_confidence": "verified",
+      "rights": "Public domain (published 1899).",
+      "reason": "",
+      "origin": "Tumblr image fc5405cc…/tumblr_mjk932DMZi1s7iemko1_1280.jpg, cropped to the Neville Island item (Oct 2026)"
+    },
+    {
       "id": "pcy-saunders-article",
       "src": "../external/desktop-data/archive-incoming/documents/pc_and_y_ry.gif",
       "bucket": "curated",
