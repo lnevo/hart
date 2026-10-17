@@ -8,6 +8,7 @@ vendored in, resized, when present (local deploys); CI builds drop them.
 
 from __future__ import annotations
 
+import html
 import json
 import re
 import shutil
@@ -22,6 +23,12 @@ SKIP_FILES = {
     Path("guides/digicon-system.html"),
     Path("data/signal-splits.json"),  # signal splits are under review; the wiring viewer hides that tab
 }
+# Share previews (Facebook, iMessage, …) read static tags only, so every page gets them at build time.
+SITE_URL = "https://www.hartrailroad.com/"
+SHARE_DESCRIPTION = (
+    "Neville Island on the HART Railroad: the prototype's history and industries, "
+    "operating sessions, and the layout build."
+)
 
 
 def _ignore(directory: str, names: list[str]) -> list[str]:
@@ -192,6 +199,41 @@ def _vendor_json_logos(path: Path, dest_root: Path) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _head_tags(rel: Path, title: str) -> str:
+    up = "../" * (len(rel.parts) - 1)
+    url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
+    title = html.escape(title, quote=True)
+    desc = html.escape(SHARE_DESCRIPTION, quote=True)
+    return f"""
+  <link rel="icon" href="{up}favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="{up}assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">
+  <meta name="description" content="{desc}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HART Railroad">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{desc}">
+  <meta property="og:url" content="{url}">
+  <meta property="og:image" content="{SITE_URL}assets/icons/share-card.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Neville Island from above">
+  <meta name="twitter:card" content="summary_large_image">"""
+
+
+def _add_head_tags(dest_root: Path) -> None:
+    for page in dest_root.rglob("*.html"):
+        text = page.read_text(encoding="utf-8")
+        if 'rel="icon"' in text or "</title>" not in text:
+            continue
+        m = re.search(r"<title>(.*?)</title>", text, re.S)
+        title = html.unescape(m.group(1).strip()) if m else "HART Railroad"
+        page.write_text(
+            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title), 1),
+            encoding="utf-8",
+        )
+
+
 def main() -> int:
     dest = Path(sys.argv[1] if len(sys.argv) > 1 else PORTAL.parent / ".pages-dist").resolve()
     if dest.exists():
@@ -232,6 +274,7 @@ def main() -> int:
 """,
         encoding="utf-8",
     )
+    _add_head_tags(dest)
     print(f"Prepared GitHub Pages tree → {dest}", flush=True)
     return 0
 
