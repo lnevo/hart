@@ -138,7 +138,6 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 |---|---|---|
 | `bracket_edge_shim.stl` | `make_bracket_edge_shim.py` | Fills the gap between the 26 in edge and the 2x4 face above the bend. 0.62625 tall (0.72 − 3/32), 1.5 wide, 0.274 thick (r 26 curve vs the 2x4 face at r 25.7258), with a bracket notch. Also the radial gauge. 29 needed. Change `POST_FACE_R` if the posts are off. |
 | `bracket_plumb_shim.stl` | `make_bracket_plumb_shim.py` | **Brackets lean sideways with the grade.** Strip tapered across its width, 0.20 → 0.56 mm (grade 2.29% × 0.62). **Notched (thick) edge uphill.** Fits the pocket's 0.35 mm slack. Prints flat, 0.2 first layer, 0.08–0.1 after. One per bracket. |
-| `bracket_wedge_gap_{1,2,3,4}_64.stl` | `make_bracket_wedges.py` | For a **gap between the leg and the post** (a bend that isn't square, or a roadbed tilted across its width). Taper along the length; notches = gap in 64ths. Bottom of the leg off the post: thick end toward the tip. Top off: thick end toward the post. Set the height by the roadbed top. |
 
 ### Paper
 - `lap_screw_template.pdf` (`make_lap_screw_template.py`): US Letter, **print at 100%** (print only that page; it is also page 13 of the construction plan PDF), check the 2 in / 50 mm bars. Arc on the 26 in edge, seam line on the visible top seam (symmetric, either hand). Six screws at r 26.75 / 29.25 / 30.85, ±0.56 / 0.62 / 0.60 off the joint line, ≥ 3/16 from the pocket and ≥ 0.31 from the seams.

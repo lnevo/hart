@@ -46,8 +46,6 @@ GROUPS = [
     ('Brackets', [
         (['bracket_edge_shim.stl'], 'make_bracket_edge_shim.py', 'Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed.'),
         (['bracket_plumb_shim.stl'], 'make_bracket_plumb_shim.py', 'Tapered strip (0.20 → 0.56 mm) for the sideways lean from grade. Notched edge uphill. One per bracket.'),
-        (['bracket_wedge_gap_1_64.stl', 'bracket_wedge_gap_2_64.stl', 'bracket_wedge_gap_3_64.stl', 'bracket_wedge_gap_4_64.stl'],
-         'make_bracket_wedges.py', 'Wedges for a gap between the bracket leg and the post; notches = gap in 64ths.'),
     ]),
     ('Shop tool', [
         (['router_sigerio_test_plate.stl', 'router_sigerio_test_plate_body.stl', 'router_sigerio_test_plate_screw_rings.stl'],
