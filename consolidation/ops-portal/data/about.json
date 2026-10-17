@@ -1,35 +1,29 @@
 {
   "title": "About HART",
-  "lede": "HART Railroad is an HO scale model railroad of Neville Island, the industrial island in the Ohio River just downstream of Pittsburgh. The places, industries, and connecting railroads are real. HART itself, and its Pittsburgh & Chartiers Valley Division, are our own.",
+  "lede": "HART Railroad is a model railroad set on Neville Island, the industrial island in the Ohio River just below Pittsburgh. The island, its plants and the railroads that served them are real. HART is the one piece we made up: an imagined successor to the island's own short line.",
   "sections": [
     {
-      "heading": "What HART is",
+      "heading": "The island",
       "paragraphs": [
-        "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley Railway switched the island's furnaces, coke ovens, and interchange. HART is modeled as its successor: the railroad that takes over that job once the P&OV is gone.",
-        "HART handles the interchange between CSX and the Pittsburgh & Ohio Central (POHC) and switches the industries on the island. South Yard is where the two connections meet and where most of the sorting gets done."
+        "Neville Island was farmland until about 1900. Within a generation it had furnaces, coke ovens and chemical plants, nearly all of them shipping by rail, with barges working the river alongside.",
+        "For nearly a century the Pittsburgh & Ohio Valley switched those plants and handed their cars to the larger roads, until it shut down in 1994. Much of what we know about it comes from the people who worked it, and their stories are a big part of why this layout exists."
       ],
       "links": [
         {
-          "label": "Pittsburgh & Ohio Valley Railway history",
+          "label": "Pittsburgh & Ohio Valley Railway",
           "href": "library/pittsburgh-ohio-valley-railway.html"
         },
         {
-          "label": "New operator briefing",
-          "href": "briefing/index.html"
+          "label": "Voices of the P&OV",
+          "href": "library/voices-of-the-pov.html"
         }
       ]
     },
     {
-      "heading": "Prototype target",
+      "heading": "Our railroad",
       "paragraphs": [
-        "The island between 1994, when the P&OV shut down, and January 2016, when Shenango Coke Works made its last coke."
-      ],
-      "bullets": [
-        "CSX local D749 works the island from Demmler and McKeesport.",
-        "The POHC comes over from Scully Yard and McKees Rocks, often waiting for D749 to clear the trestle over the Ohio.",
-        "Customers: Aristech Plastics, A. Stucki Company, Calgon Carbon, Ferrellgas, Kosmos Cement, and Shenango Coke Works.",
-        "Signals are Chessie / early CSX searchlights: 13 two-head searchlights and 10 dwarfs.",
-        "Not prototype: HART and the P&CV Division are invented, and Route 23, a PCC streetcar crossing the island, is a liberty."
+        "HART picks up where the P&OV left off. Its Pittsburgh & Chartiers Valley Division switches the island's plants and trades cars with the connecting railroads at either end of the island.",
+        "The customers on the layout are plants that worked on the island, and their traffic follows what they shipped and received. Where we've bent history to fit the room, the Industries pages say so."
       ],
       "links": [
         {
@@ -37,91 +31,74 @@
           "href": "industries/index.html"
         },
         {
-          "label": "Neville Island coke, cement, and chemical history",
-          "href": "library/neville-island-coke-cement-chemical-history.html"
-        },
-        {
-          "label": "Railroads of the Chartiers Valley",
-          "href": "library/chartiers-valley-railroads.html"
+          "label": "Articles",
+          "href": "articles/index.html"
         }
       ]
     },
     {
-      "heading": "Aims",
-      "bullets": [
-        "Operations that feel like a real railroad, not a pile of car cards.",
-        "Shipper-driven traffic: shippers create demand, the railroad fills it with cars, and the paperwork follows the move. Traffic and waybills come from STS, the Shipper-driven Traffic Simulator.",
-        "A track scale at South Yard. Coke hoppers from Shenango are weighed mid-move, and cars that are overloaded or out of balance go back for a reload, the practice AAR General Information Bulletin No. 5 describes.",
-        "A dispatcher running Digicon-style CTC with working signals in the aisle.",
-        "Repeatable sessions: each session is saved as a recipe, so it can be rerun, tuned, or handed to someone else.",
-        "A small roster where every car earns its keep."
+      "heading": "Running it like a railroad",
+      "paragraphs": [
+        "The island has always been a squeeze. Cars come in from both ends, meet in one small yard, and go back out to the plants and the connections. A session works the same way: several jobs at once, all needing the same few tracks, so they have to be worked around each other.",
+        "That squeeze is what makes it interesting. The yardmaster decides what gets sorted first. The dispatcher decides who gets the main and who waits. Crews work out their own moves at the plants and talk to each other to get it done. It runs at the pace of a real switching railroad: slowly, and with plenty of conversation.",
+        "Sessions are a few hours with friends. You don't need to know the railroad beforehand. Each crew gets a sheet for its job, and there's a briefing before anyone moves a train. The railroad is still being built, and most sessions change something about how it runs."
       ],
       "links": [
         {
-          "label": "Setting up car movement with STS",
-          "href": "library/sts-operations-article.html"
-        },
-        {
-          "label": "Dispatcher guides",
-          "href": "guides/index.html"
+          "label": "New operator primer",
+          "href": "briefing/index.html"
         }
       ]
     },
     {
-      "heading": "Where the layout stands (October 2026)",
-      "bullets": [
-        "Operating sessions have started. Session #2 was the first run with STS traffic, car cards, and waybills.",
-        "Control runs on JMRI, with turnouts and occupancy detection reported over MQTT.",
-        "CATS provides the Digicon CTC and ABS panels. JMRI Signal Mast Logic sets the aspects, and LCOS drives the LED searchlights. Signal rules are still being tuned.",
-        "The Neville Island helix is under construction."
+      "heading": "On this site",
+      "paragraphs": [
+        "History & Industries is for anyone curious about the island. It holds what we have learned about the P&OV and the plants it served, with old photographs, advertisements and clippings credited to their sources where we could find them.",
+        "Operations is for the people who come to run trains. It has a primer for first-timers, the paperwork used at the layout, and a look around the layout room and the equipment that works it."
       ],
       "links": [
         {
-          "label": "Layout Explorer",
-          "href": "layout/index.html"
+          "label": "History & Industries",
+          "href": "history/index.html"
         },
         {
-          "label": "Helix build",
-          "href": "helix/index.html"
-        },
-        {
-          "label": "Official publications",
-          "href": "docs/index.html"
+          "label": "Operations",
+          "href": "operators/index.html"
         }
       ]
     }
   ],
-  "more_title": "Read more",
+  "more_title": "Good places to start",
   "more": [
     {
-      "label": "Operator briefing",
-      "href": "briefing/index.html",
-      "blurb": "Island history, jobs on the board, destination colors, and the track scale."
-    },
-    {
-      "label": "Industries",
-      "href": "industries/index.html",
-      "blurb": "The six customers, their commodities, and logos."
-    },
-    {
-      "label": "Articles",
-      "href": "articles/index.html",
-      "blurb": "P&OV, Pittsburgh Coke & Chemical, POHC-line plants, and Chartiers Valley railroads."
+      "label": "Pittsburgh & Ohio Valley Railway",
+      "href": "library/pittsburgh-ohio-valley-railway.html",
+      "blurb": "The island's own railroad, from its first years to its last."
     },
     {
       "label": "Voices of the P&OV",
       "href": "library/voices-of-the-pov.html",
-      "blurb": "The crews and clerks of the railroad HART succeeds."
+      "blurb": "The crews and clerks who worked it, in their own words."
+    },
+    {
+      "label": "Industries",
+      "href": "industries/index.html",
+      "blurb": "The island customers HART serves and what each one ships and receives."
     },
     {
       "label": "Photos",
       "href": "archive/index.html",
-      "blurb": "Historical photographs, ads, and clippings of the island and its railroads."
+      "blurb": "Historical photographs, ads and clippings of the island and its railroads."
     },
     {
-      "label": "Rolling stock",
-      "href": "fleet/index.html",
-      "blurb": "Car fleet and published power."
+      "label": "New operator primer",
+      "href": "briefing/index.html",
+      "blurb": "What to expect at your first session."
+    },
+    {
+      "label": "Session night: the layout room",
+      "href": "operators/room/index.html",
+      "blurb": "A walk through the room where the trains run."
     }
   ]
 }
