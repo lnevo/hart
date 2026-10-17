@@ -1,6 +1,10 @@
 {
   "title": "Industry",
-  "lede": "The plants at the east end of Neville Island began as one American Steel & Wire blast furnace. They grew into Pittsburgh Coke & Chemical, which was broken up in the 1960s. Follow each branch down to today.",
+  "lede": [
+    "Around 1900 American Steel & Wire bought farmland at the east end of Neville Island, built a blast furnace, and laid the Pittsburgh & Ohio Valley to serve it. In 1929 Davison Coke & Iron bought the furnace site and added coke ovens and a cement plant. Davison went bankrupt in the Depression and came back in 1936 as Pittsburgh Coke & Iron.",
+    "The plant worked as one system. Coal went into the ovens and came out as coke for the furnaces. Slag from the iron was ground into cement, with limestone barged down the Monongahela. Gas and tar from the ovens fed a chemical works, added around 1940. During the war the company, by then Pittsburgh Coke & Chemical, began making activated carbon from coal for gas masks, and about 1952 it added a second blast furnace.",
+    "In the 1960s the company was broken up. Shenango took the coke and iron, Marquette the cement, Calgon the carbon, and U.S. Steel the chemicals. Pig iron stopped around 1990 and the last coke came out in January 2016, but cement and carbon are still handled on the island today. Follow each branch down below, or use the slider to see who ran what in a given year."
+  ],
   "article": "library/neville-island-coke-cement-chemical-history.html",
   "trunkColor": "#1f5f8b",
   "trunk": [

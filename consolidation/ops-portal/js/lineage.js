@@ -180,7 +180,16 @@
         await HARTOps.mountChrome(pageId);
         var d = await HARTOps.loadJson(dataPath);
         if (d.title) $("lin-title").textContent = d.title;
-        $("lin-lede").textContent = d.lede || "";
+        // lede: one string, or a list of paragraphs.
+        var lede = $("lin-lede");
+        var paras = [].concat(d.lede || []);
+        lede.textContent = paras[0] || "";
+        paras.slice(1).reverse().forEach(function (txt) {
+          var p = document.createElement("p");
+          p.className = lede.className;
+          p.textContent = txt;
+          lede.parentNode.insertBefore(p, lede.nextSibling);
+        });
         if (d.article) $("lin-article").href = HARTOps.base() + d.article;
         if (d.trunkColor) page.style.setProperty("--trunk", d.trunkColor);
         var lanes = d.lanes || [];
