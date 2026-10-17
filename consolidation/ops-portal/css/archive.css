@@ -336,3 +336,50 @@
   border-color: var(--brand-2);
   color: var(--brand);
 }
+
+/* Grid / List / Gallery views (shares the Rolling stock list, stage and strip styles). */
+.archive-filter-row .archive-viewbar {
+  margin: 0 0 0 auto;
+  align-self: center;
+}
+
+.archive-list td strong {
+  display: block;
+  color: var(--ink);
+}
+
+.archive-list .archive-move {
+  margin-top: 0.35rem;
+}
+
+.archive-list .fl-note {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.view-gallery .fleet-stage .archive-open {
+  cursor: zoom-in;
+}
+
+.view-gallery .fleet-stage figcaption p {
+  margin: 0.45rem 0 0.35rem;
+}
+
+.archive-strip img {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+@media (max-width: 520px) {
+  .archive-filter-row .archive-viewbar {
+    margin-left: 0;
+  }
+}
+
+.archive-list .archive-row {
+  cursor: zoom-in;
+}
+
+.archive-list td:nth-child(3) {
+  white-space: nowrap;
+}

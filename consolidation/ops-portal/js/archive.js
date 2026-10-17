@@ -85,6 +85,39 @@
       };
       var visible = [];
       var lbIndex = 0;
+      var stageIndex = 0;
+
+      // Grid / List / Gallery, remembered per browser and overridable with ?view=.
+      var VIEW_KEY = "hart.archive.view";
+      var VIEWS = [
+        { id: "grid", label: "Grid" },
+        { id: "list", label: "List" },
+        { id: "gallery", label: "Gallery" },
+      ];
+      var viewBar = document.getElementById("archive-view-bar");
+      var view = "grid";
+      try {
+        var savedView = localStorage.getItem(VIEW_KEY);
+        if (VIEWS.some(function (v) { return v.id === savedView; })) view = savedView;
+      } catch (e) {}
+      var viewParam = new URLSearchParams(location.search).get("view");
+      if (VIEWS.some(function (v) { return v.id === viewParam; })) view = viewParam;
+
+      function renderViews() {
+        viewBar.innerHTML = VIEWS.map(function (v) {
+          return '<button type="button" data-view="' + v.id + '" aria-pressed="' + (v.id === view) + '">' + v.label + "</button>";
+        }).join("");
+        viewBar.querySelectorAll("button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            view = b.getAttribute("data-view");
+            try {
+              localStorage.setItem(VIEW_KEY, view);
+            } catch (e) {}
+            renderViews();
+            renderGrid();
+          });
+        });
+      }
 
       function inBucket() {
         return items.filter(function (it) {
@@ -134,6 +167,7 @@
           btn.addEventListener("click", function () {
             state.bucket = btn.getAttribute("data-bucket");
             state.kind = "all";
+            stageIndex = 0;
             state.tag = "";
             try {
               history.replaceState(null, "", "#" + state.bucket);
@@ -167,6 +201,7 @@
         kindsEl.querySelectorAll("button").forEach(function (btn) {
           btn.addEventListener("click", function () {
             state.kind = btn.getAttribute("data-kind");
+            stageIndex = 0;
             renderKinds();
             renderGrid();
           });
@@ -210,37 +245,133 @@
         );
       }
 
+      function metaFor(it) {
+        return [it.date, (kinds.find(function (k) { return k.id === it.kind; }) || {}).label]
+          .filter(Boolean)
+          .map(esc)
+          .join(" · ");
+      }
+
+      function confBadge(it) {
+        return (
+          '<em class="conf conf-' + esc(it.credit_confidence || "none") + '">' +
+          esc(CONFIDENCE_LABEL[it.credit_confidence] || CONFIDENCE_LABEL.none) + "</em>"
+        );
+      }
+
+      function gridHtml() {
+        return (
+          '<div class="gallery-masonry">' +
+          visible
+            .map(function (it, i) {
+              return (
+                '<figure class="g-item archive-card" data-idx="' + i + '">' +
+                '<button type="button" class="archive-open" data-idx="' + i + '">' +
+                '<img src="' + esc(resolveSrc(it.thumb || it.src)) + '" alt="' + esc(it.title) + '" loading="lazy">' +
+                "</button>" +
+                "<figcaption><strong>" + esc(it.title) + "</strong>" +
+                '<span class="archive-meta">' + metaFor(it) + " " + confBadge(it) + "</span>" +
+                (it.bucket !== "curated" && it.reason
+                  ? '<span class="archive-reason">' + esc(it.reason) + "</span>"
+                  : "") +
+                (canEdit ? moveButtons(it) : "") +
+                "</figcaption></figure>"
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
+      function listHtml() {
+        return (
+          '<div class="fleet-list-wrap"><table class="fleet-list archive-list">' +
+          "<thead><tr><th></th><th>Title</th><th>Date</th><th>Kind</th><th class=\"fl-note\">Credit</th></tr></thead><tbody>" +
+          visible
+            .map(function (it, i) {
+              var kind = (kinds.find(function (k) { return k.id === it.kind; }) || {}).label || "";
+              return (
+                '<tr class="archive-row" data-idx="' + i + '" tabindex="0">' +
+                '<td class="fl-thumb"><img src="' + esc(resolveSrc(it.thumb || it.src)) + '" alt="" loading="lazy"></td>' +
+                "<td><strong>" + esc(it.title) + "</strong>" + (canEdit ? moveButtons(it) : "") + "</td>" +
+                "<td>" + esc(it.date || "—") + "</td>" +
+                "<td>" + esc(kind || "—") + "</td>" +
+                '<td class="fl-note">' + esc(it.credit || "") + " " + confBadge(it) + "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></div>"
+        );
+      }
+
+      function galleryHtml() {
+        var it = visible[stageIndex];
+        return (
+          '<div class="fleet-stage">' +
+          '<button type="button" class="fleet-stage-nav prev" aria-label="Previous">‹</button>' +
+          '<figure><button type="button" class="archive-open" data-idx="' + stageIndex + '" title="Details and credit">' +
+          '<img src="' + esc(resolveSrc(it.src)) + '" alt="' + esc(it.title) + '"></button>' +
+          "<figcaption><strong>" + esc(it.title) + "</strong> " +
+          '<span class="muted">' + (stageIndex + 1) + " of " + visible.length + "</span>" +
+          '<span class="archive-meta">' + metaFor(it) + "</span>" +
+          (it.caption ? "<p>" + esc(it.caption) + "</p>" : "") +
+          (it.credit ? '<span class="archive-meta">' + esc(it.credit) + "</span>" : "") +
+          (canEdit ? moveButtons(it) : "") +
+          "</figcaption></figure>" +
+          '<button type="button" class="fleet-stage-nav next" aria-label="Next">›</button>' +
+          "</div>" +
+          '<div class="fleet-strip archive-strip" role="list">' +
+          visible
+            .map(function (x, i) {
+              return (
+                '<button type="button" role="listitem" data-stage="' + i + '"' + (i === stageIndex ? ' aria-current="true"' : "") +
+                ' title="' + esc(x.title) + '"><img src="' + esc(resolveSrc(x.thumb || x.src)) + '" alt="' + esc(x.title) + '" loading="lazy"></button>'
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
+      function stageStep(d) {
+        stageIndex = (stageIndex + d + visible.length) % visible.length;
+        renderGrid();
+      }
+
       function renderGrid() {
         visible = filtered();
         emptyEl.hidden = visible.length > 0;
-        grid.innerHTML = visible
-          .map(function (it, i) {
-            var meta = [it.date, (kinds.find(function (k) { return k.id === it.kind; }) || {}).label]
-              .filter(Boolean)
-              .map(esc)
-              .join(" · ");
-            return (
-              '<figure class="g-item archive-card" data-idx="' + i + '">' +
-              '<button type="button" class="archive-open" data-idx="' + i + '">' +
-              '<img src="' + esc(resolveSrc(it.thumb || it.src)) + '" alt="' + esc(it.title) + '" loading="lazy">' +
-              "</button>" +
-              "<figcaption><strong>" + esc(it.title) + "</strong>" +
-              '<span class="archive-meta">' + meta +
-              ' <em class="conf conf-' + esc(it.credit_confidence || "none") + '">' +
-              esc(CONFIDENCE_LABEL[it.credit_confidence] || CONFIDENCE_LABEL.none) + "</em></span>" +
-              (it.bucket !== "curated" && it.reason
-                ? '<span class="archive-reason">' + esc(it.reason) + "</span>"
-                : "") +
-              (canEdit ? moveButtons(it) : "") +
-              "</figcaption></figure>"
-            );
-          })
-          .join("");
-        grid.querySelectorAll(".archive-open").forEach(function (el) {
-          el.addEventListener("click", function () {
+        if (!visible.length) {
+          grid.innerHTML = "";
+          return;
+        }
+        if (stageIndex >= visible.length) stageIndex = 0;
+        grid.className = "archive-view view-" + view;
+        if (view === "list") grid.innerHTML = listHtml();
+        else if (view === "gallery") grid.innerHTML = galleryHtml();
+        else grid.innerHTML = gridHtml();
+
+        grid.querySelectorAll(".archive-open, .archive-row").forEach(function (el) {
+          el.addEventListener("click", function (e) {
+            if (e.target.closest(".archive-move")) return;
             openLightbox(Number(el.getAttribute("data-idx")));
           });
+          el.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && e.target === el) openLightbox(Number(el.getAttribute("data-idx")));
+          });
         });
+        if (view === "gallery") {
+          grid.querySelector(".fleet-stage-nav.prev").addEventListener("click", function () { stageStep(-1); });
+          grid.querySelector(".fleet-stage-nav.next").addEventListener("click", function () { stageStep(1); });
+          grid.querySelectorAll("[data-stage]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              stageIndex = Number(b.getAttribute("data-stage"));
+              renderGrid();
+            });
+          });
+          var cur = grid.querySelector('.archive-strip [aria-current="true"]');
+          if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: "nearest", inline: "center" });
+        }
         bindMoves(grid);
       }
 
@@ -447,8 +578,14 @@
         step(1);
       });
       document.addEventListener("keydown", function (e) {
-        if (!lb.classList.contains("open")) return;
         var t = e.target && e.target.tagName;
+        if (!lb.classList.contains("open")) {
+          if (view === "gallery" && visible.length && t !== "INPUT" && t !== "TEXTAREA" && t !== "SELECT") {
+            if (e.key === "ArrowLeft") stageStep(-1);
+            if (e.key === "ArrowRight") stageStep(1);
+          }
+          return;
+        }
         if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT") return;
         if (e.key === "Escape") closeLightbox();
         if (e.key === "ArrowLeft") step(-1);
@@ -457,13 +594,16 @@
 
       tagEl.addEventListener("change", function () {
         state.tag = tagEl.value;
+        stageIndex = 0;
         renderGrid();
       });
       searchEl.addEventListener("input", function () {
         state.q = searchEl.value.trim();
+        stageIndex = 0;
         renderGrid();
       });
 
+      renderViews();
       renderAll();
       return data;
     },
