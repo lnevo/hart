@@ -1,6 +1,6 @@
 {
   "title": "Railroads",
-  "lede": "Five railroads served the Chartiers Valley and Neville Island. Two of them, the Pennsylvania Railroad's Chartiers Branch and the PC&Y, ended up as one short line, today's POHC. Follow each line down to today.",
+  "lede": "Six lines served the Chartiers Valley and Neville Island. Two of them, the Pennsylvania Railroad's Chartiers Branch and the PC&Y, ended up as one short line, today's POHC. Follow each line down to today.",
   "article": "library/chartiers-valley-railroads.html",
   "trunkColor": "#b5651d",
   "lanes": [
@@ -87,6 +87,97 @@
       ],
       "end": {
         "text": "Today's Wheeling & Lake Erie.",
+        "state": "open"
+      }
+    },
+    {
+      "id": "panhandle",
+      "title": "Panhandle",
+      "link": {
+        "label": "NS, Duff Junction east",
+        "href": "library/chartiers-valley-railroads.html"
+      },
+      "color": "#3d3d3d",
+      "steps": [
+        {
+          "name": "Pittsburgh & Steubenville",
+          "years": "to 1867",
+          "from": null,
+          "to": 1867,
+          "made": "Pittsburgh to Steubenville, west through Scully",
+          "wordmark": "Pittsburgh & Steubenville",
+          "note": "Sold at foreclosure 6 Nov 1867"
+        },
+        {
+          "handoff": "1868 · merged into the PC&StL"
+        },
+        {
+          "name": "Pittsburgh, Cincinnati & St. Louis",
+          "years": "1868–1890",
+          "from": 1868,
+          "to": 1889,
+          "made": "The Panhandle Route west of Pittsburgh",
+          "wordmark": "Panhandle"
+        },
+        {
+          "handoff": "30 Sep 1890 · merger"
+        },
+        {
+          "name": "Pittsburgh, Cincinnati, Chicago & St. Louis",
+          "years": "1890–1920",
+          "from": 1890,
+          "to": 1920,
+          "made": "The Panhandle; took in the Chartiers line in 1907",
+          "wordmark": "PCC&StL"
+        },
+        {
+          "handoff": "1 Jan 1921 · leased to the PRR"
+        },
+        {
+          "name": "Pennsylvania Railroad",
+          "years": "1921–1968",
+          "from": 1921,
+          "to": 1967,
+          "made": "Panhandle main and Scully Yard",
+          "logo": "../external/hart-ops/operator_logos/downloads/prr-keystone.png"
+        },
+        {
+          "handoff": "1968 · Penn Central"
+        },
+        {
+          "name": "Penn Central",
+          "years": "1968–1976",
+          "from": 1968,
+          "to": 1975,
+          "made": "Panhandle main",
+          "logo": "../external/hart-ops/operator_logos/downloads/penn-central-1968.png"
+        },
+        {
+          "handoff": "1976 · Conrail"
+        },
+        {
+          "name": "Conrail",
+          "years": "1976–1999",
+          "from": 1976,
+          "to": 1998,
+          "made": "Cut the line back; west of Walkers Mill removed 1996",
+          "logo": "../external/hart-ops/operator_logos/downloads/conrail.png"
+        },
+        {
+          "handoff": "1 Jun 1999 · Conrail split; NS takes the Pittsburgh lines"
+        },
+        {
+          "name": "Norfolk Southern",
+          "years": "1999–today",
+          "from": 1999,
+          "to": null,
+          "made": "East from Duff Junction toward Pittsburgh",
+          "logo": "../external/hart-ops/operator_logos/downloads/norfolk-southern.png",
+          "note": "The NS local meets the POHC at Duff Junction"
+        }
+      ],
+      "end": {
+        "text": "The NS local still meets the POHC at Duff Junction. West of Walkers Mill the old main is the Panhandle Trail.",
         "state": "open"
       }
     },
