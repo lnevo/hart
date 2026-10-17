@@ -15,7 +15,7 @@
     {
       "id": "plans",
       "label": "Track plan development",
-      "count": 5
+      "count": 6
     },
     {
       "id": "build",
@@ -171,38 +171,45 @@
     },
     {
       "album": "plans",
-      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06.png",
-      "title": "Track plan, July 2025",
-      "caption": "The full plan as of July 2025: the coke retort on the peninsula, the double-track helix leads down to staging, the yards and industries along the walls, and the tracks continuing into the closet.",
+      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06-benchwork.png",
+      "title": "Track plan, July 2025: benchwork",
+      "caption": "The benchwork footprint around the walls and the peninsula, with the aisle and closet marked and the main dimensions.",
       "credit": "HART layout photos"
     },
     {
       "album": "plans",
-      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.03.48 AM.png",
-      "title": "Track plan, June 2025: double-track main",
-      "caption": "A blue double-track main around the room walls, with a reversing loop on the peninsula. Aisles and the closet marked.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06-maps.png",
+      "title": "Track plan, July 2025: prototype maps",
+      "caption": "Old maps of the island laid over the benchwork to place the yards and plants, Aristech and Calgon Carbon among them.",
+      "credit": "HART layout photos"
     },
     {
       "album": "plans",
-      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.37.58 AM.png",
-      "title": "Track plan, June 2025: helix to staging",
-      "caption": "A single-track mainline loop with a double-track helix on the peninsula, down to staging below.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06-main.png",
+      "title": "Track plan, July 2025: main line and yard",
+      "caption": "The double-track main around the walls, the yard on the peninsula, and spurs at the lower left.",
+      "credit": "HART layout photos"
     },
     {
       "album": "plans",
-      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 12.41.18 AM.png",
-      "title": "Track plan, June 2025: multi-track study",
-      "caption": "Four parallel tracks around the walls and a multi-track loop on the peninsula.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06-multitrack.png",
+      "title": "Track plan, July 2025: multi-track level",
+      "caption": "Four parallel tracks around the room and a loop on the peninsula.",
+      "credit": "HART layout photos"
     },
     {
       "album": "plans",
-      "src": "../external/desktop-data/f-root/Screenshot 2025-06-06 at 9.47.30 PM.png",
-      "title": "Track plan, June 2025: main, helix and spurs",
-      "caption": "The double-track main laid over the helix plan, with industry spurs (red) along the walls.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06-multitrack-maps.png",
+      "title": "Track plan, July 2025: South and West Yard maps",
+      "caption": "The multi-track plan with the old South Yard and West Yard maps laid over it.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "plans",
+      "src": "../external/desktop-data/archive-incoming/desktop/track-plan-2025-07-06.png",
+      "title": "Track plan, July 2025",
+      "caption": "The full plan as of July 2025: the coke retort on the peninsula, the double-track helix leads down to staging, the yards and industries along the walls, and the tracks continuing into the closet.",
+      "credit": "HART layout photos"
     },
     {
       "album": "build",
