@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480">
+  <title>Pittsburgh &amp; Ohio Valley Railway Company herald</title>
+  <defs>
+    <path id="top" d="M 72 240 A 168 168 0 0 1 408 240"/>
+    <path id="botL" d="M 52.9 273 A 190 190 0 0 0 190.8 423.5"/>
+    <path id="botR" d="M 289.2 423.5 A 190 190 0 0 0 427.1 273"/>
+  </defs>
+  <circle cx="240" cy="240" r="226" fill="#9b2a2a"/>
+  <circle cx="240" cy="240" r="212" fill="none" stroke="#f4efe6" stroke-width="5"/>
+  <g fill="#f4efe6" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="30" letter-spacing="1.5">
+    <text><textPath href="#top" startOffset="50%" text-anchor="middle">PITTSBURGH &amp; OHIO VALLEY</textPath></text>
+    <text><textPath href="#botL" startOffset="52%" text-anchor="middle">RAILWAY</textPath></text>
+    <text><textPath href="#botR" startOffset="48%" text-anchor="middle">COMPANY</textPath></text>
+  </g>
+  <!-- P&OV monogram; dark strokes behind each letter give the interlaced gaps -->
+  <g transform="translate(240 240) scale(1.02) translate(-262 -228)" fill="none" stroke-linejoin="miter">
+    <path d="M 262 108 C 302 108 322 128 322 166 L 322 262 C 322 310 298 336 263 336 C 228 336 205 312 205 264 L 205 166 C 205 128 224 108 262 108 Z" stroke="#f4efe6" stroke-width="17"/>
+    <polygon points="254,184 279,184 326,322 386,190 396,190 326,330 310,330" fill="#9b2a2a" stroke="#9b2a2a" stroke-width="10"/><path d="M 246 184 L 290 184" stroke="#9b2a2a" stroke-width="17"/><path d="M 370 190 L 406 190" stroke="#9b2a2a" stroke-width="17"/><polygon points="254,184 279,184 326,322 386,190 396,190 326,330 310,330" fill="#f4efe6"/><path d="M 246 184 L 290 184" stroke="#f4efe6" stroke-width="7"/><path d="M 370 190 L 406 190" stroke="#f4efe6" stroke-width="7"/>
+    <path d="M 172 124 L 172 250" stroke="#9b2a2a" stroke-width="34"/><path d="M 150 124 L 196 124" stroke="#9b2a2a" stroke-width="18"/><path d="M 182 128 L 228 128 C 262 128 278 146 278 169 C 278 193 262 210 228 210 L 182 210" stroke="#9b2a2a" stroke-width="22"/><path d="M 172 124 L 172 250" stroke="#f4efe6" stroke-width="24"/><path d="M 150 124 L 196 124" stroke="#f4efe6" stroke-width="8"/><path d="M 182 128 L 228 128 C 262 128 278 146 278 169 C 278 193 262 210 228 210 L 182 210" stroke="#f4efe6" stroke-width="12"/>
+    <text x="256" y="290" fill="#f4efe6" stroke="#9b2a2a" stroke-width="8" paint-order="stroke" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="50" text-anchor="middle">&amp;</text>
+  </g>
+</svg>
