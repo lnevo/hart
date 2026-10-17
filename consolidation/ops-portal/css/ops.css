@@ -3329,3 +3329,18 @@ html.zoomer-open body {
   color: var(--ink-soft);
   font-size: 0.95rem;
 }
+
+/* Four homepage doors: two by two on wider screens. */
+@media (min-width: 720px) {
+  .section-doors {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.section-door.is-behind {
+  border-top-color: var(--brand-2);
+}
+
+.section-door.is-build {
+  border-top-color: var(--ok);
+}
