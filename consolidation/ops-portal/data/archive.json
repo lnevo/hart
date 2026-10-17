@@ -847,19 +847,24 @@
     },
     {
       "id": "restored-img-5437",
-      "src": "../external/desktop-data/f-root/IMG_5437.jpeg",
+      "src": "../external/desktop-data/f-root/Neville Trackplan Clean copy.png",
       "bucket": "curated",
-      "kind": "photo",
-      "title": "IMG 5437",
-      "caption": "From the HART Desktop archive (mirrored in consolidation).",
-      "date": "",
-      "tags": [],
+      "kind": "map",
+      "title": "Neville Island track diagram: CSX, formerly the P&OV",
+      "caption": "A railroad diagram of Neville Island after CSX took over the P&OV's work: North, South, East and West Yards, Shenango's coke batteries, Aristech, Kosmos Cement, Calgon Carbon, Ferrellgas and A. Stucki, the back-channel bridge, and the Pittsburgh Industrial Railroad toward Pittsburgh. It names the crew: yardmaster Bill McEwen, conductors James Kelley and Pat Deasy, engineer John Doubt.",
+      "date": "c. 1996–2000 (CSX with the Pittsburgh Industrial Railroad)",
+      "tags": [
+        "neville-island",
+        "pittsburgh-ohio-valley",
+        "map",
+        "shenango"
+      ],
       "credit": "Desktop/HART → consolidation/external/desktop-data/f-root",
       "source_url": "",
       "credit_confidence": "none",
       "rights": "",
-      "reason": "Restored from the old photo gallery; not yet curated.",
-      "origin": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "reason": "",
+      "origin": "Desktop/HART/Neville Trackplan Clean copy.png (cleaned scan of IMG_5437)"
     },
     {
       "id": "restored-screenshot-2025-05-04-at-3-23-02-pm",
