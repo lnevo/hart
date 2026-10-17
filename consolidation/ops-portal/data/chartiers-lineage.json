@@ -388,7 +388,7 @@
           "from": 1899,
           "to": 1918,
           "made": "Plant railroad for American Steel & Wire",
-          "wordmark": "P&OV",
+          "logo": "assets/logos/pov-herald.png",
           "note": "Built 1900–1902"
         },
         {
@@ -411,7 +411,7 @@
           "from": 1919,
           "to": 1923,
           "made": "2.04 miles of main track in 1923",
-          "wordmark": "P&OV",
+          "logo": "assets/logos/pov-herald.png",
           "note": "Met the P&LE and the PC&Y",
           "maybe": [
             1924,
