@@ -6,6 +6,7 @@
   <title>The Build — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/archive.css">
+  <link rel="stylesheet" href="../css/video.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
@@ -19,6 +20,19 @@
         sessions on the railroad while construction goes on around them.
       </p>
     </div>
+
+    <section class="hub-group" id="progress" aria-labelledby="progress-title">
+      <h2 id="progress-title">The layout through the build</h2>
+      <p class="section-note">
+        A look back at the layout before HART, then the room month by month, from bare walls in February 2025
+        to the helix going up in October 2026. Tap a photo to see it larger.
+      </p>
+      <p class="archive-editbar" id="progress-editbar" hidden>
+        Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
+      </p>
+      <div class="build-timeline" id="progress-grid"></div>
+      <div class="archive-toast" id="progress-toast" role="status" aria-live="polite"></div>
+    </section>
 
     <section class="hub-group" id="helix" aria-labelledby="helix-title">
       <h2 id="helix-title">The helix</h2>
@@ -46,6 +60,24 @@
       </div>
     </section>
 
+    <section class="hub-group" id="staging" aria-labelledby="staging-title">
+      <h2 id="staging-title">The staging level</h2>
+      <p class="section-note">
+        Staging is the lower level, at the bottom of the helix. It is finished, and trains already run on it.
+      </p>
+      <div class="video-grid is-single">
+        <div class="video" data-video="K7ahrL7Bb34"><a href="https://www.youtube.com/watch?v=K7ahrL7Bb34">Video: Staging level FPV</a></div>
+      </div>
+      <script src="../js/video.js"></script>
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          HARTVideo.mount(document.getElementById("staging")).catch(function (err) {
+            console.error(err);
+          });
+        });
+      </script>
+    </section>
+
     <section class="hub-group" id="photos" aria-labelledby="photos-title">
       <h2 id="photos-title">Track plans and wiring</h2>
       <p class="section-note">
@@ -64,6 +96,17 @@
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("build");
+        await HARTGallery.mount({
+          dataUrl: "data/gallery.json",
+          albums: ["progress"],
+          heading: false,
+          groupBy: "month",
+          albumBar: "#progress-albums", // none on this page: one album
+          grid: "#progress-grid",
+          editbar: "#progress-editbar",
+          toast: "#progress-toast",
+          curate: "/api/gallery",
+        });
         await HARTGallery.mount({ dataUrl: "data/gallery.json", albums: ["plans", "build"], heading: false });
       } catch (err) {
         console.error(err);

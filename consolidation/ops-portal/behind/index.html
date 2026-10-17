@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Behind the Scenes — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/video.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
@@ -71,6 +72,9 @@
           <p>The full technical write-up: panel files, signal addressing, and the startup scripts.</p>
         </a>
       </div>
+      <div class="video-grid is-single">
+        <div class="video" data-video="FBvN-6PZCh4"><a href="https://www.youtube.com/watch?v=FBvN-6PZCh4">Video: Integration between LCOS and JMRI via MQTT</a></div>
+      </div>
     </section>
 
     <section class="hub-group" id="car-forwarding" aria-labelledby="cars-title">
@@ -86,6 +90,9 @@
           <h3>Setting up car movement on the HART Railroad</h3>
           <p>From Post-it flags to STS: car cards and waybills, a track scale for the coke hoppers, and hundreds of simulated sessions to tune the traffic.</p>
         </a>
+      </div>
+      <div class="video-grid is-single">
+        <div class="video" data-video="BbQ3QSvtR-M"><a href="https://www.youtube.com/watch?v=BbQ3QSvtR-M">Video: Virtual track scale using STS</a></div>
       </div>
     </section>
 
@@ -106,9 +113,13 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/video.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       HARTOps.mountChrome("behind").catch(function (err) {
+        console.error(err);
+      });
+      HARTVideo.mount().catch(function (err) {
         console.error(err);
       });
     });

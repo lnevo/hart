@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LCOS and the Arduino bridge — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/video.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
@@ -60,6 +61,9 @@
         green. Every device has a number built from its node and its place on that node, so the first
         signal on node 4 is 432.
       </p>
+      <div class="video-grid is-single">
+        <div class="video" data-video="FBvN-6PZCh4"><a href="https://www.youtube.com/watch?v=FBvN-6PZCh4">Video: Integration between LCOS and JMRI via MQTT</a></div>
+      </div>
 
       <h2>Keeping the link alive</h2>
       <p>
@@ -84,9 +88,13 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/video.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       HARTOps.mountChrome("behind-bridge").catch(function (err) {
+        console.error(err);
+      });
+      HARTVideo.mount().catch(function (err) {
         console.error(err);
       });
     });

@@ -130,6 +130,22 @@
       "<cite>" + esc(q.who) + ' · <a href="' + esc(post) + '">Original post on Tumblr</a></cite>';
   }
 
+  // "Follow along" links in the footer. A channel with an empty URL in site.json is left out.
+  function channelsHtml(site) {
+    var ch = site.channels || {};
+    var links = [
+      ["youtube", "YouTube"],
+      ["tiktok", "TikTok"],
+    ]
+      .filter(function (c) {
+        return ch[c[0]];
+      })
+      .map(function (c) {
+        return '<a href="' + esc(ch[c[0]]) + '">' + c[1] + "</a>";
+      });
+    return links.length ? " · Follow along: " + links.join(" · ") : "";
+  }
+
   async function mountChrome(pageId) {
     var site = await loadSite();
     var header = headerEl();
@@ -145,7 +161,7 @@
       var eng = site.engDesk
         ? ' · <a href="' + base() + site.engDesk + '">Engineering desk</a>'
         : "";
-      footer.innerHTML = "HART Railroad · Neville Island" + eng;
+      footer.innerHTML = "HART Railroad · Neville Island" + channelsHtml(site) + eng;
     }
     mountVoice().catch(function (err) {
       console.error(err);

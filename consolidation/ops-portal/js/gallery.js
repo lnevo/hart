@@ -15,6 +15,20 @@
     return HARTOps.base() + src;
   }
 
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  // "2025-08-09" -> {y, m, d}; null when the item has no usable date.
+  function parseDate(s) {
+    var m = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(String(s || ""));
+    return m ? { y: +m[1], m: +m[2], d: m[3] ? +m[3] : 0 } : null;
+  }
+
+  function longDate(s) {
+    var p = parseDate(s);
+    if (!p) return "";
+    return (p.d ? p.d + " " : "") + MONTHS[p.m - 1] + " " + p.y;
+  }
+
   window.HARTGallery = {
     mount: async function (opts) {
       opts = opts || {};
@@ -185,30 +199,64 @@
         });
       }
 
-      function renderGrid() {
-        visible = filtered();
-        if (!grid) return;
-        grid.innerHTML = visible
-          .map(function (it, i) {
+      function cellHtml(it, i) {
+        var p = opts.groupBy === "month" ? parseDate(it.date) : null;
+        var when = p ? '<time datetime="' + esc(it.date) + '">' + (p.d ? p.d + " " : "") + MONTHS[p.m - 1].slice(0, 3) + "</time>" : "";
+        return (
+          (canEdit ? '<div class="g-cell">' : "") +
+          '<button type="button" class="g-item" data-idx="' +
+          i +
+          '">' +
+          '<img src="' +
+          esc(resolveSrc(it.src)) +
+          '" alt="' +
+          esc(it.title) +
+          '" loading="lazy">' +
+          "<figcaption>" +
+          when +
+          "<strong>" +
+          esc(it.title) +
+          "</strong><span>" +
+          esc(it.caption) +
+          "</span></figcaption></button>" +
+          (canEdit ? curateControls(it) + "</div>" : "")
+        );
+      }
+
+      // opts.groupBy === "month": one row per month, in the album's own order (a timeline).
+      function monthGroups() {
+        var groups = [];
+        visible.forEach(function (it, i) {
+          var p = parseDate(it.date);
+          var key = p ? p.y + "-" + p.m : "undated";
+          var last = groups[groups.length - 1];
+          if (!last || last.key !== key) {
+            last = { key: key, label: p ? MONTHS[p.m - 1] : "Undated", year: p ? p.y : "", cells: [] };
+            groups.push(last);
+          }
+          last.cells.push(cellHtml(it, i));
+        });
+        return groups
+          .map(function (g) {
             return (
-              (canEdit ? '<div class="g-cell">' : "") +
-              '<button type="button" class="g-item" data-idx="' +
-              i +
-              '">' +
-              '<img src="' +
-              esc(resolveSrc(it.src)) +
-              '" alt="' +
-              esc(it.title) +
-              '" loading="lazy">' +
-              "<figcaption><strong>" +
-              esc(it.title) +
-              "</strong><span>" +
-              esc(it.caption) +
-              "</span></figcaption></button>" +
-              (canEdit ? curateControls(it) + "</div>" : "")
+              '<section class="g-month">' +
+              '<h3 class="g-month-label">' +
+              esc(g.label) +
+              " <span>" +
+              esc(g.year) +
+              "</span></h3>" +
+              '<div class="g-strip">' +
+              g.cells.join("") +
+              "</div></section>"
             );
           })
           .join("");
+      }
+
+      function renderGrid() {
+        visible = filtered();
+        if (!grid) return;
+        grid.innerHTML = opts.groupBy === "month" ? monthGroups() : visible.map(cellHtml).join("");
         if (canEdit) bindCurate();
         grid.querySelectorAll(".g-item").forEach(function (el) {
           el.addEventListener("click", function () {
@@ -240,7 +288,7 @@
         lbImg.alt = it.title || "";
         lbH.textContent = it.title || "";
         lbP.textContent = it.caption || "";
-        lbC.textContent = it.credit || "";
+        lbC.textContent = [longDate(it.date), it.credit].filter(Boolean).join(" · ");
       }
 
       function openLightbox(i) {

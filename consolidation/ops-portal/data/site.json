@@ -8,6 +8,10 @@
     "mimic": "http://localhost:8765/",
     "jmri": "http://localhost:12080/"
   },
+  "channels": {
+    "youtube": "https://www.youtube.com/@leenevo6566",
+    "tiktok": "https://www.tiktok.com/@hartrailroad"
+  },
   "nav": [
     {
       "id": "home",

@@ -1,0 +1,118 @@
+/* Click-to-play YouTube videos (js/video.js). Uses the tokens from ops.css. */
+
+.video-grid {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  margin-top: 1rem;
+  max-width: 100%;
+}
+
+.video-grid.is-single {
+  grid-template-columns: minmax(0, 560px);
+}
+
+.video {
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+}
+
+/* Before the script runs (or without it): just the YouTube link. */
+.video:not(.is-ready) {
+  padding: 0.8rem 1rem;
+}
+
+.video-frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #0b1116;
+}
+
+.video-frame img,
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-frame img {
+  object-fit: cover; /* hqdefault is 4:3 with black bars; crop to 16:9 */
+  transition: opacity 0.15s ease;
+}
+
+.video-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4rem;
+  height: 2.8rem;
+  margin: -1.4rem 0 0 -2rem;
+  border-radius: 0.6rem;
+  background: rgba(10, 61, 74, 0.88);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.video-play::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -0.6rem 0 0 -0.4rem;
+  border-style: solid;
+  border-width: 0.6rem 0 0.6rem 1rem;
+  border-color: transparent transparent transparent #fff;
+}
+
+.video-frame:hover .video-play,
+.video-frame:focus-visible .video-play {
+  background: var(--signal);
+  transform: scale(1.06);
+}
+
+.video-frame:hover img {
+  opacity: 0.9;
+}
+
+.video-frame:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.video-len {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.video-cap {
+  padding: 0.75rem 1rem 0.9rem;
+}
+
+.video-cap p {
+  margin: 0 0 0.35rem;
+}
+
+.video-cap .video-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  color: var(--brand);
+}
+
+.video-cap .video-meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
