@@ -1,0 +1,789 @@
+/* Wiring viewer (behind/wiring.html). Uses the ops.css tokens. */
+
+.wiring-page,
+.wr-dialog {
+  --lamp-r: #c0392b;
+  --lamp-y: #e0a400;
+  --lamp-g: #2e8b57;
+  --k-motor: #146377;
+  --k-feedback: #7fb2c0;
+  --k-button: #c99212;
+  --k-cal: #7a6a9a;
+  --k-relay: #8a5a2b;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* —— Search and tabs —— */
+.wr-controls {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 10;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.6rem 0 0.4rem;
+  background: linear-gradient(180deg, var(--paper) 85%, rgba(228, 235, 240, 0));
+}
+
+.wr-search input {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  color: var(--ink);
+}
+
+.wr-search input:focus {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -1px;
+}
+
+.wr-tabs {
+  margin: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.wr-tabs button {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.wr-count {
+  font-weight: 400;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.album-bar button.is-empty {
+  opacity: 0.5;
+}
+
+.wr-source {
+  font-size: 0.82rem;
+  margin: 0.15rem 0 0.9rem;
+}
+
+.wr-empty {
+  padding: 1.5rem 0;
+}
+
+.wr-note {
+  font-size: 0.88rem;
+  max-width: 62rem;
+  margin: 0 0 1rem;
+}
+
+/* —— Pin cells (mini grids, legend) —— */
+.wr-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  background: var(--paper-2);
+  border: 1px solid transparent;
+}
+
+.wr-cell.k-motor { background: var(--k-motor); }
+.wr-cell.k-feedback { background: var(--k-feedback); color: var(--ink); }
+.wr-cell.k-button { background: var(--k-button); color: var(--ink); }
+.wr-cell.k-cal { background: var(--k-cal); }
+.wr-cell.k-relay { background: var(--k-relay); }
+.wr-cell.k-other { background: var(--ink-soft); }
+.wr-cell.k-reserved {
+  color: var(--muted);
+  background: repeating-linear-gradient(135deg, var(--paper-2) 0 3px, var(--card) 3px 6px);
+  border-color: var(--rule);
+}
+.wr-cell.k-spare {
+  color: var(--muted);
+  background: var(--card);
+  border: 1px dashed var(--rule);
+}
+.wr-cell.k-lamp.c-R { background: var(--lamp-r); }
+.wr-cell.k-lamp.c-Y { background: var(--lamp-y); color: var(--ink); }
+.wr-cell.k-lamp.c-G { background: var(--lamp-g); }
+
+.wr-cell.is-hit {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.wr-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 1.1rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.wr-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.wr-legend .wr-cell {
+  width: 1.2rem;
+  height: 1.05rem;
+  font-size: 0.6rem;
+}
+
+/* —— Nodes —— */
+.wr-node-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: 0.85rem;
+}
+
+.wr-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.85rem 0.9rem 0.9rem;
+}
+
+.wr-node-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.wr-node-id {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--brand);
+  letter-spacing: 0.03em;
+}
+
+.wr-node-addr {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wr-node-loc {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  line-height: 1.3;
+}
+
+.wr-node-none {
+  font-size: 0.85rem;
+}
+
+.wr-minis {
+  display: grid;
+  gap: 0.22rem;
+  margin-top: 0.15rem;
+}
+
+.wr-mini-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.wr-mini-label {
+  width: 3.4rem;
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.wr-mini-label small {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.wr-mini {
+  display: flex;
+  gap: 2px;
+}
+
+.wr-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.6rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.84rem;
+}
+
+.wr-facts dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.wr-facts dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+/* —— Signals —— */
+.wr-sig-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.wr-sig {
+  padding: 0.75rem 0.85rem 0.8rem;
+}
+
+.wr-sig:hover {
+  transform: none;
+}
+
+.wr-sig header,
+.wr-split header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  margin-bottom: 0.2rem;
+}
+
+.wr-sig h3,
+.wr-split h3 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1.1;
+  margin: 0;
+  color: var(--brand);
+}
+
+.wr-sig header .muted {
+  font-size: 0.8rem;
+}
+
+.wr-sig-where {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+
+.wr-head {
+  display: grid;
+  grid-template-columns: 5.6rem 1fr;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--rule);
+}
+
+.wr-head-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.wr-head-pins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.55rem;
+}
+
+.wr-head .wr-head-pins {
+  justify-content: flex-end;
+}
+
+.wr-lamp-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.wr-lamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #fff;
+  flex: 0 0 auto;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.wr-lamp.wr-R { background: var(--lamp-r); }
+.wr-lamp.wr-Y { background: var(--lamp-y); color: var(--ink); }
+.wr-lamp.wr-G { background: var(--lamp-g); }
+
+.wr-port {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* —— Signal splits —— */
+.wr-cpbar {
+  margin-bottom: 0.75rem;
+}
+
+.wr-cp-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.8rem;
+}
+
+.wr-cp-head h2 {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  margin: 0;
+  color: var(--brand);
+}
+
+.wr-split-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.wr-split {
+  padding: 0.75rem 0.9rem 0.6rem;
+}
+
+.wr-split:hover {
+  transform: none;
+}
+
+.wr-split header {
+  padding-bottom: 0.35rem;
+}
+
+.wr-split header .wr-head-pins {
+  margin-left: auto;
+}
+
+.wr-planned {
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+
+.wr-route {
+  display: grid;
+  grid-template-columns: minmax(14rem, 22rem) 1fr;
+  gap: 0.35rem 1rem;
+  align-items: start;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.wr-route-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.wr-sws {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-weight: 400;
+}
+
+.wr-sw {
+  font-size: 0.74rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  white-space: nowrap;
+}
+
+.wr-sw.pos-R {
+  border-color: var(--accent);
+  background: #f6ead0;
+}
+
+.wr-asps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.35rem;
+}
+
+.wr-asp {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.4rem;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  min-width: 0;
+}
+
+.wr-asp-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.wr-asp-text strong {
+  font-size: 0.86rem;
+}
+
+.wr-asp-text small {
+  font-size: 0.74rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.wr-asp-pin {
+  margin-left: auto;
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* —— Tables —— */
+.wr-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  background: var(--card);
+}
+
+.wr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.wr-table th,
+.wr-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wr-table thead th {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  background: var(--paper);
+}
+
+.wr-table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.wr-sub {
+  display: block;
+  font-weight: 400;
+  font-size: 0.75rem;
+  white-space: normal;
+}
+
+.wr-nowrap {
+  white-space: nowrap;
+}
+
+/* —— Node dialog —— */
+.wr-dialog {
+  width: min(64rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 2rem);
+  padding: 0;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 20px 60px rgba(18, 26, 34, 0.35);
+}
+
+.wr-dialog::backdrop {
+  background: rgba(18, 26, 34, 0.55);
+}
+
+.wr-dialog-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--rule);
+}
+
+.wr-dialog-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: var(--brand);
+}
+
+.wr-dialog-head h2 small {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
+#wr-dialog-body {
+  padding: 0.4rem 1rem 1.1rem;
+}
+
+.wr-board {
+  padding: 0.6rem 0 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wr-board:last-child {
+  border-bottom: 0;
+}
+
+.wr-board h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.wr-board h3 small {
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.wr-pins {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+@media (min-width: 760px) {
+  .wr-pins {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+.wr-pin {
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: 3.6rem;
+  padding: 0.3rem 0.4rem;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  border-left-width: 5px;
+  background: var(--card);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.wr-pin.k-motor { border-left-color: var(--k-motor); background: #e3eff2; }
+.wr-pin.k-feedback { border-left-color: var(--k-feedback); background: #edf4f6; }
+.wr-pin.k-button { border-left-color: var(--k-button); background: #f8f0dc; }
+.wr-pin.k-cal { border-left-color: var(--k-cal); background: #efecf4; }
+.wr-pin.k-relay { border-left-color: var(--k-relay); background: #f3ebe3; }
+.wr-pin.k-reserved { border-left-color: var(--muted); background: var(--paper); color: var(--muted); }
+.wr-pin.k-spare { border-style: dashed; border-left-style: solid; border-left-color: var(--rule); color: var(--muted); }
+.wr-pin.k-lamp.c-R { border-left-color: var(--lamp-r); }
+.wr-pin.k-lamp.c-Y { border-left-color: var(--lamp-y); }
+.wr-pin.k-lamp.c-G { border-left-color: var(--lamp-g); }
+
+.wr-pin:hover {
+  border-color: var(--brand-2);
+}
+
+.wr-pin.is-sel {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.wr-pin-n {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.wr-pin-top {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.wr-pin .wr-lamp {
+  width: 0.95rem;
+  height: 0.95rem;
+  font-size: 0.55rem;
+}
+
+.wr-pin-dev {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.wr-detail {
+  margin: 0.45rem 0 0;
+  font-size: 0.85rem;
+}
+
+.wr-detail:empty {
+  display: none;
+}
+
+.wr-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+}
+
+.wr-dialog .wr-close {
+  flex: 0 0 auto;
+  color: var(--brand);
+  border: 1px solid var(--rule);
+  background: var(--card);
+}
+
+.wr-dialog .wr-close:hover {
+  border-color: var(--brand-2);
+  color: var(--ink);
+}
+
+.wr-detail-note {
+  color: var(--ink-soft);
+}
+
+.wr-dets {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.88rem;
+}
+
+/* —— Phone —— */
+@media (max-width: 640px) {
+  .wr-controls {
+    top: 0;
+    position: relative;
+  }
+
+  .wr-route {
+    grid-template-columns: 1fr;
+  }
+
+  .wr-asps {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wr-wide {
+    display: none;
+  }
+
+  .wr-split header .wr-head-pins,
+  .wr-planned {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .wr-dialog {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    margin: 0;
+    border: 0;
+  }
+
+  #wr-dialog-body {
+    padding: 0.3rem 0.75rem 1rem;
+  }
+}
+
+/* Phone: each table row becomes a small card of label / value pairs. */
+@media (max-width: 640px) {
+  .wr-table-wrap {
+    border: 0;
+    background: none;
+    overflow: visible;
+  }
+
+  .wr-stack thead {
+    display: none;
+  }
+
+  .wr-stack,
+  .wr-stack tbody {
+    display: block;
+  }
+
+  .wr-stack tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.15rem 0.8rem;
+    margin-bottom: 0.55rem;
+    padding: 0.55rem 0.7rem;
+    background: var(--card);
+    border: 1px solid var(--rule);
+  }
+
+  .wr-stack th,
+  .wr-stack td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .wr-stack tbody th {
+    grid-column: 1 / -1;
+    white-space: normal;
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .wr-stack td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .wr-stack td.wr-span {
+    grid-column: 1 / -1;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .wr-asps {
+    grid-template-columns: 1fr;
+  }
+}

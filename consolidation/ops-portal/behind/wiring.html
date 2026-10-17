@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wiring viewer — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/wiring.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main class="wiring-page">
+    <div class="page-head">
+      <h1>Wiring viewer</h1>
+      <p class="muted">
+        Every radio node under the layout, pin by pin. Search for a signal, switch, block or pin to find
+        its wires. JMRI names and control points are in the <a href="../roster/index.html">device roster</a>.
+      </p>
+    </div>
+
+    <div class="wr-controls">
+      <label class="wr-search">
+        <span class="visually-hidden">Search the wiring</span>
+        <input type="search" id="wr-q" inputmode="search" autocomplete="off"
+               placeholder="Search: 6LB, Switch 35, C4-OU2-7, Yard T1…">
+      </label>
+      <div class="album-bar wr-tabs" id="wr-tabs" role="tablist" aria-label="Views"></div>
+    </div>
+    <p class="muted wr-source" id="wr-source"></p>
+
+    <div id="wr-view" class="wr-view" aria-live="polite"></div>
+  </main>
+
+  <dialog class="wr-dialog" id="wr-dialog" aria-labelledby="wr-dialog-title">
+    <div class="wr-dialog-head">
+      <h2 id="wr-dialog-title"></h2>
+      <button type="button" class="btn btn-ghost wr-close" id="wr-close">Close</button>
+    </div>
+    <div id="wr-dialog-body"></div>
+  </dialog>
+
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/wiring.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("behind-wiring");
+        await HARTWiring.mount();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("wr-view").innerHTML =
+          '<p class="muted">The wiring data failed to load. Serve the portal over HTTP (scripts/serve_portal.sh), not file://.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

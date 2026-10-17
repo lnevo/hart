@@ -1,0 +1,4768 @@
+{
+ "source": {
+  "file": "signals_split_v8.xlsx",
+  "version": "v8",
+  "modified": "2026-09-08",
+  "built": "2026-10-17",
+  "inventory": "v85"
+ },
+ "controlPoints": [
+  {
+   "id": "1",
+   "sheet": "control_point_1",
+   "area": "Helix - Lower",
+   "switches": [
+    "Switch 35",
+    "Switch 37",
+    "Switch 39"
+   ],
+   "signals": [
+    {
+     "signal": "S1-1",
+     "routes": [
+      {
+       "from": "E Main C",
+       "to": "Helix Outer A",
+       "blocks": [
+        "SW15-17",
+        "Helix Outer A",
+        "Helix Outer B"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "E Main C",
+       "to": "East Loop A",
+       "blocks": [
+        "SW15-17",
+        "East Loop A",
+        "East Loop B"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S1-2",
+     "routes": [
+      {
+       "from": "W Main D",
+       "to": "East Loop A",
+       "blocks": [
+        "SW15,SW16,Switch 39",
+        "East Loop A",
+        "East Loop B"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "East Loop B",
+       "blocks": [
+        "SW16,Switch 37",
+        "East Loop B",
+        "East Loop A"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 39",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "Helix Inner A",
+       "blocks": [
+        "SW16,Switch 39",
+        "Helix Inner A",
+        "Helix Inner B"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 39",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "Helix Outer A",
+       "blocks": [
+        "SW15,SW16,Switch 37",
+        "Helix Outer A",
+        "Helix Outer B"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach Slow",
+         "rule": "288"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S1-3",
+     "routes": [
+      {
+       "from": "Helix Inner A",
+       "to": "W Main D",
+       "blocks": [
+        "SW16,Switch 39",
+        "W Main D",
+        "Switch 23"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 39",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        }
+       ]
+      },
+      {
+       "from": "Helix Inner A",
+       "to": "W Main D",
+       "blocks": [
+        "SW16,Switch 39",
+        "W Main D",
+        "Switch 23"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 39",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S1-4",
+     "routes": [
+      {
+       "from": "Helix Outer A",
+       "to": "E Main C",
+       "blocks": [
+        "E Main C",
+        "Switch 13",
+        "E Main B"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "Helix Outer A",
+       "to": "W Main D",
+       "blocks": [
+        "SW15,SW16,Switch 37",
+        "W Main D",
+        "Switch 23"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach Slow",
+         "rule": "288"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S1-5",
+     "routes": [
+      {
+       "from": "East Loop A",
+       "to": "E Main C",
+       "blocks": [
+        "SW15,Switch 37",
+        "E Main C",
+        "Switch 13"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "East Loop A",
+       "to": "W Main D",
+       "blocks": [
+        "SW15,SW16,Switch 37",
+        "W Main D",
+        "Switch 23"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 37",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S1-6",
+     "routes": [
+      {
+       "from": "East Loop B",
+       "to": "W Main D",
+       "blocks": [
+        "SW16,Switch 39",
+        "W Main D",
+        "Switch 23"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 35",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 39",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    }
+   ]
+  },
+  {
+   "id": "2",
+   "sheet": "control_point_2",
+   "area": "North - Lower",
+   "switches": [
+    "Switch 25",
+    "Switch 27",
+    "Switch 29",
+    "Switch 31",
+    "Switch 23a",
+    "Switch 23b"
+   ],
+   "signals": [
+    {
+     "signal": "S2-1",
+     "routes": [
+      {
+       "from": "E Main B",
+       "to": "E Main C",
+       "blocks": [
+        "Switch 13",
+        "E Main C"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 23b",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "E Main B",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 13",
+        "SW14"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 31",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 23b",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach Slow",
+         "rule": "284"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "288"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-2",
+     "routes": [
+      {
+       "from": "E Main C",
+       "to": "E Main B",
+       "blocks": [
+        "Switch 13",
+        "E Main C"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 23b",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-3",
+     "routes": [
+      {
+       "from": "W Main C",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 23",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 23a",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach Slow",
+         "rule": "284"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "288"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-4",
+     "routes": [
+      {
+       "from": "Yard 1a",
+       "to": "W Main D",
+       "blocks": [
+        "SW14",
+        "Switch 31"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 31",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 23b",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "287"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "288"
+        },
+        {
+         "when": "B1",
+         "aspect": "Restricting",
+         "rule": "290"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-5",
+     "routes": [
+      {
+       "from": "W Main D",
+       "to": "W Main C",
+       "blocks": [
+        "Switch 23",
+        "Switch 23"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach",
+         "rule": "283"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "289"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "Yard 1a",
+       "blocks": [
+        "Switch 23",
+        "Yard 1a"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "Yard 2a",
+       "blocks": [
+        "Switch 23",
+        "Switch 31"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 29",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 31",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach Slow",
+         "rule": "284"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "288"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "Yard 3a",
+       "blocks": [
+        "Switch 23",
+        "Switch 31"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 27",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 29",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 31",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach Slow",
+         "rule": "284"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "288"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "Yard 4a",
+       "blocks": [
+        "Switch 23",
+        "Switch 31"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 25",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 27",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 29",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 31",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach Slow",
+         "rule": "284"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "288"
+        },
+        {
+         "when": "B1",
+         "aspect": "Restricting",
+         "rule": "290"
+        }
+       ]
+      },
+      {
+       "from": "W Main D",
+       "to": "Yard 5",
+       "blocks": [
+        "Switch 23",
+        "Switch 31"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 25",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 27",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 29",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 31",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 23a",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "287"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "288"
+        },
+        {
+         "when": "B1",
+         "aspect": "Restricting",
+         "rule": "290"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-6",
+     "routes": [
+      {
+       "from": "Yard 5",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 25",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 25",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Yard 4a",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 25",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 25",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-7",
+     "routes": [
+      {
+       "from": "Switch 25",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 27",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 27",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Yard 3a",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 27",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 27",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-8",
+     "routes": [
+      {
+       "from": "Switch 27",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 29",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 29",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Yard 2a",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 29",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 29",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S2-9",
+     "routes": [
+      {
+       "from": "Switch 29",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 31",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 31",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Yard 1a",
+       "to": "W Main D",
+       "blocks": [
+        "Switch 31",
+        "W Main D"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 31",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    }
+   ]
+  },
+  {
+   "id": "3",
+   "sheet": "control_point_3",
+   "area": "Peninsula - Lower",
+   "switches": [
+    "Switch 1",
+    "Switch 3",
+    "Switch 5",
+    "Switch 15",
+    "Switch 17",
+    "Switch 19",
+    "Switch 21"
+   ],
+   "signals": [
+    {
+     "signal": "S3-1",
+     "routes": [
+      {
+       "from": "W Main B",
+       "to": "W Main A",
+       "blocks": [
+        "WMA",
+        "Switch 23"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-2",
+     "routes": [
+      {
+       "from": "W Main A",
+       "to": "W Main B",
+       "blocks": [
+        "WMB",
+        "Switch 5"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-3",
+     "routes": [
+      {
+       "from": "E Main A",
+       "to": "Spur 1",
+       "blocks": [
+        "Switch 3",
+        "Spur 1"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 1",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 3",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "E Main A",
+       "to": "Spur 2",
+       "blocks": [
+        "Switch 3",
+        "Spur 2"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 1",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 3",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "E Main A",
+       "to": "West Loop",
+       "blocks": [
+        "Switch 3",
+        "West Loop"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 3",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-4",
+     "routes": [
+      {
+       "from": "E Main A",
+       "to": "E Main B",
+       "blocks": [
+        "E Main B",
+        "Switch 23"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-5",
+     "routes": [
+      {
+       "from": "West Loop",
+       "to": "W Main A",
+       "blocks": [
+        "Switch 5",
+        "W Main A"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 5",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "West Loop",
+       "to": "West Lead",
+       "blocks": [
+        "Switch 5",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 5",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-6",
+     "routes": [
+      {
+       "from": "W Main A",
+       "to": "West Loop",
+       "blocks": [
+        "Switch 5",
+        "West Loop"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 5",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-7",
+     "routes": [
+      {
+       "from": "West Lead",
+       "to": "West Loop",
+       "blocks": [
+        "Switch 5",
+        "West Loop"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 5",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "West Lead",
+       "to": "Yard 1",
+       "blocks": [
+        "Switch 15",
+        "Yard 1"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 15",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "West Lead",
+       "to": "Yard 2",
+       "blocks": [
+        "Switch 15",
+        "Yard 2"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 15",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 17",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "West Lead",
+       "to": "Yard 3",
+       "blocks": [
+        "Switch 15",
+        "Yard 3"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 15",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 17",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 19",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "West Lead",
+       "to": "Yard 4",
+       "blocks": [
+        "Switch 15",
+        "Yard 4"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 15",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 17",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 19",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 21",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "West Lead",
+       "to": "Yard 5",
+       "blocks": [
+        "Switch 15",
+        "Yard 5"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 15",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 17",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 19",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 21",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-8",
+     "routes": [
+      {
+       "from": "W Main B",
+       "to": "W Main B",
+       "blocks": [],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-9",
+     "routes": [
+      {
+       "from": "West Main B",
+       "to": "W Main A",
+       "blocks": [],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-10",
+     "routes": [
+      {
+       "from": "Yard 1",
+       "to": "West Lead",
+       "blocks": [
+        "Switch 15",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 15",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 17",
+       "to": "West Lead",
+       "blocks": [
+        "Switch 15",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 15",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-11",
+     "routes": [
+      {
+       "from": "Yard 2",
+       "to": "Switch 17",
+       "blocks": [
+        "Switch 17",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 17",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 19",
+       "to": "Switch 17",
+       "blocks": [
+        "Switch 17",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 17",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-12",
+     "routes": [
+      {
+       "from": "Yard 3",
+       "to": "Switch 19",
+       "blocks": [
+        "Switch 19",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 19",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 21",
+       "to": "Switch 19",
+       "blocks": [
+        "Switch 19",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 19",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-13",
+     "routes": [
+      {
+       "from": "Yard 4",
+       "to": "Switch 21",
+       "blocks": [
+        "Switch 21",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 21",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Yard 5",
+       "to": "Switch 21",
+       "blocks": [
+        "Switch 21",
+        "West Lead"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 21",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    },
+    {
+     "signal": "S3-14",
+     "routes": [
+      {
+       "from": "E Main A",
+       "to": "Spur 1",
+       "blocks": [
+        "Switch 1"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 1",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "E Main A",
+       "to": "Spur 2",
+       "blocks": [
+        "Switch 1"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 1",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "planned": true
+    }
+   ]
+  },
+  {
+   "id": "4",
+   "sheet": "control_point_4",
+   "area": "Helix - Upper",
+   "switches": [
+    "Switch 61",
+    "Switch 63",
+    "Switch 65",
+    "Switch 67"
+   ],
+   "signals": [
+    {
+     "signal": "64R",
+     "routes": [
+      {
+       "from": "Closet Outer",
+       "to": "Aristech",
+       "blocks": [
+        "Switch 61",
+        "Switch 63"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Outer",
+       "to": "Calgon Carbon",
+       "blocks": [
+        "Switch 61",
+        "Switch 63"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Outer",
+       "to": "Coke Plant",
+       "blocks": [
+        "Switch 61",
+        "Switch 65"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Outer",
+       "to": "East Loop B",
+       "blocks": [
+        "Switch 61",
+        "Switch 65"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Outer",
+       "to": "NIL A",
+       "blocks": [
+        "Switch 61",
+        "Switch 63"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "64R",
+     "node": "C21",
+     "lamps": {
+      "G": "C21-OU2-1",
+      "Y": "C21-OU2-2",
+      "R": "C21-OU2-3"
+     }
+    },
+    {
+     "signal": "68L",
+     "routes": [
+      {
+       "from": "Closet Inner",
+       "to": "Aristech",
+       "blocks": [
+        "Switch 61",
+        "Switch 63"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Inner",
+       "to": "Calgon Carbon",
+       "blocks": [
+        "Switch 61",
+        "Switch 63"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Inner",
+       "to": "Coke Plant",
+       "blocks": [
+        "Switch 61",
+        "Switch 65"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Inner",
+       "to": "East Loop B",
+       "blocks": [
+        "Switch 61",
+        "Switch 65"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Closet Inner",
+       "to": "NIL A",
+       "blocks": [
+        "Switch 61",
+        "Switch 63"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "68L",
+     "node": "C21",
+     "lamps": {
+      "G": "C21-OU2-4",
+      "Y": "C21-OU2-5",
+      "R": "C21-OU2-6"
+     }
+    },
+    {
+     "signal": "64L",
+     "routes": [
+      {
+       "from": "Aristech",
+       "to": "Closet Inner",
+       "blocks": [
+        "Switch 63",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Aristech",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 63",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Calgon Carbon",
+       "to": "Closet Inner",
+       "blocks": [
+        "Switch 63",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Calgon Carbon",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 63",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "NIL A",
+       "to": "Closet Inner",
+       "blocks": [
+        "Switch 63",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "NIL A",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 63",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 67",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "64L",
+     "node": "C21",
+     "lamps": {
+      "G": "C21-OU3-1",
+      "Y": "C21-OU3-2",
+      "R": "C21-OU3-3"
+     }
+    },
+    {
+     "signal": "66RA",
+     "mast": "Switch 65 (with 66RB)",
+     "routes": [
+      {
+       "from": "Coke Plant",
+       "to": "Closet Inner",
+       "blocks": [
+        "Switch 65",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Coke Plant",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 65",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "East Loop B",
+       "to": "Closet Inner",
+       "blocks": [
+        "Switch 65",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "East Loop B",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 65",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "66RA",
+     "node": "C21",
+     "lamps": {
+      "G": "C21-OU3-4",
+      "Y": "C21-OU3-5",
+      "R": "C21-OU3-6"
+     }
+    },
+    {
+     "signal": "66RB",
+     "mast": "Switch 65 (with 66RA)",
+     "routes": [
+      {
+       "from": "NIL B",
+       "to": "Closet Inner",
+       "blocks": [
+        "Switch 65",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "NIL B",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 65",
+        "Switch 61"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 61",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 65",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Aristech",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 63, Switch 61",
+        "Closet Outer"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 63",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach",
+         "rule": "285"
+        }
+       ]
+      },
+      {
+       "from": "Outer Leg",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 63, Switch 61",
+        "Closet Outer"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 63",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "66RB",
+     "node": "C21",
+     "lamps": {
+      "Y": "C21-OU2-7",
+      "G": "C21-OU3-7",
+      "R": "C21-OU3-8"
+     }
+    },
+    {
+     "signal": "62L",
+     "routes": [
+      {
+       "from": "Coke Oven",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 65, Switch 61",
+        "Closet Outer"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 65",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach",
+         "rule": "285"
+        }
+       ]
+      },
+      {
+       "from": "NIL B",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 65, Switch 61",
+        "Closet Outer"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 65",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "291"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "signal": "68R",
+     "routes": [
+      {
+       "from": "NIL A",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 67, Switch 61",
+        "Closet Outer"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 67",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Approach",
+         "rule": "285"
+        }
+       ]
+      },
+      {
+       "from": "Calgon",
+       "to": "Closet Outer",
+       "blocks": [
+        "Switch 67, Switch 61",
+        "Closet Outer"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 67",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "291"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "5",
+   "sheet": "control_point_5",
+   "area": "North - Upper",
+   "switches": [
+    "Switch 69",
+    "Switch 71",
+    "Switch 73"
+   ],
+   "signals": [
+    {
+     "signal": "70L",
+     "routes": [
+      {
+       "from": "OutsideOuter",
+       "to": "ClosetOuter",
+       "blocks": [
+        "OutsideOuter",
+        "ClosetOuter"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "70L",
+     "node": "C22",
+     "lamps": {
+      "G": "C22-OU2-1",
+      "Y": "C22-OU2-2",
+      "R": "C22-OU2-3"
+     }
+    },
+    {
+     "signal": "72L",
+     "routes": [
+      {
+       "from": "ClosetOuter",
+       "to": "OutsideOuter",
+       "blocks": [
+        "ClosetOuter",
+        "OutsideOuter"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "72L",
+     "node": "C22",
+     "lamps": {
+      "G": "C22-OU2-4",
+      "Y": "C22-OU2-5",
+      "R": "C22-OU2-6"
+     }
+    },
+    {
+     "signal": "74L",
+     "routes": [
+      {
+       "from": "OutsideInner",
+       "to": "ClosetInner",
+       "blocks": [
+        "Switch 69",
+        "Switch 73"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "OutsideInner",
+       "to": "HelixInnerB",
+       "blocks": [
+        "Switch 69",
+        "Switch 73"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "OutsideInner",
+       "to": "HelixOuterB",
+       "blocks": [
+        "Switch 69",
+        "HelixOuterB"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "74L",
+     "node": "C22",
+     "lamps": {
+      "G": "C22-OU3-1",
+      "Y": "C22-OU3-2",
+      "R": "C22-OU3-3"
+     }
+    },
+    {
+     "signal": "74RA",
+     "routes": [
+      {
+       "from": "ClosetInner",
+       "to": "Bridgeville",
+       "blocks": [
+        "Switch 73",
+        "Switch 71"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 71",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "ClosetInner",
+       "to": "OutsideInner",
+       "blocks": [
+        "Switch 73",
+        "Switch 69"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "74RA",
+     "node": "C22",
+     "lamps": {
+      "G": "C22-OU3-4",
+      "Y": "C22-OU3-5",
+      "R": "C22-OU3-6"
+     }
+    },
+    {
+     "signal": "70RA",
+     "routes": [
+      {
+       "from": "Bridgeville",
+       "to": "ClosetInner",
+       "blocks": [
+        "Switch 71",
+        "Switch 73"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 71",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Bridgeville",
+       "to": "HelixInnerB",
+       "blocks": [
+        "Switch 71",
+        "Switch 73"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 71",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "Bridgeville",
+       "to": "HelixOuterB",
+       "blocks": [
+        "Switch 71",
+        "Switch 69"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 71",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "70RA",
+     "node": "C22",
+     "lamps": {
+      "Y": "C22-OU2-7",
+      "G": "C22-OU3-7",
+      "R": "C22-OU3-8"
+     }
+    },
+    {
+     "signal": "70RB",
+     "mast": "Switch 69 reverse",
+     "routes": [
+      {
+       "from": "HelixOuterB",
+       "to": "Bridgeville",
+       "blocks": [
+        "Switch 69",
+        "Switch 71"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 71",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "HelixOuterB",
+       "to": "OutsideInner",
+       "blocks": [
+        "Switch 69",
+        "OutsideInner"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "70RB",
+     "node": "C32",
+     "lamps": {
+      "G": "C32-OU2-1",
+      "Y": "C32-OU2-2",
+      "R": "C32-OU2-3"
+     }
+    },
+    {
+     "signal": "74RB",
+     "mast": "Switch 73 reverse",
+     "routes": [
+      {
+       "from": "HelixInnerB",
+       "to": "Bridgeville",
+       "blocks": [
+        "Switch 73",
+        "Switch 71"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 71",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "HelixInnerB",
+       "to": "OutsideInner",
+       "blocks": [
+        "Switch 73",
+        "Switch 69"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 69",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 73",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "74RB",
+     "node": "C32",
+     "lamps": {
+      "G": "C32-OU2-4",
+      "R": "C32-OU2-5",
+      "Y": "C32-OU2-6"
+     }
+    }
+   ]
+  },
+  {
+   "id": "6",
+   "sheet": "control_point_6",
+   "area": "Peninsula - Upper",
+   "switches": [
+    "Switch 75",
+    "Switch 77",
+    "Switch 79",
+    "Switch 81",
+    "Switch 83",
+    "Switch 85",
+    "Switch 87",
+    "Switch 89",
+    "Switch 91"
+   ],
+   "signals": [
+    {
+     "signal": "76L",
+     "routes": [
+      {
+       "from": "OutsideOuterA",
+       "to": "CBInner",
+       "blocks": [
+        "OutsideOuterA",
+        "CBInner"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "OutsideOuterA",
+       "to": "CBSiding",
+       "blocks": [
+        "OutsideOuterA",
+        "CBSiding"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 87",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "OutsideOuterA",
+       "to": "CBStation",
+       "blocks": [
+        "OutsideOuterA",
+        "CBStation"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 79",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 85",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "OutsideOuterA",
+       "to": "OutsideInnerA",
+       "blocks": [
+        "OutsideOuterA",
+        "OutsideInnerA"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 79",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 85",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "OutsideOuterA",
+       "to": "TT_PTT",
+       "blocks": [
+        "OutsideOuterA",
+        "TT_PTT"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 79",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "76L",
+     "node": "C14",
+     "lamps": {
+      "G": "C14-OU3-1",
+      "Y": "C14-OU3-2",
+      "R": "C14-OU3-3"
+     }
+    },
+    {
+     "signal": "76R",
+     "routes": [
+      {
+       "from": "OutsideInnerA",
+       "to": "CBInner",
+       "blocks": [
+        "OutsideInnerA",
+        "CBInner"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "OutsideInnerA",
+       "to": "CBSiding",
+       "blocks": [
+        "OutsideInnerA",
+        "CBSiding"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 87",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "OutsideInnerA",
+       "to": "CBStation",
+       "blocks": [
+        "OutsideInnerA",
+        "CBStation"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "OutsideInnerA",
+       "to": "OutsideOuterA",
+       "blocks": [
+        "OutsideInnerA",
+        "OutsideOuterA"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 79",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 85",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "OutsideInnerA",
+       "to": "TT_PTT",
+       "blocks": [
+        "OutsideInnerA",
+        "TT_PTT"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 79",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "76R",
+     "node": "C14",
+     "lamps": {
+      "G": "C14-OU2-1",
+      "Y": "C14-OU2-2",
+      "R": "C14-OU2-3"
+     }
+    },
+    {
+     "signal": "78L",
+     "routes": [
+      {
+       "from": "CBStation",
+       "to": "CBOuter",
+       "blocks": [
+        "CBStation",
+        "CBOuter"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "78L",
+     "node": "C24",
+     "lamps": {
+      "G": "C24-OU2-1",
+      "Y": "C24-OU2-2",
+      "R": "C24-OU2-3"
+     }
+    },
+    {
+     "signal": "78RA",
+     "routes": [
+      {
+       "from": "CBStation",
+       "to": "OutsideInnerA",
+       "blocks": [
+        "CBStation",
+        "OutsideInnerA"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "CBStation",
+       "to": "OutsideOuterA",
+       "blocks": [
+        "CBStation",
+        "OutsideOuterA"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 79",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 85",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "78RA",
+     "node": "C24",
+     "lamps": {
+      "G": "C24-OU3-1",
+      "Y": "C24-OU3-2",
+      "R": "C24-OU3-3"
+     }
+    },
+    {
+     "signal": "78RB",
+     "routes": [
+      {
+       "from": "CBSiding",
+       "to": "OutsideInnerA",
+       "blocks": [
+        "CBSiding",
+        "OutsideInnerA"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 87",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "CBSiding",
+       "to": "OutsideOuterA",
+       "blocks": [
+        "CBSiding",
+        "OutsideOuterA"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 75",
+         "pos": "N"
+        },
+        {
+         "switch": "Switch 77",
+         "pos": "R"
+        },
+        {
+         "switch": "Switch 87",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      },
+      {
+       "from": "CBSiding",
+       "to": "WH_BW",
+       "blocks": [
+        "CBSiding",
+        "WH_BW"
+       ],
+       "switches": [
+        {
+         "switch": "Switch 87",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Slow Clear",
+         "rule": "286"
+        },
+        {
+         "when": "B2",
+         "aspect": "Slow Approach",
+         "rule": "287"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop & Proceed",
+         "rule": "291"
+        }
+       ]
+      }
+     ],
+     "head": "78RB",
+     "node": "C14",
+     "lamps": {
+      "G": "C14-OU3-4",
+      "Y": "C14-OU3-5",
+      "R": "C14-OU3-6"
+     }
+    },
+    {
+     "signal": "78R",
+     "routes": [
+      {
+       "from": "CBOuter",
+       "to": "CBStation",
+       "blocks": [
+        "CBOuter",
+        "CBStation"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "CBOuter",
+       "to": "OutsideInnerA",
+       "blocks": [
+        "CBOuter",
+        "OutsideInnerA"
+       ],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "78R",
+     "node": "C23",
+     "lamps": {
+      "G": "C23-OU2-1",
+      "Y": "C23-OU2-2",
+      "R": "C23-OU2-3"
+     }
+    },
+    {
+     "signal": "88L",
+     "routes": [
+      {
+       "from": "CBInner",
+       "to": "CBSiding",
+       "blocks": [],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "88L",
+     "node": "C24",
+     "lamps": {
+      "G": "C24-OU3-4",
+      "Y": "C24-OU3-5",
+      "R": "C24-OU3-6"
+     }
+    },
+    {
+     "signal": "88R",
+     "routes": [
+      {
+       "from": "CBSiding",
+       "to": "CBInner",
+       "blocks": [],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "88R",
+     "node": "C23",
+     "lamps": {
+      "G": "C23-OU2-4",
+      "Y": "C23-OU2-5",
+      "R": "C23-OU2-6"
+     }
+    },
+    {
+     "signal": "88RA",
+     "routes": [
+      {
+       "from": "CB Outer",
+       "to": "CB Station",
+       "blocks": [],
+       "switches": [],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        },
+        {
+         "when": "B2",
+         "aspect": "Approach",
+         "rule": "285"
+        },
+        {
+         "when": "B1",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "88RA",
+     "node": "C24",
+     "lamps": {
+      "G": "C24-OU2-4",
+      "Y": "C24-OU2-5",
+      "R": "C24-OU2-6"
+     }
+    },
+    {
+     "signal": "82L",
+     "routes": [
+      {
+       "from": "Switch 79",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 79",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 79",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 79",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "Switch 81",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 81",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 81",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 81",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "82L",
+     "node": "C24",
+     "lamps": {
+      "G": "C24-OU1-7",
+      "R": "C24-OU1-8",
+      "Y": "C24-OU2-7"
+     }
+    },
+    {
+     "signal": "84RA",
+     "routes": [
+      {
+       "from": "Switch 83",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 83",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 83",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 83",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      },
+      {
+       "from": "Switch 85",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 85",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      }
+     ],
+     "head": "84RA",
+     "node": "C14",
+     "lamps": {
+      "Y": "C14-OU2-7",
+      "G": "C14-OU3-7",
+      "R": "C14-OU3-8"
+     }
+    },
+    {
+     "signal": "84RB",
+     "routes": [
+      {
+       "from": "Switch 85",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 85",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "84RB",
+     "node": "C23",
+     "lamps": {
+      "Y": "C23-OU2-7",
+      "G": "C23-OU3-7",
+      "R": "C23-OU3-8"
+     }
+    },
+    {
+     "signal": "86L",
+     "routes": [
+      {
+       "from": "Switch 87",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 87",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 87",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 87",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "86L",
+     "node": "C14",
+     "lamps": {
+      "G": "C14-OU2-4",
+      "R": "C14-OU2-5",
+      "Y": "C14-OU2-6"
+     }
+    },
+    {
+     "signal": "90L",
+     "routes": [
+      {
+       "from": "Switch 89",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 89",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 89",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 89",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "90L",
+     "node": "C23",
+     "lamps": {
+      "G": "C23-OU3-4",
+      "R": "C23-OU3-5",
+      "Y": "C23-OU3-6"
+     }
+    },
+    {
+     "signal": "92L",
+     "routes": [
+      {
+       "from": "Switch 91",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 91",
+         "pos": "N"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Clear",
+         "rule": "281"
+        }
+       ]
+      },
+      {
+       "from": "Switch 91",
+       "to": "OutsideOuterA",
+       "blocks": [],
+       "switches": [
+        {
+         "switch": "Switch 91",
+         "pos": "R"
+        }
+       ],
+       "aspects": [
+        {
+         "when": "clear",
+         "aspect": "Stop",
+         "rule": "292"
+        }
+       ]
+      }
+     ],
+     "head": "92L",
+     "node": "C23",
+     "lamps": {
+      "G": "C23-OU3-1",
+      "R": "C23-OU3-2",
+      "Y": "C23-OU3-3"
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -17,7 +17,11 @@ from pathlib import Path
 PORTAL = Path(__file__).resolve().parents[1]
 SKIP_TOP = {"scripts", "review"}
 # Engineering-desk pages that name hosts, ports, or deploy steps stay off the public site.
-SKIP_FILES = {Path("README.md"), Path("guides/digicon-system.html")}
+SKIP_FILES = {
+    Path("README.md"),
+    Path("guides/digicon-system.html"),
+    Path("data/signal-splits.json"),  # signal splits are under review; the wiring viewer hides that tab
+}
 
 
 def _ignore(directory: str, names: list[str]) -> list[str]:
