@@ -1,6 +1,6 @@
 {
   "title": "Railroads",
-  "lede": "Six lines served the Chartiers Valley and Neville Island. Two of them, the Pennsylvania Railroad's Chartiers Branch and the PC&Y, ended up as one short line, today's POHC. Follow each line down to today.",
+  "lede": "Seven lines served the Chartiers Valley and Neville Island. Two of them, the Pennsylvania Railroad's Chartiers Branch and the PC&Y, ended up as one short line, today's POHC. Follow each line down to today.",
   "article": "library/chartiers-valley-railroads.html",
   "trunkColor": "#b5651d",
   "lanes": [
@@ -323,6 +323,53 @@
       }
     },
     {
+      "id": "bo",
+      "title": "B&O",
+      "link": {
+        "label": "Pittsburgh lines",
+        "href": "library/chartiers-valley-railroads.html"
+      },
+      "color": "#5b3f8c",
+      "steps": [
+        {
+          "name": "Baltimore & Ohio",
+          "years": "1871–1973",
+          "from": 1871,
+          "to": 1972,
+          "made": "Into Pittsburgh from 1871; the Wheeling line met the Chartiers Branch at Washington",
+          "logo": "../external/hart-ops/operator_logos/downloads/baltimore-ohio.png",
+          "note": "Ran over the P&LE from 1934"
+        },
+        {
+          "handoff": "1973 · Chessie System"
+        },
+        {
+          "name": "Chessie System",
+          "years": "1973–1987",
+          "from": 1973,
+          "to": 1986,
+          "made": "B&O, C&O and Western Maryland under one name",
+          "logo": "../external/hart-ops/operator_logos/downloads/chessie-system.png",
+          "note": "Part of CSX Corporation from 1980"
+        },
+        {
+          "handoff": "1987 · merged into CSX Transportation"
+        },
+        {
+          "name": "CSX",
+          "years": "1987–today",
+          "from": 1987,
+          "to": null,
+          "made": "The old B&O Pittsburgh lines",
+          "logo": "../external/hart-ops/operator_logos/downloads/csxlogo_3.png"
+        }
+      ],
+      "end": {
+        "text": "The B&O's Pittsburgh lines are CSX today, along with the P&LE main CSX bought in 1993.",
+        "state": "open"
+      }
+    },
+    {
       "id": "pov",
       "title": "Neville Island",
       "link": {
@@ -434,5 +481,6 @@
       "text": "Still running from McKees Rocks onto Neville Island and south toward Arden.",
       "state": "open"
     }
-  }
+  },
+  "filter": "Show lines"
 }

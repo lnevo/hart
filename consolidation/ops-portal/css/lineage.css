@@ -433,3 +433,42 @@ table.lineage-table .sep { border-left: 2px solid var(--rule); }
   .year-pick label { font-size: 1.05rem; }
 }
   
+/* —— Line filter (railroads): one chip per lane, in the lane's color —— */
+.line-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+}
+
+.line-filter-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-right: 0.3rem;
+}
+
+.line-filter button {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border: 2px solid var(--lane, var(--brand));
+  background: var(--card);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.line-filter button[aria-pressed="true"] {
+  background: var(--lane, var(--brand));
+  color: #fff;
+}
+
+.line-filter .line-filter-all {
+  border-color: var(--rule);
+  background: none;
+  color: var(--brand);
+}

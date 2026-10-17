@@ -196,18 +196,75 @@
         }
 
         var lanesEl = $("lanes");
-        lanesEl.classList.toggle("has-merge", !!d.merge);
-        // Lanes in DOM order, with the merge right after the last lane it joins (so phones read it in order).
-        var html = [];
-        var last = -1;
-        if (d.merge) {
-          lanes.forEach(function (l, i) { if ((d.merge.lanes || []).indexOf(l.id) !== -1) last = i; });
+        // Optional line filter (d.filter = its label): chips that show or hide lanes, kept in ?lines=.
+        var shown = lanes.map(function (l) { return l.id; });
+        var want = (new URLSearchParams(window.location.search).get("lines") || "").split(",").filter(Boolean);
+        if (d.filter && want.length) {
+          var keep = shown.filter(function (id) { return want.indexOf(id) !== -1; });
+          if (keep.length) shown = keep;
         }
-        lanes.forEach(function (l, i) {
-          html.push(lane(l, i, d.merge));
-          if (i === last) html.push(mergeBlock(d.merge, lanes));
-        });
-        lanesEl.innerHTML = html.join("");
+
+        function renderLanes() {
+          var vis = lanes.filter(function (l) { return shown.indexOf(l.id) !== -1; });
+          page.style.setProperty("--n", String(vis.length || 1));
+          var merge = d.merge && (d.merge.lanes || []).some(function (id) { return shown.indexOf(id) !== -1; })
+            ? Object.assign({}, d.merge, { lanes: d.merge.lanes.filter(function (id) { return shown.indexOf(id) !== -1; }) })
+            : null;
+          lanesEl.classList.toggle("has-merge", !!merge);
+          // Lanes in DOM order, with the merge right after the last lane it joins (so phones read it in order).
+          var html = [];
+          var last = -1;
+          if (merge) vis.forEach(function (l, i) { if (merge.lanes.indexOf(l.id) !== -1) last = i; });
+          vis.forEach(function (l, i) {
+            html.push(lane(l, i, merge));
+            if (i === last) html.push(mergeBlock(merge, vis));
+          });
+          lanesEl.innerHTML = html.join("");
+        }
+
+        if (d.filter) {
+          var bar = document.createElement("div");
+          bar.className = "line-filter";
+          bar.setAttribute("role", "group");
+          bar.setAttribute("aria-label", d.filter);
+          bar.innerHTML =
+            '<span class="line-filter-label">' + esc(d.filter) + "</span>" +
+            lanes.map(function (l) {
+              return '<button type="button" data-line="' + esc(l.id) + '"' + laneStyle(l) + ' aria-pressed="' +
+                (shown.indexOf(l.id) !== -1) + '">' + esc(l.title) + "</button>";
+            }).join("") +
+            '<button type="button" class="line-filter-all">All</button>';
+          lanesEl.parentNode.insertBefore(bar, lanesEl);
+          var sync = function () {
+            bar.querySelectorAll("[data-line]").forEach(function (b) {
+              b.setAttribute("aria-pressed", String(shown.indexOf(b.getAttribute("data-line")) !== -1));
+            });
+            try {
+              var u = new URL(window.location.href);
+              if (shown.length === lanes.length) u.searchParams.delete("lines");
+              else u.searchParams.set("lines", shown.join(","));
+              history.replaceState(null, "", u);
+            } catch (e) {}
+            renderLanes();
+            setYear(range.value && !clear.disabled ? +range.value : null);
+          };
+          bar.addEventListener("click", function (e) {
+            var b = e.target.closest("button");
+            if (!b) return;
+            if (b.classList.contains("line-filter-all")) {
+              shown = lanes.map(function (l) { return l.id; });
+            } else {
+              var id = b.getAttribute("data-line");
+              var on = shown.indexOf(id) !== -1;
+              if (on && shown.length === 1) return; // keep at least one line
+              shown = on
+                ? shown.filter(function (x) { return x !== id; })
+                : lanes.map(function (l) { return l.id; }).filter(function (x) { return x === id || shown.indexOf(x) !== -1; });
+            }
+            sync();
+          });
+        }
+        renderLanes();
 
         if (d.table && (d.table.rows || []).length) {
           $("year-table").innerHTML = table(d.table);
