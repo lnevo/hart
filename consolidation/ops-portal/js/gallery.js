@@ -23,11 +23,32 @@
       var grid = document.querySelector(opts.grid || "#gallery-grid");
       var lede = document.querySelector(opts.lede || "#gallery-lede");
       var title = document.querySelector(opts.title || "#gallery-title");
-      if (title) title.textContent = data.title || "Photo gallery";
-      if (lede) lede.textContent = data.lede || "";
+      // opts.heading === false keeps the page's own title and lede.
+      if (opts.heading !== false) {
+        if (title) title.textContent = data.title || "Photo gallery";
+        if (lede) lede.textContent = data.lede || "";
+      }
 
-      var items = data.items || [];
-      var currentAlbum = opts.album || "all";
+      // opts.albums limits the page to those album ids (e.g. ["plans", "build"]).
+      var only = opts.albums && opts.albums.length ? opts.albums : null;
+      function scoped(list) {
+        if (!only) return list || [];
+        return (list || []).filter(function (it) {
+          return only.indexOf(it.album) !== -1;
+        });
+      }
+      function scopedAlbums() {
+        var albums = data.albums || [];
+        if (!only) return albums;
+        return only
+          .map(function (id) {
+            return albums.find(function (a) { return a.id === id; });
+          })
+          .filter(Boolean);
+      }
+
+      var items = scoped(data.items);
+      var currentAlbum = opts.album || (only && only.length === 1 ? only[0] : "all");
 
       // Local curation (engineering desk only): opts.curate names the API; it is used only
       // when the site is not public and the local review server answers.
@@ -64,7 +85,7 @@
         var payload = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(payload.error || "HTTP " + res.status);
         data = payload.gallery;
-        items = data.items || [];
+        items = scoped(data.items);
       }
 
       function curateControls(it) {
@@ -135,11 +156,10 @@
 
       function renderAlbums() {
         if (!albumBar) return;
-        var albums = [{ id: "all", label: "All", count: items.length }].concat(
-          (data.albums || []).map(function (a) {
-            return { id: a.id, label: a.label, count: a.count };
-          })
-        );
+        var albums = scopedAlbums().map(function (a) {
+          return { id: a.id, label: a.label, count: a.count };
+        });
+        if (albums.length > 1) albums.unshift({ id: "all", label: "All", count: items.length });
         albumBar.innerHTML = albums
           .map(function (a) {
             var pressed = a.id === currentAlbum ? "true" : "false";

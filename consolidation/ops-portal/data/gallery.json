@@ -1,6 +1,6 @@
 {
   "title": "Session night: the layout room",
-  "lede": "A walk through the room on a session night, from the crew lounge to the dispatcher's desk, the yards, the scale, and the paperwork. Then the control panels and how the track plan came together. Historical photographs of the island are on the Photos page under The Prototype.",
+  "lede": "A walk through the room on a session night, from the crew lounge to the dispatcher's desk, the yards, the scale, and the paperwork, then the control panels the dispatcher works. Track plans and build photos are under The Build; historical photographs of the island are on the Photos page under History & Industries.",
   "albums": [
     {
       "id": "layout",
@@ -20,7 +20,7 @@
     {
       "id": "build",
       "label": "Build & wiring",
-      "count": 4
+      "count": 5
     }
   ],
   "items": [
@@ -209,8 +209,8 @@
     {
       "album": "build",
       "src": "../external/desktop-data/f-root/lcn-connection-diagram.webp",
-      "title": "LCN connection diagram",
-      "caption": "How the LCN boards connect: the wiring reference for the layout's control bus.",
+      "title": "LCOS client node wiring",
+      "caption": "How one LCOS radio node is hooked up: an Arduino Nano with a radio, input and output boards, a signal driver board, block occupancy detectors, and the layout control bus that powers them.",
       "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
     },
     {
@@ -226,6 +226,13 @@
       "title": "Touch toggle dimensions",
       "caption": "Drilling template for the fascia touch toggles: a 3/4 in square plate with 3/16 in holes on 3/8 in spacing, in two-hole and one-hole versions.",
       "credit": "HART layout photos"
+    },
+    {
+      "album": "build",
+      "src": "assets/f-root-previews/ba144a53d531cb34.jpg",
+      "title": "Power districts, day one",
+      "caption": "An early plan for track power: the command station and two boosters feed circuit breakers and auto-reversers, one group each for the main line, branch line and Scully Yard, the Canonsburg branch and west loop, and the helix, PC&C and east loop.",
+      "credit": "HART wiring schematic"
     }
   ]
 }

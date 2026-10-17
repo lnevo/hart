@@ -61,7 +61,8 @@
       "heading": "On this site",
       "paragraphs": [
         "The Prototype is for anyone curious about the island. It holds what we have learned about the P&OV and the plants it served, with old photographs, advertisements and clippings credited to their sources where we could find them.",
-        "Operations is for the people who come to run trains. It has a primer for first-timers, the paperwork used at the layout, and a look around the layout room and the equipment that works it."
+        "Operations is for the people who come to run trains. It has a primer for first-timers, the paperwork used at the layout, and a look around the layout room and the equipment that works it.",
+        "Behind the Scenes explains how the layout works, from the signals to the radios under the benchwork, and The Build follows the construction, helix included."
       ],
       "links": [
         {
@@ -71,6 +72,14 @@
         {
           "label": "Operations",
           "href": "operators/index.html"
+        },
+        {
+          "label": "Behind the Scenes",
+          "href": "behind/index.html"
+        },
+        {
+          "label": "The Build",
+          "href": "build/index.html"
         }
       ]
     }

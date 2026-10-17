@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LCOS and the Arduino bridge — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>LCOS and the Arduino bridge</h1>
+      <p class="section-note">How the switches, detectors and signal lamps out on the layout talk to the computer.</p>
+    </div>
+
+    <article class="explainer prose">
+      <h2>Radio nodes under the layout</h2>
+      <p>
+        HART's field wiring uses LCOS, a wireless layout control system from Beagle Bay. Instead of
+        running long cables back to one big panel, small client nodes sit in cabinets next to the
+        switches and signals they look after, and talk to each other by radio. There are about a dozen
+        of them around the room.
+      </p>
+      <figure class="wide">
+        <a href="../assets/behind/lcos-client-node.jpg"><img src="../assets/behind/lcos-client-node.jpg" alt="Wiring diagram of one LCOS client node with its input, output, signal driver and block detector boards" loading="lazy"></a>
+        <figcaption>
+          One client node: an Arduino Nano with a radio, an eight-input board, eight-output boards for
+          12-volt switch motors and 5-volt lamps, and block occupancy detectors. A layout control bus
+          carries power to all of it.
+        </figcaption>
+      </figure>
+
+      <h2>What a node does</h2>
+      <ul>
+        <li><strong>Switches.</strong> Slow-motion switch motors run off the 12-volt outputs, and the node reports which way each switch is lined.</li>
+        <li><strong>Detection.</strong> Block detectors sense when a train is in a section of track and report it as occupied.</li>
+        <li><strong>Signals.</strong> Each searchlight head takes three outputs in a row: red, yellow, green. The output boards sit next to the masts so the wires stay short.</li>
+      </ul>
+
+      <h2>The bridge</h2>
+      <p>
+        The computer running JMRI has no radio of its own. The bridge is one more Arduino Nano with the
+        same radio, plugged into a PC by USB. It joins the LCOS network as a node and hears what the
+        others say. A small Python program on the PC passes each message on to MQTT, a lightweight
+        message service that JMRI is also connected to.
+      </p>
+      <ol class="flow" aria-label="How a message travels">
+        <li>Nodes on the layout</li>
+        <li>Radio</li>
+        <li>Arduino Nano</li>
+        <li>USB to the PC</li>
+        <li>MQTT</li>
+        <li>JMRI</li>
+      </ol>
+      <p>
+        Messages go both ways. From the layout come switch positions, occupied blocks, and what each
+        signal is showing. To the layout go commands to throw a switch or set a signal to red, yellow or
+        green. Every device has a number built from its node and its place on that node, so the first
+        signal on node 4 is 432.
+      </p>
+
+      <h2>Keeping the link alive</h2>
+      <p>
+        The PC checks in with the Nano every few seconds. If the radio link drops, the bridge signs back
+        up with the nodes on its own, and a lamp on the dispatcher's panel shows whether LCOS is connected.
+      </p>
+
+      <h2>Open source</h2>
+      <p>
+        The bridge firmware and the PC program aren't specific to HART. They work on any LCOS layout with
+        a JMRI MQTT connection, and the code is on GitHub:
+        <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a>.
+      </p>
+
+      <p class="explainer-more">
+        More: <a href="signals.html">How the signals work</a> ·
+        <a href="../roster/index.html">Device roster</a> ·
+        <a href="../build/index.html#photos">Wiring diagrams</a>
+      </p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-bridge").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

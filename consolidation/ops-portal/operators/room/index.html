@@ -28,7 +28,7 @@
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("room");
-        await HARTGallery.mount({ dataUrl: "data/gallery.json", album: "layout", curate: "/api/gallery" });
+        await HARTGallery.mount({ dataUrl: "data/gallery.json", album: "layout", albums: ["layout", "panels"], curate: "/api/gallery" });
       } catch (err) {
         console.error(err);
         document.getElementById("gallery-lede").textContent =

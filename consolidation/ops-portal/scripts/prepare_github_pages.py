@@ -16,6 +16,8 @@ from pathlib import Path
 
 PORTAL = Path(__file__).resolve().parents[1]
 SKIP_TOP = {"scripts", "review"}
+# Engineering-desk pages that name hosts, ports, or deploy steps stay off the public site.
+SKIP_FILES = {Path("README.md"), Path("guides/digicon-system.html")}
 
 
 def _ignore(directory: str, names: list[str]) -> list[str]:
@@ -23,6 +25,7 @@ def _ignore(directory: str, names: list[str]) -> list[str]:
     skipped = [n for n in names if n == ".DS_Store" or n.endswith(".pyc")]
     if rel == Path("."):
         skipped.extend(n for n in names if n in SKIP_TOP)
+    skipped.extend(n for n in names if rel / n in SKIP_FILES)
     if "__pycache__" in names:
         skipped.append("__pycache__")
     return skipped

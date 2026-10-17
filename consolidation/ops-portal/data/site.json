@@ -51,9 +51,29 @@
         "guides",
         "layout",
         "tools",
-        "helix",
-        "roster",
         "photos"
+      ]
+    },
+    {
+      "id": "behind",
+      "href": "behind/index.html",
+      "label": "Behind the Scenes",
+      "pages": [
+        "behind",
+        "behind-signals",
+        "behind-bridge",
+        "roster",
+        "digicon"
+      ]
+    },
+    {
+      "id": "build",
+      "href": "build/index.html",
+      "label": "The Build",
+      "short": "Build",
+      "pages": [
+        "build",
+        "helix"
       ]
     },
     {

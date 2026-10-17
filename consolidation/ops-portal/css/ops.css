@@ -3212,3 +3212,120 @@ html.zoomer-open body {
   display: block;
   background: #1a2229;
 }
+
+/* —— Behind the Scenes explainers —— */
+.explainer {
+  max-width: 70ch;
+}
+
+.explainer h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.03em;
+  color: var(--brand);
+  margin: 1.8rem 0 0.4rem;
+}
+
+.explainer h2:first-child {
+  margin-top: 0;
+}
+
+.explainer ul,
+.explainer ol {
+  padding-left: 1.3rem;
+}
+
+.explainer li {
+  margin-bottom: 0.4rem;
+}
+
+.explainer figure {
+  margin: 1.2rem 0 1.4rem;
+}
+
+.explainer figure img {
+  width: 100%;
+  border: 1px solid var(--rule);
+  background: #fff;
+}
+
+.explainer figcaption {
+  margin-top: 0.45rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.explainer .flow {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  counter-reset: none;
+}
+
+.explainer .flow li {
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--brand-2);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.explainer-more {
+  margin-top: 2rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+/* —— Homepage: smaller doors into Behind the Scenes and The Build —— */
+.mini-doors {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  margin-top: 1rem;
+}
+
+.mini-door {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--brand-2);
+  padding: 0.9rem 1.1rem 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mini-door:hover {
+  background: #fff;
+  color: inherit;
+}
+
+.mini-door .kind {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.mini-door strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  color: var(--brand);
+}
+
+.mini-door .desc {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}

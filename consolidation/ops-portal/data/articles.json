@@ -64,13 +64,6 @@
       "kind": "Clipping",
       "href": "library/coraopolis-record-opinion.html",
       "blurb": "Two 2016–17 editorials from the revived Coraopolis Record: Dravo, Standard Steel and PC&C remaking the island, and the Route 23 trolley through Neville Island."
-    },
-    {
-      "id": "sts-ops",
-      "title": "Setting up car movement on the HART Railroad",
-      "kind": "Operations",
-      "href": "library/sts-operations-article.html",
-      "blurb": "How HART builds repeatable session traffic with STS: car cards and waybills, a readable ops desk, and the track scale."
     }
   ]
 }

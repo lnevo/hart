@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How the signals work — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>How the signals work</h1>
+      <p class="section-note">What happens between the dispatcher's mouse click and a light changing in the aisle.</p>
+    </div>
+
+    <article class="explainer prose">
+      <h2>The computer in the middle</h2>
+      <p>
+        HART is run by JMRI, free and open-source software for model railroads. It keeps a list of every
+        switch, every section of track that has an occupancy detector, and every signal. The detectors and
+        switch motors report in over a radio network under the layout
+        (<a href="bridge.html">LCOS and the Arduino bridge</a>), so JMRI always knows which track is
+        occupied and which way each switch is lined.
+      </p>
+
+      <h2>Two CTC machines</h2>
+      <p>
+        The dispatcher controls the railroad from a CTC panel on screen. HART has two of them. One is a
+        Union Switch &amp; Signal style lever machine, drawn in JMRI with switch levers, signal levers and
+        code buttons. The other is a Digicon-style panel from CATS, open-source CTC software that runs on
+        top of JMRI and is worked with a mouse. Only one is in charge at a time.
+      </p>
+      <figure>
+        <img src="../assets/panels/digicon-ctc.png" alt="The Digicon CTC panel: a dark track schematic with signals and switches for Neville Island" loading="lazy">
+        <figcaption>The Digicon panel, from Brick and Plane in the west to Princess and the two interchanges in the east. Lined routes show in green.</figcaption>
+      </figure>
+      <figure>
+        <img src="../assets/panels/classic-ctc.png" alt="The USS-style CTC machine with rows of switch and signal levers under a track diagram" loading="lazy">
+        <figcaption>The lever machine: switch levers on the top row, signal levers below, and a code button under each control point.</figcaption>
+      </figure>
+
+      <h2>Lining a route</h2>
+      <p>
+        On the Digicon panel every home signal starts at Stop. When the dispatcher clicks a signal to send
+        a train, the switches in the route throw and CATS releases that signal. JMRI's signal logic then
+        looks at the track ahead and picks what to show: Clear when the way is open, Approach when the
+        next signal is at Stop, and Stop when the block ahead is occupied or a switch is against the train.
+      </p>
+
+      <h2>When nobody is dispatching</h2>
+      <p>
+        Without CATS running, nothing holds the signals at Stop, and JMRI runs them as automatic block
+        signals that follow occupancy on their own. JMRI can also run trains by itself with its
+        Dispatcher system. That works best once every locomotive's real speed is measured, which is what
+        <a href="index.html#locomotives">speed matching</a> is for.
+      </p>
+
+      <h2>Out to the lamps</h2>
+      <p>
+        Each signal head on the layout is a searchlight with a red, yellow and green LED, wired to three
+        outputs on the nearest radio node. JMRI sends the color as a short message, the bridge passes it
+        on by radio, and the node lights the lamp. The signal rules are still being tuned.
+      </p>
+
+      <p class="explainer-more">
+        More: <a href="../guides/index.html">Dispatcher guides</a> ·
+        <a href="bridge.html">LCOS and the Arduino bridge</a> ·
+        <a href="../layout/index.html">Layout Explorer</a>
+      </p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-signals").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

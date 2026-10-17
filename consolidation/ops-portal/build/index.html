@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Build — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/archive.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>The Build</h1>
+      <p class="section-note">
+        HART fills one room. The track plan went through several versions in June 2025, trying single-
+        and double-track mains around the walls with a helix down to staging, and settled in July 2025
+        with the coke works on the peninsula. Crews already run
+        sessions on the railroad while construction goes on around them.
+      </p>
+    </div>
+
+    <section class="hub-group" id="helix" aria-labelledby="helix-title">
+      <h2 id="helix-title">The helix</h2>
+      <p class="section-note">
+        A helix is a spiral of track that lets trains change levels in a small space. HART's carries two
+        tracks down to staging in about three and a half turns, with four inches between loops. The
+        roadbed is cut from plywood and joined with half-laps, using router templates made on a 3D printer.
+      </p>
+      <div class="card-grid">
+        <a class="card" href="../helix/index.html">
+          <p class="card-kind">Under construction</p>
+          <h3>Neville Island helix</h3>
+          <p>The construction plan, the half-lap screw template, and every printed fixture with its files.</p>
+        </a>
+        <a class="card" href="../helix/build-status.html">
+          <p class="card-kind">Build log</p>
+          <h3>Helix build status</h3>
+          <p>As-built heights, what changed from the plan, and what's still open.</p>
+        </a>
+        <a class="card" href="../helix/files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf">
+          <p class="card-kind">PDF, 13 pp</p>
+          <h3>Construction plan</h3>
+          <p>Frames, braces, bracket heights, roadbed cut sheets, and the build sequence.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" id="photos" aria-labelledby="photos-title">
+      <h2 id="photos-title">Track plans and wiring</h2>
+      <p class="section-note">
+        How the plan changed, and the diagrams used to wire it. For the finished room on a session night,
+        see <a href="../operators/room/index.html">the layout room</a>.
+      </p>
+      <p class="muted" id="gallery-lede" hidden></p>
+      <div class="album-bar" id="album-bar"></div>
+      <div class="gallery-masonry" id="gallery-grid"></div>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/gallery.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("build");
+        await HARTGallery.mount({ dataUrl: "data/gallery.json", albums: ["plans", "build"], heading: false });
+      } catch (err) {
+        console.error(err);
+        var lede = document.getElementById("gallery-lede");
+        lede.hidden = false;
+        lede.textContent = "Photos failed to load. Serve the site over HTTP, not file://.";
+      }
+    });
+  </script>
+</body>
+</html>
