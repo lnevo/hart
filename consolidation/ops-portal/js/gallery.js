@@ -187,6 +187,7 @@
         albumBar.querySelectorAll("button").forEach(function (btn) {
           btn.addEventListener("click", function () {
             currentAlbum = btn.getAttribute("data-album");
+            stageIndex = 0;
             renderAlbums();
             renderGrid();
           });
@@ -256,19 +257,138 @@
           .join("");
       }
 
+      // opts.viewBar: Grid / List / Gallery, as on Rolling stock and Historical, remembered per browser.
+      // Grid is the masonry (or the month timeline); curation controls show only there.
+      var VIEW_KEY = "hart.gallery.view";
+      var VIEWS = [
+        { id: "grid", label: "Grid" },
+        { id: "list", label: "List" },
+        { id: "gallery", label: "Gallery" },
+      ];
+      var viewBar = opts.viewBar ? document.querySelector(opts.viewBar) : null;
+      var view = "grid";
+      var stageIndex = 0;
+      if (viewBar) {
+        try {
+          var savedView = localStorage.getItem(VIEW_KEY);
+          if (VIEWS.some(function (v) { return v.id === savedView; })) view = savedView;
+        } catch (e) {}
+      }
+
+      function renderViews() {
+        if (!viewBar) return;
+        viewBar.innerHTML = VIEWS.map(function (v) {
+          return '<button type="button" data-view="' + v.id + '" aria-pressed="' + (v.id === view) + '">' + v.label + "</button>";
+        }).join("");
+        viewBar.querySelectorAll("button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            view = b.getAttribute("data-view");
+            try {
+              localStorage.setItem(VIEW_KEY, view);
+            } catch (e) {}
+            renderViews();
+            renderGrid();
+          });
+        });
+      }
+
+      function thumbImg(it, alt) {
+        return (
+          '<img src="' + esc(resolveSrc(it.thumb || it.src)) + '" alt="' + esc(alt) + '"' +
+          (it.width && it.height ? ' width="' + Number(it.width) + '" height="' + Number(it.height) + '"' : "") +
+          ' loading="lazy" decoding="async">'
+        );
+      }
+
+      function albumLabel(id) {
+        var a = (data.albums || []).find(function (x) { return x.id === id; });
+        return a ? a.label : "";
+      }
+
+      function listHtml() {
+        return (
+          '<div class="fleet-list-wrap"><table class="fleet-list">' +
+          '<thead><tr><th></th><th>Photo</th><th>Album</th><th>Date</th><th class="fl-note">Caption</th></tr></thead><tbody>' +
+          visible
+            .map(function (it, i) {
+              return (
+                '<tr data-idx="' + i + '" tabindex="0">' +
+                '<td class="fl-thumb">' + thumbImg(it, "") + "</td>" +
+                "<td>" + esc(it.title) + "</td>" +
+                "<td>" + esc(albumLabel(it.album)) + "</td>" +
+                '<td class="fl-num">' + esc(longDate(it.date) || "—") + "</td>" +
+                '<td class="fl-note">' + esc(it.caption) + "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></div>"
+        );
+      }
+
+      function stageHtml() {
+        var it = visible[stageIndex];
+        return (
+          '<div class="fleet-stage">' +
+          '<button type="button" class="fleet-stage-nav prev" aria-label="Previous">‹</button>' +
+          '<figure><img src="' + esc(resolveSrc(it.src)) + '" alt="' + esc(it.title) + '">' +
+          "<figcaption><strong>" + esc(it.title) + "</strong> " +
+          '<span class="muted">' + (stageIndex + 1) + " of " + visible.length + "</span><br>" +
+          esc(it.caption) + "</figcaption></figure>" +
+          '<button type="button" class="fleet-stage-nav next" aria-label="Next">›</button>' +
+          "</div>" +
+          '<div class="fleet-strip" role="list">' +
+          visible
+            .map(function (x, i) {
+              return (
+                '<button type="button" role="listitem" data-stage="' + i + '"' + (i === stageIndex ? ' aria-current="true"' : "") +
+                ' title="' + esc(x.title) + '">' + thumbImg(x, x.title) + "</button>"
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
+      function stageStep(d) {
+        stageIndex = (stageIndex + d + visible.length) % visible.length;
+        renderGrid();
+      }
+
       function renderGrid() {
         visible = filtered();
         if (!grid) return;
-        if (opts.monthAlbums) {
-          grid.classList.toggle("build-timeline", byMonth());
-          grid.classList.toggle("gallery-masonry", !byMonth());
+        if (stageIndex >= visible.length) stageIndex = 0;
+        var v = viewBar && visible.length ? view : "grid";
+        if (opts.monthAlbums || viewBar) {
+          grid.classList.toggle("build-timeline", v === "grid" && byMonth());
+          grid.classList.toggle("gallery-masonry", v === "grid" && !byMonth());
         }
-        grid.innerHTML = byMonth() ? monthGroups() : visible.map(cellHtml).join("");
-        if (canEdit) bindCurate();
-        grid.querySelectorAll(".g-item").forEach(function (el) {
+        if (v === "list") grid.innerHTML = listHtml();
+        else if (v === "gallery") grid.innerHTML = stageHtml();
+        else grid.innerHTML = byMonth() ? monthGroups() : visible.map(cellHtml).join("");
+        if (v === "gallery") {
+          grid.querySelector(".fleet-stage-nav.prev").addEventListener("click", function () { stageStep(-1); });
+          grid.querySelector(".fleet-stage-nav.next").addEventListener("click", function () { stageStep(1); });
+          grid.querySelectorAll("[data-stage]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              stageIndex = Number(b.getAttribute("data-stage"));
+              renderGrid();
+            });
+          });
+          var cur = grid.querySelector('.fleet-strip [aria-current="true"]');
+          if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: "nearest", inline: "center" });
+          return;
+        }
+        if (canEdit && v === "grid") bindCurate();
+        grid.querySelectorAll(v === "list" ? "tr[data-idx]" : ".g-item").forEach(function (el) {
           el.addEventListener("click", function () {
             openLightbox(Number(el.getAttribute("data-idx")));
           });
+          if (v === "list") {
+            el.addEventListener("keydown", function (e) {
+              if (e.key === "Enter") openLightbox(Number(el.getAttribute("data-idx")));
+            });
+          }
         });
       }
 
@@ -346,6 +466,7 @@
         }
       });
 
+      renderViews();
       renderAlbums();
       renderGrid();
       return data;

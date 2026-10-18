@@ -396,6 +396,20 @@
   margin-top: 0;
 }
 
+/* Layout: album chips on the left, Grid / List / Gallery on the right, as on the other tabs. */
+.layout-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0 1.25rem;
+}
+
+.layout-controls #layout-albums {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 /* Rolling stock filters fold behind a Filter button on a phone. */
 .fleet-filter-toggle {
   display: none;

@@ -57,7 +57,10 @@
       <p class="archive-editbar" id="gallery-editbar" hidden>
         Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
       </p>
-      <div class="album-bar" id="layout-albums" aria-label="Filter by album"></div>
+      <div class="layout-controls">
+        <div class="album-bar" id="layout-albums" aria-label="Filter by album"></div>
+        <div class="album-bar fleet-viewbar" id="layout-view-bar" aria-label="View"></div>
+      </div>
       <div class="gallery-masonry" id="layout-grid"><p class="muted">Loading…</p></div>
       <div class="archive-toast" id="gallery-toast" role="status" aria-live="polite"></div>
     </section>
@@ -110,6 +113,7 @@
             heading: false,
             albumBar: "#layout-albums",
             grid: "#layout-grid",
+            viewBar: "#layout-view-bar",
             curate: "/api/gallery",
           });
         else mounted[cat] = HARTFleet.mount({ heading: false });
