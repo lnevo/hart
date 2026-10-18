@@ -1,7 +1,46 @@
 {
   "title": "New Operator Primer (HB-01)",
   "pub": "HB-01 · Revision B · Effective 15 October 2026",
-  "lede": "HART Railroad is an HO scale model railroad that fills one room of the owner's house. It is based on a real place: Neville Island, the industrial island in the Ohio River just below Pittsburgh, and the Pittsburgh & Ohio Valley Railway that switched its plants for nearly a century. If this is your first session, this primer gives you the story behind the railroad and a feel for how a session runs. You do not need to memorize it. At the session you will get a simple job sheet for whatever you are assigned—and the Yardmaster and Dispatcher are there to help.",
+  "lede": "If this is your first Neville Island session, this primer is meant to give you the story behind the railroad and a feel for how a session runs. You do not need to memorize it. At the session you will get a simple job sheet for whatever you are assigned—and the Yardmaster and Dispatcher are there to help.",
+  "firstNight": {
+    "kicker": "New here? Start with this",
+    "heading": "Your first night",
+    "paragraphs": [
+      "HART Railroad is an HO scale model railroad that fills one room of the owner's house. It is based on a real place: Neville Island, the industrial island in the Ohio River just below Pittsburgh, and the Pittsburgh & Ohio Valley Railway that switched its plants for nearly a century."
+    ],
+    "bullets": [
+      {
+        "label": "When",
+        "text": "Evening sessions usually open around 6:30 p.m., with trains from about 7:00 to 10:00. Daytime sessions start mid-morning with a short briefing. Your invitation has the exact time, the address, and the food plans."
+      },
+      {
+        "label": "What to bring",
+        "text": "Just yourself. If anything else is needed, the invitation will say so. Regulars are welcome to bring their own throttle, but there are plenty to go around."
+      },
+      {
+        "label": "What you'll do",
+        "text": "Run a train with a TCS or NCE wireless throttle, walking alongside it as it works; throw switches to line your moves, from your throttle or the touch toggles on the control panels; and read the car cards and waybills that say which car goes where."
+      },
+      {
+        "label": "Who helps",
+        "text": "Nobody expects you to know any of this yet. There is a short briefing before trains run, you get a crew sheet for your job, and the Yardmaster and Dispatcher are there to teach you as you go."
+      }
+    ],
+    "links": [
+      {
+        "label": "Glossary",
+        "href": "operators/glossary/index.html"
+      },
+      {
+        "label": "Car cards & waybills",
+        "href": "operators/cards/index.html"
+      },
+      {
+        "label": "The layout room",
+        "href": "operators/room/index.html"
+      }
+    ]
+  },
   "sections": [
     {
       "id": "island",
