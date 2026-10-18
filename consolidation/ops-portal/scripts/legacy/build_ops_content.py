@@ -19,6 +19,7 @@ import json
 import os
 import re
 import shutil
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -506,6 +507,19 @@ def build_industries() -> dict:
             "logo": logo_rel(logo_files.get("INTERCHANGE")),
         }
     )
+
+    # Spot-sheet anchors and destination stripes are hand-kept in data/industries.json; carry them over.
+    current = PORTAL / "data" / "industries.json"
+    if current.is_file():
+        kept = {
+            i.get("name"): {k: i[k] for k in ("spot", "stripes") if k in i}
+            for i in json.loads(current.read_text(encoding="utf-8")).get("industries", [])
+        }
+        for ind in industries:
+            if ind["name"] in kept:
+                ind.update(kept[ind["name"]])
+            else:
+                print(f"warning: no spot/stripes for {ind['name']!r}; add them to data/industries.json", file=sys.stderr)
 
     return {
         "title": "Industries on Neville Island",

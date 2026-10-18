@@ -120,7 +120,7 @@
       html += jumpHtml(jump);
       html += (data.sections || [])
         .map(function (sec) {
-          var html = '<section class="panel' + (sec.real || sec.story ? " first-night" : "") + '" id="' + esc(sec.id) + '">';
+          var html = '<section class="panel" id="' + esc(sec.id) + '">';
           html += "<h2>" + esc(sec.heading) + "</h2>";
           if (sec.intro) html += '<p class="muted">' + esc(sec.intro) + "</p>";
           (sec.paragraphs || []).forEach(function (p) {
@@ -130,15 +130,6 @@
             html += "<ul>" + sec.bullets.map(function (b) {
               return "<li>" + esc(b) + "</li>";
             }).join("") + "</ul>";
-          }
-          if (sec.real || sec.story) {
-            // What's real / what's the layout's story, side by side.
-            html +=
-              '<div class="real-story"><div><h3>Real</h3><ul>' +
-              (sec.real || []).map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") +
-              "</ul></div><div><h3>The layout's story</h3><ul>" +
-              (sec.story || []).map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") +
-              "</ul></div></div>";
           }
           if (sec.industries && sec.industries.length) {
             html +=

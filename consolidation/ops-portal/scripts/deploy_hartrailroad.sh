@@ -15,6 +15,11 @@ else
 fi
 # macOS /usr/bin/rsync is openrsync, which the server's rrsync rejects; prefer Homebrew rsync.
 RSYNC="$(command -v /opt/homebrew/bin/rsync || command -v rsync)"
+if [[ "$DEST" == hart-deploy:* ]] && "$RSYNC" --version 2>&1 | grep -qi openrsync; then
+  echo "Refusing to deploy: $RSYNC is openrsync, which the deploy key's rrsync rejects. Run: brew install rsync" >&2
+  echo "(or HART_WEB_HOST=www.easte.net $0 to deploy with a normal login)" >&2
+  exit 1
+fi
 # Last deploy's counts; gitignored, outside the docroot.
 MANIFEST="$ROOT/../.deploy-manifest.json"
 FORCE=""

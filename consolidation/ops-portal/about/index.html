@@ -34,13 +34,8 @@
       return "<ul>" + (items || []).map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("") + "</ul>";
     }
     function section(s) {
-      var html = '<section class="panel' + (s.box ? " first-night" : "") + '"><h2>' + esc(s.heading) + '</h2><div class="prose">';
+      var html = '<section class="panel"><h2>' + esc(s.heading) + '</h2><div class="prose">';
       html += (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
-      if (s.real || s.story) {
-        // What's real / what's the layout's story, side by side (same box as the Primer's).
-        html += '<div class="real-story"><div><h3>Real</h3>' + list(s.real) + "</div><div><h3>The layout's story</h3>" +
-          list(s.story) + "</div></div>";
-      }
       if (s.bullets && s.bullets.length) {
         html += "<ul>" + s.bullets.map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("") + "</ul>";
       }
