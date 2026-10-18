@@ -2,43 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rolling stock — HART</title>
+  <meta http-equiv="refresh" content="0; url=../photos/index.html#rolling-stock">
+  <title>Moved — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
-  <header class="site-header" data-ops-header></header>
-  <main>
-    <div class="page-head">
-      <h1 id="gallery-title">Rolling stock</h1>
-      <p class="muted" id="gallery-lede"></p>
-    </div>
-    <div class="album-bar" id="album-bar"></div>
-    <div class="fleet-controls">
-      <div class="fleet-filters" role="search">
-        <label>Road <select id="filter-road"></select></label>
-        <label>Car type <select id="filter-type"></select></label>
-        <label>Number <input type="search" id="filter-number" inputmode="search" placeholder="e.g. 4674"></label>
-        <button type="button" class="btn btn-ghost" id="filter-clear" hidden>Clear</button>
-        <span class="muted fleet-count" id="filter-count"></span>
-      </div>
-      <div class="album-bar fleet-viewbar" id="view-bar" aria-label="View"></div>
-    </div>
-    <div class="fleet-view" id="fleet-view"><p class="muted">Loading…</p></div>
+  <main class="page-head" style="padding:2rem">
+    <h1>Rolling stock photos moved</h1>
+    <p>Rolling stock photos are now on the <a href="../photos/index.html#rolling-stock">Photos</a> page, under Rolling stock.</p>
   </main>
-  <footer class="site-footer" data-ops-footer></footer>
-  <script src="../js/nav.js"></script>
-  <script src="../js/fleet.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      try {
-        await HARTOps.mountChrome("fleet");
-        await HARTFleet.mount();
-      } catch (err) {
-        console.error(err);
-        HARTOps.renderError(document.getElementById("fleet-view"), { what: "the rolling stock", err: err });
-      }
-    });
-  </script>
 </body>
 </html>

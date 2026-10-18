@@ -2,56 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Historic photos — HART</title>
+  <meta http-equiv="refresh" content="0; url=../photos/index.html#historical">
+  <title>Moved — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
-  <link rel="stylesheet" href="../css/archive.css">
 </head>
 <body>
-  <header class="site-header" data-ops-header></header>
-  <main>
-    <div class="page-head">
-      <h1 id="archive-title">Historic photos</h1>
-      <p class="muted" id="archive-lede"></p>
-    </div>
-
-    <div class="archive-tabs" role="tablist" aria-label="Archive buckets" id="archive-tabs"></div>
-    <p class="archive-tab-note muted" id="archive-tab-note"></p>
-
-    <div class="archive-filters">
-      <div class="album-bar" id="archive-kinds" aria-label="Filter by kind"></div>
-      <div class="archive-filter-row">
-        <label>Tag
-          <select id="archive-tag"><option value="">All tags</option></select>
-        </label>
-        <label>Search
-          <input type="search" id="archive-search" placeholder="Title, caption, credit">
-        </label>
-        <div class="album-bar fleet-viewbar archive-viewbar" id="archive-view-bar" aria-label="View"></div>
-      </div>
-    </div>
-
-    <p class="archive-editbar" id="archive-editbar" hidden>
-      Editing on: moves and edits save to <code>data/archive.json</code> (local server only).
-    </p>
-
-    <div id="archive-grid"><p class="muted">Loading…</p></div>
-    <p class="muted" id="archive-empty" hidden>Nothing here with these filters.</p>
+  <main class="page-head" style="padding:2rem">
+    <h1>Historic photos moved</h1>
+    <p>Historic photos are now on the <a href="../photos/index.html#historical">Photos</a> page, under Historical.</p>
   </main>
-  <footer class="site-footer" data-ops-footer></footer>
-  <div class="archive-toast" id="archive-toast" role="status" aria-live="polite"></div>
-  <script src="../js/nav.js"></script>
-  <script src="../js/archive.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      try {
-        var site = await HARTOps.mountChrome("archive");
-        await HARTArchive.mount({ site: site });
-      } catch (err) {
-        console.error(err);
-        HARTOps.renderError(document.getElementById("archive-grid"), { what: "the photos", err: err });
-      }
-    });
-  </script>
 </body>
 </html>

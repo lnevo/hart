@@ -80,6 +80,60 @@
       );
     }
 
+    // "Who we switch": one compact placard per customer (logo, destination color, a few commodities),
+    // each linking to its spot sheet, where the company history and spots are. Data: industries.json
+    // for logos, stripes, and commodities; crew.json for the colors. sec.notes replaces the commodity
+    // line for one spot (Interchange carries everything).
+    // The operator sheet prints a deeper yellow; pure #FFFF00 washes out as a thin rule.
+    var PRINT_HEX = { yellow: "#FFD400" };
+
+    function logoSrc(logo) {
+      if (!logo) return "";
+      if (logo.indexOf("../external/") === 0) return logo.replace(/^\.\.\//, HARTOps.base() === "../" ? "../../" : "../");
+      return HARTOps.base() + logo;
+    }
+
+    function placardsHtml(sec, data) {
+      var colors = {};
+      (data.crew.colors || []).forEach(function (c) {
+        colors[c.id] = c;
+      });
+      var notes = sec.notes || {};
+      return (
+        '<ul class="placard-grid">' +
+        (data.industries.industries || [])
+          .map(function (ind) {
+            var cs = (ind.stripes || []).filter(function (id) {
+              return colors[id];
+            });
+            var stripe = cs
+              .map(function (id) {
+                return '<span style="background:' + esc(PRINT_HEX[id] || colors[id].hex) + '"></span>';
+              })
+              .join("");
+            var colorText = cs
+              .map(function (id) {
+                var l = colors[id].label;
+                return l.charAt(0) + l.slice(1).toLowerCase();
+              })
+              .join(" & ");
+            var comm = ind.commodities || [];
+            var line = notes[ind.spot] || comm.slice(0, 3).join(", ") + (comm.length > 3 ? " +" + (comm.length - 3) : "");
+            var src = logoSrc(ind.logo);
+            return (
+              '<li><a class="placard" href="' + href("crew/industries/index.html#" + ind.spot) + '">' +
+              '<span class="placard-logo">' + (src ? '<img src="' + esc(src) + '" alt="" loading="lazy">' : "") + "</span>" +
+              '<span class="placard-body"><strong>' + esc(ind.name) + "</strong>" +
+              '<span class="placard-color">' + esc(colorText) + (cs.length > 1 ? " blocks" : " block") + "</span>" +
+              '<span class="placard-goods">' + esc(line) + "</span></span>" +
+              '<span class="placard-stripe" aria-hidden="true">' + stripe + "</span></a></li>"
+            );
+          })
+          .join("") +
+        "</ul>"
+      );
+    }
+
     document.addEventListener("DOMContentLoaded", async function () {
       var site = await HARTOps.mountChrome("briefing");
       var data;
@@ -109,6 +163,17 @@
           '· <a href="' + esc(encodeURI(HARTOps.base() + data.source)) + '">Download docx</a>';
       }
       var root = document.getElementById("briefing-body");
+      var industries = null;
+      if ((data.sections || []).some(function (sec) { return sec.placards; })) {
+        try {
+          industries = {
+            industries: await HARTOps.loadJson("data/industries.json"),
+            crew: await HARTOps.loadJson("data/crew.json"),
+          };
+        } catch (err) {
+          console.error(err);
+        }
+      }
       var jump = [];
       if (data.firstNight) jump.push({ id: "first-night", label: "Your first night" });
       (data.sections || []).forEach(function (sec) {
@@ -131,16 +196,7 @@
               return "<li>" + esc(b) + "</li>";
             }).join("") + "</ul>";
           }
-          if (sec.industries && sec.industries.length) {
-            html +=
-              "<ul>" +
-              sec.industries
-                .map(function (i) {
-                  return "<li>" + esc(i) + "</li>";
-                })
-                .join("") +
-              "</ul>";
-          }
+          if (sec.placards && industries) html += placardsHtml(sec, industries);
           if (sec.jobs) {
             html +=
               '<div class="job-grid">' +
@@ -214,6 +270,9 @@
       }
       html += "</section>";
       root.innerHTML = html;
+      // The sections arrive after the browser's own jump to the hash (industries/ redirects to #industries).
+      var target = location.hash && document.getElementById(location.hash.slice(1));
+      if (target) target.scrollIntoView();
     });
   </script>
 </body>

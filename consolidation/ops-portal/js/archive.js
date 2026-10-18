@@ -67,7 +67,9 @@
       document.getElementById("archive-lede").textContent = data.lede || "";
       document.getElementById("archive-editbar").hidden = !canEdit;
 
-      var hash = (location.hash || "").replace("#", "");
+      // On the Photos page the hash names the photo tab, so the curation buckets stay out of it.
+      var ownHash = opts.hash !== false;
+      var hash = ownHash ? (location.hash || "").replace("#", "") : "";
       // Curated / To review / Discard tabs are an engineering-desk tool: only the local
       // review server shows them. Everyone else sees the curated set.
       tabsEl.hidden = noteEl.hidden = !canEdit;
@@ -163,9 +165,11 @@
             state.kind = "all";
             stageIndex = 0;
             state.tag = "";
-            try {
-              history.replaceState(null, "", "#" + state.bucket);
-            } catch (e) {}
+            if (ownHash) {
+              try {
+                history.replaceState(null, "", "#" + state.bucket);
+              } catch (e) {}
+            }
             renderAll();
           });
         });

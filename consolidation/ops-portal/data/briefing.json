@@ -28,16 +28,16 @@
     ],
     "links": [
       {
-        "label": "Glossary",
-        "href": "operators/glossary/index.html"
-      },
-      {
         "label": "Car cards & waybills",
         "href": "operators/cards/index.html"
       },
       {
-        "label": "The layout room",
-        "href": "operators/room/index.html"
+        "label": "Layout photos",
+        "href": "photos/index.html#layout/session-night"
+      },
+      {
+        "label": "Glossary",
+        "href": "operators/glossary/index.html"
       }
     ]
   },
@@ -58,15 +58,20 @@
         "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley Railway switched the island's furnaces, coke ovens, and interchange. On the layout, we imagine what came after: HART Railroad's Pittsburgh & Chartiers Valley (P&CV) Division takes over the island work. In our story it handles the interchange between CSX and the Pittsburgh & Ohio Central (POHC), and it switches the industries on the island.",
         "Cars arrive from Demmler / McKeesport on one side and from Scully / McKees Rocks on the other. South Yard is where those moves meet—and where most of the sorting gets done.",
         "On the real railroad, CSX's local freight D749 works the island toward Demmler, and the POHC comes over from McKees Rocks—often waiting for D749 to clear the trestle over the Ohio. There is scrap, steel, chemicals, and fuel for the airport. Our session compresses that into a few overlapping jobs that all share South Yard."
-      ],
-      "industries": [
-        "Aristech Plastics",
-        "A. Stucki Company",
-        "Calgon Carbon",
-        "Ferrellgas",
-        "Kosmos Cement",
-        "Shenango Coke Works"
       ]
+    },
+    {
+      "id": "industries",
+      "heading": "Who We Switch",
+      "intro": "Six customers on the island, plus the two interchanges. Every car you move is headed for one of them. Tap a company for its spot sheet: its history, and which car goes on which spot.",
+      "placards": true,
+      "notes": {
+        "scully": "Cars to and from CSX and POHC"
+      },
+      "link": {
+        "label": "Shenango, Kosmos, Calgon, and Aristech all came out of one plant: see the Industry chart",
+        "href": "plants/index.html"
+      }
     },
     {
       "id": "jobs",
@@ -221,7 +226,7 @@
   "source": "../external/hart-ops/docs/published/Neville_Island_New_Operator_Primer.docx",
   "arrive": {
     "heading": "What you'll see when you arrive",
-    "more": "operators/room/index.html",
+    "more": "photos/index.html#layout/session-night",
     "photos": [
       {
         "match": "IMG_8944",

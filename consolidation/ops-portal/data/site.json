@@ -31,7 +31,7 @@
         "articles",
         "plants",
         "railroads",
-        "archive"
+        "photos"
       ]
     },
     {
@@ -42,10 +42,7 @@
         "operators",
         "briefing",
         "glossary",
-        "room",
         "cards",
-        "fleet",
-        "industries",
         "crew",
         "crew-sheet",
         "crew-maps",
@@ -58,8 +55,7 @@
         "guides",
         "guide",
         "layout",
-        "tools",
-        "photos"
+        "tools"
       ]
     },
     {

@@ -1,6 +1,7 @@
 /* Historical archive page (archive/index.html). Builds on ops.css tokens, gallery and lightbox. */
 
-.archive-tabs {
+.archive-tabs,
+.photo-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
@@ -8,7 +9,8 @@
   margin-bottom: 0.4rem;
 }
 
-.archive-tab {
+.archive-tab,
+.photo-tabs [role="tab"] {
   font: inherit;
   font-family: var(--font-display);
   font-size: 1.15rem;
@@ -22,7 +24,8 @@
   cursor: pointer;
 }
 
-.archive-tab[aria-selected="true"] {
+.archive-tab[aria-selected="true"],
+.photo-tabs [role="tab"][aria-selected="true"] {
   background: var(--brand);
   border-color: var(--brand);
   color: #f3f6f8;
@@ -382,4 +385,45 @@
 
 .archive-list td:nth-child(3) {
   white-space: nowrap;
+}
+
+/* —— Photos page (photos/index.html): Historical | Layout | Rolling stock —— */
+.photo-tabs {
+  margin-bottom: 1rem;
+}
+
+.photo-cat > .muted:first-child {
+  margin-top: 0;
+}
+
+/* Rolling stock filters fold behind a Filter button on a phone. */
+.fleet-filter-toggle {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .photo-tabs [role="tab"] {
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  /* Sub-chips scroll sideways instead of wrapping into a tall block. */
+  .photo-cat .album-bar:not(.fleet-viewbar) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+  }
+
+  .photo-cat .album-bar:not(.fleet-viewbar) button {
+    flex: none;
+  }
+
+  .photo-cat .fleet-filter-toggle {
+    display: inline-block;
+  }
+
+  .photo-cat .fleet-controls:not(.is-open) .fleet-filters {
+    display: none;
+  }
 }

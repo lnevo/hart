@@ -163,7 +163,7 @@
   },
   "spotsheet": {
     "title": "Industry Spot Sheets",
-    "summary": "Every customer on the island: what it ships and receives, and which car goes on which spot. Interchange yards and the South Yard and dispatcher notes follow.",
+    "summary": "Every customer on the island: its history, what it ships and receives, and which car goes on which spot. Interchange yards and the South Yard and dispatcher notes follow.",
     "source": "../external/hart-ops/docs/published/HART_Operator_Sheet.docx",
     "industries": [
       {

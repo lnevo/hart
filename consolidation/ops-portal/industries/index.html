@@ -2,99 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Industries — HART</title>
+  <meta http-equiv="refresh" content="0; url=../briefing/index.html#industries">
+  <title>Moved — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
-  <header class="site-header" data-ops-header></header>
-  <main>
-    <div class="page-head">
-      <h1 id="ind-title">Industries</h1>
-      <p class="muted" id="ind-lede"></p>
-      <p class="small">Shenango, Kosmos, Calgon, and Aristech all came out of one plant. The <a href="../plants/index.html">Industry</a> chart traces each one.</p>
-      <p class="small">Working a session? The <a href="../crew/industries/index.html">industry spot sheets</a> show which car goes on which spot.</p>
-    </div>
-    <div class="industry-grid" id="ind-grid"><p class="muted">Loading…</p></div>
+  <main class="page-head" style="padding:2rem">
+    <h1>Industries moved</h1>
+    <p>The island's customers are now in the <a href="../briefing/index.html#industries">New Operator Primer</a>, under Who We Switch. Each company's history is on its <a href="../crew/industries/index.html">spot sheet</a>.</p>
   </main>
-  <footer class="site-footer" data-ops-footer></footer>
-  <script src="../js/nav.js"></script>
-  <script>
-    var esc = HARTOps.esc;
-    // Each industry's "spot" is its anchor on the crew spot-sheet page (crew/industries/), and
-    // "stripes" its destination colors (data/crew.json) for the stripe under the logo, as on the
-    // printed operator sheet.
-    // The operator sheet prints a deeper yellow; pure #FFFF00 washes out as a thin rule.
-    var PRINT_HEX = { yellow: "#FFD400" };
-    document.addEventListener("DOMContentLoaded", async function () {
-      await HARTOps.mountChrome("industries");
-      var data, crew;
-      try {
-        data = await HARTOps.loadJson("data/industries.json");
-        crew = await HARTOps.loadJson("data/crew.json");
-      } catch (err) {
-        console.error(err);
-        HARTOps.renderError(document.getElementById("ind-grid"), {
-          what: "the industries",
-          err: err,
-          links: [{ href: "crew/industries/index.html", label: "Industry spot sheets" }],
-        });
-        return;
-      }
-      var colors = {};
-      (crew.colors || []).forEach(function (c) {
-        colors[c.id] = c;
-      });
-      document.getElementById("ind-title").textContent = data.title;
-      document.getElementById("ind-lede").textContent = data.lede || "";
-      document.getElementById("ind-grid").innerHTML = (data.industries || [])
-        .map(function (ind) {
-          var logoSrc = ind.logo
-            ? ind.logo.indexOf("../external/") === 0
-              ? ind.logo.replace(/^\.\.\//, HARTOps.base() === "../" ? "../../" : "../")
-              : HARTOps.base() + ind.logo
-            : "";
-          var logo = logoSrc
-            ? '<div class="logo-band"><img class="logo" src="' +
-              esc(logoSrc) +
-              '" alt="' +
-              esc(ind.name) +
-              ' logo"></div>'
-            : '<div class="logo-band"><span class="meta">No logo on file</span></div>';
-          var stripes = (ind.stripes || [])
-            .filter(function (id) {
-              return colors[id];
-            })
-            .map(function (id) {
-              var c = colors[id];
-              return '<span style="background:' + esc(PRINT_HEX[id] || c.hex) + '" title="' + esc(c.label + " · " + c.dest) + '"></span>';
-            })
-            .join("");
-          if (stripes) logo += '<div class="color-stripes" role="img" aria-label="Destination color: ' +
-            esc((ind.stripes || []).map(function (id) { return colors[id] ? colors[id].label : ""; }).join(" and ")) + '">' + stripes + "</div>";
-          var tags = (ind.commodities || [])
-            .map(function (c) {
-              return "<li>" + esc(c) + "</li>";
-            })
-            .join("");
-          return (
-            '<article class="industry-card">' +
-            logo +
-            '<div class="industry-body"><h3>' +
-            esc(ind.name) +
-            "</h3><p>" +
-            esc(ind.blurb) +
-            '</p>' +
-            (tags ? '<ul class="tag-list">' + tags + "</ul>" : "") +
-            (ind.spot
-              ? '<p class="meta"><a href="../crew/industries/index.html#' + esc(ind.spot) + '">' +
-                (ind.name === "Interchange" ? "Interchange spot sheets" : "Spot sheet") + " ›</a></p>"
-              : "") +
-            "</div></article>"
-          );
-        })
-        .join("");
-    });
-  </script>
 </body>
 </html>

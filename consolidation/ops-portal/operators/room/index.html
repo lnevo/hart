@@ -2,42 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Session night: the layout room — HART</title>
+  <meta http-equiv="refresh" content="0; url=../../photos/index.html#layout/session-night">
+  <title>Moved — HART</title>
   <link rel="stylesheet" href="../../css/ops.css">
-  <link rel="stylesheet" href="../../css/archive.css">
 </head>
 <body>
-  <header class="site-header" data-ops-header></header>
-  <main>
-    <div class="page-head">
-      <h1 id="gallery-title">Session night: the layout room</h1>
-      <p class="muted" id="gallery-lede"></p>
-    </div>
-    <p class="archive-editbar" id="gallery-editbar" hidden>
-      Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
-    </p>
-    <div class="album-bar" id="album-bar"></div>
-    <div class="gallery-masonry" id="gallery-grid"><p class="muted">Loading…</p></div>
+  <main class="page-head" style="padding:2rem">
+    <h1>Layout room photos moved</h1>
+    <p>Layout room photos are now on the <a href="../../photos/index.html#layout/session-night">Photos</a> page, under Layout.</p>
   </main>
-  <div class="archive-toast" id="gallery-toast" role="status" aria-live="polite"></div>
-  <footer class="site-footer" data-ops-footer></footer>
-  <script src="../../js/nav.js"></script>
-  <script src="../../js/gallery.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      try {
-        await HARTOps.mountChrome("room");
-        await HARTGallery.mount({ dataUrl: "data/gallery.json", album: "layout", albums: ["layout", "panels"], curate: "/api/gallery" });
-      } catch (err) {
-        console.error(err);
-        HARTOps.renderError(document.getElementById("gallery-grid"), {
-          what: "the photos",
-          err: err,
-          links: [{ href: "briefing/index.html", label: "New Operator Primer" }],
-        });
-      }
-    });
-  </script>
 </body>
 </html>

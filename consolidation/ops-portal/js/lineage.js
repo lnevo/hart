@@ -55,7 +55,7 @@
 
   function lane(l, i, merge) {
     var hart = l.hart
-      ? '<a href="' + esc(HARTOps.base() + (l.hartHref || "industries/index.html")) + '">On HART: ' + esc(l.hart) + "</a>"
+      ? '<a href="' + esc(HARTOps.base() + (l.hartHref || "briefing/index.html#industries")) + '">On HART: ' + esc(l.hart) + "</a>"
       : l.link
         ? '<a href="' + esc(HARTOps.base() + l.link.href) + '">' + esc(l.link.label) + "</a>"
         : "";

@@ -45,7 +45,7 @@ Server notes (ssh `lnevo@www.easte.net` for admin work):
 
 ## Open it locally (required)
 
-JSON pages (Briefing, About, Historic photos, Layout, Industries) need **HTTP**, not `file://`.
+JSON pages (Briefing, About, Photos, Layout, spot sheets) need **HTTP**, not `file://`.
 
 ```bash
 # from repo — includes review log API (POST /api/f-root-review/log); edits must come from a local page (JSON body, local Origin)
@@ -70,8 +70,8 @@ python3 consolidation/ops-portal/scripts/curate_f_root_review.py --gpt   # OPENA
 
 The header has six links (`data/site.json` → `nav`): **Home · The Prototype · Operations · Behind the Scenes · The Build · About**. Each nav entry lists the page ids (the argument to `HARTOps.mountChrome(id)`) that belong to it in `pages`; `js/nav.js` underlines the parent section and adds a small section link above the child page's title. Add a new page's id to the right section's `pages`.
 
-- **The Prototype** (`history/index.html`): Articles (+ `library/*`), Industries, Historic photos (`archive/`), Rolling stock.
-- **Operations** (`operators/index.html`), newcomers first: **Your first session** (Primer `briefing/`, Glossary `operators/glossary/`, the layout room `operators/room/`, car cards & waybills `operators/cards/`, plus a line to Industries and Rolling stock), then **Regular crews**: **Session paperwork** (`crew/`: crew sheets, YM-01, DS-01, station maps, TT-23, colors, EQ-01, industry spot sheets), **Dispatcher's desk** (Guides, Layout Explorer, Live tools) and a pointer to Publications (`docs/`, the print/download shelf).
+- **The Prototype** (`history/index.html`): Articles (+ `library/*`), the Industry and Railroads charts, and **Photos** (`photos/`, page id `photos`).
+- **Operations** (`operators/index.html`), newcomers first: **Your first session** (Primer `briefing/`, layout photos `photos/#layout/session-night`, car cards & waybills `operators/cards/`, Glossary `operators/glossary/` last, plus a line to Photos), then **Regular crews**: **Session paperwork** (`crew/`: crew sheets, YM-01, DS-01, station maps, TT-23, colors, EQ-01, industry spot sheets), **Dispatcher's desk** (Guides, Layout Explorer, Live tools) and a pointer to Publications (`docs/`, the print/download shelf).
 - The "Your first night" box is on the Primer only, from `firstNight` in `data/briefing.json`; the Operations hub folds its opening line into the page intro.
 - Pages that load JSON show "Loading…" and, on failure, `HARTOps.renderError(el, {what, links, err})` (visitor text plus a Reload button; the serve-over-HTTP hint only on localhost). If `site.json` itself fails, `mountChrome` draws a brand-only header instead of a blank page.
 - Escape with `HARTOps.esc` and build paths with `HARTOps.base()` (both from `js/nav.js`); don't add local copies. Every page loads `nav.js` before its other scripts, so scripts can read `HARTOps` when they load.
@@ -82,18 +82,17 @@ The header has six links (`data/site.json` → `nav`): **Home · The Prototype �
 | Page | Content |
 |------|---------|
 | **Home** | Bird’s-eye hero, doors into The Prototype and Operations, and two smaller doors into Behind the Scenes and The Build |
-| **Briefing** | HB-01 New Operator Primer (Revision B), the single canonical page; `docs/html/Neville_Island_New_Operator_Primer.html` redirects here |
+| **Briefing** | HB-01 New Operator Primer (Revision B), the single canonical page; `docs/html/Neville_Island_New_Operator_Primer.html` redirects here. A section with `placards: true` ("Who We Switch", `#industries`) draws one compact placard per entry in `data/industries.json` (logo, destination color as a stripe and in words, up to three commodities; `notes` replaces the commodity line by spot id), each linking to its spot sheet |
 | **Glossary** | `operators/glossary/`: plain-language meanings of railroad words, job codes, publication numbers, and the software names (static HTML) |
 | **Session paperwork** | `crew/`: crew sheets (`crew/d749/`, `nvl/`, `ck1/`), YM-01 (`crew/yardmaster/`), DS-01 (`crew/dispatcher/`), station maps (`crew/maps/<area>/`), TT-23, destination colors, EQ-01, industry spot sheets. All rendered by `js/crew.js` from `data/crew.json`, which is hand-copied from `external/hart-ops/publications/rebuild_*.py` and the published docx (those stay canonical). Each sheet prints as a 5×8 in card; maps print 8×5 landscape |
-| **Layout room** | `operators/room/`: Session night and Panels & screens albums from `data/gallery.json` (Track plan development and Build & wiring show on `build/`) (album id `layout` = Session night, which the archive's "Layout photos" button writes to) |
+| **Photos** | `photos/`: one page, three tabs, each loading its data only when opened. **Historical** = `js/archive.js` + `data/archive.json` (sub-chips = kinds; the local-only curation buckets keep their own state, `hash: false`). **Layout** = `js/gallery.js` + `data/gallery.json` albums `layout` (Session night, the default), `panels`, `plans`, `build` (album id `layout` is what the archive's "Layout photos" button writes to; `progress` stays on `build/` as the month-by-month timeline). **Rolling stock** = `js/fleet.js` + `data/fleet-gallery.json` (filters behind a Filter button on phones). Deep links `#historical/maps`, `#layout/session-night`, `#rolling-stock/freight` (slugs in the page's `CATS`). `archive/`, `fleet/`, `operators/room/`, and `gallery/` redirect to the right tab |
 | **Car cards & waybills** | `operators/cards/`: sample car card and CC/WB waybills (PNG crops in `assets/cards/`, crops of Word PDF exports of `external/hart-ops` card_pipeline output and `docs/print/waybills/HART_Session4_Waybill_Labels_Page.docx`) and a first-session how-to |
-| **Industries** | Customers, commodities, logos, from `data/industries.json`; each industry's `spot` is its anchor on the crew spot sheets and `stripes` its destination color ids (`data/crew.json` `colors`) for the stripe under the logo |
-| **Old Photos URL** | `photos/` redirects to `operators/room/` |
+| **Industries** | `industries/` redirects to the Primer's `#industries`. `data/industries.json` still feeds the placards: each industry's `spot` is its anchor on the crew spot sheets and `stripes` its destination color ids (`data/crew.json` `colors`). Each company's history (from `HART_Operator_Sheet.docx`, in `data/crew.json` `spotsheet.industries[].history`) shows open under its spot sheet header as "About the company", left off the printed card |
 | **Articles** | Pittsburgh & Ohio Valley Railway history, Voices of the P&OV, PC&C chronology, POHC-line industries, Chartiers Valley railroads, the 1951 NYT pig-iron clipping, and two Coraopolis Record opinion pieces (2016–17) |
 | **About** | Operational narrative |
 | **Layout** | Clickable LE schematic |
 | **Guides / Tools** | Dispatcher how-tos and live links |
-| **Historic photos** | Historical photos, ads, clippings, and period maps in three tabs (Curated / To review / Discard) with credits (`archive/`, data in `data/archive.json`). On `serve_portal.sh` the owner can move items between tabs and edit captions; saves go to `data/archive.json`, with a log in `sor/desktop/archive_review_log.jsonl`. Public site is read-only. |
+| **Historic photos** | Historical photos, ads, clippings, and period maps in three tabs (Curated / To review / Discard) with credits (the Historical tab of `photos/`, data in `data/archive.json`). On `serve_portal.sh` the owner can move items between tabs and edit captions; saves go to `data/archive.json`, with a log in `sor/desktop/archive_review_log.jsonl`. Public site is read-only. |
 | **Helix** | Neville Island helix construction plan (with the half-lap screw template), build status, and the STL fixture index (`helix/`, built by `scripts/build_helix_page.py`, which copies from `~/Downloads/stl` and would overwrite `helix/scripts/` with the copies there). The fixture scripts in `helix/scripts/` write to `helix/stl/` by default (`--out DIR` to change); they need numpy, scipy, trimesh, shapely and matplotlib |
 
 Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.

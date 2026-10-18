@@ -678,6 +678,12 @@
           '<section class="panel spot-sheet" id="' + esc(i.id) + '"><div class="spot-head">' + chip(colorById(i.color)) +
           "<h2>" + esc(i.name) + '</h2></div><p class="spot-meta">Track ' + esc(i.track) + " · " + where(i) +
           " · Served by " + esc(i.served) + "</p>" +
+          // The company history from the operator sheet, open under the header; off the printed card.
+          '<details class="spot-history no-print" open><summary>About the company</summary><ul>' +
+          i.history.map(function (h) {
+            return "<li>" + esc(h) + "</li>";
+          }).join("") +
+          "</ul></details>" +
           '<p class="spot-traffic"><strong>Traffic:</strong> ' + esc(i.traffic) + "</p>" +
           '<h3>' + (i.trackHead ? "Tracks" : "Tracks &amp; spots") + '</h3><div class="table-wrap"><table class="data-table"><thead><tr>' +
           head.map(function (h) {
@@ -693,11 +699,7 @@
             .join("") +
           "</tbody></table></div>" +
           (i.spotNote ? '<p class="small muted">' + esc(i.spotNote) + "</p>" : "") +
-          '<details class="spot-history"><summary>History</summary><ul>' +
-          i.history.map(function (h) {
-            return "<li>" + esc(h) + "</li>";
-          }).join("") +
-          "</ul></details></section>"
+          "</section>"
         );
       })
       .join("");
@@ -745,7 +747,7 @@
       '<h2 class="sub-h">Interchange</h2>' + off +
       '<h2 class="sub-h">Yard and desk notes</h2>' + desk +
       '<div class="sheet-actions no-print">' + printButton() + sourceButton(sh.source) +
-      '<a class="btn btn-ghost" href="' + u("industries/index.html") + '">Industries (history)</a>' +
+      '<a class="btn btn-ghost" href="' + u("briefing/index.html#industries") + '">Industries</a>' +
       '<a class="btn btn-ghost" href="' + u("crew/index.html") + '">Session paperwork</a></div>';
     wirePrint(root);
     // Re-apply the hash now that the anchors exist.

@@ -2,14 +2,195 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=../operators/room/index.html">
-  <title>Moved — HART</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photos — HART</title>
+  <meta name="description" content="Historical photographs of Neville Island, the HART layout on a session night, and every car and locomotive on the roster.">
   <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/archive.css">
 </head>
 <body>
-  <main class="page-head" style="padding:2rem">
-    <h1>Layout photos moved</h1>
-    <p>The layout-room photos are now <a href="../operators/room/index.html">Session night: the layout room</a> under Operations.</p>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Photos</h1>
+      <p class="muted">The island's past, the layout today, and the cars that run on it.</p>
+    </div>
+
+    <div class="photo-tabs" role="tablist" aria-label="Photo categories">
+      <button type="button" role="tab" id="tab-historical" aria-controls="cat-historical" data-cat="historical">Historical</button>
+      <button type="button" role="tab" id="tab-layout" aria-controls="cat-layout" data-cat="layout">Layout</button>
+      <button type="button" role="tab" id="tab-rolling-stock" aria-controls="cat-rolling-stock" data-cat="rolling-stock">Rolling stock</button>
+    </div>
+
+    <!-- Historical: js/archive.js, data/archive.json. Sub-chips are the archive kinds. -->
+    <section class="photo-cat" id="cat-historical" role="tabpanel" aria-labelledby="tab-historical" hidden>
+      <p class="muted" id="archive-lede"></p>
+      <div class="archive-tabs" role="tablist" aria-label="Archive buckets" id="archive-tabs"></div>
+      <p class="archive-tab-note muted" id="archive-tab-note"></p>
+      <div class="archive-filters">
+        <div class="album-bar" id="archive-kinds" aria-label="Filter by kind"></div>
+        <div class="archive-filter-row">
+          <label>Tag
+            <select id="archive-tag"><option value="">All tags</option></select>
+          </label>
+          <label>Search
+            <input type="search" id="archive-search" placeholder="Title, caption, credit">
+          </label>
+          <div class="album-bar fleet-viewbar archive-viewbar" id="archive-view-bar" aria-label="View"></div>
+        </div>
+      </div>
+      <p class="archive-editbar" id="archive-editbar" hidden>
+        Editing on: moves and edits save to <code>data/archive.json</code> (local server only).
+      </p>
+      <div id="archive-grid"><p class="muted">Loading…</p></div>
+      <p class="muted" id="archive-empty" hidden>Nothing here with these filters.</p>
+      <div class="archive-toast" id="archive-toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Layout: js/gallery.js, data/gallery.json albums. The month-by-month timeline stays on The Build. -->
+    <section class="photo-cat" id="cat-layout" role="tabpanel" aria-labelledby="tab-layout" hidden>
+      <p class="muted">
+        The room on a session night, from the crew lounge to the dispatcher's desk, the yards, the scale and the
+        paperwork; the control panels; and the track plans and wiring behind them. The room's build, month by month,
+        is on <a href="../build/index.html#progress">The Build</a>.
+      </p>
+      <p class="archive-editbar" id="gallery-editbar" hidden>
+        Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
+      </p>
+      <div class="album-bar" id="layout-albums" aria-label="Filter by album"></div>
+      <div class="gallery-masonry" id="layout-grid"><p class="muted">Loading…</p></div>
+      <div class="archive-toast" id="gallery-toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Rolling stock: js/fleet.js, data/fleet-gallery.json (default element ids). -->
+    <section class="photo-cat" id="cat-rolling-stock" role="tabpanel" aria-labelledby="tab-rolling-stock" hidden>
+      <p class="muted">Every car and locomotive on the HART roster, photographed side-on. Filter by road, car type, or number.</p>
+      <div class="album-bar" id="album-bar" aria-label="Filter by album"></div>
+      <div class="fleet-controls" id="fleet-controls">
+        <button type="button" class="btn btn-ghost fleet-filter-toggle" id="fleet-filter-toggle" aria-expanded="false" aria-controls="fleet-filters">Filter</button>
+        <div class="fleet-filters" id="fleet-filters" role="search">
+          <label>Road <select id="filter-road"></select></label>
+          <label>Car type <select id="filter-type"></select></label>
+          <label>Number <input type="search" id="filter-number" inputmode="search" placeholder="e.g. 4674"></label>
+          <button type="button" class="btn btn-ghost" id="filter-clear" hidden>Clear</button>
+          <span class="muted fleet-count" id="filter-count"></span>
+        </div>
+        <div class="album-bar fleet-viewbar" id="view-bar" aria-label="View"></div>
+      </div>
+      <div class="fleet-view" id="fleet-view"><p class="muted">Loading…</p></div>
+    </section>
   </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/archive.js"></script>
+  <script src="../js/gallery.js"></script>
+  <script src="../js/fleet.js"></script>
+  <script>
+    // Deep links: #historical, #layout/session-night, #rolling-stock/freight. The part after the slash
+    // is a sub-chip; SUBS maps its slug to the chip's data-kind / data-album value.
+    var CATS = {
+      historical: { chips: "#archive-kinds", attr: "data-kind", subs: { photos: "photo", ads: "ad", clippings: "clipping", maps: "map", documents: "document", graphics: "graphic" } },
+      layout: { chips: "#layout-albums", attr: "data-album", subs: { "session-night": "layout", panels: "panels", "track-plans": "plans", wiring: "build" } },
+      "rolling-stock": { chips: "#album-bar", attr: "data-album", subs: { locomotives: "locos", freight: "freight", mow: "mow" } },
+    };
+    var site = null;
+    var mounted = {};
+
+    // Each tab loads its own JSON the first time it opens, so a phone after Session night
+    // doesn't fetch the whole archive.
+    function mountCat(cat) {
+      if (!mounted[cat]) {
+        if (cat === "historical") mounted[cat] = HARTArchive.mount({ site: site, hash: false });
+        else if (cat === "layout")
+          mounted[cat] = HARTGallery.mount({
+            dataUrl: "data/gallery.json",
+            albums: ["layout", "panels", "plans", "build"],
+            album: "layout",
+            heading: false,
+            albumBar: "#layout-albums",
+            grid: "#layout-grid",
+            curate: "/api/gallery",
+          });
+        else mounted[cat] = HARTFleet.mount({ heading: false });
+        mounted[cat].catch(function (err) {
+          console.error(err);
+          var el = { historical: "archive-grid", layout: "layout-grid", "rolling-stock": "fleet-view" }[cat];
+          HARTOps.renderError(document.getElementById(el), { what: "the photos", err: err });
+        });
+      }
+      return mounted[cat];
+    }
+
+    function slugFor(cat, value) {
+      var subs = CATS[cat].subs;
+      for (var k in subs) if (subs[k] === value) return k;
+      return "";
+    }
+
+    function setHash(cat, sub) {
+      try {
+        history.replaceState(null, "", "#" + cat + (sub ? "/" + sub : ""));
+      } catch (e) {}
+    }
+
+    async function show(cat, sub) {
+      document.querySelectorAll(".photo-tabs [role=tab]").forEach(function (t) {
+        t.setAttribute("aria-selected", String(t.getAttribute("data-cat") === cat));
+        t.tabIndex = t.getAttribute("data-cat") === cat ? 0 : -1;
+      });
+      Object.keys(CATS).forEach(function (c) {
+        document.getElementById("cat-" + c).hidden = c !== cat;
+      });
+      await mountCat(cat);
+      var value = sub && CATS[cat].subs[sub];
+      if (value) {
+        var btn = document.querySelector(CATS[cat].chips + " [" + CATS[cat].attr + '="' + value + '"]');
+        if (btn) btn.click();
+      }
+    }
+
+    function fromHash() {
+      var parts = location.hash.slice(1).split("/");
+      return { cat: CATS[parts[0]] ? parts[0] : "historical", sub: parts[1] || "" };
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      site = await HARTOps.mountChrome("photos");
+      var tabs = Array.prototype.slice.call(document.querySelectorAll(".photo-tabs [role=tab]"));
+      tabs.forEach(function (t, i) {
+        t.addEventListener("click", function () {
+          var cat = t.getAttribute("data-cat");
+          setHash(cat, "");
+          show(cat, "");
+        });
+        // Arrow keys move between tabs (WAI-ARIA tabs pattern).
+        t.addEventListener("keydown", function (e) {
+          var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+          if (!d) return;
+          var next = tabs[(i + d + tabs.length) % tabs.length];
+          next.focus();
+          next.click();
+        });
+      });
+      // Sub-chip clicks keep the hash in step, so the address can be shared.
+      Object.keys(CATS).forEach(function (cat) {
+        document.querySelector(CATS[cat].chips).addEventListener("click", function (e) {
+          var btn = e.target.closest("button");
+          if (btn) setHash(cat, slugFor(cat, btn.getAttribute(CATS[cat].attr)));
+        });
+      });
+      var toggle = document.getElementById("fleet-filter-toggle");
+      toggle.addEventListener("click", function () {
+        var open = document.getElementById("fleet-controls").classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", String(open));
+      });
+      window.addEventListener("hashchange", function () {
+        var h = fromHash();
+        show(h.cat, h.sub);
+      });
+      var h = fromHash();
+      show(h.cat, h.sub);
+    });
+  </script>
 </body>
 </html>

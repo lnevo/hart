@@ -37,7 +37,7 @@
         },
         {
           "label": "Industries",
-          "href": "industries/index.html"
+          "href": "briefing/index.html#industries"
         }
       ]
     },
@@ -49,7 +49,7 @@
       "links": [
         {
           "label": "Industries",
-          "href": "industries/index.html"
+          "href": "briefing/index.html#industries"
         },
         {
           "label": "Articles",
@@ -98,12 +98,12 @@
     },
     {
       "label": "Industries",
-      "href": "industries/index.html",
+      "href": "briefing/index.html#industries",
       "blurb": "The island customers HART serves and what each one ships and receives."
     },
     {
       "label": "Historic photos",
-      "href": "archive/index.html",
+      "href": "photos/index.html#historical",
       "blurb": "Historical photographs, ads and clippings of the island and its railroads."
     },
     {
@@ -112,8 +112,8 @@
       "blurb": "What to expect at your first session."
     },
     {
-      "label": "Session night: the layout room",
-      "href": "operators/room/index.html",
+      "label": "Layout photos",
+      "href": "photos/index.html#layout/session-night",
       "blurb": "A walk through the room where the trains run."
     }
   ]

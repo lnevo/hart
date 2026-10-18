@@ -36,11 +36,15 @@
   }
 
   window.HARTFleet = {
-    mount: async function () {
+    // opts.heading === false keeps the page's own title and lede (the Photos page).
+    mount: async function (opts) {
+      opts = opts || {};
       var data = await HARTOps.loadJson("data/fleet-gallery.json");
       var items = data.items || [];
-      document.getElementById("gallery-title").textContent = "Rolling stock";
-      document.getElementById("gallery-lede").textContent = data.lede || "";
+      if (opts.heading !== false) {
+        document.getElementById("gallery-title").textContent = "Rolling stock";
+        document.getElementById("gallery-lede").textContent = data.lede || "";
+      }
 
       var albumBar = document.getElementById("album-bar");
       var viewBar = document.getElementById("view-bar");
