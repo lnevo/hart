@@ -373,12 +373,6 @@
   height: 4.5rem;
 }
 
-@media (max-width: 520px) {
-  .archive-filter-row .archive-viewbar {
-    margin-left: 0;
-  }
-}
-
 .archive-list .archive-row {
   cursor: zoom-in;
 }
@@ -396,18 +390,11 @@
   margin-top: 0;
 }
 
-/* Layout: album chips on the left, Grid / List / Gallery on the right, as on the other tabs. */
-.layout-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0 1.25rem;
-}
-
-.layout-controls #layout-albums {
-  min-width: 0;
-  flex: 1 1 auto;
+/* Layout: album chips on their own row, then Grid / List / Gallery at the right, where the other
+   tabs put it (at the end of their filter row). */
+.layout-controls #layout-view-bar {
+  justify-content: flex-end;
+  margin: 0 0 1rem;
 }
 
 /* Rolling stock filters fold behind a Filter button on a phone. */
