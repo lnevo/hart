@@ -30,7 +30,7 @@
       <p class="archive-editbar" id="progress-editbar" hidden>
         Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
       </p>
-      <div class="build-timeline" id="progress-grid"></div>
+      <div class="build-timeline" id="progress-grid"><p class="muted">Loading…</p></div>
       <div class="archive-toast" id="progress-toast" role="status" aria-live="polite"></div>
     </section>
 
@@ -68,7 +68,6 @@
       <div class="video-grid is-single">
         <div class="video" data-video="K7ahrL7Bb34"><a href="https://www.youtube.com/watch?v=K7ahrL7Bb34">Video: Staging level FPV</a></div>
       </div>
-      <script src="../js/video.js"></script>
       <script>
         document.addEventListener("DOMContentLoaded", function () {
           HARTVideo.mount(document.getElementById("staging")).catch(function (err) {
@@ -91,6 +90,7 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/video.js"></script>
   <script src="../js/gallery.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
@@ -119,9 +119,7 @@
         if (target) target.scrollIntoView();
       } catch (err) {
         console.error(err);
-        var lede = document.getElementById("gallery-lede");
-        lede.hidden = false;
-        lede.textContent = "Photos failed to load. Serve the site over HTTP, not file://.";
+        HARTOps.renderError(document.getElementById("progress-grid"), { what: "the build photos", err: err });
       }
     });
   </script>

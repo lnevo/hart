@@ -29,8 +29,9 @@ tables/.git/
 # Consolidation local path overrides (copy from consolidation.env.example)
 consolidation/env/consolidation.env
 
-# GitHub Pages staging tree (prepare_github_pages.py)
+# Portal build tree (prepare_github_pages.py) and the last deploy's manifest (deploy_hartrailroad.sh)
 consolidation/.pages-dist/
+consolidation/.deploy-manifest.json
 
 # Consolidation STS runtime data mirror (~465MB; refresh via mirror_sts_docker_data.sh)
 consolidation/external/sts-docker-data/backups/

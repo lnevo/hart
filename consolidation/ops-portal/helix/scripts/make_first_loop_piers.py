@@ -26,8 +26,8 @@ from shapely.geometry import box, Polygon
 from shapely import affinity
 from make_height_spacers import IN, revolve, check
 from stl_text import text_polys, centered
+from stl_out import out_dir
 
-OUT = "/Users/lnevo/Downloads/stl/"
 
 P1_TOP_IN, PLY_IN, RISE_PER_POST = 1.03125, 0.75, 0.5
 POSTS = [2, 3, 4, 5, 6, 7]
@@ -144,6 +144,7 @@ def pier(post):
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     print(f"grade at r={R_C:.3f} in: {GRADE * 100:.3f}%  (top drops/rises {GRADE * PIER_L / IN:.4f} in end to end)")
     for p in POSTS:
         m, hc = pier(p)

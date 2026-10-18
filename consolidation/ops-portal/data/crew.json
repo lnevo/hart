@@ -175,8 +175,8 @@
         "served": "NVL",
         "history": [
           "Founded 1986 as Aristech Chemical, spun off from U.S. Steel's USS Chemicals division with headquarters in Pittsburgh.",
-          "Major producer of acrylic sheet, molded plastics, and synthetic resins for bathtubs, spas, architectural panels, and packaging.",
-          "Continuous-cast acrylic sheet production began in 1969; chemical operations draw on the former USS Chemicals heritage dating to the 1960s."
+          "The Neville Island plant made plasticizers for flexible vinyl (PVC): flooring, wall coverings, wire insulation, and auto trim. They were made in batches from phthalic anhydride and 2-ethylhexanol. Aristech's acrylic sheet and polypropylene came from other plants.",
+          "Phthalic and maleic anhydride were made on the island by Pittsburgh Coke & Chemical in the 1950s, before USS Chemicals (1966). HART keeps the Aristech name the plant carried from 1986 through 2000. The pellets and resins it receives on the layout are HART's own traffic, not the prototype mix."
         ],
         "traffic": "Plastic pellets (HC) and process chemicals (TA) in; plastic resins (XM) out. NVL serves the plant.",
         "spots": [
@@ -366,9 +366,9 @@
         "track": "K-1 / K-2",
         "served": "CK1 (NVL may set out deliveries)",
         "history": [
-          "Pittsburgh Coke & Chemical (PC&C) was making coke and pig iron on the eastern end of Neville Island by 1929. The coke ovens and chemical works that later became Shenango date to about 1930.",
+          "Davison Coke & Iron (incorporated 1928) bought the old American Steel & Wire blast furnace on the eastern end of Neville Island in 1929 and built new coke ovens beside it. Reorganized in 1936 as Pittsburgh Coke & Iron, the company took the name Pittsburgh Coke & Chemical (PC&C) about 1942. The coke ovens and chemical works that later became Shenango date to about 1930.",
           "PC&C was more than a coke plant: on the island it also made cement, industrial chemicals, and activated carbon. Those other branches became the Kosmos, Aristech, and Calgon operations still switched today.",
-          "In 1962 Shenango Furnace purchased PC&C. The coke-and-iron division became Shenango Inc. and kept making coke and coke by-products on the same site for decades after the PC&C name disappeared."
+          "In 1962 Shenango Furnace bought PC&C's coke-and-iron works, not the whole company. That division became Shenango Inc. and kept making coke and coke by-products on the same site for decades after the PC&C name disappeared."
         ],
         "traffic": "HM coke on Shipping 1 and Shipping 2 (no numbered spots). CK1 lifts for South Yard scale. Loads to U.S. Steel Edgar Thomson Works (Braddock, PA) via CSX and LTV Steel Cleveland Works (Cleveland, OH) via POHC. NVL may set out deliveries; no Shenango empty pickup on the NVL return.",
         "trackHead": [
@@ -1047,7 +1047,7 @@
         "label": "CR 1993 · GE B23-7",
         "img": "assets/crew/loco-cr-1993-thumb.jpg"
       },
-      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart westbound, and terminate again in West Yard.",
+      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart eastbound toward McKeesport, and terminate again in West Yard.",
       "steps": [
         "Find the train tied down in West Yard with the inbound Demmler block.",
         "Obtain dispatcher clearance and run the inbound to South Yard.",

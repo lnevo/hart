@@ -18,7 +18,7 @@
       Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
     </p>
     <div class="album-bar" id="album-bar"></div>
-    <div class="gallery-masonry" id="gallery-grid"></div>
+    <div class="gallery-masonry" id="gallery-grid"><p class="muted">Loading…</p></div>
   </main>
   <div class="archive-toast" id="gallery-toast" role="status" aria-live="polite"></div>
   <footer class="site-footer" data-ops-footer></footer>
@@ -31,8 +31,11 @@
         await HARTGallery.mount({ dataUrl: "data/gallery.json", album: "layout", albums: ["layout", "panels"], curate: "/api/gallery" });
       } catch (err) {
         console.error(err);
-        document.getElementById("gallery-lede").textContent =
-          "Gallery failed to load. Serve over HTTP (scripts/serve_portal.sh), not file://.";
+        HARTOps.renderError(document.getElementById("gallery-grid"), {
+          what: "the photos",
+          err: err,
+          links: [{ href: "briefing/index.html", label: "New Operator Primer" }],
+        });
       }
     });
   </script>

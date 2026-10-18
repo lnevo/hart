@@ -2,6 +2,45 @@
   "title": "New Operator Primer (HB-01)",
   "pub": "HB-01 · Revision B · Effective 15 October 2026",
   "lede": "If this is your first Neville Island session, this primer is meant to give you the story behind the railroad and a feel for how a session runs. You do not need to memorize it. At the session you will get a simple job sheet for whatever you are assigned—and the Yardmaster and Dispatcher are there to help.",
+  "firstNight": {
+    "kicker": "New here? Start with this",
+    "heading": "Your first night",
+    "paragraphs": [
+      "HART Railroad is an HO scale model railroad that fills one room of the owner's house. It is based on a real place: Neville Island, the industrial island in the Ohio River just below Pittsburgh, and the Pittsburgh & Ohio Valley Railway that switched its plants for nearly a century."
+    ],
+    "bullets": [
+      {
+        "label": "When",
+        "text": "Evening sessions usually open around 6:30 p.m., with trains from about 7:00 to 10:00. Daytime sessions start mid-morning with a short briefing. Your invitation has the exact time, the address, and the food plans."
+      },
+      {
+        "label": "What to bring",
+        "text": "Just yourself. If anything else is needed, the invitation will say so. Regulars are welcome to bring their own throttle, but there are plenty to go around."
+      },
+      {
+        "label": "What you'll do",
+        "text": "Run a train with a TCS or NCE wireless throttle, walking alongside it as it works; throw switches to line your moves, from your throttle or the touch toggles on the control panels; and read the car cards and waybills that say which car goes where."
+      },
+      {
+        "label": "Who helps",
+        "text": "Nobody expects you to know any of this yet. There is a short briefing before trains run, you get a crew sheet for your job, and the Yardmaster and Dispatcher are there to teach you as you go."
+      }
+    ],
+    "links": [
+      {
+        "label": "Glossary",
+        "href": "operators/glossary/index.html"
+      },
+      {
+        "label": "Car cards & waybills",
+        "href": "operators/cards/index.html"
+      },
+      {
+        "label": "The layout room",
+        "href": "operators/room/index.html"
+      }
+    ]
+  },
   "sections": [
     {
       "id": "island",
@@ -16,9 +55,9 @@
       "id": "railroad",
       "heading": "The Railroad Today",
       "paragraphs": [
-        "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley Railway switched the island's furnaces, coke ovens, and interchange. HART Railroad's Pittsburgh & Chartiers Valley Division is its successor: we handle the interchange between CSX and the Pittsburgh & Ohio Central, and we switch the industries on the island.",
+        "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley Railway switched the island's furnaces, coke ovens, and interchange. On the layout, we imagine what came after: HART Railroad's Pittsburgh & Chartiers Valley (P&CV) Division takes over the island work. In our story it handles the interchange between CSX and the Pittsburgh & Ohio Central (POHC), and it switches the industries on the island.",
         "Cars arrive from Demmler / McKeesport on one side and from Scully / McKees Rocks on the other. South Yard is where those moves meet—and where most of the sorting gets done.",
-        "On the real railroad, CSX's D749 works the island toward Demmler, and the POHC comes over from McKees Rocks—often waiting for D749 to clear the trestle over the Ohio. There is scrap, steel, chemicals, and fuel for the airport. Our session compresses that into a few overlapping jobs that all share South Yard."
+        "On the real railroad, CSX's local freight D749 works the island toward Demmler, and the POHC comes over from McKees Rocks—often waiting for D749 to clear the trestle over the Ohio. There is scrap, steel, chemicals, and fuel for the airport. Our session compresses that into a few overlapping jobs that all share South Yard."
       ],
       "industries": [
         "Aristech Plastics",
@@ -27,6 +66,23 @@
         "Ferrellgas",
         "Kosmos Cement",
         "Shenango Coke Works"
+      ]
+    },
+    {
+      "id": "real",
+      "heading": "What's Real, What's Made Up",
+      "intro": "The island and its history are real. The railroad you'll run is the layout's own story, set on top of it.",
+      "real": [
+        "Neville Island and its industries: Aristech, Stucki, Calgon Carbon, Ferrellgas, Kosmos Cement, and Shenango Coke Works",
+        "The Pittsburgh & Ohio Valley Railway (P&OV), which switched the island from 1899 to 1994",
+        "Pittsburgh Coke & Chemical (PC&C), the east-end plant that Shenango, Kosmos, Calgon, and Aristech came out of",
+        "CSX and the Pittsburgh & Ohio Central (POHC), the railroads that serve the island today"
+      ],
+      "story": [
+        "HART Railroad and its Pittsburgh & Chartiers Valley (P&CV) Division, the layout's imagined successor to the P&OV",
+        "The era: a freelanced 1996–2016 setting, when the short line is PIR and then POHC, the chemical plant still carries the Aristech name, and Shenango is still making coke",
+        "The session itself: a few overlapping jobs that share South Yard, compressed to fit an evening",
+        "Today's Route 23 streetcar across the island"
       ]
     },
     {
@@ -55,19 +111,19 @@
         {
           "code": "Yardmaster",
           "name": "South Yard",
-          "blurb": "Keeps South Yard organized. Builds cuts by color, hands work to each train, and keeps D749, NVL, and CK1 from stepping on each other. YM-01 is the working sequence.",
+          "blurb": "Keeps South Yard organized. Builds cuts by color, hands work to each train, and keeps D749, NVL, and CK1 from stepping on each other. YM-01, the Yardmaster Sequence sheet, is the working order.",
           "href": "crew/yardmaster/index.html"
         },
         {
           "code": "Dispatcher",
           "name": "Neville Island Ops",
-          "blurb": "Gives clearance and keeps freight out of the streetcar's way. When things get busy, Route 23 and the main trains come first. DS-01 has the full lineup.",
+          "blurb": "Gives clearance and keeps freight out of the streetcar's way. When things get busy, Route 23 and the main trains come first. DS-01, the Dispatcher Train List, has the full lineup.",
           "href": "crew/dispatcher/index.html"
         },
         {
           "code": "Route 23",
           "name": "Streetcar",
-          "blurb": "A refurbished PCC car running local passenger service across the island. Freight holds until the streetcar clears.",
+          "blurb": "A refurbished PCC streetcar (a classic mid-century American design) running local passenger service across the island. Freight holds until the streetcar clears.",
           "href": "crew/tt23/index.html"
         }
       ]
@@ -231,6 +287,10 @@
       {
         "label": "Route 23 timetable (TT-23)",
         "href": "crew/tt23/index.html"
+      },
+      {
+        "label": "Glossary of railroad words and codes",
+        "href": "operators/glossary/index.html"
       }
     ],
     "linksIntro": "A few prototype links, if you are curious:"

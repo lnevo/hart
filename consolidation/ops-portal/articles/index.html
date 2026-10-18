@@ -13,18 +13,12 @@
       <h1 id="art-title">Articles &amp; stories</h1>
       <p class="muted" id="art-lede"></p>
     </div>
-    <div class="catalog-grid" id="art-grid"></div>
+    <div class="catalog-grid" id="art-grid"><p class="muted">Loading…</p></div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
+    var esc = HARTOps.esc;
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("articles");
@@ -48,8 +42,11 @@
           .join("");
       } catch (err) {
         console.error(err);
-        document.getElementById("art-lede").textContent =
-          "Could not load articles. Serve over HTTP (scripts/serve_portal.sh).";
+        HARTOps.renderError(document.getElementById("art-grid"), {
+          what: "the articles",
+          err: err,
+          links: [{ href: "history/index.html", label: "The Prototype" }],
+        });
       }
     });
   </script>

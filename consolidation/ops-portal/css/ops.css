@@ -11,7 +11,10 @@
   --rule: #b7c4cf;
   --brand: #0a3d4a;
   --brand-2: #146377;
-  --accent: #c99212;
+  --accent: #c99212; /* rules, borders, buttons only: 2.3:1 on paper, too pale for text */
+  --accent-text: #7a5500; /* gold text on light grounds (4.9:1 on --paper-2) */
+  --accent-on-dark: #f0c055; /* gold text on --brand and the hero (7:1) */
+  color-scheme: light;
   --signal: #b33a3a;
   --ok: #2d6a4f;
   --shadow: 0 10px 30px rgba(18, 26, 34, 0.08);
@@ -30,6 +33,35 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Keyboard focus: one visible ring everywhere (mouse clicks don't show it). */
+:focus-visible {
+  outline: 3px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+/* Skip link (first thing in the header, drawn by js/nav.js): hidden until focused. */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.45rem 0.8rem;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+  color: #fff;
+}
+
+/* <main> takes focus from the skip link; the ring there would outline the whole page. */
+main[tabindex="-1"]:focus {
+  outline: none;
 }
 
 body {
@@ -149,12 +181,7 @@ a:hover {
     display: none;
   }
 
-  .eng-link {
-    margin-left: auto;
-  }
-}
-
-@media (max-width: 400px) {
+  /* Short labels (site.json "short") keep the section links on one row. */
   .nav .nav-full {
     display: none;
   }
@@ -162,6 +189,30 @@ a:hover {
   .nav .nav-short {
     display: inline;
   }
+
+  .eng-link {
+    margin-left: auto;
+  }
+}
+
+/* Narrowest phones: About lives in the footer (js/nav.js) so the row still fits. */
+@media (max-width: 400px) {
+  .nav {
+    gap: 0.25rem 0.9rem;
+  }
+
+  .nav .nav-about {
+    display: none;
+  }
+}
+
+.crumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.35em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .crumb {
@@ -173,7 +224,7 @@ a:hover {
 }
 
 .crumb a {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
 }
 
@@ -221,12 +272,12 @@ main.explorer-page {
   border-top: 1px solid var(--rule);
   padding: 1.25rem;
   text-align: center;
-  color: var(--muted);
+  color: var(--ink-soft); /* --muted is under 4.5:1 on the --paper-2 end of the page gradient */
   font-size: 0.85rem;
 }
 
 .site-footer a {
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 /* —— Home hero —— */
@@ -288,7 +339,7 @@ main.explorer-page {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-size: 0.95rem;
-  color: var(--accent);
+  color: var(--accent-on-dark);
   margin: 0 0 1.1rem;
 }
 
@@ -466,7 +517,7 @@ main:not(.full-bleed) .btn-ghost:hover {
   font-style: normal;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-on-dark);
 }
 
 .quote-strip cite a {
@@ -538,7 +589,7 @@ main:not(.full-bleed) .btn-ghost:hover {
   font-family: var(--font-display);
   font-size: 1.5rem;
   letter-spacing: 0.04em;
-  color: var(--accent);
+  color: var(--accent-text);
   margin: 0;
 }
 
@@ -1480,7 +1531,7 @@ table.roster th {
 }
 
 .invite-card .when {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: 0.04em;
@@ -1570,7 +1621,7 @@ table.roster th {
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   margin: 0;
 }
@@ -1637,7 +1688,7 @@ table.roster th {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .section-door h3 {
@@ -1687,12 +1738,23 @@ table.roster th {
   scroll-margin-top: 6rem; /* homepage links jump here; clear the site header */
 }
 
-.hub-group > h2 {
+.hub-group > h2,
+.hub-group > h3 {
   font-family: var(--font-display);
   font-size: 1.55rem;
   letter-spacing: 0.03em;
   margin: 0 0 0.25rem;
   color: var(--brand);
+}
+
+/* Operations hub: "Your first session" and "Regular crews" are the two top-level groups. */
+.hub-group > h2.section-title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  margin-bottom: 0.35rem;
+}
+
+#regulars > .section-title {
+  margin-top: 2.5rem;
 }
 
 .hub-group > .section-note {
@@ -1705,7 +1767,7 @@ table.roster th {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .reading-list {
@@ -1745,7 +1807,7 @@ table.roster th {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .reading-list p {
@@ -1799,6 +1861,10 @@ table.roster th {
   color: #fff;
 }
 
+.tonight:hover .tonight-go {
+  color: #fff;
+}
+
 .tonight strong {
   display: block;
   font-family: var(--font-display);
@@ -1813,7 +1879,7 @@ table.roster th {
 
 .tonight .tonight-go {
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-on-dark);
   white-space: nowrap;
 }
 
@@ -1992,7 +2058,7 @@ table.roster th {
   font-size: clamp(2.4rem, 7vw, 3.4rem);
   letter-spacing: 0.02em;
   line-height: 0.9;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .sheet-head h1 {
@@ -2131,7 +2197,7 @@ table.roster th {
   font-weight: 700;
   font-size: 1.45rem;
   line-height: 1.1;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .steps input {
@@ -2176,7 +2242,7 @@ table.roster th {
   font-weight: 700;
   font-size: 1.5rem;
   line-height: 1.1;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .seq p {
@@ -2830,7 +2896,7 @@ html.zoomer-open body {
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: 0.04em;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .shelf .pub-no small {
@@ -2892,9 +2958,30 @@ html.zoomer-open body {
 }
 
 /* —— Print —— */
+/* —— Print —— Named pages: crew sheets print as 5×8 in cards, station maps as 8×5 in landscape.
+   Other pages keep the printer's default paper. */
+@page crew-card {
+  size: 5in 8in;
+  margin: 0.3in 0.3in 0.35in;
+}
+
+@page crew-map {
+  size: 8in 5in;
+  margin: 0.15in;
+}
+
 @media print {
+  body.crew-sheet {
+    page: crew-card;
+  }
+
+  body.crew-map {
+    page: crew-map;
+  }
+
   .site-header,
   .site-footer,
+  .skip-link,
   .crumb,
   .no-print,
   .lightbox,
@@ -3233,7 +3320,6 @@ html.zoomer-open body {
 .fleet-list tbody tr:hover,
 .fleet-list tbody tr:focus {
   background: var(--paper);
-  outline: none;
 }
 
 .fleet-list .fl-thumb {
@@ -3449,7 +3535,7 @@ html.zoomer-open body {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .mini-door strong {
@@ -3607,4 +3693,144 @@ html.zoomer-open body {
 
 .cw-colors .cchip {
   min-width: 4.6rem;
+}
+
+/* —— Loading and error states (HARTOps.renderError) —— */
+.load-error {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 6px solid var(--signal);
+  padding: 1rem 1.15rem;
+  margin: 0 0 1rem;
+  max-width: 44rem;
+  box-shadow: var(--shadow);
+}
+
+.load-error p {
+  margin: 0 0 0.6rem;
+}
+
+.load-error p:last-child {
+  margin-bottom: 0;
+}
+
+.load-error-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.03em;
+  color: var(--brand);
+}
+
+.load-error .btn {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* —— First-visitor boxes: "Your first night", "What's real" —— */
+.first-night {
+  border-left: 6px solid var(--accent);
+}
+
+.first-night h2 {
+  margin-bottom: 0.4rem;
+}
+
+/* Kickers on light cards: --accent is too pale for small text, so these use the darker teal. */
+.box-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-2);
+}
+
+.first-night ul {
+  margin: 0.4rem 0 0.8rem;
+  padding-left: 1.2rem;
+}
+
+.first-night li {
+  margin-bottom: 0.35rem;
+}
+
+.first-night .small {
+  margin: 0;
+}
+
+.home-band > .first-night {
+  margin: 0 0 2rem;
+}
+
+.real-story {
+  display: grid;
+  gap: 0.9rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.real-story h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.25rem;
+  color: var(--brand);
+}
+
+.real-story ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.real-story li {
+  margin-bottom: 0.3rem;
+}
+
+/* Primer and glossary sections clear the sticky header when the jump list links to them. */
+.panel[id],
+.glossary-group {
+  scroll-margin-top: 5rem;
+}
+
+/* —— Glossary —— */
+.glossary dt {
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 0.8rem;
+  scroll-margin-top: 5rem;
+}
+
+.glossary dt:first-child {
+  margin-top: 0;
+}
+
+.glossary dd {
+  margin: 0.15rem 0 0;
+  color: var(--ink-soft);
+  max-width: 68ch;
+}
+
+/* —— Reduced motion: no hero drift, smooth scroll, or hover lifts —— */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hero-bleed .hero-media {
+    animation: none;
+  }
+
+  .btn:hover,
+  .card:hover,
+  .hotspot.active,
+  .hotspot:hover {
+    transform: none;
+  }
 }

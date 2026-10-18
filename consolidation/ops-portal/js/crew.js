@@ -4,13 +4,7 @@
   var data = null;
   var site = null;
 
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var esc = HARTOps.esc;
 
   function u(rel) {
     return HARTOps.base() + rel;
@@ -136,10 +130,10 @@
 
   // "Operations › Session paperwork ›" above the title.
   function extendCrumb(extra) {
-    var crumb = document.querySelector("main .page-head .crumb");
+    var crumb = document.querySelector("main .page-head .crumb ol");
     if (!crumb) return;
     (extra || []).forEach(function (e) {
-      crumb.insertAdjacentHTML("beforeend", ' <a href="' + esc(e.href) + '">' + esc(e.label) + "</a>");
+      crumb.insertAdjacentHTML("beforeend", '<li><a href="' + esc(e.href) + '">' + esc(e.label) + "</a></li>");
     });
   }
 
@@ -249,6 +243,7 @@
     );
     document.addEventListener("keydown", function (e) {
       if (el.hidden) return;
+      HARTOps.trapTab(el, e);
       if (e.key === "Escape") close();
       if (e.key === "+" || e.key === "=") apply(scale * 1.5);
       if (e.key === "-") apply(scale / 1.5);
@@ -819,8 +814,11 @@
     } catch (err) {
       console.error(err);
       if (root) {
-        root.innerHTML =
-          '<p class="muted">This sheet could not load. Serve the portal over HTTP (scripts/serve_portal.sh), not file://.</p>';
+        HARTOps.renderError(root, {
+          what: "this sheet",
+          err: err,
+          links: [{ href: "docs/index.html", label: "Publications shelf" }],
+        });
       }
     }
   }

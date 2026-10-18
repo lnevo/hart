@@ -22,7 +22,7 @@ The P&OV switched Neville Island for 94 years, from 1899 to 1994. It began as Am
 | 1950s | George B. Moser is P&OV president and also PC&Y trainmaster at McKees Rocks | [p.101](https://www.tumblr.com/pittsburghohiovalleyrailroad/45774618786) |
 | 1940s | Photo of a P&OV crew | [p.113](https://www.tumblr.com/pittsburghohiovalleyrailroad/45277464492) |
 | Jul 1939 | Hunter Steel sells its Neville plant to Shenango | [p.83](https://www.tumblr.com/pittsburghohiovalleyrailroad/46527784674), [p.107](https://www.tumblr.com/pittsburghohiovalleyrailroad/45353898770) |
-| 1928 | Davison Coke & Iron buys the upstream-end blast furnace from U.S. Steel | [p.116](https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824) |
+| 1928–29 | Davison Coke & Iron is formed (1928) and buys the upstream-end blast furnace from U.S. Steel (1929) | [p.116](https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824) |
 | 1923 | Owned by U.S. Steel: 2.04 mi, general freight, connects with P&LE and PC&Y, and through the PC&Y with the Pennsylvania System; no merchandise freight facilities | [p.120](https://www.tumblr.com/pittsburghohiovalleyrailroad/44862162553), [p.142](https://www.tumblr.com/pittsburghohiovalleyrailroad/44862162553) |
 | 1920 | Pennsylvania PUC decision on P&OV rates | [p.113](https://www.tumblr.com/pittsburghohiovalleyrailroad/45277464492) |
 | Sep 20, 1918 – Jul 1, 1919 | Taken over by Army Ordnance for the planned island munitions plant | [p.136](https://www.tumblr.com/pittsburghohiovalleyrailroad/44867144403) |
@@ -226,7 +226,7 @@ By the late 1970s the P&OV ran green diesel switchers numbered 3 to 6, with SW9s
 ## Still unknown
 
 - When did control of the P&OV pass from U.S. Steel to Shenango?
-- What were the models of #3 and #5, and were there units before #3?
+- What were the models of #3 and #5, and were there units before #3? An archive photo captioned “P&OV SW8, Neville Island PA, 1978” (Joe DeFranco) suggests one unit was an SW8, but the caption gives no number, so it is not known which engine it shows.
 - Where exactly was S1 compared with S9, and how many S and E tracks were there?
 - What does the "C" in the C9 switch stand for?
 - [p.83](https://www.tumblr.com/pittsburghohiovalleyrailroad/46527784674) says Shenango sold the Neville plant to Dravo two years after buying it in 1939. Which plant was that?

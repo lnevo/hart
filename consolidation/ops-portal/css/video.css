@@ -75,12 +75,19 @@
   transform: scale(1.06);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .video-frame:hover .video-play,
+  .video-frame:focus-visible .video-play {
+    transform: none;
+  }
+}
+
 .video-frame:hover img {
   opacity: 0.9;
 }
 
 .video-frame:focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--brand-2); /* same ring as the rest of the site; gold is too pale on paper */
   outline-offset: 2px;
 }
 

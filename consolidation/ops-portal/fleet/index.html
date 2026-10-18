@@ -24,7 +24,7 @@
       </div>
       <div class="album-bar fleet-viewbar" id="view-bar" aria-label="View"></div>
     </div>
-    <div class="fleet-view" id="fleet-view"></div>
+    <div class="fleet-view" id="fleet-view"><p class="muted">Loading…</p></div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
@@ -36,8 +36,7 @@
         await HARTFleet.mount();
       } catch (err) {
         console.error(err);
-        document.getElementById("gallery-lede").textContent =
-          "Gallery failed to load. Serve over HTTP (scripts/serve_portal.sh), not file://.";
+        HARTOps.renderError(document.getElementById("fleet-view"), { what: "the rolling stock", err: err });
       }
     });
   </script>

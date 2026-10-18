@@ -14,13 +14,7 @@
   };
   var CONFIDENCE_LABEL = { verified: "Source verified", likely: "Source likely", none: "Source unknown" };
 
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var esc = HARTOps.esc;
 
   function encodePath(src) {
     return src
@@ -69,7 +63,7 @@
       var grid = document.getElementById("archive-grid");
       var emptyEl = document.getElementById("archive-empty");
       var toast = document.getElementById("archive-toast");
-      document.getElementById("archive-title").textContent = data.title || "Photos";
+      // The page name stays in the HTML <h1> ("Historic photos") so it matches every link to it.
       document.getElementById("archive-lede").textContent = data.lede || "";
       document.getElementById("archive-editbar").hidden = !canEdit;
 
@@ -440,9 +434,13 @@
         });
       }
 
-      // —— Lightbox ——
+      // —— Lightbox —— a modal dialog like the crew map viewer: focus on Close, Tab kept inside,
+      // Esc closes, focus goes back to whatever opened it.
       var lb = document.createElement("div");
       lb.className = "lightbox archive-lightbox";
+      lb.setAttribute("role", "dialog");
+      lb.setAttribute("aria-modal", "true");
+      lb.setAttribute("aria-labelledby", "archive-lb-title");
       lb.innerHTML =
         '<button type="button" class="lightbox-close" aria-label="Close">Close</button>' +
         '<button type="button" class="lightbox-nav prev" aria-label="Previous">‹</button>' +
@@ -453,11 +451,12 @@
       var lbImg = lb.querySelector("img");
       var lbFull = lb.querySelector(".lb-full");
       var lbMeta = lb.querySelector(".meta");
+      var lbReturn = null;
 
       function creditHtml(it) {
         var parts = [];
         if (it.credit) parts.push(esc(it.credit));
-        if (it.source_url) {
+        if (/^https?:\/\//i.test(it.source_url || "")) {
           parts.push('<a href="' + esc(it.source_url) + '" target="_blank" rel="noopener">Source</a>');
         }
         var conf = it.credit_confidence || "none";
@@ -513,7 +512,7 @@
           .map(function (t) { return '<span class="chip">' + esc(tagLabel(t)) + "</span>"; })
           .join("");
         lbMeta.innerHTML =
-          "<h2>" + esc(it.title) + "</h2>" +
+          '<h2 id="archive-lb-title">' + esc(it.title) + "</h2>" +
           (it.date ? '<p class="archive-date">' + esc(it.date) + "</p>" : "") +
           "<p>" + esc(it.caption) + "</p>" +
           creditHtml(it) +
@@ -552,11 +551,16 @@
       function openLightbox(i) {
         lbIndex = i;
         paintLightbox();
+        if (!lb.classList.contains("open")) lbReturn = document.activeElement;
         lb.classList.add("open");
+        lb.querySelector(".lightbox-close").focus();
       }
 
       function closeLightbox() {
         lb.classList.remove("open");
+        // The opener may have been redrawn (a save re-renders the grid); then focus stays put.
+        if (lbReturn && lbReturn.focus && document.contains(lbReturn)) lbReturn.focus();
+        lbReturn = null;
       }
 
       function step(d) {
@@ -586,6 +590,7 @@
           }
           return;
         }
+        HARTOps.trapTab(lb, e);
         if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT") return;
         if (e.key === "Escape") closeLightbox();
         if (e.key === "ArrowLeft") step(-1);

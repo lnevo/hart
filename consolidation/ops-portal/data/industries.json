@@ -4,7 +4,7 @@
   "industries": [
     {
       "name": "Aristech Plastics",
-      "blurb": "Plastic resins and monomers arrive by covered hopper and tank car. Yellow block on the color board — worked by the Neville Island Turn.",
+      "blurb": "On HART, plastic resins and monomers arrive by covered hopper and tank car; the prototype island plant made plasticizers for flexible PVC. Yellow block on the color board — worked by the Neville Island Turn.",
       "commodities": [
         "Ethyl Acrylate",
         "Methyl Methacrylate",
@@ -13,7 +13,11 @@
         "Styrene Monomer"
       ],
       "waybill_count": 17,
-      "logo": "../external/hart-ops/operator_logos/aristech.png"
+      "logo": "../external/hart-ops/operator_logos/aristech.png",
+      "spot": "aristech",
+      "stripes": [
+        "yellow"
+      ]
     },
     {
       "name": "A. Stucki Company",
@@ -27,7 +31,11 @@
         "Steel Plate"
       ],
       "waybill_count": 11,
-      "logo": "../external/hart-ops/operator_logos/stucki.png"
+      "logo": "../external/hart-ops/operator_logos/stucki.png",
+      "spot": "stucki",
+      "stripes": [
+        "green"
+      ]
     },
     {
       "name": "Calgon Carbon",
@@ -40,7 +48,11 @@
         "Phosphoric Acid"
       ],
       "waybill_count": 15,
-      "logo": "../external/hart-ops/operator_logos/calgon.png"
+      "logo": "../external/hart-ops/operator_logos/calgon.png",
+      "spot": "calgon",
+      "stripes": [
+        "purple"
+      ]
     },
     {
       "name": "Ferrellgas",
@@ -49,7 +61,11 @@
         "LPG"
       ],
       "waybill_count": 4,
-      "logo": "../external/hart-ops/operator_logos/ferrellgas.png"
+      "logo": "../external/hart-ops/operator_logos/ferrellgas.png",
+      "spot": "ferrellgas",
+      "stripes": [
+        "red"
+      ]
     },
     {
       "name": "Kosmos Cement",
@@ -59,7 +75,11 @@
         "Cement"
       ],
       "waybill_count": 10,
-      "logo": "../external/hart-ops/operator_logos/kosmos.png"
+      "logo": "../external/hart-ops/operator_logos/kosmos.png",
+      "spot": "kosmos",
+      "stripes": [
+        "pink"
+      ]
     },
     {
       "name": "Shenango Coke Works",
@@ -68,7 +88,11 @@
         "Coke"
       ],
       "waybill_count": 0,
-      "logo": "../external/hart-ops/operator_logos/shenango.png"
+      "logo": "../external/hart-ops/operator_logos/shenango.png",
+      "spot": "shenango",
+      "stripes": [
+        "black"
+      ]
     },
     {
       "name": "Interchange",
@@ -98,7 +122,12 @@
         "Tin Plate"
       ],
       "waybill_count": 30,
-      "logo": "../external/hart-ops/operator_logos/hart.png"
+      "logo": "../external/hart-ops/operator_logos/hart.png",
+      "spot": "scully",
+      "stripes": [
+        "orange",
+        "blue"
+      ]
     }
   ]
 }

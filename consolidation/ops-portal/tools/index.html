@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Live tools — HART Operator Portal</title>
+  <title>Live tools — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
@@ -13,12 +13,15 @@
       <h1>Live tools</h1>
       <p class="muted" id="tools-lede">Local Mac links for now (STS is not on the Pi yet). URLs live in <code>data/site.json</code>.</p>
     </div>
-    <div class="card-grid">
-      <a class="card" id="tool-sts" href="http://localhost:8980/sts/"><h3>STS</h3><p>Shipper Traffic System — Mac host for now.</p></a>
-      <a class="card" id="tool-mimic" href="http://localhost:8765/"><h3>MQTT Mimic</h3><p>LCOS / Digicon field QA board.</p></a>
-      <a class="card" id="tool-jmri" href="http://localhost:12080/"><h3>JMRI web</h3><p>PanelPro / Digicon web home (local for now).</p></a>
-    </div>
-    <div class="panel" id="inside-consol">
+    <section class="hub-group" aria-labelledby="services-title">
+      <h2 id="services-title">Services</h2>
+      <div class="card-grid">
+        <a class="card" id="tool-sts" href="http://localhost:8980/sts/"><h3>STS</h3><p>Shipper Traffic System — Mac host for now.</p></a>
+        <a class="card" id="tool-mimic" href="http://localhost:8765/"><h3>MQTT Mimic</h3><p>LCOS / Digicon field QA board.</p></a>
+        <a class="card" id="tool-jmri" href="http://localhost:12080/"><h3>JMRI web</h3><p>PanelPro / Digicon web home (local for now).</p></a>
+      </div>
+    </section>
+    <div class="panel" id="inside-consol" data-local-only>
       <h2>Inside consolidation</h2>
       <ul>
         <li><a href="../packages/sts/README.md">packages/sts</a></li>

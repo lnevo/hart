@@ -20,28 +20,15 @@
     return document.querySelector(sel);
   }
 
-  function api() {
-    return window.HARTOps || window.HARTOps;
-  }
-
-  function base() {
-    return api() ? api().base() : "../";
-  }
-
-  function escapeHtml(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var base = HARTOps.base;
+  var esc = HARTOps.esc;
 
   function row(k, v) {
     return (
       "<dt>" +
-      escapeHtml(k) +
+      esc(k) +
       "</dt><dd>" +
-      escapeHtml(String(v == null || v === "" ? "—" : v)) +
+      esc(String(v == null || v === "" ? "—" : v)) +
       "</dd>"
     );
   }
@@ -56,7 +43,7 @@
     }
     el.innerHTML =
       "<h2>" +
-      escapeHtml(item.publicName || item.systemName) +
+      esc(item.publicName || item.systemName) +
       "</h2><dl>" +
       row("Kind", item.kind) +
       row("System", item.systemName) +
@@ -186,8 +173,7 @@
     if (img) {
       img.onload = onReady;
       img.onerror = function () {
-        var meta = $("#layout-meta");
-        if (meta) meta.textContent = "Map image failed to load: " + imagePath;
+        failed(new Error("Map image failed to load: " + imagePath));
       };
       img.src = b + imagePath;
       if (img.complete && img.naturalWidth) onReady();
@@ -243,28 +229,35 @@
     await load();
   }
 
+  // Friendly error box under the page title (HARTOps.renderError) in place of "Loading layout map…".
+  function failed(err) {
+    var meta = $("#layout-meta");
+    if (!meta) return;
+    meta.textContent = "";
+    var box = $("#layout-error");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "layout-error";
+      meta.parentNode.appendChild(box);
+    }
+    HARTOps.renderError(box, { what: "the layout map", err: err });
+  }
+
   window.HARTLayoutExplorer = {
     reload: function () {
       return load().catch(function (err) {
         console.error(err);
-        var meta = $("#layout-meta");
-        if (meta) meta.textContent = "Layout failed to load — " + err.message;
+        failed(err);
       });
     },
   };
 
   document.addEventListener("DOMContentLoaded", function () {
-    var ops = api();
-    if (!ops) {
-      console.error("HARTOps nav.js did not load");
-      return;
-    }
-    Promise.resolve(ops.mountChrome("layout"))
+    Promise.resolve(HARTOps.mountChrome("layout"))
       .then(init)
       .catch(function (err) {
         console.error(err);
-        var meta = $("#layout-meta");
-        if (meta) meta.textContent = "Layout failed to load — " + err.message;
+        failed(err);
       });
   });
 })();

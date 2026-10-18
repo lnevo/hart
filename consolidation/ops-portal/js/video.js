@@ -3,13 +3,7 @@
 // The plain link is the no-JavaScript fallback. This script fills in the thumbnail and caption from
 // data/videos.json, and loads the YouTube player only when the visitor presses play.
 (function () {
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var esc = HARTOps.esc;
 
   var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
     "August", "September", "October", "November", "December"];

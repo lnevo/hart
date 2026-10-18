@@ -27,13 +27,7 @@
   };
   var COLOR_NAME = { R: "Red", Y: "Yellow", G: "Green" };
 
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var esc = HARTOps.esc;
 
   function norm(s) {
     return String(s || "").toLowerCase();

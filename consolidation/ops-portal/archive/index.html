@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photos — HART</title>
+  <title>Historic photos — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/archive.css">
 </head>
@@ -11,7 +11,7 @@
   <header class="site-header" data-ops-header></header>
   <main>
     <div class="page-head">
-      <h1 id="archive-title">Photos</h1>
+      <h1 id="archive-title">Historic photos</h1>
       <p class="muted" id="archive-lede"></p>
     </div>
 
@@ -35,7 +35,7 @@
       Editing on: moves and edits save to <code>data/archive.json</code> (local server only).
     </p>
 
-    <div id="archive-grid"></div>
+    <div id="archive-grid"><p class="muted">Loading…</p></div>
     <p class="muted" id="archive-empty" hidden>Nothing here with these filters.</p>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
@@ -49,8 +49,7 @@
         await HARTArchive.mount({ site: site });
       } catch (err) {
         console.error(err);
-        document.getElementById("archive-lede").textContent =
-          "Archive failed to load. Serve over HTTP (scripts/serve_portal.sh), not file://.";
+        HARTOps.renderError(document.getElementById("archive-grid"), { what: "the photos", err: err });
       }
     });
   </script>

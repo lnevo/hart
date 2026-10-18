@@ -6,13 +6,7 @@
 // A card is {name, years, from, to, made, logo | wordmark, note, pcc, maybe [from, to]}.
 // "to": null means still running. "maybe" marks years the articles leave open.
 (function () {
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var esc = HARTOps.esc;
 
   function $(id) {
     return document.getElementById(id);
@@ -296,6 +290,7 @@
         setYear(q >= min && q <= max ? q : null);
       } catch (err) {
         console.error(err);
+        HARTOps.renderError(document.getElementById("panel-lineage"), { what: "this chart", err: err });
       }
     });
   }

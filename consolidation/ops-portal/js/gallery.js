@@ -1,11 +1,5 @@
 (function () {
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var esc = HARTOps.esc;
 
   function resolveSrc(src) {
     if (!src) return "";
@@ -207,11 +201,14 @@
           '<button type="button" class="g-item" data-idx="' +
           i +
           '">' +
+          // Grid shows the build's thumbnail (item.thumb); the lightbox opens the full src.
           '<img src="' +
-          esc(resolveSrc(it.src)) +
+          esc(resolveSrc(it.thumb || it.src)) +
           '" alt="' +
           esc(it.title) +
-          '" loading="lazy">' +
+          '"' +
+          (it.width && it.height ? ' width="' + Number(it.width) + '" height="' + Number(it.height) + '"' : "") +
+          ' loading="lazy" decoding="async">' +
           "<figcaption>" +
           when +
           "<strong>" +
@@ -265,17 +262,23 @@
         });
       }
 
+      // Photo viewer: a modal dialog like the crew map viewer (focus on Close, Tab kept inside,
+      // Esc closes, focus goes back to the photo that opened it).
       var lb = document.createElement("div");
       lb.className = "lightbox";
+      lb.setAttribute("role", "dialog");
+      lb.setAttribute("aria-modal", "true");
+      lb.setAttribute("aria-labelledby", "g-lightbox-title");
       lb.innerHTML =
         '<button type="button" class="lightbox-close" aria-label="Close">Close</button>' +
         '<button type="button" class="lightbox-nav prev" aria-label="Previous">‹</button>' +
         '<button type="button" class="lightbox-nav next" aria-label="Next">›</button>' +
         '<div class="lightbox-card">' +
         '<img alt="">' +
-        '<div class="meta"><h2></h2><p></p><div class="credit"></div></div>' +
+        '<div class="meta"><h2 id="g-lightbox-title"></h2><p></p><div class="credit"></div></div>' +
         "</div>";
       document.body.appendChild(lb);
+      var lbReturn = null;
       var lbImg = lb.querySelector("img");
       var lbH = lb.querySelector("h2");
       var lbP = lb.querySelector("p");
@@ -294,11 +297,15 @@
       function openLightbox(i) {
         lbIndex = i;
         paintLightbox();
+        lbReturn = document.activeElement;
         lb.classList.add("open");
+        lb.querySelector(".lightbox-close").focus();
       }
 
       function closeLightbox() {
         lb.classList.remove("open");
+        if (lbReturn && lbReturn.focus) lbReturn.focus();
+        lbReturn = null;
       }
 
       lb.querySelector(".lightbox-close").addEventListener("click", closeLightbox);
@@ -317,6 +324,7 @@
       });
       document.addEventListener("keydown", function (e) {
         if (!lb.classList.contains("open")) return;
+        HARTOps.trapTab(lb, e);
         if (e.key === "Escape") closeLightbox();
         if (e.key === "ArrowLeft") {
           lbIndex = (lbIndex - 1 + visible.length) % visible.length;

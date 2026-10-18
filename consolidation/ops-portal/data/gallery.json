@@ -1,6 +1,6 @@
 {
   "title": "Session night: the layout room",
-  "lede": "A walk through the room on a session night, from the crew lounge to the dispatcher's desk, the yards, the scale, and the paperwork, then the control panels the dispatcher works. Track plans and build photos are under The Build; historical photographs of the island are on the Photos page under History & Industries.",
+  "lede": "A walk through the room on a session night, from the crew lounge to the dispatcher's desk, the yards, the scale, and the paperwork, then the control panels the dispatcher works. Track plans and build photos are under The Build; historical photographs of the island are on the Historic photos page under The Prototype.",
   "albums": [
     {
       "id": "layout",
@@ -216,14 +216,14 @@
       "src": "../external/desktop-data/f-root/Screenshot 2025-06-20 at 12.08.15 AM.png",
       "title": "Coke oven kit: typical arrangement",
       "caption": "The kit maker's typical arrangement for the coke oven battery, used to plan the coke plant on the peninsula.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "credit": "Credit unknown"
     },
     {
       "album": "build",
       "src": "../external/desktop-data/f-root/lcn-connection-diagram.webp",
       "title": "LCOS client node wiring",
       "caption": "How one LCOS radio node is hooked up: an Arduino Nano with a radio, input and output boards, a signal driver board, block occupancy detectors, and the layout control bus that powers them.",
-      "credit": "Desktop/HART → consolidation/external/desktop-data/f-root"
+      "credit": "Credit unknown"
     },
     {
       "album": "build",

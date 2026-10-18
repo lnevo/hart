@@ -2,7 +2,7 @@
   "title": "Railroads",
   "lede": [
     "Two railroads came up Chartiers Creek. The Chartiers Valley Railroad was chartered in 1853 to run from Pittsburgh to Washington, ran out of money in the Panic of 1857, and was finished by the Pennsylvania Railroad's Chartiers Railway in 1871. As the PRR's Chartiers Branch it carried coal from the valley's mine branches and ran passenger trains to Washington until 1952, meeting the Montour, the P&WV and the B&O along the way. The Pittsburgh, Chartiers & Youghiogheny was chartered in 1881 to reach the Youghiogheny and never did. It ran from McKees Rocks up the valley, crossed the back channel onto Neville Island, and from 1892 was owned half by the P&LE and half by the Pennsylvania's Panhandle.",
-    "The bigger roads ran around them. The P&LE, a New York Central property, held the Ohio River main through McKees Rocks; the B&O ran over it from 1934 and CSX bought it in 1993. The Panhandle ran west from Pittsburgh past Scully Yard, and the P&WV crossed the south hills to Rook Yard. On the island, American Steel & Wire's Pittsburgh & Ohio Valley switched the plants from 1899 until 1994.",
+    "The bigger roads ran around them. The P&LE, a New York Central property, held the Ohio River main through McKees Rocks; the B&O ran over it from 1934 and CSX bought it in 1991–92. The Panhandle ran west from Pittsburgh past Scully Yard, and the P&WV crossed the south hills to Rook Yard. On the island, American Steel & Wire's Pittsburgh & Ohio Valley switched the plants from 1899 until 1994.",
     "In December 1996 the Chartiers Branch and the PC&Y were sold together to the Pittsburgh Industrial Railroad, which became today's Pittsburgh & Ohio Central. It still meets Norfolk Southern at Duff Junction and CSX at POV Junction. Use the buttons to compare a few lines side by side, or the slider to see who ran each one in a given year."
   ],
   "article": "library/chartiers-valley-railroads.html",
@@ -41,22 +41,7 @@
           ]
         },
         {
-          "handoff": "Year not given · to the Nickel Plate"
-        },
-        {
-          "name": "Nickel Plate Road",
-          "years": "before 1964",
-          "from": null,
-          "to": null,
-          "made": "Ran the P&WV",
-          "logo": "../external/hart-ops/operator_logos/downloads/nickel-plate-road.png",
-          "maybe": [
-            1918,
-            1963
-          ]
-        },
-        {
-          "handoff": "1964 · Norfolk & Western"
+          "handoff": "16 Oct 1964 · leased to Norfolk & Western"
         },
         {
           "name": "Norfolk & Western",
@@ -301,7 +286,7 @@
       "steps": [
         {
           "name": "Pittsburgh & Lake Erie",
-          "years": "by 1879–1993",
+          "years": "by 1879–1992",
           "from": 1879,
           "to": 1992,
           "made": "Ohio River main through McKees Rocks",
@@ -309,12 +294,12 @@
           "note": "A New York Central property. B&O trains ran over it from 1934"
         },
         {
-          "handoff": "1993 · CSX buys the P&LE"
+          "handoff": "1991–92 · CSX buys the P&LE"
         },
         {
           "name": "CSX",
-          "years": "1993–",
-          "from": 1993,
+          "years": "1992–",
+          "from": 1992,
           "to": null,
           "made": "Pittsburgh Subdivision",
           "logo": "../external/hart-ops/operator_logos/downloads/csxlogo_3.png",
@@ -369,7 +354,7 @@
         }
       ],
       "end": {
-        "text": "The B&O's Pittsburgh lines are CSX today, along with the P&LE main CSX bought in 1993.",
+        "text": "The B&O's Pittsburgh lines are CSX today, along with the P&LE main CSX bought in 1991–92.",
         "state": "open"
       }
     },

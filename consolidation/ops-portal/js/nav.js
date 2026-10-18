@@ -34,6 +34,7 @@
     return res.json();
   }
 
+  // The one HTML escaper for every page and script (text and attribute values).
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
@@ -64,7 +65,7 @@
           ? '<span class="nav-full">' + esc(item.label) + '</span><span class="nav-short">' +
             esc(item.short) + "</span>"
           : esc(item.label);
-        var cls = item.id === "home" ? ' class="nav-home"' : "";
+        var cls = ' class="nav-' + esc(item.id) + '"';
         return '<a href="' + b + item.href + '"' + cls + cur + ">" + label + "</a>";
       })
       .join("");
@@ -72,6 +73,7 @@
       ? '<a class="eng-link" href="' + b + site.engDesk + '">Engineering desk</a>'
       : "";
     return (
+      '<a class="skip-link" href="#main">Skip to content</a>' +
       '<div class="site-header-inner">' +
       '<a class="brand" href="' +
       b +
@@ -84,16 +86,38 @@
     );
   }
 
-  // Small "Section ›" link above a child page's title so visitors can get back to the hub.
+  // Small "Section ›" trail above a child page's title so visitors can get back to the hub.
+  // site.json "parents" adds a hub inside the section, e.g. guide → "Operations › Guides".
   function mountCrumb(site, pageId) {
     var section = sectionFor(site, pageId);
     if (!section || section.id === pageId || section.id === "home") return;
-    var head = document.querySelector("main .page-head");
+    var head = document.querySelector("main .page-head, main .feature-head");
     if (!head || head.querySelector(".crumb")) return;
-    var p = document.createElement("p");
-    p.className = "crumb";
-    p.innerHTML = '<a href="' + base() + section.href + '">' + esc(section.label) + "</a>";
-    head.insertBefore(p, head.firstChild);
+    var trail = [section].concat((site.parents || {})[pageId] || []);
+    var nav = document.createElement("nav");
+    nav.className = "crumb";
+    nav.setAttribute("aria-label", "Breadcrumb");
+    nav.innerHTML =
+      "<ol>" +
+      trail
+        .map(function (t) {
+          return '<li><a href="' + base() + esc(t.href) + '">' + esc(t.label) + "</a></li>";
+        })
+        .join("") +
+      "</ol>";
+    head.insertBefore(nav, head.firstChild);
+  }
+
+  // Target for the skip link: the page's <main>, focusable so keyboard users land in it.
+  function mountSkipTarget() {
+    var main = document.querySelector("main");
+    if (!main) return;
+    if (!main.id) main.id = "main";
+    else {
+      var skip = document.querySelector(".skip-link");
+      if (skip) skip.setAttribute("href", "#" + main.id);
+    }
+    if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
   }
 
   function headerEl() {
@@ -146,11 +170,88 @@
     return links.length ? " · Follow along: " + links.join(" · ") : "";
   }
 
+  // True when the page came from a developer's own machine (localhost or file://), where the
+  // "serve it over HTTP" hint helps. Everyone else gets the visitor text.
+  function isLocal() {
+    var loc = window.location;
+    if (loc.protocol === "file:") return true;
+    return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(loc.hostname || "");
+  }
+
+  var lastSite = null;
+
+  // Friendly "couldn't load" box in place of el's contents, with a Reload button.
+  // opts: what ("this page"), links ([{href, label}], relative to the portal root), err, site.
+  function renderError(el, opts) {
+    if (!el) return;
+    opts = opts || {};
+    var site = opts.site || lastSite || {};
+    var visitor = site.public || !isLocal();
+    var what = opts.what || "this page";
+    var html =
+      '<div class="load-error" role="alert"><p class="load-error-title">Couldn\u2019t load ' + esc(what) + ".</p>" +
+      "<p>Check your connection and try again. If it keeps happening, the page may be updating; give it a minute.</p>";
+    var links = (opts.links || [])
+      .map(function (l) {
+        var href = /^https?:/i.test(l.href) ? l.href : base() + l.href;
+        return '<a href="' + esc(href) + '">' + esc(l.label) + "</a>";
+      })
+      .join(" · ");
+    if (links) html += '<p class="small">Meanwhile: ' + links + "</p>";
+    html += '<p><button type="button" class="btn btn-ink" data-reload>Reload</button></p>';
+    if (!visitor) {
+      html +=
+        '<p class="small muted">Developer: serve the portal over HTTP (scripts/serve_portal.sh), not file://.' +
+        (opts.err && opts.err.message ? " " + esc(opts.err.message) : "") + "</p>";
+    }
+    el.innerHTML = html + "</div>";
+    var btn = el.querySelector("[data-reload]");
+    if (btn) btn.addEventListener("click", function () {
+      window.location.reload();
+    });
+  }
+
+  // Keep Tab inside an open modal dialog (photo lightboxes, map viewer): from the last control
+  // it wraps to the first, and Shift+Tab from the first wraps to the last.
+  function trapTab(dialog, e) {
+    if (e.key !== "Tab") return;
+    var f = Array.prototype.filter.call(
+      dialog.querySelectorAll('a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'),
+      function (x) {
+        return x.getClientRects().length > 0;
+      }
+    );
+    if (!f.length) return e.preventDefault();
+    var first = f[0];
+    var last = f[f.length - 1];
+    var inside = dialog.contains(document.activeElement);
+    if (e.shiftKey && (!inside || document.activeElement === first)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && (!inside || document.activeElement === last)) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  // Brand-only header and footer when site.json itself won't load, so the page isn't blank.
+  function fallbackSite() {
+    return { nav: [{ id: "home", href: "index.html", label: "Home", pages: ["home"] }], public: !isLocal(), fallback: true };
+  }
+
   async function mountChrome(pageId) {
-    var site = await loadSite();
+    var site;
+    try {
+      site = await loadSite();
+    } catch (err) {
+      console.error(err);
+      site = fallbackSite();
+    }
+    lastSite = site;
     var header = headerEl();
     var footer = footerEl();
     if (header) header.innerHTML = headerHtml(site, pageId);
+    mountSkipTarget();
     mountCrumb(site, pageId);
     if (site.public) {
       // Links to localhost services and the engineering workspace are dead on the public site.
@@ -161,7 +262,12 @@
       var eng = site.engDesk
         ? ' · <a href="' + base() + site.engDesk + '">Engineering desk</a>'
         : "";
-      footer.innerHTML = "HART Railroad · Neville Island" + channelsHtml(site) + eng;
+      // About is here too: the narrowest phones drop it from the header row.
+      var about = (site.nav || []).filter(function (n) {
+        return n.id === "about";
+      })[0];
+      var aboutLink = about ? ' · <a href="' + base() + about.href + '">About</a>' : "";
+      footer.innerHTML = "HART Railroad · Neville Island" + aboutLink + channelsHtml(site) + eng;
     }
     mountVoice().catch(function (err) {
       console.error(err);
@@ -171,9 +277,13 @@
 
   var api = {
     base: base,
+    esc: esc,
     loadSite: loadSite,
     loadJson: loadJson,
     mountChrome: mountChrome,
+    renderError: renderError,
+    isLocal: isLocal,
+    trapTab: trapTab,
   };
   window.HARTOps = api;
 })();

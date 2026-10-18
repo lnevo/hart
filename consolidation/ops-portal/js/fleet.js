@@ -9,12 +9,16 @@
     { id: "gallery", label: "Gallery" },
   ];
 
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+  var esc = HARTOps.esc;
+
+  // Grid, list, and strip show the build's thumbnail (item.thumb, with the full image's width/height
+  // to reserve space); the stage and lightbox open the full src.
+  function thumbImg(it, alt) {
+    return (
+      '<img src="' + esc(resolveSrc(it.thumb || it.src)) + '" alt="' + esc(alt) + '"' +
+      (it.width && it.height ? ' width="' + Number(it.width) + '" height="' + Number(it.height) + '"' : "") +
+      ' loading="lazy" decoding="async">'
+    );
   }
 
   function resolveSrc(src) {
@@ -147,7 +151,7 @@
             .map(function (it, i) {
               return (
                 '<button type="button" class="g-item" data-idx="' + i + '">' +
-                '<img src="' + esc(resolveSrc(it.src)) + '" alt="' + esc(it.title) + '" loading="lazy">' +
+                thumbImg(it, it.title) +
                 "<figcaption><strong>" + esc(it.title) + "</strong><span>" + esc(it.caption) + "</span></figcaption></button>"
               );
             })
@@ -164,7 +168,7 @@
             .map(function (it, i) {
               return (
                 '<tr data-idx="' + i + '" tabindex="0">' +
-                '<td class="fl-thumb"><img src="' + esc(resolveSrc(it.src)) + '" alt="" loading="lazy"></td>' +
+                '<td class="fl-thumb">' + thumbImg(it, "") + "</td>" +
                 "<td>" + esc(it.road || "—") + "</td>" +
                 '<td class="fl-num">' + esc(it.number || "—") + "</td>" +
                 "<td>" + esc(it.type || "—") + "</td>" +
@@ -192,7 +196,7 @@
             .map(function (x, i) {
               return (
                 '<button type="button" role="listitem" data-idx="' + i + '"' + (i === galleryIndex ? ' aria-current="true"' : "") +
-                ' title="' + esc(x.title) + '"><img src="' + esc(resolveSrc(x.src)) + '" alt="' + esc(x.title) + '" loading="lazy"></button>'
+                ' title="' + esc(x.title) + '">' + thumbImg(x, x.title) + "</button>"
               );
             })
             .join("") +

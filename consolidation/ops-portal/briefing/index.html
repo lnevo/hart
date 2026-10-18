@@ -14,22 +14,48 @@
       <p class="sheet-pub"><span id="briefing-pub">HB-01 · Revision B</span> <span id="briefing-dl"></span></p>
       <p id="briefing-lede"></p>
     </div>
-    <div id="briefing-body"></div>
+    <div id="briefing-body"><p class="muted">Loading…</p></div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
+    var esc = HARTOps.esc;
 
     function href(rel) {
       if (/^https?:/i.test(rel) || rel.indexOf("../") === 0) return rel;
       return HARTOps.base() + rel;
+    }
+
+    // "Your first night" box at the top (same facts as the box on the home page).
+    function firstNightHtml(fn) {
+      var html = '<section class="panel first-night" id="first-night">';
+      if (fn.kicker) html += '<p class="box-kicker">' + esc(fn.kicker) + "</p>";
+      html += "<h2>" + esc(fn.heading) + "</h2>";
+      (fn.paragraphs || []).forEach(function (p) {
+        html += "<p>" + esc(p) + "</p>";
+      });
+      if (fn.bullets && fn.bullets.length) {
+        html += "<ul>" + fn.bullets.map(function (b) {
+          return "<li><strong>" + esc(b.label) + ".</strong> " + esc(b.text) + "</li>";
+        }).join("") + "</ul>";
+      }
+      if (fn.links && fn.links.length) {
+        html += '<p class="small">Before you come: ' + fn.links.map(function (l) {
+          return '<a href="' + href(l.href) + '">' + esc(l.label) + "</a>";
+        }).join(" · ") + "</p>";
+      }
+      return html + "</section>";
+    }
+
+    // In-page contents for the long primer.
+    function jumpHtml(items) {
+      return (
+        '<nav class="jump" aria-label="On this page"><ul>' +
+        items.map(function (i) {
+          return '<li><a href="#' + esc(i.id) + '">' + esc(i.label) + "</a></li>";
+        }).join("") +
+        "</ul></nav>"
+      );
     }
 
     function arriveHtml(arrive, gallery) {
@@ -56,7 +82,24 @@
 
     document.addEventListener("DOMContentLoaded", async function () {
       var site = await HARTOps.mountChrome("briefing");
-      var data = await HARTOps.loadJson("data/briefing.json");
+      var data;
+      try {
+        data = await HARTOps.loadJson("data/briefing.json");
+      } catch (err) {
+        console.error(err);
+        // No static copy of HB-01 is published (docs/html/ redirects here), so point at the static pages.
+        HARTOps.renderError(document.getElementById("briefing-body"), {
+          what: "the primer",
+          err: err,
+          site: site,
+          links: [
+            { href: "operators/cards/index.html", label: "Car cards & waybills" },
+            { href: "operators/glossary/index.html", label: "Glossary" },
+            { href: "operators/index.html", label: "Operations" },
+          ],
+        });
+        return;
+      }
       document.getElementById("briefing-title").textContent = data.title;
       document.getElementById("briefing-pub").textContent = data.pub || "";
       document.getElementById("briefing-lede").textContent = data.lede || "";
@@ -66,9 +109,18 @@
           '· <a href="' + esc(encodeURI(HARTOps.base() + data.source)) + '">Download docx</a>';
       }
       var root = document.getElementById("briefing-body");
-      var html = (data.sections || [])
+      var jump = [];
+      if (data.firstNight) jump.push({ id: "first-night", label: "Your first night" });
+      (data.sections || []).forEach(function (sec) {
+        jump.push({ id: sec.id, label: sec.heading });
+      });
+      if (data.arrive) jump.push({ id: "arrive", label: "When you arrive" });
+      jump.push({ id: "deeper", label: "Dig deeper" });
+      var html = data.firstNight ? firstNightHtml(data.firstNight) : "";
+      html += jumpHtml(jump);
+      html += (data.sections || [])
         .map(function (sec) {
-          var html = '<section class="panel" id="' + esc(sec.id) + '">';
+          var html = '<section class="panel' + (sec.real || sec.story ? " first-night" : "") + '" id="' + esc(sec.id) + '">';
           html += "<h2>" + esc(sec.heading) + "</h2>";
           if (sec.intro) html += '<p class="muted">' + esc(sec.intro) + "</p>";
           (sec.paragraphs || []).forEach(function (p) {
@@ -78,6 +130,15 @@
             html += "<ul>" + sec.bullets.map(function (b) {
               return "<li>" + esc(b) + "</li>";
             }).join("") + "</ul>";
+          }
+          if (sec.real || sec.story) {
+            // What's real / what's the layout's story, side by side.
+            html +=
+              '<div class="real-story"><div><h3>Real</h3><ul>' +
+              (sec.real || []).map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") +
+              "</ul></div><div><h3>The layout's story</h3><ul>" +
+              (sec.story || []).map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") +
+              "</ul></div></div>";
           }
           if (sec.industries && sec.industries.length) {
             html +=

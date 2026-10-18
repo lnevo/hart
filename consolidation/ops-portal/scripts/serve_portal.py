@@ -3,12 +3,13 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
-import sys
 from datetime import datetime, timezone
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
+from urllib.parse import urlsplit
 
 CONSOL = Path(__file__).resolve().parents[2]
 LOG_PATH = CONSOL / "sor/desktop/f_root_review_log.jsonl"
@@ -25,13 +26,45 @@ ARCHIVE_BUCKETS = {"curated", "review", "discard"}
 ARCHIVE_KINDS = {"photo", "ad", "clipping", "map", "document", "graphic"}
 ARCHIVE_CONFIDENCE = {"verified", "likely", "none"}
 ARCHIVE_TEXT_FIELDS = ("title", "caption", "date", "credit", "source_url", "reason", "rights")
+LOCAL_NAMES = {"127.0.0.1", "localhost", "[::1]"}
 
 
 class PortalHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(CONSOL), **kwargs)
 
+    def _local_host(self) -> bool:
+        """Refuse requests whose Host is not this machine (DNS rebinding reads the whole tree)."""
+        host = (self.headers.get("Host") or "").strip().lower()
+        name = host.rsplit(":", 1)[0] if not host.startswith("[") else host.split("]", 1)[0] + "]"
+        if name in LOCAL_NAMES:
+            return True
+        self.send_error(403, "Local requests only")
+        return False
+
+    def _same_origin_json(self) -> bool:
+        """Edits must come from a portal page here: JSON body and a local Origin.
+
+        Requiring application/json forces a CORS preflight that this server never
+        answers, so another site open in the browser cannot post edits.
+        """
+        ctype = (self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+        if ctype != "application/json":
+            self.send_error(415, "Expected application/json")
+            return False
+        origin = urlsplit(self.headers.get("Origin") or "")
+        if origin.scheme != "http" or (origin.hostname or "") not in LOCAL_NAMES:
+            self.send_error(403, "Cross-origin edits refused")
+            return False
+        return True
+
+    def do_HEAD(self) -> None:
+        if self._local_host():
+            super().do_HEAD()
+
     def do_GET(self) -> None:
+        if not self._local_host():
+            return
         route = self.path.split("?", 1)[0]
         if route == API_LOG:
             self._send_json(200, {"entries": _read_log()})
@@ -57,6 +90,8 @@ class PortalHandler(SimpleHTTPRequestHandler):
         return body
 
     def do_POST(self) -> None:
+        if not (self._local_host() and self._same_origin_json()):
+            return
         route = self.path.split("?", 1)[0]
         if route == API_ARCHIVE:
             body = self._read_body()
@@ -150,6 +185,9 @@ def _update_archive_item(body: dict) -> tuple[int, dict]:
     for field in ARCHIVE_TEXT_FIELDS:
         if field in body:
             changes[field] = str(body[field] or "").strip()
+    url = changes.get("source_url")
+    if url and urlsplit(url).scheme not in ("http", "https"):
+        return 400, {"error": "source_url must be an http(s) link"}
     if "tags" in body:
         tags = body["tags"]
         if isinstance(tags, str):
@@ -290,7 +328,9 @@ def _update_gallery_item(body: dict) -> tuple[int, dict]:
 
 
 def main() -> int:
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8760
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("port", nargs="?", type=int, default=8760, help="port on 127.0.0.1 (default %(default)s)")
+    port = parser.parse_args().port
     server = HTTPServer(("127.0.0.1", port), PortalHandler)
     print(f"HART portal → http://127.0.0.1:{port}/ops-portal/", flush=True)
     print(f"F-root review → http://127.0.0.1:{port}/ops-portal/review/f-root/", flush=True)

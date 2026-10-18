@@ -14,18 +14,12 @@
       <p class="muted" id="pub-lede"></p>
       <p class="small">At the layout? <a href="../crew/index.html">Session paperwork</a> has the same sheets laid out for a phone.</p>
     </div>
-    <div id="pub-shelf"></div>
+    <div id="pub-shelf"><p class="muted">Loading…</p></div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
+    var esc = HARTOps.esc;
     function resolve(rel) {
       return rel ? HARTOps.base() + rel : "";
     }
@@ -80,8 +74,11 @@
           .join("");
       } catch (err) {
         console.error(err);
-        document.getElementById("pub-lede").textContent =
-          "Could not load publications. Serve over HTTP (scripts/serve_portal.sh).";
+        HARTOps.renderError(document.getElementById("pub-shelf"), {
+          what: "the publications",
+          err: err,
+          links: [{ href: "crew/index.html", label: "Session paperwork" }],
+        });
       }
     });
   </script>

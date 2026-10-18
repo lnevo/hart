@@ -15,44 +15,32 @@
       <p class="small">Shenango, Kosmos, Calgon, and Aristech all came out of one plant. The <a href="../plants/index.html">Industry</a> chart traces each one.</p>
       <p class="small">Working a session? The <a href="../crew/industries/index.html">industry spot sheets</a> show which car goes on which spot.</p>
     </div>
-    <div class="industry-grid" id="ind-grid"></div>
+    <div class="industry-grid" id="ind-grid"><p class="muted">Loading…</p></div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
-    // Anchors on the crew spot-sheet page (crew/industries/).
-    var SPOTS = {
-      "Aristech Plastics": "aristech",
-      "A. Stucki Company": "stucki",
-      "Calgon Carbon": "calgon",
-      Ferrellgas: "ferrellgas",
-      "Kosmos Cement": "kosmos",
-      "Shenango Coke Works": "shenango",
-      Interchange: "scully",
-    };
-    // Destination colors (data/crew.json) for the stripe under each logo, as on the printed operator sheet.
-    var STRIPES = {
-      "Aristech Plastics": ["yellow"],
-      "A. Stucki Company": ["green"],
-      "Calgon Carbon": ["purple"],
-      Ferrellgas: ["red"],
-      "Kosmos Cement": ["pink"],
-      "Shenango Coke Works": ["black"],
-      Interchange: ["orange", "blue"],
-    };
+    var esc = HARTOps.esc;
+    // Each industry's "spot" is its anchor on the crew spot-sheet page (crew/industries/), and
+    // "stripes" its destination colors (data/crew.json) for the stripe under the logo, as on the
+    // printed operator sheet.
     // The operator sheet prints a deeper yellow; pure #FFFF00 washes out as a thin rule.
     var PRINT_HEX = { yellow: "#FFD400" };
     document.addEventListener("DOMContentLoaded", async function () {
       await HARTOps.mountChrome("industries");
-      var data = await HARTOps.loadJson("data/industries.json");
-      var crew = await HARTOps.loadJson("data/crew.json");
+      var data, crew;
+      try {
+        data = await HARTOps.loadJson("data/industries.json");
+        crew = await HARTOps.loadJson("data/crew.json");
+      } catch (err) {
+        console.error(err);
+        HARTOps.renderError(document.getElementById("ind-grid"), {
+          what: "the industries",
+          err: err,
+          links: [{ href: "crew/industries/index.html", label: "Industry spot sheets" }],
+        });
+        return;
+      }
       var colors = {};
       (crew.colors || []).forEach(function (c) {
         colors[c.id] = c;
@@ -73,7 +61,7 @@
               esc(ind.name) +
               ' logo"></div>'
             : '<div class="logo-band"><span class="meta">No logo on file</span></div>';
-          var stripes = (STRIPES[ind.name] || [])
+          var stripes = (ind.stripes || [])
             .filter(function (id) {
               return colors[id];
             })
@@ -83,7 +71,7 @@
             })
             .join("");
           if (stripes) logo += '<div class="color-stripes" role="img" aria-label="Destination color: ' +
-            esc((STRIPES[ind.name] || []).map(function (id) { return colors[id] ? colors[id].label : ""; }).join(" and ")) + '">' + stripes + "</div>";
+            esc((ind.stripes || []).map(function (id) { return colors[id] ? colors[id].label : ""; }).join(" and ")) + '">' + stripes + "</div>";
           var tags = (ind.commodities || [])
             .map(function (c) {
               return "<li>" + esc(c) + "</li>";
@@ -98,8 +86,8 @@
             esc(ind.blurb) +
             '</p>' +
             (tags ? '<ul class="tag-list">' + tags + "</ul>" : "") +
-            (SPOTS[ind.name]
-              ? '<p class="meta"><a href="../crew/industries/index.html#' + SPOTS[ind.name] + '">' +
+            (ind.spot
+              ? '<p class="meta"><a href="../crew/industries/index.html#' + esc(ind.spot) + '">' +
                 (ind.name === "Interchange" ? "Interchange spot sheets" : "Spot sheet") + " ›</a></p>"
               : "") +
             "</div></article>"

@@ -1,22 +1,36 @@
 #!/usr/bin/env python3
-"""Expand photo galleries, split rolling stock, and index articles + official docs."""
+"""Expand photo galleries, split rolling stock, and index articles + official docs.
+
+Legacy: gallery.json, publications.json and articles.json are hand-edited now, and
+this regenerates older content over them. Dry run by default (lists what it would
+write); --force writes.
+
+  python3 consolidation/ops-portal/scripts/legacy/refresh_galleries_and_library.py [--desktop-data DIR] [--force]
+
+--desktop-data (or HART_DESKTOP_DATA) is the Desktop/HART mirror; the default is
+external/desktop-data.
+"""
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
 
-CONS = Path(__file__).resolve().parents[2]
+CONS = Path(__file__).resolve().parents[3]
 PORTAL = CONS / "ops-portal"
 DATA = PORTAL / "data"
-FROOT = CONS / "external" / "desktop-data" / "f-root"
-DJ = CONS / "external" / "desktop-data" / "dj-trains"
+DESKTOP = Path(os.environ.get("HART_DESKTOP_DATA") or CONS / "external" / "desktop-data")
+FROOT = DESKTOP / "f-root"
+DJ = DESKTOP / "dj-trains"
 DOCS_HTML = PORTAL / "docs" / "html"
 LIBRARY = PORTAL / "library"
 
 IMG_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+WRITE = False  # --force
 
 # Skip UI chrome / giant plans that dominate the place gallery
 SKIP_PLACE = {
@@ -70,8 +84,11 @@ def pretty_title(name: str) -> str:
 
 
 def write_json(name: str, payload: object) -> None:
-    DATA.mkdir(parents=True, exist_ok=True)
     path = DATA / name
+    if not WRITE:
+        print(f"  would write {path.relative_to(CONS)} ({len(json.dumps(payload))} chars)")
+        return
+    DATA.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"  wrote {path.relative_to(CONS)} ({len(json.dumps(payload))} chars)")
 
@@ -549,20 +566,6 @@ def build_publications() -> dict:
 def build_articles() -> dict:
     articles = [
         {
-            "id": "rails-through-time",
-            "title": "Rails Through Time",
-            "kind": "Narrative",
-            "href": "library/rails-through-time.html",
-            "blurb": "Long-form HART railroad narrative — updated edition.",
-        },
-        {
-            "id": "short-story",
-            "title": "HART Railroad short story",
-            "kind": "Story",
-            "href": "library/short-story.html",
-            "blurb": "Short fiction set on the railroad.",
-        },
-        {
             "id": "sts-ops",
             "title": "STS operations article",
             "kind": "Article",
@@ -621,6 +624,15 @@ def build_panels() -> dict:
 
 
 def main() -> None:
+    global DESKTOP, FROOT, DJ, WRITE
+    parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    parser.add_argument("--desktop-data", type=Path, default=DESKTOP, help="Desktop/HART mirror (default %(default)s)")
+    parser.add_argument("--force", action="store_true", help="write the files (default: dry run)")
+    args = parser.parse_args()
+    DESKTOP, WRITE = args.desktop_data, args.force
+    FROOT, DJ = DESKTOP / "f-root", DESKTOP / "dj-trains"
+    if not WRITE:
+        print("dry run; --force to write")
     old = load_gallery()
     photo, fleet = split_fleet(old)
     write_json("gallery.json", photo)

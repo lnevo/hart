@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 """Build ops-portal content JSON + curated media from consolidation sources.
 
-  python3 consolidation/ops-portal/scripts/build_ops_content.py
+Legacy: briefing.json, gallery.json and the other data files are hand-edited now,
+and this regenerates older content over them. Dry run by default (lists what it
+would write); --force writes.
+
+  python3 consolidation/ops-portal/scripts/legacy/build_ops_content.py [--f-root DIR] [--force]
+
+--f-root (or HART_F_ROOT) is the Desktop/HART folder; the default is its
+external/desktop-data/f-root mirror.
 """
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
+import os
 import re
 import shutil
 from collections import defaultdict
 from pathlib import Path
 
-CONS = Path(__file__).resolve().parents[2]
+CONS = Path(__file__).resolve().parents[3]
 PORTAL = CONS / "ops-portal"
 DATA = PORTAL / "data"
 MEDIA = PORTAL / "assets" / "media"
@@ -21,15 +30,19 @@ MEDIA = PORTAL / "assets" / "media"
 HART_OPS = CONS / "external" / "hart-ops"
 DESKTOP = CONS / "external" / "desktop-data"
 STS_DATA = CONS / "external" / "sts-docker-data"
-F_ROOT = Path("/Users/lnevo/Desktop/HART")
+F_ROOT = Path(os.environ.get("HART_F_ROOT") or DESKTOP / "f-root")
+WRITE = False  # --force
 
 
 def _copy(src: Path, dest_name: str) -> str | None:
     if not src.is_file():
         print(f"  skip missing: {src}")
         return None
-    MEDIA.mkdir(parents=True, exist_ok=True)
     dest = MEDIA / dest_name
+    if not WRITE:
+        print(f"  would copy {src.name} → assets/media/{dest_name} ({src.stat().st_size // 1024} KB)")
+        return f"assets/media/{dest_name}"
+    MEDIA.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest)
     print(f"  media {dest_name} ({dest.stat().st_size // 1024} KB)")
     return f"assets/media/{dest_name}"
@@ -380,7 +393,8 @@ def build_industries() -> dict:
 
     blurbs = {
         "Aristech Plastics": (
-            "Plastic resins and monomers arrive by covered hopper and tank car. "
+            "On HART, plastic resins and monomers arrive by covered hopper and tank car; "
+            "the prototype island plant made plasticizers for flexible PVC. "
             "Yellow block on the color board — worked by the Neville Island Turn."
         ),
         "A Stucki Co": (
@@ -827,14 +841,23 @@ def build_gallery(media: dict[str, str]) -> dict:
 
 
 def write_json(name: str, payload: object) -> None:
-    DATA.mkdir(parents=True, exist_ok=True)
     path = DATA / name
+    if not WRITE:
+        print(f"  would write {path.relative_to(CONS)} ({len(json.dumps(payload)) // 1024} KB)")
+        return
+    DATA.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"  wrote {path.relative_to(CONS)} ({path.stat().st_size // 1024} KB)")
 
 
 def main() -> None:
-    print(f"portal: {PORTAL}")
+    global F_ROOT, WRITE
+    parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    parser.add_argument("--f-root", type=Path, default=F_ROOT, help="Desktop/HART folder (default %(default)s)")
+    parser.add_argument("--force", action="store_true", help="write the files (default: dry run)")
+    args = parser.parse_args()
+    F_ROOT, WRITE = args.f_root, args.force
+    print(f"portal: {PORTAL}" + ("" if WRITE else " (dry run; --force to write)"))
     media = build_media()
     write_json("briefing.json", build_briefing())
     write_json("about.json", build_about())
@@ -843,7 +866,7 @@ def main() -> None:
     gallery = build_gallery(media)
     write_json("gallery.json", gallery)
     print(
-        "done — gallery",
+        "done — gallery" if WRITE else "dry run — gallery",
         {a["id"]: a["count"] for a in gallery["albums"]},
         f"total={len(gallery['items'])}",
     )

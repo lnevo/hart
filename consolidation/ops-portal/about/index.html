@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>About HART</title>
+  <title>About — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
   <style>
     .about-links { margin: 0.9rem 0 0; font-size: 0.95rem; }
@@ -17,7 +17,7 @@
       <h1 id="about-title">About HART</h1>
       <p class="section-note" id="about-lede"></p>
     </div>
-    <div id="about-sections"></div>
+    <div id="about-sections"><p class="muted">Loading…</p></div>
     <section class="panel">
       <h2 id="more-title"></h2>
       <div class="card-grid" id="more-grid"></div>
@@ -26,19 +26,21 @@
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
+    var esc = HARTOps.esc;
     function link(l) {
       return '<a href="' + esc(HARTOps.base() + l.href) + '">' + esc(l.label) + "</a>";
     }
+    function list(items) {
+      return "<ul>" + (items || []).map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("") + "</ul>";
+    }
     function section(s) {
-      var html = '<section class="panel"><h2>' + esc(s.heading) + '</h2><div class="prose">';
+      var html = '<section class="panel' + (s.box ? " first-night" : "") + '"><h2>' + esc(s.heading) + '</h2><div class="prose">';
       html += (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
+      if (s.real || s.story) {
+        // What's real / what's the layout's story, side by side (same box as the Primer's).
+        html += '<div class="real-story"><div><h3>Real</h3>' + list(s.real) + "</div><div><h3>The layout's story</h3>" +
+          list(s.story) + "</div></div>";
+      }
       if (s.bullets && s.bullets.length) {
         html += "<ul>" + s.bullets.map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("") + "</ul>";
       }
@@ -63,8 +65,11 @@
           .join("");
       } catch (err) {
         console.error(err);
-        document.getElementById("about-sections").innerHTML =
-          '<section class="panel"><p>Could not load this page. Serve the portal over HTTP (see README).</p></section>';
+        document.getElementById("more-title").parentNode.hidden = true;
+        HARTOps.renderError(document.getElementById("about-sections"), {
+          err: err,
+          links: [{ href: "briefing/index.html", label: "New Operator Primer" }],
+        });
       }
     });
   </script>

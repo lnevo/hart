@@ -41,6 +41,7 @@
       "pages": [
         "operators",
         "briefing",
+        "glossary",
         "room",
         "cards",
         "fleet",
@@ -55,6 +56,7 @@
         "crew-industries",
         "docs",
         "guides",
+        "guide",
         "layout",
         "tools",
         "photos"
@@ -64,6 +66,7 @@
       "id": "behind",
       "href": "behind/index.html",
       "label": "Behind the Scenes",
+      "short": "Behind",
       "pages": [
         "behind",
         "behind-signals",
@@ -82,7 +85,8 @@
       "short": "Build",
       "pages": [
         "build",
-        "helix"
+        "helix",
+        "helix-status"
       ]
     },
     {
@@ -93,5 +97,25 @@
         "about"
       ]
     }
-  ]
+  ],
+  "parents": {
+    "guide": [
+      {
+        "label": "Guides",
+        "href": "guides/index.html"
+      }
+    ],
+    "helix-status": [
+      {
+        "label": "Helix",
+        "href": "helix/index.html"
+      }
+    ],
+    "behind-sts": [
+      {
+        "label": "Car forwarding",
+        "href": "behind/index.html#car-forwarding"
+      }
+    ]
+  }
 }

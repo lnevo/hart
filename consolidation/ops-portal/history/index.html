@@ -33,7 +33,7 @@
         </a>
         <a class="card" href="../archive/index.html">
           <p class="card-kind">Gallery</p>
-          <h3>Photos</h3>
+          <h3>Historic photos</h3>
           <p>Old photographs, advertisements, newspaper clippings, timetables, and maps of the island and its railroads, each credited to its source where we could find it.</p>
         </a>
       </div>
@@ -54,13 +54,7 @@
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
+    var esc = HARTOps.esc;
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("history");

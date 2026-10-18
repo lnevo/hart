@@ -21,6 +21,7 @@ from shapely.geometry import LineString
 from shapely.ops import unary_union
 import router_template_lattice as lat
 from make_layer_spacer import IN, H, OD, FLARE_OD, FLARE_H
+from stl_out import out_dir
 
 LINE_W = 0.45                   # mm, slicer outer-wall line width
 SLIT = 0.1                      # mm
@@ -48,8 +49,9 @@ def build(turns=TURNS):
 
 
 if __name__ == "__main__":
-    for turns, path in ((TURNS, "/Users/lnevo/Downloads/stl/layer_spacer_4in_pitch_vase.stl"),
-                        (0, "/Users/lnevo/Downloads/stl/layer_spacer_4in_pitch_vase_1line.stl")):
+    OUT = out_dir(__doc__)
+    for turns, path in ((TURNS, OUT + "layer_spacer_4in_pitch_vase.stl"),
+                        (0, OUT + "layer_spacer_4in_pitch_vase_1line.stl")):
         body = build(turns)
         body.export(path)
         print(path.split("/")[-1], "watertight", body.is_watertight, "reload ok", lat.stl_roundtrip_ok(path),

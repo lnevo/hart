@@ -15,6 +15,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon as MPoly, Circle, Rectangle
+from stl_out import out_dir
 
 PAGE_W, PAGE_H = 8.5, 11.0
 RI, RO, RO2 = 26.0, 31.75, 32.0
@@ -118,5 +119,6 @@ def draw(path):
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     check()
-    draw("/Users/lnevo/Downloads/stl/lap_screw_template.pdf")
+    draw(OUT + "lap_screw_template.pdf")

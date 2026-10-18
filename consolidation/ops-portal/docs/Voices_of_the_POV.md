@@ -12,7 +12,7 @@ Family details from the obituaries he reposted are left out. Only the railroad c
 
 > “Tell em nothing and practice telling em even less.”
 >
-> — Elmer Picard, conductor ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/58805707304), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060))
+> — Elmer Picard, conductor ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/58805707304), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060))
 
 > “Leave it like you found it.”
 >
@@ -20,7 +20,7 @@ Family details from the obituaries he reposted are left out. Only the railroad c
 
 > “If I could have thrown that switch you two would have both been up on the road.”
 >
-> — Bill McEwen Sr., early 1980s, when Mark Connolly and John Iwanonkiw could not throw the frozen C9 switch at −10 °F. “In this case we really could not throw the switch over.” ([post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44862044164))
+> — Bill McEwen Sr., early 1980s, when Mark Connolly and John Iwanonkiw could not throw the frozen C9 switch at −10 °F. “In this case we really could not throw the switch over.” ([Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44862044164))
 
 > “How come railroad employees are not guaranteed 40 hours a week?” — “Cause we were on the extra board for all those years!”
 >
@@ -29,10 +29,10 @@ Family details from the obituaries he reposted are left out. Only the railroad c
 ## The crews
 
 **Joe “Chick Chick” Adamcik (Joe Dates)** · *Conductor and brakeman*  
-On the #105 job he was supposed to ride the fifth car of the ore drag, “but we all know that if you hide in the cab you become invisible and no one in the yard office can see you.” When the crew chipped in for the crew room's first microwave, he heated potatoes and kept them in his pockets to warm his hands, eating one when he got hungry. “He sure did smile and make us smile a lot.” He also told Mark about the 1945 carbon plant explosion. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/46501750755), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/44865298831), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61429184082), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61429804213), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46522905316), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/49280924283))
+On the #105 job he was supposed to ride the fifth car of the ore drag, “but we all know that if you hide in the cab you become invisible and no one in the yard office can see you.” When the crew chipped in for the crew room's first microwave, he heated potatoes and kept them in his pockets to warm his hands, eating one when he got hungry. “He sure did smile and make us smile a lot.” He also told Mark about the 1945 carbon plant explosion. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/46501750755), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/44865298831), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61429184082), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61429804213), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46522905316), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/49280924283))
 
 **Elmer Edward Picard** · *Conductor, “the legend”*  
-Worked the steady second-trick #205 job or the #115 relief job, and came to work every day in a sport coat and tie. “Looked like he owned the place when he filled out his time sheet.” He held his paychecks for long stretches to annoy the accountants. After a 1957 injury settlement, in which he testified he could “probably be an elevator operator,” he worked another 30 years on the railroad. At Thanksgiving the mill handed out frozen turkeys; Elmer threatened to throw his off the Fleming Park Bridge “and see if it will fly,” then gave it away. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/58805707304), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/132876587730), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/111864161130))
+Worked the steady second-trick #205 job or the #115 relief job, and came to work every day in a sport coat and tie. “Looked like he owned the place when he filled out his time sheet.” He held his paychecks for long stretches to annoy the accountants. After a 1957 injury settlement, in which he testified he could “probably be an elevator operator,” he worked another 30 years on the railroad. At Thanksgiving the mill handed out frozen turkeys; Elmer threatened to throw his off the Fleming Park Bridge “and see if it will fly,” then gave it away. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/58805707304), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/132876587730), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/111864161130))
 
 **John Iwanonkiw** · *Conductor, trainman, and car rider*  
 Part of the “Southside crew.” He bled gons and ladles at the PC&Y Interchange, worked the #105 and #110 jobs, and rode strings of cars down from the car dumper on E2, braking by hand. Many of the blog's dumper and scale-house photos are his. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45830706766), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45668500339), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/85923998090), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/87215861080), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61492732149), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61494804614))
@@ -41,7 +41,7 @@ Part of the “Southside crew.” He bled gons and ladles at the PC&Y Interchang
 Rode the lead hopper of furnace coke strings to F1, and worked the South Yard and the dumper. “If your car needed brake work Sam was the man. Great guy.” ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45752089513), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/96556993685), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/85924118305))
 
 **Nick Niapas** · *Conductor*  
-Worked the #105 and sometimes the #110 daylight jobs. “Always pleasant to work with.” Pictured with Wally Latshaw at the end of a #105 shift: “You can tell by the smiles that it must have been an early quit!” ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45668280730), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/47021942624), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/189650563200))
+Worked the #105 and sometimes the #110 daylight jobs. “Always pleasant to work with.” Pictured with Wally Latshaw at the end of a #105 shift: “You can tell by the smiles that it must have been an early quit!” ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45668280730), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/47021942624), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/189650563200))
 
 **Wally Latshaw** · *Conductor*  
 Shoved boxcars over the scale and coupled empty ladles at the Y Interchange, from 1980 to at least 1990. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45753587352), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/46501354975), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/87316678495))
@@ -53,7 +53,7 @@ Photographed having coffee near the coke plant lead while working “the cherish
 Switched the West Yard with Don Amber in 1979, and was part of the Southside connection with John Iwanonkiw and Billy Bobak. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45277028350), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/46585856333))
 
 **Larry Obusek** · *#115 relief job*  
-Pictured on SW9 #6 working the #115 relief job in August 1979. “Larry was probably the nicest guy on the railroad. No one had a bad word to say about him.” ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45196985396), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/49950473768))
+Pictured on SW9 #6 working the #115 relief job in August 1979. “Larry was probably the nicest guy on the railroad. No one had a bad word to say about him.” ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45196985396), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/49950473768))
 
 **Tom Connolly** · *Car knocker*  
 Worked his way through college inspecting and repairing cars on the P&OV in the 1980s. Kevin and Denny Connolly also appear on the blog; it was a railroad of family connections. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/96556931550), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45185617335), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646))
@@ -61,10 +61,10 @@ Worked his way through college inspecting and repairing cars on the P&OV in the 
 ## Engineers
 
 **John Doubt** · *Engineer*  
-Started on the P&OV in 1972, worked the #110 Furnace Job a lot, and later ran for CSX until 2010. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44864448319), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61492732149), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45830765892))
+Started on the P&OV in 1972, worked the #110 Furnace Job a lot, and later ran for CSX until 2010. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/44864448319), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61492732149), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45830765892))
 
 **Jack Burik** · *Engineer*  
-Pictured at the throttle of P&LE 1554 “with the throttle and enthusiasm both at notch 7.” In 1987 he found a Shenango track crane hung up with five loads on the East Runner Main, which became a grievance the union won. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371), [post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46440832243))
+Pictured at the throttle of P&LE 1554 “with the throttle and enthusiasm both at notch 7.” In 1987 he found a Shenango track crane hung up with five loads on the East Runner Main, which became a grievance the union won. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371), [Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46440832243))
 
 **Scott Morrison** · *Engineer*  
 Third out on the extra board most of the time, he added water to Loco #4 “the hard way” at the scale house in 1988. He boxed as a left-handed light heavyweight; a group of the crew went to see him fight. “He went the distance but lost the decision.” ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/47102644216))
@@ -84,10 +84,10 @@ Trainmaster Wayne Amber, Bill McEwen, and Trainmaster Denny Jarvis did the weigh
 “#1 Daylight yard office clerk!” ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/46862990903), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/45185892762))
 
 **Jack Burik Sr.** · *Clerk*  
-Clerked in the evenings and summers when he was not teaching or coaching. He had taught Mark business law in high school, so “he will always be Mr. Burik to me.” ([post](https://www.tumblr.com/pittsburghohiovalleyrailroad/186498189210))
+Clerked in the evenings and summers when he was not teaching or coaching. He had taught Mark business law in high school, so “he will always be Mr. Burik to me.” ([Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/186498189210))
 
 **Chauncey Evans** · *Trainmaster*  
-Retired in 1978 as trainmaster after a 30-year career on the P&OV. The blog also shows his October 1970 paycheck. ([post](https://www.tumblr.com/pittsburghohiovalleyrailroad/53865499600), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/44876629245))
+Retired in 1978 as trainmaster after a 30-year career on the P&OV. The blog also shows his October 1970 paycheck. ([Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/53865499600), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/44876629245))
 
 ## Around the yard office
 
@@ -108,8 +108,8 @@ Retired in 1978 as trainmaster after a 30-year career on the P&OV. The blog also
 
 ## Remembered
 
-- August 3, 1945: six men died in an explosion at the carbon plant. Chick Chick told Mark about it years later. ([post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46522905316))
-- March 1987: crane operator Ollie Carlini died in a fall at the ladle house, where electricians had left an access grate open. ([post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46865812978))
+- August 3, 1945: six men died in an explosion at the carbon plant. Chick Chick told Mark about it years later. ([Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46522905316))
+- March 1987: crane operator Ollie Carlini died in a fall at the ladle house, where electricians had left an access grate open. ([Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/46865812978))
 
 ## Sources
 

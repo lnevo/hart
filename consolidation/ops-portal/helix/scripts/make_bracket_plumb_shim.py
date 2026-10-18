@@ -21,6 +21,7 @@ import numpy as np
 import trimesh
 from shapely.geometry import Polygon
 import router_template_lattice as lat
+from stl_out import out_dir
 
 IN = 25.4
 W = 0.62
@@ -48,8 +49,9 @@ def build():
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     body = build()
-    path = "/Users/lnevo/Downloads/stl/bracket_plumb_shim.stl"
+    path = OUT + "bracket_plumb_shim.stl"
     body.export(path)
     v = body.vertices
     thick_y = v[np.argmax(v[:, 2]), 1]

@@ -133,6 +133,7 @@ def main():
     # Build status page, with backticked filenames linked to the published copies.
     text = open(os.path.join(SRC, STATUS)).read()
     body = markdown.markdown(text, extensions=['tables', 'sane_lists'])
+    body = re.sub(r'<(/?)h1>', r'<\1h2>', body)  # the page head carries the one h1
 
     def link(m):
         name = m.group(1)
@@ -140,10 +141,10 @@ def main():
     body = re.sub(r'<code>([^<]+)</code>', link, body)
 
     head = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'helix_page_head.html')).read()
-    page = head.replace('{{TITLE}}', 'Helix build status').replace('{{BODY}}', f'''
+    page = head.replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Helix build status</h1>
-      <p class="muted"><a href="index.html">Neville Island helix</a> · rendered from <a href="files/{STATUS}"><code>{STATUS}</code></a></p>
+      <p class="muted">Rendered from <a href="files/{STATUS}"><code>{STATUS}</code></a></p>
     </div>
     <div class="guide-body helix-wrap prose">
 {body}
@@ -153,7 +154,7 @@ def main():
     plan_kb = size(os.path.getsize(os.path.join(SRC, PLAN)))
     tmpl_kb = size(os.path.getsize(os.path.join(SRC, 'lap_screw_template.pdf')))
     obs = ', '.join(f'<code>{f}</code>' for f in OBSOLETE)
-    index = head.replace('{{TITLE}}', 'Neville Island helix').replace('{{BODY}}', f'''
+    index = head.replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Neville Island helix</h1>
       <p class="muted">Construction plan, build status, and the printed fixtures for the 26 / 31.75 in helix · updated 15 October 2026</p>
@@ -184,7 +185,7 @@ def main():
         </table>
       </div>
       <p class="muted">Obsolete, not published: {obs}.</p>
-      <p class="muted">Scripts need Python with <code>numpy trimesh manifold3d shapely mapbox_earcut scipy rtree networkx matplotlib pymupdf pypdf</code>. Their output paths point at the original working folder; change them before running.</p>
+      <p class="muted">Scripts need Python with <code>numpy trimesh manifold3d shapely mapbox_earcut scipy rtree networkx matplotlib pymupdf pypdf</code>. Each writes into <code>helix/stl/</code>; pass <code>--out DIR</code> to write elsewhere.</p>
     </div>''')
     open(os.path.join(OUT, 'index.html'), 'w').write(index)
 

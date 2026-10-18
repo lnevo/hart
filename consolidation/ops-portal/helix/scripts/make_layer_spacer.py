@@ -18,6 +18,7 @@ Prints as modeled, flare down. Not spiral vase (the ribs need normal mode).
 import numpy as np
 import trimesh
 import router_template_lattice as lat
+from stl_out import out_dir
 
 IN = 25.4
 PITCH = 4.000
@@ -53,8 +54,9 @@ def build():
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     body = build()
-    path = "/Users/lnevo/Downloads/stl/layer_spacer_4in_pitch.stl"
+    path = OUT + "layer_spacer_4in_pitch.stl"
     body.export(path)
     print("watertight", body.is_watertight, "reload ok", lat.stl_roundtrip_ok(path),
           "bodies", len(body.split(only_watertight=False)), "size mm", np.round(body.extents, 2),

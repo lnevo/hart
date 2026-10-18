@@ -49,8 +49,7 @@
         await HARTWiring.mount();
       } catch (err) {
         console.error(err);
-        document.getElementById("wr-view").innerHTML =
-          '<p class="muted">The wiring data failed to load. Serve the portal over HTTP (scripts/serve_portal.sh), not file://.</p>';
+        HARTOps.renderError(document.getElementById("wr-view"), { what: "the wiring data", err: err });
       }
     });
   </script>
