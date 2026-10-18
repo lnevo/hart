@@ -26,27 +26,6 @@
       return HARTOps.base() + rel;
     }
 
-    // "Your first night" box at the top (same facts as the box on the home page).
-    function firstNightHtml(fn) {
-      var html = '<section class="panel first-night" id="first-night">';
-      if (fn.kicker) html += '<p class="box-kicker">' + esc(fn.kicker) + "</p>";
-      html += "<h2>" + esc(fn.heading) + "</h2>";
-      (fn.paragraphs || []).forEach(function (p) {
-        html += "<p>" + esc(p) + "</p>";
-      });
-      if (fn.bullets && fn.bullets.length) {
-        html += "<ul>" + fn.bullets.map(function (b) {
-          return "<li><strong>" + esc(b.label) + ".</strong> " + esc(b.text) + "</li>";
-        }).join("") + "</ul>";
-      }
-      if (fn.links && fn.links.length) {
-        html += '<p class="small">Before you come: ' + fn.links.map(function (l) {
-          return '<a href="' + href(l.href) + '">' + esc(l.label) + "</a>";
-        }).join(" · ") + "</p>";
-      }
-      return html + "</section>";
-    }
-
     // In-page contents for the long primer.
     function jumpHtml(items) {
       return (
@@ -110,14 +89,12 @@
       }
       var root = document.getElementById("briefing-body");
       var jump = [];
-      if (data.firstNight) jump.push({ id: "first-night", label: "Your first night" });
       (data.sections || []).forEach(function (sec) {
         jump.push({ id: sec.id, label: sec.heading });
       });
       if (data.arrive) jump.push({ id: "arrive", label: "When you arrive" });
       jump.push({ id: "deeper", label: "Dig deeper" });
-      var html = data.firstNight ? firstNightHtml(data.firstNight) : "";
-      html += jumpHtml(jump);
+      var html = jumpHtml(jump);
       html += (data.sections || [])
         .map(function (sec) {
           var html = '<section class="panel" id="' + esc(sec.id) + '">';
