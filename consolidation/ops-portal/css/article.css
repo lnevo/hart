@@ -589,3 +589,19 @@
     content: none;
   }
 }
+
+/* Code in articles: inline names and short listings (STL Studio). */
+.feature-body code,
+.feature-body pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.feature-body pre {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--paper-2);
+  border-left: 3px solid var(--brand);
+  overflow-x: auto;
+  line-height: 1.5;
+}

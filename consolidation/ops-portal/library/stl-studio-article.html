@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STL Studio: Tower LCC+Q Logic with Blocks — HART</title>
+  <meta name="description" content="STL Studio, a free block editor for the STL logic inside an RR-CirKits Tower LCC+Q node: what the node and STL are, why typing STL is error-prone, and how the editor works.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>STL Studio: Tower LCC+Q Logic with Blocks</h1>
+        <p class="standfirst">A free web editor for the logic inside an RR-CirKits Tower LCC+Q. You snap blocks together instead of typing a terse controller language, and it writes the exact text the node expects.</p>
+        <p class="byline">From the workbench · October 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#tower">A node that can think</a></li>
+          <li><a href="#stl">STL in one minute</a></li>
+          <li><a href="#hard">Why typing it is hard</a></li>
+          <li><a href="#studio">How STL Studio works</a></li>
+          <li><a href="#hart">Why it's here</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">Not everything behind the scenes ends up on the layout. STL Studio is a free web tool I built for the wider LCC and model-railroad community. It makes the logic inside an RR-CirKits Tower LCC+Q node easier to write. HART doesn't use Tower nodes today, but this is the kind of tinkering that goes on between sessions.</p>
+          <blockquote class="pull"><p>Drag the logic together, read it back in plain English, then paste it into the node.</p></blockquote>
+        </section>
+
+        <section id="tower" aria-labelledby="h-tower">
+          <h2 id="h-tower"><span class="num">01</span>A node that can think</h2>
+          <p>LCC, Layout Command Control, is the NMRA's standard for layout control networks. Devices on the bus talk in <em>events</em>: short messages like "block 4 occupied" or "show Approach." The Tower LCC+Q from RR-CirKits is an LCC node with 16 input/output lines. It also has a small built-in logic engine, like the PLCs (programmable logic controllers) that run real factory equipment.</p>
+          <p>That logic engine can listen for events, combine them, and send new ones. It can drive a signal, a crossing flasher, or an interlocking rule ("don't clear this signal if the switch is against it") right in the node, with no computer in the loop.</p>
+        </section>
+
+        <section id="stl" aria-labelledby="h-stl">
+          <h2 id="h-stl"><span class="num">02</span>STL in one minute</h2>
+          <p>The node is programmed in STL, short for Statement List: a small part of the Siemens S7 language used on industrial controllers. It only deals in on/off values. There's no math and no counting, but that's enough for signals and interlocking.</p>
+          <p>Everything is a bit with a short name:</p>
+          <ul>
+            <li><b>I</b>: inputs, set by incoming LCC events (I0.0 to I15.7)</li>
+            <li><b>Q</b>: outputs, which send LCC events when they change</li>
+            <li><b>M</b>: memory, scratch bits only the node can see</li>
+            <li><b>Y</b> and <b>Z</b>: track-circuit codes received from and sent to neighboring signals</li>
+            <li><b>T</b>: timers, T0 to T63</li>
+          </ul>
+          <p>Each line is one step. The node carries a single true/false "result" from line to line. Here's a stop signal, from the STL Studio help:</p>
+<pre>O   I0.0    // block occupied
+ON  I0.1    // OR switch lever not in position
+=   Q1.0    // show Stop</pre>
+          <p>Read it as: "If the block is occupied, or the lever isn't set, turn on Stop."</p>
+        </section>
+
+        <section id="hard" aria-labelledby="h-hard">
+          <h2 id="h-hard"><span class="num">03</span>Why typing it is hard</h2>
+          <p>STL looks simple, but it trips people up in a few ways:</p>
+          <div class="aside-box">
+            <h3>Common traps</h3>
+            <ol class="step-list">
+              <li><b>Hidden state.</b> Whether a line starts a fresh condition or adds to the last one depends on what came before. An <code>=</code>, a jump or a timer start ends one condition and starts the next, and nothing on screen shows it.</li>
+              <li><b>Tight space.</b> The node holds 16 logic groups of 256 characters each.</li>
+              <li><b>Reserved names.</b> T0 to T63 belong to the timers. Even mentioning one in a comment ("set T1 closed") can confuse the node.</li>
+              <li><b>Strict formatting.</b> Labels are one to four characters plus a colon. Inputs can't be written to, and outputs can't be set from the network.</li>
+            </ol>
+          </div>
+          <p>One wrong letter gives you a signal that's wrong in a way you won't see until a train is sitting at it.</p>
+        </section>
+
+        <section id="studio" aria-labelledby="h-studio">
+          <h2 id="h-studio"><span class="num">04</span>How STL Studio works</h2>
+          <p>STL Studio runs in a web browser, with nothing to install. It uses Blockly, the same snap-together blocks as Scratch.</p>
+          <figure>
+            <img src="../assets/behind/stl-studio/stl-studio-editor.png" alt="STL Studio: block categories on the left, a stack of colored blocks in the middle such as 'Check I0.4 is ON (OR)' and 'Apply result to Q0.2', and the generated STL with a memory-used bar on the right" width="1400" height="600" loading="lazy">
+            <figcaption><strong>The editor</strong>, with the built-in example loaded. Blocks on the left and center; the STL they produce, and how much of the node's memory it uses, on the right.</figcaption>
+          </figure>
+          <ol class="step-list">
+            <li><b>Blocks.</b> Drag blocks from the categories: Logic, Outputs, Timers, Transition, Jumps, Nesting, Variables and Comments. Each block reads like a sentence, such as "Check I0.4 is ON." The stack runs top to bottom.</li>
+            <li><b>Generate.</b> The STL panel updates as you build. Readable format adds spaces; Compact drops them to save room. Split view puts a plain-English line under each instruction, and a bar shows how much of the node's memory the logic uses.</li>
+            <li><b>Copy.</b> Copy to clipboard. In JMRI, open Configure Nodes for your node, paste into its logic group, write it, and reboot the node.</li>
+            <li><b>Import.</b> Paste existing STL to turn it back into blocks, or import a node's config backup so the menus show your own names ("East Approach") instead of bare addresses.</li>
+          </ol>
+          <p>Each block maps to one STL instruction:</p>
+          <ul class="chips" aria-label="Block to STL examples">
+            <li>AND → <code>A</code></li>
+            <li>OR NOT → <code>ON</code></li>
+            <li>Apply result → <code>=</code></li>
+            <li>Set / reset → <code>S</code> / <code>R</code></li>
+            <li>On-delay timer → <code>L</code> + <code>SD</code></li>
+            <li>Jump if true → <code>JC</code></li>
+          </ul>
+          <p>It can also download the logic, inputs, outputs and track circuits as CSV files for JMRI.</p>
+        </section>
+
+        <section id="hart" aria-labelledby="h-hart">
+          <h2 id="h-hart"><span class="num">05</span>Why it's here</h2>
+          <p>STL Studio isn't part of HART's control system, and there are no Tower LCC+Q nodes on the layout today. On HART, small radio nodes under the benchwork light the signal lamps, JMRI decides what each signal shows, and the dispatcher works the CATS or USS CTC panel (see <a href="../behind/signals.html">How the signals work</a>).</p>
+          <p>I built STL Studio for modelers whose signals and interlockings run on Tower nodes, and shared it the way HART shares its other tools. It's free and open source. If your club uses Towers, try it and send feedback through GitHub.</p>
+        </section>
+
+        <section id="references" aria-labelledby="h-refs">
+          <h2 id="h-refs"><span class="num">Notes</span>References</h2>
+          <ol class="refs">
+            <li id="ref-1">STL Studio (live app). <a href="https://lnevo.github.io/stl-studio">lnevo.github.io/stl-studio</a></li>
+            <li id="ref-2">STL Studio source (GitHub). <a href="https://github.com/lnevo/stl-studio">github.com/lnevo/stl-studio</a></li>
+            <li id="ref-3">RR-CirKits. <cite>Tower LCC+Q manual.</cite> <a href="https://www.rr-cirkits.com/">rr-cirkits.com</a></li>
+            <li id="ref-4">JMRI OpenLCB STL Editor help. <a href="https://www.jmri.org/help/en/package/jmri/jmrix/openlcb/swing/stleditor/StlEditorPane.shtml">jmri.org</a></li>
+          </ol>
+          <p class="feature-more">More: <a href="../behind/signals.html">How the signals work</a> · <a href="../behind/bridge.html">Electronics &amp; the bridge</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-stl").catch(function (err) {
+        console.error(err);
+      });
+
+      // Mark the contents entry for the section being read.
+      var links = Array.prototype.slice.call(document.querySelectorAll(".feature-toc a"));
+      if (!("IntersectionObserver" in window) || !links.length) return;
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting || !byId[e.target.id]) return;
+          links.forEach(function (a) { a.removeAttribute("aria-current"); });
+          byId[e.target.id].setAttribute("aria-current", "true");
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      Object.keys(byId).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>

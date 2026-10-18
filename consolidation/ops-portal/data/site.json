@@ -71,7 +71,8 @@
         "roster",
         "digicon",
         "behind-docs",
-        "behind-sts"
+        "behind-sts",
+        "behind-stl"
       ]
     },
     {
@@ -111,6 +112,12 @@
       {
         "label": "Car forwarding",
         "href": "behind/index.html#car-forwarding"
+      }
+    ],
+    "behind-stl": [
+      {
+        "label": "From the workbench",
+        "href": "behind/index.html#workbench"
       }
     ]
   }
