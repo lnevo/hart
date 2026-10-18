@@ -193,8 +193,14 @@
         });
       }
 
+      // opts.monthAlbums: albums that show as the month timeline when picked (the Photos page's build
+      // album); the grid swaps its masonry class for the timeline's.
+      function byMonth() {
+        return opts.groupBy === "month" || (opts.monthAlbums || []).indexOf(currentAlbum) !== -1;
+      }
+
       function cellHtml(it, i) {
-        var p = opts.groupBy === "month" ? parseDate(it.date) : null;
+        var p = byMonth() ? parseDate(it.date) : null;
         var when = p ? '<time datetime="' + esc(it.date) + '">' + (p.d ? p.d + " " : "") + MONTHS[p.m - 1].slice(0, 3) + "</time>" : "";
         return (
           (canEdit ? '<div class="g-cell">' : "") +
@@ -253,7 +259,11 @@
       function renderGrid() {
         visible = filtered();
         if (!grid) return;
-        grid.innerHTML = opts.groupBy === "month" ? monthGroups() : visible.map(cellHtml).join("");
+        if (opts.monthAlbums) {
+          grid.classList.toggle("build-timeline", byMonth());
+          grid.classList.toggle("gallery-masonry", !byMonth());
+        }
+        grid.innerHTML = byMonth() ? monthGroups() : visible.map(cellHtml).join("");
         if (canEdit) bindCurate();
         grid.querySelectorAll(".g-item").forEach(function (el) {
           el.addEventListener("click", function () {

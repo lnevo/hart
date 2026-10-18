@@ -47,12 +47,12 @@
       <div class="archive-toast" id="archive-toast" role="status" aria-live="polite"></div>
     </section>
 
-    <!-- Layout: js/gallery.js, data/gallery.json albums. The month-by-month timeline stays on The Build. -->
+    <!-- Layout: js/gallery.js, data/gallery.json albums. The build album shows as a month-by-month timeline. -->
     <section class="photo-cat" id="cat-layout" role="tabpanel" aria-labelledby="tab-layout" hidden>
       <p class="muted">
         The room on a session night, from the crew lounge to the dispatcher's desk, the yards, the scale and the
-        paperwork; the control panels; and the track plans and wiring behind them. The room's build, month by month,
-        is on <a href="../build/index.html#progress">The Build</a>.
+        paperwork; the control panels; the track plans and wiring behind them; and the room's build, month by month,
+        from bare walls in February 2025 to the helix going up.
       </p>
       <p class="archive-editbar" id="gallery-editbar" hidden>
         Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
@@ -90,7 +90,7 @@
     // is a sub-chip; SUBS maps its slug to the chip's data-kind / data-album value.
     var CATS = {
       historical: { chips: "#archive-kinds", attr: "data-kind", subs: { photos: "photo", ads: "ad", clippings: "clipping", maps: "map", documents: "document", graphics: "graphic" } },
-      layout: { chips: "#layout-albums", attr: "data-album", subs: { "session-night": "layout", panels: "panels", "track-plans": "plans", wiring: "build" } },
+      layout: { chips: "#layout-albums", attr: "data-album", subs: { "session-night": "layout", panels: "panels", build: "progress", "track-plans": "plans", wiring: "build" } },
       "rolling-stock": { chips: "#album-bar", attr: "data-album", subs: { locomotives: "locos", freight: "freight", mow: "mow" } },
     };
     var site = null;
@@ -104,7 +104,8 @@
         else if (cat === "layout")
           mounted[cat] = HARTGallery.mount({
             dataUrl: "data/gallery.json",
-            albums: ["layout", "panels", "plans", "build"],
+            albums: ["layout", "panels", "progress", "plans", "build"],
+            monthAlbums: ["progress"],
             album: "layout",
             heading: false,
             albumBar: "#layout-albums",

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>The Build — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
-  <link rel="stylesheet" href="../css/archive.css">
   <link rel="stylesheet" href="../css/video.css">
 </head>
 <body>
@@ -22,16 +21,27 @@
     </div>
 
     <section class="hub-group" id="progress" aria-labelledby="progress-title">
-      <h2 id="progress-title">The layout through the build</h2>
+      <h2 id="progress-title">Build photos</h2>
       <p class="section-note">
-        A look back at the layout before HART, then the room month by month, from bare walls in February 2025
-        to the helix going up in October 2026. Tap a photo to see it larger.
+        The build photos live with the rest of the layout photos, on the Photos page's Layout tab.
       </p>
-      <p class="archive-editbar" id="progress-editbar" hidden>
-        Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
-      </p>
-      <div class="build-timeline" id="progress-grid"><p class="muted">Loading…</p></div>
-      <div class="archive-toast" id="progress-toast" role="status" aria-live="polite"></div>
+      <div class="card-grid">
+        <a class="card" href="../photos/index.html#layout/build">
+          <p class="card-kind">Photos</p>
+          <h3>The build, month by month</h3>
+          <p>A look back at the layout before HART, then the room from bare walls in February 2025 to the helix going up in October 2026.</p>
+        </a>
+        <a class="card" href="../photos/index.html#layout/track-plans">
+          <p class="card-kind">Photos</p>
+          <h3>Track plan development</h3>
+          <p>How the plan changed, up to the July 2025 plan the layout was built from.</p>
+        </a>
+        <a class="card" href="../photos/index.html#layout/wiring">
+          <p class="card-kind">Photos</p>
+          <h3>Build &amp; wiring</h3>
+          <p>The diagrams used to wire the layout, and the work under the benchwork.</p>
+        </a>
+      </div>
     </section>
 
     <section class="hub-group" id="helix" aria-labelledby="helix-title">
@@ -77,49 +87,19 @@
       </script>
     </section>
 
-    <section class="hub-group" id="photos" aria-labelledby="photos-title">
-      <h2 id="photos-title">Track plans and wiring</h2>
-      <p class="section-note">
-        How the plan changed, and the diagrams used to wire it. For the finished room on a session night,
-        see <a href="../photos/index.html#layout/session-night">Photos</a>.
-      </p>
-      <p class="muted" id="gallery-lede" hidden></p>
-      <div class="album-bar" id="album-bar"></div>
-      <div class="gallery-masonry" id="gallery-grid"></div>
-    </section>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script src="../js/video.js"></script>
-  <script src="../js/gallery.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("build");
-        await HARTGallery.mount({
-          dataUrl: "data/gallery.json",
-          albums: ["progress"],
-          heading: false,
-          groupBy: "month",
-          albumBar: "#progress-albums", // none on this page: one album
-          grid: "#progress-grid",
-          editbar: "#progress-editbar",
-          toast: "#progress-toast",
-          curate: "/api/gallery",
-        });
-        await HARTGallery.mount({ dataUrl: "data/gallery.json", albums: ["plans", "build"], heading: false });
-        // Deep links: #plans and #wiring open that album; any hash scrolls again once the galleries have filled in.
-        var hash = location.hash.slice(1);
-        var album = { plans: "plans", wiring: "build" }[hash];
-        if (album) {
-          var btn = document.querySelector('#album-bar [data-album="' + album + '"]');
-          if (btn) btn.click();
-        }
-        var target = document.getElementById(album ? "photos" : hash);
-        if (target) target.scrollIntoView();
+        // Old deep links: #plans and #wiring now live on the Photos page.
+        var moved = { plans: "track-plans", wiring: "wiring" }[location.hash.slice(1)];
+        if (moved) location.replace("../photos/index.html#layout/" + moved);
       } catch (err) {
         console.error(err);
-        HARTOps.renderError(document.getElementById("progress-grid"), { what: "the build photos", err: err });
       }
     });
   </script>
