@@ -63,15 +63,15 @@
     {
       "id": "industries",
       "heading": "Who We Switch",
-      "intro": "Six customers on the island, plus the two interchanges. Every car you move is headed for one of them. Tap a company for its spot sheet: its history, and which car goes on which spot.",
+      "intro": "The six customers on the island. Every car you switch on the island is headed for one of them. Tap a company for its spot sheet: its history, and which car goes on which spot.",
       "placards": true,
-      "notes": {
-        "scully": "Cars to and from CSX and POHC"
-      },
       "link": {
         "label": "Shenango, Kosmos, Calgon, and Aristech all came out of one plant: see the Industry chart",
         "href": "plants/index.html"
-      }
+      },
+      "exclude": [
+        "scully"
+      ]
     },
     {
       "id": "jobs",

@@ -82,8 +82,8 @@
 
     // "Who we switch": one compact placard per customer (logo, destination color, a few commodities),
     // each linking to its spot sheet, where the company history and spots are. Data: industries.json
-    // for logos, stripes, and commodities; crew.json for the colors. sec.notes replaces the commodity
-    // line for one spot (Interchange carries everything).
+    // for logos, stripes, and commodities; crew.json for the colors. sec.exclude drops entries by spot
+    // id (Interchange is not a customer).
     // The operator sheet prints a deeper yellow; pure #FFFF00 washes out as a thin rule.
     var PRINT_HEX = { yellow: "#FFD400" };
 
@@ -98,10 +98,13 @@
       (data.crew.colors || []).forEach(function (c) {
         colors[c.id] = c;
       });
-      var notes = sec.notes || {};
+      var exclude = sec.exclude || [];
       return (
         '<ul class="placard-grid">' +
         (data.industries.industries || [])
+          .filter(function (ind) {
+            return exclude.indexOf(ind.spot) === -1;
+          })
           .map(function (ind) {
             var cs = (ind.stripes || []).filter(function (id) {
               return colors[id];
@@ -118,7 +121,7 @@
               })
               .join(" & ");
             var comm = ind.commodities || [];
-            var line = notes[ind.spot] || comm.slice(0, 3).join(", ") + (comm.length > 3 ? " +" + (comm.length - 3) : "");
+            var line = comm.slice(0, 3).join(", ") + (comm.length > 3 ? " +" + (comm.length - 3) : "");
             var src = logoSrc(ind.logo);
             return (
               '<li><a class="placard" href="' + href("crew/industries/index.html#" + ind.spot) + '">' +
