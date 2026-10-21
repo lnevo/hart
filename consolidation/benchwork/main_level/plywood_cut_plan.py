@@ -442,9 +442,11 @@ def lay_out(level, pins, autos=(), fixed=()):
                     if all(affinity.translate(q0, k / 8, yy).distance(o) >= KERF - 1e-6 for _, o in placed)]
             x = free[0] - (x[1] - min(affinity.translate(q0, free[0], yy).distance(o) for _, o in placed))
         xs = [SW - w] if x == "R" else ([k / 4 for k in range(0, int((SW - w) * 4) + 1)] if x in ("S", "M") else [x])
-        if x == "M":
+        if x == "M":   # the most room to its neighbours, keeping clear of any trammel pivot marked on the sheet
+            piv = [Point(v) for k, v in PIVOT.items() if any(k == pid2 for pid2, _ in placed)]
+            room = lambda q: min([q.distance(o) for _, o in placed] + [q.distance(c) for c in piv])
             ok = [xx for xx in xs if all(affinity.translate(q0, xx, yy).distance(o) >= KERF - 1e-6 for _, o in placed)]
-            xs = [ok[len(ok) // 2]] if ok else []
+            xs = [max(ok, key=lambda xx: room(affinity.translate(q0, xx, yy)))] if ok else []
         for xx in xs:
             q = affinity.translate(q0, xx, yy)
             if all(q.distance(o) >= KERF - 1e-6 for _, o in placed):
@@ -494,8 +496,8 @@ LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
     ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("G4", 0, 0, "B")], [], []),
-    # B1 on end, square end on the bottom edge, straight run 1/2 in off B2's left edge; G1 on the top edge right of it
-    ([("B2", 0, "R", "B"), ("B1", 90, ("A", 0.5), "B"), ("G1", 0, "S", 0)], [],
+    # B1 on end, square end on the bottom edge, centred between G3 and B2; G1 on the top edge, centred between B1 and B2
+    ([("B2", 0, "R", "B"), ("B1", 90, "M", "B"), ("G1", 0, "M", 0)], [],
      arc_nest(["G2", "G3"], x0=0.25, gap=1.5)),
 ]
 LAYOUT12 = [
