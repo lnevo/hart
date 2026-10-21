@@ -34,7 +34,7 @@ def sheet_block(s):
     rows = "".join(
         f'<tr><td class="pid">{p}</td><td>{e(PC[p]["name"])}</td><td class="num">{PC[p]["w"]} × {PC[p]["h"]}</td>'
         f'<td class="note">{e(PC[p]["note"])}</td></tr>' for p in s["pieces"])
-    tag = "Mostly spare" if s["id"] in ("D", "J") else ""
+    tag = "Room to spare" if s["used"] < 45 else ""
     return f'''
 <section class="sheet-card" id="sheet-{s["id"]}">
   <header class="sheet-head">
@@ -149,36 +149,42 @@ td.note {{ color: var(--muted); }}
 
   <div class="totals">
     <div class="total"><span class="eyebrow"><span class="swatch sw34"></span>3/4 in · 0 in level deck</span>
-      <span class="big">4 <small>sheets</small></span>
-      <p class="small">{S["area34"]} sq ft of pieces. Sheets A to C carry nearly all of the deck. Sheet D holds the
-      awkward slivers (neck wedge, SW fillet, turnback rim) and leaves about 90% for ply balloon-loop roadbed.</p></div>
+      <span class="big">{len(s34)} <small>sheets</small></span>
+      <p class="small">{S["area34"]} sq ft of pieces. The last sheet is about two-thirds spare, enough for ply
+      balloon-loop roadbed on the SW peninsula.</p></div>
     <div class="total"><span class="eyebrow"><span class="swatch sw12"></span>1/2 in · +4.25 level</span>
-      <span class="big">5 <small>sheets</small></span>
-      <p class="small">{S["area12"]} sq ft of pieces. Sheet J has about 60% spare, which is held for the 0 to 4.25 ramp
-      and any re-cuts.</p></div>
+      <span class="big">{len(s12)} <small>sheets</small></span>
+      <p class="small">{S["area12"]} sq ft of pieces. The offcuts on the last two sheets are where the 0 to 4.25 ramp
+      pieces come from.</p></div>
   </div>
 
   <section class="section">
     <h2>Where the pieces go</h2>
     <div class="maps">
-      <figure>{svg("room_34.svg")}<figcaption><span class="swatch sw34"></span>3/4 in deck at 0 in: north and west walls,
-      closet strip, alcoves, east turnback and the neck to the helix.</figcaption></figure>
-      <figure>{svg("room_12.svg")}<figcaption><span class="swatch sw12"></span>1/2 in at +4.25: helix top (D01), SW
-      peninsula top, and the 8 in ledge for the two outer tracks. Dots mark the curve centres.</figcaption></figure>
+      <figure>{svg("room_34.svg")}<figcaption><span class="swatch sw34"></span>3/4 in at 0 in: solid deck on the north and
+      west walls and the closet strip; a 6 in board for the double track from the helix, through both wall openings,
+      around the turnback and into N3. Dots mark the board's curve centres.</figcaption></figure>
+      <figure>{svg("room_12.svg")}<figcaption><span class="swatch sw12"></span>1/2 in at +4.25: the helix top over the whole
+      peninsula, the SW top over the peninsula and W3, and the 8 in ledge for the two outer tracks. Dots mark the
+      curve centres.</figcaption></figure>
     </div>
   </section>
 
   <section class="review">
-    <h2>Please check the 1/2 in plan</h2>
+    <h2>Please check</h2>
     <ol>
-      <li><b>Ledge width and curves.</b> 8 in wide from the wall on the straights. On curves the inside edge is
-      26-1/2 in radius, which is the inner track's 28-1/2 in less 2 in. Track centres are from AnyRail: 2.8 and 5.3 in
-      off the north wall, 3.5 and 6.0 in off the west wall.</li>
-      <li><b>Helix top (D01)</b> is drawn as the full 72 in circle in two halves (D1, D2). Add any access hatch you want before cutting.</li>
-      <li><b>SW peninsula top</b> is drawn solid over the whole 84 × 66 with its 33 in round end (S1, S2). The seam is 48 in from the north edge, so put a riser line under it.</li>
-      <li><b>Neck crossing (L8)</b> assumes the main line crosses the neck at +4.25 on its way to the helix top. If it doesn't, drop L8.</li>
-      <li><b>The 0 to 4.25 ramp</b> isn't drawn because I don't know where it runs yet. At 2% it's about 18 ft of
-      track. Sheet J's spare area covers about 5 ft of 8 in ledge.</li>
+      <li><b>The 6 in board (B1 to B3, N3)</b> follows the middle of AnyRail's "Helix Top Turn 1" tracks: out of the
+      helix and along the neck, through the south opening, around the turnback (29-3/4 in and 24-1/4 in centre-line
+      radii), back through the north opening, and into the north wall deck. Joints are at 5 in inside each opening and
+      halfway up the turnback straight. B1 starts square, 1-1/2 in outside the helix edge. Fit that end to the helix exit roadbed.</li>
+      <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
+      the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
+      there if you want the two to clear.</li>
+      <li><b>Helix top (H1 to H3)</b> now covers the whole peninsula: bulb plus neck, out to the wall stubs, the same as
+      the 0 in and staging footprint. Add any access hatch before cutting.</li>
+      <li><b>SW top (S0 to S4)</b> covers the peninsula and runs west over W3 to the wall, including the corner south of the
+      L9/L10 curve. The seams are at 62 in from the west wall and 48 in from the peninsula's north edge, so put risers under both.</li>
+      <li><b>The 0 to 4.25 ramp</b> still isn't drawn: I don't know where it runs. At 2% it's about 18 ft of track.</li>
     </ol>
   </section>
 
@@ -199,23 +205,20 @@ td.note {{ color: var(--muted); }}
     <div class="shop">
       <div class="box"><h3>Trammel radii</h3>
         <table><tbody>
-          <tr><td class="pid">D1 D2</td><td>36 in, bulb centre</td></tr>
-          <tr><td class="pid">K1 K2 K3 L8</td><td>36 in, same centre (their edge against the bulb)</td></tr>
-          <tr><td class="pid">S1 S2</td><td>33 in, round end of the SW peninsula</td></tr>
+          <tr><td class="pid">H1 H2</td><td>36 in, bulb centre</td></tr>
+          <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track</td></tr>
+          <tr><td class="pid">B2</td><td>26-3/4 in and 32-3/4 in edges (29-3/4 centre line)</td></tr>
+          <tr><td class="pid">B3</td><td>21-1/4 in and 27-1/4 in edges (24-1/4 centre line)</td></tr>
+          <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">L2 L5 L6</td><td>26-1/2 in inside edge, track curve centre</td></tr>
-          <tr><td class="pid">L9 L10</td><td>40.2 in inside, 48.1 in outside</td></tr>
+          <tr><td class="pid">L9 L10 S0</td><td>40.2 in inside, 48.1 in outside</td></tr>
           <tr><td class="pid">F1 F2 F3</td><td>10, 6 and 18 in fillets</td></tr>
-          <tr><td class="pid">T1 R1 R2</td><td>Aisle end is a half-ellipse: use the offsets</td></tr>
         </tbody></table>
         <p class="small">For the 36 in radius, 1/8 in of error changes the circumference by 3/4 in. Strike every bulb arc from the same nail.</p>
       </div>
-      <div class="box"><h3>N2 front edge</h3>
+      <div class="box"><h3>N2 / N3 front edge</h3>
         <p class="small">Depth from the north wall, measured from the west wall. Bend a batten through the points.</p>
         <table><thead><tr><th>From west wall</th><th>Depth</th></tr></thead><tbody>{off_n}</tbody></table>
-      </div>
-      <div class="box"><h3>T1 inside curve</h3>
-        <p class="small">Width from the east wall, measured from the north wall. Scribe it to the alcove pieces in place if they disagree.</p>
-        <table><thead><tr><th>From north wall</th><th>Width</th></tr></thead><tbody>{off_t}</tbody></table>
       </div>
     </div>
   </section>

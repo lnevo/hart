@@ -109,55 +109,91 @@ def piece(pid, geom, level, name, note=""):
     P[pid] = dict(id=pid, geom=biggest(geom), level=level, name=name, note=note)
 
 
-# 3/4
-n_a, n_b = split(NORTH, "x", 4.5 + WALL_GAP + 96)
-piece("N1", n_a, "34", "North wall", "Square cuts. Tracks run along it.")
-piece("N2", n_b, "34", "North wall, east end", "Front edge eases from 23-1/2 to 17-1/2 deep: see offsets.")
+# 0 in level: 6 in board for the double track from the helix, through both wall openings, into N2.
+# Centre line = midway between the two "Helix Top Turn 1" tracks in AnyRail (2-1/2 in apart).
+HELIX_C, HELIX_R = (92.4, 132.75), 32.0               # helix roadbed outer edge (as built 31-3/4 to 32)
+S_CURVE_C, S_CURVE_R = (177.7, 91.7), 29.75           # turnback south curve (tracks R28.5 / R31)
+N_CURVE_C, N_CURVE_R = (183.25, 80.35), 24.2          # turnback north curve (tracks R23.2 / R25.2)
+Y_SOUTH, Y_NORTH = 121.45, 56.15
+
+
+def arc(c, r, a0, a1, n=48):
+    return [(c[0] + r * math.cos(math.radians(a0 + (a1 - a0) * k / n)),
+             c[1] + r * math.sin(math.radians(a0 + (a1 - a0) * k / n))) for k in range(n + 1)]
+
+
+exit_s = catmull([(107.3, 107.0), (125.45, 117.5), (140.3, Y_SOUTH), (S_CURVE_C[0], Y_SOUTH)], 16)
+centre = (exit_s[:-1] + arc(S_CURVE_C, S_CURVE_R, 90, 0)
+          + [(S_CURVE_C[0] + S_CURVE_R, N_CURVE_C[1])][:0]
+          + arc(N_CURVE_C, N_CURVE_R, 0, -90) + [(140.0, Y_NORTH)])
+_cl = LineString(centre)
+_s0 = next(d / 4 for d in range(0, int(_cl.length * 4)) if _cl.interpolate(d / 4).distance(Point(HELIX_C)) >= HELIX_R + 1.5)
+_p0, _p1 = _cl.interpolate(_s0), _cl.interpolate(_s0 + 0.5)
+_tx, _ty = (_p1.x - _p0.x) / 0.5, (_p1.y - _p0.y) / 0.5
+AHEAD = Polygon([(_p0.x - _ty * 300, _p0.y + _tx * 300), (_p0.x + _ty * 300, _p0.y - _tx * 300),
+                 (_p0.x + _ty * 300 + _tx * 400, _p0.y - _tx * 300 + _ty * 400),
+                 (_p0.x - _ty * 300 + _tx * 400, _p0.y + _tx * 300 + _ty * 400)])
+BOARD = _cl.buffer(3.0, cap_style=2, join_style=1).intersection(AHEAD)   # square start 1-1/2 in past the helix edge
+J_SOUTH, J_NORTH, J_EAST, J_N2 = 165.0, 165.0, 86.0, 150.0   # joints: in the alcove, clear of the openings
+half_e = box(J_SOUTH, 0, 300, 300)
+b1 = BOARD.intersection(box(0, 95, J_SOUTH, 300))
+b2 = BOARD.intersection(half_e).intersection(box(0, J_EAST, 300, 300))
+b3 = BOARD.intersection(half_e).intersection(box(0, 0, 300, J_EAST))
+n_a, n_rest = split(NORTH, "x", 4.5 + WALL_GAP + 96)
+n_b, n_c = split(n_rest, "x", J_N2)
+n3 = unary_union([n_c, BOARD.intersection(box(J_N2, 0, J_NORTH, 75))])
+
+piece("N1", n_a, "34", "North wall", "Square cuts.")
+piece("N2", n_b, "34", "North wall, east", "Front edge starts to ease in: see offsets.")
+piece("N3", n3, "34", "North wall end + board through the north opening",
+      "One piece across the opening so the board runs smooth into the alcove.")
 w_c, rest = split(WEST, "y", 109.0)
-w_a, w_b = split(rest, "y", 205.0 + 0.0)
+w_a, w_b = split(rest, "y", 205.0)
 piece("W1", w_c, "34", "West wall, north end", "Butts N1 at the corner.")
 piece("W2", w_a, "34", "West wall, middle")
-piece("W3", w_b, "34", "West wall, south end", "Ends at the SW peninsula / closet line.")
-CORE = box(124.1, 113.0, 158.4, 136.0)
-neck_core = NECK.intersection(CORE)
-piece("K1", neck_core, "34", "Neck core", "Inner end follows the 36 in bulb radius.")
-neck_rest = NECK.difference(CORE)
-parts = sorted([g for g in getattr(neck_rest, "geoms", [neck_rest]) if g.area > 4], key=lambda g: -g.area)
-piece("K2", parts[0], "34", "Neck, lower wedge", "Between the bulb and the angled south edge.")
-if len(parts) > 1:
-    piece("K3", parts[1], "34", "Neck, upper sliver", "Between the bulb and the north edge.")
-piece("T1", TURNBACK, "34", "East turnback", "Inside edge follows the aisle end: see offsets.")
-piece("A1", ALCOVE_N, "34", "Alcove, north")
-piece("A2", ALCOVE_S, "34", "Alcove, south")
+piece("W3", w_b, "34", "West wall, south end", "Under the +4.25 SW top.")
+piece("B1", b1, "34", "Board: helix exit, neck, south opening",
+      "6 in. Square start 1-1/2 in outside the helix edge; field-fit to the end of the helix exit roadbed.")
+piece("B2", b2, "34", "Board: turnback south curve", "29-3/4 in centre-line radius.")
+piece("B3", b3, "34", "Board: turnback north curve", "24-1/4 in centre-line radius.")
 piece("C1", CLOSET, "34", "Closet strip")
 piece("F1", F_NW, "34", "Fillet, NW inside corner", "10 in radius.")
 piece("F2", F_CL, "34", "Fillet, closet corner", "6 in radius.")
 piece("F3", F_SW, "34", "Fillet, SW peninsula corner", "18 in radius.")
-band = TURNBACK.intersection(AISLE_BUMP.buffer(3.0)).difference(AISLE_BUMP)
-r_up, r_lo = split(band, "y", 89.5)
-piece("R1", r_up, "34", "Turnback rim, north half", "3 in band screwed under T1 along the curve.")
-piece("R2", r_lo, "34", "Turnback rim, south half")
 
-# 1/2
-d_n, d_s = split(BULB, "y", 132.75)
-piece("D1", d_n, "12", "Helix top (D01), north half", "72 in circle, 36 in radius on the bulb centre.")
-piece("D2", d_s, "12", "Helix top (D01), south half")
-s_a, s_b = split(SW_TOP, "y", 248.5)
-piece("S1", s_a, "12", "SW peninsula top, north", "Round end 33 in radius.")
-piece("S2", s_b, "12", "SW peninsula top, south")
+# +4.25: helix top covers the whole peninsula footprint (bulb + neck), same as the 0 in and staging decks.
+HTOP = unary_union([BULB, NECK_OUTLINE.intersection(box(0, 0, 158.4, 300))])
+X_NECK = 124.0
+h_w, h_e = split(HTOP, "x", X_NECK)
+h1, h2 = split(h_w, "y", HELIX_C[1])
+piece("H1", h1, "12", "Helix top, north", "36 in radius on the bulb centre.")
+piece("H2", h2, "12", "Helix top, south")
+piece("H3", h_e, "12", "Helix top, neck", "Runs to the wall stubs; L7 butts it at the south opening.")
+
+# SW top: the peninsula plus the west wall south of the L9/L10 curve, out to the wall.
+WEDGE = box(4.5 + WALL_GAP, SW_C[1], SW_C[0], 200.5).difference(disc(*SW_C, SW_R_OUT - WALL_GAP))
+SWT = unary_union([SW_TOP, box(4.5 + WALL_GAP, 200.5, 28.4, 266.5), WEDGE])
+X_SW, Y_SW = 62.0, 248.5
+s_n, s_s = split(SWT.intersection(box(0, 200.5, 300, 300)), "y", Y_SW)
+s1, s2 = split(s_n, "x", X_SW)
+s3, s4 = split(s_s, "x", X_SW)
+piece("S0", WEDGE, "12", "SW top, corner south of L9 / L10", "Outside the 48.1 in band radius, out to the wall.")
+piece("S1", s1, "12", "SW top, north-west (over W3)")
+piece("S2", s2, "12", "SW top, north-east", "Round end 33 in radius.")
+piece("S3", s3, "12", "SW top, south-west (over W3)")
+piece("S4", s4, "12", "SW top, south-east", "Round end 33 in radius.")
 piece("L1", L1, "12", "Ledge, west wall", "8 in wide.")
 piece("L2", L2, "12", "Ledge, NW corner", "Inside edge 26-1/2 in radius.")
 l3a, l3b = split(L3, "x", 135.0)
 piece("L3", l3a, "12", "Ledge, north wall", "8 in wide.")
-piece("L4", l3b, "12", "Ledge, north wall east + alcove", "Passes the wall stub at x 158-1/2 to 163.")
+piece("L4", l3b, "12", "Ledge, north wall east + alcove", "Through the north opening.")
 l4n, l4s = split(L4, "y", (TB_N[1] + TB_S[1]) / 2)
 piece("L5", l4n, "12", "Ledge, turnback north", "Inside edge 26-1/2 in radius.")
 piece("L6", l4s, "12", "Ledge, turnback south", "Inside edge 26-1/2 in radius.")
-piece("L7", L5A, "12", "Ledge, south alcove", "Passes the wall stub.")
-piece("L8", L5B, "12", "Ledge, neck to helix top", "TO CONFIRM: assumes the main crosses the neck at +4.25.")
+piece("L7", L5A, "12", "Ledge, south alcove", "Through the south opening to H3.")
 l9a, l9b = split(L6, "y", 181.0)
 piece("L9", l9a, "12", "Ledge, west wall curve (north)", "Band 40.2 to 48.1 in radius.")
-piece("L10", l9b, "12", "Ledge, west wall curve (south)", "Same band; meets the SW peninsula top.")
+piece("L10", l9b, "12", "Ledge, west wall curve (south)", "Meets S0 and the SW top.")
 
 
 # ---------------------------------------------------------------- nesting
@@ -196,32 +232,75 @@ def w(pid):
     return c - a, d - b
 
 
-K = KERF
-# 3/4 in
-sheet("A", "34", "North wall + west wall north end",
-      [("N1", 0, 0, 0), ("N2", 0, 24 + K, 0), ("W1", 96 - 38.0, 24 + K, 90)])
-sheet("B", "34", "West wall + neck core",
-      [("W2", 0, 0, 90), ("W3", 0, 24 + K, 90), ("K1", 96 - 34.3, 24 + K, 0)])
-sheet("C", "34", "East turnback, alcoves, closet strip, fillets",
-      [("T1", 0, 0, 90), ("A1", 0, 30 + K, 0), ("A2", 24 + K, 30 + K, 0), ("C1", 48 + 2 * K, 30 + K, 90),
-       ("F1", 84 + 3 * K, 0, 0), ("F2", 84 + 3 * K, 10 + K, 0), ("K3", 84 + 3 * K, 17, "v")])
-sheet("D", "34", "Neck wedge, SW fillet, turnback rim + balloon loop roadbed",
-      [("K2", 0, 0, "h"), ("R1", 0, 10.5, "h"), ("R2", 0, 20.0, "h"), ("F3", 36.0, 10.5, 0)],
-      reserve=MultiPolygon([box(0, 31, 96, 48), box(58.5, 0, 96, 31)]))
+def orient(g, rot):
+    if isinstance(rot, str):  # long side of the minimum rectangle horizontal ('h') or vertical ('v')
+        cs = list(g.minimum_rotated_rectangle.exterior.coords)
+        e = max([(cs[0], cs[1]), (cs[1], cs[2])], key=lambda q: math.dist(*q))
+        rot = -math.degrees(math.atan2(e[1][1] - e[0][1], e[1][0] - e[0][0])) + (90 if rot == "v" else 0)
+    g = affinity.rotate(g, rot, origin="centroid")
+    minx, miny, _, _ = g.bounds
+    return affinity.translate(g, -minx, -miny)
 
-# 1/2 in
-sheet("E", "12", "SW peninsula top, north + south alcove ledge",
-      [("S1", 0, 0, 0), ("L7", 84 + K, 0, 90)])
-sheet("F", "12", "Helix top north half + north wall ledge",
-      [("D1", 0, 0, 0), ("L3", 0, 36 + K, 0), ("L8", 72 + K, 0, 90)])
-sheet("G", "12", "Helix top south half + west wall ledge",
-      [("D2", 0, 0, 0), ("L1", 0, 36 + K, 90)],
-      reserve=box(72.5, 0, 96, 36))
-sheet("H", "12", "SW peninsula top, south + turnback ledge",
-      [("S2", 0, 0, 0), ("L5", 0, 18 + K, 90), ("L6", 42.0, 18 + K, 90)])
-sheet("J", "12", "NW / SW ledge curves + north ledge east + room for the ramp",
-      [("L2", 0, 0, 0), ("L9", 35.0, 0, "h"), ("L10", 35.0, 15.0, "h"), ("L4", 0, 40.0 - K, 0)],
-      reserve=box(60, 30, 96, 48))
+
+def pack(level, order, pinned=()):
+    """First fit, decreasing: pinned sheets first, then each piece goes on the first sheet where it fits,
+    tried at several rotations against candidate corners (sheet edges and edges of placed pieces)."""
+    sheets = [[(pid, affinity.translate(orient(P[pid]["geom"], rot), x, y)) for pid, x, y, rot in sh] for sh in pinned]
+    for pid in order:
+        done = False
+        for sh in sheets + [[]]:
+            best = None
+            for rot in (0, 90, "h", "v", 180, 270):
+                g0 = orient(P[pid]["geom"], rot)
+                gw, gh = g0.bounds[2], g0.bounds[3]
+                if gw > SW + 1e-6 or gh > SH + 1e-6:
+                    continue
+                xs = sorted({float(v) for v in range(0, int(SW - gw) + 1)} | {round(q.bounds[2] + KERF, 3) for _, q in sh})
+                ys = sorted({float(v) for v in range(0, int(SH - gh) + 1)} | {round(q.bounds[3] + KERF, 3) for _, q in sh}
+                            | {round(SH - gh, 3)})
+                for x in xs:
+                    for y in ys:
+                        if x + gw > SW + 1e-6 or y + gh > SH + 1e-6:
+                            continue
+                        bx = (x - KERF, y - KERF, x + gw + KERF, y + gh + KERF)
+                        near = [q for _, q in sh if not (q.bounds[0] > bx[2] or q.bounds[2] < bx[0]
+                                                         or q.bounds[1] > bx[3] or q.bounds[3] < bx[1])]
+                        if best and (x + y * 0.5, y) >= best[0]:
+                            continue
+                        g = affinity.translate(g0, x, y)
+                        if all(g.distance(q) >= KERF - 1e-6 for q in near):
+                            key = (x + y * 0.5, y)
+                            if best is None or key < best[0]:
+                                best = (key, g)
+                        if best and best[0][0] <= x:
+                            break
+            if best:
+                if not sh:
+                    sheets.append(sh)
+                sh.append((pid, best[1]))
+                done = True
+                break
+        if not done:
+            raise SystemExit(f"{pid} fits no sheet")
+    return sheets
+
+
+def add_sheets(level, first_id, sheets, reserve_note):
+    for i, sh in enumerate(sheets):
+        sid = chr(ord(first_id) + i)
+        used = unary_union([q for _, q in sh])
+        SHEETS.append(dict(id=sid, level=level, title=" · ".join(p for p, _ in sh),
+                           placed=[(p, q, 0) for p, q in sh], reserve=None, reserve_label=None))
+
+
+A34 = pack("34", ["B1", "B2", "B3", "C1", "F3", "F1", "F2"], pinned=[
+    [("N1", 0, 0, 0), ("N2", 0, 24 + KERF, 0), ("W1", 96 - 38.0, 24 + KERF, 90)],
+    [("W2", 0, 0, 90), ("W3", 0, 24 + KERF, 90), ("N3", 61.5 + KERF, 24 + KERF, 0)],
+])
+add_sheets("34", "A", A34, "")
+order12 = sorted([k for k, v in P.items() if v["level"] == "12"], key=lambda k: -P[k]["geom"].area)
+A12 = pack("12", order12)
+add_sheets("12", chr(ord("A") + len(A34)), A12, "")
 
 
 # ---------------------------------------------------------------- SVG
@@ -302,8 +381,8 @@ def room_svg(level):
         c = p["geom"].representative_point()
         o.append(f'<text class="mlbl" x="{(c.x - x0 + pad) * scale:.1f}" y="{(c.y - y0 + pad) * scale + 4:.1f}" '
                  f'text-anchor="middle">{p["id"]}</text>')
-    if level == "12":
-        for (cx, cy) in (NW_C, TB_N, TB_S, SW_C):
+    for (cx, cy) in ((NW_C, TB_N, TB_S, SW_C) if level == "12" else (S_CURVE_C, N_CURVE_C)):
+        if True:
             o.append(f'<circle class="ctr" cx="{(cx - x0 + pad) * scale:.1f}" cy="{(cy - y0 + pad) * scale:.1f}" r="2.5"/>')
     o.append(f'<text class="axis" x="{(140 - x0 + pad) * scale}" y="{(290 - y0 + pad) * scale}">N up · 1 grid = 12 in</text>')
     o.append("</svg>")
