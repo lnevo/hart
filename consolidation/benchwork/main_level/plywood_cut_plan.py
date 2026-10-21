@@ -394,9 +394,9 @@ def clearance(q, others, area=None):
 PIVOT = {}   # arc pid -> trammel pivot on its sheet
 
 
-def arc_nest(pids, x0=0.0, centre=(78.8, 233.4)):
+def arc_nest(pids, x0=0.0, gap=0.0, centre=(78.8, 233.4)):
     """Nest identical arcs like the helix roadbed: chord across the 48 in width, all facing the same way,
-    stepped along the sheet by the smallest advance that keeps a kerf between them. The arcs bulge toward the left edge so
+    stepped along the sheet by the smallest advance that keeps a kerf plus `gap` between them. The arcs bulge toward the left edge so
     each arc centre falls on the sheet itself and can be marked with a trammel pivoting on the plywood."""
     out = []
     for pid in pids:
@@ -411,7 +411,7 @@ def arc_nest(pids, x0=0.0, centre=(78.8, 233.4)):
             q, c = affinity.rotate(q, 180, origin=o), affinity.rotate(c, 180, origin=o)
         dx, dy = -q.bounds[0] + (x0 if not out else 0), (SH - (q.bounds[3] - q.bounds[1])) / 2 - q.bounds[1]
         q, c = affinity.translate(q, dx, dy), affinity.translate(c, dx, dy)
-        while out and min(q.distance(o) for _, o in out) < KERF + 1e-6:
+        while out and min(q.distance(o) for _, o in out) < KERF + gap - 1e-6:
             q, c = affinity.translate(q, 0.125, 0), affinity.translate(c, 0.125, 0)
         out.append((pid, q))
         PIVOT[pid] = (c.x, c.y)
@@ -420,7 +420,7 @@ def arc_nest(pids, x0=0.0, centre=(78.8, 233.4)):
 
 def lay_out(level, pins, autos=(), fixed=()):
     """One sheet laid out for the saw. pins: (pid, rot, x, y), x 'R' = flush right, y 'B' = flush bottom,
-    x 'S' = slide right until it fits. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
+    x 'S' = slide right until it fits, 'M' = middle of the room it fits in. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
     leftover space; (pid, "C"[, area]) centres the piece where it has the most clearance, square to the sheet;
     "CA" also tries 15 degree steps so a curved piece can follow a curved offcut."""
     placed = list(fixed)
@@ -428,7 +428,10 @@ def lay_out(level, pins, autos=(), fixed=()):
         q0 = orient(P[pid]["geom"], rot)
         w, h = q0.bounds[2], q0.bounds[3]
         yy = SH - h if y == "B" else y
-        xs = [SW - w] if x == "R" else ([k / 4 for k in range(0, int((SW - w) * 4) + 1)] if x == "S" else [x])
+        xs = [SW - w] if x == "R" else ([k / 4 for k in range(0, int((SW - w) * 4) + 1)] if x in ("S", "M") else [x])
+        if x == "M":
+            ok = [xx for xx in xs if all(affinity.translate(q0, xx, yy).distance(o) >= KERF - 1e-6 for _, o in placed)]
+            xs = [ok[len(ok) // 2]] if ok else []
         for xx in xs:
             q = affinity.translate(q0, xx, yy)
             if all(q.distance(o) >= KERF - 1e-6 for _, o in placed):
@@ -475,7 +478,7 @@ LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("G1", 0, "R", 23.4 + KERF), ("F3", 90, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
     ([("W1", 90, 0, 0), ("B3", 0, "R", 0)], [("B1", "CA", box(39.5 + KERF, 0, SW, SH))], []),
-    ([("B2", 0, "R", "B")], ["G4"], arc_nest(["G2", "G3"], x0=2.0)),
+    ([("B2", 0, "R", "B"), ("G4", 0, "M", 0)], [], arc_nest(["G2", "G3"], x0=2.0, gap=1.5)),
 ]
 LAYOUT12 = [
     ([("H1", 90, 0, 0), ("L9", 180, "R", 0)], [], []),
