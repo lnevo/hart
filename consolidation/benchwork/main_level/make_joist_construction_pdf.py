@@ -28,14 +28,14 @@ DEPTH = 24.0          # shelf depth used for the typical section (west wall)
 FACE_OUT = DEPTH
 FACE_IN = DEPTH - 0.75
 LEDGER_IN = FACE_IN - 1.5
-GIRDER_X0 = 3.0       # assumed girder position; field-measure
+GIRDER_X0 = 0.0       # existing girder: web against the wall, flange on top
 WEB_X1 = GIRDER_X0 + 0.75
 FLANGE_X1 = GIRDER_X0 + 1.5
 BLOCK_L = 5.0
-BLOCK_X0 = (GIRDER_X0 + FLANGE_X1) / 2 - BLOCK_L / 2
+JOIST_X0 = 0.125      # 1/8 off the wall
+BLOCK_X0 = JOIST_X0  # wall end square, flush with the joist end
 CLIP = BLOCK_TOP - BLOCK_BOT - 1.5          # 1.0: block hang-down below joist
 ROD_X = (LEDGER_IN + FACE_IN) / 2
-JOIST_X0 = 0.5
 
 WOOD = Color(0.93, 0.85, 0.70)
 WOOD_DK = Color(0.86, 0.74, 0.55)
@@ -254,7 +254,7 @@ def sheet_section(c):
 
     # leaders
     v.leader(BLOCK_X0 + BLOCK_L - 0.3, BLOCK_BOT + 0.4, 8.0, -5.0,
-             "1x3 riser block, 5\" long, 45 deg miters,\nglued + screwed to the joist side (sheet 2)")
+             "1x3 riser block, 5\" long, square at the wall,\n45 deg miter at the front, glued + screwed\nto the joist side (sheet 2)")
     v.leader(GIRDER_X0 + 0.4, -6.2, 5.0, -6.9, "Existing L-girder: 1x4 web + 1x2 flange,\n"
              "flange top -3.25 (as installed)")
     v.leader(17.5, (J_TOP + J_BOT) / 2, 15.0, -4.4, "1x2 joist on edge, 16\" o.c.")
@@ -284,15 +284,16 @@ def sheet_section(c):
     footer_note(c, [
         "Block bottom lands 0.03 above the flange (3.25 - 2.50 - 0.72); the deck top finishes 1/32 low - within "
         "tolerance, or shim the flange.",
-        "Girder drawn 3\" off the wall; use the as-installed position. Track = 0.236 cork + 0.160 Atlas code 83 "
+        "Existing girder against the wall (web to the studs, flange on top). Track = 0.236 cork + 0.160 Atlas code 83 "
         "(caliper before clearance sign-off).",
         "Scale 1:4 on Letter landscape. Lumber cut in section shows an X; the joist and riser block are in side view.",
     ], y=22, size=7)
 
 
 def block_pts():
+    # square at the wall end (full bearing on the flange), one 45 deg miter on the visible front end
     return [(BLOCK_X0, BLOCK_TOP), (BLOCK_X0 + BLOCK_L, BLOCK_TOP), (BLOCK_X0 + BLOCK_L, BLOCK_BOT + CLIP),
-            (BLOCK_X0 + BLOCK_L - CLIP, BLOCK_BOT), (BLOCK_X0 + CLIP, BLOCK_BOT), (BLOCK_X0, BLOCK_BOT + CLIP)]
+            (BLOCK_X0 + BLOCK_L - CLIP, BLOCK_BOT), (BLOCK_X0, BLOCK_BOT)]
 
 
 # ---------------------------------------------------------------- sheet 2
@@ -305,9 +306,10 @@ def sheet_details(c):
     # Detail A (1:2)
     a = View(c, ox=60, oy=500, scale=2, xref=-0.5, yref=1.4)
     a.text(-0.5, 1.4, "A   SIDE VIEW ALONG THE JOIST   1:2", size=9, bold=True, dy=4)
-    ply(a, -0.5, 8.5, 0, PLY)
+    a.rect(-0.5, WEB_BOT - 0.3, 0, 0.6, fill=WALL, lw=0.5)
+    ply(a, JOIST_X0, 8.5, 0, PLY)
     a.poly(block_pts(), fill=WOOD_DK)
-    a.rect(-0.5, J_BOT, 8.5, J_TOP, fill=None)
+    a.rect(JOIST_X0, J_BOT, 8.5, J_TOP, fill=None)
     a.text(8.3, mid, "1x2 joist", size=7, anchor="r", dy=-2)
     a.rect(GIRDER_X0, FLANGE_BOT, FLANGE_X1, FLANGE_TOP, xcut=True)
     a.rect(GIRDER_X0, WEB_BOT, WEB_X1, FLANGE_BOT, xcut=True)
@@ -316,9 +318,10 @@ def sheet_details(c):
     fx = (GIRDER_X0 + FLANGE_X1) / 2
     a.screw(fx, FLANGE_BOT, fx, FLANGE_BOT + 1.5)
     a.dim_h(0.45, BLOCK_X0, BLOCK_X0 + BLOCK_L, "5")
-    a.dim_v(BLOCK_X0 - 0.6, BLOCK_TOP, BLOCK_BOT, "2-1/2", side="l")
+    a.dim_v(BLOCK_X0 + BLOCK_L + 1.3, BLOCK_TOP, BLOCK_BOT, "2-1/2")
     a.dim_v(BLOCK_X0 + BLOCK_L + 0.4, J_BOT, BLOCK_BOT, "1")
-    a.text(BLOCK_X0 + CLIP / 2, BLOCK_BOT + CLIP / 2, "45 deg", size=7, color=ACCENT, anchor="r", dx=-8, dy=-6)
+    a.text(BLOCK_X0 + BLOCK_L - CLIP / 2, BLOCK_BOT + CLIP / 2, "45 deg", size=7, color=ACCENT, dx=4, dy=-14)
+    a.text(-0.25, -5.5, "WALL", size=6.5, anchor="c", color=GREY)
     a.leader(fx, FLANGE_BOT - 0.05, 5.4, -5.0, "#6 x 1-1/2 up through the\nflange into the block, pilot",
              color=ACCENT)
     a.leader(BLOCK_X0 + BLOCK_L - 1.2, mid, 6.4, -3.3, "glue + 2x #6 x 1-1/4 through\nthe block into the joist",
@@ -344,10 +347,11 @@ def sheet_details(c):
 
     footer_note(c, [
         "Riser block: cut from 1x3, grain running with the joist. Top flush with the joist top; the bottom sits on "
-        "the flange. The 45 deg miters only trim the 1\" hang-down,",
-        "so the full 3\" bottom still bears on the 1-1/2 flange. Keep every block on the same side of its joist. "
+        "the flange. The wall end stays square so the block bears on the full 1-1/2 flange;",
+        "the single 45 deg miter trims only the 1\" hang-down on the front end. Joist and block ends sit 1/8 off the "
+        "wall. Keep every block on the same side of its joist. "
         "Full-size pattern on sheet 4.",
-    ], y=40)
+    ], y=30)
 
 
 # ---------------------------------------------------------------- sheet 3
@@ -436,11 +440,12 @@ def sheet_plan(c):
 
     p = View(c, ox=80, oy=100, scale=1)
     p.text(0, 3.2, "RISER BLOCK - FULL SIZE PATTERN (1:1)", size=9, bold=True)
-    p.poly([(0, 2.5), (5, 2.5), (5, 1.0), (4.0, 0), (1.0, 0), (0, 1.0)], fill=WOOD_DK)
+    p.poly([(0, 2.5), (5, 2.5), (5, 1.0), (4.0, 0), (0, 0)], fill=WOOD_DK)
     p.line(0, 1.0, 5, 1.0, lw=0.4, color=GREY, dash=(3, 2))
     p.text(2.5, 1.05, "joist bottom line", size=6.5, color=GREY, anchor="c", dy=2)
     p.dim_h(2.8, 0, 5, "5")
-    p.dim_h(-0.3, 1, 4, "3", above=False)
+    p.dim_h(-0.3, 0, 4, "4", above=False)
+    p.text(0, -0.75, "square end goes to the wall", size=6.5, color=GREY)
     p.dim_v(-0.3, 0, 2.5, "2-1/2", side="l")
     p.dim_v(5.3, 0, 1.0, "1")
     p.text(2.5, 1.75, "grain  ->", size=7, anchor="c", color=GREY)
@@ -450,8 +455,8 @@ def sheet_plan(c):
     c.setFont("Helvetica-Bold", 9)
     c.drawString(tx, 280, "CUT LIST PER 8 FT BAY (24\" deep)")
     rows = [
-        ("1x2 joists", "7 @ 22-3/4", "24 - 3/4 face - 1/2 wall gap"),
-        ("1x3 riser blocks", "7 @ 5", "45 deg, 1\" up each end"),
+        ("1x2 joists", "7 @ 23-1/8", "24 - 3/4 face - 1/8 wall gap"),
+        ("1x3 riser blocks", "7 @ 5", "square at wall, 45 deg front"),
         ("1x3 face", "96", "on edge"),
         ("1x2 ledger", "96", "flat, edge to the 1x3"),
         ("5/16-18 rod", "3 @ ~13", "fit to the staging deck"),
@@ -467,7 +472,7 @@ def sheet_plan(c):
         c.drawString(tx + 140, y, n_)
     footer_note(c, [
         "Splice the 1x3 face and the ledger at different joists; butt joints in the 3/4 ply land on a joist. "
-        "North wall: 23-1/2 deep tapering to 17-1/2 - cut each joist to depth - 3/4 - 1/2.",
+        "North wall: 23-1/2 deep tapering to 17-1/2 - cut each joist to depth - 3/4 - 1/8.",
         "Scales: plan 1:12, pattern 1:1 - print at 100% and check the 5\" dimension with a rule before tracing.",
     ], y=22, size=7)
 
@@ -481,10 +486,10 @@ def sheet_steps(c):
         "2.  On the bench, glue the ledger flat to the inside face of the 1x3, its edge against the face. Set the "
         "height with a 1x2 offcut on the ledger, flush with the 1x3 top (ledger top 1-1/2 below the 1x3 top, "
         "1/4 up from its bottom). Screw from outside every 8\". Let it cure.",
-        "3.  Cut the riser blocks: 5\" of 1x3, then trim each bottom corner at 45 deg, 1\" each way. Trace the "
+        "3.  Cut the riser blocks: 5\" of 1x3, square at the wall end; trim the front bottom corner at 45 deg, 1\" each way. Trace the "
         "full-size pattern on sheet 4 or make a stop block on the miter saw.",
-        "4.  Mark where each joist crosses the girder. Glue + screw a block to the side of each joist, top flush, "
-        "centred on the flange line. Same side on every joist.",
+        "4.  Glue + screw a block to the side of each joist: top flush, square end flush with the joist's wall end. "
+        "Same side on every joist.",
         "5.  Prop the front assembly at height (ledger top at -2.22). Drill 3/8 holes in the ledger mid-bay for the "
         "rods, max 36\" apart, between joists.",
         "6.  Set the joists at 16\" o.c.: blocks on the flange, front ends on the ledger, butted to the 1x3. "
