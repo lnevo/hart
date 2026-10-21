@@ -116,7 +116,9 @@ def fillet(cx, cy, sx, sy, r):
 
 F_NW = fillet(28.5, 71.0, 1, 1, 10.0)
 F_CL = fillet(18.5, 266.5, 1, 1, 6.0)
-F_SW = fillet(28.5, 200.5, 1, -1, 18.0)
+# SW inside corner: the 18 in fillet, squared off down to the balloon loop's outer edge so the loop's first
+# curve sits on it and G1 starts with a square cut.
+F_SW = box(28.5, 182.5, 46.5, 204.4).difference(disc(46.5, 182.5, 18.0))
 
 # SW peninsula top: 84 x 66 with a 33 in round east end
 SW_TOP = outline(SW_MOD)
@@ -204,7 +206,7 @@ piece("B1", b1, "34", "Board: helix exit, neck, south opening",
       "6 in. Square start 1-1/2 in outside the helix edge; field-fit to the end of the helix exit roadbed.")
 piece("B2", b2, "34", "Closet deck, south half", "South alcove + turnback, full over the grid. Inside edge: offsets.")
 piece("B3", b3, "34", "Closet deck, north half", "North alcove + turnback. Seam at the middle of the aisle end.")
-piece("F3", F_SW, "34", "Fillet, SW peninsula corner", "18 in radius.")
+piece("F3", F_SW, "34", "SW inside corner + balloon loop start", "Square corners; 18 in fillet on the aisle side.")
 
 # Balloon loop at 0 on the SW peninsula (AnyRail branchline): 4 in subroadbed on the open grid,
 # only where there's no 3/4 deck under it. Centre line: R28.6 off the west wall, straight, R31 round the
@@ -213,11 +215,13 @@ LOOP = (arc((45.1, 173.8), 28.6, 180, 90) + arc((78.8, 233.4), 31.0, -90, 90) + 
 LOOP_W = 4.0
 LOOP_BAND = LineString(LOOP).buffer(LOOP_W / 2, cap_style=2, join_style=1).difference(
     unary_union([WEST.buffer(0.0), F_SW, box(0, 0, 4.5 + WALL_GAP, 400)]))
+_g1 = LOOP_BAND.intersection(box(46.5, 0, 72.0, 218.0))
+_g4 = LOOP_BAND.intersection(box(28.5, 218.0, 72.0, 400))
 for i, (gid, part, note) in enumerate([
-        ("G1", LOOP_BAND.intersection(box(0, 0, 72.0, 218.0)), "Leaves the west wall deck on 28.6 in radius."),
+        ("G1", box(*_g1.bounds), "Plain rectangle on the straight; square cuts at F3 and G2."),
         ("G2", LOOP_BAND.intersection(box(72.0, 0, 300, 233.4)), "31 in radius round the tip, centre (78.8, 233.4)."),
         ("G3", LOOP_BAND.intersection(box(72.0, 233.4, 300, 400)), "31 in radius; joint at the tip."),
-        ("G4", LOOP_BAND.intersection(box(0, 218.0, 72.0, 400)), "29 in radius back to the west wall deck.")]):
+        ("G4", box(*_g4.bounds), "Plain rectangle from W3 to G3; wide enough for the 29 in curve.")]):
     piece(gid, part, "34", "Balloon loop subroadbed", "4 in wide. " + note)
 
 # +4.25: helix top covers the whole peninsula footprint (bulb + neck), same as the 0 in and staging decks.
@@ -228,8 +232,10 @@ HTOP = PEN
 X_H1 = HTOP.bounds[0] + 48.0
 X_H2 = X_H1 + 48.0
 piece("H1", HTOP.intersection(box(0, 0, X_H1, 300)), "12", "Helix top, west", "48 x 72: the west half of the bulb.")
-piece("H2", HTOP.intersection(box(X_H1, 0, X_H2, 300)), "12", "Helix top, east", "48 wide: east bulb and the neck; curved south edge.")
-NECK_END = HTOP.intersection(box(X_H2, 0, 300, 300))
+Y_L7 = L5A.bounds[1]          # top of the south-alcove ledge, carried straight west to H1
+piece("H2", HTOP.intersection(box(X_H1, 0, 300, Y_L7)), "12", "Helix top, north-east",
+      "East bulb and the neck's north side, out to the wall stubs.")
+NECK_SOUTH = HTOP.intersection(box(X_H1, Y_L7, 300, 300))
 
 # SW top: the peninsula plus the west wall south of the L9/L10 curve, out to the wall. The backdrop
 # (AnyRail view block, y 231.8 to 233.3, wall to x 68.7) splits it into north and south halves; each half is
@@ -253,8 +259,9 @@ piece("L2", L2, "12", "Ledge, NW corner", "26-1/2 in inside radius. Kept separat
 piece("L3", L3.intersection(box(0, 0, X_L3, 300)), "12", "Ledge, north wall", "96 in.")
 piece("L4", L3.intersection(box(X_L3, 0, 300, 300)), "12", "Ledge, north wall east + alcove", "Through the north opening.")
 piece("L5", L4, "12", "Ledge, turnback", "One piece, 30 x 84; 26-1/2 in inside radius at both ends.")
-piece("L7", unary_union([NECK_END, box(NECK_END.bounds[2] - 0.2, L5A.bounds[1], L5A.bounds[2], L5A.bounds[3])]), "12",
-      "Ledge, south alcove + helix neck end", "Covers the neck at the wall stubs and runs through the south opening.")
+piece("L7", unary_union([NECK_SOUTH, box(NECK_SOUTH.bounds[2] - 0.2, L5A.bounds[1], L5A.bounds[2], L5A.bounds[3])]), "12",
+      "Helix top south-east + south alcove ledge",
+      "Straight top edge from H1 to the alcove wall; curved south edge; through the south opening.")
 piece("L9", L_SW, "12", "Ledge, SW corner", "One piece: 40.2 in inside radius, out to the wall; straight edge on the SW top.")
 
 

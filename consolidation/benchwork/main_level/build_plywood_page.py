@@ -180,15 +180,18 @@ td.note {{ color: var(--muted); }}
       that end to the helix exit roadbed.</li>
       <li><b>Closet deck (B2, B3)</b> is now full over the grid: both alcoves and the turnback, split at the middle of the
       aisle end so the halves mirror each other. The aisle curve is AnyRail's exact outline.</li>
-      <li><b>Balloon loop (G1 to G4)</b> is 4 in subroadbed on the AnyRail branchline loop: 28.6 in radius off the west
-      wall, 31 in round the tip, 29 in back to the wall. It's only drawn where there's no 3/4 deck under it, so along
-      the west wall the track sits on W2 and W3. Widen it if your roadbed needs more.</li>
+      <li><b>Balloon loop (F3, G1 to G4)</b> is 4 in subroadbed on the AnyRail branchline loop: 28.6 in radius off the
+      west wall, 31 in round the tip, 29 in back to the wall. F3 is a square-cornered block in the SW inside corner
+      (with the 18 in fillet on the aisle side) that carries the loop's first curve, so G1 is a plain rectangle. G4 is
+      a plain rectangle wide enough for the last curve. G2 and G3 are the two arcs round the tip. Widen the loop if your
+      roadbed needs more than 4 in.</li>
       <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
       the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
       there if you want the two to clear.</li>
-      <li><b>Helix top (H1, H2)</b> uses AnyRail's exact peninsula outline, including the curved south edge, split
-      west / east: H1 is 48 × 72 (west half of the bulb), H2 is 48 × 66-5/8 (east bulb and neck). The neck end at the
-      wall stubs goes with the L7 ledge. Add any access hatch before cutting.</li>
+      <li><b>Helix top (H1, H2, L7)</b> uses AnyRail's exact peninsula outline, including the curved south edge. H1 is
+      the west half of the bulb, 48 × 72. The south-alcove ledge's top edge carries straight west to H1, so L7 is one
+      83 in piece: the south side of the bulb and neck plus the ledge through the south opening. H2 is the rest, the
+      north-east bulb and the neck's north side out to the wall stubs. Add any access hatch before cutting.</li>
       <li><b>SW top (S1 to S4)</b> covers the peninsula and runs west over W3 to the wall. It's split along the backdrop
       (AnyRail's view block, 1-1/2 in wide, from the wall to 68-3/4 in out). S2 and S4 are 96 in long, from the tip back
       toward the wall; the wall strip S1 is one 11-5/8 × 66 piece that the backdrop stands on. The SW corner ledge is one piece (L9) with a
@@ -223,12 +226,11 @@ td.note {{ color: var(--muted); }}
           <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track</td></tr>
           <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
-          <tr><td class="pid">G1</td><td>28.6 in centre line (26.6 / 30.6 edges)</td></tr>
+          <tr><td class="pid">F3</td><td>18 in fillet, aisle side only</td></tr>
           <tr><td class="pid">G2 G3</td><td>31 in centre line (29 / 33 edges), same centre as the round end</td></tr>
-          <tr><td class="pid">G4</td><td>29 in centre line (27 / 31 edges)</td></tr>
-          <tr><td class="pid">L2 L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
+                    <tr><td class="pid">L2 L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
           <tr><td class="pid">L9</td><td>40.2 in inside radius, centre (52.7, 160.3)</td></tr>
-          <tr><td class="pid">W1 W3 F3</td><td>10, 6 and 18 in fillets</td></tr>
+          <tr><td class="pid">W1 W3</td><td>10 and 6 in fillets</td></tr>
         </tbody></table>
         <p class="small">For the 36 in radius, 1/8 in of error changes the circumference by 3/4 in. Strike every bulb arc from the same nail.</p>
       </div>
