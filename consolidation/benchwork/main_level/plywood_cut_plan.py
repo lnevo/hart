@@ -504,9 +504,7 @@ LAYOUT12 = [
     ([("H1", 90, 0, 0), ("L9", 180, "R", 0)], [], []),
     ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], [], []),
     ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], [], []),
-    # L2 in the bottom-right corner, straight sides on the right edge; H2 flipped and turned 13 degrees to follow
-    # L7's curve (position found by search for the most room to L7 and L2)
-    ([("L7", 0, 0, 0), ("L2", 180, "R", "B"), ("H2", "F347", 13.5, 11.75)], [], []),
+    ([("L7", 0, 0, 0), ("L2", 90, "R", "B")], [("H2", "C")], []),
     ([("L5", 90, 0, 0), ("S1", 90, 0, "B"), ("L4", "h", "M", 0)], [], []),   # L4 on the top edge inside L5
 ]
 A34 = [lay_out("34", pins, autos, fixed) for pins, autos, fixed in LAYOUT34]
