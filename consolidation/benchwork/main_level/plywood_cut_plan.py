@@ -426,7 +426,7 @@ def arc_nest(pids, x0=0.0, gap=0.0, centre=(78.8, 233.4)):
 
 def lay_out(level, pins, autos=(), fixed=()):
     """One sheet laid out for the saw. pins: (pid, rot, x, y), rot 'F' / 'F180' = flipped (then turned), x 'R' = flush right, y 'B' = flush bottom,
-    x 'S' = slide right until it fits, 'M' = middle of the room it fits in. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
+    x 'S' = slide right until it fits, ('A', gap) = as far right as fits less gap, 'M' = middle of the room it fits in. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
     leftover space; (pid, "C"[, area]) centres the piece where it has the most clearance, square to the sheet;
     "CA" also tries 5 degree steps, face up or flipped, so a curved piece can follow a curved offcut."""
     placed = list(fixed)
@@ -437,6 +437,10 @@ def lay_out(level, pins, autos=(), fixed=()):
         q0 = orient(g, rot)
         w, h = q0.bounds[2], q0.bounds[3]
         yy = SH - h if y == "B" else y
+        if isinstance(x, tuple):   # ("A", gap): as far right as it fits, then back off to leave `gap` to its neighbour
+            free = [k / 8 for k in range(int((SW - w) * 8), -1, -1)
+                    if all(affinity.translate(q0, k / 8, yy).distance(o) >= KERF - 1e-6 for _, o in placed)]
+            x = free[0] - (x[1] - min(affinity.translate(q0, free[0], yy).distance(o) for _, o in placed))
         xs = [SW - w] if x == "R" else ([k / 4 for k in range(0, int((SW - w) * 4) + 1)] if x in ("S", "M") else [x])
         if x == "M":
             ok = [xx for xx in xs if all(affinity.translate(q0, xx, yy).distance(o) >= KERF - 1e-6 for _, o in placed)]
@@ -490,8 +494,8 @@ LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
     ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("G4", 0, 0, "B")], [], []),
-    # G1 on the top edge, its end in line with B2's left edge (one cut); B1 standing between G3 and B2
-    ([("B2", 0, "R", "B"), ("G1", 0, SW - orient(P["B2"]["geom"], 0).bounds[2], 0), ("B1", 270, "M", "B")], [],
+    # B1 on end, square end on the bottom edge, straight run 1/2 in off B2's left edge; G1 on the top edge right of it
+    ([("B2", 0, "R", "B"), ("B1", 90, ("A", 0.5), "B"), ("G1", 0, "S", 0)], [],
      arc_nest(["G2", "G3"], x0=0.25, gap=1.5)),
 ]
 LAYOUT12 = [
