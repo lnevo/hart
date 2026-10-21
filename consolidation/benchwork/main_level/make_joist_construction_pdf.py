@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Main-level shelf construction drawings: back L-girder riser block, 1x2 joist,
-front 1x3 face + 1x2 ledger, 3/4 ply subroadbed. Needs reportlab.
+front 1x2 face on a 1x3 flange (upside-down L), 3/4 ply subroadbed. Needs reportlab.
 
 All geometry is in real inches. Elevation 0 = top of the 3/4 ply subroadbed
 (the 0" grade level). Staging deck top = -15.
@@ -16,8 +16,8 @@ PW, PH = landscape(letter)
 # ---- stack (inches) ----
 PLY = 0.72            # 3/4 ply as measured
 J_TOP, J_BOT = -PLY, -PLY - 1.5             # 1x2 joist on edge
-FACE_TOP, FACE_BOT = -PLY, -PLY - 2.5       # front 1x3 on edge
-LEDGER_TOP, LEDGER_BOT = J_BOT, J_BOT - 0.75  # 1x2 flat, edge glued to the 1x3
+FACE_TOP, FACE_BOT = -PLY, -PLY - 1.5       # front 1x2 face on edge, same depth as the joists
+LEDGER_TOP, LEDGER_BOT = J_BOT, J_BOT - 0.75  # front 1x3 flange, flat, under the face and joist ends
 FLANGE_TOP = -3.25                          # existing L-girder (as installed)
 FLANGE_BOT = FLANGE_TOP - 0.75
 WEB_BOT = FLANGE_BOT - 3.5
@@ -27,14 +27,14 @@ STAGING_RAIL = STAGING_TOP + 0.236 + 0.160  # 6 mm cork + Atlas code 83
 DEPTH = 24.0          # shelf depth used for the typical section (west wall)
 FACE_OUT = DEPTH
 FACE_IN = DEPTH - 0.75
-LEDGER_IN = FACE_IN - 1.5
+LEDGER_IN = FACE_OUT - 2.5  # flange runs LEDGER_IN..FACE_OUT, outer edge flush with the face
 GIRDER_X0 = 0.0       # existing girder: web against the wall, flange on top
 WEB_X1 = GIRDER_X0 + 0.75
 FLANGE_X1 = GIRDER_X0 + 1.5
 BLOCK_L = 5.0
 JOIST_X0 = 0.125      # 1/8 off the wall
 BLOCK_X0 = JOIST_X0  # wall end square, flush with the joist end
-CLIP = BLOCK_TOP - BLOCK_BOT - 1.5          # 1.0: block hang-down below joist
+CLIP = BLOCK_TOP - BLOCK_BOT                # full-height 45 deg miter on the front end
 ROD_X = (LEDGER_IN + FACE_IN) / 2
 
 WOOD = Color(0.93, 0.85, 0.70)
@@ -231,9 +231,9 @@ def sheet_section(c):
     v.rect(GIRDER_X0, FLANGE_BOT, FLANGE_X1, FLANGE_TOP, xcut=True)
     v.rect(GIRDER_X0, WEB_BOT, WEB_X1, FLANGE_BOT, xcut=True)
 
-    # front 1x3 face + 1x2 ledger (cut)
+    # front 1x2 face on the 1x3 flange (cut)
     v.rect(FACE_IN, FACE_BOT, FACE_OUT, FACE_TOP, xcut=True)
-    v.rect(LEDGER_IN, LEDGER_BOT, FACE_IN, LEDGER_TOP, xcut=True)
+    v.rect(LEDGER_IN, LEDGER_BOT, FACE_OUT, LEDGER_TOP, xcut=True)
 
     # threaded rod (beyond the cut, between joists)
     v.line(ROD_X, LEDGER_TOP + 0.35, ROD_X, STAGING_TOP - PLY - 0.4, lw=1.4, color=STEEL, dash=(4, 2))
@@ -248,7 +248,7 @@ def sheet_section(c):
 
     # clearances
     v.dim_v(13.0, J_BOT, STAGING_RAIL, f"{J_BOT - STAGING_RAIL:.2f} clear")
-    v.dim_v(FACE_OUT + 0.7, FACE_BOT, STAGING_RAIL, f"{FACE_BOT - STAGING_RAIL:.2f} clear")
+    v.dim_v(FACE_OUT + 0.7, LEDGER_BOT, STAGING_RAIL, f"{LEDGER_BOT - STAGING_RAIL:.2f} clear")
     v.dim_v(GIRDER_X0 + 1.2, WEB_BOT, STAGING_RAIL, f"{WEB_BOT - STAGING_RAIL:.2f} clear")
     v.dim_h(-12.6, 0, FACE_OUT, f"{DEPTH:.0f} shelf depth (west wall; north wall 23-1/2 tapering to 17-1/2)")
 
@@ -258,9 +258,9 @@ def sheet_section(c):
     v.leader(GIRDER_X0 + 0.4, -6.2, 5.0, -6.9, "Existing L-girder: 1x4 web + 1x2 flange,\n"
              "flange top -3.25 (as installed)")
     v.leader(17.5, (J_TOP + J_BOT) / 2, 15.0, -4.4, "1x2 joist on edge, 16\" o.c.")
-    v.leader(FACE_OUT - 0.2, FACE_BOT + 0.2, 26.3, -4.4, "1x3 face on edge\n(fascia backer)")
+    v.leader(FACE_OUT - 0.2, FACE_BOT + 0.2, 26.3, -4.4, "1x2 face on edge\n(fascia backer)")
     v.leader(LEDGER_IN + 0.3, LEDGER_BOT, 15.0, -6.6,
-             "1x2 ledger, flat, edge glued + screwed\nto the 1x3 inside face (sheet 3)")
+             "1x3 flange, flat, under the face and the\njoist ends: an upside-down L (sheet 3)")
     v.leader(ROD_X, -10.0, 26.3, -10.0, "5/16-18 threaded rod,\nmax 36\" apart, between\njoists; nut + fender\n"
              "washer each side")
     v.leader(20.5, -PLY / 2, 26.3, 1.2, "3/4 ply subroadbed\n(0.72 measured), glued +\nscrewed to joists")
@@ -271,9 +271,9 @@ def sheet_section(c):
     c.setFont("Helvetica-Bold", 8)
     c.setFillColor(black)
     c.drawString(ex, ey, "ELEVATIONS")
-    rows = [(0.0, "top of 3/4 ply subroadbed"), (J_TOP, "joist top, 1x3 top"),
-            (J_BOT, "joist bottom = ledger top"), (LEDGER_BOT, "ledger bottom"),
-            (FACE_BOT, "1x3 bottom, block bottom"), (FLANGE_TOP, "girder flange top"),
+    rows = [(0.0, "top of 3/4 ply subroadbed"), (J_TOP, "joist top, face top"),
+            (J_BOT, "joist + face bottom, flange top"), (LEDGER_BOT, "front flange bottom"),
+            (BLOCK_BOT, "riser block bottom"), (FLANGE_TOP, "girder flange top"),
             (WEB_BOT, "girder web bottom"), (STAGING_RAIL, "staging railhead"),
             (STAGING_TOP, "staging deck top")]
     c.setFont("Helvetica", 7.5)
@@ -313,18 +313,17 @@ def sheet_details(c):
     a.text(8.3, mid, "1x2 joist", size=7, anchor="r", dy=-2)
     a.rect(GIRDER_X0, FLANGE_BOT, FLANGE_X1, FLANGE_TOP, xcut=True)
     a.rect(GIRDER_X0, WEB_BOT, WEB_X1, FLANGE_BOT, xcut=True)
-    for x in (BLOCK_X0 + 1.2, BLOCK_X0 + BLOCK_L - 1.2):
+    for x in (BLOCK_X0 + 0.9, BLOCK_X0 + 3.0):
         a.screw(x, mid, x, mid)
     fx = (GIRDER_X0 + FLANGE_X1) / 2
     a.screw(fx, FLANGE_BOT, fx, FLANGE_BOT + 1.5)
     a.dim_h(0.45, BLOCK_X0, BLOCK_X0 + BLOCK_L, "5")
     a.dim_v(BLOCK_X0 + BLOCK_L + 1.3, BLOCK_TOP, BLOCK_BOT, "2-1/2")
-    a.dim_v(BLOCK_X0 + BLOCK_L + 0.4, J_BOT, BLOCK_BOT, "1")
-    a.text(BLOCK_X0 + BLOCK_L - CLIP / 2, BLOCK_BOT + CLIP / 2, "45 deg", size=7, color=ACCENT, dx=4, dy=-14)
+    a.text(BLOCK_X0 + BLOCK_L - CLIP / 2, BLOCK_BOT + CLIP / 2, "45 deg", size=7, color=ACCENT, dx=8, dy=-4)
     a.text(-0.25, -5.5, "WALL", size=6.5, anchor="c", color=GREY)
     a.leader(fx, FLANGE_BOT - 0.05, 5.4, -5.0, "#6 x 1-1/2 up through the\nflange into the block, pilot",
              color=ACCENT)
-    a.leader(BLOCK_X0 + BLOCK_L - 1.2, mid, 6.4, -3.3, "glue + 2x #6 x 1-1/4 through\nthe block into the joist",
+    a.leader(BLOCK_X0 + 3.0, mid, 6.4, -3.3, "glue + 2x #6 x 1-1/4 through\nthe block into the joist",
              color=ACCENT)
     a.leader(GIRDER_X0 + 0.4, -6.5, 5.4, -6.6, "existing L-girder\n1x4 web, 1x2 flange")
 
@@ -347,8 +346,8 @@ def sheet_details(c):
 
     footer_note(c, [
         "Riser block: cut from 1x3, grain running with the joist. Top flush with the joist top; the bottom sits on "
-        "the flange. The wall end stays square so the block bears on the full 1-1/2 flange;",
-        "the single 45 deg miter trims only the 1\" hang-down on the front end. Joist and block ends sit 1/8 off the "
+        "the flange. The wall end stays square; one full-height 45 deg miter on the front end leaves 2-1/2 of bottom,",
+        "so the block still bears on the whole 1-1/2 flange. Joist and block ends sit 1/8 off the "
         "wall. Keep every block on the same side of its joist. "
         "Full-size pattern on sheet 4.",
     ], y=30)
@@ -356,7 +355,7 @@ def sheet_details(c):
 
 # ---------------------------------------------------------------- sheet 3
 def sheet_front(c):
-    header(c, "Details - front 1x3 face + 1x2 ledger",
+    header(c, "Details - front 1x2 face on a 1x3 flange",
            "C: side view along a joist at the front edge.  D: the same edge between joists, at a rod.", 3, 5)
     mid = (J_TOP + J_BOT) / 2
     x0 = LEDGER_IN - 2.5
@@ -366,45 +365,45 @@ def sheet_front(c):
     ply(f, x0, FACE_OUT, 0, PLY)
     f.rect(x0, J_BOT, FACE_IN, J_TOP, fill=WOOD)
     f.rect(FACE_IN, FACE_BOT, FACE_OUT, FACE_TOP, xcut=True)
-    f.rect(LEDGER_IN, LEDGER_BOT, FACE_IN, LEDGER_TOP, xcut=True)
+    f.rect(LEDGER_IN, LEDGER_BOT, FACE_OUT, LEDGER_TOP, xcut=True)
     f.screw(FACE_OUT + 0.25, mid, FACE_IN - 1.25, mid)
-    f.screw(LEDGER_IN + 0.75, LEDGER_BOT - 0.2, LEDGER_IN + 0.75, LEDGER_TOP + 0.5)
-    f.dim_v(FACE_OUT + 0.45, FACE_TOP, FACE_BOT, "2-1/2")
-    f.dim_v(FACE_OUT + 1.3, FACE_TOP, LEDGER_TOP, "1-1/2 = joist")
+    f.screw(LEDGER_IN + 0.8, LEDGER_BOT - 0.2, LEDGER_IN + 0.8, LEDGER_TOP + 0.5)
+    f.screw((FACE_IN + FACE_OUT) / 2, LEDGER_BOT - 0.2, (FACE_IN + FACE_OUT) / 2, LEDGER_TOP + 0.5)
+    f.dim_v(FACE_OUT + 0.45, FACE_TOP, FACE_BOT, "1-1/2")
+    f.dim_v(FACE_OUT + 1.3, FACE_TOP, LEDGER_BOT, "2-1/4 flush face")
     f.dim_v(x0 + 0.4, J_TOP, J_BOT, "1-1/2", side="r")
-    f.dim_h(FACE_BOT - 0.45, LEDGER_IN, FACE_IN, "1-1/2", above=False)
-    f.dim_h(FACE_BOT - 0.45, FACE_IN, FACE_OUT, "3/4", above=False)
-    f.text(FACE_IN - 0.08, (LEDGER_BOT + FACE_BOT) / 2, "1/4", size=6.5, color=DIMC, anchor="r", dy=-3)
-    f.leader(FACE_IN - 1.0, mid + 0.15, x0 + 0.1, -4.5, "2x #6 x 2 through the 1x3 into the joist end, pilot",
+    f.dim_h(LEDGER_BOT - 0.45, LEDGER_IN, FACE_IN, "1-3/4 bearing", above=False)
+    f.dim_h(LEDGER_BOT - 0.45, FACE_IN, FACE_OUT, "3/4", above=False)
+    f.leader(FACE_IN - 1.0, mid + 0.15, x0 + 0.1, -4.5, "2x #6 x 2 through the face into the joist end, pilot",
              color=ACCENT)
-    f.leader(LEDGER_IN + 0.75, LEDGER_BOT - 0.2, x0 + 0.1, -5.1, "#6 x 1-1/4 up through the ledger into the joist",
+    f.leader(LEDGER_IN + 0.8, LEDGER_BOT - 0.2, x0 + 0.1, -5.1, "#6 x 1-1/4 up through the flange into the joist",
              color=ACCENT)
-    f.leader(FACE_IN - 0.4, (LEDGER_TOP + LEDGER_BOT) / 2, x0 + 0.1, -5.7,
-             "1x2 ledger: glued + screwed to the 1x3 (see D)")
+    f.leader((FACE_IN + FACE_OUT) / 2, LEDGER_BOT - 0.2, x0 + 0.1, -5.7,
+             "glue + #6 x 1-1/4 every 8\" up through the flange into the face", color=ACCENT)
 
     g = View(c, ox=440, oy=490, scale=1.5, xref=LEDGER_IN - 1.0, yref=0.9)
     g.text(LEDGER_IN - 1.0, 0.9, "D   BETWEEN JOISTS, AT A ROD   1:1.5", size=9, bold=True, dy=4)
     ply(g, LEDGER_IN - 1.0, FACE_OUT, 0, PLY)
     g.rect(FACE_IN, FACE_BOT, FACE_OUT, FACE_TOP, xcut=True)
-    g.rect(LEDGER_IN, LEDGER_BOT, FACE_IN, LEDGER_TOP, xcut=True)
-    g.screw(FACE_OUT + 0.25, (LEDGER_TOP + LEDGER_BOT) / 2, FACE_IN - 0.9, (LEDGER_TOP + LEDGER_BOT) / 2)
-    g.line(ROD_X, LEDGER_TOP + 0.55, ROD_X, FACE_BOT - 1.4, lw=3, color=STEEL)
-    g.line(ROD_X, FACE_BOT - 1.4, ROD_X, FACE_BOT - 1.9, lw=3, color=STEEL, dash=(2, 2))
+    g.rect(LEDGER_IN, LEDGER_BOT, FACE_OUT, LEDGER_TOP, xcut=True)
+    g.screw((FACE_IN + FACE_OUT) / 2, LEDGER_BOT - 0.2, (FACE_IN + FACE_OUT) / 2, LEDGER_TOP + 0.5)
+    g.line(ROD_X, LEDGER_TOP + 0.55, ROD_X, LEDGER_BOT - 1.4, lw=3, color=STEEL)
+    g.line(ROD_X, LEDGER_BOT - 1.4, ROD_X, LEDGER_BOT - 1.9, lw=3, color=STEEL, dash=(2, 2))
     for y in (LEDGER_TOP, LEDGER_BOT - 0.1):
         g.rect(ROD_X - 0.55, y, ROD_X + 0.55, y + 0.1, fill=STEEL, lw=0.3)
     g.rect(ROD_X - 0.28, LEDGER_TOP + 0.1, ROD_X + 0.28, LEDGER_TOP + 0.38, fill=STEEL, lw=0.3)
     g.rect(ROD_X - 0.28, LEDGER_BOT - 0.38, ROD_X + 0.28, LEDGER_BOT - 0.1, fill=STEEL, lw=0.3)
-    g.leader(FACE_OUT + 0.25, (LEDGER_TOP + LEDGER_BOT) / 2, FACE_OUT + 0.6, -3.6,
-             "glue + #6 x 1-5/8\nevery 8\" through the\n1x3 into the ledger\nedge, pilot", color=ACCENT)
+    g.leader((FACE_IN + FACE_OUT) / 2, LEDGER_BOT - 0.2, FACE_OUT + 0.6, -3.6,
+             "glue + #6 x 1-1/4\nevery 8\" up through\nthe flange into the\nface edge, pilot", color=ACCENT)
     g.leader(ROD_X + 0.28, LEDGER_TOP + 0.25, FACE_OUT + 0.6, -0.9,
-             "5/16-18 rod, 3/8 hole\ncentred in the ledger;\nnut + fender washer\nabove and below")
-    g.text(ROD_X, FACE_BOT - 2.2, "to staging deck (nut + washer each side)", size=7, anchor="c", color=GREY)
+             "5/16-18 rod, 3/8 hole\nin the flange, between\nthe face and joist ends;\nnut + fender washer\nabove and below")
+    g.text(ROD_X, LEDGER_BOT - 2.2, "to staging deck (nut + washer each side)", size=7, anchor="c", color=GREY)
 
     footer_note(c, [
-        "Build the face + ledger on the bench first. Set the ledger height with a 1x2 offcut resting on it, its top "
-        "flush with the 1x3 top: ledger top 1-1/2 below the 1x3 top, 1/4 up from its bottom.",
-        "Ledger-to-face is a long-grain glue joint (edge to face); the glue is the structure and the screws clamp it "
-        "while it cures. Stagger the face and ledger splices.",
+        "Build the front on the bench: glue the 1x2 on edge onto the 1x3 laid flat, outer faces flush - an L-girder "
+        "upside down. The joists sit on the 1-3/4 of flange inside the face.",
+        "No gap: the fascia gets one flush 2-1/4 face. Face-to-flange is a long-grain glue joint; the screws clamp it "
+        "while it cures. Stagger the face and flange splices.",
     ], y=40)
 
 
@@ -412,7 +411,7 @@ def sheet_front(c):
 def sheet_plan(c):
     header(c, "Plan - typical 8 ft bay, deck removed  +  riser block pattern",
            "Looking down. Joists at 16\" o.c. land on the existing girder via the riser blocks; rods carry the "
-           "front ledger between joists.", 4, 5)
+           "front flange between joists.", 4, 5)
     v = View(c, ox=50, oy=372, scale=12, xref=-2.0, yref=-2.0)
     L = 96.0
     v.rect(-2, -2, L + 2, 0, fill=WALL, lw=0.5)
@@ -421,8 +420,8 @@ def sheet_plan(c):
     v.text(L + 0.6, (GIRDER_X0 + FLANGE_X1) / 2, "existing girder flange", size=6.5, dy=-2)
     v.rect(0, LEDGER_IN, L, FACE_IN, fill=WOOD_DK, lw=0.6)
     v.rect(0, FACE_IN, L, FACE_OUT, fill=WOOD, lw=0.6)
-    v.text(L + 0.6, FACE_OUT + 0.2, "1x3 face", size=6.5, dy=-2)
-    v.text(L + 0.6, LEDGER_IN - 0.4, "1x2 ledger", size=6.5, dy=-2)
+    v.text(L + 0.6, FACE_OUT + 0.2, "1x2 face", size=6.5, dy=-2)
+    v.text(L + 0.6, LEDGER_IN - 0.4, "1x3 flange", size=6.5, dy=-2)
     xs = [0.375 + 16 * i for i in range(7)]
     xs[-1] = L - 0.375
     for x in xs:
@@ -440,15 +439,15 @@ def sheet_plan(c):
 
     p = View(c, ox=80, oy=100, scale=1)
     p.text(0, 3.2, "RISER BLOCK - FULL SIZE PATTERN (1:1)", size=9, bold=True)
-    p.poly([(0, 2.5), (5, 2.5), (5, 1.0), (4.0, 0), (0, 0)], fill=WOOD_DK)
-    p.line(0, 1.0, 5, 1.0, lw=0.4, color=GREY, dash=(3, 2))
-    p.text(2.5, 1.05, "joist bottom line", size=6.5, color=GREY, anchor="c", dy=2)
+    p.poly([(0, 2.5), (5, 2.5), (2.5, 0), (0, 0)], fill=WOOD_DK)
+    p.line(0, 1.0, 3.5, 1.0, lw=0.4, color=GREY, dash=(3, 2))
+    p.text(1.75, 1.05, "joist bottom line", size=6.5, color=GREY, anchor="c", dy=2)
     p.dim_h(2.8, 0, 5, "5")
-    p.dim_h(-0.3, 0, 4, "4", above=False)
+    p.dim_h(-0.3, 0, 2.5, "2-1/2", above=False)
     p.text(0, -0.75, "square end goes to the wall", size=6.5, color=GREY)
     p.dim_v(-0.3, 0, 2.5, "2-1/2", side="l")
-    p.dim_v(5.3, 0, 1.0, "1")
-    p.text(2.5, 1.75, "grain  ->", size=7, anchor="c", color=GREY)
+    p.text(1.9, 1.75, "grain  ->", size=7, anchor="c", color=GREY)
+    p.text(3.9, 1.1, "45 deg", size=7, color=ACCENT, dy=-2)
 
     tx = 500
     c.setFillColor(black)
@@ -456,9 +455,9 @@ def sheet_plan(c):
     c.drawString(tx, 280, "CUT LIST PER 8 FT BAY (24\" deep)")
     rows = [
         ("1x2 joists", "7 @ 23-1/8", "24 - 3/4 face - 1/8 wall gap"),
-        ("1x3 riser blocks", "7 @ 5", "square at wall, 45 deg front"),
-        ("1x3 face", "96", "on edge"),
-        ("1x2 ledger", "96", "flat, edge to the 1x3"),
+        ("1x3 riser blocks", "7 @ 5", "square at wall, full 45 deg front"),
+        ("1x2 face", "96", "on edge, on the flange"),
+        ("1x3 flange", "96", "flat, flush with the face"),
         ("5/16-18 rod", "3 @ ~13", "fit to the staging deck"),
         ("3/4 ply", "24 x 96", "one rip per bay"),
     ]
@@ -471,7 +470,7 @@ def sheet_plan(c):
         c.setFillColor(GREY)
         c.drawString(tx + 140, y, n_)
     footer_note(c, [
-        "Splice the 1x3 face and the ledger at different joists; butt joints in the 3/4 ply land on a joist. "
+        "Splice the 1x2 face and the 1x3 flange at different joists; butt joints in the 3/4 ply land on a joist. "
         "North wall: 23-1/2 deep tapering to 17-1/2 - cut each joist to depth - 3/4 - 1/8.",
         "Scales: plan 1:12, pattern 1:1 - print at 100% and check the 5\" dimension with a rule before tracing.",
     ], y=22, size=7)
@@ -481,21 +480,20 @@ def sheet_plan(c):
 def sheet_steps(c):
     header(c, "Assembly sequence and fastener schedule", "", 5, 5)
     steps = [
-        "1.  Rip the front members: 1x3 face and 1x2 ledger to length. Stagger splices so they never fall at the "
+        "1.  Cut the front members: 1x2 face and 1x3 flange to length. Stagger splices so they never fall at the "
         "same joist.",
-        "2.  On the bench, glue the ledger flat to the inside face of the 1x3, its edge against the face. Set the "
-        "height with a 1x2 offcut on the ledger, flush with the 1x3 top (ledger top 1-1/2 below the 1x3 top, "
-        "1/4 up from its bottom). Screw from outside every 8\". Let it cure.",
-        "3.  Cut the riser blocks: 5\" of 1x3, square at the wall end; trim the front bottom corner at 45 deg, 1\" each way. Trace the "
+        "2.  On the bench, glue the 1x2 on edge onto the 1x3 laid flat, outer faces flush (an upside-down "
+        "L-girder). Screw up through the flange into the face every 8\". Let it cure.",
+        "3.  Cut the riser blocks: 5\" of 1x3, square at the wall end, one full-height 45 deg miter on the front end. Trace the "
         "full-size pattern on sheet 4 or make a stop block on the miter saw.",
         "4.  Glue + screw a block to the side of each joist: top flush, square end flush with the joist's wall end. "
         "Same side on every joist.",
-        "5.  Prop the front assembly at height (ledger top at -2.22). Drill 3/8 holes in the ledger mid-bay for the "
+        "5.  Prop the front assembly at height (flange top at -2.22). Drill 3/8 holes in the flange mid-bay for the "
         "rods, max 36\" apart, between joists.",
-        "6.  Set the joists at 16\" o.c.: blocks on the flange, front ends on the ledger, butted to the 1x3. "
-        "Screw up through the flange into each block, through the 1x3 into the joist end, and up through the "
-        "ledger into the joist.",
-        "7.  Run the rods from the staging deck to the ledger. Level the front edge with the nuts, then lock "
+        "6.  Set the joists at 16\" o.c.: blocks on the flange, front ends on the flange, butted to the face. "
+        "Screw up through the flange into each block, through the face into the joist end, and up through the "
+        "flange into the joist.",
+        "7.  Run the rods from the staging deck to the flange. Level the front edge with the nuts, then lock "
         "with the opposing nuts.",
         "8.  Dry-lay the 3/4 ply; butt joints on joists. Glue + screw every 8\" along each joist, keeping screws "
         "out from under the track centrelines (feeders).",
@@ -517,11 +515,11 @@ def sheet_steps(c):
     rows = [
         ("Block to joist", "glue + 2x #6 x 1-1/4"),
         ("Flange up into block", "#6 x 1-1/2, pilot"),
-        ("Ledger to 1x3 face", "glue + #6 x 1-5/8 @ 8\""),
-        ("1x3 into joist end", "2x #6 x 2, pilot"),
-        ("Ledger up into joist", "#6 x 1-1/4"),
+        ("Flange up into face", "glue + #6 x 1-1/4 @ 8\""),
+        ("Face into joist end", "2x #6 x 2, pilot"),
+        ("Flange up into joist", "#6 x 1-1/4"),
         ("Ply to joists", "glue + #6 x 1-1/4 @ 8\""),
-        ("Rod at ledger / deck", "5/16 nut + fender washer\neach side, 3/8 hole"),
+        ("Rod at flange / deck", "5/16 nut + fender washer\neach side, 3/8 hole"),
     ]
     c.setFont("Helvetica", 8.5)
     yy = PH - 108
@@ -539,7 +537,7 @@ def sheet_steps(c):
     c.setFont("Helvetica", 8.5)
     for i, (a_, b_) in enumerate([
         ("Under joists", f"{J_BOT - STAGING_RAIL:.2f}"),
-        ("Under front 1x3", f"{FACE_BOT - STAGING_RAIL:.2f}"),
+        ("Under front flange", f"{LEDGER_BOT - STAGING_RAIL:.2f}"),
         ("Under girder web", f"{WEB_BOT - STAGING_RAIL:.2f}"),
     ]):
         c.drawString(tx, yy - 30 - i * 12, a_)
