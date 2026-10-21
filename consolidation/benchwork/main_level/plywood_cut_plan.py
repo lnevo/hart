@@ -40,25 +40,72 @@ def disc(cx, cy, r):
     return Point(cx, cy).buffer(r, 256)
 
 
+# ---------------------------------------------------------------- AnyRail outlines
+def conic(p0, c, p2, n=24):
+    """Rational quadratic from p0 to p2 with control c; weight cos(half the turn) = exact arc when tangents match."""
+    a1 = math.atan2(c[1] - p0[1], c[0] - p0[0])
+    a2 = math.atan2(p2[1] - c[1], p2[0] - c[0])
+    turn = abs((a2 - a1 + math.pi) % (2 * math.pi) - math.pi)
+    w = math.cos(turn / 2)
+    out = []
+    for k in range(1, n + 1):
+        t = k / n
+        b0, b1, b2 = (1 - t) ** 2, 2 * t * (1 - t) * w, t * t
+        d = b0 + b1 + b2
+        out.append(((b0 * p0[0] + b1 * c[0] + b2 * p2[0]) / d, (b0 * p0[1] + b1 * c[1] + b2 * p2[1]) / d))
+    return out
+
+
+def outline(pts):
+    """AnyRail shape: (x, y, flag) with flag 1 = control point; consecutive controls imply an on-curve midpoint."""
+    n = len(pts)
+    start = next(i for i, p in enumerate(pts) if p[2] == 0)
+    seq = pts[start:] + pts[:start] + [pts[start]]
+    out = [seq[0][:2]]
+    cur = seq[0][:2]
+    ctrl = None
+    for x, y, f in seq[1:]:
+        if f == 1:
+            if ctrl is not None:
+                mid = ((ctrl[0] + x) / 2, (ctrl[1] + y) / 2)
+                out += conic(cur, ctrl, mid)
+                cur = mid
+            ctrl = (x, y)
+        else:
+            if ctrl is not None:
+                out += conic(cur, ctrl, (x, y))
+                ctrl = None
+            else:
+                out.append((x, y))
+            cur = (x, y)
+    return Polygon(out).buffer(0)
+
+
+PENINSULA = [(55.42, 96.73, 1), (92.56, 96.73, 0), (99.69, 96.73, 1), (110.97, 101.61, 0), (128.02, 110.75, 0),
+             (134.11, 114.02, 1), (140.0, 114.02, 0), (158.44, 114.0, 0), (158.44, 136.0, 0), (147.64, 135.98, 0),
+             (143.0, 135.98, 1), (138.59, 140.11, 0), (108.17, 168.61, 1), (92.36, 168.73, 0), (55.42, 168.8, 1),
+             (56.05, 132.44, 0)]
+NORTH_MOD = [(4.48, 47.48, 0), (158.48, 47.48, 0), (158.48, 64.98, 0), (144.0, 68.92, 0), (137.5, 71.06, 1),
+             (127.89, 71.0, 0), (4.5, 71.0, 0)]
+SW_MOD = [(28.28, 200.48, 0), (77.84, 200.48, 0), (112.3, 200.48, 1), (112.3, 233.75, 0), (112.3, 266.48, 1),
+          (77.91, 266.48, 0), (28.28, 266.48, 0)]
+TURNBACK_MOD = [(187.0, 47.48, 0), (217.0, 47.48, 0), (217.0, 131.48, 0), (187.0, 131.48, 0), (187.0, 114.0, 0),
+                (195.66, 114.03, 1), (204.0, 98.11, 1), (204.02, 92.0, 0), (204.02, 90.86, 0), (204.16, 85.48, 1),
+                (201.02, 74.5, 1), (193.36, 65.0, 1), (186.98, 64.98, 0)]
+
+
 # ---------------------------------------------------------------- room geometry (AnyRail, inches)
-BULB = disc(92.4, 132.75, 36.0)                      # helix peninsula bulb = D01 at +4.25
-NORTH_EDGE = catmull([(127.9, 71.0), (137.5, 71.1), (144.0, 68.9), (158.5, 65.0)])
+BULB = disc(92.4, 132.75, 36.0)                      # helix bulb (centre and radius for the board and ledge)
+PEN = outline(PENINSULA)                             # helix peninsula, the same footprint on all three levels
 WALL_GAP = 0.125   # deck stops 1/8 off the wall, like the joists; two rips + kerf fit a 48 in sheet
-NORTH = Polygon([(4.5 + WALL_GAP, 47.5 + WALL_GAP), (158.5, 47.5 + WALL_GAP)] + NORTH_EDGE[::-1] + [(4.5 + WALL_GAP, 71.0)])
+NORTH = outline(NORTH_MOD).intersection(box(4.5 + WALL_GAP, 47.5 + WALL_GAP, 200, 200))
 WEST = box(4.5 + WALL_GAP, 71.0, 28.5, 266.5)
 CLOSET = box(4.5, 266.5, 18.5, 302.5)
 ALCOVE_N = box(163.0, 47.5, 187.0, 65.0)
 ALCOVE_S = box(163.0, 114.0, 187.0, 131.5)
-# Aisle end: half-ellipse on the alcove line, 17 in deep, b = 26.45 so it passes AnyRail's
-# (193.4, 65), (201, 74.5), (204.2, 85.5) and the 13 in tip within about 1/8 in.
-AISLE_C, AISLE_A, AISLE_B = (187.0, 89.5), 17.0, 26.45
-AISLE_ELL = affinity.scale(Point(0, 0).buffer(1.0, 256), AISLE_A, AISLE_B, origin=(0, 0))
-AISLE_ELL = affinity.translate(AISLE_ELL, *AISLE_C)
-AISLE_BUMP = unary_union([AISLE_ELL.intersection(box(187.0, 65.0, 210.0, 114.0)), box(150.0, 65.0, 187.0, 114.0)])
-TURNBACK = box(187.0, 47.5, 217.0, 131.5).difference(AISLE_BUMP)
-NECK_OUTLINE = Polygon([(92.4, 96.7), (111.0, 101.6), (128.0, 110.7), (134.1, 114.0), (158.4, 114.0),
-                        (158.4, 136.0), (143.0, 136.0), (138.6, 140.1), (108.2, 168.6), (92.4, 168.7)])
-NECK = NECK_OUTLINE.difference(BULB)
+TURNBACK = outline(TURNBACK_MOD)
+CLOSET_DECK = unary_union([TURNBACK, ALCOVE_N, ALCOVE_S]).intersection(
+    box(163.0, 47.5 + WALL_GAP, 217.0 - WALL_GAP, 131.5 - WALL_GAP))
 
 
 def fillet(cx, cy, sx, sy, r):
@@ -72,7 +119,7 @@ F_CL = fillet(18.5, 266.5, 1, 1, 6.0)
 F_SW = fillet(28.5, 200.5, 1, -1, 18.0)
 
 # SW peninsula top: 84 x 66 with a 33 in round east end
-SW_TOP = unary_union([box(28.3, 200.5, 79.3, 266.5), disc(79.3, 233.5, 33.0)])
+SW_TOP = outline(SW_MOD)
 
 # +4.25 ledge for the two outer main tracks (centres from AnyRail D.01 layer)
 NW_C, TB_N, TB_S, SW_C = (39.0, 81.2), (183.6, 81.2), (183.6, 96.9), (52.7, 160.3)
@@ -84,9 +131,9 @@ L3 = box(NW_C[0], 47.5 + WALL_GAP, 187.0, 47.5 + L_W)
 STADIUM = unary_union([disc(*TB_N, R_IN), disc(*TB_S, R_IN), box(TB_N[0] - R_IN, TB_N[1], TB_N[0] + R_IN, TB_S[1])])
 L4 = box(187.0, 47.5 + WALL_GAP, 217.0 - WALL_GAP, 131.5 - WALL_GAP).difference(STADIUM)
 L5A = box(158.5, TB_S[1] + R_IN, 187.0, 131.5 - WALL_GAP)
-L5B = box(118.0, 119.0, 158.5, 138.0).difference(BULB)
 SW_R_IN, SW_R_OUT = 40.2, SW_C[0] - 4.5
-L6 = disc(*SW_C, SW_R_OUT - WALL_GAP).difference(disc(*SW_C, SW_R_IN)).intersection(box(4.5, SW_C[1], SW_C[0], 200.5))
+# SW corner: everything outside the inner band radius, from the end of L1 down to the peninsula edge (y 200.5).
+L_SW = box(4.5 + WALL_GAP, SW_C[1], SW_C[0], 200.5).difference(disc(*SW_C, SW_R_IN))
 
 
 def split(geom, axis, at):
@@ -134,14 +181,12 @@ AHEAD = Polygon([(_p0.x - _ty * 300, _p0.y + _tx * 300), (_p0.x + _ty * 300, _p0
                  (_p0.x + _ty * 300 + _tx * 400, _p0.y - _tx * 300 + _ty * 400),
                  (_p0.x - _ty * 300 + _tx * 400, _p0.y + _tx * 300 + _ty * 400)])
 BOARD = _cl.buffer(3.0, cap_style=2, join_style=1).intersection(AHEAD)   # square start 1-1/2 in past the helix edge
-J_SOUTH, J_NORTH, J_EAST, J_N2 = 165.0, 165.0, 89.5, 150.0   # J_EAST: turnback halves mirror each other   # joints: in the alcove, clear of the openings
-half_e = box(J_SOUTH, 0, 300, 300)
+# Joints: the board meets the closet deck at the alcove face of each wall opening (x 163); the closet deck
+# (alcoves + turnback, full over the 1x3 grid) splits at the middle of the aisle so the halves mirror.
+J_SOUTH, J_NORTH, J_EAST, J_N2 = 163.0, 163.0, 89.5, 150.0
 b1 = BOARD.intersection(box(0, 95, J_SOUTH, 300))
-# The turnback itself (x 187 to the east wall) is full deck over the 1x3 grid; the board only crosses the alcoves.
-TB_DECK = box(187.0, 47.5 + WALL_GAP, 217.0 - WALL_GAP, 131.5 - WALL_GAP).difference(AISLE_BUMP)
-TB_ALL = unary_union([BOARD.intersection(half_e), TB_DECK])
-b2 = TB_ALL.intersection(box(0, J_EAST, 300, 300))
-b3 = TB_ALL.intersection(box(0, 0, 300, J_EAST))
+b2 = CLOSET_DECK.intersection(box(0, J_EAST, 300, 300))
+b3 = CLOSET_DECK.intersection(box(0, 0, 300, J_EAST))
 n_a, n_rest = split(NORTH, "x", 4.5 + WALL_GAP + 96)
 n_b, n_c = split(n_rest, "x", J_N2)
 n3 = unary_union([n_c, BOARD.intersection(box(J_N2, 0, J_NORTH, 75))])
@@ -157,8 +202,8 @@ piece("W2", w_a, "34", "West wall, middle")
 piece("W3", w_b, "34", "West wall, south end", "Under the +4.25 SW top.")
 piece("B1", b1, "34", "Board: helix exit, neck, south opening",
       "6 in. Square start 1-1/2 in outside the helix edge; field-fit to the end of the helix exit roadbed.")
-piece("B2", b2, "34", "Turnback, south half + board from the south opening", "Full deck over the grid; inside edge is the aisle end (offsets).")
-piece("B3", b3, "34", "Turnback, north half + board to the north opening", "Full deck over the grid; seam halfway up the east side.")
+piece("B2", b2, "34", "Closet deck, south half", "South alcove + turnback, full over the grid. Inside edge: offsets.")
+piece("B3", b3, "34", "Closet deck, north half", "North alcove + turnback. Seam at the middle of the aisle end.")
 piece("C1", CLOSET, "34", "Closet strip")
 piece("F1", F_NW, "34", "Fillet, NW inside corner", "10 in radius.")
 piece("F2", F_CL, "34", "Fillet, closet corner", "6 in radius.")
@@ -172,26 +217,27 @@ LOOP_W = 4.0
 LOOP_BAND = LineString(LOOP).buffer(LOOP_W / 2, cap_style=2, join_style=1).difference(
     unary_union([WEST.buffer(0.0), F_SW, box(0, 0, 4.5 + WALL_GAP, 400)]))
 for i, (gid, part, note) in enumerate([
-        ("G1", LOOP_BAND.intersection(box(0, 0, 62.0, 218.0)), "Leaves the west wall deck on 28.6 in radius."),
-        ("G2", LOOP_BAND.intersection(box(62.0, 0, 300, 233.4)), "31 in radius round the tip, centre (78.8, 233.4)."),
-        ("G3", LOOP_BAND.intersection(box(62.0, 233.4, 300, 400)), "31 in radius."),
-        ("G4", LOOP_BAND.intersection(box(0, 218.0, 62.0, 400)), "29 in radius back to the west wall deck.")]):
+        ("G1", LOOP_BAND.intersection(box(0, 0, 72.0, 218.0)), "Leaves the west wall deck on 28.6 in radius."),
+        ("G2", LOOP_BAND.intersection(box(72.0, 0, 300, 233.4)), "31 in radius round the tip, centre (78.8, 233.4)."),
+        ("G3", LOOP_BAND.intersection(box(72.0, 233.4, 300, 400)), "31 in radius."),
+        ("G4", LOOP_BAND.intersection(box(0, 218.0, 72.0, 400)), "29 in radius back to the west wall deck.")]):
     piece(gid, part, "34", "Balloon loop subroadbed", "4 in wide. " + note)
 
 # +4.25: helix top covers the whole peninsula footprint (bulb + neck), same as the 0 in and staging decks.
-HTOP = unary_union([BULB, NECK_OUTLINE.intersection(box(0, 0, 158.4, 300))])
-X_NECK = 124.0
-h_w, h_e = split(HTOP, "x", X_NECK)
-h1, h2 = split(h_w, "y", HELIX_C[1])
-piece("H1", h1, "12", "Helix top, north", "36 in radius on the bulb centre.")
-piece("H2", h2, "12", "Helix top, south")
-piece("H3", h_e, "12", "Helix top, neck", "Runs to the wall stubs; L7 butts it at the south opening.")
+# Like the lower level: one full 48 x 96 sheet across the north side from the bulb to the neck, then the
+# south span and the neck end at the wall.
+HTOP = PEN
+_hx, _hy = HTOP.bounds[0], HTOP.bounds[1]
+h1 = HTOP.intersection(box(_hx, _hy, _hx + 96.0, _hy + 48.0))
+_rest = sorted(getattr(HTOP.difference(h1), "geoms", [HTOP.difference(h1)]), key=lambda g: -g.area)
+piece("H1", h1, "12", "Helix top, north span", "A full 96 in sheet from the bulb's west edge to the neck.")
+piece("H2", _rest[0], "12", "Helix top, south span", "Curved south edge from AnyRail.")
+piece("H3", _rest[1], "12", "Helix top, neck end", "At the wall stubs; L7 butts it at the south opening.")
 
 # SW top: the peninsula plus the west wall south of the L9/L10 curve, out to the wall. The backdrop
 # (AnyRail view block, y 231.8 to 233.3, wall to x 68.7) splits it into north and south halves; each half is
 # one 96 in piece back from the tip plus a narrow strip at the wall.
-WEDGE = box(4.5 + WALL_GAP, SW_C[1], SW_C[0], 200.5).difference(disc(*SW_C, SW_R_OUT - WALL_GAP))
-SWT = unary_union([SW_TOP, box(4.5 + WALL_GAP, 200.5, 28.4, 266.5), WEDGE])
+SWT = unary_union([SW_TOP, box(4.5 + WALL_GAP, 200.5, 28.4, 266.5)])
 BACKDROP = box(0, 231.8, 68.7, 233.3)
 TIP_X = SW_TOP.bounds[2]
 X_SW = TIP_X - 96.0
@@ -200,7 +246,7 @@ north = SWT.difference(BACKDROP).intersection(box(0, 0, 300, 231.8)).union(
 south = SWT.difference(BACKDROP).intersection(box(0, 233.3, 300, 400))
 s1, s2 = split(north, "x", X_SW)
 s3, s4 = split(south, "x", X_SW)
-piece("S1", s1, "12", "SW top, north strip at the wall", "Includes the corner south of L9 / L10.")
+piece("S1", s1, "12", "SW top, north strip at the wall", "Straight joints to L9 and S2.")
 piece("S2", s2, "12", "SW top, north half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
 piece("S3", s3, "12", "SW top, south strip at the wall")
 piece("S4", s4, "12", "SW top, south half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
@@ -213,9 +259,7 @@ l4n, l4s = split(L4, "y", (TB_N[1] + TB_S[1]) / 2)
 piece("L5", l4n, "12", "Ledge, turnback north", "Inside edge 26-1/2 in radius.")
 piece("L6", l4s, "12", "Ledge, turnback south", "Inside edge 26-1/2 in radius.")
 piece("L7", L5A, "12", "Ledge, south alcove", "Through the south opening to H3.")
-l9a, l9b = split(L6, "y", 181.0)
-piece("L9", l9a, "12", "Ledge, west wall curve (north)", "Band 40.2 to 48.1 in radius.")
-piece("L10", l9b, "12", "Ledge, west wall curve (south)", "Meets S0 and the SW top.")
+piece("L9", L_SW, "12", "Ledge, SW corner", "One piece: 40.2 in inside radius, out to the wall; straight edge on the SW top.")
 
 
 # ---------------------------------------------------------------- nesting
@@ -411,7 +455,7 @@ def room_svg(level):
     walls = unary_union([box(0, 43, 221.5, 47.5), box(0, 43, 4.5, 307), box(4.5, 302.5, 177, 307),
                          box(217, 47.5, 221.5, 131.5), box(158.5, 131.5, 221.8, 136), box(158.5, 114, 163, 131.5),
                          box(158.5, 47.5, 163, 65)])
-    bench = unary_union([NORTH, WEST, CLOSET, ALCOVE_N, ALCOVE_S, TURNBACK, NECK, BULB, SW_TOP])
+    bench = unary_union([NORTH, WEST, CLOSET, ALCOVE_N, ALCOVE_S, TURNBACK, PEN, SW_TOP])
     o.append(f'<path class="bench" d="{t(bench)}"/>')
     o.append(f'<path class="wall" d="{t(walls)}"/>')
     for p in P.values():
@@ -431,7 +475,13 @@ def room_svg(level):
 
 def offsets():
     """Shop offsets for the two free-form curves."""
-    rows = {"N2": [], "T1": []}
+    rows = {"N2": [], "T1": [], "H2": []}
+    h2 = P["H2"]["geom"]
+    x0, top, x1, _ = h2.bounds
+    for k in range(0, int(x1 - x0) + 1, 6):
+        hit = LineString([(x0 + k + 0.01, top - 1), (x0 + k + 0.01, 200)]).intersection(h2)
+        if not hit.is_empty:
+            rows["H2"].append((k, hit.bounds[3] - top))
     for x in (124, 128, 132, 136, 140, 144, 148, 152, 156, 158.4):
         hit = LineString([(x, 40), (x, 80)]).intersection(NORTH)
         rows["N2"].append((x - 4.5, hit.bounds[3] - 47.5))

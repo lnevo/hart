@@ -52,6 +52,7 @@ def sheet_block(s):
 s34 = [s for s in S["sheets"] if s["level"] == "34"]
 s12 = [s for s in S["sheets"] if s["level"] == "12"]
 off_n = "".join(f"<tr><td class='num'>{frac(a)}</td><td class='num'>{frac(b)}</td></tr>" for a, b in S["offsets"]["N2"])
+off_h = "".join(f"<tr><td class='num'>{frac(a)}</td><td class='num'>{frac(b)}</td></tr>" for a, b in S["offsets"]["H2"])
 off_t = "".join(f"<tr><td class='num'>{frac(a)}</td><td class='num'>{frac(b)}</td></tr>" for a, b in S["offsets"]["T1"])
 
 page = f'''<title>Main Level Plywood</title>
@@ -174,21 +175,25 @@ td.note {{ color: var(--muted); }}
     <h2>Please check</h2>
     <ol>
       <li><b>The 6 in board (B1, N3)</b> follows the middle of AnyRail's "Helix Top Turn 1" tracks out of the helix,
-      along the neck and through the south opening, and back through the north opening into the north wall deck. Joints
-      are 2 in past each opening. B1 starts square, 1-1/2 in outside the helix edge. Fit that end to the helix exit roadbed.</li>
-      <li><b>Turnback (B2, B3)</b> is full deck over the grid from x 187 to the east wall, split at the middle of the aisle
-      end so the two halves are mirror images. Each carries its own run of board out to the opening.</li>
+      along the neck and through the south opening, and back through the north opening into the north wall deck. It
+      meets the closet deck at the alcove face of each opening. B1 starts square, 1-1/2 in outside the helix edge. Fit
+      that end to the helix exit roadbed.</li>
+      <li><b>Closet deck (B2, B3)</b> is now full over the grid: both alcoves and the turnback, split at the middle of the
+      aisle end so the halves mirror each other. The aisle curve is AnyRail's exact outline.</li>
       <li><b>Balloon loop (G1 to G4)</b> is 4 in subroadbed on the AnyRail branchline loop: 28.6 in radius off the west
       wall, 31 in round the tip, 29 in back to the wall. It's only drawn where there's no 3/4 deck under it, so along
       the west wall the track sits on W2 and W3. Widen it if your roadbed needs more.</li>
       <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
       the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
       there if you want the two to clear.</li>
-      <li><b>Helix top (H1 to H3)</b> now covers the whole peninsula: bulb plus neck, out to the wall stubs, the same as
-      the 0 in and staging footprint. Add any access hatch before cutting.</li>
+      <li><b>Helix top (H1 to H3)</b> uses AnyRail's exact peninsula outline, including the curved south edge. Like the
+      lower level, H1 is one full 48 × 96 sheet across the north side from the bulb's west edge to the neck. H2 fills
+      the south span and H3 is a 6-3/8 in neck end at the wall stubs. A big piece on the south side would leave a north
+      remainder over 96 in long, which means more pieces. Add any access hatch before cutting.</li>
       <li><b>SW top (S1 to S4)</b> covers the peninsula and runs west over W3 to the wall. It's split along the backdrop
       (AnyRail's view block, 1-1/2 in wide, from the wall to 68-3/4 in out). S2 and S4 are 96 in long, from the tip back
-      toward the wall; the only other pieces are 11-5/8 in strips at the wall (S1, S3). Put risers under both seams.</li>
+      toward the wall; the only other pieces are 11-5/8 in strips at the wall (S1, S3). The SW corner ledge is one piece (L9) with a
+      straight edge on the SW top, so L9, S1 and S2 meet on straight lines. Put risers under every seam.</li>
       <li><b>The 0 to 4.25 ramp</b> still isn't drawn: I don't know where it runs. At 2% it's about 18 ft of track.</li>
     </ol>
   </section>
@@ -210,7 +215,7 @@ td.note {{ color: var(--muted); }}
     <div class="shop">
       <div class="box"><h3>Trammel radii</h3>
         <table><tbody>
-          <tr><td class="pid">H1 H2</td><td>36 in, bulb centre</td></tr>
+          <tr><td class="pid">H1 H2</td><td>Bulb west side about 36-1/2 in from the bulb centre; south edge from the H2 offsets</td></tr>
           <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track</td></tr>
           <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
@@ -218,7 +223,7 @@ td.note {{ color: var(--muted); }}
           <tr><td class="pid">G2 G3</td><td>31 in centre line (29 / 33 edges), same centre as the round end</td></tr>
           <tr><td class="pid">G4</td><td>29 in centre line (27 / 31 edges)</td></tr>
           <tr><td class="pid">L2 L5 L6</td><td>26-1/2 in inside edge, track curve centre</td></tr>
-          <tr><td class="pid">L9 L10 S1</td><td>40.2 in inside, 48.1 in outside</td></tr>
+          <tr><td class="pid">L9</td><td>40.2 in inside radius, centre (52.7, 160.3)</td></tr>
           <tr><td class="pid">F1 F2 F3</td><td>10, 6 and 18 in fillets</td></tr>
         </tbody></table>
         <p class="small">For the 36 in radius, 1/8 in of error changes the circumference by 3/4 in. Strike every bulb arc from the same nail.</p>
@@ -226,6 +231,10 @@ td.note {{ color: var(--muted); }}
       <div class="box"><h3>N2 / N3 front edge</h3>
         <p class="small">Depth from the north wall, measured from the west wall. Bend a batten through the points.</p>
         <table><thead><tr><th>From west wall</th><th>Depth</th></tr></thead><tbody>{off_n}</tbody></table>
+      </div>
+      <div class="box"><h3>H2 south edge</h3>
+        <p class="small">Depth from the straight H1 / H2 seam, measured from H2's west end.</p>
+        <table><thead><tr><th>From west end</th><th>Depth</th></tr></thead><tbody>{off_h}</tbody></table>
       </div>
       <div class="box"><h3>B2 / B3 inside edge</h3>
         <p class="small">Width from the east wall, measured from the north wall. B2 and B3 mirror each other about the middle row.</p>
