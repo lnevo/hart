@@ -425,13 +425,16 @@ def arc_nest(pids, x0=0.0, gap=0.0, centre=(78.8, 233.4)):
 
 
 def lay_out(level, pins, autos=(), fixed=()):
-    """One sheet laid out for the saw. pins: (pid, rot, x, y), x 'R' = flush right, y 'B' = flush bottom,
+    """One sheet laid out for the saw. pins: (pid, rot, x, y), rot 'F' = flipped, x 'R' = flush right, y 'B' = flush bottom,
     x 'S' = slide right until it fits, 'M' = middle of the room it fits in. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
     leftover space; (pid, "C"[, area]) centres the piece where it has the most clearance, square to the sheet;
     "CA" also tries 5 degree steps, face up or flipped, so a curved piece can follow a curved offcut."""
     placed = list(fixed)
     for pid, rot, x, y in pins:
-        q0 = orient(P[pid]["geom"], rot)
+        g = P[pid]["geom"]
+        if rot == "F":   # flipped end for end (mirrored), otherwise as drawn
+            g, rot = affinity.scale(g, -1, 1, origin="centroid"), 0
+        q0 = orient(g, rot)
         w, h = q0.bounds[2], q0.bounds[3]
         yy = SH - h if y == "B" else y
         xs = [SW - w] if x == "R" else ([k / 4 for k in range(0, int((SW - w) * 4) + 1)] if x in ("S", "M") else [x])
@@ -486,8 +489,9 @@ def lay_out(level, pins, autos=(), fixed=()):
 LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
-    # B1 as drawn: the straight run's flat side on the bottom factory edge, square end up from it, centred in the gap
-    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", 0, "M", "B")], [("G1", "C")], []),
+    # B1 flipped: the straight run on the bottom factory edge, its square end on the left edge (both square corners in
+    # the sheet corner); G1 on the bottom edge too, centred in the gap under B3
+    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", "F", 0, "B"), ("G1", 0, "M", "B")], [], []),
     ([("B2", 0, "R", "B"), ("G4", 0, "M", 0)], [], arc_nest(["G2", "G3"], x0=2.0, gap=1.5)),
 ]
 LAYOUT12 = [
