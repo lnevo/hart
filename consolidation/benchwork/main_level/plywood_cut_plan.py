@@ -118,7 +118,8 @@ F_NW = fillet(28.5, 71.0, 1, 1, 10.0)
 F_CL = fillet(18.5, 266.5, 1, 1, 6.0)
 # SW inside corner: the 18 in fillet, squared off down to the balloon loop's outer edge so the loop's first
 # curve sits on it and G1 starts with a square cut.
-F_SW = box(28.5, 182.5, 46.5, 204.4).difference(disc(46.5, 182.5, 18.0))
+# down to the inside edge of the 9-1/4 in balloon-loop pieces (233.4 - 33 + 9.25), so F3 meets G1 full width
+F_SW = box(28.5, 182.5, 46.5, 209.65).difference(disc(46.5, 182.5, 18.0))
 
 # SW peninsula top: 84 x 66 with a 33 in round east end
 SW_TOP = outline(SW_MOD)
