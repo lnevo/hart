@@ -391,27 +391,30 @@ def clearance(q, others, area=None):
     return min(gaps) if gaps else 0.0
 
 
-def arc_nest(pids, x0=0.0):
+PIVOT = {}   # arc pid -> trammel pivot on its sheet
+
+
+def arc_nest(pids, x0=0.0, centre=(78.8, 233.4)):
     """Nest identical arcs like the helix roadbed: chord across the 48 in width, all facing the same way,
-    stepped along the sheet by the smallest advance that keeps a kerf between them."""
+    stepped along the sheet by the smallest advance that keeps a kerf between them. The arcs bulge toward the left edge so
+    each arc centre falls on the sheet itself and can be marked with a trammel pivoting on the plywood."""
     out = []
     for pid in pids:
-        g = P[pid]["geom"]
-        hull = list(g.minimum_rotated_rectangle.exterior.coords)
-        # chord = the arc's two end cuts; use the farthest pair of hull points
+        g, c = P[pid]["geom"], Point(centre)
         pts = list(g.convex_hull.exterior.coords)
-        a, b = max(((p, q) for p in pts for q in pts), key=lambda pq: math.dist(*pq))
+        a, b = max(((p, q) for p in pts for q in pts), key=lambda pq: math.dist(*pq))   # chord = the two end cuts
         ang = math.degrees(math.atan2(b[1] - a[1], b[0] - a[0]))
-        q = affinity.rotate(g, 90 - ang, origin="centroid")
-        if q.centroid.x < (q.bounds[0] + q.bounds[2]) / 2:   # bulge to the right
-            q = affinity.rotate(q, 180, origin="centroid")
-        q = affinity.translate(q, -q.bounds[0], (SH - (q.bounds[3] - q.bounds[1])) / 2 - q.bounds[1])
-        step = 0.0
-        while out and min(q.distance(o) for _, o in out) < KERF + 1e-6 or (not out and False):
-            q = affinity.translate(q, 0.125, 0)
-        if not out:
-            q = affinity.translate(q, x0, 0)
+        o = g.centroid
+        q, c = affinity.rotate(g, 90 - ang, origin=o), affinity.rotate(c, 90 - ang, origin=o)
+        if q.centroid.x > (q.bounds[0] + q.bounds[2]) / 2:   # bulge to the left: the arc centre lands on the sheet
+            o = q.centroid
+            q, c = affinity.rotate(q, 180, origin=o), affinity.rotate(c, 180, origin=o)
+        dx, dy = -q.bounds[0] + (x0 if not out else 0), (SH - (q.bounds[3] - q.bounds[1])) / 2 - q.bounds[1]
+        q, c = affinity.translate(q, dx, dy), affinity.translate(c, dx, dy)
+        while out and min(q.distance(o) for _, o in out) < KERF + 1e-6:
+            q, c = affinity.translate(q, 0.125, 0), affinity.translate(c, 0.125, 0)
         out.append((pid, q))
+        PIVOT[pid] = (c.x, c.y)
     return out
 
 
@@ -543,6 +546,12 @@ def sheet_svg(s):
         if not small:
             o.append(f'<text class="pdim" x="{ox + c.x * scale:.1f}" y="{oy + c.y * scale + 15:.1f}" '
                      f'text-anchor="middle">{dims}</text>')
+    for pid, g, _ in s["placed"]:
+        if pid in PIVOT:   # trammel pivot: a cross, with the distance in from the left and top edges
+            px, py = ox + PIVOT[pid][0] * scale, oy + PIVOT[pid][1] * scale
+            o.append(f'<path class="pivot" d="M{px - 6:.1f} {py:.1f}H{px + 6:.1f}M{px:.1f} {py - 6:.1f}V{py + 6:.1f}"/>')
+            o.append(f'<text class="rlbl" x="{px + 8:.1f}" y="{py + (-8 if pid == "G2" else 18):.1f}">{pid} pivot '
+                     f'{frac(PIVOT[pid][0])}, {frac(PIVOT[pid][1])}</text>')
     o.append(f'<text class="axis" x="{ox}" y="{H - 6}">96 in</text>')
     o.append(f'<text class="axis" x="{ox + SW * scale}" y="{H - 6}" text-anchor="end">48 x 96 sheet, grid 12 in</text>')
     o.append("</svg>")
@@ -613,7 +622,7 @@ FALLBACK = {
     "pc l12": 'fill="#a9c6c0" stroke="#3f7268"', "plbl": 'fill="#1f2326" font-size="17" font-weight="700"',
     "plbl sm": 'fill="#1f2326" font-size="12" font-weight="700"', "pdim": 'fill="#1f2326" font-size="13"',
     "axis": 'fill="#5f666b" font-size="12"', "bench": 'fill="#efece3" stroke="#d9d6cc"', "wall": 'fill="#b9b4a8"',
-    "mlbl": 'fill="#1f2326" font-size="11" font-weight="600"', "ctr": 'fill="#b4532a"',
+    "mlbl": 'fill="#1f2326" font-size="11" font-weight="600"', "ctr": 'fill="#b4532a"', "pivot": 'stroke="#b4532a" stroke-width="2"',
 }
 
 

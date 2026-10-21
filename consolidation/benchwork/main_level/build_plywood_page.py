@@ -127,6 +127,7 @@ td.note {{ color: var(--muted); }}
 .grid {{ stroke: var(--grid); stroke-width: 1; }}
 .reserve {{ fill: var(--reserve); stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; }}
 .rlbl {{ fill: var(--muted); font: italic 13px var(--f-body); }}
+.pivot {{ stroke: var(--accent, #b4532a); stroke-width: 2; }}
 .pc {{ stroke-width: 1.4; }}
 .pc.l34 {{ fill: var(--ply34); stroke: var(--ply34-edge); }}
 .pc.l12 {{ fill: var(--ply12); stroke: var(--ply12-edge); }}
@@ -232,7 +233,7 @@ td.note {{ color: var(--muted); }}
           <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">F3</td><td>18 in fillet, aisle side only</td></tr>
-          <tr><td class="pid">G2 G3</td><td>31 in centre line (29 / 33 edges), same centre as the round end</td></tr>
+          <tr><td class="pid">G2 G3</td><td>31 in centre line (29 / 33 edges). Both arcs bulge toward the sheet edge, so each centre is on the plywood: nail the trammel at the cross marked on sheet D and swing 29 and 33 in</td></tr>
                     <tr><td class="pid">L2 L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
           <tr><td class="pid">L9</td><td>40.2 in inside radius, centre (52.7, 160.3)</td></tr>
           <tr><td class="pid">W1 W3</td><td>10 and 6 in fillets</td></tr>
