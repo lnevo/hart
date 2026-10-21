@@ -215,12 +215,13 @@ LOOP = (arc((45.1, 173.8), 28.6, 180, 90) + arc((78.8, 233.4), 31.0, -90, 90) + 
 LOOP_W = 4.0
 LOOP_BAND = LineString(LOOP).buffer(LOOP_W / 2, cap_style=2, join_style=1).difference(
     unary_union([WEST.buffer(0.0), F_SW, box(0, 0, 4.5 + WALL_GAP, 400)]))
-_g1 = LOOP_BAND.intersection(box(46.5, 0, 72.0, 218.0))
-_g4 = LOOP_BAND.intersection(box(28.5, 218.0, 72.0, 400))
+X_ARC = 78.8   # where the loop turns round the tip: G2 / G3 are pure quarter circles
+_g1 = LOOP_BAND.intersection(box(46.5, 0, X_ARC, 218.0))
+_g4 = LOOP_BAND.intersection(box(28.5, 218.0, X_ARC, 400))
 for i, (gid, part, note) in enumerate([
         ("G1", box(*_g1.bounds), "Plain rectangle on the straight; square cuts at F3 and G2."),
-        ("G2", LOOP_BAND.intersection(box(72.0, 0, 300, 233.4)), "31 in radius round the tip, centre (78.8, 233.4)."),
-        ("G3", LOOP_BAND.intersection(box(72.0, 233.4, 300, 400)), "31 in radius; joint at the tip."),
+        ("G2", LOOP_BAND.intersection(box(X_ARC, 0, 300, 233.4)), "Quarter circle, 31 in centre line, centre (78.8, 233.4)."),
+        ("G3", LOOP_BAND.intersection(box(X_ARC, 233.4, 300, 400)), "Quarter circle, same as G2; joint at the tip."),
         ("G4", box(*_g4.bounds), "Plain rectangle from W3 to G3; wide enough for the 29 in curve.")]):
     piece(gid, part, "34", "Balloon loop subroadbed", "4 in wide. " + note)
 
@@ -380,10 +381,46 @@ def pack_best(level, ids, pinned=(), tries=14):
     return best[1]
 
 
-def lay_out(level, pins, autos=()):
-    """One sheet laid out for the saw: pins are (pid, rot, x, y) with x 'R' = flush right, y 'B' = flush bottom,
-    x 'S' = slide right from the left edge until it fits. Small pieces in autos drop into the leftover space."""
-    placed = []
+def clearance(q, others, area=None):
+    """Smallest gap from q to any other piece or to the edge of its area (default the sheet), so a centred piece
+    sits mid-way in its space."""
+    gaps = [q.distance(o) for o in others]
+    ax0, ay0, ax1, ay1 = area.bounds if area is not None else (0, 0, SW, SH)
+    x0, y0, x1, y1 = q.bounds
+    gaps += [x0 - ax0, y0 - ay0, ax1 - x1, ay1 - y1]
+    return min(gaps) if gaps else 0.0
+
+
+def arc_nest(pids, x0=0.0):
+    """Nest identical arcs like the helix roadbed: chord across the 48 in width, all facing the same way,
+    stepped along the sheet by the smallest advance that keeps a kerf between them."""
+    out = []
+    for pid in pids:
+        g = P[pid]["geom"]
+        hull = list(g.minimum_rotated_rectangle.exterior.coords)
+        # chord = the arc's two end cuts; use the farthest pair of hull points
+        pts = list(g.convex_hull.exterior.coords)
+        a, b = max(((p, q) for p in pts for q in pts), key=lambda pq: math.dist(*pq))
+        ang = math.degrees(math.atan2(b[1] - a[1], b[0] - a[0]))
+        q = affinity.rotate(g, 90 - ang, origin="centroid")
+        if q.centroid.x < (q.bounds[0] + q.bounds[2]) / 2:   # bulge to the right
+            q = affinity.rotate(q, 180, origin="centroid")
+        q = affinity.translate(q, -q.bounds[0], (SH - (q.bounds[3] - q.bounds[1])) / 2 - q.bounds[1])
+        step = 0.0
+        while out and min(q.distance(o) for _, o in out) < KERF + 1e-6 or (not out and False):
+            q = affinity.translate(q, 0.125, 0)
+        if not out:
+            q = affinity.translate(q, x0, 0)
+        out.append((pid, q))
+    return out
+
+
+def lay_out(level, pins, autos=(), fixed=()):
+    """One sheet laid out for the saw. pins: (pid, rot, x, y), x 'R' = flush right, y 'B' = flush bottom,
+    x 'S' = slide right until it fits. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
+    leftover space; (pid, "C"[, area]) centres the piece where it has the most clearance, square to the sheet;
+    "CA" also tries 15 degree steps so a curved piece can follow a curved offcut."""
+    placed = list(fixed)
     for pid, rot, x, y in pins:
         q0 = orient(P[pid]["geom"], rot)
         w, h = q0.bounds[2], q0.bounds[3]
@@ -395,43 +432,57 @@ def lay_out(level, pins, autos=()):
                 break
         else:
             raise SystemExit(f"{pid}: no room")
-        if not box(0, 0, SW, SH).buffer(1e-6).contains(q):
-            raise SystemExit(f"{pid}: off the sheet")
         placed.append((pid, q))
-    for pid in autos:
+    for item in autos:
+        pid, mode, area = (item, "", None) if isinstance(item, str) else (tuple(item) + (None,))[:3]
         best = None
-        for rot in (0, 90, "h", "v", 180, 270):
+        rots = (0, 90, "h", "v", 180, 270) + (tuple(range(15, 360, 15)) if mode == "CA" else ())
+        for rot in rots:
             q0 = orient(P[pid]["geom"], rot)
             w, h = q0.bounds[2], q0.bounds[3]
+            if w > SW or h > SH:
+                continue
             for yi in range(0, int((SH - h) * 2) + 1):
                 for xi in range(0, int((SW - w) * 2) + 1):
                     q = affinity.translate(q0, xi / 2, yi / 2)
-                    if all(q.distance(o) >= KERF - 1e-6 for _, o in placed):
-                        key = (xi / 2 + yi / 2 * 0.5, yi)
-                        if best is None or key < best[0]:
-                            best = (key, q)
+                    others = [o for _, o in placed]
+                    if area is not None and not area.buffer(1e-6).contains(q):
+                        continue
+                    if not all(q.distance(o) >= KERF - 1e-6 for o in others):
+                        continue
+                    key = (-clearance(q, others, area),) if mode in ("C", "CA") else (xi / 2 + yi / 2 * 0.5, yi)
+                    if best is None or key < best[0]:
+                        best = (key, q)
+                    if mode not in ("C", "CA"):
                         break
         if best is None:
             raise SystemExit(f"{pid}: no room on this sheet")
         placed.append((pid, best[1]))
+    for pid, q in placed:
+        if not box(0, 0, SW, SH).buffer(1e-6).contains(q):
+            raise SystemExit(f"{pid}: off the sheet")
+    for i in range(len(placed)):
+        for j in range(i + 1, len(placed)):
+            if placed[i][1].distance(placed[j][1]) < KERF - 1e-6:
+                raise SystemExit(f"{placed[i][0]} and {placed[j][0]} closer than the kerf")
     return placed
 
 
 LAYOUT34 = [
-    ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("G1", 0, "R", 23.4 + KERF), ("F3", 90, "R", "B")], []),
-    ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], []),
-    ([("W1", 90, 0, 0), ("G4", 0, 0, "B"), ("B3", 0, "R", 0)], ["B1"]),
-    ([("B2", 0, "R", "B")], ["G2", "G3"]),
+    ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("G1", 0, "R", 23.4 + KERF), ("F3", 90, "R", "B")], [], []),
+    ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
+    ([("W1", 90, 0, 0), ("B3", 0, "R", 0)], [("B1", "CA", box(39.5 + KERF, 0, SW, SH))], []),
+    ([("B2", 0, "R", "B")], ["G4"], arc_nest(["G2", "G3"], x0=2.0)),
 ]
 LAYOUT12 = [
-    ([("H1", 90, 0, 0)], ["L9"]),
-    ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], []),
-    ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], []),
-    ([("L7", 0, 0, 0), ("L2", 90, "R", "B"), ("H2", 0, "S", "B")], []),
-    ([("L5", 90, 0, 0), ("S1", 90, 0, "B")], ["L4"]),
+    ([("H1", 90, 0, 0), ("L9", 180, "R", 0)], [], []),
+    ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], [], []),
+    ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], [], []),
+    ([("L7", 0, 0, 0), ("L2", 90, "R", "B")], [("H2", "C")], []),
+    ([("L5", 90, 0, 0), ("S1", 90, 0, "B")], [("L4", "C")], []),
 ]
-A34 = [lay_out("34", pins, autos) for pins, autos in LAYOUT34]
-A12 = [lay_out("12", pins, autos) for pins, autos in LAYOUT12]
+A34 = [lay_out("34", pins, autos, fixed) for pins, autos, fixed in LAYOUT34]
+A12 = [lay_out("12", pins, autos, fixed) for pins, autos, fixed in LAYOUT12]
 for lvl, sheets in (("34", A34), ("12", A12)):
     ids = sorted(p for sh in sheets for p, _ in sh)
     want = sorted(k for k, v in P.items() if v["level"] == lvl)

@@ -183,7 +183,8 @@ td.note {{ color: var(--muted); }}
       <li><b>Balloon loop (F3, G1 to G4)</b> is 4 in subroadbed on the AnyRail branchline loop: 28.6 in radius off the
       west wall, 31 in round the tip, 29 in back to the wall. F3 is a square-cornered block in the SW inside corner
       (with the 18 in fillet on the aisle side) that carries the loop's first curve, so G1 is a plain rectangle. G4 is
-      a plain rectangle wide enough for the last curve. G2 and G3 are the two arcs round the tip. Widen the loop if your
+      a plain rectangle wide enough for the last curve. G2 and G3 are pure quarter circles round the tip, nested on
+      sheet D the way the helix roadbed was: chord across the 48 in width, both facing the same way. Widen the loop if your
       roadbed needs more than 4 in.</li>
       <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
       the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
@@ -208,7 +209,8 @@ td.note {{ color: var(--muted); }}
   <section class="section">
     <h2><span class="swatch sw34"></span>3/4 in sheets</h2>
     <p class="small">Each sheet is laid out for the saw: the big piece sits against the factory edges, straight strips are
-    full-length rips, and small pieces come out of the big piece's curved offcut. Make the rips first, then the curves.
+    full-length rips, and small pieces sit centred in the big piece's curved offcut with room for the saw. Make the
+    rips first, then the curves.
     The deck stops 1/8 in off the walls, like the joists, so two 23-7/8 in rips plus the kerf come out of one 48 in
     sheet. Every butt joint lands on a joist.</p>
     <div class="sheets">{"".join(sheet_block(s) for s in s34)}</div>
