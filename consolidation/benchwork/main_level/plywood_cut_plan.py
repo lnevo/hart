@@ -188,25 +188,22 @@ b1 = BOARD.intersection(box(0, 95, J_SOUTH, 300))
 b2 = CLOSET_DECK.intersection(box(0, J_EAST, 300, 300))
 b3 = CLOSET_DECK.intersection(box(0, 0, 300, J_EAST))
 n_a, n_rest = split(NORTH, "x", 4.5 + WALL_GAP + 96)
-n_b, n_c = split(n_rest, "x", J_N2)
-n3 = unary_union([n_c, BOARD.intersection(box(J_N2, 0, J_NORTH, 75))])
-
+n2 = unary_union([n_rest, BOARD.intersection(box(150.0, 0, J_NORTH, 75))])
 piece("N1", n_a, "34", "North wall", "Square cuts.")
-piece("N2", n_b, "34", "North wall, east", "Front edge starts to ease in: see offsets.")
-piece("N3", n3, "34", "North wall end + board through the north opening",
-      "One piece across the opening so the board runs smooth into the alcove.")
-w_c, rest = split(WEST, "y", 109.0)
-w_a, w_b = split(rest, "y", 205.0)
-piece("W1", w_c, "34", "West wall, north end", "Butts N1 at the corner.")
-piece("W2", w_a, "34", "West wall, middle")
-piece("W3", w_b, "34", "West wall, south end", "Under the +4.25 SW top.")
+piece("N2", n2, "34", "North wall east + board through the north opening",
+      "One piece: the eased front edge (offsets) and the board across the opening into the alcove.")
+# West wall + closet strip: three pieces, the south one running on through the closet strip.
+Y_W1, Y_W2 = 302.5 - 96.0 - 96.0, 302.5 - 96.0
+w_1, w_rest = split(WEST, "y", Y_W1)
+w_2, w_3 = split(w_rest, "y", Y_W2)
+piece("W1", unary_union([w_1, F_NW]), "34", "West wall, north end", "Includes the 10 in fillet at the NW inside corner.")
+piece("W2", w_2, "34", "West wall, middle", "96 in.")
+piece("W3", unary_union([w_3, CLOSET, F_CL]), "34", "West wall south end + closet strip",
+      "96 in, one piece; cut the 6 in fillet curve where the closet strip steps in.")
 piece("B1", b1, "34", "Board: helix exit, neck, south opening",
       "6 in. Square start 1-1/2 in outside the helix edge; field-fit to the end of the helix exit roadbed.")
 piece("B2", b2, "34", "Closet deck, south half", "South alcove + turnback, full over the grid. Inside edge: offsets.")
 piece("B3", b3, "34", "Closet deck, north half", "North alcove + turnback. Seam at the middle of the aisle end.")
-piece("C1", CLOSET, "34", "Closet strip")
-piece("F1", F_NW, "34", "Fillet, NW inside corner", "10 in radius.")
-piece("F2", F_CL, "34", "Fillet, closet corner", "6 in radius.")
 piece("F3", F_SW, "34", "Fillet, SW peninsula corner", "18 in radius.")
 
 # Balloon loop at 0 on the SW peninsula (AnyRail branchline): 4 in subroadbed on the open grid,
@@ -219,20 +216,20 @@ LOOP_BAND = LineString(LOOP).buffer(LOOP_W / 2, cap_style=2, join_style=1).diffe
 for i, (gid, part, note) in enumerate([
         ("G1", LOOP_BAND.intersection(box(0, 0, 72.0, 218.0)), "Leaves the west wall deck on 28.6 in radius."),
         ("G2", LOOP_BAND.intersection(box(72.0, 0, 300, 233.4)), "31 in radius round the tip, centre (78.8, 233.4)."),
-        ("G3", LOOP_BAND.intersection(box(72.0, 233.4, 300, 400)), "31 in radius."),
+        ("G3", LOOP_BAND.intersection(box(72.0, 233.4, 300, 400)), "31 in radius; joint at the tip."),
         ("G4", LOOP_BAND.intersection(box(0, 218.0, 72.0, 400)), "29 in radius back to the west wall deck.")]):
     piece(gid, part, "34", "Balloon loop subroadbed", "4 in wide. " + note)
 
 # +4.25: helix top covers the whole peninsula footprint (bulb + neck), same as the 0 in and staging decks.
 # Like the lower level: one full 48 x 96 sheet across the north side from the bulb to the neck, then the
 # south span and the neck end at the wall.
+# Split west / east into two 48 in wide pieces, 72 in long; the neck end goes with the L7 ledge.
 HTOP = PEN
-_hx, _hy = HTOP.bounds[0], HTOP.bounds[1]
-h1 = HTOP.intersection(box(_hx, _hy, _hx + 96.0, _hy + 48.0))
-_rest = sorted(getattr(HTOP.difference(h1), "geoms", [HTOP.difference(h1)]), key=lambda g: -g.area)
-piece("H1", h1, "12", "Helix top, north span", "A full 96 in sheet from the bulb's west edge to the neck.")
-piece("H2", _rest[0], "12", "Helix top, south span", "Curved south edge from AnyRail.")
-piece("H3", _rest[1], "12", "Helix top, neck end", "At the wall stubs; L7 butts it at the south opening.")
+X_H1 = HTOP.bounds[0] + 48.0
+X_H2 = X_H1 + 48.0
+piece("H1", HTOP.intersection(box(0, 0, X_H1, 300)), "12", "Helix top, west", "48 x 72: the west half of the bulb.")
+piece("H2", HTOP.intersection(box(X_H1, 0, X_H2, 300)), "12", "Helix top, east", "48 wide: east bulb and the neck; curved south edge.")
+NECK_END = HTOP.intersection(box(X_H2, 0, 300, 300))
 
 # SW top: the peninsula plus the west wall south of the L9/L10 curve, out to the wall. The backdrop
 # (AnyRail view block, y 231.8 to 233.3, wall to x 68.7) splits it into north and south halves; each half is
@@ -244,21 +241,20 @@ X_SW = TIP_X - 96.0
 north = SWT.difference(BACKDROP).intersection(box(0, 0, 300, 231.8)).union(
     SWT.intersection(box(68.7, 231.8, 300, 233.3)))
 south = SWT.difference(BACKDROP).intersection(box(0, 233.3, 300, 400))
-s1, s2 = split(north, "x", X_SW)
-s3, s4 = split(south, "x", X_SW)
-piece("S1", s1, "12", "SW top, north strip at the wall", "Straight joints to L9 and S2.")
+s2 = north.intersection(box(X_SW, 0, 300, 400))
+s4 = south.intersection(box(X_SW, 0, 300, 400))
+piece("S1", SWT.intersection(box(0, 0, X_SW, 400)), "12", "SW top, strip at the wall",
+      "One piece the full 66 in; the backdrop stands on it. Straight joints to L9, S2 and S4.")
 piece("S2", s2, "12", "SW top, north half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
-piece("S3", s3, "12", "SW top, south strip at the wall")
 piece("S4", s4, "12", "SW top, south half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
 piece("L1", L1, "12", "Ledge, west wall", "8 in wide.")
-piece("L2", L2, "12", "Ledge, NW corner", "Inside edge 26-1/2 in radius.")
-l3a, l3b = split(L3, "x", 135.0)
-piece("L3", l3a, "12", "Ledge, north wall", "8 in wide.")
-piece("L4", l3b, "12", "Ledge, north wall east + alcove", "Through the north opening.")
-l4n, l4s = split(L4, "y", (TB_N[1] + TB_S[1]) / 2)
-piece("L5", l4n, "12", "Ledge, turnback north", "Inside edge 26-1/2 in radius.")
-piece("L6", l4s, "12", "Ledge, turnback south", "Inside edge 26-1/2 in radius.")
-piece("L7", L5A, "12", "Ledge, south alcove", "Through the south opening to H3.")
+X_L3 = NW_C[0] + 96.0
+piece("L2", L2, "12", "Ledge, NW corner", "26-1/2 in inside radius. Kept separate: merging it costs a sixth sheet.")
+piece("L3", L3.intersection(box(0, 0, X_L3, 300)), "12", "Ledge, north wall", "96 in.")
+piece("L4", L3.intersection(box(X_L3, 0, 300, 300)), "12", "Ledge, north wall east + alcove", "Through the north opening.")
+piece("L5", L4, "12", "Ledge, turnback", "One piece, 30 x 84; 26-1/2 in inside radius at both ends.")
+piece("L7", unary_union([NECK_END, box(NECK_END.bounds[2] - 0.2, L5A.bounds[1], L5A.bounds[2], L5A.bounds[3])]), "12",
+      "Ledge, south alcove + helix neck end", "Covers the neck at the wall stubs and runs through the south opening.")
 piece("L9", L_SW, "12", "Ledge, SW corner", "One piece: 40.2 in inside radius, out to the wall; straight edge on the SW top.")
 
 
@@ -377,9 +373,9 @@ def pack_best(level, ids, pinned=(), tries=14):
     return best[1]
 
 
-A34 = pack_best("34", ["B2", "B3", "B1", "C1", "G2", "G3", "G1", "G4", "F3", "F1", "F2"], pinned=[
-    [("N1", 0, 0, 0), ("N2", 0, 24 + KERF, 0), ("W1", 96 - 38.0, 24 + KERF, 90)],
-    [("W2", 0, 0, 90), ("W3", 0, 24 + KERF, 90), ("N3", 61.5 + KERF, 24 + KERF, 0)],
+A34 = pack_best("34", ["B2", "B3", "B1", "W1", "G2", "G3", "G1", "G4", "F3"], pinned=[
+    [("N1", 0, 0, 0), ("N2", 0, 24 + KERF, 0)],
+    [("W2", 0, 0, 90), ("W3", 0, 24 + KERF, 90)],
 ])
 add_sheets("34", "A", A34, "")
 order12 = sorted([k for k, v in P.items() if v["level"] == "12"], key=lambda k: -P[k]["geom"].area)
@@ -476,12 +472,13 @@ def room_svg(level):
 def offsets():
     """Shop offsets for the two free-form curves."""
     rows = {"N2": [], "T1": [], "H2": []}
-    h2 = P["H2"]["geom"]
-    x0, top, x1, _ = h2.bounds
-    for k in range(0, int(x1 - x0) + 1, 6):
-        hit = LineString([(x0 + k + 0.01, top - 1), (x0 + k + 0.01, 200)]).intersection(h2)
+    # helix top south edge: depth south of the neck's north edge (y 114, in line with the wall stubs),
+    # measured west from the wall stubs
+    xe = PEN.bounds[2]
+    for k in range(0, int(xe - PEN.bounds[0]) + 1, 6):
+        hit = LineString([(xe - k - 0.01, 90), (xe - k - 0.01, 200)]).intersection(PEN)
         if not hit.is_empty:
-            rows["H2"].append((k, hit.bounds[3] - top))
+            rows["H2"].append((k, hit.bounds[3] - 114.0))
     for x in (124, 128, 132, 136, 140, 144, 148, 152, 156, 158.4):
         hit = LineString([(x, 40), (x, 80)]).intersection(NORTH)
         rows["N2"].append((x - 4.5, hit.bounds[3] - 47.5))

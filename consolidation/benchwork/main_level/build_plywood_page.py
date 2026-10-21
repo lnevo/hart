@@ -174,7 +174,7 @@ td.note {{ color: var(--muted); }}
   <section class="review">
     <h2>Please check</h2>
     <ol>
-      <li><b>The 6 in board (B1, N3)</b> follows the middle of AnyRail's "Helix Top Turn 1" tracks out of the helix,
+      <li><b>The 6 in board (B1, N2)</b> follows the middle of AnyRail's "Helix Top Turn 1" tracks out of the helix,
       along the neck and through the south opening, and back through the north opening into the north wall deck. It
       meets the closet deck at the alcove face of each opening. B1 starts square, 1-1/2 in outside the helix edge. Fit
       that end to the helix exit roadbed.</li>
@@ -186,14 +186,18 @@ td.note {{ color: var(--muted); }}
       <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
       the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
       there if you want the two to clear.</li>
-      <li><b>Helix top (H1 to H3)</b> uses AnyRail's exact peninsula outline, including the curved south edge. Like the
-      lower level, H1 is one full 48 × 96 sheet across the north side from the bulb's west edge to the neck. H2 fills
-      the south span and H3 is a 6-3/8 in neck end at the wall stubs. A big piece on the south side would leave a north
-      remainder over 96 in long, which means more pieces. Add any access hatch before cutting.</li>
+      <li><b>Helix top (H1, H2)</b> uses AnyRail's exact peninsula outline, including the curved south edge, split
+      west / east: H1 is 48 × 72 (west half of the bulb), H2 is 48 × 66-5/8 (east bulb and neck). The neck end at the
+      wall stubs goes with the L7 ledge. Add any access hatch before cutting.</li>
       <li><b>SW top (S1 to S4)</b> covers the peninsula and runs west over W3 to the wall. It's split along the backdrop
       (AnyRail's view block, 1-1/2 in wide, from the wall to 68-3/4 in out). S2 and S4 are 96 in long, from the tip back
-      toward the wall; the only other pieces are 11-5/8 in strips at the wall (S1, S3). The SW corner ledge is one piece (L9) with a
-      straight edge on the SW top, so L9, S1 and S2 meet on straight lines. Put risers under every seam.</li>
+      toward the wall; the wall strip S1 is one 11-5/8 × 66 piece that the backdrop stands on. The SW corner ledge is one piece (L9) with a
+      straight edge on the SW top, so L9, S1, S2 and S4 meet on straight lines. Put risers under every seam.</li>
+      <li><b>Longer pieces.</b> W3 runs on through the closet strip as one 96 in piece (W1 grew to 39-1/2 in to make
+      that work), N2 carries the board through the north opening, W1 includes the NW fillet, and the turnback ledge L5
+      is one 30 × 84 piece. Two joints stay because removing them costs a sheet: the NW corner ledge L2 on its own
+      (merging it with the north ledge needs a sixth 1/2 in sheet) and the balloon loop's joint at the tip (one half
+      circle needs a fifth 3/4 in sheet).</li>
       <li><b>The 0 to 4.25 ramp</b> still isn't drawn: I don't know where it runs. At 2% it's about 18 ft of track.</li>
     </ol>
   </section>
@@ -215,26 +219,26 @@ td.note {{ color: var(--muted); }}
     <div class="shop">
       <div class="box"><h3>Trammel radii</h3>
         <table><tbody>
-          <tr><td class="pid">H1 H2</td><td>Bulb west side about 36-1/2 in from the bulb centre; south edge from the H2 offsets</td></tr>
+          <tr><td class="pid">H1 H2</td><td>Bulb west side about 36-1/2 in from the bulb centre; south edge from the offsets</td></tr>
           <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track</td></tr>
           <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">G1</td><td>28.6 in centre line (26.6 / 30.6 edges)</td></tr>
           <tr><td class="pid">G2 G3</td><td>31 in centre line (29 / 33 edges), same centre as the round end</td></tr>
           <tr><td class="pid">G4</td><td>29 in centre line (27 / 31 edges)</td></tr>
-          <tr><td class="pid">L2 L5 L6</td><td>26-1/2 in inside edge, track curve centre</td></tr>
+          <tr><td class="pid">L2 L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
           <tr><td class="pid">L9</td><td>40.2 in inside radius, centre (52.7, 160.3)</td></tr>
-          <tr><td class="pid">F1 F2 F3</td><td>10, 6 and 18 in fillets</td></tr>
+          <tr><td class="pid">W1 W3 F3</td><td>10, 6 and 18 in fillets</td></tr>
         </tbody></table>
         <p class="small">For the 36 in radius, 1/8 in of error changes the circumference by 3/4 in. Strike every bulb arc from the same nail.</p>
       </div>
-      <div class="box"><h3>N2 / N3 front edge</h3>
+      <div class="box"><h3>N2 front edge</h3>
         <p class="small">Depth from the north wall, measured from the west wall. Bend a batten through the points.</p>
         <table><thead><tr><th>From west wall</th><th>Depth</th></tr></thead><tbody>{off_n}</tbody></table>
       </div>
-      <div class="box"><h3>H2 south edge</h3>
-        <p class="small">Depth from the straight H1 / H2 seam, measured from H2's west end.</p>
-        <table><thead><tr><th>From west end</th><th>Depth</th></tr></thead><tbody>{off_h}</tbody></table>
+      <div class="box"><h3>Helix top south edge</h3>
+        <p class="small">Depth south of the neck's north edge (in line with the wall stubs), measured west from the wall stubs.</p>
+        <table><thead><tr><th>From wall stubs</th><th>Depth</th></tr></thead><tbody>{off_h}</tbody></table>
       </div>
       <div class="box"><h3>B2 / B3 inside edge</h3>
         <p class="small">Width from the east wall, measured from the north wall. B2 and B3 mirror each other about the middle row.</p>
