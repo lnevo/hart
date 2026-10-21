@@ -229,7 +229,7 @@ td.note {{ color: var(--muted); }}
       <div class="box"><h3>Trammel radii</h3>
         <table><tbody>
           <tr><td class="pid">H1 H2</td><td>Bulb west side about 36-1/2 in from the bulb centre; south edge from the offsets</td></tr>
-          <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track. Drawn flipped on sheet C to clear B3; plain ply, so either face can go up</td></tr>
+          <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track. On sheet C its straight run sits on the bottom factory edge, so that side and the square end at the south opening need no layout</td></tr>
           <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">F3</td><td>18 in fillet, aisle side only</td></tr>

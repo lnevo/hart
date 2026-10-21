@@ -480,7 +480,8 @@ def lay_out(level, pins, autos=(), fixed=()):
 LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("G1", 0, "R", 23.4 + KERF), ("F3", 90, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
-    ([("W1", 90, 0, 0), ("B3", 0, "R", 0)], [("B1", "CA", box(39.5 + KERF, 0, SW, SH))], []),
+    # B1 as drawn: the straight run's flat side on the bottom factory edge, square end up from it, centred in the gap
+    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", 0, "M", "B")], [], []),
     ([("B2", 0, "R", "B"), ("G4", 0, "M", 0)], [], arc_nest(["G2", "G3"], x0=2.0, gap=1.5)),
 ]
 LAYOUT12 = [
