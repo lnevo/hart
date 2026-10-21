@@ -207,7 +207,10 @@ td.note {{ color: var(--muted); }}
 
   <section class="section">
     <h2><span class="swatch sw34"></span>3/4 in sheets</h2>
-    <p class="small">The deck stops 1/8 in off the walls, like the joists, so two 23-7/8 in rips plus the kerf come out of one 48 in sheet. Every butt joint lands on a joist.</p>
+    <p class="small">Each sheet is laid out for the saw: the big piece sits against the factory edges, straight strips are
+    full-length rips, and small pieces come out of the big piece's curved offcut. Make the rips first, then the curves.
+    The deck stops 1/8 in off the walls, like the joists, so two 23-7/8 in rips plus the kerf come out of one 48 in
+    sheet. Every butt joint lands on a joist.</p>
     <div class="sheets">{"".join(sheet_block(s) for s in s34)}</div>
   </section>
 

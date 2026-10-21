@@ -380,13 +380,63 @@ def pack_best(level, ids, pinned=(), tries=14):
     return best[1]
 
 
-A34 = pack_best("34", ["B2", "B3", "B1", "W1", "G2", "G3", "G1", "G4", "F3"], pinned=[
-    [("N1", 0, 0, 0), ("N2", 0, 24 + KERF, 0)],
-    [("W2", 0, 0, 90), ("W3", 0, 24 + KERF, 90)],
-])
+def lay_out(level, pins, autos=()):
+    """One sheet laid out for the saw: pins are (pid, rot, x, y) with x 'R' = flush right, y 'B' = flush bottom,
+    x 'S' = slide right from the left edge until it fits. Small pieces in autos drop into the leftover space."""
+    placed = []
+    for pid, rot, x, y in pins:
+        q0 = orient(P[pid]["geom"], rot)
+        w, h = q0.bounds[2], q0.bounds[3]
+        yy = SH - h if y == "B" else y
+        xs = [SW - w] if x == "R" else ([k / 4 for k in range(0, int((SW - w) * 4) + 1)] if x == "S" else [x])
+        for xx in xs:
+            q = affinity.translate(q0, xx, yy)
+            if all(q.distance(o) >= KERF - 1e-6 for _, o in placed):
+                break
+        else:
+            raise SystemExit(f"{pid}: no room")
+        if not box(0, 0, SW, SH).buffer(1e-6).contains(q):
+            raise SystemExit(f"{pid}: off the sheet")
+        placed.append((pid, q))
+    for pid in autos:
+        best = None
+        for rot in (0, 90, "h", "v", 180, 270):
+            q0 = orient(P[pid]["geom"], rot)
+            w, h = q0.bounds[2], q0.bounds[3]
+            for yi in range(0, int((SH - h) * 2) + 1):
+                for xi in range(0, int((SW - w) * 2) + 1):
+                    q = affinity.translate(q0, xi / 2, yi / 2)
+                    if all(q.distance(o) >= KERF - 1e-6 for _, o in placed):
+                        key = (xi / 2 + yi / 2 * 0.5, yi)
+                        if best is None or key < best[0]:
+                            best = (key, q)
+                        break
+        if best is None:
+            raise SystemExit(f"{pid}: no room on this sheet")
+        placed.append((pid, best[1]))
+    return placed
+
+
+LAYOUT34 = [
+    ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("G1", 0, "R", 23.4 + KERF), ("F3", 90, "R", "B")], []),
+    ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], []),
+    ([("W1", 90, 0, 0), ("G4", 0, 0, "B"), ("B3", 0, "R", 0)], ["B1"]),
+    ([("B2", 0, "R", "B")], ["G2", "G3"]),
+]
+LAYOUT12 = [
+    ([("H1", 90, 0, 0)], ["L9"]),
+    ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], []),
+    ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], []),
+    ([("L7", 0, 0, 0), ("L2", 90, "R", "B"), ("H2", 0, "S", "B")], []),
+    ([("L5", 90, 0, 0), ("S1", 90, 0, "B")], ["L4"]),
+]
+A34 = [lay_out("34", pins, autos) for pins, autos in LAYOUT34]
+A12 = [lay_out("12", pins, autos) for pins, autos in LAYOUT12]
+for lvl, sheets in (("34", A34), ("12", A12)):
+    ids = sorted(p for sh in sheets for p, _ in sh)
+    want = sorted(k for k, v in P.items() if v["level"] == lvl)
+    assert ids == want, (lvl, set(want) ^ set(ids))
 add_sheets("34", "A", A34, "")
-order12 = sorted([k for k, v in P.items() if v["level"] == "12"], key=lambda k: -P[k]["geom"].area)
-A12 = pack_best("12", order12)
 add_sheets("12", chr(ord("A") + len(A34)), A12, "")
 
 
