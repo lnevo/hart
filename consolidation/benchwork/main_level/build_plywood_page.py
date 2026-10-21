@@ -150,8 +150,8 @@ td.note {{ color: var(--muted); }}
   <div class="totals">
     <div class="total"><span class="eyebrow"><span class="swatch sw34"></span>3/4 in · 0 in level deck</span>
       <span class="big">{len(s34)} <small>sheets</small></span>
-      <p class="small">{S["area34"]} sq ft of pieces. The last sheet is about two-thirds spare, enough for ply
-      balloon-loop roadbed on the SW peninsula.</p></div>
+      <p class="small">{S["area34"]} sq ft of pieces. Includes the balloon-loop subroadbed. The last sheet is
+      about 70% spare.</p></div>
     <div class="total"><span class="eyebrow"><span class="swatch sw12"></span>1/2 in · +4.25 level</span>
       <span class="big">{len(s12)} <small>sheets</small></span>
       <p class="small">{S["area12"]} sq ft of pieces. The offcuts on the last two sheets are where the 0 to 4.25 ramp
@@ -162,8 +162,8 @@ td.note {{ color: var(--muted); }}
     <h2>Where the pieces go</h2>
     <div class="maps">
       <figure>{svg("room_34.svg")}<figcaption><span class="swatch sw34"></span>3/4 in at 0 in: solid deck on the north and
-      west walls and the closet strip; a 6 in board for the double track from the helix, through both wall openings,
-      around the turnback and into N3. Dots mark the board's curve centres.</figcaption></figure>
+      west walls, the closet strip and the turnback; a 6 in board for the double track from the helix through both wall
+      openings; 4 in subroadbed for the balloon loop on the SW peninsula. Dots mark curve centres.</figcaption></figure>
       <figure>{svg("room_12.svg")}<figcaption><span class="swatch sw12"></span>1/2 in at +4.25: the helix top over the whole
       peninsula, the SW top over the peninsula and W3, and the 8 in ledge for the two outer tracks. Dots mark the
       curve centres.</figcaption></figure>
@@ -173,17 +173,22 @@ td.note {{ color: var(--muted); }}
   <section class="review">
     <h2>Please check</h2>
     <ol>
-      <li><b>The 6 in board (B1 to B3, N3)</b> follows the middle of AnyRail's "Helix Top Turn 1" tracks: out of the
-      helix and along the neck, through the south opening, around the turnback (29-3/4 in and 24-1/4 in centre-line
-      radii), back through the north opening, and into the north wall deck. Joints are at 5 in inside each opening and
-      halfway up the turnback straight. B1 starts square, 1-1/2 in outside the helix edge. Fit that end to the helix exit roadbed.</li>
+      <li><b>The 6 in board (B1, N3)</b> follows the middle of AnyRail's "Helix Top Turn 1" tracks out of the helix,
+      along the neck and through the south opening, and back through the north opening into the north wall deck. Joints
+      are 2 in past each opening. B1 starts square, 1-1/2 in outside the helix edge. Fit that end to the helix exit roadbed.</li>
+      <li><b>Turnback (B2, B3)</b> is full deck over the grid from x 187 to the east wall, split at the middle of the aisle
+      end so the two halves are mirror images. Each carries its own run of board out to the opening.</li>
+      <li><b>Balloon loop (G1 to G4)</b> is 4 in subroadbed on the AnyRail branchline loop: 28.6 in radius off the west
+      wall, 31 in round the tip, 29 in back to the wall. It's only drawn where there's no 3/4 deck under it, so along
+      the west wall the track sits on W2 and W3. Widen it if your roadbed needs more.</li>
       <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
       the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
       there if you want the two to clear.</li>
       <li><b>Helix top (H1 to H3)</b> now covers the whole peninsula: bulb plus neck, out to the wall stubs, the same as
       the 0 in and staging footprint. Add any access hatch before cutting.</li>
-      <li><b>SW top (S0 to S4)</b> covers the peninsula and runs west over W3 to the wall, including the corner south of the
-      L9/L10 curve. The seams are at 62 in from the west wall and 48 in from the peninsula's north edge, so put risers under both.</li>
+      <li><b>SW top (S1 to S4)</b> covers the peninsula and runs west over W3 to the wall. It's split along the backdrop
+      (AnyRail's view block, 1-1/2 in wide, from the wall to 68-3/4 in out). S2 and S4 are 96 in long, from the tip back
+      toward the wall; the only other pieces are 11-5/8 in strips at the wall (S1, S3). Put risers under both seams.</li>
       <li><b>The 0 to 4.25 ramp</b> still isn't drawn: I don't know where it runs. At 2% it's about 18 ft of track.</li>
     </ol>
   </section>
@@ -207,11 +212,13 @@ td.note {{ color: var(--muted); }}
         <table><tbody>
           <tr><td class="pid">H1 H2</td><td>36 in, bulb centre</td></tr>
           <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track</td></tr>
-          <tr><td class="pid">B2</td><td>26-3/4 in and 32-3/4 in edges (29-3/4 centre line)</td></tr>
-          <tr><td class="pid">B3</td><td>21-1/4 in and 27-1/4 in edges (24-1/4 centre line)</td></tr>
+          <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
+          <tr><td class="pid">G1</td><td>28.6 in centre line (26.6 / 30.6 edges)</td></tr>
+          <tr><td class="pid">G2 G3</td><td>31 in centre line (29 / 33 edges), same centre as the round end</td></tr>
+          <tr><td class="pid">G4</td><td>29 in centre line (27 / 31 edges)</td></tr>
           <tr><td class="pid">L2 L5 L6</td><td>26-1/2 in inside edge, track curve centre</td></tr>
-          <tr><td class="pid">L9 L10 S0</td><td>40.2 in inside, 48.1 in outside</td></tr>
+          <tr><td class="pid">L9 L10 S1</td><td>40.2 in inside, 48.1 in outside</td></tr>
           <tr><td class="pid">F1 F2 F3</td><td>10, 6 and 18 in fillets</td></tr>
         </tbody></table>
         <p class="small">For the 36 in radius, 1/8 in of error changes the circumference by 3/4 in. Strike every bulb arc from the same nail.</p>
@@ -219,6 +226,10 @@ td.note {{ color: var(--muted); }}
       <div class="box"><h3>N2 / N3 front edge</h3>
         <p class="small">Depth from the north wall, measured from the west wall. Bend a batten through the points.</p>
         <table><thead><tr><th>From west wall</th><th>Depth</th></tr></thead><tbody>{off_n}</tbody></table>
+      </div>
+      <div class="box"><h3>B2 / B3 inside edge</h3>
+        <p class="small">Width from the east wall, measured from the north wall. B2 and B3 mirror each other about the middle row.</p>
+        <table><thead><tr><th>From north wall</th><th>Width</th></tr></thead><tbody>{off_t}</tbody></table>
       </div>
     </div>
   </section>

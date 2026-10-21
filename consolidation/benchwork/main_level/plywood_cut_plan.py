@@ -134,11 +134,14 @@ AHEAD = Polygon([(_p0.x - _ty * 300, _p0.y + _tx * 300), (_p0.x + _ty * 300, _p0
                  (_p0.x + _ty * 300 + _tx * 400, _p0.y - _tx * 300 + _ty * 400),
                  (_p0.x - _ty * 300 + _tx * 400, _p0.y + _tx * 300 + _ty * 400)])
 BOARD = _cl.buffer(3.0, cap_style=2, join_style=1).intersection(AHEAD)   # square start 1-1/2 in past the helix edge
-J_SOUTH, J_NORTH, J_EAST, J_N2 = 165.0, 165.0, 86.0, 150.0   # joints: in the alcove, clear of the openings
+J_SOUTH, J_NORTH, J_EAST, J_N2 = 165.0, 165.0, 89.5, 150.0   # J_EAST: turnback halves mirror each other   # joints: in the alcove, clear of the openings
 half_e = box(J_SOUTH, 0, 300, 300)
 b1 = BOARD.intersection(box(0, 95, J_SOUTH, 300))
-b2 = BOARD.intersection(half_e).intersection(box(0, J_EAST, 300, 300))
-b3 = BOARD.intersection(half_e).intersection(box(0, 0, 300, J_EAST))
+# The turnback itself (x 187 to the east wall) is full deck over the 1x3 grid; the board only crosses the alcoves.
+TB_DECK = box(187.0, 47.5 + WALL_GAP, 217.0 - WALL_GAP, 131.5 - WALL_GAP).difference(AISLE_BUMP)
+TB_ALL = unary_union([BOARD.intersection(half_e), TB_DECK])
+b2 = TB_ALL.intersection(box(0, J_EAST, 300, 300))
+b3 = TB_ALL.intersection(box(0, 0, 300, J_EAST))
 n_a, n_rest = split(NORTH, "x", 4.5 + WALL_GAP + 96)
 n_b, n_c = split(n_rest, "x", J_N2)
 n3 = unary_union([n_c, BOARD.intersection(box(J_N2, 0, J_NORTH, 75))])
@@ -154,12 +157,26 @@ piece("W2", w_a, "34", "West wall, middle")
 piece("W3", w_b, "34", "West wall, south end", "Under the +4.25 SW top.")
 piece("B1", b1, "34", "Board: helix exit, neck, south opening",
       "6 in. Square start 1-1/2 in outside the helix edge; field-fit to the end of the helix exit roadbed.")
-piece("B2", b2, "34", "Board: turnback south curve", "29-3/4 in centre-line radius.")
-piece("B3", b3, "34", "Board: turnback north curve", "24-1/4 in centre-line radius.")
+piece("B2", b2, "34", "Turnback, south half + board from the south opening", "Full deck over the grid; inside edge is the aisle end (offsets).")
+piece("B3", b3, "34", "Turnback, north half + board to the north opening", "Full deck over the grid; seam halfway up the east side.")
 piece("C1", CLOSET, "34", "Closet strip")
 piece("F1", F_NW, "34", "Fillet, NW inside corner", "10 in radius.")
 piece("F2", F_CL, "34", "Fillet, closet corner", "6 in radius.")
 piece("F3", F_SW, "34", "Fillet, SW peninsula corner", "18 in radius.")
+
+# Balloon loop at 0 on the SW peninsula (AnyRail branchline): 4 in subroadbed on the open grid,
+# only where there's no 3/4 deck under it. Centre line: R28.6 off the west wall, straight, R31 round the
+# tip, straight back, R29 up to the west wall.
+LOOP = (arc((45.1, 173.8), 28.6, 180, 90) + arc((78.8, 233.4), 31.0, -90, 90) + arc((44.5, 235.4), 29.0, 90, 180))
+LOOP_W = 4.0
+LOOP_BAND = LineString(LOOP).buffer(LOOP_W / 2, cap_style=2, join_style=1).difference(
+    unary_union([WEST.buffer(0.0), F_SW, box(0, 0, 4.5 + WALL_GAP, 400)]))
+for i, (gid, part, note) in enumerate([
+        ("G1", LOOP_BAND.intersection(box(0, 0, 62.0, 218.0)), "Leaves the west wall deck on 28.6 in radius."),
+        ("G2", LOOP_BAND.intersection(box(62.0, 0, 300, 233.4)), "31 in radius round the tip, centre (78.8, 233.4)."),
+        ("G3", LOOP_BAND.intersection(box(62.0, 233.4, 300, 400)), "31 in radius."),
+        ("G4", LOOP_BAND.intersection(box(0, 218.0, 62.0, 400)), "29 in radius back to the west wall deck.")]):
+    piece(gid, part, "34", "Balloon loop subroadbed", "4 in wide. " + note)
 
 # +4.25: helix top covers the whole peninsula footprint (bulb + neck), same as the 0 in and staging decks.
 HTOP = unary_union([BULB, NECK_OUTLINE.intersection(box(0, 0, 158.4, 300))])
@@ -170,18 +187,23 @@ piece("H1", h1, "12", "Helix top, north", "36 in radius on the bulb centre.")
 piece("H2", h2, "12", "Helix top, south")
 piece("H3", h_e, "12", "Helix top, neck", "Runs to the wall stubs; L7 butts it at the south opening.")
 
-# SW top: the peninsula plus the west wall south of the L9/L10 curve, out to the wall.
+# SW top: the peninsula plus the west wall south of the L9/L10 curve, out to the wall. The backdrop
+# (AnyRail view block, y 231.8 to 233.3, wall to x 68.7) splits it into north and south halves; each half is
+# one 96 in piece back from the tip plus a narrow strip at the wall.
 WEDGE = box(4.5 + WALL_GAP, SW_C[1], SW_C[0], 200.5).difference(disc(*SW_C, SW_R_OUT - WALL_GAP))
 SWT = unary_union([SW_TOP, box(4.5 + WALL_GAP, 200.5, 28.4, 266.5), WEDGE])
-X_SW, Y_SW = 62.0, 248.5
-s_n, s_s = split(SWT.intersection(box(0, 200.5, 300, 300)), "y", Y_SW)
-s1, s2 = split(s_n, "x", X_SW)
-s3, s4 = split(s_s, "x", X_SW)
-piece("S0", WEDGE, "12", "SW top, corner south of L9 / L10", "Outside the 48.1 in band radius, out to the wall.")
-piece("S1", s1, "12", "SW top, north-west (over W3)")
-piece("S2", s2, "12", "SW top, north-east", "Round end 33 in radius.")
-piece("S3", s3, "12", "SW top, south-west (over W3)")
-piece("S4", s4, "12", "SW top, south-east", "Round end 33 in radius.")
+BACKDROP = box(0, 231.8, 68.7, 233.3)
+TIP_X = SW_TOP.bounds[2]
+X_SW = TIP_X - 96.0
+north = SWT.difference(BACKDROP).intersection(box(0, 0, 300, 231.8)).union(
+    SWT.intersection(box(68.7, 231.8, 300, 233.3)))
+south = SWT.difference(BACKDROP).intersection(box(0, 233.3, 300, 400))
+s1, s2 = split(north, "x", X_SW)
+s3, s4 = split(south, "x", X_SW)
+piece("S1", s1, "12", "SW top, north strip at the wall", "Includes the corner south of L9 / L10.")
+piece("S2", s2, "12", "SW top, north half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
+piece("S3", s3, "12", "SW top, south strip at the wall")
+piece("S4", s4, "12", "SW top, south half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
 piece("L1", L1, "12", "Ledge, west wall", "8 in wide.")
 piece("L2", L2, "12", "Ledge, NW corner", "Inside edge 26-1/2 in radius.")
 l3a, l3b = split(L3, "x", 135.0)
@@ -293,13 +315,31 @@ def add_sheets(level, first_id, sheets, reserve_note):
                            placed=[(p, q, 0) for p, q in sh], reserve=None, reserve_label=None))
 
 
-A34 = pack("34", ["B1", "B2", "B3", "C1", "F3", "F1", "F2"], pinned=[
+def pack_best(level, ids, pinned=(), tries=14):
+    """Run the first-fit packer over several piece orders; keep the fewest sheets, then the emptiest last sheet."""
+    import random
+    rnd = random.Random(7)
+    base = sorted(ids, key=lambda k: -P[k]["geom"].area)
+    best = None
+    for t in range(tries):
+        order = base[:] if t == 0 else sorted(base, key=lambda k: -P[k]["geom"].area * rnd.uniform(0.6, 1.4))
+        try:
+            sh = pack(level, order, pinned)
+        except SystemExit:
+            continue
+        key = (len(sh), sum(q.area for _, q in sh[-1]))
+        if best is None or key < best[0]:
+            best = (key, sh)
+    return best[1]
+
+
+A34 = pack_best("34", ["B2", "B3", "B1", "C1", "G2", "G3", "G1", "G4", "F3", "F1", "F2"], pinned=[
     [("N1", 0, 0, 0), ("N2", 0, 24 + KERF, 0), ("W1", 96 - 38.0, 24 + KERF, 90)],
     [("W2", 0, 0, 90), ("W3", 0, 24 + KERF, 90), ("N3", 61.5 + KERF, 24 + KERF, 0)],
 ])
 add_sheets("34", "A", A34, "")
 order12 = sorted([k for k, v in P.items() if v["level"] == "12"], key=lambda k: -P[k]["geom"].area)
-A12 = pack("12", order12)
+A12 = pack_best("12", order12)
 add_sheets("12", chr(ord("A") + len(A34)), A12, "")
 
 
