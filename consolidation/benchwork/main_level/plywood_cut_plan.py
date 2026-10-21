@@ -490,9 +490,9 @@ LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
     ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("G4", 0, 0, "B")], [], []),
-    # B1 flipped, straight run on the top factory edge; G1 under it, kept above the G2 / G3 trammel pivots
-    ([("B2", 0, "R", "B"), ("B1", "F180", "M", 0)], [("G1", "C", box(0, 0, SW, 22.5))],
-     arc_nest(["G2", "G3"], x0=2.0, gap=1.5)),
+    # G1 on the top edge, its end in line with B2's left edge (one cut); B1 standing between G3 and B2
+    ([("B2", 0, "R", "B"), ("G1", 0, SW - orient(P["B2"]["geom"], 0).bounds[2], 0), ("B1", 270, "M", "B")], [],
+     arc_nest(["G2", "G3"], x0=0.25, gap=1.5)),
 ]
 LAYOUT12 = [
     ([("H1", 90, 0, 0), ("L9", 180, "R", 0)], [], []),
@@ -563,12 +563,16 @@ def sheet_svg(s):
         if not small:
             o.append(f'<text class="pdim" x="{ox + c.x * scale:.1f}" y="{oy + c.y * scale + 15:.1f}" '
                      f'text-anchor="middle">{dims}</text>')
+    pivots = []
     for pid, g, _ in s["placed"]:
-        if pid in PIVOT:   # trammel pivot: a cross, with the distance in from the left and top edges
+        if pid in PIVOT:   # trammel pivot: a cross; the distance in from the left and top edges goes under the sheet
             px, py = ox + PIVOT[pid][0] * scale, oy + PIVOT[pid][1] * scale
             o.append(f'<path class="pivot" d="M{px - 6:.1f} {py:.1f}H{px + 6:.1f}M{px:.1f} {py - 6:.1f}V{py + 6:.1f}"/>')
-            o.append(f'<text class="rlbl" x="{px + 8:.1f}" y="{py + (-8 if pid == "G2" else 18):.1f}">{pid} pivot '
-                     f'{frac(PIVOT[pid][0])}, {frac(PIVOT[pid][1])}</text>')
+            o.append(f'<text class="rlbl" x="{px:.1f}" y="{py + 20:.1f}" text-anchor="middle">{pid}</text>')
+            pivots.append(f"{pid} {frac(PIVOT[pid][0])}, {frac(PIVOT[pid][1])}")
+    if pivots:
+        o.append(f'<text class="axis" x="{ox + SW * scale / 2:.1f}" y="{H - 6}" text-anchor="middle">'
+                 f'trammel pivots, in from left, top: {" · ".join(pivots)}</text>')
     o.append(f'<text class="axis" x="{ox}" y="{H - 6}">96 in</text>')
     o.append(f'<text class="axis" x="{ox + SW * scale}" y="{H - 6}" text-anchor="end">48 x 96 sheet, grid 12 in</text>')
     o.append("</svg>")
