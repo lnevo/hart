@@ -505,7 +505,7 @@ LAYOUT12 = [
     ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], [], []),
     ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], [], []),
     ([("L7", 0, 0, 0), ("L2", 90, "R", "B")], [("H2", "C")], []),
-    ([("L5", 90, 0, 0), ("S1", 90, 0, "B")], [("L4", "C")], []),
+    ([("L5", 90, 0, 0), ("S1", 90, 0, "B"), ("L4", "h", "M", 0)], [], []),   # L4 on the top edge inside L5
 ]
 A34 = [lay_out("34", pins, autos, fixed) for pins, autos, fixed in LAYOUT34]
 A12 = [lay_out("12", pins, autos, fixed) for pins, autos, fixed in LAYOUT12]
