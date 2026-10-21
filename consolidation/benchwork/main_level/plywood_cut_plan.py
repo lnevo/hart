@@ -425,15 +425,15 @@ def arc_nest(pids, x0=0.0, gap=0.0, centre=(78.8, 233.4)):
 
 
 def lay_out(level, pins, autos=(), fixed=()):
-    """One sheet laid out for the saw. pins: (pid, rot, x, y), rot 'F' = flipped, x 'R' = flush right, y 'B' = flush bottom,
+    """One sheet laid out for the saw. pins: (pid, rot, x, y), rot 'F' / 'F180' = flipped (then turned), x 'R' = flush right, y 'B' = flush bottom,
     x 'S' = slide right until it fits, 'M' = middle of the room it fits in. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
     leftover space; (pid, "C"[, area]) centres the piece where it has the most clearance, square to the sheet;
     "CA" also tries 5 degree steps, face up or flipped, so a curved piece can follow a curved offcut."""
     placed = list(fixed)
     for pid, rot, x, y in pins:
         g = P[pid]["geom"]
-        if rot == "F":   # flipped end for end (mirrored), otherwise as drawn
-            g, rot = affinity.scale(g, -1, 1, origin="centroid"), 0
+        if isinstance(rot, str) and rot.startswith("F"):   # 'F' / 'F180': flipped end for end, then turned
+            g, rot = affinity.scale(g, -1, 1, origin="centroid"), int(rot[1:] or 0)
         q0 = orient(g, rot)
         w, h = q0.bounds[2], q0.bounds[3]
         yy = SH - h if y == "B" else y
@@ -489,10 +489,10 @@ def lay_out(level, pins, autos=(), fixed=()):
 LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
-    # B1 flipped: the straight run on the bottom factory edge, its square end on the left edge (both square corners in
-    # the sheet corner); G1 on the bottom edge too, centred in the gap under B3
-    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", "F", 0, "B"), ("G1", 0, "M", "B")], [], []),
-    ([("B2", 0, "R", "B"), ("G4", 0, "M", 0)], [], arc_nest(["G2", "G3"], x0=2.0, gap=1.5)),
+    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("G4", 0, 0, "B")], [], []),
+    # B1 flipped, straight run on the top factory edge; G1 under it, kept above the G2 / G3 trammel pivots
+    ([("B2", 0, "R", "B"), ("B1", "F180", "M", 0)], [("G1", "C", box(0, 0, SW, 22.5))],
+     arc_nest(["G2", "G3"], x0=2.0, gap=1.5)),
 ]
 LAYOUT12 = [
     ([("H1", 90, 0, 0), ("L9", 180, "R", 0)], [], []),
