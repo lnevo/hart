@@ -422,7 +422,7 @@ def lay_out(level, pins, autos=(), fixed=()):
     """One sheet laid out for the saw. pins: (pid, rot, x, y), x 'R' = flush right, y 'B' = flush bottom,
     x 'S' = slide right until it fits, 'M' = middle of the room it fits in. fixed: pieces already placed (arc_nest). autos: small pieces placed in the
     leftover space; (pid, "C"[, area]) centres the piece where it has the most clearance, square to the sheet;
-    "CA" also tries 15 degree steps so a curved piece can follow a curved offcut."""
+    "CA" also tries 5 degree steps, face up or flipped, so a curved piece can follow a curved offcut."""
     placed = list(fixed)
     for pid, rot, x, y in pins:
         q0 = orient(P[pid]["geom"], rot)
@@ -442,9 +442,12 @@ def lay_out(level, pins, autos=(), fixed=()):
     for item in autos:
         pid, mode, area = (item, "", None) if isinstance(item, str) else (tuple(item) + (None,))[:3]
         best = None
-        rots = (0, 90, "h", "v", 180, 270) + (tuple(range(15, 360, 15)) if mode == "CA" else ())
-        for rot in rots:
-            q0 = orient(P[pid]["geom"], rot)
+        rots = [(r, False) for r in (0, 90, "h", "v", 180, 270)]
+        if mode == "CA":   # any 5 degree step, either face up (a flipped piece is just cut upside down)
+            rots += [(r, m) for m in (False, True) for r in range(0, 360, 5)]
+        for rot, mirror in rots:
+            g = affinity.scale(P[pid]["geom"], -1, 1, origin="centroid") if mirror else P[pid]["geom"]
+            q0 = orient(g, rot)
             w, h = q0.bounds[2], q0.bounds[3]
             if w > SW or h > SH:
                 continue
