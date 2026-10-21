@@ -500,7 +500,7 @@ LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
     # B1 flipped: square end on the left edge, straight run on the bottom edge (both square corners in the corner)
-    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", "F", 0, "B")], [], []),
+    ([("W1", "F270", 0, 0), ("B3", 0, "R", 0), ("B1", "F", 0, "B")], [], []),   # W1 flipped: its long side on the left edge
     # G4 on the top edge, G1 under it with their left ends in line: the long cut and the end cut are shared
     ([("B2", 0, "R", "B"), ("G4", 0, "M", 0), ("G1", 0, ("with", "G4"), ("under", "G4"))], [],
      arc_nest(["G2", "G3"], x0=0.25, gap=1.5)),
