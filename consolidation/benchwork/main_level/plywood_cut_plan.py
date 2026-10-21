@@ -437,6 +437,10 @@ def lay_out(level, pins, autos=(), fixed=()):
         q0 = orient(g, rot)
         w, h = q0.bounds[2], q0.bounds[3]
         yy = SH - h if y == "B" else y
+        if isinstance(x, tuple) and x[0] == "with":   # ("with", pid): left end in line with a placed piece's
+            x = dict(placed)[x[1]].bounds[0]
+        if isinstance(y, tuple) and y[0] == "under":   # ("under", pid): one kerf below a placed piece
+            yy = dict(placed)[y[1]].bounds[3] + KERF
         if isinstance(x, tuple):   # ("A", gap): as far right as it fits, then back off to leave `gap` to its neighbour
             free = [k / 8 for k in range(int((SW - w) * 8), -1, -1)
                     if all(affinity.translate(q0, k / 8, yy).distance(o) >= KERF - 1e-6 for _, o in placed)]
@@ -495,9 +499,10 @@ def lay_out(level, pins, autos=(), fixed=()):
 LAYOUT34 = [
     ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
-    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("G4", 0, 0, "B")], [], []),
-    # B1 on end, square end on the bottom edge, centred between G3 and B2; G1 on the top edge, centred between B1 and B2
-    ([("B2", 0, "R", "B"), ("B1", 90, "M", "B"), ("G1", 0, "M", 0)], [],
+    # B1 flipped: square end on the left edge, straight run on the bottom edge (both square corners in the corner)
+    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", "F", 0, "B")], [], []),
+    # G4 on the top edge, G1 under it with their left ends in line: the long cut and the end cut are shared
+    ([("B2", 0, "R", "B"), ("G4", 0, "M", 0), ("G1", 0, ("with", "G4"), ("under", "G4"))], [],
      arc_nest(["G2", "G3"], x0=0.25, gap=1.5)),
 ]
 LAYOUT12 = [
