@@ -216,14 +216,19 @@ LOOP_W = 4.0
 LOOP_BAND = LineString(LOOP).buffer(LOOP_W / 2, cap_style=2, join_style=1).difference(
     unary_union([WEST.buffer(0.0), F_SW, box(0, 0, 4.5 + WALL_GAP, 400)]))
 X_ARC = 78.8   # where the loop turns round the tip: G2 / G3 are pure quarter circles
-_g1 = LOOP_BAND.intersection(box(46.5, 0, X_ARC, 218.0))
+LOOP_C = (X_ARC, 233.4)
 _g4 = LOOP_BAND.intersection(box(28.5, 218.0, X_ARC, 400))
+G_W = round((_g4.bounds[3] - _g4.bounds[1]) * 8) / 8   # G4 is the box round the 29 in curve; G1-G3 match its width
+G_RO = 31.0 + LOOP_W / 2              # outer edge stays on the 4 in band; the extra width goes inside the loop
+_ring = disc(*LOOP_C, G_RO).difference(disc(*LOOP_C, G_RO - G_W))
 for i, (gid, part, note) in enumerate([
-        ("G1", box(*_g1.bounds), "Plain rectangle on the straight; square cuts at F3 and G2."),
-        ("G2", LOOP_BAND.intersection(box(X_ARC, 0, 300, 233.4)), "Quarter circle, 31 in centre line, centre (78.8, 233.4)."),
-        ("G3", LOOP_BAND.intersection(box(X_ARC, 233.4, 300, 400)), "Quarter circle, same as G2; joint at the tip."),
+        ("G1", box(46.5, LOOP_C[1] - G_RO, X_ARC, LOOP_C[1] - G_RO + G_W),
+         "Plain rectangle on the straight; square cuts at F3 and G2."),
+        ("G2", _ring.intersection(box(X_ARC, 0, 300, LOOP_C[1])),
+         f"Quarter circle, {G_RO - G_W:g} / {G_RO:g} in edges, centre (78.8, 233.4)."),
+        ("G3", _ring.intersection(box(X_ARC, LOOP_C[1], 300, 400)), "Quarter circle, same as G2; joint at the tip."),
         ("G4", box(*_g4.bounds), "Plain rectangle from W3 to G3; wide enough for the 29 in curve.")]):
-    piece(gid, part, "34", "Balloon loop subroadbed", "4 in wide. " + note)
+    piece(gid, part, "34", "Balloon loop subroadbed", f"{G_W:g} in wide, outer edge on the 4 in roadbed edge. " + note)
 
 # +4.25: helix top covers the whole peninsula footprint (bulb + neck), same as the 0 in and staging decks.
 # Like the lower level: one full 48 x 96 sheet across the north side from the bulb to the neck, then the
@@ -478,10 +483,10 @@ def lay_out(level, pins, autos=(), fixed=()):
 
 
 LAYOUT34 = [
-    ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("G1", 0, "R", 23.4 + KERF), ("F3", 90, "R", "B")], [], []),
+    ([("N1", 0, 0, 0), ("N2", 0, 0, "B"), ("F3", 270, "R", "B")], [], []),
     ([("W2", 90, 0, 0), ("W3", 90, 0, "B")], [], []),
     # B1 as drawn: the straight run's flat side on the bottom factory edge, square end up from it, centred in the gap
-    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", 0, "M", "B")], [], []),
+    ([("W1", 90, 0, 0), ("B3", 0, "R", 0), ("B1", 0, "M", "B")], [("G1", "C")], []),
     ([("B2", 0, "R", "B"), ("G4", 0, "M", 0)], [], arc_nest(["G2", "G3"], x0=2.0, gap=1.5)),
 ]
 LAYOUT12 = [

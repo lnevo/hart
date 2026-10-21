@@ -152,8 +152,7 @@ td.note {{ color: var(--muted); }}
   <div class="totals">
     <div class="total"><span class="eyebrow"><span class="swatch sw34"></span>3/4 in · 0 in level deck</span>
       <span class="big">{len(s34)} <small>sheets</small></span>
-      <p class="small">{S["area34"]} sq ft of pieces. Includes the balloon-loop subroadbed. The last sheet is
-      about 70% spare.</p></div>
+      <p class="small">{S["area34"]} sq ft of pieces. Includes the balloon-loop subroadbed.</p></div>
     <div class="total"><span class="eyebrow"><span class="swatch sw12"></span>1/2 in · +4.25 level</span>
       <span class="big">{len(s12)} <small>sheets</small></span>
       <p class="small">{S["area12"]} sq ft of pieces. The offcuts on the last two sheets are where the 0 to 4.25 ramp
@@ -165,7 +164,7 @@ td.note {{ color: var(--muted); }}
     <div class="maps">
       <figure>{svg("room_34.svg")}<figcaption><span class="swatch sw34"></span>3/4 in at 0 in: solid deck on the north and
       west walls, the closet strip and the turnback; a 6 in board for the double track from the helix through both wall
-      openings; 4 in subroadbed for the balloon loop on the SW peninsula. Dots mark curve centres.</figcaption></figure>
+      openings; 9-1/4 in subroadbed for the balloon loop on the SW peninsula. Dots mark curve centres.</figcaption></figure>
       <figure>{svg("room_12.svg")}<figcaption><span class="swatch sw12"></span>1/2 in at +4.25: the helix top over the whole
       peninsula, the SW top over the peninsula and W3, and the 8 in ledge for the two outer tracks. Dots mark the
       curve centres.</figcaption></figure>
@@ -181,12 +180,12 @@ td.note {{ color: var(--muted); }}
       that end to the helix exit roadbed.</li>
       <li><b>Closet deck (B2, B3)</b> is now full over the grid: both alcoves and the turnback, split at the middle of the
       aisle end so the halves mirror each other. The aisle curve is AnyRail's exact outline.</li>
-      <li><b>Balloon loop (F3, G1 to G4)</b> is 4 in subroadbed on the AnyRail branchline loop: 28.6 in radius off the
+      <li><b>Balloon loop (F3, G1 to G4)</b> is 9-1/4 in subroadbed, all four pieces the same width, on the AnyRail branchline loop: 28.6 in radius off the
       west wall, 31 in round the tip, 29 in back to the wall. F3 is a square-cornered block in the SW inside corner
       (with the 18 in fillet on the aisle side) that carries the loop's first curve, so G1 is a plain rectangle. G4 is
-      a plain rectangle wide enough for the last curve. G2 and G3 are pure quarter circles round the tip, nested on
-      sheet D the way the helix roadbed was: chord across the 48 in width, both facing the same way. Widen the loop if your
-      roadbed needs more than 4 in.</li>
+      a plain rectangle wide enough for the last curve, and G1 to G3 match its width. Their outer edge stays on the 4 in
+      roadbed edge; the extra width is on the inside of the loop. G2 and G3 are pure quarter circles round the tip, nested on
+      sheet D the way the helix roadbed was: chord across the 48 in width, both facing the same way.</li>
       <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
       the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
       there if you want the two to clear.</li>
@@ -233,7 +232,7 @@ td.note {{ color: var(--muted); }}
           <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">F3</td><td>18 in fillet, aisle side only</td></tr>
-          <tr><td class="pid">G2 G3</td><td>31 in centre line (29 / 33 edges). Both arcs bulge toward the sheet edge, so each centre is on the plywood: nail the trammel at the cross marked on sheet D and swing 29 and 33 in</td></tr>
+          <tr><td class="pid">G2 G3</td><td>23-3/4 and 33 in edges (31 in track centre line). Both arcs bulge toward the sheet edge, so each centre is on the plywood: nail the trammel at the cross marked on sheet D and swing 23-3/4 and 33 in</td></tr>
                     <tr><td class="pid">L2 L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
           <tr><td class="pid">L9</td><td>40.2 in inside radius, centre (52.7, 160.3)</td></tr>
           <tr><td class="pid">W1 W3</td><td>10 and 6 in fillets</td></tr>
