@@ -257,3 +257,15 @@ td.note {{ color: var(--muted); }}
 '''
 OUT.write_text(page)
 print(OUT, len(page))
+
+# Optional third argument: a standalone copy for the website's Build page (the artifact host supplies the document
+# skeleton; the site needs its own), with a link back to The Build.
+if len(sys.argv) > 3:
+    site = Path(sys.argv[3])
+    body = (page.replace('<meta name="claude:viewport-fit-sides" content="cover">\n', "")
+            .replace("HART main level · cut plan for review", "HART main level · cut plan")
+            .replace('<header class="intro">',
+                     '<header class="intro">\n    <p class="small"><a href="../index.html#main-level">&larr; The Build</a></p>', 1))
+    site.write_text('<!doctype html>\n<html lang="en">\n<meta charset="utf-8">\n'
+                    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' + body + "</html>\n")
+    print(site, site.stat().st_size)
