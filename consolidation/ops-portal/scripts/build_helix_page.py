@@ -169,7 +169,6 @@ def main():
         <a class="card" href="files/{HANDOFF}"><h3>Design handoff (Markdown)</h3>
           <p>Design rationale, alternatives considered, and formulas behind the locked plan.</p></a>
       </div>
-      <p class="note">The plan's entry pages (2, 3, 8) are out of date.</p>
 
       <h2>Printed fixtures (STL index)</h2>
       <p>{n_files} files, all modelled in millimetres and checked as watertight single bodies. Extents are the bounding box as exported (X × Y × Z). Unless a part is marked <em>tested</em>, it has only been verified in software.</p>

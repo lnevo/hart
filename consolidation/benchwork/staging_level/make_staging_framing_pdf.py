@@ -19,7 +19,7 @@ from shapely.geometry import LineString, box  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 
 import make_joist_construction_pdf as ml  # noqa: E402
-from main_level_geometry import (CLOSET_DECK, F_NW, F_SW, NORTH, PEN, WALL_GAP, WALLS,  # noqa: E402
+from main_level_geometry import (CLOSET_DECK, F_NW, fillet, F_SW, NORTH, PEN, WALL_GAP, WALLS,  # noqa: E402
                                  WEST, disc)
 from make_joist_construction_pdf import (ACCENT, CLOSETC, DECK, GREY, NEW, WALL,  # noqa: E402
                                          WOOD, WOOD_DK, PlanView, View, footer_note, frac, header, ply, track)
@@ -49,6 +49,7 @@ WG_Y = (NG[1], SW_S_OUT[0])                       # west front girder runs to th
 WG_S = (SW_S_OUT[1], 302.5)                       # L-girder off that girder, south under the 18 x 36 strip to the wall
 WG_S_X = (WG[0] - 6.0, WG[1] - 6.0)              # inset from the strip edge, not in line with the west girder; verify
 STRIP = box(X_WALL_W + 0.125, 266.5, WG[1], 302.5)  # SW strip at the wall, 18 x 36 (wider than the main level's)
+F_STRIP = fillet(WG[1], 266.5, 1, 1, 6.0)            # 6 in curve where it steps in, as the main-level W3
 SW_FRAMES = (30.0, 76.0)                          # leg frames under the west and east straights (x); verify
 SW_LEGS = [(x, y) for x in SW_FRAMES for y in (209.25, 257.75)]    # 2x4 legs under the outer girders
 # wall runs: two leg frames each, a 1x4 from the wall girder to the front girder on a 2x4 leg; verify positions
@@ -168,31 +169,30 @@ def pieces():
     hs1 = pen.intersection(box(px0, py0, px0 + 96, py0 + 48))
     hs3 = pen.intersection(box(px0 + 96, 0, 300, 300))
     hs2 = pen.difference(hs1).difference(hs3)
-    # closet deck halves, two pieces each: the alcove piece runs through the wall opening on a notched tongue
-    # (as the main-level N2 / B1) to HS1 (south, taking the neck end) or N2 (north); the turnback is the other
-    south = CLOSET_DECK.intersection(box(0, J_EAST, 300, 300))
-    north = CLOSET_DECK.intersection(box(0, 0, 300, J_EAST))
-    b2a = unary_union([south.intersection(box(0, 0, X_ALCOVE_E, 300)), hs3,
-                       box(hs3.bounds[2] - 0.1, TONGUE_S[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_S[1])])
-    b3a = unary_union([north.intersection(box(0, 0, X_ALCOVE_E, 300)),
+    # closet deck: each alcove piece runs through its wall opening on a notched tongue (as the main-level N2),
+    # the south one across the neck to HS1, the north one to N2; the turnback is one piece. The neck beside the
+    # south tongue is left open, to be filled with scrap or foam.
+    alcoves = CLOSET_DECK.intersection(box(0, 0, X_ALCOVE_E, 300))
+    tongue_s = box(hs1.bounds[2], TONGUE_S[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_S[1])
+    b2a = unary_union([alcoves.intersection(box(0, J_EAST, 300, 300)), tongue_s])
+    b3a = unary_union([alcoves.intersection(box(0, 0, 300, J_EAST)),
                        box(n_b.bounds[2] - 0.1, TONGUE_N[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_N[1])])
-    b2b = south.difference(box(0, 0, X_ALCOVE_E, 300))
-    b3b = north.difference(box(0, 0, X_ALCOVE_E, 300))
+    pieces.fill = hs3.difference(tongue_s)
     return [
         ("N1", n_a, "North wall", "square cuts"),
         ("N2", n_b, "North wall east", "eased front edge"),
         ("W1", unary_union([w_1, F_NW]), "West wall, north end", "with the 10 in NW fillet"),
         ("W2", w_2, "West wall, middle", "96 in"),
-        ("W3", unary_union([w_3, STRIP]), "West wall south end + SW strip", "96 in; strip 18 x 36"),
+        ("W3", unary_union([w_3, STRIP, F_STRIP]), "West wall south end + SW strip",
+         "96 in; strip 18 x 36, 6 in curve where it steps in"),
         ("FG", FG, "SW box, north straight", "18 in rectangle + the F3 fillet curve"),
         ("GG", GG, "SW box, south straight", "18 in rectangle"),
         ("BN", BN, "SW box, bullnose (G2 + G3)", "one solid piece round the tip"),
         ("HS1", hs1, "Helix peninsula, north", "full 48 x 96 sheet, bulb to neck"),
         ("HS2", hs2, "Helix peninsula, south span", "around the hatch"),
-        ("B2a", b2a, "Closet south alcove", "notched tongue through the wall to HS1; takes the neck end"),
-        ("B2b", b2b, "Closet deck, south turnback", "over the grid"),
+        ("B2a", b2a, "Closet south alcove", "notched tongue through the wall and across the neck to HS1"),
         ("B3a", b3a, "Closet north alcove", "notched tongue through the wall to N2"),
-        ("B3b", b3b, "Closet deck, north turnback", "over the grid"),
+        ("B23b", CLOSET_DECK.difference(alcoves), "Closet turnback (B2b + B3b)", "one piece over the grid"),
     ]
 
 
@@ -207,7 +207,7 @@ def sheet_plan(c):
            "Looking down. Orange = L-girders (1x4 web + 1x2 flange); tan = 1x3 joists.", 1, PAGES, level="staging level")
     v = PlanView(c, ox=40, oy=PH - 74, k=1.86, x0=0.0, y0=43.0)
     v.geom(WALLS, fill=WALL, stroke=GREY, lw=0.4)
-    deck = unary_union([NORTH, WEST, F_NW, SW_DECK, STRIP, CLOSET_DECK, PEN])
+    deck = unary_union([NORTH, WEST, F_NW, SW_DECK, STRIP, F_STRIP, CLOSET_DECK, PEN])
     v.geom(deck, fill=DECK, stroke=GREY, lw=0.4, dash=(2, 1.5))
     v.geom(HATCH, fill=Color(1, 1, 1), stroke=ACCENT, lw=0.6, dash=(3, 2))
     # wall girders
@@ -401,6 +401,8 @@ def sheet_ply(c):
         v.text(pt.x, pt.y, pid, size=7, bold=True, anchor="c", dy=-2)
         x0, y0, x1, y1 = g.bounds
         rows.append((pid, name, f"{frac(x1 - x0)} x {frac(y1 - y0)}", note))
+    v.geom(pieces.fill, fill=Color(0.88, 0.88, 0.88), stroke=GREY, lw=0.4, dash=(2, 1.5))
+    v.text(152.0, 141.0, "neck sides: fill with scrap / foam", size=5.5, color=GREY)
     v.geom(HATCH, fill=Color(1, 1, 1), stroke=ACCENT, lw=0.6, dash=(3, 2))
     tx, ty = 500, PH - 90
     c.setFillColor(black)
