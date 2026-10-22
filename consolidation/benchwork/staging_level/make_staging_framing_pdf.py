@@ -40,7 +40,8 @@ MAIN_FL_TOP = -3.25                               # main level: existing upper g
 # ---- plan (room inches) ----
 Y_WALL_N, X_WALL_W = 47.5, 4.5
 NG = (63.5, 65.0)
-WG = (27.0, 28.5)                                 # west front girder flange, under the deck edge
+X_W_EDGE = 28.5                                   # west run deck edge
+WG = (21.0, 22.5)                                 # west front girder flange, inset ~6 in, web west like the wall girder
 SW_N_OUT, SW_N_IN = (208.5, 210.0), (218.5, 220.0)   # SW box lower girders: inner pair 18 in from each edge,
 SW_S_IN, SW_S_OUT = (247.0, 248.5), (257.0, 258.5)   # outer pair about 10 in further out
 SW_X = (X_WALL_W + 1.5, 100.0)                    # wall girder to about x 100; verify the tip ends
@@ -69,7 +70,8 @@ H_A, H_B = (114.0, 115.5), (134.5, 136.0)
 H_C = (151.6, 153.1)
 H_FRAMES = (66.0, 121.0)                          # leg frames (x); verify
 X_PEN_WALL = 158.5
-Y_N2_E = 64.98                                    # N2's front corner on the closet wall
+X_ALCOVE_E = 187.0                                # alcove / turnback seam
+TONGUE_N, TONGUE_S = (53.15, 59.15), (118.45, 124.45)   # 6 in tongues through the wall openings, as the main level
 J_EAST = 89.5                                     # closet deck seam, as the main level
 
 
@@ -98,9 +100,9 @@ def members():
         y1 = ml.Y_NW_STOP if x < ml.X_NW_END + 0.5 else ml.front_edge_y(x)
         add("joist", x - 0.375, Y_WALL_N + WALL_GAP, x + 0.375, y1)
     for y in ml.W_JOISTS:
-        x1 = ml.X_NW_END if y == ml.W_JOISTS[0] else ml.X_RIM_END if y == ml.Y_RIM else WG[1]
+        x1 = ml.X_NW_END if y == ml.W_JOISTS[0] else ml.X_RIM_END if y == ml.Y_RIM else X_W_EDGE
         add("joist", X_WALL_W + WALL_GAP, y - 0.375, x1, y + 0.375)
-    add("block", WG[1], ml.W_JOISTS[-2] + 0.375, WG[1] + 0.75, ml.Y_RIM - 0.375, "1x2")
+    add("block", X_W_EDGE, ml.W_JOISTS[-2] + 0.375, X_W_EDGE + 0.75, ml.Y_RIM - 0.375, "1x2")
     for x in N_FRAMES:
         add("frame", x - 0.375, Y_WALL_N, x + 0.375, NG[1] + 1.0, "1x4")
     for y in W_FRAMES:
@@ -159,12 +161,16 @@ def pieces():
     hs1 = pen.intersection(box(px0, py0, px0 + 96, py0 + 48))
     hs3 = pen.intersection(box(px0 + 96, 0, 300, 300))
     hs2 = pen.difference(hs1).difference(hs3)
-    # the closet deck runs west through the closet wall: B2 takes the neck end to HS1, B3 meets N2
-    x_cd = CLOSET_DECK.bounds[0]
-    b2 = unary_union([CLOSET_DECK.intersection(box(0, J_EAST, 300, 300)), hs3,
-                      box(hs3.bounds[2] - 0.1, hs3.bounds[1], x_cd + 0.1, hs3.bounds[3])])
-    b3 = unary_union([CLOSET_DECK.intersection(box(0, 0, 300, J_EAST)),
-                      box(n_b.bounds[2] - 0.1, n_b.bounds[1], x_cd + 0.1, Y_N2_E)])
+    # closet deck halves, two pieces each: the alcove piece runs through the wall opening on a notched tongue
+    # (as the main-level N2 / B1) to HS1 (south, taking the neck end) or N2 (north); the turnback is the other
+    south = CLOSET_DECK.intersection(box(0, J_EAST, 300, 300))
+    north = CLOSET_DECK.intersection(box(0, 0, 300, J_EAST))
+    b2a = unary_union([south.intersection(box(0, 0, X_ALCOVE_E, 300)), hs3,
+                       box(hs3.bounds[2] - 0.1, TONGUE_S[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_S[1])])
+    b3a = unary_union([north.intersection(box(0, 0, X_ALCOVE_E, 300)),
+                       box(n_b.bounds[2] - 0.1, TONGUE_N[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_N[1])])
+    b2b = south.difference(box(0, 0, X_ALCOVE_E, 300))
+    b3b = north.difference(box(0, 0, X_ALCOVE_E, 300))
     return [
         ("N1", n_a, "North wall", "square cuts"),
         ("N2", n_b, "North wall east", "eased front edge"),
@@ -176,8 +182,10 @@ def pieces():
         ("BN", BN, "SW box, bullnose (G2 + G3)", "one solid piece round the tip"),
         ("HS1", hs1, "Helix peninsula, north", "full 48 x 96 sheet, bulb to neck"),
         ("HS2", hs2, "Helix peninsula, south span", "around the hatch"),
-        ("B2", b2, "Closet deck, south half", "through the wall to HS1 (takes the neck end)"),
-        ("B3", b3, "Closet deck, north half", "through the wall to N2"),
+        ("B2a", b2a, "Closet south alcove", "notched tongue through the wall to HS1; takes the neck end"),
+        ("B2b", b2b, "Closet deck, south turnback", "over the grid"),
+        ("B3a", b3a, "Closet north alcove", "notched tongue through the wall to N2"),
+        ("B3b", b3b, "Closet deck, north turnback", "over the grid"),
     ]
 
 
@@ -197,7 +205,7 @@ def sheet_plan(c):
     v.geom(HATCH, fill=Color(1, 1, 1), stroke=ACCENT, lw=0.6, dash=(3, 2))
     # wall girders
     v.rect(X_WALL_W, Y_WALL_N, 158.5, Y_WALL_N + 1.5, fill=NEW, stroke=None)
-    v.rect(X_WALL_W, Y_WALL_N, X_WALL_W + 1.5, 266.5, fill=NEW, stroke=None)
+    v.rect(X_WALL_W, Y_WALL_N, X_WALL_W + 1.5, 302.5, fill=NEW, stroke=None)    # one spliced girder, full length
     for kind, x0, y0, x1, y1, _, _ in members():
         fill, lw = STYLE[kind]
         v.rect(x0, y0, x1, y1, fill=fill, stroke=None if kind in ("girder", "frame") else black, lw=lw)
@@ -212,7 +220,7 @@ def sheet_plan(c):
             v.rect(x - 0.75, y - 1.75, x + 0.75, y + 1.75, fill=Color(0.35, 0.35, 0.40), stroke=black, lw=0.3)
     v.text(83, NG[1] + 3.5, "NORTH FRONT GIRDER (set back)", size=6, color=NEW, anchor="c", bold=True)
     c.saveState()
-    a, b = v.p(WG[1] + 3.0, 140)
+    a, b = v.p(X_W_EDGE + 3.0, 140)
     c.translate(a, b)
     c.rotate(-90)
     c.setFillColor(NEW)
@@ -255,11 +263,12 @@ def sheet_plan(c):
         "three at each end.",
     ]
     verify = [
-        "Girder lines on the wall runs (drawn like the main level: north set back to y 65, west under the edge).",
+        "North front girder line (drawn set back to y 65, like the main level).",
         "Leg frame positions: north run x 55, 115; west run y 110, 165; SW box x 30, 76; helix x 66, 121.",
         "Hatch size and position (placeholder 36 x 24 on the helix centre); girder y positions A, B, C.",
-        "SW girder ends (drawn to x 100) and where the west front girder ends (drawn onto the outer SW girder).",
-        "FG / GG / bullnose seam lines (drawn at the loop centre, x 78.8).",
+        "SW girder ends (drawn to x 100) and how the west front girder meets the SW box girders.",
+        "FG / GG / bullnose seam lines (drawn at the loop centre, x 78.8); closet seams at x 187 and the 6 in "
+        "tongues through the wall openings (drawn where the main level's are).",
     ]
     y = ly - 14 - len(rows) * 12 - 16
     for title, items, bullet in (("NOTES", notes, ""), ("TO VERIFY ON SITE", verify, "- ")):
@@ -297,16 +306,17 @@ def sheet_sections(c):
     ply(a, 0.125, 24.0, TOP, PLY)
     a.rect(0.125, J_BOT, 24.0, J_TOP, fill=WOOD)
     girder_cut(a, 0.0, "l")
-    girder_cut(a, 22.5, "r")
-    a.rect(0.0, G_WEB_BOT - 3.5, 24.0, G_WEB_BOT, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
-    a.rect(20.5, -32.0, 24.0, G_WEB_BOT - 3.5, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
-    a.line(20.5, -31.0, 9.0, G_WEB_BOT - 3.5, lw=0.8, color=GREY, dash=(3, 2))
+    girder_cut(a, 16.5, "l")
+    a.rect(0.0, G_WEB_BOT - 3.5, 19.5, G_WEB_BOT, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
+    a.rect(16.0, -32.0, 19.5, G_WEB_BOT - 3.5, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
+    a.line(16.0, -31.0, 6.0, G_WEB_BOT - 3.5, lw=0.8, color=GREY, dash=(3, 2))
     for xc in (5.0, 10.0, 15.0, 20.0):
         track(a, xc, TOP)
     a.leader(12, (J_TOP + J_BOT) / 2, 6, -34.5, "1x3 joist on edge, ~16 in o.c.,\nstraight on both flanges")
     a.leader(0.4, -20.5, 3.0, -38.0, "wall L-girder, 1x4 web + 1x2 flange", color=GREY)
-    a.leader(23.6, -20.5, 25.0, -24.0, "front L-girder,\nweb under the\nouter half")
-    a.leader(22.0, -29.0, 25.0, -29.5, "leg frame (beyond): 1x4 joist\nunder both girders, 2x4 leg,\n1x2 diagonal")
+    a.leader(17.6, -19.5, 25.0, -24.0, "front L-girder, inset\n6 in, web on the wall\nside like the wall girder")
+    a.dim_h(TOP + 1.6, 18.0, 24.0, "6")
+    a.leader(18.0, -29.0, 25.0, -29.5, "leg frame (beyond): 1x4 joist\nunder both girders, 2x4 leg,\n1x2 diagonal")
     a.dim_v(-1.0, TOP, J_BOT, f"{TOP - J_BOT:.2f}", side="l")
 
     # B: SW box, y across the page (north on the left), 1:8
