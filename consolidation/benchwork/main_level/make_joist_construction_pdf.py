@@ -215,14 +215,14 @@ def track(v, xc, y_base, cork=True, dash=None):
                lw=0.3, dash=dash)
 
 
-def header(c, title, sub, page, pages):
+def header(c, title, sub, page, pages, level="main level"):
     c.setFillColor(black)
     c.setFont("Helvetica-Bold", 15)
     c.drawString(36, PH - 40, title)
     c.setFont("Helvetica", 8.5)
     c.setFillColor(GREY)
     c.drawString(36, PH - 54, sub)
-    c.drawRightString(PW - 36, PH - 40, f"HART main level  |  sheet {page} of {pages}")
+    c.drawRightString(PW - 36, PH - 40, f"HART {level}  |  sheet {page} of {pages}")
     c.drawRightString(PW - 36, PH - 54, "Dimensions in inches. 0.00 = top of 3/4 ply subroadbed (0\" grade).")
     c.setStrokeColor(black)
     c.setLineWidth(0.8)
