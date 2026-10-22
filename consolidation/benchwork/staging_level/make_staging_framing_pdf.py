@@ -47,6 +47,7 @@ SW_S_IN, SW_S_OUT = (247.0, 248.5), (257.0, 258.5)   # outer pair about 10 in fu
 SW_X = (X_WALL_W + 1.5, 100.0)                    # wall girder to about x 100; verify the tip ends
 WG_Y = (NG[1], SW_S_OUT[0])                       # west front girder runs to the southernmost SW girder
 WG_S = (SW_S_OUT[1], SW_S_OUT[1] + 36.0)          # 36 in L-girder off that girder, south under the 18 x 36 strip
+WG_S_X = (WG[0] - 6.0, WG[1] - 6.0)              # inset from the strip edge, not in line with the west girder; verify
 STRIP = box(X_WALL_W + 0.125, 266.5, WG[1], 302.5)  # SW strip at the wall, 18 x 36 (wider than the main level's)
 SW_FRAMES = (30.0, 76.0)                          # leg frames under the west and east straights (x); verify
 SW_LEGS = [(x, y) for x in SW_FRAMES for y in (209.25, 257.75)]    # 2x4 legs under the outer girders
@@ -113,7 +114,7 @@ def members():
     for g in (SW_N_OUT, SW_N_IN, SW_S_IN, SW_S_OUT):
         x0 = SW_X[0] if g == SW_S_OUT else WG[1]   # the other three butt the west front girder
         add("girder", x0, g[0], SW_X[1], g[1], "L")
-    add("girder", WG[0], WG_S[0], WG[1], WG_S[1], "L")
+    add("girder", WG_S_X[0], WG_S[0], WG_S_X[1], WG_S[1], "L")
     for x in SW_FRAMES:
         add("frame", x - 0.375, SW_N_OUT[0] - 1.0, x + 0.375, SW_S_OUT[1] + 1.0, "1x4")
     sw = unary_union([SW_DECK, WEST.intersection(box(0, ml.Y_RIM + 0.375, 300, 400))])
@@ -270,6 +271,7 @@ def sheet_plan(c):
     ]
     verify = [
         "North front girder line (drawn set back to y 65, like the main level).",
+        "SW strip 36 in girder inset (drawn 6 in in from the strip edge, x 15 to 16-1/2).",
         "Leg frame positions: north run x 55, 115; west run y 110, 165; SW box x 30, 76; helix x 66, 121.",
         "Hatch size and position (placeholder 36 x 24 on the helix centre); girder y positions A, B, C.",
         "SW girder ends (drawn to x 100) and how the west front girder meets the SW box girders.",
