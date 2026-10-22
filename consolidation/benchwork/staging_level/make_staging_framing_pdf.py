@@ -50,14 +50,16 @@ SW_LEGS = [(x, y) for x in SW_FRAMES for y in (209.25, 257.75)]    # 2x4 legs un
 # wall runs: two leg frames each, a 1x4 from the wall girder to the front girder on a 2x4 leg; verify positions
 N_FRAMES = (55.0, 115.0)                          # x
 W_FRAMES = (110.0, 165.0)                         # y
-# SW deck: F3 + G1 + G2 one piece, G4 + G3 another; 18 in wide on the straights, 15 / 33 in ring round the tip
+# SW deck: two 18 in rectangles on the straights (FG keeps the F3 fillet curve, no notch) and the bullnose
+# (G2 + G3, the 15 / 33 in ring round the tip) as one solid piece
 LOOP_C, G_RO, G_W = (78.8, 233.4), 33.0, 18.0
 _ring = disc(*LOOP_C, G_RO).difference(disc(*LOOP_C, G_RO - G_W))
-G1 = box(46.5, LOOP_C[1] - G_RO, LOOP_C[0], LOOP_C[1] - G_RO + G_W)
+G1 = box(28.5, LOOP_C[1] - G_RO, LOOP_C[0], LOOP_C[1] - G_RO + G_W)
 G4 = box(28.5, LOOP_C[1] + G_RO - G_W, LOOP_C[0], LOOP_C[1] + G_RO)
-FG = unary_union([F_SW, G1, _ring.intersection(box(LOOP_C[0], 0, 300, LOOP_C[1]))])
-GG = unary_union([G4, _ring.intersection(box(LOOP_C[0], LOOP_C[1], 300, 400))])
-SW_DECK = unary_union([FG, GG])
+FG = unary_union([F_SW.intersection(box(0, 0, 300, G1.bounds[3])), G1])
+GG = G4
+BN = _ring.intersection(box(LOOP_C[0], 0, 300, 400))
+SW_DECK = unary_union([FG, GG, BN])
 # helix peninsula: two long girders off the closet wall on the neck edges, the south one cut out at the hatch;
 # a free girder halfway between it and the south edge; a 2x4 + 1x4 leg frame under all three at each end
 HC = (92.4, 132.75)
@@ -67,6 +69,7 @@ H_A, H_B = (114.0, 115.5), (134.5, 136.0)
 H_C = (151.6, 153.1)
 H_FRAMES = (66.0, 121.0)                          # leg frames (x); verify
 X_PEN_WALL = 158.5
+Y_N2_E = 64.98                                    # N2's front corner on the closet wall
 J_EAST = 89.5                                     # closet deck seam, as the main level
 
 
@@ -156,19 +159,25 @@ def pieces():
     hs1 = pen.intersection(box(px0, py0, px0 + 96, py0 + 48))
     hs3 = pen.intersection(box(px0 + 96, 0, 300, 300))
     hs2 = pen.difference(hs1).difference(hs3)
+    # the closet deck runs west through the closet wall: B2 takes the neck end to HS1, B3 meets N2
+    x_cd = CLOSET_DECK.bounds[0]
+    b2 = unary_union([CLOSET_DECK.intersection(box(0, J_EAST, 300, 300)), hs3,
+                      box(hs3.bounds[2] - 0.1, hs3.bounds[1], x_cd + 0.1, hs3.bounds[3])])
+    b3 = unary_union([CLOSET_DECK.intersection(box(0, 0, 300, J_EAST)),
+                      box(n_b.bounds[2] - 0.1, n_b.bounds[1], x_cd + 0.1, Y_N2_E)])
     return [
         ("N1", n_a, "North wall", "square cuts"),
         ("N2", n_b, "North wall east", "eased front edge"),
         ("W1", unary_union([w_1, F_NW]), "West wall, north end", "with the 10 in NW fillet"),
         ("W2", w_2, "West wall, middle", "96 in"),
         ("W3", unary_union([w_3, CLOSET, F_CL]), "West wall south end + closet strip", "96 in"),
-        ("FG", FG, "F3 + G1 + G2", "one piece; 18 in on the straight"),
-        ("GG", GG, "G4 + G3", "one piece; 18 in on the straight"),
+        ("FG", FG, "SW box, north straight", "18 in rectangle + the F3 fillet curve"),
+        ("GG", GG, "SW box, south straight", "18 in rectangle"),
+        ("BN", BN, "SW box, bullnose (G2 + G3)", "one solid piece round the tip"),
         ("HS1", hs1, "Helix peninsula, north", "full 48 x 96 sheet, bulb to neck"),
         ("HS2", hs2, "Helix peninsula, south span", "around the hatch"),
-        ("HS3", hs3, "Helix peninsula, neck end", "to the closet wall"),
-        ("B2", CLOSET_DECK.intersection(box(0, J_EAST, 300, 300)), "Closet deck, south half", "over the grid"),
-        ("B3", CLOSET_DECK.intersection(box(0, 0, 300, J_EAST)), "Closet deck, north half", "over the grid"),
+        ("B2", b2, "Closet deck, south half", "through the wall to HS1 (takes the neck end)"),
+        ("B3", b3, "Closet deck, north half", "through the wall to N2"),
     ]
 
 
@@ -239,8 +248,8 @@ def sheet_plan(c):
         "the north run and two on the west run (wall girder to front girder); two on the SW box, under the west "
         "and east straights, each carrying all four lower girders.",
         "SW box: upper girders (y 218-1/2, 248-1/2) carry the main "
-        "level; the lower inner pair sits under them, the outer pair 10 in further out. F3+G1+G2 and G4+G3 are "
-        "single 18 in pieces; the middle is open.",
+        "level; the lower inner pair sits under them, the outer pair 10 in further out. Deck: two 18 in "
+        "straights and a solid bullnose round the tip; the middle is open.",
         "Helix peninsula: girders A and B come off the closet wall on the neck edges and run to the bulb's west "
         "edge; B is cut out at the hatch. C is free, halfway to the south edge. A 2x4 + 1x4 leg frame carries all "
         "three at each end.",
@@ -250,7 +259,7 @@ def sheet_plan(c):
         "Leg frame positions: north run x 55, 115; west run y 110, 165; SW box x 30, 76; helix x 66, 121.",
         "Hatch size and position (placeholder 36 x 24 on the helix centre); girder y positions A, B, C.",
         "SW girder ends (drawn to x 100) and where the west front girder ends (drawn onto the outer SW girder).",
-        "FG is 83 x 51 in as drawn - more than a 48 in sheet; check the as-built F3 extent.",
+        "FG / GG / bullnose seam lines (drawn at the loop centre, x 78.8).",
     ]
     y = ly - 14 - len(rows) * 12 - 16
     for title, items, bullet in (("NOTES", notes, ""), ("TO VERIFY ON SITE", verify, "- ")):
@@ -362,8 +371,8 @@ def sheet_sections(c):
 
 # ---------------------------------------------------------------- sheet 3
 def sheet_ply(c):
-    header(c, "Staging level plywood pieces (3/4)", "Same outlines and seams as the 0 in level, except F3+G1+G2 "
-           "and G4+G3 are single pieces, 18 in wide on the straights.", 3, PAGES, level="staging level")
+    header(c, "Staging level plywood pieces (3/4)", "As the 0 in level except the SW box (two 18 in "
+           "straights + a solid bullnose) and B2/B3 through the closet wall.", 3, PAGES, level="staging level")
     v = PlanView(c, ox=40, oy=PH - 74, k=1.86, x0=0.0, y0=43.0)
     v.geom(WALLS, fill=WALL, stroke=GREY, lw=0.4)
     cols = [Color(0.96, 0.90, 0.76), Color(0.90, 0.94, 0.82), Color(0.86, 0.91, 0.96), Color(0.97, 0.86, 0.82)]
