@@ -19,7 +19,7 @@ from shapely.geometry import LineString, box  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 
 import make_joist_construction_pdf as ml  # noqa: E402
-from main_level_geometry import (CLOSET, CLOSET_DECK, F_CL, F_NW, F_SW, NORTH, PEN, WALL_GAP, WALLS,  # noqa: E402
+from main_level_geometry import (CLOSET_DECK, F_NW, F_SW, NORTH, PEN, WALL_GAP, WALLS,  # noqa: E402
                                  WEST, disc)
 from make_joist_construction_pdf import (ACCENT, CLOSETC, DECK, GREY, NEW, WALL,  # noqa: E402
                                          WOOD, WOOD_DK, PlanView, View, footer_note, frac, header, ply, track)
@@ -45,7 +45,9 @@ WG = (21.0, 22.5)                                 # west front girder flange, in
 SW_N_OUT, SW_N_IN = (208.5, 210.0), (218.5, 220.0)   # SW box lower girders: inner pair 18 in from each edge,
 SW_S_IN, SW_S_OUT = (247.0, 248.5), (257.0, 258.5)   # outer pair about 10 in further out
 SW_X = (X_WALL_W + 1.5, 100.0)                    # wall girder to about x 100; verify the tip ends
-WG_Y = (NG[1], SW_N_OUT[0])                       # west front girder ends on the outer north SW girder
+WG_Y = (NG[1], SW_S_OUT[0])                       # west front girder runs to the southernmost SW girder
+WG_S = (SW_S_OUT[1], SW_S_OUT[1] + 36.0)          # 36 in L-girder off that girder, south under the 18 x 36 strip
+STRIP = box(X_WALL_W + 0.125, 266.5, WG[1], 302.5)  # SW strip at the wall, 18 x 36 (wider than the main level's)
 SW_FRAMES = (30.0, 76.0)                          # leg frames under the west and east straights (x); verify
 SW_LEGS = [(x, y) for x in SW_FRAMES for y in (209.25, 257.75)]    # 2x4 legs under the outer girders
 # wall runs: two leg frames each, a 1x4 from the wall girder to the front girder on a 2x4 leg; verify positions
@@ -109,7 +111,9 @@ def members():
         add("frame", X_WALL_W, y - 0.375, WG[1] + 1.0, y + 0.375, "1x4")
     # SW box
     for g in (SW_N_OUT, SW_N_IN, SW_S_IN, SW_S_OUT):
-        add("girder", SW_X[0], g[0], SW_X[1], g[1], "L")
+        x0 = SW_X[0] if g == SW_S_OUT else WG[1]   # the other three butt the west front girder
+        add("girder", x0, g[0], SW_X[1], g[1], "L")
+    add("girder", WG[0], WG_S[0], WG[1], WG_S[1], "L")
     for x in SW_FRAMES:
         add("frame", x - 0.375, SW_N_OUT[0] - 1.0, x + 0.375, SW_S_OUT[1] + 1.0, "1x4")
     sw = unary_union([SW_DECK, WEST.intersection(box(0, ml.Y_RIM + 0.375, 300, 400))])
@@ -144,7 +148,9 @@ def members():
                 y0 = hy1 - 1.5 if y0 >= hy1 - 0.01 else y0
             add("joist", x - 0.375, y0, x + 0.375, y1)
     # closet: the main-level 1x3 grid
-    m += [r for r in ml.members() if r[0].startswith("cl_")]
+    m += [r for r in ml.members() if r[0].startswith("cl_") and r[2] < 200]
+    for y in (267.0, 284.0, 301.5):              # SW strip: 1x3 joists from the wall girder over the 36 in girder
+        add("joist", X_WALL_W + 1.5, y - 0.375, WG[1], y + 0.375)
     return m
 
 
@@ -176,7 +182,7 @@ def pieces():
         ("N2", n_b, "North wall east", "eased front edge"),
         ("W1", unary_union([w_1, F_NW]), "West wall, north end", "with the 10 in NW fillet"),
         ("W2", w_2, "West wall, middle", "96 in"),
-        ("W3", unary_union([w_3, CLOSET, F_CL]), "West wall south end + closet strip", "96 in"),
+        ("W3", unary_union([w_3, STRIP]), "West wall south end + SW strip", "96 in; strip 18 x 36"),
         ("FG", FG, "SW box, north straight", "18 in rectangle + the F3 fillet curve"),
         ("GG", GG, "SW box, south straight", "18 in rectangle"),
         ("BN", BN, "SW box, bullnose (G2 + G3)", "one solid piece round the tip"),
@@ -200,7 +206,7 @@ def sheet_plan(c):
            "Looking down. Orange = L-girders (1x4 web + 1x2 flange); tan = 1x3 joists.", 1, PAGES, level="staging level")
     v = PlanView(c, ox=40, oy=PH - 74, k=1.86, x0=0.0, y0=43.0)
     v.geom(WALLS, fill=WALL, stroke=GREY, lw=0.4)
-    deck = unary_union([NORTH, WEST, F_NW, SW_DECK, CLOSET, F_CL, CLOSET_DECK, PEN])
+    deck = unary_union([NORTH, WEST, F_NW, SW_DECK, STRIP, CLOSET_DECK, PEN])
     v.geom(deck, fill=DECK, stroke=GREY, lw=0.4, dash=(2, 1.5))
     v.geom(HATCH, fill=Color(1, 1, 1), stroke=ACCENT, lw=0.6, dash=(3, 2))
     # wall girders
