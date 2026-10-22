@@ -75,6 +75,7 @@ H_C = (151.6, 153.1)
 H_FRAMES = (66.0, 121.0)                          # leg frames (x); verify
 X_PEN_WALL = 158.5
 X_ALCOVE_E = 187.0                                # alcove / turnback seam
+X_N2_END = 158.48 - 2.5                           # N2 ends about 2-1/2 in short of the closet wall; verify
 TONGUE_N, TONGUE_S = (53.15, 59.15), (118.45, 124.45)   # 6 in tongues through the wall openings, as the main level
 J_EAST = 89.5                                     # closet deck seam, as the main level
 
@@ -175,9 +176,11 @@ def pieces():
     alcoves = CLOSET_DECK.intersection(box(0, 0, X_ALCOVE_E, 300))
     tongue_s = box(hs1.bounds[2], TONGUE_S[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_S[1])
     b2a = unary_union([alcoves.intersection(box(0, J_EAST, 300, 300)), tongue_s])
-    b3a = unary_union([alcoves.intersection(box(0, 0, 300, J_EAST)),
-                       box(n_b.bounds[2] - 0.1, TONGUE_N[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_N[1])])
-    pieces.fill = hs3.difference(tongue_s)
+    n_end = n_b.intersection(box(X_N2_END, 0, 300, 300))     # N2 stops short; the north tongue runs into the gap
+    n_b = n_b.difference(n_end)
+    tongue_n = box(X_N2_END, TONGUE_N[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_N[1])
+    b3a = unary_union([alcoves.intersection(box(0, 0, 300, J_EAST)), tongue_n])
+    pieces.fill = unary_union([hs3.difference(tongue_s), n_end.difference(tongue_n)])
     return [
         ("N1", n_a, "North wall", "square cuts"),
         ("N2", n_b, "North wall east", "eased front edge"),
@@ -191,7 +194,7 @@ def pieces():
         ("HS1", hs1, "Helix peninsula, north", "full 48 x 96 sheet, bulb to neck"),
         ("HS2", hs2, "Helix peninsula, south span", "around the hatch"),
         ("B2a", b2a, "Closet south alcove", "notched tongue through the wall and across the neck to HS1"),
-        ("B3a", b3a, "Closet north alcove", "notched tongue through the wall to N2"),
+        ("B3a", b3a, "Closet north alcove", "tongue through the wall, about 2-1/2 in into N2's end"),
         ("B23b", CLOSET_DECK.difference(alcoves), "Closet turnback (B2b + B3b)", "one piece over the grid"),
     ]
 
@@ -402,7 +405,7 @@ def sheet_ply(c):
         x0, y0, x1, y1 = g.bounds
         rows.append((pid, name, f"{frac(x1 - x0)} x {frac(y1 - y0)}", note))
     v.geom(pieces.fill, fill=Color(0.88, 0.88, 0.88), stroke=GREY, lw=0.4, dash=(2, 1.5))
-    v.text(152.0, 141.0, "neck sides: fill with scrap / foam", size=5.5, color=GREY)
+    v.text(152.0, 141.0, "grey: fill with scrap / foam", size=5.5, color=GREY)
     v.geom(HATCH, fill=Color(1, 1, 1), stroke=ACCENT, lw=0.6, dash=(3, 2))
     tx, ty = 500, PH - 90
     c.setFillColor(black)
