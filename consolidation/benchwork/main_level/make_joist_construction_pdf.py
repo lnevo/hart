@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Main-level framing drawings: the framing plan for the whole level, the typical shelf section, the riser block
-on the existing back L-girder, the new front L-girders (1x2 flange on a 1x2 web, joists on top), the girder
+on the existing back L-girder, the new front girders (inverted L: 1x2 web on edge on a 1x2 flange, joists on the web), the girder
 junctions, and the build sequence. Needs reportlab and shapely (room outlines from main_level_geometry).
 
 Section geometry is in real inches, elevation 0 = top of the 3/4 ply subroadbed (the 0" grade level),
@@ -28,11 +28,11 @@ FLANGE_TOP = -3.25                          # existing back L-girder (as install
 FLANGE_BOT = FLANGE_TOP - 0.75
 WEB_BOT = FLANGE_BOT - 3.5
 BLOCK_TOP, BLOCK_BOT = J_TOP, J_TOP - 2.5   # 1x3 riser block, tops flush with joist
-# new front L-girder: 1x2 flange flat on top, 1x2 web on edge under its outer half; joists sit on the flange
+# new front girder, an inverted L: 1x2 web on edge on top, 1x2 flange flat under it; joists sit on the web
 FG_TOP = J_BOT
-FG_FL_BOT = FG_TOP - 0.75
-FG_BOT = FG_FL_BOT - 1.5
-SHIM = 0.25           # one shim where a front girder end seats on a -3.25 girder (0.28 gap, like the riser blocks)
+FG_FL_TOP = FG_TOP - 1.5    # web bottom = flange top
+FG_BOT = FG_FL_TOP - 0.75
+NOTCH = 0.5           # web notch where a front girder seats on a -3.25 girder; lands 0.03 high, like the riser blocks
 STAGING_TOP = -15.0
 STAGING_RAIL = STAGING_TOP + 0.236 + 0.160  # 6 mm cork + Atlas code 83
 DEPTH = 24.0          # shelf depth used for the typical section (west wall)
@@ -41,7 +41,7 @@ FG_OUT = EDGE         # west girder: web outer face under the deck edge
 FG_WEB_IN = FG_OUT - 0.75
 FG_FL_IN = FG_OUT - 1.5
 ROD_X = FG_WEB_IN - 0.375   # rod through the flange's inner half, beside the web
-RB_IN = FG_WEB_IN - 1.5     # rod block: 1x2 flat under the flange, against the web
+RB_IN = FG_FL_IN            # rod block: 1x2 on edge on the flange's inner half, against the web
 GIRDER_X0 = 0.0       # existing girder: web against the wall, flange on top
 WEB_X1 = GIRDER_X0 + 0.75
 FLANGE_X1 = GIRDER_X0 + 1.5
@@ -270,11 +270,11 @@ def members():
         length = max(x1 - x0, y1 - y0)
         m.append((kind, x0, y0, x1, y1, length, stock))
 
-    # front girders: flange full length, web stops short where the flange seats on another girder
-    add("girder", NG_X[0], NG[0], NG_X[1], NG[1])                                  # north flange
-    add("girder_web", X_WALL_W + 1.5, NG[1] - 0.75, NG_X[1], NG[1])                # north web, clear of the wall girder
-    add("girder", WG[0], WG_Y[0], WG[1], WG_Y[1])                                  # west flange, onto the peninsula girder
-    add("girder_web", WG[1] - 0.75, WG_Y[0], WG[1], PG_N[0])                       # west web, stops at its face
+    # front girders: web full length, notched where it seats on another girder; the flange stops at that girder's face
+    add("girder", X_WALL_W + 1.5, NG[0], NG_X[1], NG[1])                           # north flange, clear of the wall girder
+    add("girder_web", NG_X[0], NG[1] - 0.75, NG_X[1], NG[1])                       # north web
+    add("girder", WG[0], WG_Y[0], WG[1], PG_N[0])                                  # west flange, stops at its face
+    add("girder_web", WG[1] - 0.75, WG_Y[0], WG[1], WG_Y[1])                       # west web, onto the peninsula girder
     for x in N_JOISTS:
         y1 = Y_NW_STOP if x < X_NW_END + 0.5 else front_edge_y(x)
         add("joist", x - 0.375, Y_WALL_N + WALL_GAP, x + 0.375, y1)
@@ -397,7 +397,7 @@ class PlanView:
         c.restoreState()
 
 
-STYLE = {"girder": (NEW, 0.5), "girder_web": (None, 0), "joist": (WOOD_DK, 0.3), "pjoist": (WOOD_DK, 0.3),
+STYLE = {"girder": (NEW, 0.5), "girder_web": (NEW, 0.5), "joist": (WOOD_DK, 0.3), "pjoist": (WOOD_DK, 0.3),
          "block": (NEW, 0.3), "cl_ledger": (CLOSETC, 0.3), "cl_rail": (CLOSETC, 0.3), "cl_joist": (CLOSETC, 0.3)}
 
 
@@ -424,7 +424,7 @@ def sheet_framing_plan(c):
     for kind, x0, y0, x1, y1, _, _ in mem:
         fill, lw = STYLE[kind]
         if fill is not None:
-            v.rect(x0, y0, x1, y1, fill=fill, stroke=black if kind != "girder" else None, lw=lw)
+            v.rect(x0, y0, x1, y1, fill=fill, stroke=None if kind.startswith("girder") else black, lw=lw)
     for b in riser_blocks():
         v.rect(*b, fill=WOOD, stroke=black, lw=0.25)
     for x in N_RODS:
@@ -459,7 +459,7 @@ def sheet_framing_plan(c):
 
     # legend + notes (page coordinates)
     lx, ly = 498, PH - 86
-    rows = [(NEW, "New front L-girder (1x2 flange on a 1x2 web)"), (WOOD_DK, "New 1x2 joist"),
+    rows = [(NEW, "New front girder (inverted L, 1x2 web on a 1x2 flange)"), (WOOD_DK, "New 1x2 joist"),
             (WOOD, "1x3 riser block on a -3.25 girder"), (NEW, "1x2 blocking under a deck seam"),
             (CLOSETC, "Closet 1x3 grid (ledger, rail, joist)"), (EXIST, "Existing L-girder flange"),
             (STEEL, "5/16 rod, 2 per run, over a staging leg")]
@@ -543,15 +543,15 @@ def sheet_section(c):
     v.rect(GIRDER_X0, WEB_BOT, WEB_X1, FLANGE_BOT, xcut=True)
 
     # new front L-girder (cut)
-    v.rect(FG_FL_IN, FG_FL_BOT, FG_OUT, FG_TOP, xcut=True)
-    v.rect(FG_WEB_IN, FG_BOT, FG_OUT, FG_FL_BOT, xcut=True)
+    v.rect(FG_WEB_IN, FG_FL_TOP, FG_OUT, FG_TOP, xcut=True)
+    v.rect(FG_FL_IN, FG_BOT, FG_OUT, FG_FL_TOP, xcut=True)
     # fascia, later
     v.rect(EDGE, FG_BOT - 0.25, EDGE + 0.25, 0.0, fill=None, dash=(2, 2), lw=0.5)
 
     # rod (beyond the cut, between joists) with its block
-    v.rect(RB_IN, FG_FL_BOT - 0.75, FG_WEB_IN, FG_FL_BOT, fill=None, dash=(3, 2), lw=0.5)
+    v.rect(RB_IN, FG_FL_TOP, FG_WEB_IN, FG_TOP, fill=None, dash=(3, 2), lw=0.5)
     v.line(ROD_X, FG_TOP + 0.35, ROD_X, STAGING_TOP - PLY - 0.4, lw=1.4, color=STEEL, dash=(4, 2))
-    for y in (FG_TOP, FG_FL_BOT - 0.85, STAGING_TOP, STAGING_TOP - PLY - 0.1):
+    for y in (FG_TOP, FG_BOT - 0.1, STAGING_TOP, STAGING_TOP - PLY - 0.1):
         v.rect(ROD_X - 0.4, y, ROD_X + 0.4, y + 0.1, fill=STEEL, lw=0.3)
 
     ply(v, 0.0, EDGE + 0.5, STAGING_TOP, PLY)
@@ -568,12 +568,12 @@ def sheet_section(c):
              "1x3 riser block, 5\" long, square at the wall,\n45 deg miter at the front, glued + screwed\nto the joist side (sheet 5)")
     v.leader(GIRDER_X0 + 0.4, -6.2, 5.0, -6.9, "Existing L-girder: 1x4 web + 1x2 flange,\n"
              "flange top -3.25 (as installed)")
-    v.leader(17.5, (J_TOP + J_BOT) / 2, 10.0, 2.3, "1x2 joist on edge, about 16\" o.c.,\nsits on the front flange")
-    v.leader(FG_FL_IN + 0.3, FG_FL_BOT + 0.2, 26.3, -3.0,
-             "New front L-girder: 1x2 flange\nflat on top, 1x2 web on edge\nunder its outer half (sheet 3)")
+    v.leader(17.5, (J_TOP + J_BOT) / 2, 10.0, 2.3, "1x2 joist on edge, about 16\" o.c.,\nsits on the front girder's web")
+    v.leader(FG_FL_IN + 0.3, FG_BOT + 0.3, 26.3, -3.0,
+             "New front girder, inverted L: 1x2\nweb on edge on top, 1x2 flange\nflat under it (sheet 3)")
     v.leader(EDGE + 0.2, -1.0, 26.3, 1.2, "fascia on the joist ends\nand girder, later")
     v.leader(ROD_X, -10.0, 26.3, -10.0, "5/16-18 threaded rod, 2 per run,\nover a staging leg; 1x2 rod block\n"
-             "under the flange (sheet 3)")
+             "on the flange, beside the web (sheet 3)")
     v.leader(20.5, -PLY / 2, 18.5, 3.4, "3/4 ply subroadbed (0.72 measured),\nglued + screwed to joists")
 
     ex, ey = 560, 170
@@ -581,8 +581,8 @@ def sheet_section(c):
     c.setFillColor(black)
     c.drawString(ex, ey, "ELEVATIONS")
     rows = [(0.0, "top of 3/4 ply subroadbed"), (J_TOP, "joist top"),
-            (J_BOT, "joist bottom = front flange top"), (FG_FL_BOT, "front flange bottom"),
-            (FG_BOT, "front web bottom"), (BLOCK_BOT, "riser block bottom"), (FLANGE_TOP, "back girder flange top"),
+            (J_BOT, "joist bottom = front web top"), (FG_FL_TOP, "front web bottom = flange top"),
+            (FG_BOT, "front flange bottom"), (BLOCK_BOT, "riser block bottom"), (FLANGE_TOP, "back girder flange top"),
             (WEB_BOT, "back girder web bottom"), (STAGING_RAIL, "staging railhead"),
             (STAGING_TOP, "staging deck top")]
     c.setFont("Helvetica", 7.5)
@@ -592,7 +592,7 @@ def sheet_section(c):
 
     footer_note(c, [
         "Block bottom lands 0.03 above the back flange (3.25 - 2.50 - 0.72); the deck top finishes 1/32 low - within "
-        "tolerance, or shim the flange. The joists sit straight on the front flange - no blocks at the front.",
+        "tolerance, or shim the flange. The joists sit straight on the front girder's web - no blocks at the front.",
         "North wall: the same section with the girder set back to y 65, so the joists run past it to the front edge "
         "(up to 6 in). Track = 0.236 cork + 0.160 Atlas code 83.",
         "Scale 1:4 on Letter landscape. Lumber cut in section shows an X; the joist and riser block are in side view.",
@@ -607,7 +607,7 @@ def block_pts():
 
 # ---------------------------------------------------------------- sheet 3
 def sheet_front(c):
-    header(c, "Details - front L-girder: 1x2 flange on a 1x2 web",
+    header(c, "Details - front girder: inverted L, 1x2 web on a 1x2 flange",
            "C: at a joist.  D: between joists, at a rod.  Both cut across the girder, looking along it.", 3, PAGES)
     mid = (J_TOP + J_BOT) / 2
     x0 = FG_FL_IN - 3.0
@@ -616,47 +616,47 @@ def sheet_front(c):
     f.text(x0, 0.9, "C   AT A JOIST   1:1.5", size=9, bold=True, dy=4)
     ply(f, x0, EDGE, 0, PLY)
     f.rect(x0, J_BOT, EDGE, J_TOP, fill=WOOD)
-    f.rect(FG_FL_IN, FG_FL_BOT, FG_OUT, FG_TOP, xcut=True)
-    f.rect(FG_WEB_IN, FG_BOT, FG_OUT, FG_FL_BOT, xcut=True)
-    f.screw((FG_FL_IN + FG_WEB_IN) / 2, FG_FL_BOT - 0.15, (FG_FL_IN + FG_WEB_IN) / 2, FG_TOP + 0.5)
-    f.screw((FG_WEB_IN + FG_OUT) / 2, FG_TOP + 0.0, (FG_WEB_IN + FG_OUT) / 2, FG_FL_BOT - 1.0)
+    f.rect(FG_WEB_IN, FG_FL_TOP, FG_OUT, FG_TOP, xcut=True)
+    f.rect(FG_FL_IN, FG_BOT, FG_OUT, FG_FL_TOP, xcut=True)
+    wx = (FG_WEB_IN + FG_OUT) / 2
+    f.screw(wx - 0.12, J_TOP, wx - 0.12, FG_TOP - 1.0)
+    f.screw(wx + 0.12, FG_BOT - 0.15, wx + 0.12, FG_FL_TOP + 0.75)
     f.dim_v(FG_OUT + 0.5, J_TOP, J_BOT, "1-1/2 joist")
-    f.dim_v(FG_OUT + 0.5, FG_TOP, FG_FL_BOT, "3/4 flange")
-    f.dim_v(FG_OUT + 0.5, FG_FL_BOT, FG_BOT, "1-1/2 web")
+    f.dim_v(FG_OUT + 0.5, FG_TOP, FG_FL_TOP, "1-1/2 web")
+    f.dim_v(FG_OUT + 0.5, FG_FL_TOP, FG_BOT, "3/4 flange")
     f.dim_h(FG_BOT - 0.45, FG_FL_IN, FG_OUT, "1-1/2", above=False)
-    f.leader((FG_FL_IN + FG_WEB_IN) / 2, FG_FL_BOT - 0.15, x0 + 0.1, -5.2,
-             "#6 x 1-1/4 up through the flange into the joist, pilot", color=ACCENT)
-    f.leader((FG_WEB_IN + FG_OUT) / 2, FG_FL_BOT - 0.6, x0 + 0.1, -5.8,
-             "girder: glue + #6 x 1-1/2 down through the flange into the web every 8\"", color=ACCENT)
+    f.leader(wx - 0.12, FG_TOP - 0.5, x0 + 0.1, -5.2,
+             "#8 x 2-1/2 down through the joist into the web, pilot", color=ACCENT)
+    f.leader(wx + 0.12, FG_BOT + 0.2, x0 + 0.1, -5.8,
+             "girder: glue + #6 x 1-1/2 up through the flange into the web every 8\"", color=ACCENT)
     f.text(x0 + 0.3, mid, "1x2 joist", size=7, dy=-2)
 
     g = View(c, ox=440, oy=480, scale=1.5, xref=RB_IN - 1.5, yref=0.9)
     g.text(RB_IN - 1.5, 0.9, "D   BETWEEN JOISTS, AT A ROD   1:1.5", size=9, bold=True, dy=4)
     ply(g, RB_IN - 1.5, EDGE, 0, PLY)
-    g.rect(FG_FL_IN, FG_FL_BOT, FG_OUT, FG_TOP, xcut=True)
-    g.rect(FG_WEB_IN, FG_BOT, FG_OUT, FG_FL_BOT, xcut=True)
-    g.rect(RB_IN, FG_FL_BOT - 0.75, FG_WEB_IN, FG_FL_BOT, fill=WOOD_DK, xcut=True)
-    g.line(ROD_X, FG_TOP + 0.55, ROD_X, FG_FL_BOT - 2.4, lw=3, color=STEEL)
-    g.line(ROD_X, FG_FL_BOT - 2.4, ROD_X, FG_FL_BOT - 2.9, lw=3, color=STEEL, dash=(2, 2))
-    rb_bot = FG_FL_BOT - 0.75
-    for y in (FG_TOP, rb_bot - 0.1):
+    g.rect(FG_WEB_IN, FG_FL_TOP, FG_OUT, FG_TOP, xcut=True)
+    g.rect(FG_FL_IN, FG_BOT, FG_OUT, FG_FL_TOP, xcut=True)
+    g.rect(RB_IN, FG_FL_TOP, FG_WEB_IN, FG_TOP, fill=WOOD_DK, xcut=True)
+    g.line(ROD_X, FG_TOP + 0.55, ROD_X, FG_BOT - 1.65, lw=3, color=STEEL)
+    g.line(ROD_X, FG_BOT - 1.65, ROD_X, FG_BOT - 2.15, lw=3, color=STEEL, dash=(2, 2))
+    for y in (FG_TOP, FG_BOT - 0.1):
         g.rect(ROD_X - 0.55, y, ROD_X + 0.55, y + 0.1, fill=STEEL, lw=0.3)
     g.rect(ROD_X - 0.28, FG_TOP + 0.1, ROD_X + 0.28, FG_TOP + 0.38, fill=STEEL, lw=0.3)
-    g.rect(ROD_X - 0.28, rb_bot - 0.38, ROD_X + 0.28, rb_bot - 0.1, fill=STEEL, lw=0.3)
-    g.screw(RB_IN + 0.2, (FG_FL_BOT + rb_bot) / 2, FG_OUT - 0.15, (FG_FL_BOT + rb_bot) / 2)
-    g.leader(RB_IN + 0.5, rb_bot, RB_IN - 1.4, -6.6,
-             "rod block: 1x2 x 4, flat under the flange,\nagainst the web; glue + 2x #6 x 1-1/2\nthrough the block into the web", color=ACCENT)
+    g.rect(ROD_X - 0.28, FG_BOT - 0.38, ROD_X + 0.28, FG_BOT - 0.1, fill=STEEL, lw=0.3)
+    g.screw(RB_IN + 0.1, FG_TOP - 0.4, FG_OUT - 0.15, FG_TOP - 0.4)
+    g.leader(RB_IN + 0.2, FG_FL_TOP + 0.3, RB_IN - 1.4, -7.4,
+             "rod block: 1x2 x 4, on edge on the flange,\nagainst the web; glue + 2x #6 x 1-1/4\nthrough the block into the web", color=ACCENT)
     g.leader(ROD_X + 0.28, FG_TOP + 0.25, FG_OUT + 0.6, -0.9,
-             "5/16-18 rod, 3/8 hole through\nthe flange and the block, 3/8 in\nfrom the web; nut + fender\nwasher "
-             "above the flange and\nbelow the block")
-    g.text(ROD_X + 0.3, FG_FL_BOT - 2.7, "to the staging deck over a leg", size=7, color=GREY)
-    g.text(ROD_X + 0.3, FG_FL_BOT - 3.05, "(nut + washer each side)", size=7, color=GREY)
+             "5/16-18 rod, 3/8 hole through\nthe block and the flange, 3/8 in\nfrom the web; nut + fender\nwasher "
+             "on the block and\nunder the flange")
+    g.text(ROD_X + 0.3, FG_BOT - 1.95, "to the staging deck over a leg", size=7, color=GREY)
+    g.text(ROD_X + 0.3, FG_BOT - 2.3, "(nut + washer each side)", size=7, color=GREY)
 
     footer_note(c, [
-        "Build each girder on the bench: lay the flange flat, glue the web on edge under its outer half (outer faces "
-        "flush), screw down through the flange every 8\". North 153-3/4 and west 155 in: one 16 ft piece each, no splice.",
+        "Build each girder on the bench: lay the flange flat, glue the web on edge on its outer half (outer faces "
+        "flush), screw up through the flange every 8\". North 153-3/4 and west 155 in: one 16 ft piece each, no splice.",
         "Before the joists go on, drill the rod holes where the staging legs fall, two per run, and fit the rod "
-        "blocks. The flange top is the joist bottom (-2.22); nothing else sits between them.",
+        "blocks. The web top is the joist bottom (-2.22); the joists brace the web's top edge.",
     ], y=40)
 
 
@@ -676,23 +676,24 @@ def sheet_junctions(c):
     sx0, sx1 = 0.0, 1.5        # supporting flange (cut), its web under the near half
     e.rect(sx0, FLANGE_BOT, sx1, FLANGE_TOP, xcut=True)
     e.rect(sx0, WEB_BOT, sx0 + 0.75, FLANGE_BOT, xcut=True)
-    e.rect(sx0, FLANGE_TOP, sx1, FLANGE_TOP + SHIM, fill=Color(0.75, 0.70, 0.62))
-    e.rect(sx0 + 0.125, FG_FL_BOT, 9.0, FG_TOP, fill=WOOD)         # carried flange, runs onto the seat
-    e.rect(sx1, FG_BOT, 9.0, FG_FL_BOT, fill=WOOD)                 # carried web stops at the flange face
+    nb = FG_FL_TOP + NOTCH                                          # notched web bottom over the seat
+    e.poly([(sx0 + 0.125, FG_TOP), (9.0, FG_TOP), (9.0, FG_FL_TOP), (sx1, FG_FL_TOP), (sx1, nb),
+            (sx0 + 0.125, nb)], fill=WOOD)                         # carried web, notched onto the seat
+    e.rect(sx1, FG_BOT, 9.0, FG_FL_TOP, fill=WOOD)                 # carried flange stops at the flange face
     e.screw(0.75, FG_TOP, 0.75, FLANGE_TOP - 0.6)
     e.dim_h(FG_TOP + 0.4, sx0 + 0.125, sx1, "1-3/8 seat")
-    e.text(5.0, (FG_TOP + FG_FL_BOT) / 2, "new front girder flange", size=6.5, anchor="c", dy=-2)
-    e.text(5.0, (FG_FL_BOT + FG_BOT) / 2, "web", size=6.5, anchor="c", dy=-2)
-    e.leader(sx1 + 0.3, FLANGE_TOP + SHIM / 2, 3.5, -4.7, "1/4 hardboard shim, glued: the -2.97 flange\n"
-             "bottom sits 0.28 above the -3.25 flange")
-    e.leader(0.75, FLANGE_TOP - 0.4, 3.5, -5.8, "glue + 2x #6 x 1-1/2 down through the\nflange and shim, pilot",
+    e.text(5.6, (FG_TOP + FG_FL_TOP) / 2, "new front girder web", size=6.5, anchor="c", dy=-2)
+    e.text(5.6, (FG_FL_TOP + FG_BOT) / 2, "flange", size=6.5, anchor="c", dy=-2)
+    e.leader(sx1 - 0.3, nb - 0.02, 3.5, -4.9, "web notched 1/2 deep over the seat: the -3.22\n"
+             "notch lands on the -3.25 flange (0.03, as the risers)")
+    e.leader(0.75, FLANGE_TOP - 0.4, 3.5, -5.9, "glue + 2x #6 x 1-1/2 down through the\nweb into the flange, pilot",
              color=ACCENT)
-    e.leader(sx1 + 0.05, FG_BOT + 0.3, 3.5, -6.9, "web cut to stop at the supporting\nflange's face")
+    e.leader(sx1 + 0.05, FG_BOT + 0.2, 3.5, -6.9, "flange cut to stop at the supporting\nflange's face")
     e.text(-2.9, -5.0, "existing girder", size=6.5, color=GREY)
     e.text(-2.9, -5.5, "flange top -3.25", size=6.5, color=GREY)
-    e.text(-3.0, -8.4, "At the west wall: the north girder on the west wall girder, flange end 1/8 off the wall.",
+    e.text(-3.0, -8.4, "At the west wall: the north girder on the west wall girder, web end 1/8 off the wall.",
            size=6.5, color=GREY)
-    e.text(-3.0, -8.85, "At the peninsula: the west girder across the peninsula's north girder flange.", size=6.5,
+    e.text(-3.0, -8.85, "At the peninsula: the west girder across the peninsula's north girder flange (1-1/2 seat).", size=6.5,
            color=GREY)
 
     # F: NW corner, plan from below (top right)
@@ -700,20 +701,20 @@ def sheet_junctions(c):
     f.text(WG[0] - 8.0, NG[0] - 3.0, "F   WEST GIRDER INTO THE NORTH GIRDER, FROM BELOW   1:8", size=9, bold=True,
            dy=4)
     f.rect(WG[0] - 8.0, NG[0], WG[1] + 8.0, NG[1], fill=WOOD, lw=0.5)                 # north flange
-    f.rect(WG[0] - 8.0, NG[1] - 0.75, WG[1] + 8.0, NG[1], fill=WOOD_DK, lw=0.5)       # north web
+    f.rect(WG[0] - 8.0, NG[1] - 0.75, WG[1] + 8.0, NG[1], fill=None, lw=0.4, dash=(2, 2))   # north web, above
     f.rect(WG[0], NG[1], WG[1], NG[1] + 11.0, fill=WOOD, lw=0.5)                      # west flange
-    f.rect(WG[1] - 0.75, NG[1], WG[1], NG[1] + 11.0, fill=WOOD_DK, lw=0.5)            # west web
-    tri = Polygon([(WG[1] - 6.0, NG[1] - 0.75), (WG[1], NG[1] - 0.75), (WG[1], NG[1] + 5.25)])
+    f.rect(WG[1] - 0.75, NG[1], WG[1], NG[1] + 11.0, fill=None, lw=0.4, dash=(2, 2))  # west web, above
+    tri = Polygon([(WG[1] - 7.5, NG[0]), (WG[1], NG[0]), (WG[1], NG[0] + 7.5)])
     f.geom(tri, fill=Color(0.95, 0.88, 0.70, alpha=0.75), stroke=ACCENT, lw=0.7, dash=(3, 2))
     f.text(WG[1] - 1.6, NG[1] + 1.0, "gusset", size=7, color=ACCENT, anchor="r")
     f.text(WG[1] + 8.0, NG[0] - 0.8, "north girder, web on the y 65 face", size=6.5, color=GREY, anchor="r")
     f.text(WG[1] + 0.8, NG[1] + 8.0, "west girder,", size=6.5, color=GREY)
     f.text(WG[1] + 0.8, NG[1] + 9.2, "web on the x 28.5 face", size=6.5, color=GREY)
     notes(f, WG[0] - 8.0, NG[1] + 13.5, [
-        "1/2 ply gusset, 6 x 6 triangle, under both webs: glue + 3x #6 x 1-1/4",
-        "into each web's bottom edge, pilot. Butt the west girder tight to the",
-        "north web and glue it; 2x #6 x 2 through the north web into the end",
-        "of the west girder's flange."], 1)
+        "1/2 ply gusset, 7-1/2 x 7-1/2 triangle, under both flanges: glue + 3x",
+        "#6 x 1-1/4 up into each flange, pilot. Butt the west girder tight to the",
+        "north girder's front face and glue it; 2x #6 x 2 through the north web",
+        "into the end of the west web. Webs dashed: they sit above the flanges."], 1)
 
     # G: north girder at the wall stub, plan (bottom left)
     g = PlanView(c, ox=60, oy=245, k=9.0, x0=148.0, y0=58.0)
@@ -724,13 +725,13 @@ def sheet_junctions(c):
     g.rect(148.0, NG[0], 158.375, NG[1], fill=WOOD, lw=0.5)
     g.rect(148.0, NG[1] - 0.75, 158.375, NG[1], fill=WOOD_DK, lw=0.5)
     g.rect(157.75, NG[1] - 2.5, 158.5, NG[1], fill=Color(0.95, 0.88, 0.70), stroke=ACCENT, lw=0.7)
-    g.text(148.2, NG[0] - 0.6, "north girder (flange over web)", size=6.5, color=GREY)
+    g.text(148.2, NG[0] - 0.6, "north girder (web over flange)", size=6.5, color=GREY)
     g.text(163.4, 64.0, "end stud", size=6.5, color=GREY)
     g.text(157.5, NG[1] + 1.4, "seat block", size=6.5, color=ACCENT, anchor="r")
     notes(g, 148.0, 68.5, [
         "Seat block: 1x3 x 4 long, flat on the wall at the end stud, top at -4.47 under",
-        "the web end. 2x #8 x 2-1/2 through the block into the end stud; #8 x 3 down",
-        "through the flange and web into the block. Girder end 1/8 off the wall. If",
+        "the flange end. 2x #8 x 2-1/2 through the block into the end stud; #8 x 3 down",
+        "through the web and flange into the block. Girder end 1/8 off the wall. If",
         "there's no stud at the end of the stub, add blocking in the wall first."], 1)
 
     # H: F3 rim and blocking, plan (bottom right)
@@ -813,18 +814,17 @@ def sheet_details(c):
 # ---------------------------------------------------------------- sheet 6
 def sheet_plan(c):
     header(c, "Plan - typical 8 ft bay, west wall, deck removed  +  riser block pattern",
-           "Looking down. Joists about 16\" o.c. land on the existing girder via riser blocks at the wall and straight "
-           "on the front flange.", 6, PAGES)
+           "Looking down. Joists about 16\" o.c.: riser blocks at the wall, straight onto the front web.", 6, PAGES)
     v = View(c, ox=50, oy=372, scale=12, xref=-2.0, yref=-2.0)
     L = 96.0
     v.rect(-2, -2, L + 2, 0, fill=WALL, lw=0.5)
     v.text(L / 2, -1.6, "WALL", size=7, anchor="c", color=GREY, dy=2)
     v.rect(0, GIRDER_X0, L, FLANGE_X1, fill=WOOD, lw=0.6)
     v.text(L + 0.6, (GIRDER_X0 + FLANGE_X1) / 2, "existing girder flange", size=6.5, dy=-2)
-    v.rect(0, FG_FL_IN, L, FG_OUT, fill=WOOD_DK, lw=0.6)
-    v.rect(0, FG_WEB_IN, L, FG_OUT, fill=None, lw=0.3, dash=(2, 2))
-    v.text(L + 0.6, FG_FL_IN + 0.2, "front flange (web under", size=6.5, dy=-2)
-    v.text(L + 0.6, FG_FL_IN - 1.0, "its outer half)", size=6.5, dy=-2)
+    v.rect(0, FG_FL_IN, L, FG_OUT, fill=WOOD, lw=0.6)
+    v.rect(0, FG_WEB_IN, L, FG_OUT, fill=WOOD_DK, lw=0.6)
+    v.text(L + 0.6, FG_FL_IN + 0.2, "front web (on its flange's", size=6.5, dy=-2)
+    v.text(L + 0.6, FG_FL_IN - 1.0, "outer half)", size=6.5, dy=-2)
     xs = [0.375 + 16 * i for i in range(7)]
     xs[-1] = L - 0.375
     for x in xs:
@@ -859,8 +859,8 @@ def sheet_plan(c):
     rows = [
         ("1x2 joists", "7 @ 23-7/8", "wall gap 1/8 to the deck edge"),
         ("1x3 riser blocks", "7 @ 5", "square at wall, full 45 deg front"),
-        ("1x2 front flange", "96", "flat, on top"),
-        ("1x2 front web", "96", "on edge, under the outer half"),
+        ("1x2 front web", "96", "on edge, joists on top"),
+        ("1x2 front flange", "96", "flat, under the web"),
         ("3/4 ply", "24 x 96", "one rip per bay"),
     ]
     c.setFont("Helvetica", 8)
@@ -911,20 +911,20 @@ def materials():
 def sheet_steps(c):
     header(c, "Assembly sequence, fasteners and lumber", "", 7, PAGES)
     steps = [
-        "1.  Build both front girders on the bench, 1x2 flange flat on top, 1x2 web on edge under its outer half. "
-        "Glue + screw down every 8\". One 16 ft piece each, no splice. Cut each web short where its flange seats "
-        "on another girder (detail E).",
+        "1.  Build both front girders on the bench as an inverted L: 1x2 flange flat at the bottom, 1x2 web on edge "
+        "on its outer half. Glue + screw up every 8\". One 16 ft piece each, no splice. Where a girder seats on "
+        "another girder, notch the web end 1/2 deep and stop the flange at that girder's face (detail E).",
         "2.  Mark the staging legs under each front edge. Pick two per run, keeping every gap under 60\". Drill "
         "3/8 holes there and fit the rod blocks (detail D).",
         "3.  North girder: seat the west end on the west wall girder (E), the east end on the seat block at the "
-        "wall-stub end stud (G). Prop at mid-span with the flange top at -2.22.",
+        "wall-stub end stud (G). Prop at mid-span with the web top at -2.22.",
         "4.  West girder: seat the south end across the peninsula's north girder (E), butt the north end into the "
-        "north girder and fit the gusset (F). Prop with the flange top at -2.22.",
+        "north girder and fit the gusset (F). Prop with the web top at -2.22.",
         "5.  Run the rods to the staging deck. Level both girders with the nuts, then lock with the opposing nuts.",
         "6.  Cut the riser blocks (pattern, sheet 6) and glue + screw one to each joist that lands on a -3.25 "
         "girder: the back wall end of every north and west joist, and both peninsula girders.",
-        "7.  Set the joists at the sheet 1 stations; screw up through the front flange and the back flange into "
-        "each joist and block. The rim and the NW joist run on past the west girder (H).",
+        "7.  Set the joists at the sheet 1 stations; screw down through each joist into the front web, and up "
+        "through the back flange into each block. The rim and the NW joist run on past the west girder (H).",
         "8.  Fit the seam blocking (H). Build the closet grids: ledgers into studs, the rail U, then the joists.",
         "9.  Dry-lay the 3/4 ply; seams on joists or blocking. Glue + screw every 8\" along each joist, keeping "
         "screws out from under the track centrelines (feeders). Fascia last.",
@@ -943,12 +943,12 @@ def sheet_steps(c):
     c.drawString(tx, PH - 86, "FASTENERS")
     rows = [
         ("Girder flange to web", "glue + #6 x 1-1/2 @ 8\""),
-        ("Front flange up into joist", "#6 x 1-1/4, pilot"),
+        ("Joist down into front web", "#8 x 2-1/2, pilot"),
         ("Block to joist", "glue + 2x #6 x 1-1/4"),
         ("Back flange up into block", "#6 x 1-1/2, pilot"),
-        ("Rod block to web", "glue + 2x #6 x 1-1/2"),
-        ("Seat (E), through shim", "glue + 2x #6 x 1-1/2"),
-        ("Gusset (F)", "glue + 3x #6 x 1-1/4 per web"),
+        ("Rod block to web", "glue + 2x #6 x 1-1/4"),
+        ("Seat (E), notched web", "glue + 2x #6 x 1-1/2"),
+        ("Gusset (F)", "glue + 3x #6 x 1-1/4 per flange"),
         ("Seat block (G)", "2x #8 x 2-1/2, 1x #8 x 3"),
         ("Rim, blocking ends", "2x #6 x 2"),
         ("Ply to joists", "glue + #6 x 1-1/4 @ 8\""),
@@ -976,8 +976,7 @@ def sheet_steps(c):
         ("1x2 / 1x3 net", f"{mt['lf_1x2'] / 12:.0f} / {mt['lf_1x3'] / 12:.0f} ft", "before offcuts"),
         ("5/16-18 rod", "1 x 72\"", "4 pieces ~15\""),
         ("Nuts / fender washers", "16 / 16", ""),
-        ("1/2 ply scrap", "6 x 6", "gusset (F)"),
-        ("1/4 hardboard scrap", "2 @ 1-1/2 sq", "shims (E)"),
+        ("1/2 ply scrap", "7-1/2 sq", "gusset (F)"),
     ]
     for i, (a_, b_, n_) in enumerate(lines):
         y = yy - 26 - i * 11
