@@ -44,6 +44,8 @@ SKIP_FILES = {
     Path("assets/media/loco-pohc-2091.png"),
     Path("assets/media/coal-types.png"),
     Path("assets/icons/icon-192.png"),
+    Path("helix/build-status.html"),  # the helix build status is a working file, not published
+    Path("helix/files/HART_Neville_Helix_BUILD_STATUS.md"),
 }
 # Markdown sources for the library articles (the HTML pages are what's published) and invitation drafts.
 SKIP_GLOBS = ("docs/*.md",)

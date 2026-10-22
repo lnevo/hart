@@ -157,7 +157,7 @@ def main():
     index = head.replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Neville Island helix</h1>
-      <p class="muted">Construction plan, build status, and the printed fixtures for the 26 / 31.75 in helix · updated 15 October 2026</p>
+      <p class="muted">Construction plan and the printed fixtures for the 26 / 31.75 in helix · updated 15 October 2026</p>
     </div>
     <div class="guide-body helix-wrap prose">
       <h2>Instructions</h2>
@@ -166,15 +166,13 @@ def main():
           <p>13 pages, {plan_kb}. Frames, braces, bracket elevations, roadbed cut sheets, build sequence, diagonal bracing. <strong>Page 13: half-lap screw template.</strong></p></a>
         <a class="card" href="files/lap_screw_template.pdf"><h3>Half-lap screw template (PDF)</h3>
           <p>US Letter, {tmpl_kb}. Print at 100% / Actual size, then check the 2 in and 50 mm bars. Six #6 × 5/8 screws per lap.</p></a>
-        <a class="card" href="build-status.html"><h3>Build status</h3>
-          <p>As-built heights and datums, frame alignment, shop process, fasteners, every fixture, and open items. Overrides the PDF where they differ.</p></a>
         <a class="card" href="files/{HANDOFF}"><h3>Design handoff (Markdown)</h3>
           <p>Design rationale, alternatives considered, and formulas behind the locked plan.</p></a>
       </div>
-      <p class="note">Read the plan first, then the build status. The plan's entry pages (2, 3, 8) are out of date; the build status has the current entry geometry.</p>
+      <p class="note">The plan's entry pages (2, 3, 8) are out of date.</p>
 
       <h2>Printed fixtures (STL index)</h2>
-      <p>{n_files} files, all modelled in millimetres and checked as watertight single bodies. Extents are the bounding box as exported (X × Y × Z). Unless the build status marks a part <em>tested</em>, it has only been verified in software.</p>
+      <p>{n_files} files, all modelled in millimetres and checked as watertight single bodies. Extents are the bounding box as exported (X × Y × Z). Unless a part is marked <em>tested</em>, it has only been verified in software.</p>
       <p>Printing: Creality Print 7.3, 260 mm bed. Templates print router face down, 2–3 walls, 10–15% infill, no supports. For the 3MF files, if the modifier doesn't come in, import the body and its <code>_CORE100</code> STL together as one object, set the core to Modifier, and give it 100% infill.</p>
       <div class="table-wrap">
         <table class="roster stl-index">
