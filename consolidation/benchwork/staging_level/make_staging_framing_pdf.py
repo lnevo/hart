@@ -45,7 +45,11 @@ SW_N_OUT, SW_N_IN = (208.5, 210.0), (218.5, 220.0)   # SW box lower girders: inn
 SW_S_IN, SW_S_OUT = (247.0, 248.5), (257.0, 258.5)   # outer pair about 10 in further out
 SW_X = (X_WALL_W + 1.5, 100.0)                    # wall girder to about x 100; verify the tip ends
 WG_Y = (NG[1], SW_N_OUT[0])                       # west front girder ends on the outer north SW girder
-SW_LEGS = [(30.0, 209.25), (98.0, 209.25), (30.0, 257.75), (98.0, 257.75)]   # 2x4 corner legs; verify
+SW_FRAMES = (30.0, 76.0)                          # leg frames under the west and east straights (x); verify
+SW_LEGS = [(x, y) for x in SW_FRAMES for y in (209.25, 257.75)]    # 2x4 legs under the outer girders
+# wall runs: two leg frames each, a 1x4 from the wall girder to the front girder on a 2x4 leg; verify positions
+N_FRAMES = (55.0, 115.0)                          # x
+W_FRAMES = (110.0, 165.0)                         # y
 # SW deck: F3 + G1 + G2 one piece, G4 + G3 another; 18 in wide on the straights, 15 / 33 in ring round the tip
 LOOP_C, G_RO, G_W = (78.8, 233.4), 33.0, 18.0
 _ring = disc(*LOOP_C, G_RO).difference(disc(*LOOP_C, G_RO - G_W))
@@ -94,9 +98,15 @@ def members():
         x1 = ml.X_NW_END if y == ml.W_JOISTS[0] else ml.X_RIM_END if y == ml.Y_RIM else WG[1]
         add("joist", X_WALL_W + WALL_GAP, y - 0.375, x1, y + 0.375)
     add("block", WG[1], ml.W_JOISTS[-2] + 0.375, WG[1] + 0.75, ml.Y_RIM - 0.375, "1x2")
+    for x in N_FRAMES:
+        add("frame", x - 0.375, Y_WALL_N, x + 0.375, NG[1] + 1.0, "1x4")
+    for y in W_FRAMES:
+        add("frame", X_WALL_W, y - 0.375, WG[1] + 1.0, y + 0.375, "1x4")
     # SW box
     for g in (SW_N_OUT, SW_N_IN, SW_S_IN, SW_S_OUT):
         add("girder", SW_X[0], g[0], SW_X[1], g[1], "L")
+    for x in SW_FRAMES:
+        add("frame", x - 0.375, SW_N_OUT[0] - 1.0, x + 0.375, SW_S_OUT[1] + 1.0, "1x4")
     sw = unary_union([SW_DECK, WEST.intersection(box(0, ml.Y_RIM + 0.375, 300, 400))])
     for x in (5.375, 17.0, 28.875, 45.0, 61.5, 77.5, 92.5, 104.5):
         for y0, y1 in deck_runs(sw, x):
@@ -184,6 +194,10 @@ def sheet_plan(c):
         v.rect(x0, y0, x1, y1, fill=fill, stroke=None if kind in ("girder", "frame") else black, lw=lw)
     for x, y in SW_LEGS:
         v.rect(x - 1.75, y - 0.75, x + 1.75, y + 0.75, fill=Color(0.35, 0.35, 0.40), stroke=black, lw=0.3)
+    for x in N_FRAMES:
+        v.rect(x - 0.75, NG[1] - 0.75, x + 0.75, NG[1] + 2.75, fill=Color(0.35, 0.35, 0.40), stroke=black, lw=0.3)
+    for y in W_FRAMES:
+        v.rect(WG[0] - 0.75, y - 0.75, WG[1] + 1.25, y + 0.75, fill=Color(0.35, 0.35, 0.40), stroke=black, lw=0.3)
     for x in H_FRAMES:
         for y in (H_A[0] - 1.0, H_C[1] + 1.0):
             v.rect(x - 0.75, y - 1.75, x + 0.75, y + 1.75, fill=Color(0.35, 0.35, 0.40), stroke=black, lw=0.3)
@@ -202,11 +216,11 @@ def sheet_plan(c):
     v.text(HC[0], H_C[1] + 3.5, "girder C (free)", size=5.5, color=GREY, anchor="c")
     v.text(183, 90, "CLOSET 1x3 GRID", size=6, color=CLOSETC, anchor="c", bold=True)
     v.text(64, 233.4, "SW BOX: open middle", size=6, color=GREY, anchor="c", bold=True)
-    v.text(64, 238.0, "4 lower girders, 2x4 corner legs", size=5.5, color=GREY, anchor="c")
+    v.text(64, 238.0, "4 lower girders on 2 leg frames", size=5.5, color=GREY, anchor="c")
 
     lx, ly = 498, PH - 86
     rows = [(NEW, "L-girder, 1x4 web + 1x2 flange (wall, front, SW, helix)"), (WOOD_DK, "1x3 joist, ~16 in o.c."),
-            (Color(0.35, 0.35, 0.40), "2x4 leg / 1x4 leg-frame cross member"), (Color(0.55, 0.40, 0.25),
+            (Color(0.35, 0.35, 0.40), "2x4 leg / 1x4 leg-frame joist"), (Color(0.55, 0.40, 0.25),
             "2x4 hatch frame"), (CLOSETC, "Closet 1x3 grid (as the main level)")]
     c.setFont("Helvetica-Bold", 8.5)
     c.setFillColor(black)
@@ -221,7 +235,10 @@ def sheet_plan(c):
     notes = [
         "Deck top -15, 3/4 ply on 1x3 joists sitting straight on the girder flanges (flange top -18.22). Same "
         "outlines and seams as the 0 in level, so the joist stations on the wall runs are the main level's.",
-        "SW box: 2x4 legs at the corners with diagonal braces. Upper girders (y 218-1/2, 248-1/2) carry the main "
+        "Legs: 2x4 legs under a 1x4 joist that carries the girders, 1x2 diagonals on every leg. Two frames on "
+        "the north run and two on the west run (wall girder to front girder); two on the SW box, under the west "
+        "and east straights, each carrying all four lower girders.",
+        "SW box: upper girders (y 218-1/2, 248-1/2) carry the main "
         "level; the lower inner pair sits under them, the outer pair 10 in further out. F3+G1+G2 and G4+G3 are "
         "single 18 in pieces; the middle is open.",
         "Helix peninsula: girders A and B come off the closet wall on the neck edges and run to the bulb's west "
@@ -230,7 +247,7 @@ def sheet_plan(c):
     ]
     verify = [
         "Girder lines on the wall runs (drawn like the main level: north set back to y 65, west under the edge).",
-        "Leg positions: wall runs (not drawn), SW box corners, helix leg frames (x 66, 121).",
+        "Leg frame positions: north run x 55, 115; west run y 110, 165; SW box x 30, 76; helix x 66, 121.",
         "Hatch size and position (placeholder 36 x 24 on the helix centre); girder y positions A, B, C.",
         "SW girder ends (drawn to x 100) and where the west front girder ends (drawn onto the outer SW girder).",
         "FG is 83 x 51 in as drawn - more than a 48 in sheet; check the as-built F3 extent.",
@@ -272,13 +289,15 @@ def sheet_sections(c):
     a.rect(0.125, J_BOT, 24.0, J_TOP, fill=WOOD)
     girder_cut(a, 0.0, "l")
     girder_cut(a, 22.5, "r")
-    a.rect(20.5, -32.0, 24.0, G_WEB_BOT, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
+    a.rect(0.0, G_WEB_BOT - 3.5, 24.0, G_WEB_BOT, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
+    a.rect(20.5, -32.0, 24.0, G_WEB_BOT - 3.5, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
+    a.line(20.5, -31.0, 9.0, G_WEB_BOT - 3.5, lw=0.8, color=GREY, dash=(3, 2))
     for xc in (5.0, 10.0, 15.0, 20.0):
         track(a, xc, TOP)
-    a.leader(12, (J_TOP + J_BOT) / 2, 8, -27.5, "1x3 joist on edge, ~16 in o.c.,\nstraight on both flanges")
-    a.leader(0.4, -20.5, 3.0, -30.0, "wall L-girder, 1x4 web + 1x2 flange", color=GREY)
+    a.leader(12, (J_TOP + J_BOT) / 2, 6, -34.5, "1x3 joist on edge, ~16 in o.c.,\nstraight on both flanges")
+    a.leader(0.4, -20.5, 3.0, -38.0, "wall L-girder, 1x4 web + 1x2 flange", color=GREY)
     a.leader(23.6, -20.5, 25.0, -24.0, "front L-girder,\nweb under the\nouter half")
-    a.leader(22.0, -29.0, 25.0, -29.5, "2x4 leg (verify\npositions)")
+    a.leader(22.0, -29.0, 25.0, -29.5, "leg frame (beyond): 1x4 joist\nunder both girders, 2x4 leg,\n1x2 diagonal")
     a.dim_v(-1.0, TOP, J_BOT, f"{TOP - J_BOT:.2f}", side="l")
 
     # B: SW box, y across the page (north on the left), 1:8
@@ -300,16 +319,19 @@ def sheet_sections(c):
     b.text(233.5, -2.4, "main level (reference)", size=6, color=GREY, anchor="c")
     for g in (SW_N_OUT, SW_S_OUT):
         yc = sum(g) / 2
-        b.rect(yc - 1.75, -32.0, yc + 1.75, G_WEB_BOT, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
-    b.line(SW_N_OUT[0] - 1.5, -30.0, SW_N_IN[1] + 4.0, -23.5, lw=0.6, color=GREY, dash=(3, 2))
+        b.rect(yc - 1.75, -32.0, yc + 1.75, G_WEB_BOT - 3.5, fill=Color(0.85, 0.85, 0.88), dash=(2, 2), lw=0.5)
+    b.line(SW_N_OUT[0] - 1.5, -30.0, SW_N_IN[1] + 6.0, G_WEB_BOT - 3.5, lw=0.6, color=GREY, dash=(3, 2))
     b.dim_h(TOP + 1.6, 200.5, 218.4, "18")
     b.dim_h(TOP + 1.6, 248.4, 266.5, "18")
     b.text(233.4, TOP - 1.2, "open", size=7, color=GREY, anchor="c")
     b.leader(sum(SW_N_OUT) / 2, -21.0, 205.0, -27.0, "outer lower girder", color=black)
     b.leader(sum(SW_N_IN) / 2, -21.0, 222.0, -24.0, "inner lower girder, under\nthe upper girder", color=black)
     b.leader(sum(ml.PG_N) / 2, -5.0, 223.0, -8.0, "upper girder (main level, -3.25)", color=GREY)
-    b.text(SW_S_OUT[1] + 2.5, -30.0, "2x4 corner legs + diagonal braces (beyond)", size=6.5, color=GREY,
+    b.rect(SW_N_OUT[0] - 1.0, G_WEB_BOT - 3.5, SW_S_OUT[1] + 1.0, G_WEB_BOT, fill=Color(0.85, 0.85, 0.88),
+           dash=(2, 2), lw=0.5)
+    b.text(SW_S_OUT[1] + 2.5, -33.8, "leg frame (beyond): 1x4 joist under all four girders,", size=6.5, color=GREY,
            anchor="r")
+    b.text(SW_S_OUT[1] + 2.5, -35.1, "2x4 legs, 1x2 diagonals", size=6.5, color=GREY, anchor="r")
 
     # C: helix peninsula through the hatch, 1:10
     k = View(c, ox=60, oy=250, scale=10, xref=95.0, yref=-12.0)
@@ -329,7 +351,7 @@ def sheet_sections(c):
     k.leader(H_B[0] + 0.7, -20.0, 140.0, -18.0, "girder B, cut out at the hatch (beyond)", color=GREY)
     k.leader(hy1 - 0.75, J_TOP - 2.0, 150.0, -13.0, "2x4 hatch frame", color=black)
     k.leader(130.0, G_WEB_BOT - 1.8, 150.0, -27.5, "leg frame at each end (beyond):\n1x4 under all three "
-             "girders, 2x4 legs", color=GREY)
+             "girders, 2x4 legs, 1x2 diagonals", color=GREY)
     k.leader(H_A[0] + 0.4, -21.0, 100.0, -27.5, "girder A", color=black)
     k.leader(H_C[0] + 1.0, -21.0, 159.0, -21.0, "girder C (free)", color=black)
 
