@@ -3,6 +3,14 @@
   "channel": "https://www.youtube.com/@leenevo6566",
   "videos": [
     {
+      "id": "dk2nJ_2-jvk",
+      "title": "Helix FPV",
+      "date": "2026-10-23",
+      "duration": "3:48",
+      "blurb": "The finished helix, climbing from staging to the top at track level.",
+      "pages": ["build/index.html#helix"]
+    },
+    {
       "id": "BbQ3QSvtR-M",
       "title": "Virtual track scale using STS",
       "date": "2026-07-05",
