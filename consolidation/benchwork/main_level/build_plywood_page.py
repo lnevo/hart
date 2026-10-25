@@ -178,7 +178,7 @@ td.note {{ color: var(--muted); }}
       along the neck and through the south opening, and back through the north opening into the north wall deck. It
       meets the closet deck at the alcove face of each opening. B1 starts square, 1-1/2 in outside the helix edge. Fit
       that end to the helix exit roadbed.</li>
-      <li><b>Closet deck (B2, B3)</b> is now full over the grid: both alcoves and the turnback, split at the middle of the
+      <li><b>Closet deck (B2, B3)</b> is now full over the closet boxes: both alcoves and the turnback, split at the middle of the
       aisle end so the halves mirror each other. The aisle curve is AnyRail's exact outline.</li>
       <li><b>Balloon loop (F3, G1 to G4)</b> is 9-1/4 in subroadbed, all four pieces the same width, on the AnyRail branchline loop: 28.6 in radius off the
       west wall, 31 in round the tip, 29 in back to the wall. F3 is a square-cornered block in the SW inside corner

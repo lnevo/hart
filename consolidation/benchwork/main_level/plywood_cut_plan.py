@@ -89,7 +89,7 @@ piece("W3", unary_union([w_3, CLOSET, F_CL]), "34", "West wall south end + close
       "96 in, one piece; cut the 6 in fillet curve where the closet strip steps in.")
 piece("B1", b1, "34", "Board: helix exit, neck, south opening",
       "6 in. Square start 1-1/2 in outside the helix edge; field-fit to the end of the helix exit roadbed.")
-piece("B2", b2, "34", "Closet deck, south half", "South alcove + turnback, full over the grid. Inside edge: offsets.")
+piece("B2", b2, "34", "Closet deck, south half", "South alcove + turnback, full over the closet boxes. Inside edge: offsets.")
 piece("B3", b3, "34", "Closet deck, north half", "North alcove + turnback. Seam at the middle of the aisle end.")
 piece("F3", F_SW, "34", "SW inside corner + balloon loop start", "Square corners; 18 in fillet on the aisle side.")
 

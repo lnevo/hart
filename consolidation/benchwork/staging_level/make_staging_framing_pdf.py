@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Staging level (-15) as built: framing plan, sections and plywood piece map, drawn the same way as the main
-level. Reuses the main level's room outlines, joist stations, closet grid and drawing helpers. Needs reportlab
+level. Reuses the main level's room outlines, joist stations and drawing helpers. Needs reportlab
 and shapely.
 
 Section geometry is in real inches, elevation 0 = top of the main-level 3/4 ply; the staging deck top is -15.

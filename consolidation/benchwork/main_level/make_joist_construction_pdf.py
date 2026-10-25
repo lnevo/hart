@@ -69,10 +69,12 @@ Y_RIM = W_JOISTS[-1]               # last west joist runs on as the rim under F3
 X_RIM_END = 46.5
 X_NW_END = 38.5                    # the y 71 joist runs on under the NW fillet
 SWT = unary_union([SW_TOP, box(X_WALL_W + WALL_GAP, 200.5, 28.4, 266.5)])
-# closet 1x3 grid: ledgers on the walls, a U of front rails round the aisle, joists between
-CL_RAIL_N, CL_RAIL_S, CL_RAIL_E = (64.25, 65.0), (114.0, 114.75), (204.0, 204.75)
-CL_NS = [175.0, 189.5, 204.375]                    # joists in the north and south legs
-CL_EW = [65.375, 77.44, 89.5, 101.56, 113.625]     # joists in the east leg; B2/B3 seam at 89.5
+# closet: three 1x3 boxes on edge. The north and south boxes run the full depth from the wall openings to the
+# east wall; a short box fills the east wall between them, its front rail under the inside edge of the helix track
+CL_N, CL_S = (47.5, 65.0), (114.0, 131.5)          # north / south boxes (y), x 163 to the east wall
+CL_BOX_X = [163.0, 176.5, 190.0, 203.5, 217.0]     # their cross pieces (x), ends included
+X_CL_E = 204.0                                     # east box front edge, 13 in off the wall
+CL_E_Y = [65.0, 77.25, 89.5, 101.75, 114.0]        # east box cross pieces (y), ends included; B2/B3 seam at 89.5
 
 WOOD = Color(0.93, 0.85, 0.70)
 WOOD_DK = Color(0.86, 0.74, 0.55)
@@ -295,21 +297,18 @@ def members():
     add("block", WG[1], W_JOISTS[-2] + 0.375, WG[1] + 0.75, Y_RIM - 0.375)                   # F3 / W2 joint
     for xa, xb in ((P_JOISTS[0], P_JOISTS[1]), (P_JOISTS[1], P_JOISTS[2])):
         add("block", xa + 0.375, 206.5 - 0.375, xb - 0.375, 206.5 + 0.375)                    # W2 / W3 joint
-    # closet 1x3 grid
-    add("cl_ledger", 163.0, Y_WALL_N, 217.0, Y_WALL_N + 0.75, "1x3")
-    add("cl_ledger", 216.25, Y_WALL_N + 0.75, 217.0, 130.75, "1x3")
-    add("cl_ledger", 163.0, 130.75, 217.0, 131.5, "1x3")
-    add("cl_ledger", 163.0, Y_WALL_N + 0.75, 163.75, CL_RAIL_N[0], "1x3")
-    add("cl_ledger", 163.0, CL_RAIL_S[1], 163.75, 130.75, "1x3")
-    add("cl_rail", 163.75, CL_RAIL_N[0], CL_RAIL_E[1], CL_RAIL_N[1], "1x3")
-    add("cl_rail", 163.75, CL_RAIL_S[0], CL_RAIL_E[1], CL_RAIL_S[1], "1x3")
-    add("cl_rail", CL_RAIL_E[0], CL_RAIL_N[1], CL_RAIL_E[1], CL_RAIL_S[0], "1x3")
-    for x in CL_NS:
-        add("cl_joist", x - 0.375, Y_WALL_N + 0.75, x + 0.375, CL_RAIL_N[0], "1x3")
-        add("cl_joist", x - 0.375, CL_RAIL_S[1], x + 0.375, 130.75, "1x3")
-    for y in CL_EW:
-        x0 = min(CL_RAIL_E[1], deck_span(CLOSET_DECK.intersection(box(187, 0, 230, 400)), y=y)[0])
-        add("cl_joist", x0, y - 0.375, 216.25, y + 0.375, "1x3")
+    # closet: north and south boxes full depth, then the short east box between them
+    for y0, y1 in (CL_N, CL_S):
+        add("cl_ledger" if y0 == Y_WALL_N else "cl_rail", 163.0, y0, 217.0, y0 + 0.75, "1x3")
+        add("cl_rail" if y0 == Y_WALL_N else "cl_ledger", 163.0, y1 - 0.75, 217.0, y1, "1x3")
+        for i, x in enumerate(CL_BOX_X):
+            x0 = x if i == 0 else x - 0.75 if i == len(CL_BOX_X) - 1 else x - 0.375
+            add("cl_joist", x0, y0 + 0.75, x0 + 0.75, y1 - 0.75, "1x3")
+    add("cl_ledger", 216.25, CL_N[1], 217.0, CL_S[0], "1x3")
+    add("cl_rail", X_CL_E, CL_N[1], X_CL_E + 0.75, CL_S[0], "1x3")
+    for i, y in enumerate(CL_E_Y):
+        y0 = y if i == 0 else y - 0.75 if i == len(CL_E_Y) - 1 else y - 0.375
+        add("cl_joist", X_CL_E + 0.75, y0, 216.25, y0 + 0.75, "1x3")
     # closet strip at the south end of the west wall: same 1x3 grid; the rail runs on to the peninsula girder
     add("cl_ledger", X_WALL_W, 301.75, 18.5, 302.5, "1x3")
     add("cl_rail", 17.75, PG_S[0], 18.5, 301.75, "1x3")
@@ -451,7 +450,7 @@ def sheet_framing_plan(c):
     v.text(64, PG_N[0] - 2.0, "existing peninsula girder", size=5.5, color=GREY, anchor="c")
     v.text(64, PG_S[1] + 4.5, "existing peninsula girder", size=5.5, color=GREY, anchor="c")
     v.text(PG_X1 + 9, PG_N[1] + 2, "end: verify", size=5, color=GREY)
-    v.text(183, 90, "CLOSET 1x3 GRID", size=6, color=CLOSETC, anchor="c", bold=True)
+    v.text(183, 90, "CLOSET 1x3 BOXES", size=6, color=CLOSETC, anchor="c", bold=True)
     v.text(N_RODS[0], NG[0] - 3.0, "rod", size=5.5, color=GREY, anchor="c")
     v.text(N_RODS[1], NG[0] - 3.0, "rod", size=5.5, color=GREY, anchor="c")
     for y in W_RODS:
@@ -466,7 +465,7 @@ def sheet_framing_plan(c):
     lx, ly = 498, PH - 86
     rows = [(NEW, "New front girder: 1x2 web (dark) on a 1x3 flange"), (WOOD_DK, "New 1x2 joist or lookout"),
             (WOOD, "1x3 riser block on a -3.25 girder"), (NEW, "1x2 blocking under a deck seam"),
-            (CLOSETC, "Closet 1x3 grid (ledger, rail, joist)"), (EXIST, "Existing L-girder flange"),
+            (CLOSETC, "Closet 1x3 boxes / grid (wall side, rail, cross piece)"), (EXIST, "Existing L-girder flange"),
             (STEEL, "5/16 rod, 2 per run, over a staging leg")]
     c.setFont("Helvetica-Bold", 8.5)
     c.setFillColor(black)
@@ -492,7 +491,9 @@ def sheet_framing_plan(c):
         "G: north girder at the wall stub. H: rim and blocking under F3.",
         "Peninsula girders and joist ends at the tip: drawn to x 100; check the as-built girders before cutting "
         "the last two joists.",
-        "Closet grids are schematic: ledgers on the walls, a U of rails round the aisle, joists 12-16 in o.c.",
+        "Closet past the helix: three 1x3 boxes on edge. North and south run full depth to the east wall; a short "
+        "13 in box fills the east wall between them, its front rail under the inside edge of the helix track and a "
+        "cross piece under the B2/B3 seam (y 89.5). Cross pieces about 13 in o.c.",
     ]
     y = ly - 14 - len(rows) * 12 - 16
     c.setFont("Helvetica-Bold", 8.5)
@@ -943,7 +944,7 @@ def sheet_steps(c):
         "girder: the back wall end of every north and west joist, and both peninsula girders.",
         "7.  Set the joists at the sheet 1 stations, butted to the front web; screw up through the front flange "
         "into each joist and up through the back flange into each block. North: a 1x2 lookout in line with each joist. The rim and the NW joist run on past the west girder (H).",
-        "8.  Fit the seam blocking (H). Build the closet grids: ledgers into studs, the rail U, then the joists.",
+        "8.  Fit the seam blocking (H). Build the closet boxes (north, south, then the short east box) and screw their wall sides into studs; then the SW closet strip: ledger, rail, joists.",
         "9.  Dry-lay the 3/4 ply; seams on joists or blocking. Glue + screw every 8\" along each joist, keeping "
         "screws out from under the track centrelines (feeders). Fascia last.",
     ]
@@ -990,7 +991,7 @@ def sheet_steps(c):
         ("1x2, 16 ft", f"{mt['n16_1x2']}", "front girder webs"),
         ("1x3, 16 ft", f"{mt['n16_1x3']}", "front girder flanges"),
         ("1x2, 8 ft", f"{mt['n8_1x2']}", f"{mt['joists']} joists, {mt['lookouts']} lookouts, rim, blocking"),
-        ("1x3, 8 ft", f"{mt['n8_1x3']}", f"{mt['blocks']} riser blocks, closet grids"),
+        ("1x3, 8 ft", f"{mt['n8_1x3']}", f"{mt['blocks']} riser blocks, closet boxes, SW strip"),
         ("1x2 / 1x3 net", f"{mt['lf_1x2'] / 12:.0f} / {mt['lf_1x3'] / 12:.0f} ft", "before offcuts"),
         ("5/16-18 rod", "1 x 72\"", "4 pieces ~15\""),
         ("Nuts / fender washers", "16 / 16", ""),
