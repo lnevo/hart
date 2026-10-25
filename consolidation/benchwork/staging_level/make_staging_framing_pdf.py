@@ -81,7 +81,7 @@ J_EAST = 89.5                                     # closet alcove pieces split h
 # on edge; straight deck edges, no turnback curve (the desk sits under the shelf)
 X_SHELF = 209.0                                   # shelf front edge, 8 in off the east wall
 CL_N, CL_S = (Y_WALL_N, 65.0), (114.0, 131.5)     # alcove rectangles (y), from the openings (x 163) to the shelf
-CL_SHELF_X = [Y_WALL_N, 61.5, 75.5, 89.5, 103.5, 117.5, 131.5]   # shelf cross pieces (y), ends included
+CL_SHELF_X = [Y_WALL_N, 68.5, 89.5, 110.5, 131.5]   # shelf cross pieces (y), ends included; the 3 inside ones flat
 CL_BOX_X = [163.0, 178.0, 193.5, X_SHELF]                        # alcove box cross pieces (x), ends included
 STG_CLOSET = unary_union([box(163.0, CL_N[0] + WALL_GAP, X_SHELF, CL_N[1]),
                           box(163.0, CL_S[0], X_SHELF, CL_S[1] - WALL_GAP),
@@ -162,8 +162,9 @@ def members():
     add("cl_ledger", 216.25, Y_WALL_N, 217.0, 131.5)
     add("cl_rail", X_SHELF, Y_WALL_N, X_SHELF + 0.75, 131.5)
     for i, y in enumerate(CL_SHELF_X):
-        y0 = y if i == 0 else y - 0.75 if i == len(CL_SHELF_X) - 1 else y - 0.375
-        add("cl_joist", X_SHELF + 0.75, y0, 216.25, y0 + 0.75)
+        w = 0.75 if i in (0, len(CL_SHELF_X) - 1) else 2.5      # ends on edge, the inside three laid flat
+        y0 = y if i == 0 else y - w if i == len(CL_SHELF_X) - 1 else y - w / 2
+        add("cl_joist", X_SHELF + 0.75, y0, 216.25, y0 + w)
     for (y0, y1) in (CL_N, CL_S):
         add("cl_ledger" if y0 == Y_WALL_N else "cl_rail", 163.0, y0, X_SHELF, y0 + 0.75)
         add("cl_rail" if y0 == Y_WALL_N else "cl_ledger", 163.0, y1 - 0.75, X_SHELF, y1)
@@ -291,8 +292,9 @@ def sheet_plan(c):
         "edge; B is cut out at the hatch. C is free, halfway to the south edge. A 2x4 + 1x4 leg frame carries all "
         "three at each end.",
         "Closet: a long, narrow 8 in shelf on the east wall, full length, and a separate rectangle in each "
-        "alcove from the wall opening to the shelf. Each is a 1x3 box on edge, cross pieces about 14 in o.c. "
-        "Straight deck edges; the desk sits under the shelf.",
+        "alcove from the wall opening to the shelf. Each is a 1x3 box on edge; the shelf's 3 inside cross pieces "
+        "(21 in o.c.) are laid flat, flush with the top, to leave room underneath. Straight deck edges; the desk "
+        "sits under the shelf.",
     ]
     verify = [
         "North front girder line (drawn set back to y 65, like the main level).",
@@ -302,7 +304,8 @@ def sheet_plan(c):
         "SW girder ends (drawn to x 100) and how the west front girder meets the SW box girders.",
         "FG / GG / bullnose seam lines (drawn at the loop centre, x 78.8); the 6 in tongues through the wall "
         "openings (drawn where the main level's are).",
-        "Closet: shelf depth (drawn 8 in) and alcove rectangles (drawn 17-1/2 in deep, opening to the shelf).",
+        "Closet: shelf depth (drawn 8 in), the flat cross piece stations (drawn 21 in o.c.) and alcove rectangles "
+        "(drawn 17-1/2 in deep, opening to the shelf).",
     ]
     y = ly - 14 - len(rows) * 12 - 16
     for title, items, bullet in (("NOTES", notes, ""), ("TO VERIFY ON SITE", verify, "- ")):
