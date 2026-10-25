@@ -14,12 +14,12 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 | 4 | 1x2 #2 white pine, 8 ft (joists, lookouts, rim, blocking) | 131X02 | 13 pcs = 104 LF | $0.55/LF | $57.20 |
 | 5 | 1x3 #2 white pine, 16 ft (front girder flanges) | 131X03 | 2 pcs = 32 LF | $0.79/LF | $25.28 |
 | 6 | 1x3 #2 white pine, 8 ft (riser blocks, closet boxes, SW closet strip) | 131X03 | 9 pcs = 72 LF | $0.79/LF | $56.88 |
-| 7 | 5/16-18 threaded rod, 72" | NA179598 | 1 | $9.99 | $9.99 |
-| 8 | 5/16 galvanized hex nut | MF05616 | 16 | $0.31 | $4.96 |
+| 7 | 5/16-18 threaded rod, 72" (girder rods + B1 pad pair) | NA179598 | 2 | $9.99 | $19.98 |
+| 8 | 5/16 galvanized hex nut | MF05616 | 24 | $0.31 | $7.44 |
 | 9 | 5/16 x 1-1/2 zinc fender washer, 25/pk | MF10498 | 1 pk | $7.59 | $7.59 |
-| | **Subtotal** | | | | **$759.43** |
-| | NY sales tax (~8.625%) | | | | ~$65.50 |
-| | **Total** | | | | **~$824.93** |
+| | **Subtotal** | | | | **$771.90** |
+| | NY sales tax (~8.625%) | | | | ~$66.58 |
+| | **Total** | | | | **~$838.48** |
 
 ## Plywood notes
 
