@@ -76,7 +76,7 @@ CL_BOX_X = [163.0, 181.0, 199.0, 217.0]           # their cross pieces (x), ends
 X_CL_E = 204.0                                     # east box front edge, 13 in off the wall
 CL_E_Y = [65.0, 77.25, 89.5, 101.75, 114.0]        # east box cross pieces (y), ends included; B2/B3 seam at 89.5
 # B1 (the 0 in board from the helix to the south opening): on the helix at its post, a 1x3 joist on the wall stub,
-# and a pair of 5/16 rods through the 10 x 4 pad halfway (as plywood_cut_plan.py)
+# and a pair of 5/16 rods through its 10 in straight, halfway (as plywood_cut_plan.py)
 X_B1_ROD, Y_B1, B1_ROD_OFF = 142.5, 121.45, 4.0
 
 WOOD = Color(0.93, 0.85, 0.70)
@@ -428,8 +428,7 @@ def sheet_framing_plan(c):
         v.rect(X_WALL_W + 1.5, g[0], PG_X1, g[1], fill=EXIST, stroke=None)
         v.rect(PG_X1, g[0], PG_X1 + 8, g[1], fill=None, stroke=EXIST, lw=0.5, dash=(1.5, 1.5))
 
-    v.rect(X_B1_ROD - 2.0, Y_B1 - 5.0, X_B1_ROD + 2.0, Y_B1 + 5.0, fill=DECK, stroke=GREY, lw=0.4, dash=(2, 1.5))
-    v.rect(X_B1_ROD + 2.0, Y_B1 - 3.0, 158.5, Y_B1 + 3.0, fill=DECK, stroke=GREY, lw=0.4, dash=(2, 1.5))
+    v.rect(140.3, Y_B1 - 5.0, 158.5, Y_B1 + 5.0, fill=DECK, stroke=GREY, lw=0.4, dash=(2, 1.5))
     mem = members()
     for kind, x0, y0, x1, y1, _, _ in mem:
         fill, lw = STYLE[kind]
@@ -458,7 +457,7 @@ def sheet_framing_plan(c):
     v.text(64, PG_N[0] - 2.0, "existing peninsula girder", size=5.5, color=GREY, anchor="c")
     v.text(64, PG_S[1] + 4.5, "existing peninsula girder", size=5.5, color=GREY, anchor="c")
     v.text(PG_X1 + 9, PG_N[1] + 2, "end: verify", size=5, color=GREY)
-    v.text(X_B1_ROD + 8.0, Y_B1 + 9.0, "B1 rod pad", size=5.5, color=GREY, anchor="c")
+    v.text(149.4, Y_B1 + 9.0, "B1, 10 in", size=5.5, color=GREY, anchor="c")
     v.text(183, 90, "CLOSET 1x3 BOXES", size=6, color=CLOSETC, anchor="c", bold=True)
     v.text(N_RODS[0], NG[0] - 3.0, "rod", size=5.5, color=GREY, anchor="c")
     v.text(N_RODS[1], NG[0] - 3.0, "rod", size=5.5, color=GREY, anchor="c")
@@ -504,7 +503,8 @@ def sheet_framing_plan(c):
         "13 in box fills the east wall between them, its front rail under the inside edge of the helix track and a "
         "cross piece under the B2/B3 seam (y 89.5). Cross pieces 18 in o.c. in the side boxes, 12-1/4 in the east box.",
         "B1 (0 in board, helix to the south opening): on the helix at its post and on a 1x3 joist on the wall stub. "
-        "Halfway, a 10 x 4 pad takes two 5/16 rods 4 in off the centre line; a temporary post under it until then.",
+        "Past the curve it is 10 in wide to the wall: two 5/16 rods 4 in off the centre line, halfway; a temporary post "
+        "under it until then.",
     ]
     y = ly - 14 - len(rows) * 12 - 16
     c.setFont("Helvetica-Bold", 8.5)
@@ -1004,7 +1004,7 @@ def sheet_steps(c):
         ("1x2, 8 ft", f"{mt['n8_1x2']}", f"{mt['joists']} joists, {mt['lookouts']} lookouts, rim, blocking"),
         ("1x3, 8 ft", f"{mt['n8_1x3']}", f"{mt['blocks']} riser blocks, closet boxes, SW strip"),
         ("1x2 / 1x3 net", f"{mt['lf_1x2'] / 12:.0f} / {mt['lf_1x3'] / 12:.0f} ft", "before offcuts"),
-        ("5/16-18 rod", "2 x 72\"", "4 pieces ~15\" + 2 at the B1 pad"),
+        ("5/16-18 rod", "2 x 72\"", "4 pieces ~15\" + 2 under B1"),
         ("Nuts / fender washers", "24 / 24", ""),
         ("1/2 ply scrap", "7-1/2 sq", "gusset (F)"),
         ("1/4 hardboard scrap", "2 @ 2-1/2 sq", "shims (E)"),

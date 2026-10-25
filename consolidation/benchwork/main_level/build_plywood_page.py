@@ -178,9 +178,10 @@ td.note {{ color: var(--muted); }}
       along the neck and through the south opening, and back through the north opening into the north wall deck. It
       meets the closet deck at the alcove face of each opening. B1 starts square, 1-1/2 in outside the helix edge. Fit
       that end to the helix exit roadbed. B1 rests on the helix where it meets the post and on a 1x3 joist on the wall
-      stub at the south opening. Halfway between (x 142.5, on the straight) it widens to 10 in for 4 in: a pad for a
-      pair of 5/16 rods 4 in either side of the centre line, clear of both roadbeds. Put a temporary post under the pad
-      until the rods go in.</li>
+      stub at the south opening. Once it turns out of the helix it widens to 10 in along the straight, up to the wall
+      face, and goes back to 6 in through the opening. The extra width takes a pair of 5/16 rods 4 in either side of the
+      centre line, clear of both roadbeds, anywhere along the straight. Put a temporary post under it until the rods go
+      in.</li>
       <li><b>Closet deck (B2, B3)</b> is now full over the closet boxes: both alcoves and the turnback, split at the middle of the
       aisle end so the halves mirror each other. The aisle curve is AnyRail's exact outline.</li>
       <li><b>Balloon loop (F3, G1 to G4)</b> is 9-1/4 in subroadbed, all four pieces the same width, on the AnyRail branchline loop: 28.6 in radius off the
@@ -231,7 +232,7 @@ td.note {{ color: var(--muted); }}
       <div class="box"><h3>Trammel radii</h3>
         <table><tbody>
           <tr><td class="pid">H1 H2</td><td>Bulb west side about 36-1/2 in from the bulb centre; south edge from the offsets</td></tr>
-          <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track. On sheet C it is flipped with its square end in the bottom-left corner: the rod pad's edge and the square end at the south opening are both factory edges. Plain ply, so either face can go up</td></tr>
+          <tr><td class="pid">B1</td><td>S-curve out of the helix: lay it out from the track. On sheet C it is flipped with its square end in the bottom-left corner: the wide straight's edge and the square end at the south opening are both factory edges. Plain ply, so either face can go up</td></tr>
           <tr><td class="pid">B2 B3</td><td>Inside edge is the aisle end: use the offsets</td></tr>
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">F3</td><td>18 in fillet, aisle side only</td></tr>

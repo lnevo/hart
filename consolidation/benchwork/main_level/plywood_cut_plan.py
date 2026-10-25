@@ -71,12 +71,12 @@ BOARD = _cl.buffer(3.0, cap_style=2, join_style=1).intersection(AHEAD)   # squar
 # Joints: the board meets the closet deck at the alcove face of each wall opening (x 163); the closet deck
 # (alcoves + turnback, full over the 1x3 grid) splits at the middle of the aisle so the halves mirror.
 J_SOUTH, J_NORTH, J_EAST, J_N2 = 163.0, 163.0, 89.5, 150.0
-# B1 rests on the helix at its post and on a 1x3 joist on the wall stub (x 158.5). Halfway between, on the
-# straight, it widens to 10 in for 4 in: a pad for a pair of 5/16 rods 4 in either side of the centre line,
-# clear of both roadbeds (a temporary post can go under the pad first)
-X_ROD, ROD_OFF = 142.5, 4.0
-ROD_PAD = box(X_ROD - 2.0, Y_SOUTH - 5.0, X_ROD + 2.0, Y_SOUTH + 5.0)
-b1 = unary_union([BOARD.intersection(box(0, 95, J_SOUTH, 300)), ROD_PAD])
+# B1 rests on the helix at its post and on a 1x3 joist on the wall stub (x 158.5). Once it turns out of the helix
+# it widens to 10 in along the straight, up to the wall, so a pair of 5/16 rods 4 in either side of the centre
+# line clears both roadbeds wherever they go (a temporary post first); 6 in again through the wall opening
+X_STRAIGHT, X_ROD, ROD_OFF = 140.3, 142.5, 4.0
+B1_WIDE = box(X_STRAIGHT, Y_SOUTH - 5.0, 158.5, Y_SOUTH + 5.0)
+b1 = unary_union([BOARD.intersection(box(0, 95, J_SOUTH, 300)), B1_WIDE])
 b2 = CLOSET_DECK.intersection(box(0, J_EAST, 300, 300))
 b3 = CLOSET_DECK.intersection(box(0, 0, 300, J_EAST))
 n_a, n_rest = split(NORTH, "x", 4.5 + WALL_GAP + 96)
@@ -93,7 +93,7 @@ piece("W2", w_2, "34", "West wall, middle", "96 in.")
 piece("W3", unary_union([w_3, CLOSET, F_CL]), "34", "West wall south end + closet strip",
       "96 in, one piece; cut the 6 in fillet curve where the closet strip steps in.")
 piece("B1", b1, "34", "Board: helix exit, neck, south opening",
-      "6 in, with a 10 x 4 rod pad halfway (x 142.5). Square start 1-1/2 in outside the helix edge; field-fit to "
+      "6 in round the curve, 10 in along the straight to the wall (rods), 6 in through the opening. Square start 1-1/2 in outside the helix edge; field-fit to "
       "the end of the helix exit roadbed.")
 piece("B2", b2, "34", "Closet deck, south half", "South alcove + turnback, full over the closet boxes. Inside edge: offsets.")
 piece("B3", b3, "34", "Closet deck, north half", "North alcove + turnback. Seam at the middle of the aisle end.")
