@@ -13,13 +13,13 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 | 3 | 1x2 #2 white pine, 16 ft (front girder webs) | 131X02 | 2 pcs = 32 LF | $0.55/LF | $17.60 |
 | 4 | 1x2 #2 white pine, 8 ft (joists, lookouts, rim, blocking) | 131X02 | 13 pcs = 104 LF | $0.55/LF | $57.20 |
 | 5 | 1x3 #2 white pine, 16 ft (front girder flanges) | 131X03 | 2 pcs = 32 LF | $0.79/LF | $25.28 |
-| 6 | 1x3 #2 white pine, 8 ft (riser blocks, closet boxes, SW closet strip) | 131X03 | 10 pcs = 80 LF | $0.79/LF | $63.20 |
+| 6 | 1x3 #2 white pine, 8 ft (riser blocks, closet boxes, SW closet strip) | 131X03 | 9 pcs = 72 LF | $0.79/LF | $56.88 |
 | 7 | 5/16-18 threaded rod, 72" | NA179598 | 1 | $9.99 | $9.99 |
 | 8 | 5/16 galvanized hex nut | MF05616 | 16 | $0.31 | $4.96 |
 | 9 | 5/16 x 1-1/2 zinc fender washer, 25/pk | MF10498 | 1 pk | $7.59 | $7.59 |
-| | **Subtotal** | | | | **$765.75** |
-| | NY sales tax (~8.625%) | | | | ~$66.05 |
-| | **Total** | | | | **~$831.80** |
+| | **Subtotal** | | | | **$759.43** |
+| | NY sales tax (~8.625%) | | | | ~$65.50 |
+| | **Total** | | | | **~$824.93** |
 
 ## Plywood notes
 
@@ -28,7 +28,7 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 
 ## Lumber notes
 
-- 1x2 total 136 LF; 1x3 total 112 LF. Net use is about 117 ft and 95 ft, so roughly 10% covers offcuts and a bad stick.
+- 1x2 total 136 LF; 1x3 total 104 LF. Net use is about 117 ft and 92 ft, so roughly 10% covers offcuts and a bad stick.
 - **Confirm 1x3 comes in 16 ft.** If not, buy 2 x 1x3 at 12 ft + 2 at 8 ft (same LF) and splice each flange
   under a joist with a 12" 1x3 scab, glued and screwed. Better: ask for 14 ft; the flanges are 153-3/4 and 154-7/8.
 - Pick the 16 ft pieces by hand: straight, no edge knots in the middle third.

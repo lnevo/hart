@@ -72,7 +72,7 @@ SWT = unary_union([SW_TOP, box(X_WALL_W + WALL_GAP, 200.5, 28.4, 266.5)])
 # closet: three 1x3 boxes on edge. The north and south boxes run the full depth from the wall openings to the
 # east wall; a short box fills the east wall between them, its front rail under the inside edge of the helix track
 CL_N, CL_S = (47.5, 65.0), (114.0, 131.5)          # north / south boxes (y), x 163 to the east wall
-CL_BOX_X = [163.0, 176.5, 190.0, 203.5, 217.0]     # their cross pieces (x), ends included
+CL_BOX_X = [163.0, 181.0, 199.0, 217.0]           # their cross pieces (x), ends included, 18 in o.c.
 X_CL_E = 204.0                                     # east box front edge, 13 in off the wall
 CL_E_Y = [65.0, 77.25, 89.5, 101.75, 114.0]        # east box cross pieces (y), ends included; B2/B3 seam at 89.5
 
@@ -493,7 +493,7 @@ def sheet_framing_plan(c):
         "the last two joists.",
         "Closet past the helix: three 1x3 boxes on edge. North and south run full depth to the east wall; a short "
         "13 in box fills the east wall between them, its front rail under the inside edge of the helix track and a "
-        "cross piece under the B2/B3 seam (y 89.5). Cross pieces about 13 in o.c.",
+        "cross piece under the B2/B3 seam (y 89.5). Cross pieces 18 in o.c. in the side boxes, 12-1/4 in the east box.",
     ]
     y = ly - 14 - len(rows) * 12 - 16
     c.setFont("Helvetica-Bold", 8.5)
