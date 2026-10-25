@@ -19,7 +19,7 @@ from shapely.geometry import LineString, box  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 
 import make_joist_construction_pdf as ml  # noqa: E402
-from main_level_geometry import (CLOSET_DECK, F_NW, fillet, F_SW, NORTH, PEN, WALL_GAP, WALLS,  # noqa: E402
+from main_level_geometry import (F_NW, fillet, F_SW, NORTH, PEN, WALL_GAP, WALLS,  # noqa: E402
                                  WEST, disc)
 from make_joist_construction_pdf import (ACCENT, CLOSETC, DECK, GREY, NEW, WALL,  # noqa: E402
                                          WOOD, WOOD_DK, PlanView, View, footer_note, frac, header, ply, track)
@@ -74,10 +74,18 @@ H_A, H_B = (114.0, 115.5), (134.5, 136.0)
 H_C = (151.6, 153.1)
 H_FRAMES = (66.0, 121.0)                          # leg frames (x); verify
 X_PEN_WALL = 158.5
-X_ALCOVE_E = 187.0                                # alcove / turnback seam
 X_N2_END = 158.48 - 2.5                           # N2 ends about 2-1/2 in short of the closet wall; verify
 TONGUE_N, TONGUE_S = (53.15, 59.15), (118.45, 124.45)   # 6 in tongues through the wall openings, as the main level
-J_EAST = 89.5                                     # closet deck seam, as the main level
+J_EAST = 89.5                                     # closet alcove pieces split here, as the main level
+# closet as built: a long 8 in shelf down the east wall and a separate rectangle in each alcove, each a 1x3 box
+# on edge; straight deck edges, no turnback curve (the desk sits under the shelf)
+X_SHELF = 209.0                                   # shelf front edge, 8 in off the east wall
+CL_N, CL_S = (Y_WALL_N, 65.0), (114.0, 131.5)     # alcove rectangles (y), from the openings (x 163) to the shelf
+CL_SHELF_X = [Y_WALL_N, 61.5, 75.5, 89.5, 103.5, 117.5, 131.5]   # shelf cross pieces (y), ends included
+CL_BOX_X = [163.0, 178.0, 193.5, X_SHELF]                        # alcove box cross pieces (x), ends included
+STG_CLOSET = unary_union([box(163.0, CL_N[0] + WALL_GAP, X_SHELF, CL_N[1]),
+                          box(163.0, CL_S[0], X_SHELF, CL_S[1] - WALL_GAP),
+                          box(X_SHELF, Y_WALL_N + WALL_GAP, 217.0 - WALL_GAP, 131.5 - WALL_GAP)])
 
 
 def pen_span(y):
@@ -150,8 +158,18 @@ def members():
                 y1 = hy0 + 1.5 if y1 <= hy0 + 0.01 else y1
                 y0 = hy1 - 1.5 if y0 >= hy1 - 0.01 else y0
             add("joist", x - 0.375, y0, x + 0.375, y1)
-    # closet: the main-level 1x3 grid
-    m += [r for r in ml.members() if r[0].startswith("cl_") and r[2] < 200]
+    # closet: the east shelf box (full length on the wall) and the two alcove boxes stopping against it
+    add("cl_ledger", 216.25, Y_WALL_N, 217.0, 131.5)
+    add("cl_rail", X_SHELF, Y_WALL_N, X_SHELF + 0.75, 131.5)
+    for i, y in enumerate(CL_SHELF_X):
+        y0 = y if i == 0 else y - 0.75 if i == len(CL_SHELF_X) - 1 else y - 0.375
+        add("cl_joist", X_SHELF + 0.75, y0, 216.25, y0 + 0.75)
+    for (y0, y1) in (CL_N, CL_S):
+        add("cl_ledger" if y0 == Y_WALL_N else "cl_rail", 163.0, y0, X_SHELF, y0 + 0.75)
+        add("cl_rail" if y0 == Y_WALL_N else "cl_ledger", 163.0, y1 - 0.75, X_SHELF, y1)
+        for i, x in enumerate(CL_BOX_X):
+            x0 = x if i == 0 else x - 0.75 if i == len(CL_BOX_X) - 1 else x - 0.375
+            add("cl_joist", x0, y0 + 0.75, x0 + 0.75, y1 - 0.75)
     for y in (267.0, 284.0, 301.5):              # SW strip: 1x3 joists from the wall girder over the strip girder
         add("joist", X_WALL_W + 1.5, y - 0.375, WG[1], y + 0.375)
     return m
@@ -171,14 +189,14 @@ def pieces():
     hs3 = pen.intersection(box(px0 + 96, 0, 300, 300))
     hs2 = pen.difference(hs1).difference(hs3)
     # closet deck: each alcove piece runs through its wall opening on a notched tongue (as the main-level N2),
-    # the south one across the neck to HS1, the north one to N2; the turnback is one piece. The neck beside the
+    # the south one across the neck to HS1, the north one to N2; the east shelf is one piece. The neck beside the
     # south tongue is left open, to be filled with scrap or foam.
-    alcoves = CLOSET_DECK.intersection(box(0, 0, X_ALCOVE_E, 300))
-    tongue_s = box(hs1.bounds[2], TONGUE_S[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_S[1])
+    alcoves = STG_CLOSET.intersection(box(0, 0, X_SHELF, 300))
+    tongue_s = box(hs1.bounds[2], TONGUE_S[0], STG_CLOSET.bounds[0] + 0.1, TONGUE_S[1])
     b2a = unary_union([alcoves.intersection(box(0, J_EAST, 300, 300)), tongue_s])
     n_end = n_b.intersection(box(X_N2_END, 0, 300, 300))     # N2 stops short; the north tongue runs into the gap
     n_b = n_b.difference(n_end)
-    tongue_n = box(X_N2_END, TONGUE_N[0], CLOSET_DECK.bounds[0] + 0.1, TONGUE_N[1])
+    tongue_n = box(X_N2_END, TONGUE_N[0], STG_CLOSET.bounds[0] + 0.1, TONGUE_N[1])
     b3a = unary_union([alcoves.intersection(box(0, 0, 300, J_EAST)), tongue_n])
     pieces.fill = unary_union([hs3.difference(tongue_s), n_end.difference(tongue_n)])
     return [
@@ -195,7 +213,7 @@ def pieces():
         ("HS2", hs2, "Helix peninsula, south span", "around the hatch"),
         ("B2a", b2a, "Closet south alcove", "notched tongue through the wall and across the neck to HS1"),
         ("B3a", b3a, "Closet north alcove", "tongue through the wall, about 2-1/2 in into N2's end"),
-        ("B23b", CLOSET_DECK.difference(alcoves), "Closet turnback (B2b + B3b)", "one piece over the grid"),
+        ("B4", STG_CLOSET.difference(alcoves), "Closet east shelf", "8 x 84, one piece on the shelf box"),
     ]
 
 
@@ -210,7 +228,7 @@ def sheet_plan(c):
            "Looking down. Orange = L-girders (1x4 web + 1x2 flange); tan = 1x3 joists.", 1, PAGES, level="staging level")
     v = PlanView(c, ox=40, oy=PH - 74, k=1.86, x0=0.0, y0=43.0)
     v.geom(WALLS, fill=WALL, stroke=GREY, lw=0.4)
-    deck = unary_union([NORTH, WEST, F_NW, SW_DECK, STRIP, F_STRIP, CLOSET_DECK, PEN])
+    deck = unary_union([NORTH, WEST, F_NW, SW_DECK, STRIP, F_STRIP, STG_CLOSET, PEN])
     v.geom(deck, fill=DECK, stroke=GREY, lw=0.4, dash=(2, 1.5))
     v.geom(HATCH, fill=Color(1, 1, 1), stroke=ACCENT, lw=0.6, dash=(3, 2))
     # wall girders
@@ -241,14 +259,15 @@ def sheet_plan(c):
     v.text(HC[0], H_A[0] - 2.0, "girder A", size=5.5, color=GREY, anchor="c")
     v.text(66, H_B[1] + 3.0, "girder B", size=5.5, color=GREY, anchor="c")
     v.text(HC[0], H_C[1] + 3.5, "girder C (free)", size=5.5, color=GREY, anchor="c")
-    v.text(183, 90, "CLOSET 1x3 GRID", size=6, color=CLOSETC, anchor="c", bold=True)
+    v.text(186, 90, "CLOSET: 8 in EAST SHELF", size=6, color=CLOSETC, anchor="c", bold=True)
+    v.text(186, 94.5, "+ 2 alcove boxes", size=5.5, color=CLOSETC, anchor="c")
     v.text(64, 233.4, "SW BOX: open middle", size=6, color=GREY, anchor="c", bold=True)
     v.text(64, 238.0, "4 lower girders on 2 leg frames", size=5.5, color=GREY, anchor="c")
 
     lx, ly = 498, PH - 86
     rows = [(NEW, "L-girder, 1x4 web + 1x2 flange (wall, front, SW, helix)"), (WOOD_DK, "1x3 joist, ~16 in o.c."),
             (Color(0.35, 0.35, 0.40), "2x4 leg / 1x4 leg-frame joist"), (Color(0.55, 0.40, 0.25),
-            "2x4 hatch frame"), (CLOSETC, "Closet 1x3 grid (as the main level)")]
+            "2x4 hatch frame"), (CLOSETC, "Closet 1x3 boxes (shelf + alcoves)")]
     c.setFont("Helvetica-Bold", 8.5)
     c.setFillColor(black)
     c.drawString(lx, ly, "LEGEND")
@@ -271,6 +290,9 @@ def sheet_plan(c):
         "Helix peninsula: girders A and B come off the closet wall on the neck edges and run to the bulb's west "
         "edge; B is cut out at the hatch. C is free, halfway to the south edge. A 2x4 + 1x4 leg frame carries all "
         "three at each end.",
+        "Closet: a long, narrow 8 in shelf on the east wall, full length, and a separate rectangle in each "
+        "alcove from the wall opening to the shelf. Each is a 1x3 box on edge, cross pieces about 14 in o.c. "
+        "Straight deck edges; the desk sits under the shelf.",
     ]
     verify = [
         "North front girder line (drawn set back to y 65, like the main level).",
@@ -278,8 +300,9 @@ def sheet_plan(c):
         "Leg frame positions: north run x 55, 115; west run y 110, 165; SW box x 30, 76; helix x 66, 121.",
         "Hatch size and position (placeholder 36 x 24 on the helix centre); girder y positions A, B, C.",
         "SW girder ends (drawn to x 100) and how the west front girder meets the SW box girders.",
-        "FG / GG / bullnose seam lines (drawn at the loop centre, x 78.8); closet seams at x 187 and the 6 in "
-        "tongues through the wall openings (drawn where the main level's are).",
+        "FG / GG / bullnose seam lines (drawn at the loop centre, x 78.8); the 6 in tongues through the wall "
+        "openings (drawn where the main level's are).",
+        "Closet: shelf depth (drawn 8 in) and alcove rectangles (drawn 17-1/2 in deep, opening to the shelf).",
     ]
     y = ly - 14 - len(rows) * 12 - 16
     for title, items, bullet in (("NOTES", notes, ""), ("TO VERIFY ON SITE", verify, "- ")):
@@ -392,8 +415,8 @@ def sheet_sections(c):
 
 # ---------------------------------------------------------------- sheet 3
 def sheet_ply(c):
-    header(c, "Staging level plywood pieces (3/4)", "As the 0 in level except the SW box (two 18 in "
-           "straights + a solid bullnose) and B2/B3 through the closet wall.", 3, PAGES, level="staging level")
+    header(c, "Staging level plywood pieces (3/4)", "As the 0 in level except the SW box, the closet "
+           "pieces (B2a/B3a through the wall, the 8 in shelf B4).", 3, PAGES, level="staging level")
     v = PlanView(c, ox=40, oy=PH - 74, k=1.86, x0=0.0, y0=43.0)
     v.geom(WALLS, fill=WALL, stroke=GREY, lw=0.4)
     cols = [Color(0.96, 0.90, 0.76), Color(0.90, 0.94, 0.82), Color(0.86, 0.91, 0.96), Color(0.97, 0.86, 0.82)]
