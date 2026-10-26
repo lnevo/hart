@@ -1,7 +1,8 @@
 # HART main level: bill of materials
 
-From the framing drawings (`main_level_joist_construction.pdf`, closet boxes 2026-10-24) and plywood cut plan v28.
+From the framing drawings (`main_level_joist_construction.pdf`, closet boxes 2026-10-24, B1 joist 2026-10-25) and plywood cut plan v28.
 Supplier: Riverhead Building Supply (rbscorp.com). Prices as listed on 2026-10-21, before tax.
+1x3 count uses the 3 x 12 ft and 1 x 9 ft sticks on hand first.
 Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3, as Riverhead SKU 2716), used for two of the four 3/4 deck sheets; 4 x 3/4 + 5 x 1/2 needed.
 
 ## Shopping list
@@ -13,13 +14,14 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 | 3 | 1x2 #2 white pine, 16 ft (front girder webs) | 131X02 | 2 pcs = 32 LF | $0.55/LF | $17.60 |
 | 4 | 1x2 #2 white pine, 8 ft (joists, lookouts, rim, blocking) | 131X02 | 13 pcs = 104 LF | $0.55/LF | $57.20 |
 | 5 | 1x3 #2 white pine, 16 ft (front girder flanges) | 131X03 | 2 pcs = 32 LF | $0.79/LF | $25.28 |
-| 6 | 1x3 #2 white pine, 8 ft (riser blocks, closet boxes, SW closet strip) | 131X03 | 9 pcs = 72 LF | $0.79/LF | $56.88 |
+| 6 | 1x3 #2 white pine, 8 ft (riser blocks, closet boxes, SW closet strip, after the sticks on hand) | 131X03 | 4 pcs = 32 LF | $0.79/LF | $25.28 |
 | 7 | 5/16-18 threaded rod, 72" (girder rods + B1 rod pair) | NA179598 | 2 | $9.99 | $19.98 |
 | 8 | 5/16 galvanized hex nut | MF05616 | 24 | $0.31 | $7.44 |
 | 9 | 5/16 x 1-1/2 zinc fender washer, 25/pk | MF10498 | 1 pk | $7.59 | $7.59 |
-| | **Subtotal** | | | | **$771.90** |
-| | NY sales tax (~8.625%) | | | | ~$66.58 |
-| | **Total** | | | | **~$838.48** |
+| 10 | 1/4" tempered hardboard (Masonite), 4x8 | not listed | 2 sheets | ~$30 est. | ~$60.00 |
+| | **Subtotal** | | | | **~$800.30** |
+| | NY sales tax (~8.625%) | | | | ~$69.03 |
+| | **Total** | | | | **~$869.33** |
 
 ## Plywood notes
 
@@ -28,10 +30,17 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 
 ## Lumber notes
 
-- 1x2 total 136 LF; 1x3 total 104 LF. Net use is about 117 ft and 92 ft, so roughly 10% covers offcuts and a bad stick.
+- 1x2 total 136 LF; 1x3 total 109 LF (64 bought + 45 on hand). Net use is about 117 ft and 94 ft, so roughly 10% covers offcuts and a bad stick.
+- 1x3 on hand: 3 x 12 ft and 1 x 9 ft. Cut the closet-box rails and ledgers (54-3/4, 54, 49) and the longer joists from these first;
+  the 4 new 8 ft sticks take the rest of the riser blocks and short pieces. The on-hand sticks are too short for the girder flanges.
 - **Confirm 1x3 comes in 16 ft.** If not, buy 2 x 1x3 at 12 ft + 2 at 8 ft (same LF) and splice each flange
   under a joist with a 12" 1x3 scab, glued and screwed. Better: ask for 14 ft; the flanges are 153-3/4 and 154-7/8.
 - Pick the 16 ft pieces by hand: straight, no edge knots in the middle third.
+
+## Hardboard notes
+
+- 1/4" hardboard is not on Riverhead's online list; the ~$30/sheet is an estimate (other yards list 4x8 tempered at about $22-36). Confirm at the counter.
+- The seat shims (E) come out of these sheets.
 
 ## Hardware and scrap (on hand or not priced)
 
@@ -43,7 +52,7 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 | #8 x 2-1/2 wood screws | 2 | seat block (G) into the end stud |
 | Wood glue (Titebond, on hand) | as needed | all glued joints |
 | #8 x 3 wood screws | 5 | seats (E), seat block (G) |
-| 1/4" hardboard or ply scrap | 2 @ 2-1/2 sq | seat shims (E) |
+| 1/4" hardboard offcut | 2 @ 2-1/2 sq | seat shims (E) |
 | 1/2" ply scrap | 7-1/2" triangle | NW gusset (F) - from the 1/2" offcuts |
 
 ## Cut list summary

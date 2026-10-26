@@ -910,17 +910,21 @@ def sheet_plan(c):
 
 
 # ---------------------------------------------------------------- materials
-def stick_count(lengths, stock_len=96.0, kerf=0.125):
-    """First-fit decreasing into stock lengths; returns the number of sticks."""
-    bins = []
+ON_HAND = {"1x2": [], "1x3": [144.0, 144.0, 144.0, 108.0]}   # sticks already in the shop: 3 x 12 ft + 9 ft of 1x3
+
+
+def stick_count(lengths, stock_len=96.0, kerf=0.125, on_hand=()):
+    """First-fit decreasing, filling the on-hand sticks first; returns the number of new stock sticks."""
+    caps = list(on_hand)
+    bins = [0.0] * len(caps)
     for ln in sorted(lengths, reverse=True):
         for i, used in enumerate(bins):
-            if used + ln + kerf <= stock_len:
+            if used + ln + kerf <= (caps[i] if i < len(caps) else stock_len):
                 bins[i] = used + ln + kerf
                 break
         else:
             bins.append(ln + kerf)
-    return len(bins)
+    return len(bins) - len(caps)
 
 
 def materials():
@@ -932,7 +936,7 @@ def materials():
         long_ = [ln for ln in lengths if ln > 95.0]
         short = [ln for ln in lengths if ln <= 95.0]
         out[f"n16_{stock}"] = len(long_)
-        out[f"n8_{stock}"] = stick_count(short)
+        out[f"n8_{stock}"] = stick_count(short, on_hand=ON_HAND[stock])
         out[f"lf_{stock}"] = sum(lengths)
     out["girders"] = [m[5] for m in mem if m[0] in ("girder", "girder_web")]
     return out
@@ -1003,11 +1007,12 @@ def sheet_steps(c):
         ("1x3, 16 ft", f"{mt['n16_1x3']}", "front girder flanges"),
         ("1x2, 8 ft", f"{mt['n8_1x2']}", f"{mt['joists']} joists, {mt['lookouts']} lookouts, rim, blocking"),
         ("1x3, 8 ft", f"{mt['n8_1x3']}", f"{mt['blocks']} riser blocks, closet boxes, SW strip"),
+        ("1x3 on hand", "3 x 12 ft", "+ 1 x 9 ft, cut first"),
         ("1x2 / 1x3 net", f"{mt['lf_1x2'] / 12:.0f} / {mt['lf_1x3'] / 12:.0f} ft", "before offcuts"),
         ("5/16-18 rod", "2 x 72\"", "4 pieces ~15\" + 2 under B1"),
         ("Nuts / fender washers", "24 / 24", ""),
         ("1/2 ply scrap", "7-1/2 sq", "gusset (F)"),
-        ("1/4 hardboard scrap", "2 @ 2-1/2 sq", "shims (E)"),
+        ("1/4 hardboard offcut", "2 @ 2-1/2 sq", "shims (E)"),
     ]
     for i, (a_, b_, n_) in enumerate(lines):
         y = yy - 26 - i * 11
