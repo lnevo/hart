@@ -15,13 +15,13 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 | 4 | 1x2 #2 white pine, 8 ft (joists, lookouts, rim, blocking) | 131X02 | 13 pcs = 104 LF | $0.55/LF | $57.20 |
 | 5 | 1x3 #2 white pine, 16 ft (front girder flanges) | 131X03 | 2 pcs = 32 LF | $0.79/LF | $25.28 |
 | 6 | 1x3 #2 white pine, 8 ft (riser blocks, closet boxes, SW closet strip, after the sticks on hand) | 131X03 | 4 pcs = 32 LF | $0.79/LF | $25.28 |
-| 7 | 5/16-18 threaded rod, 72" (girder rods + B1 rod pair) | NA179598 | 2 | $9.99 | $19.98 |
-| 8 | 5/16 galvanized hex nut | MF05616 | 24 | $0.31 | $7.44 |
-| 9 | 5/16 x 1-1/2 zinc fender washer, 25/pk | MF10498 | 1 pk | $7.59 | $7.59 |
+| 7 | 3/8-16 zinc threaded rod, 72" (girder rods + B1 rod pair) | in store | 2 | ~$12.99 est. | ~$25.98 |
+| 8 | 3/8-16 zinc hex nut | in store | 24 | ~$0.35 est. | ~$8.40 |
+| 9 | 3/8 x 1-1/2 zinc fender washer, 25/pk | in store | 1 pk | ~$8.50 est. | ~$8.50 |
 | 10 | 1/4" tempered hardboard (Masonite), 4x8 | not listed | 2 sheets | ~$30 est. | ~$60.00 |
-| | **Subtotal** | | | | **~$800.30** |
-| | NY sales tax (~8.625%) | | | | ~$69.03 |
-| | **Total** | | | | **~$869.33** |
+| | **Subtotal** | | | | **~$808.17** |
+| | NY sales tax (~8.625%) | | | | ~$69.70 |
+| | **Total** | | | | **~$877.87** |
 
 ## Plywood notes
 
@@ -41,6 +41,11 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 
 - 1/4" hardboard is not on Riverhead's online list; the ~$30/sheet is an estimate (other yards list 4x8 tempered at about $22-36). Confirm at the counter.
 - The seat shims (E) come out of these sheets.
+
+## Rod notes
+
+- The store only had 3/8 rod, so the rods, nuts and washers are 3/8 (were 5/16). Drill 7/16 holes through the flanges and the B1 board.
+- 3/8 hardware is not on Riverhead's online list; the prices are estimates. Swap in the shelf prices from the receipt.
 
 ## Hardware and scrap (on hand or not priced)
 
@@ -67,4 +72,4 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 | Lookouts (north) | 1x2 | 11 | to the front edge, up to 7 |
 | Riser blocks | 1x3 | 39 | 5, one 45 deg miter (pattern sheet 6) |
 | Seat block (G) | 1x3 | 1 | 4 |
-| Rods | 5/16-18 | 4 | ~15, staging deck to girder |
+| Rods | 3/8-16 | 4 + 2 | ~15, staging deck to girder; 2 under B1 |

@@ -72,7 +72,7 @@ BOARD = _cl.buffer(3.0, cap_style=2, join_style=1).intersection(AHEAD)   # squar
 # (alcoves + turnback, full over the 1x3 grid) splits at the middle of the aisle so the halves mirror.
 J_SOUTH, J_NORTH, J_EAST, J_N2 = 163.0, 163.0, 89.5, 150.0
 # B1 rests on the helix at its post and on a 1x3 joist on the wall stub (x 158.5). Once it turns out of the helix
-# it widens to 10 in along the straight, up to the wall, so a pair of 5/16 rods 4 in either side of the centre
+# it widens to 10 in along the straight, up to the wall, so a pair of 3/8 rods 4 in either side of the centre
 # line clears both roadbeds wherever they go (a temporary post first); 6 in again through the wall opening
 X_STRAIGHT, X_ROD, ROD_OFF = 140.3, 142.5, 4.0
 B1_WIDE = box(X_STRAIGHT, Y_SOUTH - 5.0, 158.5, Y_SOUTH + 5.0)

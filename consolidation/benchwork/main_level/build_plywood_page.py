@@ -179,7 +179,7 @@ td.note {{ color: var(--muted); }}
       meets the closet deck at the alcove face of each opening. B1 starts square, 1-1/2 in outside the helix edge. Fit
       that end to the helix exit roadbed. B1 rests on the helix where it meets the post and on a 1x3 joist on the wall
       stub at the south opening. Once it turns out of the helix it widens to 10 in along the straight, up to the wall
-      face, and goes back to 6 in through the opening. The extra width takes a pair of 5/16 rods 4 in either side of the
+      face, and goes back to 6 in through the opening. The extra width takes a pair of 3/8 rods 4 in either side of the
       centre line, clear of both roadbeds, anywhere along the straight. Put a temporary post under it until the rods go
       in.</li>
       <li><b>Closet deck (B2, B3)</b> is now full over the closet boxes: both alcoves and the turnback, split at the middle of the

@@ -76,7 +76,7 @@ CL_BOX_X = [163.0, 181.0, 199.0, 217.0]           # their cross pieces (x), ends
 X_CL_E = 204.0                                     # east box front edge, 13 in off the wall
 CL_E_Y = [65.0, 77.25, 89.5, 101.75, 114.0]        # east box cross pieces (y), ends included; B2/B3 seam at 89.5
 # B1 (the 0 in board from the helix to the south opening): on the helix at its post, a 1x3 joist on the wall stub,
-# and a pair of 5/16 rods through its 10 in straight, halfway (as plywood_cut_plan.py)
+# and a pair of 3/8 rods through its 10 in straight, halfway (as plywood_cut_plan.py)
 X_B1_ROD, Y_B1, B1_ROD_OFF = 142.5, 121.45, 4.0
 
 WOOD = Color(0.93, 0.85, 0.70)
@@ -474,7 +474,7 @@ def sheet_framing_plan(c):
     rows = [(NEW, "New front girder: 1x2 web (dark) on a 1x3 flange"), (WOOD_DK, "New 1x2 joist or lookout"),
             (WOOD, "1x3 riser block on a -3.25 girder"), (NEW, "1x2 blocking under a deck seam"),
             (CLOSETC, "Closet 1x3 boxes / grid (wall side, rail, cross piece)"), (EXIST, "Existing L-girder flange"),
-            (STEEL, "5/16 rod, 2 per run, over a staging leg")]
+            (STEEL, "3/8 rod, 2 per run, over a staging leg")]
     c.setFont("Helvetica-Bold", 8.5)
     c.setFillColor(black)
     c.drawString(lx, ly, "LEGEND")
@@ -503,7 +503,7 @@ def sheet_framing_plan(c):
         "13 in box fills the east wall between them, its front rail under the inside edge of the helix track and a "
         "cross piece under the B2/B3 seam (y 89.5). Cross pieces 18 in o.c. in the side boxes, 12-1/4 in the east box.",
         "B1 (0 in board, helix to the south opening): on the helix at its post and on a 1x3 joist on the wall stub. "
-        "Past the curve it is 10 in wide to the wall: two 5/16 rods 4 in off the centre line, halfway; a temporary post "
+        "Past the curve it is 10 in wide to the wall: two 3/8 rods 4 in off the centre line, halfway; a temporary post "
         "under it until then.",
     ]
     y = ly - 14 - len(rows) * 12 - 16
@@ -588,7 +588,7 @@ def sheet_section(c):
     v.leader(FG_FL_IN + 0.3, FG_BOT + 0.3, 26.3, -3.0,
              "New front girder: 1x2 web on edge\non the face, flush with the joists;\n1x3 flange flat under it (sheet 3)")
     v.leader(EDGE + 0.2, -1.0, 26.3, 1.2, "fascia on the front web,\nlater")
-    v.leader(ROD_X, -10.0, 26.3, -10.0, "5/16-18 threaded rod, 2 per run,\nover a staging leg, through the\n"
+    v.leader(ROD_X, -10.0, 26.3, -10.0, "3/8-16 threaded rod, 2 per run,\nover a staging leg, through the\n"
              "flange between joists (sheet 3)")
     v.leader(20.5, -PLY / 2, 18.5, 3.4, "3/4 ply subroadbed (0.72 measured),\nglued + screwed to joists")
 
@@ -660,7 +660,7 @@ def sheet_front(c):
     g.rect(ROD_X - 0.28, FG_FL_TOP + 0.1, ROD_X + 0.28, FG_FL_TOP + 0.38, fill=STEEL, lw=0.3)
     g.rect(ROD_X - 0.28, FG_BOT - 0.38, ROD_X + 0.28, FG_BOT - 0.1, fill=STEEL, lw=0.3)
     g.leader(ROD_X - 0.3, FG_FL_TOP + 0.25, x1, -5.6,
-             "5/16-18 rod, 3/8 hole through the\nflange's joist bearing; nut + fender\nwasher on top and underneath")
+             "3/8-16 rod, 7/16 hole through the\nflange's joist bearing; nut + fender\nwasher on top and underneath")
     g.text(ROD_X + 0.3, FG_BOT - 1.7, "to the staging deck,", size=7, color=GREY)
     g.text(ROD_X + 0.3, FG_BOT - 2.05, "over a leg", size=7, color=GREY)
 
@@ -949,7 +949,7 @@ def sheet_steps(c):
         "west girder, centred for the north - glue + screw up every 8\". One 16 ft piece of each per run. Leave the "
         "west web out where the NW joist and the rim cross (H), and run it 7/8 past the flange's north end (F).",
         "2.  Mark the staging legs under each front edge. Pick two per run, keeping every gap under 60\". Drill "
-        "3/8 holes through the flange there, between joist stations (detail D).",
+        "7/16 holes through the flange there, between joist stations (detail D).",
         "3.  North girder: seat the west end on the west wall girder (E), the east end on the seat block at the "
         "wall-stub end stud (G). Prop at mid-span with the web top at -0.72.",
         "4.  West girder: seat the south end across the peninsula's north girder (E), butt the north end into the "
@@ -985,7 +985,7 @@ def sheet_steps(c):
         ("Seat block (G)", "2x #8 x 2-1/2, 1x #8 x 3"),
         ("Rim, blocking ends", "2x #6 x 2"),
         ("Ply to joists", "glue + #6 x 1-1/4 @ 8\""),
-        ("Rods", "5/16 nut + fender washer\neach side, 3/8 hole"),
+        ("Rods", "3/8 nut + fender washer\neach side, 7/16 hole"),
     ]
     c.setFont("Helvetica", 8)
     yy = PH - 102
@@ -1009,7 +1009,7 @@ def sheet_steps(c):
         ("1x3, 8 ft", f"{mt['n8_1x3']}", f"{mt['blocks']} riser blocks, closet boxes, SW strip"),
         ("1x3 on hand", "3 x 12 ft", "+ 1 x 9 ft, cut first"),
         ("1x2 / 1x3 net", f"{mt['lf_1x2'] / 12:.0f} / {mt['lf_1x3'] / 12:.0f} ft", "before offcuts"),
-        ("5/16-18 rod", "2 x 72\"", "4 pieces ~15\" + 2 under B1"),
+        ("3/8-16 rod", "2 x 72\"", "4 pieces ~15\" + 2 under B1"),
         ("Nuts / fender washers", "24 / 24", ""),
         ("1/2 ply scrap", "7-1/2 sq", "gusset (F)"),
         ("1/4 hardboard offcut", "2 @ 2-1/2 sq", "shims (E)"),
