@@ -150,11 +150,18 @@ piece("S1", SWT.intersection(box(0, 0, X_SW, 400)), "12", "SW top, strip at the 
       "One piece the full 66 in; the backdrop stands on it. Straight joints to L9, S2 and S4.")
 piece("S2", s2, "12", "SW top, north half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
 piece("S4", s4, "12", "SW top, south half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
-piece("L1", L1, "12", "Ledge, west wall", "8 in wide.")
+piece("L1", L1, "12", "Ledge, west wall", "Outer main only (4-5/8 wide) to y 139, where the inner main reaches 4.25; 7-7/8 wide from there.")
 X_L3 = NW_C[0] + 96.0
-piece("L2", L2, "12", "Ledge, NW corner", "26-1/2 in inside radius. Kept separate: merging it costs a sixth sheet.")
-piece("L3", L3.intersection(box(0, 0, X_L3, 300)), "12", "Ledge, north wall", "96 in.")
-piece("L4", L3.intersection(box(X_L3, 0, 300, 300)), "12", "Ledge, north wall east + alcove", "Through the north opening.")
+piece("L2", L2, "12", "Ledge, NW corner", "Outer main only: 29-3/4 in inside radius.")
+piece("L3", L3.intersection(box(0, 0, X_L3, 300)), "12", "Ledge, north wall", "96 in; outer main only, the inner main climbs beside it.")
+piece("L4", L3.intersection(box(X_L3, 0, 300, 300)), "12", "Ledge, north wall east + alcove",
+      "Through the north opening; outer main only, the inner main is at 0 under its edge.")
+PLY12 = 0.47          # 12 mm Baltic birch
+GRADE = 4.25 / RAMP_LEN
+piece("R1", RAMP_N, "12", "Inner main ramp, north wall",
+      f"From 0 at x 125.7 to {(RAMP_X0 - NW_C[0]) * GRADE:.2f} at the NW curve. Taper the first {PLY12 / GRADE:.0f} in to a feather edge.")
+piece("R2", RAMP_NW, "12", "Inner main ramp, NW curve", "28-1/2 in track radius, 1.95 to 2.95.")
+piece("R3", RAMP_W, "12", "Inner main ramp, west wall", "2.95 to 4.25 at y 139, where it butts the wide end of L1.")
 piece("L5", L4, "12", "Ledge, turnback", "One piece, 30 x 84; 26-1/2 in inside radius at both ends.")
 piece("L7", unary_union([NECK_SOUTH, box(NECK_SOUTH.bounds[2] - 0.2, L5A.bounds[1], L5A.bounds[2], L5A.bounds[3])]), "12",
       "Helix top south-east + south alcove ledge",
@@ -397,9 +404,9 @@ LAYOUT34 = [
 ]
 LAYOUT12 = [
     ([("H1", 90, 0, 0), ("L9", 180, "R", 0)], [], []),
-    ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], [], []),
-    ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], [], []),
-    ([("L7", 0, 0, 0), ("L2", 90, "R", "B"), ("H2", 0, "M", "B")], [], []),   # H2 on the bottom edge, centred
+    ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], ["R1"], []),           # the north ramp strip rides above L3
+    ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], ["R3"], []),
+    ([("L7", 0, 0, 0), ("L2", 90, "R", "B"), ("H2", 0, "M", "B")], [("R2", "CA")], []),   # H2 on the bottom edge, centred
     ([("L5", 90, 0, 0), ("S1", 90, 0, "B"), ("L4", "h", "M", 0)], [], []),   # L4 on the top edge inside L5
 ]
 # Which 3/4 stock each sheet is cut from: 2 furniture birch on hand, 2 Baltic birch bought. The Baltic (void-free core)
@@ -426,14 +433,14 @@ def path_d(g, sx=1.0, sy=1.0, ox=0.0, oy=0.0):
     return " ".join(d)
 
 
-def frac(v):
-    """inches to nearest 1/8 as text"""
-    e = round(v * 8) / 8
+def frac(v, den=8):
+    """inches to nearest 1/den as text"""
+    e = round(v * den) / den
     whole = int(e)
     f = e - whole
     if abs(f) < 1e-9:
         return f"{whole}"
-    n, dd = int(round(f * 8)), 8
+    n, dd = int(round(f * den)), den
     while n % 2 == 0:
         n //= 2
         dd //= 2
@@ -455,7 +462,7 @@ def sheet_svg(s):
         o.append(f'<path class="reserve" d="{path_d(s["reserve"], scale, scale, ox, oy)}"/>')
         c = s["reserve_label"]
         o.append(f'<text class="rlbl" x="{ox + c.x * scale:.1f}" y="{oy + c.y * scale:.1f}" text-anchor="middle">'
-                 f'{"balloon loop roadbed arcs" if s["level"] == "34" else "spare: 0 to 4.25 ramp, mistakes"}</text>')
+                 f'{"balloon loop roadbed arcs" if s["level"] == "34" else "spare"}</text>')
     for pid, g, _ in s["placed"]:
         o.append(f'<path class="pc l{s["level"]}" d="{path_d(g, scale, scale, ox, oy)}"/>')
         c = g.representative_point()
@@ -495,7 +502,7 @@ def room_svg(level):
     o.append(f'<path class="bench" d="{t(bench)}"/>')
     o.append(f'<path class="wall" d="{t(walls)}"/>')
     for p in P.values():
-        if p["level"] != level or p["id"].startswith("R"):
+        if p["level"] != level:
             continue
         o.append(f'<path class="pc l{level}" d="{t(p["geom"])}"/>')
         c = p["geom"].representative_point()
@@ -528,6 +535,23 @@ def offsets():
     return rows
 
 
+def ramp_stations(step=12.0):
+    """Inner main ramp: every `step` in along the track from x 125.7, the height of the strip top and the riser under it."""
+    a, b = RAMP_X0 - NW_C[0], math.pi / 2 * IN_R
+    out, s = [], 0.0
+    while s < RAMP_LEN + 1e-6:
+        if s <= a:
+            where = f"north wall, x {RAMP_X0 - s:.1f}"
+        elif s <= a + b:
+            where = f"NW curve, {math.degrees((s - a) / IN_R):.0f} deg round"
+        else:
+            where = f"west wall, y {NW_C[1] + s - a - b:.1f}"
+        z = s * GRADE
+        out.append(dict(s=round(s, 1), where=where, z=frac(z, 16), riser=frac(z - PLY12, 16) if z >= PLY12 else "taper"))
+        s = s + step if s + step < RAMP_LEN or s >= RAMP_LEN - 1e-6 else RAMP_LEN
+    return out
+
+
 summary = dict(
     pieces=[dict(id=p["id"], level=p["level"], name=p["name"], note=p["note"],
                  w=frac(p["geom"].bounds[2] - p["geom"].bounds[0]), h=frac(p["geom"].bounds[3] - p["geom"].bounds[1]),
@@ -538,6 +562,8 @@ summary = dict(
     area34=round(sum(p["geom"].area for p in P.values() if p["level"] == "34") / 144, 1),
     area12=round(sum(p["geom"].area for p in P.values() if p["level"] == "12") / 144, 1),
     offsets=offsets(),
+    ramp=ramp_stations(),
+    grade=round(GRADE * 100, 2), ramp_len=round(RAMP_LEN, 1),
 )
 # Presentation-attribute fallbacks (page CSS overrides them for light/dark themes).
 FALLBACK = {

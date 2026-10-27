@@ -155,8 +155,8 @@ td.note {{ color: var(--muted); }}
       <p class="small">{S["area34"]} sq ft of pieces. Includes the balloon-loop subroadbed.</p></div>
     <div class="total"><span class="eyebrow"><span class="swatch sw12"></span>1/2 in · +4.25 level</span>
       <span class="big">{len(s12)} <small>sheets</small></span>
-      <p class="small">{S["area12"]} sq ft of pieces. The offcuts on the last two sheets are where the 0 to 4.25 ramp
-      pieces come from.</p></div>
+      <p class="small">{S["area12"]} sq ft of pieces, including the inner main's ramp strips R1 to R3. The rest of
+      the offcuts are spare.</p></div>
   </div>
 
   <section class="section">
@@ -166,7 +166,7 @@ td.note {{ color: var(--muted); }}
       west walls, the closet strip and the turnback; a 6 in board for the double track from the helix through both wall
       openings; 9-1/4 in subroadbed for the balloon loop on the SW peninsula. Dots mark curve centres.</figcaption></figure>
       <figure>{svg("room_12.svg")}<figcaption><span class="swatch sw12"></span>1/2 in at +4.25: the helix top over the whole
-      peninsula, the SW top over the peninsula and W3, and the 8 in ledge for the two outer tracks. Dots mark the
+      peninsula, the SW top over the peninsula and W3, and the ledge for the outer main (both mains from y 139 on the west wall), plus the inner main's ramp strips. Dots mark the
       curve centres.</figcaption></figure>
     </div>
   </section>
@@ -190,9 +190,16 @@ td.note {{ color: var(--muted); }}
       a plain rectangle wide enough for the last curve, and G1 to G3 match its width. Their outer edge stays on the 4 in
       roadbed edge; the extra width is on the inside of the loop. G2 and G3 are pure quarter circles round the tip, nested on
       sheet D the way the helix roadbed was: chord across the 48 in width, both facing the same way.</li>
-      <li><b>North wall overlap.</b> The 0 in track nearest the north wall (about 7-1/2 in off it) runs under the front edge of
-      the 8 in ledge, which leaves about 3-3/8 in from that railhead to the ledge underside. Narrow the ledge to 7 in
-      there if you want the two to clear.</li>
+      <li><b>The ramp (R1 to R3).</b> The outer main stays at +4.25 the whole way. The inner main leaves the N2 crossover at 0,
+      x 125.7, and climbs {S["grade"]}% along the north wall, round the NW corner and down the west wall to +4.25 at y 139,
+      ahead of the crossover on L1/L9 ({S["ramp_len"] / 12:.1f} ft of ramp). From the N2 crossover to y 139 the ledge
+      (L1 north end, L2, L3, L4) carries only the outer main: 1-1/4 in past its centre line, 3-7/8 in wide on the north
+      wall and 4-5/8 on the west. The inner main gets its own 2-3/8 in strip 1/8 in off the ledge edge, on risers off the
+      0 in deck (table below). The step between them is a low retaining wall.</li>
+      <li><b>Clearances beside the ramp.</b> The branchline at 0, about 7-3/4 in off the north wall, clears the R1 strip's
+      edge by about 3/8 in for a 10 ft 8 in wide car. On the west wall between y 128 and 139 the branchline swings to
+      7-1/2 in off the wall and passes under the R3 strip, with the strip's underside about 3-1/2 in up there: keep those risers
+      on the wall side of the strip. Check both with the widest car before gluing.</li>
       <li><b>Helix top (H1, H2, L7)</b> uses AnyRail's exact peninsula outline, including the curved south edge. H1 is
       the west half of the bulb, 48 × 72. The south-alcove ledge's top edge carries straight west to H1, so L7 is one
       83 in piece: the south side of the bulb and neck plus the ledge through the south opening. H2 is the rest, the
@@ -203,10 +210,8 @@ td.note {{ color: var(--muted); }}
       straight edge on the SW top, so L9, S1, S2 and S4 meet on straight lines. Put risers under every seam.</li>
       <li><b>Longer pieces.</b> W3 runs on through the closet strip as one 96 in piece (W1 grew to 39-1/2 in to make
       that work), N2 carries the board through the north opening, W1 includes the NW fillet, and the turnback ledge L5
-      is one 30 × 84 piece. Two joints stay because removing them costs a sheet: the NW corner ledge L2 on its own
-      (merging it with the north ledge needs a sixth 1/2 in sheet) and the balloon loop's joint at the tip (one half
-      circle needs a fifth 3/4 in sheet).</li>
-      <li><b>The 0 to 4.25 ramp</b> still isn't drawn: I don't know where it runs. At 2% it's about 18 ft of track.</li>
+      is one 30 × 84 piece. One joint stays because removing it costs a sheet: the balloon loop's joint at the tip (one half
+      circle needs a fifth 3/4 in sheet). L2 stays separate from L3 so the ramp strips line up with its joints.</li>
     </ol>
   </section>
 
@@ -233,6 +238,17 @@ td.note {{ color: var(--muted); }}
   </section>
 
   <section class="section">
+    <h2>Inner main ramp: risers</h2>
+    <p class="small">Every 12 in along the inner main from x 125.7. Height is the top of the 1/2 in strip above the 0 in
+    deck; the riser goes under the strip, on the deck, and is the height less 0.47 (12 mm ply). The first 21 in has no
+    riser: taper the end of R1 to a feather edge so it lies on the deck. Joints R1/R2 (x 39) and R2/R3 (y 81.2) land on a riser.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Along track</th><th>Where</th><th>Strip top</th><th>Riser</th></tr></thead>
+      <tbody>{"".join(f'<tr><td class="num">{r["s"]:g}</td><td>{e(r["where"])}</td><td class="num">{r["z"]}</td><td class="num">{r["riser"]}</td></tr>' for r in S["ramp"])}</tbody>
+    </table></div>
+  </section>
+
+  <section class="section">
     <h2>Laying out the curves</h2>
     <div class="shop">
       <div class="box"><h3>Trammel radii</h3>
@@ -243,7 +259,9 @@ td.note {{ color: var(--muted); }}
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">F3</td><td>18 in fillet, aisle side only</td></tr>
           <tr><td class="pid">G2 G3</td><td>23-3/4 and 33 in edges (31 in track centre line). Both arcs bulge toward the sheet edge, so each centre is on the plywood: nail the trammel at the cross marked on sheet D and swing 23-3/4 and 33 in</td></tr>
-                    <tr><td class="pid">L2 L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
+          <tr><td class="pid">L2</td><td>29-3/4 in inside edge from the NW curve centre (39, 81.2)</td></tr>
+          <tr><td class="pid">R2</td><td>27-1/4 and 29-5/8 in edges from the same centre (28-1/2 in track)</td></tr>
+          <tr><td class="pid">L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
           <tr><td class="pid">L9</td><td>40.2 in inside radius, centre (52.7, 160.3)</td></tr>
           <tr><td class="pid">W1 W3</td><td>10 and 6 in fillets</td></tr>
         </tbody></table>
