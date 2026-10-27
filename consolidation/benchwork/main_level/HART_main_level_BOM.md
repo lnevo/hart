@@ -30,9 +30,14 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 
 ## Lumber notes
 
-- 1x2 total 136 LF; 1x3 total 109 LF (64 bought + 45 on hand). Net use is about 117 ft and 94 ft, so roughly 10% covers offcuts and a bad stick.
-- 1x3 on hand: 3 x 12 ft and 1 x 9 ft. Cut the closet-box rails and ledgers (54-3/4, 54, 49) and the longer joists from these first;
+- 1x2 total 136 LF; 1x3 total 109 LF (64 bought + 45 on hand). Net use is about 117 ft and 95 ft (with the south closet box recuts), so roughly 10% covers offcuts and a bad stick.
+- 1x3 on hand: 3 x 12 ft and 1 x 9 ft. Cut the closet-box rails and ledgers (54-3/4, 54, 49-1/2) and the longer joists from these first;
   the 4 new 8 ft sticks take the rest of the riser blocks and short pieces. The on-hand sticks are too short for the girder flanges.
+- South closet box, as built: 15-1/2 joists (box 17 deep, front rail at y 114-1/2), so the east box rail and ledger are 49-1/2.
+  One rail and three joists split or were miscut and are cut again; that is in the count. The 38 and 42 offcuts of the
+  on-hand sticks go to the east box cross pieces and the SW strip; cut riser blocks from the clean parts of the split pieces.
+- Riser blocks are 3 long with a 1 x 1 chamfer (were 5 with a full miter): 2 in of bottom still covers the 1-1/2 flange,
+  and the chamfer sits below the joist, so the glue face stays 1-1/2 x 3. Saves about 6-1/2 ft of 1x3.
 - **Confirm 1x3 comes in 16 ft.** If not, buy 2 x 1x3 at 12 ft + 2 at 8 ft (same LF) and splice each flange
   under a joist with a 12" 1x3 scab, glued and screwed. Better: ask for 14 ft; the flanges are 153-3/4 and 154-7/8.
 - Pick the 16 ft pieces by hand: straight, no edge knots in the middle third.
@@ -70,6 +75,6 @@ Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3,
 | West girder flange | 1x3 | 1 | 154-7/8 |
 | Joists | 1x2 | 30 | per sheet 1 stations |
 | Lookouts (north) | 1x2 | 11 | to the front edge, up to 7 |
-| Riser blocks | 1x3 | 39 | 5, one 45 deg miter (pattern sheet 6) |
+| Riser blocks | 1x3 | 39 | 3, 1 x 1 chamfer on the bottom front corner (pattern sheet 6) |
 | Seat block (G) | 1x3 | 1 | 4 |
 | Rods | 3/8-16 | 4 + 2 | ~15, staging deck to girder; 2 under B1 |

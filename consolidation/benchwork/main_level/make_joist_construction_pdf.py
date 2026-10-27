@@ -44,10 +44,10 @@ ROD_X = (FG_FL_IN + FG_WEB_IN) / 2   # rod through the flange's joist bearing, b
 GIRDER_X0 = 0.0       # existing girder: web against the wall, flange on top
 WEB_X1 = GIRDER_X0 + 0.75
 FLANGE_X1 = GIRDER_X0 + 1.5
-BLOCK_L = 5.0
+BLOCK_L = 3.0
 JOIST_X0 = 0.125      # 1/8 off the wall
 BLOCK_X0 = JOIST_X0  # wall end square, flush with the joist end
-CLIP = BLOCK_TOP - BLOCK_BOT                # full-height 45 deg miter on the front end
+CLIP = 1.0                                  # 1 x 1 45 deg chamfer on the bottom front corner, below the joist
 
 # ---- framing plan (room inches) ----
 Y_WALL_N, X_WALL_W = 47.5, 4.5
@@ -71,10 +71,10 @@ X_NW_END = 38.5                    # the y 71 joist runs on under the NW fillet
 SWT = unary_union([SW_TOP, box(X_WALL_W + WALL_GAP, 200.5, 28.4, 266.5)])
 # closet: three 1x3 boxes on edge. The north and south boxes run the full depth from the wall openings to the
 # east wall; a short box fills the east wall between them, its front rail under the inside edge of the helix track
-CL_N, CL_S = (47.5, 65.0), (114.0, 131.5)          # north / south boxes (y), x 163 to the east wall
+CL_N, CL_S = (47.5, 65.0), (114.5, 131.5)          # north / south boxes (y), x 163 to the east wall; south as built, 15-1/2 joists
 CL_BOX_X = [163.0, 181.0, 199.0, 217.0]           # their cross pieces (x), ends included, 18 in o.c.
 X_CL_E = 204.0                                     # east box front edge, 13 in off the wall
-CL_E_Y = [65.0, 77.25, 89.5, 101.75, 114.0]        # east box cross pieces (y), ends included; B2/B3 seam at 89.5
+CL_E_Y = [65.0, 77.25, 89.5, 101.75, 114.5]        # east box cross pieces (y), ends included; B2/B3 seam at 89.5
 # B1 (the 0 in board from the helix to the south opening): on the helix at its post, a 1x3 joist on the wall stub,
 # and a pair of 3/8 rods through its 10 in straight, halfway (as plywood_cut_plan.py)
 X_B1_ROD, Y_B1, B1_ROD_OFF = 142.5, 121.45, 4.0
@@ -581,7 +581,7 @@ def sheet_section(c):
     v.dim_h(-12.6, 0, EDGE, f"{DEPTH:.0f} shelf depth (west wall; north wall 23-1/2 tapering to 17-1/2)")
 
     v.leader(BLOCK_X0 + BLOCK_L - 0.3, BLOCK_BOT + 0.4, 8.0, -5.0,
-             "1x3 riser block, 5\" long, square at the wall,\n45 deg miter at the front, glued + screwed\nto the joist side (sheet 5)")
+             "1x3 riser block, 3\" long, square at the wall,\n1\" chamfer at the bottom front, glued +\nscrewed to the joist side (sheet 5)")
     v.leader(GIRDER_X0 + 0.4, -6.2, 5.0, -6.9, "Existing L-girder: 1x4 web + 1x2 flange,\n"
              "flange top -3.25 (as installed)")
     v.leader(17.5, (J_TOP + J_BOT) / 2, 10.0, 2.3, "1x2 joist on edge, about 16\" o.c., butts\nthe front web, sits on the flange")
@@ -616,7 +616,7 @@ def sheet_section(c):
 
 
 def block_pts():
-    # square at the wall end (full bearing on the flange), one 45 deg miter on the visible front end
+    # square at the wall end (full bearing on the flange), a 45 deg chamfer on the bottom front corner
     return [(BLOCK_X0, BLOCK_TOP), (BLOCK_X0 + BLOCK_L, BLOCK_TOP), (BLOCK_X0 + BLOCK_L, BLOCK_BOT + CLIP),
             (BLOCK_X0 + BLOCK_L - CLIP, BLOCK_BOT), (BLOCK_X0, BLOCK_BOT)]
 
@@ -804,11 +804,11 @@ def sheet_details(c):
     a.text(8.3, mid, "1x2 joist", size=7, anchor="r", dy=-2)
     a.rect(GIRDER_X0, FLANGE_BOT, FLANGE_X1, FLANGE_TOP, xcut=True)
     a.rect(GIRDER_X0, WEB_BOT, WEB_X1, FLANGE_BOT, xcut=True)
-    for x in (BLOCK_X0 + 0.9, BLOCK_X0 + 3.0):
+    for x in (BLOCK_X0 + 0.8, BLOCK_X0 + BLOCK_L - 0.8):
         a.screw(x, mid, x, mid)
     fx = (GIRDER_X0 + FLANGE_X1) / 2
     a.screw(fx, FLANGE_BOT, fx, FLANGE_BOT + 1.5)
-    a.dim_h(0.45, BLOCK_X0, BLOCK_X0 + BLOCK_L, "5")
+    a.dim_h(0.45, BLOCK_X0, BLOCK_X0 + BLOCK_L, frac(BLOCK_L))
     a.dim_v(BLOCK_X0 + BLOCK_L + 1.3, BLOCK_TOP, BLOCK_BOT, "2-1/2")
     a.text(BLOCK_X0 + BLOCK_L - CLIP / 2, BLOCK_BOT + CLIP / 2, "45 deg", size=7, color=ACCENT, dx=8, dy=-4)
     a.text(-0.25, -5.5, "WALL", size=6.5, anchor="c", color=GREY)
@@ -835,11 +835,10 @@ def sheet_details(c):
     b.leader(0.6, BLOCK_BOT + 0.25, 2.7, -2.9, "1x3 block,\nface-glued")
 
     footer_note(c, [
-        "Riser block: cut from 1x3, grain running with the joist. Top flush with the joist top; the bottom sits on "
-        "the flange. The wall end stays square; one full-height 45 deg miter on the front end leaves 2-1/2 of bottom,",
-        "so the block still bears on the whole 1-1/2 flange. Joist and block ends sit 1/8 off the wall. On the "
-        "peninsula girders the block is centred on the flange, miter toward the aisle. Same side on every joist. "
-        "Pattern on sheet 6.",
+        "Riser block: cut from 1x3, grain running with the joist. Top flush with the joist top; the bottom sits on the flange.",
+        "The wall end stays square; a 1 x 1 45 deg chamfer on the bottom front corner sits below the joist, so the glue face is",
+        "the full 1-1/2 x 3 and the 2 in bottom bears on the whole 1-1/2 flange. Joist and block ends sit 1/8 off the wall. On the",
+        "peninsula girders the block is centred on the flange, chamfer toward the aisle. Same side on every joist. Pattern on sheet 6.",
     ], y=30)
 
 
@@ -873,15 +872,17 @@ def sheet_plan(c):
 
     p = View(c, ox=80, oy=100, scale=1)
     p.text(0, 3.2, "RISER BLOCK - FULL SIZE PATTERN (1:1)", size=9, bold=True)
-    p.poly([(0, 2.5), (5, 2.5), (2.5, 0), (0, 0)], fill=WOOD_DK)
-    p.line(0, 1.0, 3.5, 1.0, lw=0.4, color=GREY, dash=(3, 2))
-    p.text(1.75, 1.05, "joist bottom line", size=6.5, color=GREY, anchor="c", dy=2)
-    p.dim_h(2.8, 0, 5, "5")
-    p.dim_h(-0.3, 0, 2.5, "2-1/2", above=False)
+    H = BLOCK_TOP - BLOCK_BOT
+    p.poly([(0, H), (BLOCK_L, H), (BLOCK_L, CLIP), (BLOCK_L - CLIP, 0), (0, 0)], fill=WOOD_DK)
+    p.line(0, H - (J_TOP - J_BOT), BLOCK_L, H - (J_TOP - J_BOT), lw=0.4, color=GREY, dash=(3, 2))
+    p.text(BLOCK_L / 2, H - (J_TOP - J_BOT), "joist bottom line", size=6.5, color=GREY, anchor="c", dy=2)
+    p.dim_h(H + 0.3, 0, BLOCK_L, frac(BLOCK_L))
+    p.dim_h(-0.3, 0, BLOCK_L - CLIP, frac(BLOCK_L - CLIP), above=False)
     p.text(0, -0.75, "square end goes to the wall", size=6.5, color=GREY)
-    p.dim_v(-0.3, 0, 2.5, "2-1/2", side="l")
-    p.text(1.9, 1.75, "grain  ->", size=7, anchor="c", color=GREY)
-    p.text(3.9, 1.1, "45 deg", size=7, color=ACCENT, dy=-2)
+    p.dim_v(-0.3, 0, H, frac(H), side="l")
+    p.dim_v(BLOCK_L + 0.3, 0, CLIP, frac(CLIP))
+    p.text(BLOCK_L / 2, 1.75, "grain  ->", size=7, anchor="c", color=GREY)
+    p.text(BLOCK_L - CLIP / 2, CLIP / 2, "45 deg", size=7, color=ACCENT, dx=-30, dy=-2)
 
     tx = 500
     c.setFillColor(black)
@@ -889,7 +890,7 @@ def sheet_plan(c):
     c.drawString(tx, 280, "PER 8 FT BAY (24\" deep, west wall)")
     rows = [
         ("1x2 joists", f"7 @ {frac(FG_WEB_IN - JOIST_X0)}", "wall gap 1/8 to the front web"),
-        ("1x3 riser blocks", "7 @ 5", "square at wall, full 45 deg front"),
+        ("1x3 riser blocks", f"7 @ {frac(BLOCK_L)}", "square at wall, 1\" chamfer bottom front"),
         ("1x2 front web", "96", "on edge, on the face"),
         ("1x3 front flange", "96", "flat, under web + joists"),
         ("3/4 ply", "24 x 96", "one rip per bay"),
@@ -905,12 +906,13 @@ def sheet_plan(c):
     footer_note(c, [
         "The front girders go in as one 16 ft piece per run, no splice. Butt joints in the 3/4 ply land on a joist; "
         "the joist stations on sheet 1 already sit under every seam.",
-        "Scales: plan 1:12, pattern 1:1 - print at 100% and check the 5\" dimension with a rule before tracing.",
+        "Scales: plan 1:12, pattern 1:1 - print at 100% and check the 3\" dimension with a rule before tracing.",
     ], y=22, size=7)
 
 
 # ---------------------------------------------------------------- materials
 ON_HAND = {"1x2": [], "1x3": [144.0, 144.0, 144.0, 108.0]}   # sticks already in the shop: 3 x 12 ft + 9 ft of 1x3
+RECUT = {"1x2": [], "1x3": [54.0, 16.0, 16.0, 16.0]}   # south closet box: a rail and 3 joists lost to splits, cut again
 
 
 def stick_count(lengths, stock_len=96.0, kerf=0.125, on_hand=()):
@@ -932,7 +934,7 @@ def materials():
     out = dict(joists=sum(1 for m in mem if m[0] in ("joist", "pjoist")), blocks=len(riser_blocks()),
                lookouts=sum(1 for m in mem if m[0] == "lookout"), cl_members=sum(1 for m in mem if m[0].startswith("cl_")))
     for stock, extra in (("1x2", []), ("1x3", [BLOCK_L] * len(riser_blocks()) + [4.0])):   # + seat block
-        lengths = [m[5] for m in mem if m[6] == stock] + extra
+        lengths = [m[5] for m in mem if m[6] == stock] + extra + RECUT[stock]
         long_ = [ln for ln in lengths if ln > 95.0]
         short = [ln for ln in lengths if ln <= 95.0]
         out[f"n16_{stock}"] = len(long_)
