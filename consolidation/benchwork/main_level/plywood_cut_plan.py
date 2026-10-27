@@ -150,18 +150,14 @@ piece("S1", SWT.intersection(box(0, 0, X_SW, 400)), "12", "SW top, strip at the 
       "One piece the full 66 in; the backdrop stands on it. Straight joints to L9, S2 and S4.")
 piece("S2", s2, "12", "SW top, north half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
 piece("S4", s4, "12", "SW top, south half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
-piece("L1", L1, "12", "Ledge, west wall", "Outer main only (4-5/8 wide) to y 139, where the inner main reaches 4.25; 7-7/8 wide from there.")
+piece("L1", L1, "12", "Ledge, west wall", "8 in wide. North end to y 139 (57-3/4 in): rip 4-5/8 in from the wall edge (dashed); the aisle side is the inner main's ramp strip.")
 X_L3 = NW_C[0] + 96.0
-piece("L2", L2, "12", "Ledge, NW corner", "Outer main only: 29-3/4 in inside radius.")
-piece("L3", L3.intersection(box(0, 0, X_L3, 300)), "12", "Ledge, north wall", "96 in; outer main only, the inner main climbs beside it.")
+piece("L2", L2, "12", "Ledge, NW corner", "26-1/2 in inside radius. Cut on the dashed arc (29-3/4 in) for the ramp; trim the strip to the dotted arc (27-1/4 in).")
+piece("L3", L3.intersection(box(0, 0, X_L3, 300)), "12", "Ledge, north wall", "96 in. Rip 3-15/16 in from the wall edge (dashed). West of x 125.7 the aisle side is the ramp strip: trim it to 6-7/16 from the wall edge (dotted).")
 piece("L4", L3.intersection(box(X_L3, 0, 300, 300)), "12", "Ledge, north wall east + alcove",
-      "Through the north opening; outer main only, the inner main is at 0 under its edge.")
+      "Through the north opening. Rip 3-15/16 in from the wall edge (dashed); the aisle side is scrap, the inner main is at 0 under it.")
 PLY12 = 0.47          # 12 mm Baltic birch
 GRADE = 4.25 / RAMP_LEN
-piece("R1", RAMP_N, "12", "Inner main ramp, north wall",
-      f"From 0 at x 125.7 to {(RAMP_X0 - NW_C[0]) * GRADE:.2f} at the NW curve. Taper the first {PLY12 / GRADE:.0f} in to a feather edge.")
-piece("R2", RAMP_NW, "12", "Inner main ramp, NW curve", "28-1/2 in track radius, 1.95 to 2.95.")
-piece("R3", RAMP_W, "12", "Inner main ramp, west wall", "2.95 to 4.25 at y 139, where it butts the wide end of L1.")
 piece("L5", L4, "12", "Ledge, turnback", "One piece, 30 x 84; 26-1/2 in inside radius at both ends.")
 piece("L7", unary_union([NECK_SOUTH, box(NECK_SOUTH.bounds[2] - 0.2, L5A.bounds[1], L5A.bounds[2], L5A.bounds[3])]), "12",
       "Helix top south-east + south alcove ledge",
@@ -203,6 +199,42 @@ def sheet(sid, level, title, places, reserve=None):
 def w(pid):
     a, b, c, d = P[pid]["geom"].bounds
     return c - a, d - b
+
+
+XF = {}   # pinned pid -> (mirrored, rot, x, y) as lay_out placed it, so marks drawn in room inches follow the piece
+
+
+def place_mark(pid, h):
+    """Move a room-inch geometry h (a mark on piece pid) the same way lay_out moved the piece onto its sheet."""
+    mirror, rot, x, y = XF[pid]
+    g = P[pid]["geom"]
+    if mirror:
+        c = g.centroid
+        g, h = affinity.scale(g, -1, 1, origin=c), affinity.scale(h, -1, 1, origin=c)
+    if isinstance(rot, str):   # as orient(): the minimum rectangle's long side
+        cs = list(g.minimum_rotated_rectangle.exterior.coords)
+        e = max([(cs[0], cs[1]), (cs[1], cs[2])], key=lambda q: math.dist(*q))
+        rot = -math.degrees(math.atan2(e[1][1] - e[0][1], e[1][0] - e[0][0])) + (90 if rot == "v" else 0)
+    c = g.centroid
+    minx, miny, _, _ = affinity.rotate(g, rot, origin=c).bounds
+    return affinity.translate(affinity.rotate(h, rot, origin=c), x - minx, y - miny)
+
+
+def marks(pid):
+    """(kind, line) marks on a piece in room inches: the ramp cut and the trim beside the branchline."""
+    g = P[pid]["geom"].buffer(1e-3)
+    out = []
+    for kind, lines in (("cut", RAMP_CUT), ("trim", RAMP_TRIM)):
+        for ln in lines:
+            m = ln.intersection(g)
+            if not m.is_empty and m.length > 0.5:
+                out.append((kind, m))
+    return out
+
+
+def line_d(m, sx, ox, oy):
+    parts = m.geoms if hasattr(m, "geoms") else [m]
+    return " ".join("M" + " L".join(f"{ox + x * sx:.2f},{oy + y * sx:.2f}" for x, y in p.coords) for p in parts)
 
 
 def orient(g, rot):
@@ -329,7 +361,8 @@ def lay_out(level, pins, autos=(), fixed=()):
     placed = list(fixed)
     for pid, rot, x, y in pins:
         g = P[pid]["geom"]
-        if isinstance(rot, str) and rot.startswith("F"):   # 'F' / 'F180': flipped end for end, then turned
+        mirror = isinstance(rot, str) and rot.startswith("F")
+        if mirror:   # 'F' / 'F180': flipped end for end, then turned
             g, rot = affinity.scale(g, -1, 1, origin="centroid"), int(rot[1:] or 0)
         q0 = orient(g, rot)
         w, h = q0.bounds[2], q0.bounds[3]
@@ -355,6 +388,7 @@ def lay_out(level, pins, autos=(), fixed=()):
         else:
             raise SystemExit(f"{pid}: no room")
         placed.append((pid, q))
+        XF[pid] = (mirror, rot, xx, yy)
     for item in autos:
         pid, mode, area = (item, "", None) if isinstance(item, str) else (tuple(item) + (None,))[:3]
         best = None
@@ -404,9 +438,9 @@ LAYOUT34 = [
 ]
 LAYOUT12 = [
     ([("H1", 90, 0, 0), ("L9", 180, "R", 0)], [], []),
-    ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], ["R1"], []),           # the north ramp strip rides above L3
-    ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], ["R3"], []),
-    ([("L7", 0, 0, 0), ("L2", 90, "R", "B"), ("H2", 0, "M", "B")], [("R2", "CA")], []),   # H2 on the bottom edge, centred
+    ([("S4", 0, 0, 0), ("L3", 0, 0, "B")], [], []),
+    ([("S2", 0, 0, 0), ("L1", 90, 0, "B")], [], []),
+    ([("L7", 0, 0, 0), ("L2", 90, "R", "B"), ("H2", 0, "M", "B")], [], []),   # H2 on the bottom edge, centred
     ([("L5", 90, 0, 0), ("S1", 90, 0, "B"), ("L4", "h", "M", 0)], [], []),   # L4 on the top edge inside L5
 ]
 # Which 3/4 stock each sheet is cut from: 2 furniture birch on hand, 2 Baltic birch bought. The Baltic (void-free core)
@@ -474,6 +508,9 @@ def sheet_svg(s):
         if not small:
             o.append(f'<text class="pdim" x="{ox + c.x * scale:.1f}" y="{oy + c.y * scale + 15:.1f}" '
                      f'text-anchor="middle">{dims}</text>')
+    for pid, g, _ in s["placed"]:
+        for kind, m in (marks(pid) if pid in XF else []):
+            o.append(f'<path class="{kind}" d="{line_d(place_mark(pid, m), scale, ox, oy)}"/>')
     pivots = []
     for pid, g, _ in s["placed"]:
         if pid in PIVOT:   # trammel pivot: a cross; the distance in from the left and top edges goes under the sheet
@@ -508,6 +545,10 @@ def room_svg(level):
         c = p["geom"].representative_point()
         o.append(f'<text class="mlbl" x="{(c.x - x0 + pad) * scale:.1f}" y="{(c.y - y0 + pad) * scale + 4:.1f}" '
                  f'text-anchor="middle">{p["id"]}</text>')
+    if level == "12":
+        for kind, lines in (("cut", RAMP_CUT), ("trim", RAMP_TRIM)):
+            for ln in lines:
+                o.append(f'<path class="{kind}" d="{line_d(ln, scale, (pad - x0) * scale, (pad - y0) * scale)}"/>')
     for (cx, cy) in ((NW_C, TB_N, TB_S, SW_C) if level == "12" else (S_CURVE_C, N_CURVE_C)):
         if True:
             o.append(f'<circle class="ctr" cx="{(cx - x0 + pad) * scale:.1f}" cy="{(cy - y0 + pad) * scale:.1f}" r="2.5"/>')
@@ -573,6 +614,8 @@ FALLBACK = {
     "plbl sm": 'fill="#1f2326" font-size="12" font-weight="700"', "pdim": 'fill="#1f2326" font-size="13"',
     "axis": 'fill="#5f666b" font-size="12"', "bench": 'fill="#efece3" stroke="#d9d6cc"', "wall": 'fill="#b9b4a8"',
     "mlbl": 'fill="#1f2326" font-size="11" font-weight="600"', "ctr": 'fill="#b4532a"', "pivot": 'stroke="#b4532a" stroke-width="2"',
+    "cut": 'fill="none" stroke="#b4532a" stroke-width="2" stroke-dasharray="8 5"',
+    "trim": 'fill="none" stroke="#b4532a" stroke-width="1.5" stroke-dasharray="2 4"',
 }
 
 

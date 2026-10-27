@@ -4,7 +4,7 @@ Room inches: x east from the room's west corner, y south from the north wall lin
 """
 import math
 
-from shapely.geometry import Point, Polygon, box
+from shapely.geometry import LineString, Point, Polygon, box
 from shapely.ops import unary_union
 
 
@@ -115,20 +115,27 @@ SW_TOP = outline(SW_MOD)
 NW_C, TB_N, TB_S, SW_C = (39.0, 81.2), (183.6, 81.2), (183.6, 96.9), (52.7, 160.3)
 R_IN = 26.5        # inner edge of ledge: inner track R28.5 less 2 in
 L_W = 8.0          # straight ledge width
-# Inner main: 0 on N2 to x 125.7, then climbs at about 2.25% round the NW corner to 4.25 at y 139, so north of there the
-# ledge carries only the outer main and the inner one gets its own ramp strip beside it (AnyRail D.01 heights).
+L1 = box(4.5 + WALL_GAP, 81.2, 4.5 + L_W, 160.3)
+L2 = box(4.5 + WALL_GAP, 47.5 + WALL_GAP, NW_C[0], NW_C[1]).difference(disc(*NW_C, R_IN))
+L3 = box(NW_C[0], 47.5 + WALL_GAP, 187.0, 47.5 + L_W)
+# Inner main: 0 on N2 to x 125.7, then climbs about 2.25% round the NW corner to 4.25 at y 139 (AnyRail D.01 heights),
+# while the outer main stays at 4.25. The ledge boards stay full width; RAMP_CUT marks where to rip each one so the
+# wall side carries the outer main at 4.25 and the aisle side is the inner main's ramp strip (scrap east of x 125.7,
+# where the inner main is at 0 underneath). RAMP_TRIM marks the ramp strip's aisle edge beside the 0 in branchline.
 OUT_N, IN_N, OUT_W, IN_W = 50.3, 52.8, 8.0, 10.5          # track centres: north wall y, west wall x
 OUT_R, IN_R = NW_C[0] - OUT_W, NW_C[0] - IN_W             # NW curve radii, 31 and 28.5
-EDGE = 1.25                                                # strip edge past the track centre, aisle side
+EDGE = 1.25                                                # cut line past the track centre
 RAMP_X0, RAMP_Y1 = 125.7, 139.0                           # inner main at 0 (north wall) and at 4.25 (west wall)
-L1 = unary_union([box(4.5 + WALL_GAP, 81.2, OUT_W + EDGE, RAMP_Y1), box(4.5 + WALL_GAP, RAMP_Y1, 4.5 + L_W, 160.3)])
-L2 = box(4.5 + WALL_GAP, 47.5 + WALL_GAP, NW_C[0], NW_C[1]).difference(disc(*NW_C, OUT_R - EDGE))
-L3 = box(NW_C[0], 47.5 + WALL_GAP, 187.0, OUT_N + EDGE)
-# inner ramp strip: 1/8 off the narrow ledge on the wall side, EDGE past the track on the aisle side
-_in = 2.5 - EDGE - WALL_GAP
-RAMP_N = box(NW_C[0], IN_N - _in, RAMP_X0, IN_N + EDGE)
-RAMP_NW = disc(*NW_C, IN_R + _in).difference(disc(*NW_C, IN_R - EDGE)).intersection(box(0, 0, NW_C[0], NW_C[1]))
-RAMP_W = box(IN_W - _in, NW_C[1], IN_W + EDGE, RAMP_Y1)
+
+
+def _arc_line(r, n=48):   # NW corner quarter, north wall end to west wall end
+    return LineString([(NW_C[0] + r * math.cos(math.radians(270 - 90 * k / n)),
+                        NW_C[1] + r * math.sin(math.radians(270 - 90 * k / n))) for k in range(n + 1)])
+
+
+RAMP_CUT = [LineString([(NW_C[0], OUT_N + EDGE), (187.0, OUT_N + EDGE)]), _arc_line(OUT_R - EDGE),
+            LineString([(OUT_W + EDGE, NW_C[1]), (OUT_W + EDGE, RAMP_Y1)])]
+RAMP_TRIM = [LineString([(NW_C[0], IN_N + EDGE), (RAMP_X0, IN_N + EDGE)]), _arc_line(IN_R - EDGE)]
 RAMP_LEN = (RAMP_X0 - NW_C[0]) + math.pi / 2 * IN_R + (RAMP_Y1 - NW_C[1])
 STADIUM = unary_union([disc(*TB_N, R_IN), disc(*TB_S, R_IN), box(TB_N[0] - R_IN, TB_N[1], TB_N[0] + R_IN, TB_S[1])])
 L4 = box(187.0, 47.5 + WALL_GAP, 217.0 - WALL_GAP, 131.5 - WALL_GAP).difference(STADIUM)
