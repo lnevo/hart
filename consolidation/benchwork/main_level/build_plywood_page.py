@@ -39,7 +39,7 @@ def sheet_block(s):
 <section class="sheet-card" id="sheet-{s["id"]}">
   <header class="sheet-head">
     <h3><span class="sheet-id l{s["level"]}">{s["id"]}</span>{e(s["title"])}</h3>
-    <p class="used">{s["used"]}% used{f' · <b>{tag}</b>' if tag else ''}</p>
+    <p class="used"><b class="stock">{e(s["stock"])}</b> · {s["used"]}% used{f' · <b>{tag}</b>' if tag else ''}</p>
   </header>
   <div class="drawing">{svg(f"sheet_{s['id']}.svg")}</div>
   <div class="tbl"><table>
@@ -217,6 +217,12 @@ td.note {{ color: var(--muted); }}
     rips first, then the curves.
     The deck stops 1/8 in off the walls, like the joists, so two 23-7/8 in rips plus the kerf come out of one 48 in
     sheet. Every butt joint lands on a joist.</p>
+    <p class="small"><b>Which stock:</b> sheets A and B are the 2 furniture birch sheets on hand, C and D the 2 Baltic
+    birch. The Baltic has no core voids, so it takes the pieces where a void would show or matter: the 6 in board B1
+    (rods, a span to the wall stub), the closet deck B2 and B3 over the boxes, and the narrow, curved balloon loop
+    subroadbed G1 to G4. The furniture birch takes the wide wall shelves N1, N2, W1 to W3 and F3, which sit on joists
+    16 in o.c. The two are within about 1/64 in of each other; where they meet (W1 to N1 and W2, N2 to B3 at the north
+    opening, F3 to G1, W3 to G4), sand the high side flush before the cork goes down.</p>
     <div class="sheets">{"".join(sheet_block(s) for s in s34)}</div>
   </section>
 

@@ -3,7 +3,7 @@
 From the framing drawings (`main_level_joist_construction.pdf`, closet boxes 2026-10-24, B1 joist 2026-10-25) and plywood cut plan v28.
 Supplier: Riverhead Building Supply (rbscorp.com). Prices as listed on 2026-10-21, before tax.
 1x3 count uses the 3 x 12 ft and 1 x 9 ft sticks on hand first.
-Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3, as Riverhead SKU 2716), used for two of the four 3/4 deck sheets; 4 x 3/4 + 5 x 1/2 needed.
+Plywood count assumes the 2 sheets on hand are 3/4 birch furniture plywood (C-3, as Riverhead SKU 2716), used for two of the four 3/4 deck sheets (cut plan sheets A and B; the Baltic is C and D); 4 x 3/4 + 5 x 1/2 needed.
 
 ## Shopping list
 

@@ -402,6 +402,9 @@ LAYOUT12 = [
     ([("L7", 0, 0, 0), ("L2", 90, "R", "B"), ("H2", 0, "M", "B")], [], []),   # H2 on the bottom edge, centred
     ([("L5", 90, 0, 0), ("S1", 90, 0, "B"), ("L4", "h", "M", 0)], [], []),   # L4 on the top edge inside L5
 ]
+# Which 3/4 stock each sheet is cut from: 2 furniture birch on hand, 2 Baltic birch bought. The Baltic (void-free core)
+# takes the narrow, curved and rod-hung pieces; the furniture birch the wide wall shelves, which sit on joists 16 in o.c.
+STOCK34 = {"A": "3/4 furniture birch", "B": "3/4 furniture birch", "C": "3/4 Baltic birch", "D": "3/4 Baltic birch"}
 A34 = [lay_out("34", pins, autos, fixed) for pins, autos, fixed in LAYOUT34]
 A12 = [lay_out("12", pins, autos, fixed) for pins, autos, fixed in LAYOUT12]
 for lvl, sheets in (("34", A34), ("12", A12)):
@@ -530,6 +533,7 @@ summary = dict(
                  w=frac(p["geom"].bounds[2] - p["geom"].bounds[0]), h=frac(p["geom"].bounds[3] - p["geom"].bounds[1]),
                  area=round(p["geom"].area / 144, 1)) for p in P.values()],
     sheets=[dict(id=s["id"], level=s["level"], title=s["title"], pieces=[q[0] for q in s["placed"]],
+                 stock=STOCK34.get(s["id"]) if s["level"] == "34" else "1/2 Baltic birch",
                  used=round(sum(q[1].area for q in s["placed"]) / (SW * SH) * 100)) for s in SHEETS],
     area34=round(sum(p["geom"].area for p in P.values() if p["level"] == "34") / 144, 1),
     area12=round(sum(p["geom"].area for p in P.values() if p["level"] == "12") / 144, 1),
