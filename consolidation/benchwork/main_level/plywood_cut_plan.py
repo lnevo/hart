@@ -152,7 +152,7 @@ piece("S2", s2, "12", "SW top, north half", "96 in back from the tip; 33 in roun
 piece("S4", s4, "12", "SW top, south half", "96 in back from the tip; 33 in round end. Stops at the backdrop.")
 piece("L1", L1, "12", "Ledge, west wall", "8 in wide. North end to y 139 (57-3/4 in): rip 4-5/8 in from the wall edge (dashed); the aisle side is the inner main's ramp strip.")
 X_L3 = NW_C[0] + 96.0
-piece("L2", L2, "12", "Ledge, NW corner", "26-1/2 in inside radius. Cut on the dashed arc (29-3/4 in) for the ramp; trim the strip to the dotted arc (27-1/4 in).")
+piece("L2", L2, "12", "Ledge, NW corner", "Three arcs, one centre (the trammel cross): the board edge at 26-1/2 in, the ramp rip at 29-3/4 in (dashed) and the strip trim at 27-1/4 in (dotted).")
 piece("L3", L3.intersection(box(0, 0, X_L3, 300)), "12", "Ledge, north wall", "96 in. Rip 3-15/16 in from the wall edge (dashed). West of x 125.7 the aisle side is the ramp strip: trim it to 6-7/16 from the wall edge (dotted).")
 piece("L4", L3.intersection(box(X_L3, 0, 300, 300)), "12", "Ledge, north wall east + alcove",
       "Through the north opening. Rip 3-15/16 in from the wall edge (dashed); the aisle side is scrap, the inner main is at 0 under it.")
@@ -448,6 +448,8 @@ LAYOUT12 = [
 STOCK34 = {"A": "3/4 furniture birch", "B": "3/4 furniture birch", "C": "3/4 Baltic birch", "D": "3/4 Baltic birch"}
 A34 = [lay_out("34", pins, autos, fixed) for pins, autos, fixed in LAYOUT34]
 A12 = [lay_out("12", pins, autos, fixed) for pins, autos, fixed in LAYOUT12]
+_c = place_mark("L2", Point(NW_C))   # L2's edge, trim and ramp rip all swing from the NW curve centre
+PIVOT["L2"] = (_c.x, _c.y)
 for lvl, sheets in (("34", A34), ("12", A12)):
     ids = sorted(p for sh in sheets for p, _ in sh)
     want = sorted(k for k, v in P.items() if v["level"] == lvl)

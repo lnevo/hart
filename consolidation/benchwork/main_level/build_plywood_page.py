@@ -261,7 +261,8 @@ td.note {{ color: var(--muted); }}
           <tr><td class="pid">S2 S4</td><td>33 in, round end of the SW peninsula</td></tr>
           <tr><td class="pid">F3</td><td>18 in fillet, aisle side only</td></tr>
           <tr><td class="pid">G2 G3</td><td>23-3/4 and 33 in edges (31 in track centre line). Both arcs bulge toward the sheet edge, so each centre is on the plywood: nail the trammel at the cross marked on sheet D and swing 23-3/4 and 33 in</td></tr>
-          <tr><td class="pid">L2 L5</td><td>26-1/2 in inside edge, track curve centre. L2's ramp cut: 29-3/4 in (dashed), trim 27-1/4 in (dotted), same centre</td></tr>
+          <tr><td class="pid">L2</td><td>Three arcs from the NW curve centre, which falls on sheet H's bottom factory edge 62-3/8 in from the left (the cross, on H2's bottom edge): the board edge 26-1/2 in, the trim 27-1/4 in (dotted) and the ramp rip 29-3/4 in (dashed). Clamp a scrap block flush with the edge there for the pivot and swing all three before cutting H2</td></tr>
+          <tr><td class="pid">L5</td><td>26-1/2 in inside edge, track curve centre</td></tr>
           <tr><td class="pid">L9</td><td>40.2 in inside radius, centre (52.7, 160.3)</td></tr>
           <tr><td class="pid">W1 W3</td><td>10 and 6 in fillets</td></tr>
         </tbody></table>
