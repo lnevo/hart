@@ -42,9 +42,10 @@ part("CE-R", "1x3", 49.5, "East box: front rail", True)
 for i in range(1, 6):
     part(f"CE-J{i}", "1x3", 11.5, "East box: cross piece", True)
 part("SW-R", "1x3", 54.75, "SW closet strip: rail", True)
-part("SW-L", "1x3", 14.0, "SW closet strip: wall ledger", True)
-part("SW-J1", "1x3", 19.875, "SW closet strip: north joist", True)
-part("SW-J2", "1x3", 13.125, "SW closet strip: south joist", True)
+part("SW-L", "1x3", 14.0, "SW closet strip: south wall ledger", True)
+part("SW-W", "1x3", 35.125, "SW closet strip: west wall ledger", True)
+part("SW-J1", "1x3", 19.25, "SW closet strip: north joist", True)
+part("SW-J2", "1x3", 12.5, "SW closet strip: south joist", True)
 part("B1", "1x3", 14.0, "B1 joist")
 part("SB", "1x3", 4.0, "Seat block (detail G)")
 NBLK = len(J["riser_blocks"]())
@@ -88,8 +89,8 @@ STICKS = [
      "East box cross pieces."),
     ("D", "1x3", 38.0, "on hand, 38 in offcut", ["CE-J4", "CE-J5", "B1"],
      "Last two cross pieces and the B1 joist."),
-    ("E", "1x3", 192.0, "new 16 ft", ["CE-L", "CE-R"],
-     "East box long pieces from one end. Keep the other 92 in whole: it is the spare for the whole job."),
+    ("E", "1x3", 192.0, "new 16 ft", ["CE-L", "CE-R", "SW-W"],
+     "East box long pieces and the SW strip's west ledger from one end. Keep the rest whole: it is the spare for the whole job."),
     # main shelf: girder flanges first, the SW strip and the blocks round them out
     ("F", "1x3", 192.0, "new 16 ft, straightest", ["FW", "SW-J1", "SW-J2"],
      "West flange first, from the straight end. Sight it before you pick it."),
@@ -200,8 +201,9 @@ VERIFY = [
      "and measure between them at both ends before cutting CN-J1 to CN-J4."),
     ("East closet box, 49-1/2 and 11-1/2", "The east box fills the gap between the two built boxes. Measure between "
      "the north box's front rail and the south box's front rail for CE-L and CE-R, then the depth for the cross pieces."),
-    ("SW closet strip", "Rail 54-3/4, ledger 14, joists 19-7/8 and 13-1/8 all meet the walls and the peninsula girder. "
-     "Field fit them."),
+    ("SW closet strip", "Rail 54-3/4, ledgers 14 (south wall) and 35-1/8 (west wall), joists 19-1/4 and 12-1/2 all meet "
+     "the walls and the peninsula girder. The west wall girder stops at the north peninsula girder, so the strip "
+     "carries its own west ledger. Field fit them."),
     ("Girder flanges and webs", "Flanges 154-7/8 (west) and 153-3/4 (north), seat to seat. Measure in place with the "
      "seats on before cutting; sticks F, G and 1 have about 4 in spare for a longer cut. Mark the west web's three "
      "pieces on its flange where the NW joist and the rim cross, then cut."),
@@ -338,7 +340,7 @@ def page(sticks):
     <h2>Closet first</h2>
     <p>Sticks A to E finish the closet: the south box's missing rail and three 15-1/2 joists, then the north box,
     the east box and the B1 joist. They use only the 1x3 on hand and one end of stick E, so nothing on the main shelf
-    is affected. Leave the other end of E whole: it is the spare for a miscut anywhere on the job. The split 54 in rail
+    is affected. Leave the rest of E whole: it is the spare for a miscut anywhere on the job. The split 54 in rail
     and the damaged joists are not in the plan; cut riser blocks from their clean parts and you will have extras.</p>
     <div class="sticks">{"".join(card(s, True) for s in closet)}</div>
   </section>

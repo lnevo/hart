@@ -313,10 +313,12 @@ def members():
         y0 = y if i == 0 else y - 0.75 if i == len(CL_E_Y) - 1 else y - 0.375
         add("cl_joist", X_CL_E + 0.75, y0, 216.25, y0 + 0.75, "1x3")
     # closet strip at the south end of the west wall: same 1x3 grid; the rail runs on to the peninsula girder
+    # The west wall girder stops at the north peninsula girder, so the strip has its own ledger on the west wall too.
     add("cl_ledger", X_WALL_W, 301.75, 18.5, 302.5, "1x3")
+    add("cl_ledger", X_WALL_W, 266.625, X_WALL_W + 0.75, 301.75, "1x3")
     add("cl_rail", 17.75, PG_S[0], 18.5, 301.75, "1x3")
     for y in (267.0, 284.0):
-        add("cl_joist", X_WALL_W + WALL_GAP, y - 0.375, 24.5 if y == 267.0 else 17.75, y + 0.375, "1x3")
+        add("cl_joist", X_WALL_W + 0.75, y - 0.375, 24.5 if y == 267.0 else 17.75, y + 0.375, "1x3")
     add("b1_joist", 157.75, Y_B1 - 7.0, 158.5, Y_B1 + 7.0, "1x3")
     return m
 
@@ -423,7 +425,7 @@ def sheet_framing_plan(c):
 
     # existing L-girders (flanges)
     v.rect(X_WALL_W, Y_WALL_N, 158.5, Y_WALL_N + 1.5, fill=EXIST, stroke=None)
-    v.rect(X_WALL_W, Y_WALL_N, X_WALL_W + 1.5, 266.5, fill=EXIST, stroke=None)
+    v.rect(X_WALL_W, Y_WALL_N, X_WALL_W + 1.5, PG_N[0], fill=EXIST, stroke=None)   # stops at the peninsula girder
     for g in (PG_N, PG_S):
         v.rect(X_WALL_W + 1.5, g[0], PG_X1, g[1], fill=EXIST, stroke=None)
         v.rect(PG_X1, g[0], PG_X1 + 8, g[1], fill=None, stroke=EXIST, lw=0.5, dash=(1.5, 1.5))
@@ -961,7 +963,7 @@ def sheet_steps(c):
         "girder: the back wall end of every north and west joist, and both peninsula girders.",
         "7.  Set the joists at the sheet 1 stations, butted to the front web; screw up through the front flange "
         "into each joist and up through the back flange into each block. North: a 1x2 lookout in line with each joist. The rim and the NW joist run on past the west girder (H).",
-        "8.  Fit the seam blocking (H). Build the closet boxes (north, south, then the short east box) and screw their wall sides into studs; then the SW closet strip: ledger, rail, joists.",
+        "8.  Fit the seam blocking (H). Build the closet boxes (north, south, then the short east box) and screw their wall sides into studs; then the SW closet strip: the south and west wall ledgers, rail, joists.",
         "9.  Dry-lay the 3/4 ply; seams on joists or blocking. Glue + screw every 8\" along each joist, keeping "
         "screws out from under the track centrelines (feeders). Fascia last.",
     ]
