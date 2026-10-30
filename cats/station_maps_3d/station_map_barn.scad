@@ -209,11 +209,12 @@ module black2d() {
 
 module teal2d() {
   pills2d();
-  compass_ring2d();
   needle_south2d();
 }
 
+// The ring keeps gold over the slicer's 9 mm^3 limit, below which an STL is taken for inches.
 module gold2d() {
+  compass_ring2d();
   needle_north2d();
 }
 

@@ -4,19 +4,19 @@ Multi-colour fascia plates that hold Touch Toggles. Barn is first; it follows
 `cats/scripts/render_barn_station_map.py`.
 
 ```bash
-./cats/station_maps_3d/build.sh   # writes stl/barn.3mf and one STL per colour
+./cats/station_maps_3d/build.sh   # writes stl/barn_{white,black,teal,gold}.stl
 ```
 
 ## Printing (Spark i7 + 4-colour AMS, Creality Print)
 
-Open `stl/barn.3mf`, not the STLs. STL has no units, so the slicer guesses from size
-and offers to convert the small gold part from inches. The 3MF declares millimetres
-and already holds the four colours as parts of one object, in place.
-
-1. Map filaments 1-4 to white, black, teal and gold.
-2. Print as loaded, face down on a smooth plate, with no supports. Use 0.2 mm layers or finer so the 0.6 mm inlay gets at least three layers.
+1. Add all four STLs in one go and choose to load them as one object with multiple parts. They share an origin, so do not move them apart.
+2. Assign white, black, teal and gold to the parts.
+3. Print as loaded, face down on a smooth plate, with no supports. Use 0.2 mm layers or finer so the 0.6 mm inlay gets at least three layers.
 
 After a rebuild, use **Reload from disk**.
+
+STL has no units, and the slicer treats a part under about 9 mm³ as inches. Keep every
+colour above that; `build.sh` fails if one is not.
 
 ## Fit
 
