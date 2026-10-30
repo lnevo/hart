@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Export the Barn station map plate: one STL per colour.
+# Export the Barn station map plate: one STL per colour, then barn.3mf to print from.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -11,3 +11,5 @@ mkdir -p "$OUT"
 for part in white black teal gold; do
   "$OPENSCAD" -D "part=\"$part\"" -o "$OUT/barn_$part.stl" "$SRC"
 done
+
+python3 "$HERE/make_3mf.py"
