@@ -7,7 +7,7 @@ Raw photos → crop → OCR → metadata → printed cards. **Legacy raw `Images
 After `bash tools/ops/setup_car_cards_workspace.sh`:
 
 ```text
-external/desktop-data/car-cards/
+ops/car-cards/
   incoming/          ← drop new light-box photos here (JPEG/PNG)
   Images/            → symlink to incoming/ (pipeline expects this name)
   CarImages/         generated card crops
@@ -51,7 +51,7 @@ Car photos for STS use `CarImagesFinal/` via `HART_CAR_IMAGES_FINAL` in hart-ops
 | `external/hart-ops/card_pipeline/assets/` | **Poker Size Sticker Sheet Template.docx** (git) |
 | `external/hart-ops/card_pipeline/output/` | Equipment template, spot waybills, card review (git) |
 | `external/hart-ops/docs/print/waybills/` | Session CC/WB label decks (git) |
-| `external/desktop-data/car-cards/print/` | Full `HART_All_Car_Cards.docx` mirror (~345 MB, not git) |
+| `ops/car-cards/print/` | Full `HART_All_Car_Cards.docx` mirror (~345 MB, not git) |
 
 Regenerate:
 

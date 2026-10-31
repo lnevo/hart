@@ -36,7 +36,7 @@ Server notes (ssh `lnevo@www.easte.net` for admin work):
 - Proxy template `static-revalidate` (`/usr/local/vesta/data/templates/web/nginx/php-fpm/static-revalidate.{tpl,stpl}`) = `no-php` plus `Cache-Control: no-cache`, HTTP→HTTPS redirect (ACME challenges exempt), and security headers (HSTS, nosniff, Referrer-Policy, `frame-ancestors 'self'`, and a report-only CSP). Only hartrailroad.com uses it. nginx drops outer `add_header`s inside a location that sets its own, so the headers are repeated per location. **Do not add a `types {}` block** — it replaces nginx's MIME map and breaks CSS/JS site-wide.
 - nginx `open_file_cache_valid 60s`: a deploy can take up to a minute to appear. Verify with `until curl -s http://www.hartrailroad.com/… | grep -q "<new text>"; do sleep 3; done`.
 - Industry logos come from the `external/hart-ops` submodule (`operator_logos/`); deploy from a checkout with it initialised or logos drop out (`--delete`).
-- Rolling stock photos (car sides, aisle set) come from the gitignored `external/desktop-data` and `external/sts-docker-data` mirrors; `prepare_github_pages.py` resizes them into `assets/fleet/` (needs Pillow). Without the mirrors (or Pillow) those albums drop out and only Power shows.
+- Rolling stock photos (car sides, aisle set) come from the gitignored `media` and `external/sts-docker-data` mirrors; `prepare_github_pages.py` resizes them into `assets/fleet/` (needs Pillow). Without the mirrors (or Pillow) those albums drop out and only Power shows.
 - Historical archive images (`data/archive.json`) also live in those mirrors (`f-root/`, plus new finds in `desktop-data/archive-incoming/`); `prepare_github_pages.py` resizes them into `assets/archive/` with grid thumbnails in `assets/archive/thumbs/`, and drops items whose original is missing.
 - Favicon and share previews: `prepare_github_pages.py` adds the favicon links and Open Graph tags (title from each page's `<title>`, image `assets/icons/share-card.jpg`) to every HTML page at build time, so source pages don't carry them. Icons come from `assets/media/hart-logo.png`. After changing them, re-scrape in Facebook's Sharing Debugger (developers.facebook.com/tools/debug).
 - Pages fetch JSON with `cache: "no-cache"`; keep that on new fetches so browsers don't hold stale data.
@@ -102,6 +102,6 @@ Session invitation emails are **author reference** only (used to write the prime
 `scripts/legacy/build_ops_content.py` and `scripts/legacy/refresh_galleries_and_library.py` predate the hand-edited `briefing.json`, `gallery.json`, `industries.json`, and `publications.json`; a forced run overwrites those files with older content. Both are dry runs by default (they list what they would write); `--force` writes. Check the diff before committing.
 
 ```bash
-python3 www/scripts/legacy/build_ops_content.py [--f-root DIR]           # or HART_F_ROOT; default external/desktop-data/f-root
+python3 www/scripts/legacy/build_ops_content.py [--f-root DIR]           # or HART_F_ROOT; default media/archive/f-root
 python3 www/scripts/legacy/refresh_galleries_and_library.py [--desktop-data DIR]   # or HART_DESKTOP_DATA
 ```

@@ -21,7 +21,7 @@
   "items": [
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9192.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9192.png",
       "title": "Ohio Central 2091",
       "caption": "Ohio Central · Locomotive · EMD GP20",
       "credit": "HART car roster",
@@ -31,7 +31,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9181.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9181.png",
       "title": "B&O 9602",
       "caption": "B&O · Locomotive · Chessie System B&O SW1200 switcher",
       "credit": "HART car roster",
@@ -41,7 +41,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9182.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9182.png",
       "title": "B&O 572",
       "caption": "B&O · Locomotive · B&O NW2 diesel switcher",
       "credit": "HART car roster",
@@ -51,7 +51,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9183.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9183.png",
       "title": "C&O 8216",
       "caption": "C&O · Locomotive · Chessie System C&O GP40-2 locomotive",
       "credit": "HART car roster",
@@ -61,7 +61,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9184.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9184.png",
       "title": "B&O 3840",
       "caption": "B&O · Locomotive · B&O GP38 locomotive",
       "credit": "HART car roster",
@@ -71,7 +71,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9185.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9185.png",
       "title": "CSX 1827",
       "caption": "CSX · Locomotive · CSX heritage B&O ES44AH locomotive",
       "credit": "HART car roster",
@@ -81,7 +81,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9187.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9187.png",
       "title": "Conrail 1993",
       "caption": "Conrail · Locomotive · Conrail Quality B23-7 locomotive",
       "credit": "HART car roster",
@@ -91,7 +91,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9193.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9193.png",
       "title": "B&O 3545",
       "caption": "B&O · Locomotive · B&O GP35 locomotive",
       "credit": "HART car roster",
@@ -101,7 +101,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9194.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9194.png",
       "title": "B&O 2235",
       "caption": "B&O · Locomotive · B&O Baldwin AS-16 switcher",
       "credit": "HART car roster",
@@ -111,7 +111,7 @@
     },
     {
       "album": "locos",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9195.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9195.png",
       "title": "B&O 6944",
       "caption": "B&O · Locomotive · B&O GP30 locomotive",
       "credit": "HART car roster",
@@ -121,7 +121,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9106.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9106.png",
       "title": "N&W 32800",
       "caption": "N&W · Flatcar · N&W fish-belly flatcar",
       "credit": "HART car roster",
@@ -131,7 +131,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9107.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9107.png",
       "title": "B&O 467439",
       "caption": "B&O · Boxcar · B&O Time-Saver boxcar",
       "credit": "HART car roster",
@@ -141,7 +141,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9108.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9108.png",
       "title": "B&O 466063",
       "caption": "B&O · Boxcar · B&O Sentinel silver/black boxcar",
       "credit": "HART car roster",
@@ -151,7 +151,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9109.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9109.png",
       "title": "B&O 467071",
       "caption": "B&O · Boxcar · B&O Time-Saver boxcar",
       "credit": "HART car roster",
@@ -161,7 +161,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9110.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9110.png",
       "title": "KSMX 101",
       "caption": "KSMX · Hopper · Kosmos Portland cement hopper",
       "credit": "HART car roster",
@@ -171,7 +171,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9112.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9112.png",
       "title": "B&O 8451",
       "caption": "B&O · Flatcar",
       "credit": "HART car roster",
@@ -181,7 +181,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9113.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9113.png",
       "title": "EL 66410",
       "caption": "EL · Boxcar · Erie Lackawanna boxcar",
       "credit": "HART car roster",
@@ -191,7 +191,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9114.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9114.png",
       "title": "UTLX 32642",
       "caption": "UTLX · Tank · Atlantic Refining tank",
       "credit": "HART car roster",
@@ -201,7 +201,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9115.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9115.png",
       "title": "B&O 600409",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -211,7 +211,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9116.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9116.png",
       "title": "B&O 600401",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -221,7 +221,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9117.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9117.png",
       "title": "KSMX 105",
       "caption": "KSMX · Hopper · Kosmos Portland cement hopper",
       "credit": "HART car roster",
@@ -231,7 +231,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9118.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9118.png",
       "title": "B&O 631140",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -241,7 +241,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9119.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9119.png",
       "title": "B&O 600421",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -251,7 +251,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9120.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9120.png",
       "title": "CB&Q 171856",
       "caption": "CB&Q · Hopper · Burlington Route hopper",
       "credit": "HART car roster",
@@ -261,7 +261,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9121.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9121.png",
       "title": "UTLX 39042",
       "caption": "UTLX · Tank · Union Tank Car",
       "credit": "HART car roster",
@@ -271,7 +271,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9122.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9122.png",
       "title": "C&O 2052",
       "caption": "C&O · Hopper · Chessie System covered hopper; Chessie System C&O 2052 covered hopper",
       "credit": "HART car roster",
@@ -281,7 +281,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9124.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9124.png",
       "title": "B&O 628038",
       "caption": "B&O · Hopper · Chessie System B&O hopper",
       "credit": "HART car roster",
@@ -291,7 +291,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9125.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9125.png",
       "title": "NYC 47516",
       "caption": "NYC · Boxcar · NYC jade green boxcar",
       "credit": "HART car roster",
@@ -301,7 +301,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9126.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9126.png",
       "title": "RMLI 2018",
       "caption": "RMLI · Boxcar · RMLI Steam Up promotional boxcar",
       "credit": "HART car roster",
@@ -311,7 +311,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9127.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9127.png",
       "title": "B&O 371604",
       "caption": "B&O · Gondola · PRR gondola relettered B&O",
       "credit": "HART car roster",
@@ -321,7 +321,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9128.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9128.png",
       "title": "B&O 283057",
       "caption": "B&O · Boxcar · B&O Sentinel boxcar",
       "credit": "HART car roster",
@@ -331,7 +331,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9129.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9129.png",
       "title": "CR 477935",
       "caption": "CR · Hopper · Conrail hopper",
       "credit": "HART car roster",
@@ -341,7 +341,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9130.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9130.png",
       "title": "RMP 50",
       "caption": "RMP · Boxcar · Railroad Museum of PA 50th anniversary boxcar",
       "credit": "HART car roster",
@@ -351,7 +351,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9131.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9131.png",
       "title": "B&O 8417",
       "caption": "B&O · Flatcar",
       "credit": "HART car roster",
@@ -361,7 +361,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9132.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9132.png",
       "title": "B&O 8300",
       "caption": "B&O · Coil · B&O cushion coil car",
       "credit": "HART car roster",
@@ -371,7 +371,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9133.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9133.png",
       "title": "UTLX 36299",
       "caption": "UTLX · Tank · Eastman Chemical tank",
       "credit": "HART car roster",
@@ -381,7 +381,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9135.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9135.png",
       "title": "PRR 728012",
       "caption": "PRR · Hopper · Pennsylvania Lines GLA hopper",
       "credit": "HART car roster",
@@ -391,7 +391,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9136.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9136.png",
       "title": "PRR 702186",
       "caption": "PRR · Hopper · Pennsylvania GLA hopper",
       "credit": "HART car roster",
@@ -401,7 +401,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9140.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9140.png",
       "title": "C&O 306607",
       "caption": "C&O · Coil · C&O/B&O coil car",
       "credit": "HART car roster",
@@ -411,7 +411,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9141.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9141.png",
       "title": "B&O 73133",
       "caption": "B&O · Hopper · Chessie System B&O coal hopper",
       "credit": "HART car roster",
@@ -421,7 +421,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9142.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9142.png",
       "title": "B&O 551470",
       "caption": "B&O · Gondola",
       "credit": "HART car roster",
@@ -431,7 +431,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9143.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9143.png",
       "title": "B&O 283069",
       "caption": "B&O · Boxcar · B&O Sentinel boxcar",
       "credit": "HART car roster",
@@ -441,7 +441,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9144.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9144.png",
       "title": "PRR 474563",
       "caption": "PRR · Flatcar · PRR flatcar",
       "credit": "HART car roster",
@@ -451,7 +451,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9145.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9145.png",
       "title": "SHPX 22329",
       "caption": "SHPX · Tank · Shippers Car Line tank",
       "credit": "HART car roster",
@@ -461,7 +461,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9146.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9146.png",
       "title": "GATX 31090",
       "caption": "GATX · Tank · DuPont leased tank",
       "credit": "HART car roster",
@@ -471,7 +471,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9147.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9147.png",
       "title": "EL 8063",
       "caption": "EL · Flatcar",
       "credit": "HART car roster",
@@ -481,7 +481,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9149.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9149.png",
       "title": "B&O 8476",
       "caption": "B&O · Flatcar",
       "credit": "HART car roster",
@@ -491,7 +491,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9150.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9150.png",
       "title": "C&O 2063",
       "caption": "C&O · Hopper · Chessie System C&O 2063 covered hopper",
       "credit": "HART car roster",
@@ -501,7 +501,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9151.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9151.png",
       "title": "KSMX 110",
       "caption": "KSMX · Hopper · Kosmos Portland cement hopper",
       "credit": "HART car roster",
@@ -511,7 +511,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9152.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9152.png",
       "title": "United We Stand patriotic boxcar",
       "caption": "Boxcar · United We Stand patriotic boxcar; no road number",
       "credit": "HART car roster",
@@ -521,7 +521,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9153.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9153.png",
       "title": "PRR 498647",
       "caption": "PRR · Tank",
       "credit": "HART car roster",
@@ -531,7 +531,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9154.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9154.png",
       "title": "B&O 8405",
       "caption": "B&O · Flatcar",
       "credit": "HART car roster",
@@ -541,7 +541,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9155.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9155.png",
       "title": "RDG 99143",
       "caption": "RDG · Coil · Reading coil car",
       "credit": "HART car roster",
@@ -551,7 +551,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9156.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9156.png",
       "title": "B&O 11137",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -561,7 +561,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9157.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9157.png",
       "title": "B&O 11027",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -571,7 +571,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9158.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9158.png",
       "title": "B&O 10389",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -581,7 +581,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9159.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9159.png",
       "title": "B&O 31000",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -591,7 +591,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9160.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9160.png",
       "title": "B&O 30963",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -601,7 +601,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9161.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9161.png",
       "title": "B&O 30222",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -611,7 +611,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9162.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9162.png",
       "title": "B&O 133007",
       "caption": "B&O · Hopper · B&O coke hopper",
       "credit": "HART car roster",
@@ -621,7 +621,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9163.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9163.png",
       "title": "B&O 132315",
       "caption": "B&O · Hopper · B&O coke hopper",
       "credit": "HART car roster",
@@ -631,7 +631,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9164.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9164.png",
       "title": "N&W 12988",
       "caption": "N&W · Hopper",
       "credit": "HART car roster",
@@ -641,7 +641,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9165.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9165.png",
       "title": "N&W 12986",
       "caption": "N&W · Hopper",
       "credit": "HART car roster",
@@ -651,7 +651,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9166.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9166.png",
       "title": "B&O 625509",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -661,7 +661,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9167.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9167.png",
       "title": "B&O 625943",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -671,7 +671,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9168.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9168.png",
       "title": "B&O 625238",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -681,7 +681,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9169.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9169.png",
       "title": "B&O 625082",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -691,7 +691,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9170.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9170.png",
       "title": "C&O 142374",
       "caption": "C&O · Hopper · Chessie System hopper",
       "credit": "HART car roster",
@@ -701,7 +701,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9171.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9171.png",
       "title": "WLE 621",
       "caption": "WLE · Hopper · Wheeling & Lake Erie hopper",
       "credit": "HART car roster",
@@ -711,7 +711,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9172.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9172.png",
       "title": "URR 15003",
       "caption": "URR · Hopper · Union Railroad coal hopper",
       "credit": "HART car roster",
@@ -721,7 +721,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9173.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9173.png",
       "title": "B&O 132392",
       "caption": "B&O · Hopper",
       "credit": "HART car roster",
@@ -731,7 +731,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9174.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9174.png",
       "title": "URR 15044",
       "caption": "URR · Hopper · Union Railroad coal hopper",
       "credit": "HART car roster",
@@ -741,7 +741,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9175.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9175.png",
       "title": "URR 15022",
       "caption": "URR · Hopper · Union Railroad coal hopper",
       "credit": "HART car roster",
@@ -751,7 +751,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9176.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9176.png",
       "title": "RDG 107333",
       "caption": "RDG · Boxcar · Reading boxcar",
       "credit": "HART car roster",
@@ -761,7 +761,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9177.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9177.png",
       "title": "MSTL 52673",
       "caption": "MSTL · Boxcar · Minneapolis & St Louis boxcar; side stencil reads 52673",
       "credit": "HART car roster",
@@ -771,7 +771,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9178.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9178.png",
       "title": "URTX 63627",
       "caption": "URTX · Reefer · Dubuque Packing Company reefer",
       "credit": "HART car roster",
@@ -781,7 +781,7 @@
     },
     {
       "album": "freight",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9179.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9179.png",
       "title": "REX 350",
       "caption": "REX · Reefer · Railway Express Agency refrigerator",
       "credit": "HART car roster",
@@ -801,7 +801,7 @@
     },
     {
       "album": "mow",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9134.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9134.png",
       "title": "MOW 0017",
       "caption": "MOW · MOW · Maintenance of Way weed sprayer tank",
       "credit": "HART car roster",
@@ -811,7 +811,7 @@
     },
     {
       "album": "mow",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9137.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9137.png",
       "title": "C&O ST1",
       "caption": "C&O · MOW · C&O Chessie scale test car; LT WT 80000 lbs",
       "credit": "HART car roster",
@@ -821,7 +821,7 @@
     },
     {
       "album": "mow",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9138.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9138.png",
       "title": "C&O 377700",
       "caption": "C&O · MOW · C&O industrial crane car; side reads WC 2",
       "credit": "HART car roster",
@@ -831,7 +831,7 @@
     },
     {
       "album": "mow",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9139.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9139.png",
       "title": "C&O W86",
       "caption": "C&O · MOW · C&O MOW camp/flat car",
       "credit": "HART car roster",
@@ -841,7 +841,7 @@
     },
     {
       "album": "mow",
-      "src": "../external/desktop-data/car-images/CarImagesFinal/IMG_9186.png",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9186.png",
       "title": "TTC 4678",
       "caption": "TTC · Streetcar · Toronto Transit Commission PCC streetcar",
       "credit": "HART car roster",

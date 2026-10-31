@@ -19,13 +19,6 @@ def hart_runtime_root() -> Path:
     return hart_repo_root()
 
 
-def desktop_data_root() -> Path:
-    env = os.environ.get("DESKTOP_DATA_ROOT", "").strip()
-    if env:
-        return Path(env).expanduser().resolve()
-    return hart_repo_root() / "external/desktop-data"
-
-
 def hart_ops_root() -> Path:
     env = os.environ.get("HART_OPS_ROOT", "").strip()
     if env:
@@ -100,7 +93,7 @@ def car_images_final() -> Path:
     env = os.environ.get("HART_CAR_IMAGES_FINAL", "").strip()
     if env:
         return Path(env).expanduser().resolve()
-    local = desktop_data_root() / "car-images/CarImagesFinal"
+    local = hart_repo_root() / "ops/car-cards/car-images/CarImagesFinal"
     if local.is_dir():
         return local
     return mirror_desktop_hart() / "Car Cards/CarImagesFinal"
@@ -110,7 +103,7 @@ def car_cards_root() -> Path:
     env = os.environ.get("HART_CAR_CARDS_ROOT", "").strip()
     if env:
         return Path(env).expanduser().resolve()
-    return desktop_data_root() / "car-cards"
+    return hart_repo_root() / "ops/car-cards"
 
 
 def sts_compose_files() -> list[Path]:
@@ -162,7 +155,6 @@ def all_runtime_paths() -> dict[str, Path]:
     return {
         "HART_REPO_ROOT": hart_repo_root(),
         "HART_RUNTIME_ROOT": hart_runtime_root(),
-        "DESKTOP_DATA_ROOT": desktop_data_root(),
         "HART_OPS_ROOT": hart_ops_root(),
         "STS_DOCKER_ROOT": sts_docker_root(),
         "STS_HELPERS_ROOT": sts_helpers_root(),

@@ -9,7 +9,7 @@ Deployable units in the standalone workspace. Each package includes runbooks, en
 | **Layout hosts** | [`layout-hosts/`](layout-hosts/) | Pi / Windows panel deploy from `hart-runtime` |
 | **Car cards** | [`car-cards/`](car-cards/) | Raw drop-in → crop → OCR → cards (no legacy Images mirror) |
 | **STS** | [`sts/`](sts/) | Docker + data mirror compose |
-| **DJ Trains** | [`../external/desktop-data/dj-trains/`](../external/desktop-data/dj-trains/) | Prototype photos (mirrored) |
+| **DJ Trains** | [`../media/dj-trains/`](../media/dj-trains/) | Prototype photos (mirrored) |
 
 ## Refresh mirrors then deploy
 

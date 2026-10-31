@@ -50,10 +50,11 @@ SKIP_FILES = {
 # Markdown sources for the library articles (the HTML pages are what's published) and invitation drafts.
 SKIP_GLOBS = ("docs/*.md",)
 # Strings that mean a local host, port, or workspace path leaked into the public tree.
-LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|consolidation/external|/external/desktop-data|/external/sts-docker-data")
+LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|external/sts-docker-data|\.\./media/|media/archive/|media/photos-layout|media/dj-trains|ops/car-cards")
 # Data must not point into the mirrors either; scripts (and inline page scripts) test for that
 # prefix when resolving logos and photos, so only data files are checked for it.
-DATA_LEAK = re.compile(r"\.\./external/")
+MIRROR_PREFIXES = ("../external/", "../media/", "../ops/")
+DATA_LEAK = re.compile(r"\.\./(?:external|media|ops)/")
 LEAK_SUFFIXES = {".html", ".json", ".css", ".md", ".txt"}
 # Share previews (Facebook, iMessage, …) read static tags only, so every page gets them at build time.
 # The site is served at the domain root; override with --site-url or HART_SITE_URL.
@@ -119,7 +120,7 @@ def _strip_local_only_pages(dest_root: Path) -> None:
 def _drop_external_paths(node: object) -> None:
     """Remove fields still pointing into ../external/ (source docx/pptx); pages already skip them when public."""
     if isinstance(node, dict):
-        for key in [k for k, v in node.items() if isinstance(v, str) and v.startswith("../external/")]:
+        for key in [k for k, v in node.items() if isinstance(v, str) and v.startswith(MIRROR_PREFIXES)]:
             del node[key]
         for value in node.values():
             _drop_external_paths(value)
@@ -187,7 +188,7 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir
     data = json.loads(path.read_text(encoding="utf-8"))
     for item in data.get("items") or []:
         src_rel = str(item.get("src") or "")
-        if not src_rel.startswith("../external/"):
+        if not src_rel.startswith(MIRROR_PREFIXES):
             continue
         src = (PORTAL / src_rel).resolve()
         if not src.is_file():

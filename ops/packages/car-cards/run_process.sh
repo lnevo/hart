@@ -4,9 +4,9 @@ set -euo pipefail
 
 PKG="$(cd "$(dirname "$0")" && pwd)"
 CON="$(cd "$PKG/../.." && pwd)"
-CAR="${HART_CAR_CARDS_ROOT:-$CON/external/desktop-data/car-cards}"
+CAR="${HART_CAR_CARDS_ROOT:-$CON/ops/car-cards}"
 HOPS="$CON/external/hart-ops"
-FINAL="${HART_CAR_IMAGES_FINAL:-$CON/external/desktop-data/car-images/CarImagesFinal}"
+FINAL="${HART_CAR_IMAGES_FINAL:-$CON/ops/car-cards/car-images/CarImagesFinal}"
 
 export HART_CAR_CARDS_ROOT="$CAR"
 export HART_CAR_IMAGES_FINAL="$FINAL"

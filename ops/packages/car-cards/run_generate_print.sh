@@ -5,10 +5,10 @@ set -euo pipefail
 PKG="$(cd "$(dirname "$0")" && pwd)"
 CON="$(cd "$PKG/../.." && pwd)"
 HOPS="$CON/external/hart-ops"
-CAR="${HART_CAR_CARDS_ROOT:-$CON/external/desktop-data/car-cards}"
+CAR="${HART_CAR_CARDS_ROOT:-$CON/ops/car-cards}"
 
 export HART_CAR_CARDS_ROOT="$CAR"
-export HART_CAR_IMAGES_FINAL="${HART_CAR_IMAGES_FINAL:-$CON/external/desktop-data/car-images/CarImagesFinal}"
+export HART_CAR_IMAGES_FINAL="${HART_CAR_IMAGES_FINAL:-$CON/ops/car-cards/car-images/CarImagesFinal}"
 
 bash "$CON/scripts/setup_car_cards_workspace.sh" >/dev/null
 

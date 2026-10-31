@@ -4,7 +4,7 @@
   function resolveSrc(src) {
     if (!src) return "";
     var depth = HARTOps.base();
-    if (src.startsWith("../external/")) {
+    if (src.startsWith("../external/") || src.startsWith("../media/") || src.startsWith("../ops/")) {
       // JSON paths assume one portal level; add extra ../ per nesting depth.
       var extra = (depth.match(/\.\.\//g) || []).length - 1;
       if (extra > 0) {

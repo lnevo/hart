@@ -40,7 +40,7 @@ def build_item(row: dict, curated: dict | None) -> dict:
     mirrored = (FROOT / path).is_file()
     src = None
     if mirrored and ext in IMAGE_EXT | PDF_EXT:
-        src = f"../external/desktop-data/f-root/{path}"
+        src = f"../media/archive/f-root/{path}"
 
     preview_src = None
     if preview_path(path).is_file():

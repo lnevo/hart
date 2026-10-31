@@ -39,9 +39,10 @@ external/sts-docker-data/database/
 external/sts-docker-data/images/
 external/sts-docker-data/MIRROR_MANIFEST.txt
 
-# Large mirrors kept out of git
-external/desktop-data/
-!external/desktop-data/README.md
+# Large files kept out of git
+media/
+ops/car-cards/
+docs/wiring/bench/
 
 www/assets/f-root-previews/
 

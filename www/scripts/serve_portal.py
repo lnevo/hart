@@ -27,7 +27,7 @@ ARCHIVE_KINDS = {"photo", "ad", "clipping", "map", "document", "graphic"}
 ARCHIVE_CONFIDENCE = {"verified", "likely", "none"}
 ARCHIVE_TEXT_FIELDS = ("title", "caption", "date", "credit", "source_url", "reason", "rights")
 LOCAL_NAMES = {"127.0.0.1", "localhost", "[::1]"}
-SERVED_ROOTS = {"www", "external", "media"}
+SERVED_ROOTS = {"www", "external", "media", "ops"}
 
 
 class PortalHandler(SimpleHTTPRequestHandler):

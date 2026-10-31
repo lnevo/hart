@@ -4,7 +4,7 @@
 Previews by default; pass --apply to copy. A file that is new or changed on one
 side is copied to the other, and nothing is ever deleted. A file that changed on
 both sides is reported and left alone: make the two copies match, then run again.
-Hashes from the last run are kept in .sync_state.json beside the mirrors, so on a
+Hashes from the last run are kept in ops/car-cards/.sync_state.json, so on a
 first run every differing file is reported as a conflict.
 """
 from __future__ import annotations
@@ -16,14 +16,13 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-MIRROR = ROOT / "external/desktop-data"
 DESKTOP = Path.home() / "Desktop/HART"
-STATE = MIRROR / ".sync_state.json"
+STATE = ROOT / "ops/car-cards/.sync_state.json"
 PAIRS = {
-    "Car Cards/CarImagesFinal": "car-images/CarImagesFinal",
-    "Car Cards/docs": "car-cards/docs",
-    "Wiring Documentation": "wiring-bench",
-    "DJ Trains": "dj-trains",
+    "Car Cards/CarImagesFinal": "ops/car-cards/car-images/CarImagesFinal",
+    "Car Cards/docs": "ops/car-cards/docs",
+    "Wiring Documentation": "docs/wiring/bench",
+    "DJ Trains": "media/dj-trains",
 }
 SKIP_NAMES = {".DS_Store"}
 
@@ -62,7 +61,7 @@ def main() -> int:
     plan: list[str] = []
     conflicts: list[str] = []
     for desktop_rel, mirror_rel in PAIRS.items():
-        left, right = DESKTOP / desktop_rel, MIRROR / mirror_rel
+        left, right = DESKTOP / desktop_rel, ROOT / mirror_rel
         if not left.is_dir():
             print(f"SKIP missing: {left}")
             continue
