@@ -18,11 +18,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]  # repo root (…/hart)
-# Working source (tables/tables.xml is read-only snapshot)
-DEFAULT_PANEL = ROOT / "tables/new_tables.xml"
-SYNC_COPIES = [
-    ROOT / "jmri/layouts/hart/output/tables.xml",
-]
+DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
+SYNC_COPIES: list[Path] = []
 MARKER = "hart-yard-ladder-le"
 
 # Horizontal offset from the S-1–5 station cluster (x=943).

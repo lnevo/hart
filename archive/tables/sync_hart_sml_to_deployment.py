@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sync native HART SML into the deployment bundle without replacing CTC data.
 
-``tables/new_tables.xml`` is the writable SML source.  The destination
+``jmri/layouts/hart/output/tables.xml`` is the writable SML source.  The destination
 ``jmri/layouts/hart/output/tables.xml`` contains destination-only USS CTC data,
 so whole-file copies are forbidden.  This script replaces only the
 ``signalmastlogics`` section and verifies that CTC/panel counts are unchanged.
@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-SOURCE = ROOT / "tables/new_tables.xml"
+SOURCE = ROOT / "jmri/layouts/hart/output/tables.xml"
 DESTINATION = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 

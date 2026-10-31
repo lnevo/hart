@@ -107,8 +107,6 @@ if kill -0 "$JPID" 2>/dev/null; then
   pkill -u "$(id -u)" -f 'java .*(apps\.PanelPro\.PanelPro)' >/dev/null 2>&1 || true
 fi
 
-cp "$TABLES" "$ROOT/tables/new_tables.xml"
-echo "copied tables.xml -> tables/new_tables.xml"
 # Discover stores Digicon dests Enabled; Digicon boot needs them Disabled until
 # mqtt_signalhead_publisher.py takes control.
 python3 "$ROOT/cats/scripts/disable_digicon_sml_in_tables.py"

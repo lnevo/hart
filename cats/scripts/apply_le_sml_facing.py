@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Assign Layout Editor facing. Does not change basic-enhanced mast types.
 
-Edits tables/new_tables.xml then copies to jmri/layouts/hart/output/tables.xml.
+Edits jmri/layouts/hart/output/tables.xml.
 Also patches hart_prod.xml in place (mast names + facing; not a full copy).
 
 Facing SoR: cats/data/le_signal_boundaries.csv
@@ -22,9 +22,8 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_PANEL = ROOT / "tables/new_tables.xml"
+DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 CSV_PATH = ROOT / "cats/data/le_signal_boundaries.csv"
-SYNC_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
 
@@ -218,8 +217,6 @@ def main() -> None:
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:
         return
-    shutil.copy2(args.panel, SYNC_TABLES)
-    print(f"synced {SYNC_TABLES.relative_to(ROOT)}")
     if HART_PROD.is_file():
         patch_file(HART_PROD, turnouts, anchors, dry_run=False)
     if not args.no_pref and PREF_TABLES.is_file():

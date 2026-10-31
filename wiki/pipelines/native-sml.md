@@ -17,7 +17,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 
 ## Outputs
 
-- SML dests in `tables/new_tables.xml` / `output/tables.xml`
+- SML dests in `jmri/layouts/hart/output/tables.xml`
 - `ISNX:*` pairs (systemNames frozen)
 
 ## Run

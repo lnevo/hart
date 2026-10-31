@@ -41,7 +41,6 @@ from nx_contract import (
 ROOT = Path(__file__).resolve().parents[4]
 DEFAULTS = [
     ROOT / "jmri/layouts/hart/output/tables.xml",
-    ROOT / "tables/new_tables.xml",
 ]
 
 # CTC plant only (100–115 / 117). Not 116/118/119 or yard stubs.

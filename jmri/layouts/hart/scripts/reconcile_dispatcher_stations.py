@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reconcile the HART JMRI Dispatcher stations and their panel icons.
 
-The working target defaults to ``tables/new_tables.xml``.  ``tables/tables.xml``
+The working target defaults to ``jmri/layouts/hart/output/tables.xml``.  ``tables/tables.xml``
 is a read-only snapshot and is explicitly rejected.  A normal run applies the
 same reconciliation independently to ``jmri/layouts/hart/output/tables.xml``;
 it never copies one complete configuration over the other.  Use ``--no-sync``
@@ -25,7 +25,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PANEL = ROOT / "tables" / "new_tables.xml"
+DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 READ_ONLY_PANEL = ROOT / "tables" / "tables.xml"
 SYNC_PANEL = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 
@@ -652,7 +652,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--panel",
         type=Path,
         default=DEFAULT_PANEL,
-        help="working XML (default: tables/new_tables.xml)",
+        help="working XML (default: jmri/layouts/hart/output/tables.xml)",
     )
     parser.add_argument(
         "--check",

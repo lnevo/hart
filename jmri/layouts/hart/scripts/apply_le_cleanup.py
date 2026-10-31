@@ -5,7 +5,7 @@ K-2, hidden stub and South Yard throat-boundary virtual masts.
 LCC aliases keep device-map userNames (`DCC Switch N`) and comments; this
 script only copies MQTT feedback/sensors onto MTT{dcc}.
 
-Writable source is tables/new_tables.xml. --sync-output also patches
+Writable source is jmri/layouts/hart/output/tables.xml. --sync-output also patches
 jmri/layouts/hart/output/tables.xml and hart_prod.xml independently.
 
 Yard body tracks use hidden throat blocks (apply_yard_throat_blocks.py) so
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lcc_turnout_contract import DCC_RE, child_text
 
-DEFAULT = ROOT / "tables/new_tables.xml"
+DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
@@ -323,7 +323,7 @@ def main() -> int:
     args = ap.parse_args()
     paths = [args.panel.resolve()]
     if args.sync_output:
-        paths.extend([OUTPUT_TABLES, HART_PROD])
+        paths.append(HART_PROD)
     for path in paths:
         if not path.is_file():
             print(f"missing {path}")

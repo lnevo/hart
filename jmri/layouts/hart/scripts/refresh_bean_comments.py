@@ -925,7 +925,6 @@ def main() -> int:
         DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
     targets = [
         ROOT / "jmri/layouts/hart/output/tables.xml",
-        ROOT / "tables/new_tables.xml",
         ROOT / "jmri/layouts/hart/output/hart_prod.xml",
         ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
         ROOT / "cats/panels/HART_Master.xml",
@@ -967,7 +966,6 @@ def main() -> int:
             if counts or path.name.endswith(".xml"):
                 if path.name.endswith(".xml") and path.name in {
                     "tables.xml",
-                    "new_tables.xml",
                     "hart_prod.xml",
                 }:
                     updated, n_comments = refresh_comments(updated)

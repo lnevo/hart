@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "cats/scripts/disable_digicon_sml_in_tables.py"
-NEW_TABLES = ROOT / "tables/new_tables.xml"
+NEW_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 
 def load():
@@ -64,7 +64,7 @@ class DisableDigiconSmlTest(unittest.TestCase):
 
     def test_deploy_fixes_shipped_tables_instead_of_refusing(self) -> None:
         text = (ROOT / "cats/scripts/sync_hart_package.sh").read_text(encoding="utf-8")
-        self.assertIn('--panel "$TABLES" --no-sync', text)
+        self.assertIn('--panel "$TABLES"', text)
         self.assertNotIn('--check --panel "$TABLES"', text)
 
 

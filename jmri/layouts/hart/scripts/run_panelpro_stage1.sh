@@ -11,8 +11,8 @@ PATCH="$ROOT/cats/scripts/patch_jmri_startup.py"
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/run_dispatcher_stage1.py"
 MARKER="${HART_STAGE1_MARKER:-/tmp/hart_stage1.done}"
 LOG="${HART_STAGE1_LOG:-/tmp/hart_stage1.log}"
-REPO_TABLES="$ROOT/tables/new_tables.xml"
 REPO_OUTPUT="$ROOT/jmri/layouts/hart/output/tables.xml"
+REPO_TABLES="$REPO_OUTPUT"
 REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 
 if [[ ! -f "$PROFILE_XML" || ! -x "$STARTJMRI" ]]; then
@@ -107,5 +107,5 @@ fi
 python3 "$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py" \
   --block-labels-only --sync-output
 
-echo "Stage 1 store is $REPO_OUTPUT (also copied to new_tables.xml)"
+echo "Stage 1 store is $REPO_OUTPUT"
 echo "log: $LOG"

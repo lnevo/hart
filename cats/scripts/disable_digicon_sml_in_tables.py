@@ -5,10 +5,9 @@ Digicon field masts (cats/data/signal_wiring.csv) boot with SML Enabled=no so
 JMRI does not run ABS until mqtt_signalhead_publisher.py takes Digicon control.
 Non-Digicon SML sources (yard / approach without LCOS IH heads) are left alone.
 
-Edits tables/new_tables.xml then copies to jmri/layouts/hart/output/tables.xml.
+Edits jmri/layouts/hart/output/tables.xml.
 Re-run after cats/scripts/run_sml_discover.sh (Discover writes enabled=yes).
-Deploy (`sync_hart_package.sh`) calls this with `--panel` on the shipped tables
-and `--no-sync` so Digicon dests are Disabled without replacing the other file.
+Deploy (`sync_hart_package.sh`) calls this with `--panel` on the shipped tables.
 
 Usage:
   python3 cats/scripts/disable_digicon_sml_in_tables.py
@@ -21,14 +20,12 @@ from __future__ import annotations
 import argparse
 import csv
 import re
-import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WIRING = ROOT / "cats/data/signal_wiring.csv"
-NEW_TABLES = ROOT / "tables/new_tables.xml"
-SYNC_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+NEW_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 _LOGIC_RE = re.compile(
     r'<signalmastlogic source="([^"]+)">.*?</signalmastlogic>',
@@ -95,17 +92,12 @@ def main() -> None:
         "--panel",
         type=Path,
         default=NEW_TABLES,
-        help="tables XML to patch (default: tables/new_tables.xml)",
+        help="tables XML to patch (default: jmri/layouts/hart/output/tables.xml)",
     )
     ap.add_argument(
         "--dry-run",
         action="store_true",
         help="Report counts only; do not write",
-    )
-    ap.add_argument(
-        "--no-sync",
-        action="store_true",
-        help="Do not copy to jmri/layouts/hart/output/tables.xml",
     )
     ap.add_argument(
         "--check",
@@ -160,9 +152,6 @@ def main() -> None:
     else:
         args.panel.write_text(out, encoding="utf-8")
         print("wrote %s" % args.panel.relative_to(ROOT))
-    if not args.no_sync:
-        shutil.copy2(args.panel, SYNC_TABLES)
-        print("synced %s" % SYNC_TABLES.relative_to(ROOT))
 
 
 if __name__ == "__main__":

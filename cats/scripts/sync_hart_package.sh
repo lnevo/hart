@@ -52,7 +52,7 @@ scp_win() { scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"; }
 
 TABLES=""
 POLISH="$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py"
-if [[ -f "$POLISH" && -f "$ROOT/tables/new_tables.xml" ]]; then
+if [[ -f "$POLISH" ]]; then
   if [[ "$DRY_RUN" -eq 1 ]]; then
     python3 "$POLISH" --block-labels-only --sync-output --check
   else
@@ -61,8 +61,6 @@ if [[ -f "$POLISH" && -f "$ROOT/tables/new_tables.xml" ]]; then
 fi
 if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
   TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
-elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
-  TABLES="$ROOT/tables/new_tables.xml"
 fi
 
 PANEL_AUDIT="$ROOT/jmri/layouts/hart/scripts/audit_panel_contracts.py"
@@ -75,8 +73,8 @@ if [[ -n "$TABLES" && -f "$SML_GATE" ]]; then
   if [[ "$DRY_RUN" -eq 1 ]]; then
     python3 "$SML_GATE" --dry-run --panel "$TABLES"
   else
-    # Flip Digicon MQTT dests to Enabled=no in the file we ship; do not copy over the other tables file.
-    python3 "$SML_GATE" --panel "$TABLES" --no-sync
+    # Flip Digicon MQTT dests to Enabled=no in the file we ship.
+    python3 "$SML_GATE" --panel "$TABLES"
   fi
 fi
 
@@ -154,13 +152,19 @@ install_tables_local() {
   local src=""
   if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
     src="$ROOT/jmri/layouts/hart/output/tables.xml"
-  elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
-    src="$ROOT/tables/new_tables.xml"
   fi
   [[ -n "$src" ]] || return 0
   _copy_tables() {
-    cp -f "$src" "$1/tables.xml"
-    echo "tables.xml -> $1/tables.xml"
+    local dest="$1/tables.xml" stamp="$1/.tables_deployed.sha256"
+    # A Store into this copy since the last deploy would be lost: stop instead.
+    if [[ -f "$dest" && -f "$stamp" && "$(shasum -a 256 "$dest" | cut -d' ' -f1)" != "$(cat "$stamp")" ]] \
+      && ! cmp -s "$src" "$dest" && [[ "${HART_OVERWRITE_PROFILE_TABLES:-0}" != "1" ]]; then
+      echo "STOP: $dest changed since the last deploy. Bring the changes into the repo, or set HART_OVERWRITE_PROFILE_TABLES=1." >&2
+      exit 1
+    fi
+    cp -f "$src" "$dest"
+    shasum -a 256 "$dest" | cut -d' ' -f1 >"$stamp"
+    echo "tables.xml -> $dest"
   }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do

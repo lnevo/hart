@@ -2,13 +2,14 @@
 
 Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live in `wiki/`.
 
-**Layout:** `hart` (`export JMRI_LAYOUT=hart`). Load `jmri/layouts/hart/output/hart_prod.xml`.
+**Layout:** `hart` (`export JMRI_LAYOUT=hart`). JMRI loads `jmri/layouts/hart/output/tables.xml`, the one tables file (ADR-008).
 
 ## Commands
 
 | Do | Command |
 |----|---------|
 | Checks | `python3 jmri/scripts/check_hart_phase02.py` · `python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict` |
+| Desktop folders | `python3 consolidation/scripts/sync_desktop_data.py` previews; `--apply` copies. Never deletes. |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
 | Deploy operator portal (www.hartrailroad.com) | `./consolidation/ops-portal/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`consolidation/ops-portal/README.md`](consolidation/ops-portal/README.md) |
 | CATS source (Bitbucket) | `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` |
@@ -32,16 +33,16 @@ Sheets push (`.env.local`) stays human-gated. Do not force-push `main`.
 
 ## Do not
 
-- Edit `tables/tables.xml` — write `tables/new_tables.xml` only.
+- Run table scripts with PanelPro or CATS open. In PanelPro, Store to `jmri/layouts/hart/output/tables.xml`, not a profile copy.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry`, or 2× draw scale unless asked.
 - Remove **F30-S-0** where the layout includes it.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
 - Run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.
-- Patch or wrap Dispatcher System / JMRI (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`). Fix `tables/new_tables.xml` so stock Discover and Stage 1 succeed.
+- Patch or wrap Dispatcher System / JMRI (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`). Fix `jmri/layouts/hart/output/tables.xml` so stock Discover and Stage 1 succeed.
 
-New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Dispatcher sizing is only `dispatcher/export_options.json`.
+New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Dispatcher sizing for hart has no `export_options.json`; `mac` and `linear*` keep theirs.
 
 ## Pointers
 

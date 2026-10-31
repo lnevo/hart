@@ -15,7 +15,6 @@ from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_SOURCES = (
-    ("working", REPO_ROOT / "tables" / "new_tables.xml"),
     ("deployment", REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"),
     ("standalone", REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "hart_prod.xml"),
 )

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Place HART JMRI signal masts as Layout Editor SignalMastIcons.
 
-Targets tables/new_tables.xml (writable SoR). Synchronization is opt-in because
+Targets jmri/layouts/hart/output/tables.xml (writable SoR). Synchronization is opt-in because
 output/tables.xml also contains CTC data that must never be replaced by the
 working file. The reviewed coordinates put horizontal masts on the engineer's
 right side of the governed track.
@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_PANEL = ROOT / "tables/new_tables.xml"
+DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
@@ -152,7 +152,7 @@ def main() -> None:
     if args.dry_run:
         return
     if args.sync_output:
-        for dest in (OUTPUT_TABLES, STANDALONE_PANEL):
+        for dest in (STANDALONE_PANEL,):
             if not dest.is_file():
                 print(f"SKIP sync missing {dest}")
                 continue

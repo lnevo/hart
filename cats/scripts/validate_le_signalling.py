@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static Layout Editor signalling validator + SML mini-discovery.
 
-Validates tables/new_tables.xml for JMRI native SML discovery readiness
+Validates jmri/layouts/hart/output/tables.xml for JMRI native SML discovery readiness
 WITHOUT launching JMRI, then simulates discovery (path-walk from every
 mast to the next facing mast) and diffs the result against the CATS
 oracle PAIRS in cats/scripts/apply_sml_cats_pairs.py.
@@ -39,7 +39,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_XML = ROOT / "tables/new_tables.xml"
+DEFAULT_XML = ROOT / "jmri/layouts/hart/output/tables.xml"
 DEFAULT_CSV = ROOT / "cats/data/le_signal_boundaries.csv"
 ORACLE = ROOT / "cats/scripts/apply_sml_cats_pairs.py"
 

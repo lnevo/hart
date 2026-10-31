@@ -212,7 +212,6 @@ def main() -> int:
 
     paths = [
         ROOT / "jmri/layouts/hart/output/tables.xml",
-        ROOT / "tables/new_tables.xml",
     ]
     write = "--apply" in sys.argv
     for path in paths:

@@ -4,7 +4,7 @@
 SML is now native: the Layout Editor panel defects that blocked Discover
 were fixed (see cats/scripts/validate_le_signalling.py and
 cats/docs/SIGNAL_FACING.md), Discover generates the pairs with
-useLayoutEditor=yes, and they are stored in tables/new_tables.xml. The
+useLayoutEditor=yes, and they are stored in jmri/layouts/hart/output/tables.xml. The
 startup Jython twin was removed from the Mac and Pi profiles.
 
 PAIRS below is the CATS-derived list this workaround used to apply. It is
@@ -23,13 +23,11 @@ without --force-legacy.
 from __future__ import annotations
 
 import argparse
-import shutil
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-NEW_TABLES = ROOT / "tables/new_tables.xml"
-SYNC_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+NEW_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 JYTHON = ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py"
 
 # source, dest, blocks (must be unoccupied), turnouts [(userName, closed|thrown)]
@@ -444,7 +442,7 @@ def main() -> None:
     if not args.force_legacy:
         raise SystemExit(
             "apply_sml_cats_pairs.py is retired: SML is native (Discover) now.\n"
-            "This would overwrite tables/new_tables.xml SML with the legacy hand\n"
+            "This would overwrite jmri/layouts/hart/output/tables.xml SML with the legacy hand\n"
             "pairs. Use --force-legacy only to reproduce the old workaround."
         )
     JYTHON.write_text(jython_script(), encoding="utf-8")
@@ -452,9 +450,7 @@ def main() -> None:
     if args.jython_only:
         return
     replace_signalmastlogics(NEW_TABLES)
-    shutil.copy2(NEW_TABLES, SYNC_TABLES)
     print("updated", NEW_TABLES.relative_to(ROOT))
-    print("copied", SYNC_TABLES.relative_to(ROOT))
     print("%d dest pairs" % len(PAIRS))
 
 

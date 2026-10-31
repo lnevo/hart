@@ -402,7 +402,6 @@ def patch_tables(rows: list[dict]) -> None:
     masts = _masts_xml(rows)
     block = heads + "\n" + masts
     files = [
-        ROOT / "tables/new_tables.xml",
         ROOT / "jmri/layouts/hart/output/tables.xml",
         ROOT / "jmri/layouts/hart/output/hart_prod.xml",
     ]

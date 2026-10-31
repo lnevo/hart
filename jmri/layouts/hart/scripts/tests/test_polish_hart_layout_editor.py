@@ -32,7 +32,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         self.assertEqual(23, len(generated))
 
     def test_visual_polish_is_idempotent_and_preserves_topology(self):
-        source = ROOT / "tables/new_tables.xml"
+        source = ROOT / "jmri/layouts/hart/output/tables.xml"
         before_root = ET.parse(source).getroot()
         before_le = polish.find_layout_editor(before_root)
         before_topology = [

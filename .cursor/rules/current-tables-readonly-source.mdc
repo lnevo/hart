@@ -1,12 +1,11 @@
 ---
-description: In tables/, treat tables.xml as read-only source; edit only new_tables.xml
-globs: tables/**
-alwaysApply: false
+description: The one JMRI tables file
+alwaysApply: true
 ---
 
-# `tables/` — source vs output
+# Tables file
 
-- **`tables/tables.xml`** is the **source snapshot**. Do **not** edit, overwrite, or reformat it with tools. Do **not** run write/search-replace against it unless the user explicitly asks to change the source file.
-- **`tables/new_tables.xml`** is the **target / working output**. Apply all transformations here (or other filenames the user names as output).
-- Scripts such as **`strip_nx_tables.py`** must keep **reading** `tables.xml` and **writing** `new_tables.xml` only; never open `tables.xml` for write.
-- When committing, only stage **`new_tables.xml`** (and scripts/docs) unless the user explicitly says they want **`tables.xml`** updated in Git.
+- `jmri/layouts/hart/output/tables.xml` is the only tables file (ADR-008).
+- Run scripts against it with PanelPro and CATS closed.
+- In PanelPro, Store to that path, not a profile copy.
+- Older copies are in `archive/tables/`; nothing reads them.

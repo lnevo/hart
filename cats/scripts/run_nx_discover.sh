@@ -108,6 +108,4 @@ if kill -0 "$JPID" 2>/dev/null; then
   pkill -u "$(id -u)" -f 'java .*(apps\.PanelPro\.PanelPro)' >/dev/null 2>&1 || true
 fi
 
-cp "$TABLES" "$ROOT/tables/new_tables.xml"
-echo "copied tables.xml -> tables/new_tables.xml"
 echo "DONE"

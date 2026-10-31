@@ -30,8 +30,7 @@ used to replace the complete tables bundle.
 | `anyrail/hart.xml` | Geometry source snapshot |
 | `authoritative/hart.xml` | Authoritative panel snapshot |
 | `output/hart_blocked.xml` | Working blocked panel |
-| `tables/new_tables.xml` | Writable working source for the complete JMRI configuration |
-| `output/tables.xml` | Deployment bundle: LE + SML + Dispatcher + CTC |
+| `output/tables.xml` | The one tables file: LE + SML + Dispatcher + CTC. JMRI loads it and deploy ships it |
 | `output/hart_prod.xml` | Standalone Layout Editor monitor artifact |
 | `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `comment` from Device map) |
 | `data/block_display_names.csv` | Live CP / OS / track index |
@@ -49,12 +48,10 @@ python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
 python3 jmri/layouts/hart/scripts/sync_public_name_map.py   # Device-map CSV identity + comments
 python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync
-python3 jmri/layouts/hart/scripts/sync_hart_sml_to_deployment.py --check
+
 ```
 
-Visual scripts patch each output independently; they never copy
-`tables/new_tables.xml` over `output/tables.xml`, because that would remove the
-CTC panel and `<ctcdata>`.
+Visual scripts patch `output/tables.xml` and `output/hart_prod.xml` independently.
 
 Dispatcher stations are the original mainline eight (OS Main West, OS West Main Ext,
 OS McKees Rocks, OS McKeesport, OS East Lead, OS Main East, OS East Main Ext,

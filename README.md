@@ -45,7 +45,6 @@ python3 jmri/scripts/check_hart_phase02.py
 
 | Folder | Purpose |
 |--------|---------|
-| [`tables/`](tables/) | Git repo for JMRI table XML (`tables.xml` source, `new_tables.xml` output) |
 | [`legacy/`](legacy/) | Superseded XML and misc CSV from earlier root clutter |
 | [`NextTrainDispatcherApp/`](NextTrainDispatcherApp/) | Next.js app (separate git clone) |
 

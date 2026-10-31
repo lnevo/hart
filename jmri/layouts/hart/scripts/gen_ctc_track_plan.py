@@ -31,7 +31,6 @@ if not CATS_XML.is_file():
     CATS_XML = CATS_DESIGNER
 GUI_XML = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-NEW_TABLES = ROOT / "tables/new_tables.xml"
 SOURCE_TABLES = ROOT / "tables/tables.xml"
 THIN_DIR = ROOT / "jmri/layouts/hart/ctc/icons"
 JMRI_RES = Path("/Applications/JMRI/resources")
@@ -1328,7 +1327,7 @@ def main() -> None:
     ap.add_argument("--cats", type=Path, default=CATS_XML)
     ap.add_argument("--gui", type=Path, default=GUI_XML)
     ap.add_argument("--tables", type=Path, default=None,
-                    help="Optional. output/tables.xml or tables/new_tables.xml — never tables/tables.xml")
+                    help="Optional. output/tables.xml or jmri/layouts/hart/output/tables.xml — never tables/tables.xml")
     ap.add_argument("--preview", type=Path, default=None)
     args = ap.parse_args()
     if args.tables and args.tables.resolve() == SOURCE_TABLES.resolve():
@@ -1363,10 +1362,8 @@ def main() -> None:
 
     if args.tables:
         embed(args.tables, replace_panel=True)
-    if NEW_TABLES.is_file() and (
-        not args.tables or args.tables.resolve() != NEW_TABLES.resolve()
-    ):
-        embed(NEW_TABLES, replace_panel=True)
+    elif OUTPUT_TABLES.is_file():
+        embed(OUTPUT_TABLES, replace_panel=True)
 
     if args.preview:
         render_preview(new, args.preview)

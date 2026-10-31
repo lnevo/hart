@@ -12,7 +12,7 @@ uses ``if "stop" in comment.lower()``. Use "not a station".
 
 S-1 is only two segments, so F46-S-0 is split at a new A81 just east of TOR14.
 
-Writable source is tables/new_tables.xml. --sync-output also patches
+Writable source is jmri/layouts/hart/output/tables.xml. --sync-output also patches
 output/tables.xml and hart_prod.xml. Idempotent.
 """
 
@@ -23,7 +23,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-DEFAULT = ROOT / "tables/new_tables.xml"
+DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
@@ -496,7 +496,7 @@ def main() -> int:
     args = ap.parse_args()
     paths = [args.panel.resolve()]
     if args.sync_output:
-        paths.extend([OUTPUT_TABLES, HART_PROD])
+        paths.append(HART_PROD)
     fn = apply_scale_east if args.scale_east_only else apply
     for path in paths:
         if not path.is_file():
