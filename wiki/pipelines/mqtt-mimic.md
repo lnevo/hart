@@ -25,31 +25,13 @@ python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --help
 python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local
 ```
 
-## Bridge smoke tests
+## Bridge smoke test
 
-Run these by hand before promoting a bridge or firmware change.
-
-### B1: mast roster from MQTT
+Run this by hand after a bridge or firmware change.
 
 1. Subscribe to `track/signalmast/#` on broker `minipc-e5h6x.local`.
 2. After the bridge connects, confirm non-empty retained mast topics for live heads.
 3. A SET on `track/signalhead/<packed>` must be gated when the mast topic is absent.
-
-### B2: event 125 replay
-
-After an LCOS master RAM wipe, mast MQTT disappears until the display subscription (event 125) is replayed.
-
-Proposal, not approved: send 125 periodically to `kSubscribeDisplayNodes[]` after a master restart.
-
-### B3: USB serial ACK and pacing
-
-Document pacing on the Windows bridge before promotion.
-
-### Files a promotion would change
-
-- `lcos_mqtt_bridge.cpp`: subscription and 125
-- `serial_to_mqtt.py`: ACK pacing
-- `mqtt_serial.cpp`: serial layer
 
 ### Broker cleanup
 

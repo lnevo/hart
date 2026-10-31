@@ -40,7 +40,7 @@ mosquitto_pub -h "$HART_MQTT_BROKER" -t track/bridge/cmd -m PING
 # Expect ACK PING on serial when Nano bridge is up
 ```
 
-Smoke tests: [`wiki/pipelines/mqtt-mimic.md`](../../../../wiki/pipelines/mqtt-mimic.md#bridge-smoke-tests)
+Smoke test: [`wiki/pipelines/mqtt-mimic.md`](../../../../wiki/pipelines/mqtt-mimic.md#bridge-smoke-test)
 
 ## Not bundled
 

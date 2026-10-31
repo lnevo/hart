@@ -47,6 +47,6 @@ Open `external/lcos-bridge/` in Arduino IDE (`lcos-bridge.ino` matches folder na
 
 Windows helper: `scripts/windows/flash_nano.py`
 
-## Smoke tests
+## Smoke test
 
-[`wiki/pipelines/mqtt-mimic.md`](../../../wiki/pipelines/mqtt-mimic.md#bridge-smoke-tests)
+[`wiki/pipelines/mqtt-mimic.md`](../../../wiki/pipelines/mqtt-mimic.md#bridge-smoke-test)
