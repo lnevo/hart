@@ -75,5 +75,5 @@ docker exec -u www-data sts-docker-web-1 \
 ## Related
 
 - [`README.md`](README.md) — car cards workspace
-- [`../../wiki/pipelines/13-waybills.md`](../../wiki/pipelines/13-waybills.md) (if present)
+- [`../../../wiki/pipelines/waybills.md`](../../../wiki/pipelines/waybills.md) (if present)
 - [`../sts/README.md`](../sts/README.md)

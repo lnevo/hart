@@ -35,10 +35,10 @@ git submodule update --init --recursive
 
 | Submodule | Doc |
 |-----------|-----|
-| LCOS | [`cross-repo/lcos/SUBMODULE_PIN.md`](../cross-repo/lcos/SUBMODULE_PIN.md) |
-| sts-docker | [`cross-repo/sts-docker/SUBMODULE_PIN.md`](../cross-repo/sts-docker/SUBMODULE_PIN.md) |
-| sts-helpers | [`cross-repo/sts-helpers/SUBMODULE_PIN.md`](../cross-repo/sts-helpers/SUBMODULE_PIN.md) |
-| hart-ops | [`cross-repo/hart-ops/SUBMODULE_PIN.md`](../cross-repo/hart-ops/SUBMODULE_PIN.md) |
+| LCOS | [`cross-repo/lcos/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/lcos/SUBMODULE_PIN.md) |
+| sts-docker | [`cross-repo/sts-docker/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/sts-docker/SUBMODULE_PIN.md) |
+| sts-helpers | [`cross-repo/sts-helpers/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/sts-helpers/SUBMODULE_PIN.md) |
+| hart-ops | [`cross-repo/hart-ops/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/hart-ops/SUBMODULE_PIN.md) |
 
 ## Car inventory SoR
 

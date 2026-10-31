@@ -18,7 +18,6 @@ STS            (no MQTT — separate HTTP stack)
 
 ## Lab default
 
-Document your broker host in [`hosts.env.example`](../../packages/layout-hosts/hosts.env.example):
 
 ```bash
 HART_MQTT_BROKER=minipc-e5h6x.local   # or 192.168.x.x
@@ -32,7 +31,7 @@ JMRI and `serial_to_mqtt.py` must use the **same broker**.
 1. Mosquitto running and reachable from Mac lab, Windows mini PC, and Pi.
 2. No TLS required for bench (adjust if you add it later).
 3. JMRI MQTT connection configured once per profile; retained `track/signalmast/*` topics enroll the live roster.
-4. Start **`serial_to_mqtt.py` in the foreground** on Windows before expecting LCOS feedback (see [`../lcos-bridge/README.md`](../lcos-bridge/README.md)).
+4. Start **`serial_to_mqtt.py` in the foreground** on Windows before expecting LCOS feedback (see [`../../lcos-bridge/README.md`](../../lcos-bridge/README.md)).
 
 ## Validation
 

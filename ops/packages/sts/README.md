@@ -2,7 +2,7 @@
 
 **Runtime:** [`../../external/sts-docker/`](../../../external/sts-docker)  
 **Helpers:** [`../../external/sts-helpers/`](../../../external/sts-helpers)  
-**Data:** [`../../external/sts-docker-data/`](../../external/sts-docker-data/)
+**Data:** [`../../external/sts-docker-data/`](../../../external/sts-docker-data/)
 
 ## Setup
 

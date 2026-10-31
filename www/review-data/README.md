@@ -10,7 +10,6 @@ Read-only scans of `~/Desktop/HART` — **not** git SoR.
 
 ## F-root browse (categorized)
 
-**Portal:** [`html/archive/f-root-index.html`](../../html/archive/f-root-index.html)
 
 | Disposition | Count | Categories |
 |-------------|------:|------------|
