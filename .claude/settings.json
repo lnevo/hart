@@ -1,0 +1,13 @@
+{
+  "enabledPlugins": {
+    "model-railroad-skills@model-railroad-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "model-railroad-skills": {
+      "source": {
+        "source": "github",
+        "repo": "lnevo/model-railroad-skills"
+      }
+    }
+  }
+}

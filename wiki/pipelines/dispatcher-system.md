@@ -38,7 +38,7 @@ python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py
 
 Operator: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md).
 
-Stock facing invert is [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407). If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir**. Do not add a HART overlay.
+Stock Dispatcher System stores facing direction swapped on purpose. If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir**. Do not add a HART overlay.
 
 ## Do not
 

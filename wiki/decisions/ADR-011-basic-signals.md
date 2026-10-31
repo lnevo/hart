@@ -21,4 +21,4 @@ Basic-enhanced has one aspect for "the next signal is Approach": Advanced Approa
 - Lamps are unchanged: Clear G/R, Approach Y/R, Diverging Clear R/G, Diverging Approach R/Y, Stop R/R. Dwarfs: Clear, Approach, Stop.
 - Diverging Clear speed is Medium, not Limited.
 - Changing mast type again means rewriting SHSM system names in tables.
-- Needs a test on the railroad: force a real Stop and read the signals back.
+- The owner accepted the deployed signals on 2026-10-31 and dropped the planned forced-Stop test on the railroad.
