@@ -14,7 +14,7 @@ ACTIVE_LAYOUT = os.environ.get("JMRI_LAYOUT", "hart")
 _LAYOUT_FILES: dict[str, dict[str, str]] = {
     "hart": {
         "anyrail": "hart.xml",
-        "authoritative": "hart.xml",
+        "authoritative": os.path.join(JMRI_ROOT, "layouts", "hart", "output", "tables.xml"),
         "output": "hart_blocked.xml",
         "style_defaults": os.path.join(JMRI_ROOT, "templates", "panel_style.xml"),
     },

@@ -37,7 +37,7 @@ Consolidation decisions:
 | D4, D6 | Kept |
 | D11, P3a | Open goal: hart-ops is the intended car source, but no authoritative car workflow exists yet |
 | Validation tiers | Replaced by the deploy gates, one `check` command and a pre-session checklist |
-| D8, D10, D10b | Closed. Event 125 auto-resend is a known issue; `RESUBSCRIBE FORCE` is the manual recovery |
+| D8, D10, D10b | Closed |
 | P4a | Open: the loose `~/Desktop/HART` files still need sorting before that folder retires |
 
 Records under `consolidation/` that say otherwise, including `AGENTS.md`, `OBJECTIVE.md` and `DECISIONS_RECORDED.md`, are superseded by this ADR.

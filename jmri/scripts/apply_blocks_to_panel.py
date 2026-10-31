@@ -5,7 +5,7 @@ Sets blockname on every tracksegment and layoutturnout that has a mapping.
 Output includes jmriversion, sensors, turnouts (from mac_jmri2.xml), blocks,
 layoutblocks, and LayoutEditor so the layout has everything it needs.
 
-Source: mac_jmri2.xml (authoritative for turnouts, defaults, labels). Track geometry
+Source: the authoritative panel for turnouts; jmri/templates/panel_style.xml for drawing defaults. Track geometry
 refresh: upper_both4.xml (AnyRail export). Do not use tables.xml or other legacy files for current data.
 
 Refreshing from AnyRail (new track geometry): (1) Export updated track plan to upper_both4.xml.
