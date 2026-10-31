@@ -39,7 +39,7 @@ Unless marked *tested*, the fixtures here are verified only in software (waterti
 ### Entry (approach to the helix)
 - The cookie-cut tongue: **5-3/8 in straight** (inner and outer tracks the same) + a curve starting at **4:30** on the 26 in radius, with the existing track and 6 mm cork. The tongue is a **liftout**.
 - At the butt joint the **railheads are continuous**: the tongue plywood is 0.236 in lower than P1, and the cork makes up the difference.
-- The tongue is held by `entry_wedge_riser_inside/outside.stl` (§4). P1 sits on `cork_to_plywood_transition_shim.stl` (the user calls it the "offset bracket"), which sits in a pocket cut into the deck. `corner_spacer_P1_new.stl` goes under P1's two wing corners.
+- The tongue is held by `entry_wedge_riser_inside/outside.stl` (§4). P1 sits on `cork_to_plywood_transition_shim.stl` (the user calls it the "offset bracket"), which sits in a pocket cut into the deck. `corner_spacer_P1.stl` goes under P1's two wing corners.
 - **Clearance under loop 1 over the approach:** 3.12 in at the butt joint. The tongue plywood rises 0.795 in to the butt joint (1.031 − 0.236), so as a straight ramp it climbs about **2.91%** on the inner track and **2.71%** on the outer, steeper than the helix (2.27% / 2.09%). The gap therefore opens up toward 4:30 and the **butt joint is the minimum**. (Corrected 2026-10-22: the earlier 3.06 in figure assumed a tongue shallower than the helix.) Cork doesn't reduce it because the railheads are continuous. Field check: **loop-1 underside above the deck = 4.311 − (degrees back from the butt joint ÷ 90) in**; subtract the measured railhead height at that spot.
 - Old deck-height chain (-15 in baseline, GRADE 0.02176): rise to nominal 6:00 = 5.375 × 0.02176 + 0.500. This is history only; the height stack (above) is authoritative.
 
@@ -132,7 +132,7 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 |---|---|---|
 | `entry_wedge_riser_inside/outside.stl` | (none kept) | 1 × 2.25 in footprint, 1.261 tall. Step **0.864** (the chord-corrected calc says 0.859; not regenerated, and the P1 template already absorbs it). Engraved R / L. |
 | `cork_to_plywood_transition_shim.stl` | (none kept) | 2 in along the track × 3.5 radial. Low foot 0.375 (tongue), high foot 0.611 (P1); step 0.236. 2 countersunk holes per foot. Sits in a deck pocket that should be ~0.300 deep. |
-| `corner_spacer_P1_new.stl` | `make_corner_offset_spacer.py` | Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). **0.376 tall (9.56 mm)** = 0.311 + 1.65 mm field correction (`FIELD_ADD`; the 0.311 prints were short). 5/8 OD, 1/4 hole. Print 2 at 100% infill. |
+| `corner_spacer_P1.stl` | `make_corner_offset_spacer.py` | Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). **0.376 tall (9.56 mm)** = 0.311 + 1.65 mm field correction (`FIELD_ADD`; the 0.311 prints were short). 5/8 OD, 1/4 hole. Print 2 at 100% infill. |
 
 ### Brackets (Wideskall 4x4, 0.080 steel, 0.600 strap, 0.185 holes)
 | File(s) | Script | Notes |

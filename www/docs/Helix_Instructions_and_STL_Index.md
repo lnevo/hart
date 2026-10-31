@@ -63,7 +63,7 @@
 | [`entry_wedge_riser_inside.stl`](../helix/stl/entry_wedge_riser_inside.stl) | 28 KB | 25.4 × 57.2 × 32.0 (1.00 × 2.25 × 1.26) | none kept | Tongue risers, 1 × 2.25 in, 1.261 tall, step 0.864. Engraved R / L. |
 | [`entry_wedge_riser_outside.stl`](../helix/stl/entry_wedge_riser_outside.stl) | 24 KB | 25.4 × 57.2 × 32.0 (1.00 × 2.25 × 1.26) | ″ | ″ |
 | [`cork_to_plywood_transition_shim.stl`](../helix/stl/cork_to_plywood_transition_shim.stl) | 68 KB | 50.8 × 88.9 × 15.5 (2.00 × 3.50 × 0.61) | none kept | The “offset bracket” under P1: low foot 0.375 (tongue), high foot 0.611 (P1). Sits in a ~0.300 deep deck pocket. |
-| [`corner_spacer_P1.stl`](../helix/stl/corner_spacer_P1.stl) | 28 KB | 15.9 × 15.9 × 7.9 (0.62 × 0.62 × 0.31) | [`make_corner_offset_spacer.py`](../helix/scripts/make_corner_offset_spacer.py) | Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first. |
+| [`corner_spacer_P1.stl`](../helix/stl/corner_spacer_P1.stl) | 28 KB | 15.9 × 15.9 × 9.6 (0.62 × 0.62 × 0.38) | [`make_corner_offset_spacer.py`](../helix/scripts/make_corner_offset_spacer.py) | Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first. |
 
 ### Brackets
 
