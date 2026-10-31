@@ -10,7 +10,7 @@
 
 ## Decision
 
-1. The end state is one home in this repo. `~/sts`, `~/Desktop/HART` and duplicates in `~/Documents` are retired by a final, undated epic. The `.any` track plans stay in `~/Documents`.
+1. The end state is one home in this repo. `~/sts`, `~/Desktop/HART`, duplicates in `~/Documents` and the repo's `archive/` are retired by a final, undated epic. The `.any` track plans stay in `~/Documents`.
 2. `cats/` is only the CTC overlay for JMRI. Its `scripts/pi`, `scripts/windows` and `sync_hart_package.sh` stay as a documented exception because host paths depend on them.
 3. `consolidation/` is dissolved into the root. Until then it remains the live home of what it holds, so edit that content in place.
 4. Target root: `jmri/`, `cats/`, `docs/`, `www/`, `ops/`, `external/`, `media/`, `tools/`, `wiki/`, `archive/`.
