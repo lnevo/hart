@@ -225,6 +225,38 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
   }
 }
 
+# Masts are stock basic-enhanced (ADR-006). The package tarball never deletes, so
+# retired custom signal sets are removed here. The JMRI install's own
+# xml\signals\C&O-1980 is stock and stays.
+$retired = New-Object System.Collections.Generic.List[string]
+$signalRoots = New-Object System.Collections.Generic.List[string]
+[void]$signalRoots.Add((Join-Path $hart 'cats\resources\signals'))
+[void]$signalRoots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\resources\signals'))
+$jmri = Join-Path $env:USERPROFILE 'JMRI'
+if (Test-Path $jmri) {
+  Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+    [void]$signalRoots.Add((Join-Path $_.FullName 'resources\signals'))
+  }
+}
+foreach ($root in $signalRoots) {
+  foreach ($sys in @('cats-masts', 'hart-aar', 'C&O-1980')) {
+    [void]$retired.Add((Join-Path $root $sys))
+  }
+}
+[void]$retired.Add('C:\Program Files\JMRI\xml\signals\cats-masts')
+[void]$retired.Add('C:\Program Files (x86)\JMRI\xml\signals\cats-masts')
+[void]$retired.Add((Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'))
+foreach ($path in $retired) {
+  if (Test-Path -LiteralPath $path) {
+    try {
+      Remove-Item -LiteralPath $path -Recurse -Force
+      Write-Host ("retired signal set removed: {0}" -f $path)
+    } catch {
+      Write-Host ("Skip (need Admin?): {0}" -f $path)
+    }
+  }
+}
+
 Write-Host 'apply_hart_package_local done'
 
 $desk = Join-Path $hart 'cats\scripts\windows\create_hart_master_desktop.ps1'
