@@ -1,5 +1,9 @@
 # Status log
 
+Updated: 2026-10-31 — PanelPro on the Pi is up on the deployed tables and looks good to the owner. The owner dropped the Basic signals railroad test. Agent skills and MCPs are done. Docs only; not deployed.
+
+Updated: 2026-10-31 — Deployed `--all` to the Mac, Pi and Windows from `04f27a22`: the Basic signals, the ADR-012 desks `HART_CTC.xml` and `HART_ABS.xml`, and new desktop icons. `tables.xml` on both hosts matches the repo. Cleaned `~/hart/cats/resources`: retired signal sets, `jmri-web/sts.html`, and on the Pi the unused left and right triangle buttons. Windows had no JMRI running; the Pi's PanelPro was left open and still needs a reload.
+
 Updated: 2026-10-31 — Published [model-railroad-skills](https://github.com/lnevo/model-railroad-skills): six generic skills and two read-only MCPs, checked against source. That check corrected the wiki: END_BUMPER mast slots are JMRI's normal slots, not a hack, and the facing swap is deliberate stock behaviour. Docs only; not deployed.
 
 Updated: 2026-10-31 — Listed the 3D station maps as an ongoing project in `STATUS.md` and on the wiki home page. Docs only; not deployed.

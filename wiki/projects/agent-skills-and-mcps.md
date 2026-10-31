@@ -1,7 +1,7 @@
 # Agent skills and MCPs
 
 - **Owner:** lnevo
-- **Status:** First release built
+- **Status:** Done
 - **Repo:** [lnevo/model-railroad-skills](https://github.com/lnevo/model-railroad-skills), at `external/model-railroad-skills`
 
 A public Claude Code plugin for any JMRI user. It holds nothing specific to this railroad, and no bridge or custom MQTT methods.
