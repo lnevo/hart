@@ -25,7 +25,7 @@ Deploys from your **local working tree** (any branch, work in progress included)
 
 - Refuses to run when `external/hart-ops` is missing or not initialised (logos would drop out, and `rsync --delete` would remove them live). Warns, without stopping, when the submodule is not at the recorded commit (`+` in `git submodule status`) or the portal has uncommitted changes.
 - Runs `scripts/check_portal_build.py --dist` on the build: every internal `href`/`src` in the HTML and every link/asset field in `data/*.json` must resolve to a built file. Run it alone (`python3 www/scripts/check_portal_build.py`) to build into a temp folder and check.
-- Prints a manifest (file count, archive items, industry logos, gallery and fleet items) and compares it with the last deploy's, kept in the gitignored `consolidation/.deploy-manifest.json`. A count down more than 10% stops the deploy unless `--force` is passed. The manifest is saved only after a successful rsync.
+- Prints a manifest (file count, archive items, industry logos, gallery and fleet items) and compares it with the last deploy's, kept in the gitignored `.deploy-manifest.json` at the repo root. A count down more than 10% stops the deploy unless `--force` is passed. The manifest is saved only after a successful rsync.
 
 Server notes (ssh `lnevo@www.easte.net` for admin work):
 
@@ -53,8 +53,8 @@ JSON pages (Briefing, About, Photos, Layout, spot sheets) need **HTTP**, not `fi
 ./www/scripts/install_portal_launchagent.sh
 # Foreground only (dies when the terminal/Cursor session ends):
 ./www/scripts/serve_portal.sh [PORT]
-# → http://127.0.0.1:8760/ops-portal/
-# F-root review → http://127.0.0.1:8760/ops-portal/review/f-root/
+# → http://127.0.0.1:8760/www/
+# F-root review → http://127.0.0.1:8760/www/review/f-root/
 ```
 
 Plain `python3 -m http.server` works for read-only pages but **cannot save** review decisions.
@@ -76,7 +76,7 @@ The header has six links (`data/site.json` → `nav`): **Home · The Prototype �
 - Pages that load JSON show "Loading…" and, on failure, `HARTOps.renderError(el, {what, links, err})` (visitor text plus a Reload button; the serve-over-HTTP hint only on localhost). If `site.json` itself fails, `mountChrome` draws a brand-only header instead of a blank page.
 - Escape with `HARTOps.esc` and build paths with `HARTOps.base()` (both from `js/nav.js`); don't add local copies. Every page loads `nav.js` before its other scripts, so scripts can read `HARTOps` when they load.
 - **Behind the Scenes** (`behind/index.html`): how the layout works. Electronics & the bridge (`behind/bridge.html`, Device roster `roster/`, wiring photos on The Build, Digicon reference `guides/digicon-system.html` local-only), Control & signals (`behind/signals.html`, pointer to Guides), Car forwarding (STS article `library/sts-operations-article.html`), Locomotives (STRR speed-match SOP PDF), From the workbench (STL Studio article `library/stl-studio-article.html`, page id `behind-stl`: the owner's Tower LCC+Q block editor, not part of HART's control system; screenshot of the live app in `assets/behind/stl-studio/`).
-- **The Build** (`build/index.html`): the month-by-month build timeline (`progress` album), the helix (`helix/`, build status, plan PDF), the staging video, the main level (framing PDF `build/files/main-level-joist-construction.pdf`, written by `make_joist_construction_pdf.py`, and plywood cut plan `build/files/main-level-plywood-cut-plan.html`, copies from `consolidation/benchwork/main_level/`; the cut plan is written by `build_plywood_page.py <ply dir> plywood_cut_plan.html <site copy>`; the lumber cut list `build/files/main-level-lumber-cut-list.html` by `make_lumber_cut_list.py lumber_cut_list.html <site copy>`), and the `plans` + `build` albums of `data/gallery.json`. The same albums are also on the Photos page's Layout tab. `js/gallery.js` options: `albums: [...]` scopes a page to some albums, `heading: false` keeps the page's own title, `groupBy: "month"` or `monthAlbums: [...]` draws the month timeline, `viewBar` adds Grid / List / Gallery (curation controls show in Grid only).
+- **The Build** (`build/index.html`): the month-by-month build timeline (`progress` album), the helix (`helix/`, build status, plan PDF), the staging video, the main level (framing PDF `build/files/main-level-joist-construction.pdf`, written by `make_joist_construction_pdf.py`, and plywood cut plan `build/files/main-level-plywood-cut-plan.html`, copies from `benchwork/main_level/`; the cut plan is written by `build_plywood_page.py <ply dir> plywood_cut_plan.html <site copy>`; the lumber cut list `build/files/main-level-lumber-cut-list.html` by `make_lumber_cut_list.py lumber_cut_list.html <site copy>`), and the `plans` + `build` albums of `data/gallery.json`. The same albums are also on the Photos page's Layout tab. `js/gallery.js` options: `albums: [...]` scopes a page to some albums, `heading: false` keeps the page's own title, `groupBy: "month"` or `monthAlbums: [...]` draws the month timeline, `viewBar` adds Grid / List / Gallery (curation controls show in Grid only).
 - Elements marked `data-local-only` are removed from the public build (see Build rules), for localhost and workspace links.
 
 | Page | Content |
