@@ -42,7 +42,7 @@ GROUPS = [
     ('Entry', [
         (['entry_wedge_riser_inside.stl', 'entry_wedge_riser_outside.stl'], None, 'Tongue risers, 1 × 2.25 in, 1.261 tall, step 0.864. Engraved R / L.'),
         (['cork_to_plywood_transition_shim.stl'], None, 'The “offset bracket” under P1: low foot 0.375 (tongue), high foot 0.611 (P1). Sits in a ~0.300 deep deck pocket.'),
-        (['corner_spacer_P1.stl'], 'make_corner_offset_spacer.py', 'Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first.'),
+        (['corner_spacer_P1_new.stl'], 'make_corner_offset_spacer.py', 'Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first.'),
     ]),
     ('Brackets', [
         (['bracket_edge_shim.stl'], 'make_bracket_edge_shim.py', 'Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed.'),
@@ -58,7 +58,7 @@ GROUPS = [
          None, 'MW104 router to Sigerio circle-jig adapter, test plate. Hole sizes and center bore are estimates.'),
     ]),
 ]
-OBSOLETE = ['corner_spacer_P1_new.stl', 'bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_transition_shim_inside.stl',
+OBSOLETE = ['bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_transition_shim_inside.stl',
             'entry_transition_shim_outside.stl', 'entry_wedge_riser.stl']
 EXTRA_SCRIPTS = ['router_template_lattice.py', 'stl_text.py', 'make_lap_screw_template.py']
 
