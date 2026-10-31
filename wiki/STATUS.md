@@ -26,7 +26,6 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 - Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add the new photos with `bin/cars intake`.
 - Later: resolve the differences `bin/cars compare` reports, starting with the 18 cars missing from the Pi's roster, and send corrections to existing cars through to STS and Operations Pro.
-- Later: run the `jmri-json` and `mqtt-layout` MCPs against live PanelPro and the layout broker ([`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)).
 
 ## Future goals
 
