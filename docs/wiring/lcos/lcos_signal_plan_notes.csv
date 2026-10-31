@@ -1,0 +1,37 @@
+mast,head,plant,turnouts,signal_role,blocks_throat,blocks_main,blocks_diverge,boundary_note
+Mast 2035,S,McKees Rocks intermediate,,intermediate,BS McKees Rocks,BS McKees Rocks | BS Switch 39 / BS K-1,,Track McKees Rocks intermediate; CATS (60
+Mast 2036,S,McKeesport intermediate,,intermediate,BS McKeesport,BS McKeesport | BS Switch 37 / BS K-2,,Track McKeesport intermediate; CATS (61
+Mast 24L,B,Switch 23,Switch 23,ext_entrance,BS West Main Ext | BS Switch 23b,BS Switch 23b | BS Main West,BS Switch 23b | BS S-R,B=Track West Main Ext east upper
+Mast 24L,T,Switch 23,Switch 23,ext_entrance,BS West Main Ext | BS Switch 23b,BS Switch 23b | BS Main West,BS Switch 23b | BS S-R,B=Track West Main Ext east upper
+Mast 24RA,B,Switch 23,Switch 23,main_west_entrance,BS Main West | BS Switch 23a,BS Switch 23a | BS Switch 23b,BS Switch 23a | BS S-R,A=Track Main West west upper
+Mast 24RA,T,Switch 23,Switch 23,main_west_entrance,BS Main West | BS Switch 23a,BS Switch 23a | BS Switch 23b,BS Switch 23a | BS S-R,A=Track Main West west upper
+Mast 24RB,S,Switch 23,Switch 23,siding_entrance,BS S-R | BS Switch 23a,,BS Switch 23a | BS Main West,D=Track S-R west lower
+Mast 2L,B,Switch 1,Switch 1,throat_east,BS Main West | BS Switch 1,BS Switch 1 | BS Brick-Plane,,A=Track Main West; east face of Brick
+Mast 2L,T,Switch 1,Switch 1,throat_east,BS Main West | BS Switch 1,BS Switch 1 | BS Brick-Plane,,A=Track Main West; east face of Brick
+Mast 32R,S,Switch 31,Switch 31,ladder,BS Switch 31 | BS Switch 29,BS Switch 31 | BS Switch 33,BS Switch 31 | BS Switch 25,C=Track 29 ladder leg; governs ladder move into Track 31
+Mast 34L,B,Switch 33,Switch 33,east_lead,BS East Lead | BS Switch 33,BS Switch 33 | BS Main East,BS Switch 33 | BS Switch 31,A=Track East Lead east of 112
+Mast 34L,T,Switch 33,Switch 33,east_lead,BS East Lead | BS Switch 33,BS Switch 33 | BS Main East,BS Switch 33 | BS Switch 31,A=Track East Lead east of 112
+Mast 34R,B,Switch 33,Switch 33,main_east,BS Main East | BS Switch 33,BS Switch 33 | BS East Lead,,C=Track Main East diverge
+Mast 34R,T,Switch 33,Switch 33,main_east,BS Main East | BS Switch 33,BS Switch 33 | BS East Lead,,C=Track Main East diverge
+Mast 36RA,B,Switch 35,Switch 35,west_main_ext,BS West Main Ext | BS Switch 35a,BS Switch 35a | BS Switch 35b,BS Switch 35a | BS East Lead,A=Track West Main Ext west upper
+Mast 36RA,T,Switch 35,Switch 35,west_main_ext,BS West Main Ext | BS Switch 35a,BS Switch 35a | BS Switch 35b,BS Switch 35a | BS East Lead,A=Track West Main Ext west upper
+Mast 36RB,B,Switch 35,Switch 35,east_lead,BS East Lead | BS Switch 35b,BS Switch 35b | BS Switch 35a,BS Switch 35b | BS West Main Ext,D=Track East Lead west lower
+Mast 36RB,T,Switch 35,Switch 35,east_lead,BS East Lead | BS Switch 35b,BS Switch 35b | BS Switch 35a,BS Switch 35b | BS West Main Ext,D=Track East Lead west lower
+Mast 38LA,S,Switch 37,Switch 37,k2,BS Switch 37 / BS K-2,,BS Switch 37 / BS K-2 | BS McKeesport,B=Track K-2 stub block (detector Block 1-3 shared with Track 37)
+Mast 38LB,B,Switch 37,Switch 37,mckeesport,BS McKeesport | BS Switch 37 / BS K-2,BS Switch 37 / BS K-2 | BS McKeesport,,C=Track McKeesport (boundary at turnout); icon deg 270 faces west
+Mast 38LB,T,Switch 37,Switch 37,mckeesport,BS McKeesport | BS Switch 37 / BS K-2,BS Switch 37 / BS K-2 | BS McKeesport,,C=Track McKeesport (boundary at turnout); icon deg 270 faces west
+Mast 40LA,S,Switch 39,Switch 39,k1,BS Switch 39 / BS K-1,,BS Switch 39 / BS K-1 | BS McKees Rocks,B=Track K-1 stub block (detector Block 1-4 shared with Track 39)
+Mast 40LB,B,Switch 39,Switch 39,mckees_rocks,BS McKees Rocks | BS Switch 39 / BS K-1,BS Switch 39 / BS K-1 | BS McKees Rocks,,C=Track McKees Rocks (boundary at turnout); icon deg 270 faces west
+Mast 40LB,T,Switch 39,Switch 39,mckees_rocks,BS McKees Rocks | BS Switch 39 / BS K-1,BS Switch 39 / BS K-1 | BS McKees Rocks,,C=Track McKees Rocks (boundary at turnout); icon deg 270 faces west
+Mast 4RA,S,Switch 3,Switch 3,main_exit,,BS Switch 3 | BS Brick-Plane,,B=Track W-1 continuing
+Mast 4RB,S,Switch 3,Switch 3,diverge_exit,,,BS Switch 3 | BS Brick-Plane,C=Track W-2 diverge
+Mast 6LA,S,Switch 5,Switch 5,diverge_exit,,,BS Switch 5 | BS Brick-Plane,C=Track Scale / east upper face; 1-head IH434
+Mast 6LB,B,Switch 5,Switch 5,main_exit,,BS Switch 5 | BS Brick-Plane,BS Switch 5 | BS Scale,B=Track East Main Ext continuing
+Mast 6LB,T,Switch 5,Switch 5,main_exit,,BS Switch 5 | BS Brick-Plane,BS Switch 5 | BS Scale,B=Track East Main Ext continuing
+Mast 8LA,B,Switch 7,Switch 7,east_main,BS Switch 7 | BS Switch 7b,BS Switch 7 | BS Main East,BS Switch 7 | BS Barn,C=Track Main East east lower
+Mast 8LA,T,Switch 7,Switch 7,east_main,BS Switch 7 | BS Switch 7b,BS Switch 7 | BS Main East,BS Switch 7 | BS Barn,C=Track Main East east lower
+Mast 8LB,S,Switch 7,Switch 7,east_barn,BS Switch 7 | BS Switch 7b,,BS Switch 7 | BS Barn,B=Track Barn east upper
+Mast 8RA,B,Switch 7,Switch 7,west_cluster,BS Switch 7 | BS Switch 7b,BS Switch 7 | BS East Main Ext,BS Switch 7 | BS Scale,Scale|Switch 7 eastbound; not TO117 A
+Mast 8RA,T,Switch 7,Switch 7,west_cluster,BS Switch 7 | BS Switch 7b,BS Switch 7 | BS East Main Ext,BS Switch 7 | BS Scale,Scale|Switch 7 eastbound; not TO117 A
+Mast 8RB,B,Switch 7,Switch 7,west_lower,BS Switch 7 | BS Switch 7b,BS Switch 7b | BS East Main Ext,BS Switch 7 | BS Barn,D=Track East Main Ext west lower
+Mast 8RB,T,Switch 7,Switch 7,west_lower,BS Switch 7 | BS Switch 7b,BS Switch 7b | BS East Main Ext,BS Switch 7 | BS Barn,D=Track East Main Ext west lower
