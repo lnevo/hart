@@ -9,7 +9,7 @@
 //   z 0 .. inlay_t       face: white, black, teal, gold side by side
 //   inlay_t .. total_t   white body, pockets open at total_t
 //
-//   ./benchwork/station_maps_3d/build.sh
+//   ./docs/benchwork/station_maps_3d/build.sh
 //   openscad -D 'part="teal"' -o teal.stl station_map_barn.scad
 
 part = "all";  // all (colour preview) | white | black | teal | gold

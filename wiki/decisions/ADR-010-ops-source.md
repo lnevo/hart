@@ -6,7 +6,7 @@
 
 ## Decision
 
-Every document we create lives in root `docs/`, which is its source of record. Publications are in `docs/ops/`, and `docs/INDEX.md` lists every document, newest first. Only docs specific to one package stay with it, such as the car-card print archive in `external/hart-ops/docs/print` and the build documents in `benchwork/`.
+Every document we create lives in root `docs/`, which is its source of record. Publications are in `docs/ops/`, and build documents and their generators are in `docs/benchwork/`, and `docs/INDEX.md` lists every document, newest first. Only docs specific to one package stay with it, such as the car-card print archive in `external/hart-ops/docs/print`.
 
 `external/hart-ops` remains the source for car data and holds the scripts that generate publications. The Desktop folders are working copies until the final epic retires them.
 

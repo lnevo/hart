@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PATTERNS = ("AGENTS.md", "*/AGENTS.md", ".cursor/*", ".claude/*", "wiki/home.md",
             "wiki/AGENTS_GIT.md", "docs/AI_CONTEXT.md")
 EXCLUDED = ("external/",)
-ROOTS = ("jmri", "cats", "docs", "www", "ops", "benchwork", "tools", "wiki", "archive", ".cursor", ".claude")
+ROOTS = ("jmri", "cats", "docs", "www", "ops", "tools", "wiki", "archive", ".cursor", ".claude")
 LINK = re.compile(r"\]\(([^)#\s]+)")
 CODE = re.compile(r"`([^`\s]+)`")
 GITIGNORED = ("tools/cats/src-repo",)

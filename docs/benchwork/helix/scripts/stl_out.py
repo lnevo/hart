@@ -1,4 +1,4 @@
-"""Output folder for the helix fixture scripts: --out DIR, default benchwork/helix/stl/."""
+"""Output folder for the helix fixture scripts: --out DIR, default docs/benchwork/helix/stl/."""
 import argparse
 from pathlib import Path
 

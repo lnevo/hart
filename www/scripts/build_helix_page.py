@@ -1,6 +1,6 @@
 """Publish the Neville Island helix package into the ops portal (helix/).
 
-Reads printed STLs from ~/Downloads/stl and documents from benchwork/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
+Reads printed STLs from ~/Downloads/stl and documents from docs/benchwork/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
 """
 import html, os, re, shutil, sys
 import markdown, trimesh
@@ -8,7 +8,7 @@ import markdown, trimesh
 SRC = os.path.expanduser('~/Downloads/stl')
 PORTAL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(PORTAL, 'helix')
-HELIX = os.path.join(os.path.dirname(PORTAL), 'benchwork', 'helix')
+HELIX = os.path.join(os.path.dirname(PORTAL), 'docs', 'benchwork', 'helix')
 DOCS = HELIX
 PLAN = 'helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf'
 STATUS = 'HART_Neville_Helix_BUILD_STATUS.md'
