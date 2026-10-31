@@ -2,8 +2,9 @@
 """Stop or question the shell commands AGENTS.md rules out, in every session.
 
 Blocks a commit on main, a push to main, any force-push from this repo and an
-admin merge, which would skip the required check. Asks first for any other merge
-through gh and for a track/cmd publish. Submodules keep their own rules, so
+admin merge, which would skip the required check. Asks first for a track/cmd
+publish. Other merges through gh pass: the owner lets agents merge a PR once its
+required check is green, and GitHub refuses it otherwise. Submodules keep their own rules, so
 pushes from external/ pass. This is a guardrail against mistakes, not a security
 boundary: it reads the command text, so a script that publishes is not seen.
 """
@@ -102,11 +103,9 @@ def main():
             if problem:
                 print(f"Blocked: {problem}. Use an agent/ branch and a PR (AGENTS.md).", file=sys.stderr)
                 return 2
-        if MERGE.search(part):
-            if re.search(r"(^|\s)--admin\b", part):
-                print("Blocked: an admin merge skips the required check. That override is the owner's.", file=sys.stderr)
-                return 2
-            ask.append("This merges a PR. AGENTS.md leaves merges to main to the owner.")
+        if MERGE.search(part) and re.search(r"(^|\s)--admin\b", part):
+            print("Blocked: an admin merge skips the required check. That override is the owner's.", file=sys.stderr)
+            return 2
     if PUBLISH.search(command):
         ask.append("This publishes to track/cmd, which commands field turnouts.")
     if ask:
