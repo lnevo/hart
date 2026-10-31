@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Render consolidation/external/sts-docker/docker-compose.yml with literal bind paths.
+# Render external/sts-docker/docker-compose.yml with bind paths relative to it, so a
+# move of external/ needs no re-render.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -18,15 +19,23 @@ if [[ ! -f "$TEMPLATE" ]]; then
 fi
 
 python3 - "$TEMPLATE" "$OUT" "$STS_BACKUPS_DIR" "$STS_IMAGES_DIR" "$DB_MOUNT" <<'PY'
+import os
 import sys
 from pathlib import Path
 
 template_path, out_path, backups, images, db_mount = sys.argv[1:6]
 text = Path(template_path).read_text(encoding="utf-8")
+compose_dir = Path(out_path).resolve().parent
+
+
+def relative(path: str) -> str:
+    return os.path.relpath(path, compose_dir)
+
+
 replacements = {
-    "@STS_BACKUPS_DIR@": backups,
-    "@STS_IMAGES_DIR@": images,
-    "@STS_DATABASE_DB@": db_mount,
+    "@STS_BACKUPS_DIR@": relative(backups),
+    "@STS_IMAGES_DIR@": relative(images),
+    "@STS_DATABASE_DB@": relative(db_mount),
 }
 for token, value in replacements.items():
     text = text.replace(token, value)

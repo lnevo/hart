@@ -41,7 +41,7 @@ export STS_DATA_ROOT="${STS_DATA_ROOT:-${CONSOLIDATION_ROOT}/external/sts-docker
 
 export STS_BACKUPS_DIR="${STS_BACKUPS_DIR:-${STS_DATA_ROOT}/backups}"
 export STS_DATABASE_DIR="${STS_DATABASE_DIR:-${STS_DATA_ROOT}/database}"
-export STS_IMAGES_DIR="${STS_IMAGES_DIR:-${STS_DATA_ROOT}/images}"
+export STS_IMAGES_DIR="${STS_IMAGES_DIR:-${STS_DATA_ROOT}/Rolling Stock photos}"
 
 export HART_CAR_CARDS_ROOT="${HART_CAR_CARDS_ROOT:-${DESKTOP_DATA_ROOT}/car-cards}"
 export HART_CAR_IMAGES_FINAL="${HART_CAR_IMAGES_FINAL:-${DESKTOP_DATA_ROOT}/car-images/CarImagesFinal}"
