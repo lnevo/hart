@@ -6,7 +6,7 @@
 
 Use this handoff for **design rationale, alternatives, calculations, historical decisions, commercial references, and failure modes**. Use the PDF for the current build sequence, dimensions, cut sheets, support elevations, and construction details.
 
-> **Read `HART_Neville_Helix_BUILD_STATUS.md` before trusting anything below.** It is the single living status file: as-built facts (5-3/8 in entry straight, bracket grid from the entry butt joint, 0.72 in plywood, height stack, 0.26/0.46 laps), every fixture STL and script, and open items. It overrides this file where they conflict. The old dated addenda are archived in `superseded/addenda_2026-09-30_to_10-13/`.
+> **Read `HART_Neville_Helix_BUILD_STATUS.md` before trusting anything below.** It is the single living status file: as-built facts (5-3/8 in entry straight, bracket grid from the entry butt joint, 0.72 in plywood, height stack, 0.26/0.46 laps), every fixture STL and script, and open items. It overrides this file where they conflict. The old dated addenda are archived in `history/`.
 
 ---
 

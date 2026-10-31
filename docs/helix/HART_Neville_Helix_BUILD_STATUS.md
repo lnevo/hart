@@ -1,6 +1,8 @@
 # HART Railroad — Neville Island Helix: Build Status
 
-**Last updated 2026-10-15.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `superseded/addenda_2026-09-30_to_10-13/` if the history is ever needed.
+**Last updated 2026-10-15.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `history/` if the history is ever needed.
+
+Other `superseded/` mentions below mean the local STL working folder, not this repo.
 
 **Read in this order:**
 1. `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf`: fabrication drawings. Entry pages 2, 3 and 8 were redrawn from §1 on 2026-10-22 (`make_entry_pages.py`). **Page 13 is the half-lap screw template** (added 2026-10-15; same as `lap_screw_template.pdf`).

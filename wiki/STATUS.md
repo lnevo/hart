@@ -13,7 +13,6 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 ## Owed
 
 - Deploy `sync_hart_package.sh --all` when the hosts are online.
-- Deploy the website: `./www/scripts/deploy_hartrailroad.sh`.
 - Railroad test of Basic signals: force a real Stop and read back Approach, Clear, Clear, in both directions and through a diverging route.
 - Run `tools/ops/sync_desktop_data.py` and settle the first-run conflicts.
 

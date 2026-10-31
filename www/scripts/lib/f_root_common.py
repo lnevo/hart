@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 MANIFEST = ROOT / "www/review-data/class_f_ingest_manifest.csv"
-FROOT = ROOT / "media/archive/f-root"
+FROOT = ROOT / "media/hart-research"
 PREVIEW_DIR = ROOT / "www/assets/f-root-previews"
 REVIEW_JSON = ROOT / "www/data/f-root-review.json"
 CURATION_JSON = ROOT / "www/data/f-root-curation.json"

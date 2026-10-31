@@ -36,8 +36,28 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
 2. Agents do not push to `main`.  
 3. Do not amend pushed commits.  
 4. Prefer `git worktree` for parallel agents on the same machine.  
-5. **Close-out:** commit by default after any file change, then push the current branch (never `main`). Do not wait to be asked; skip only if the user says not to. This beats the generic Cursor “don’t commit unless asked” protocol. Deploy with `./cats/scripts/sync_hart_package.sh --pi` (and `--win` / `--all` when needed) when live artifacts changed. Google Sheets push stays human-gated.  
+5. **Close-out:** the definition of done in [`AGENTS.md`](../AGENTS.md).  
 6. Update `wiki/` when a decision changes; chat is not SoR.
+
+## Hooks
+
+A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-commit tracked-file check.
+
+## Where agent instructions live
+
+`AGENTS.md` is the one source of rules. Everything else points at it, so a rule changes in one place. `tools/audit/check_agent_docs.py` (part of `tools/check.sh`) fails if these files name a path that no longer exists.
+
+| What | Where | Holds |
+|------|-------|-------|
+| Rules for every tool | `AGENTS.md` | Commands, close-out, do-nots |
+| Scoped rules | `cats/AGENTS.md` | Only what applies under that folder |
+| Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md` | Pointers only; Cursor also reads `AGENTS.md` |
+| Claude Code | `.claude/commands/done.md` | Pointer only; Claude Code reads `AGENTS.md` |
+| Subagents | None defined | Add one only when a task recurs |
+| Facts and decisions | `wiki/`, ADRs | Never in chat or tool memory |
+| Build handoffs | `docs/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs stay in `docs/helix/history/` |
+| Tool memory | Per-machine, outside git | Preferences only. Anything every agent needs goes in `AGENTS.md` or an ADR |
+| Submodules | Their own repos | `external/*` rules travel with each repo |
 
 ## Layout env
 

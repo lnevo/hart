@@ -94,7 +94,7 @@ S-R and S-1…S-4 are a yard with many platforms: enter/leave via **Switch 15** 
 
 ## Do not
 
-- Patch, wrap, skip, or monkey-patch Dispatcher System / JMRI (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`). Stage 1 failures are panel data. See `.cursor/rules/dispatcher-stock-tables.mdc`.
+- Patch, wrap, skip, or monkey-patch Dispatcher System / JMRI (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`). Stage 1 failures are panel data. Shared-sensor Yes on Stage 1 is a physical occupancy constraint, so a one-shot Mac launcher may auto-answer that confirm; changing `CreateTransits` is still not allowed.
 - Dual-run CATS CTC and the USS machine, or start Dispatcher System from inside CATS.
 - Store tables or panels from a CATS session.
 - Put `Mast 18L`–`Mast 26L` back on turnout C/B legs. Bind them on the throat-boundary anchors.

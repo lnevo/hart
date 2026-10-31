@@ -1,9 +1,10 @@
-# Cursor skills and MCPs (review later)
+# Agent skills and MCPs (review later)
 
 - **Owner:** lnevo
 - **Status:** Parked — review before building anything
 - **Date:** 2026-09-14
 - **Do not start:** no `SKILL.md` files, no MCP servers, until this page is reviewed
+- **Dated:** written before ADR-007 and ADR-008. Mentions of `new_tables.xml`, consolidation, linear4 and `mac` describe retired work; re-check each item at review.
 
 Inventory of **reusable** Cursor skills and MCP servers we could invest in, distilled from git history, pipeline READMEs, leftover scripts, and landmine docs. Goal is to help people (and agents) who use the **same software**, not to export HART-only railroad knowledge.
 
@@ -15,7 +16,7 @@ Chat source: skills/MCP backlog discussion, 2026-09-14.
 
 1. Which of these (if any) should become **project** skills (`.cursor/skills/`) vs **personal** (`~/.cursor/skills/`)?
 2. Build **two MCPs first** (`jmri-json` + `mqtt-layout`) or skills-only for a while?
-3. Keep HART landmines as **rules** (already in `.cursor/rules/`) and only generalize the rest?
+3. Keep HART landmines as **rules** (already in `AGENTS.md`) and only generalize the rest?
 
 ---
 
@@ -29,7 +30,7 @@ Chat source: skills/MCP backlog discussion, 2026-09-14.
 
 **Already in the room:** Chrome DevTools MCP (ops portal, www.hartrailroad.com, STS HTML, JMRI web). GitHub/`gh` and generic Docker MCPs exist off the shelf — don’t rebuild.
 
-**Already encoded as HART rules** (don’t duplicate as portable skills unless we want them off this railroad): LCOS bridge foreground-only; Dispatcher System is stock; `tables.xml` read-only; consolidation write-only tree; commit-by-default close-out.
+**Already encoded as HART rules in [`AGENTS.md`](../../AGENTS.md)** (don’t duplicate as portable skills unless we want them off this railroad): LCOS bridge foreground-only; Dispatcher System is stock; one `tables.xml`; commit-by-default close-out.
 
 **Keep HART-only (not skills):** public-name ADRs, packed `IH432` radio math, “don’t delete F30-S-0,” Neville Island industries.
 
