@@ -90,4 +90,4 @@
 | [`router_sigerio_test_plate_body.stl`](../helix/stl/router_sigerio_test_plate_body.stl) | 440 KB | 152.4 × 152.4 × 4.8 (6.00 × 6.00 × 0.19) | ″ | ″ |
 | [`router_sigerio_test_plate_screw_rings.stl`](../helix/stl/router_sigerio_test_plate_screw_rings.stl) | 563 KB | 98.9 × 98.9 × 4.8 (3.89 × 3.89 × 0.19) | ″ | ″ |
 
-Obsolete, not published: `corner_spacer_P1_new.stl`, `bracket_pocket_template.stl`, `entry_transition_shim.stl`, `entry_transition_shim_inside.stl`, `entry_transition_shim_outside.stl`, `entry_wedge_riser.stl`.
+Obsolete, not published: `bracket_pocket_template.stl`, `entry_transition_shim.stl`, `entry_transition_shim_inside.stl`, `entry_transition_shim_outside.stl`, `entry_wedge_riser.stl`.

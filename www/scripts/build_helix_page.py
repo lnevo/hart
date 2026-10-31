@@ -58,9 +58,7 @@ GROUPS = [
          None, 'MW104 router to Sigerio circle-jig adapter, test plate. Hole sizes and center bore are estimates.'),
     ]),
 ]
-# corner_spacer_P1.stl in the source folder is the short first print; _new is the as-built part.
-SOURCE_NAME = {'corner_spacer_P1.stl': 'corner_spacer_P1_new.stl'}
-OBSOLETE = ['corner_spacer_P1_new.stl', 'bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_transition_shim_inside.stl',
+OBSOLETE = ['bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_transition_shim_inside.stl',
             'entry_transition_shim_outside.stl', 'entry_wedge_riser.stl']
 EXTRA_SCRIPTS = ['router_template_lattice.py', 'stl_text.py', 'make_lap_screw_template.py']
 
@@ -92,7 +90,7 @@ def main():
 
     published = {}
     for f in sorted(listed):
-        shutil.copy2(os.path.join(SRC, SOURCE_NAME.get(f, f)), os.path.join(OUT, 'stl', f))
+        shutil.copy2(os.path.join(SRC, f), os.path.join(OUT, 'stl', f))
         published[f] = 'stl/' + f
     for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
         published[f] = 'files/' + f
@@ -110,7 +108,7 @@ def main():
             mdcells = []
             for f in files:
                 n_files += 1
-                p = os.path.join(SRC, SOURCE_NAME.get(f, f))
+                p = os.path.join(SRC, f)
                 if f.endswith('.stl'):
                     mm, inch, faces = dims(p)
                     ext = f'{mm} mm<br><span class="muted">{inch} in</span>'
