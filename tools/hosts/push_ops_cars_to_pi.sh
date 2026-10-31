@@ -9,7 +9,9 @@ SRC="$ROOT/external/hart-ops/card_pipeline/output/ops_merge/OperationsCarRoster.
 DEST="/home/pi/JMRI_UserFiles/operations/OperationsCarRoster.xml"
 
 [[ -f "$SRC" ]] || { echo "Missing $SRC. Run cars.py publish first." >&2; exit 1; }
-if ssh "$PI_HOST" pgrep -f 'jmri|apps.PanelPro|cats' >/dev/null; then
+# Quoted for the remote shell, or | becomes a pipe and this never fires. The
+# brackets stop the pattern matching this command's own shell.
+if ssh "$PI_HOST" "pgrep -f '[j]mri|[a]pps.PanelPro|[c]ats'" >/dev/null; then
   echo "JMRI is running on the Pi. Close it first; it would overwrite this file." >&2
   exit 1
 fi
