@@ -1,6 +1,6 @@
 """Publish the Neville Island helix package into the ops portal (helix/).
 
-Reads printed STLs from ~/Downloads/stl and documents from docs/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
+Reads printed STLs from ~/Downloads/stl and documents from benchwork/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
 """
 import html, os, re, shutil, sys
 import markdown, trimesh
@@ -8,7 +8,8 @@ import markdown, trimesh
 SRC = os.path.expanduser('~/Downloads/stl')
 PORTAL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(PORTAL, 'helix')
-DOCS = os.path.join(os.path.dirname(PORTAL), 'docs', 'helix')
+HELIX = os.path.join(os.path.dirname(PORTAL), 'benchwork', 'helix')
+DOCS = HELIX
 PLAN = 'helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf'
 STATUS = 'HART_Neville_Helix_BUILD_STATUS.md'
 HANDOFF = 'HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md'
@@ -76,7 +77,7 @@ def dims(path):
 
 
 def main():
-    os.makedirs(os.path.join(OUT, 'stl'), exist_ok=True)
+    os.makedirs(os.path.join(HELIX, 'stl'), exist_ok=True)
 
     # Check that every current STL is classified.
     listed = {f for _, rows in GROUPS for files, _, _ in rows for f in files}
@@ -90,7 +91,7 @@ def main():
 
     published = {}
     for f in sorted(listed):
-        shutil.copy2(os.path.join(SRC, f), os.path.join(OUT, 'stl', f))
+        shutil.copy2(os.path.join(SRC, f), os.path.join(HELIX, 'stl', f))
         published[f] = 'stl/' + f
     for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
         published[f] = 'files/' + f
