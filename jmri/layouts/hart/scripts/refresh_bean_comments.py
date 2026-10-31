@@ -945,7 +945,6 @@ def main() -> int:
         ROOT / "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
         ROOT / "jmri/layouts/hart/scripts/annotate_mqtt_sensors_and_dispatcher.py",
         ROOT / "jmri/scripts/check_hart_phase02.py",
-        ROOT / "jmri/layouts/hart/data/block_display_names.csv",
         ROOT / "jmri/layouts/hart/data/block_lengths.csv",
         ROOT / "jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md",
         ROOT / "jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md",

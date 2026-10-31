@@ -21,7 +21,7 @@ JMRI_ROOT = Path(__file__).resolve().parents[1]
 LINEAR6 = JMRI_ROOT / "layouts" / "linear6" / "linear6.xml"
 HART = JMRI_ROOT / "layouts" / "hart"
 BASELINE = HART / "reference" / "linear6_baseline.xml"
-DISPLAY_CSV = HART / "data" / "block_display_names.csv"
+NAME_MAP_CSV = HART / "data" / "public_name_map.csv"
 PURGE_REPORT = HART / "data" / "sensor_purge_report.txt"
 
 KEEP_SENSORS = {"ISCLOCKRUNNING"}
@@ -29,10 +29,12 @@ KEEP_SENSORS = {"ISCLOCKRUNNING"}
 
 def load_display_map(path: Path) -> dict[str, str]:
     out: dict[str, str] = {}
-    with path.open(newline="", encoding="utf-8") as f:
+    with path.open(newline="", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
-            cur = (row.get("current_user_name") or "").strip()
-            pub = (row.get("public_user_name") or "").strip()
+            if row.get("layer") != "block":
+                continue
+            cur = (row.get("current") or "").strip()
+            pub = (row.get("proposed") or "").strip()
             if cur and pub and cur != pub:
                 out[cur] = pub
     return out
@@ -141,7 +143,7 @@ def main() -> int:
     ap.add_argument(
         "--skip-rename",
         action="store_true",
-        help="Do not apply block_display_names.csv",
+        help="Do not apply block names from public_name_map.csv",
     )
     ap.add_argument(
         "--skip-purge",
@@ -174,7 +176,7 @@ def main() -> int:
 
     renamed = 0
     if not args.skip_rename:
-        mapping = load_display_map(DISPLAY_CSV)
+        mapping = load_display_map(NAME_MAP_CSV)
         renamed = rename_blocks(root, mapping)
 
     removed: list[str] = []

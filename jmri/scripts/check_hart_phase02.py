@@ -11,7 +11,7 @@ from pathlib import Path
 JMRI_ROOT = Path(__file__).resolve().parents[1]
 HART = JMRI_ROOT / "layouts" / "hart"
 PANEL = HART / "output" / "hart_prod.xml"
-CSV = HART / "data" / "block_display_names.csv"
+NAME_MAP = HART / "data" / "public_name_map.csv"
 
 
 def main() -> int:
@@ -63,11 +63,11 @@ def main() -> int:
         errors.append("duplicate block userNames: " + ", ".join(dups[:8]))
 
     # Expected OS public names present on layout turnouts
-    with CSV.open(newline="", encoding="utf-8") as f:
+    with NAME_MAP.open(newline="", encoding="utf-8-sig") as f:
         expected_os = {
-            row["public_user_name"]
+            row["proposed"]
             for row in csv.DictReader(f)
-            if row.get("role") == "os"
+            if row.get("layer") == "block" and row["proposed"].startswith("OS ")
         }
     found = {t.get("blockname") for t in root.iter("layoutturnout")}
     missing = sorted(expected_os - found)

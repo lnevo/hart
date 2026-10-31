@@ -33,7 +33,6 @@ used to replace the complete tables bundle.
 | `output/tables.xml` | The one tables file: LE + SML + Dispatcher + CTC. JMRI loads it and deploy ships it |
 | `output/hart_prod.xml` | Standalone Layout Editor monitor artifact |
 | `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `comment` from Device map) |
-| `data/block_display_names.csv` | Live CP / OS / track index |
 | `data/control_points.csv` | CP → switches |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
 
