@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — Listed the 3D station maps as an ongoing project in `STATUS.md` and on the wiki home page. Docs only; not deployed.
+
 Updated: 2026-10-31 — P4a has nothing left to check: the leftover `~/Desktop/HART` drafts are older copies to ignore. `Layout Documentation.pptx` is now tracked in `docs/wiring/`, and the terminal block table is recovered to `docs/wiring/terminal_blocks.md`, unverified and not on the website because its bus names predate the published Track Buses drawing. Docs only; not deployed.
 
 Updated: 2026-10-31 — MQTT mimic has nothing pending: the owner dropped periodic event 125, and USB serial ACK and pacing on the Windows bridge is resolved. Docs only; not deployed.
