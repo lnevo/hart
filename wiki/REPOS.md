@@ -1,7 +1,6 @@
 # HART meta-repo — sibling repos and submodules
 
 **Status:** P3b **done** — submodules under `external/`  
-**Manifest:** [`cross-repo/SUBMODULE_MANIFEST.yaml`](../archive/consolidation/cross-repo/SUBMODULE_MANIFEST.yaml)  
 **Init:** [`scripts/init_external_submodules.sh`](../tools/ops/init_external_submodules.sh)
 
 ## Hub
@@ -34,16 +33,11 @@ git submodule update --init --recursive
 
 ## Pins
 
-| Submodule | Doc |
-|-----------|-----|
-| LCOS | [`cross-repo/lcos/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/lcos/SUBMODULE_PIN.md) |
-| sts-docker | [`cross-repo/sts-docker/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/sts-docker/SUBMODULE_PIN.md) |
-| sts-helpers | [`cross-repo/sts-helpers/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/sts-helpers/SUBMODULE_PIN.md) |
-| hart-ops | [`cross-repo/hart-ops/SUBMODULE_PIN.md`](../archive/consolidation/cross-repo/hart-ops/SUBMODULE_PIN.md) |
+Git records the pins. Run `git submodule status` to see them.
 
 ## Car inventory SoR
 
-Lives in **hart-ops** `data/` — not in JMRI Operations Pro GUI. See [`wiki/decisions/ADR-car-roster-single-sor.md`](../archive/consolidation/decisions/ADR-car-roster-single-sor.md).
+Lives in **hart-ops** `data/` — not in JMRI Operations Pro GUI. See [ADR-013](decisions/ADR-013-car-repository.md).
 
 ## Clone recipe
 
