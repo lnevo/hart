@@ -19,6 +19,10 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 - Railroad test of Basic signals: force a real Stop and read back Approach, Clear, Clear, in both directions and through a diverging route.
 - STS staging for the 2026-11-08 operating session. STS has to be running, and the owner starts it.
 
+## Pending
+
+- CATS yard ladder buttons: decide whether to restore the 10 lamp buttons to the desks. They have been missing since the 2026-08-26 promotion; the Layout Editor lamps, routes and internal turnouts are live and unaffected. Hold until the ADR-012 desks are deployed and proven on the railroad. Until then, leave `add_yard_ladder_buttons.py` alone and do not re-run it. `DISPATCHER_GUIDE_CTC.md` and `HART_DIGICON_SYSTEM.md` still describe the buttons on the desks.
+
 ## Next
 
 - Car workflow: reconcile Operations Pro, STS and hart-ops, then define one way to add and edit a car (ADR-007, D11/P3a).
