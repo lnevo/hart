@@ -5,7 +5,8 @@
     python3 tools/ops/screenshot.py https://www.hartrailroad.com/ --out /tmp/shots
 
 A repo path is served locally, because portal pages fetch JSON and fail on
-file:// URLs. Uses headless Google Chrome and writes <name>-desktop.png and
+file:// URLs. A www/ page is built first, so it shows what a deploy would publish.
+Uses headless Google Chrome and writes <name>-desktop.png and
 <name>-phone.png. Read them back to check the result.
 """
 from __future__ import annotations
@@ -52,10 +53,18 @@ def main() -> int:
     if "://" not in url:
         if not (ROOT / url).exists():
             raise SystemExit(f"no such page: {url}")
-        handler = functools.partial(Quiet, directory=str(ROOT))
+        site = ROOT
+        if args.page.startswith("www/"):
+            # Published images exist only in the build, as on the live site.
+            build = tempfile.TemporaryDirectory()
+            site = Path(build.name) / "dist"
+            subprocess.run([sys.executable, str(ROOT / "www/scripts/prepare_github_pages.py"), str(site)],
+                           check=True, capture_output=True)
+        handler = functools.partial(Quiet, directory=str(site))
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
         threading.Thread(target=server.serve_forever, daemon=True).start()
-        url = f"http://127.0.0.1:{server.server_address[1]}/{args.page}"
+        path = args.page.removeprefix("www/")
+        url = f"http://127.0.0.1:{server.server_address[1]}/{path}"
 
     name = Path(args.page.rstrip("/")).stem or "page"
     failed = 0
