@@ -26,6 +26,10 @@ python3 cats/scripts/validate_cats_panel.py
 
 System picture: [`docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_SYSTEM.md). Operator: [`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../docs/ctc/DISPATCHER_GUIDE_CTC.md).
 
+## Open
+
+- **Yard ladder buttons:** decide whether to put the 10 lamp buttons back on the desks once the ADR-012 desks are proven on the railroad. They have been off the desks since the 2026-08-26 promotion. The Layout Editor lamps, routes and internal turnouts are live and unaffected. A restore goes in `wire_digicon.py` or `HART_Digicon.xml` (ADR-012). The old injector, `add_yard_ladder_buttons.py`, patched the generated desks and was removed; see git history for its layout and icon notes. The lamp icons remain in `jmri/resources/buttons/`.
+
 ## Do not
 
 - Run CATS CTC and USS CTC (or Dispatcher System from inside CATS) at the same time

@@ -189,7 +189,6 @@ feature — verbal permission).
 | **Track authority** | Right-click track | Let crew move within limits without a signaled route |
 | **Out of service** | Right-click track | Take a block off the board for maintenance |
 | **Train label** | Drag label between blocks | Track identity when Train Tracker is off or wrong |
-| **Yard ladder lamps** | Click OS S-R…OS S-4 buttons | Line South Yard ladder tracks (pairs with JMRI auto-routes) |
 
 ---
 

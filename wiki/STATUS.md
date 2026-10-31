@@ -18,10 +18,6 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 - STS staging for the 2026-11-08 operating session. STS has to be running, and the owner starts it.
 
-## Pending
-
-- CATS yard ladder buttons: decide whether to restore the 10 lamp buttons to the desks. They have been missing since the 2026-08-26 promotion; the Layout Editor lamps, routes and internal turnouts are live and unaffected. Hold until the ADR-012 desks are deployed and proven on the railroad. Until then, leave `add_yard_ladder_buttons.py` alone and do not re-run it. `DISPATCHER_GUIDE_CTC.md` and `HART_DIGICON_SYSTEM.md` still describe the buttons on the desks.
-
 ## In progress
 
 - 3D station maps: multi-colour fascia plates that hold Touch Toggles ([`docs/benchwork/station_maps_3d/`](../docs/benchwork/station_maps_3d/README.md)). Barn is the first and only map modelled so far. Its plate outline and thickness are placeholders until the frame is measured, and the toggle pocket depth is a guess.
@@ -30,6 +26,7 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 - Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add the new photos with `bin/cars intake`.
 - Later: resolve the differences `bin/cars compare` reports, starting with the 18 cars missing from the Pi's roster, and send corrections to existing cars through to STS and Operations Pro.
+- Later: run the `jmri-json` and `mqtt-layout` MCPs against live PanelPro and the layout broker ([`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)).
 
 ## Future goals
 

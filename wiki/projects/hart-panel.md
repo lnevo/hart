@@ -58,7 +58,7 @@ See ADRs 001–005.
 | 0 | Wiki SoR, ADRs, DoD | Done |
 | 1 | Scaffold `hart`, register paths, freeze baseline, bootstrap panel | Done |
 | 2 | Naming contract; unused internal sensors; OS audit notes | Done |
-| 3+ | Dark masts, NX, SML | SML + mast NX done; NextTrain abandoned |
+| 3+ | NX, SML | Done; NextTrain abandoned |
 
 ## Related
 

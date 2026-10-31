@@ -70,7 +70,7 @@ python3 cats/scripts/wire_digicon.py
 **Boot sequence (profile Start Up, after `tables.xml`):**
 
 1. `jmri/layouts/hart/scripts/apply_maintain_mqtt.py` — read MQTT **retain** for sensors; JMRI-only `setOwnState`. TWOSENSOR KnownState from FB only (never `newKnownState` on MQTT plants). Then Digicon `IOSpec.refreshScreen()`.
-2. `jmri/layouts/hart/scripts/sync_layout_button.py` — yard-ladder lamp buttons from live plant/FB state; boot fills UNKNOWN MQTT sensors only (does not command plant turnouts). Panel status lamps: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
+2. `jmri/layouts/hart/scripts/sync_layout_button.py` — yard-ladder lamps from live plant/FB state; boot fills UNKNOWN MQTT sensors only (does not command plant turnouts). Panel status lamps: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
 3. `jmri/scripts/mqtt_signalhead_publisher.py` — Digicon SML MQTT bridge: main-window **SML Enabled / SML Disabled** toggle; when Enabled, publish IH appearances on `track/signalhead/<packed>`; when Disabled (global or per-mast SML off), apply `track/signalmast/<packed>` → IH and (on per-mast disable edges / operator Disable) publish `Unheld`. Answers `track/bridge/sml_mode` **query** / **disabling** with **enabled** while globally Enabled. **Boot:** if Digicon dests loaded **Enabled** (stored tables), warning popup, publish **`enabling`** and leave dests on (that instance does not abort). Operator **Force override** (sml_mode already enabled) publishes the same **`enabling`** token. Other agents seeing that token publish **`aborting`**, uncheck immediately (no Hold/Red/Unheld), then **`aborted`**, and stay Disabled. After ~3s the originator publishes **`enabled`**. Solo has nobody to abort; if `enabled` never arrives, the LCOS bridge challenges to **disabled**. Clean boot still holds dests off and **reads** `sml_mode` only (no retain publish); missing/`disabled`/`disabling` → take Digicon (enable); `enabled` / enabling-abort tokens → stay Disabled with **no Unheld** (originator owns resume). Digicon SML dests should be stored **Enabled=no** in `tables.xml` (`jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py`).
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
@@ -100,13 +100,12 @@ Digicon schematic covers West Yard / Brick / Plane / OS Barn, South Yard ladder,
 
 CTC homes start **Held** (CATS holds them at panel load). Left-click codes the route; Digicon drops Hold and SML shows Approach/Clear. Without CATS, masts simply boot Unheld so SML runs ABS — no script needed. **Fleeting** is only for keeping a live route clear for following trains — it is disabled until a route is already ACTIVE.
 
-### Yard ladder buttons
+### Yard ladder lamps
 
-Lamp buttons beside OS S-R…OS S-4 (left = west ladder + 116; right = east ladder + 112 / 111 for OS S-R):
+Lamps beside OS S-R…OS S-4 on the Layout Editor panel and JMRI web, not on the CATS desks (left = west ladder + 116; right = east ladder + 112 / 111 for OS S-R). Whether the desks get them back is open in [`cats-panels.md`](../../wiki/pipelines/cats-panels.md).
 
-- Digicon and Layout Editor share the same triggers: internal turnouts `IT:HART:YL:L1…R5`
+- Triggers: internal turnouts `IT:HART:YL:L1…R5`
 - JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels
-- Digicon icons: `jmri/resources/buttons/lamp_{left,right}_{idle,active}.png` (paths rewritten per OS)
 - Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py` → `tables/new_tables.xml`, synced to `jmri/layouts/hart/output/tables.xml`). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red. Prefer this panel over `hart_prod.xml` (CP labels on hart_prod are oversized).
 
 ### Turnout SoR (summary)
@@ -210,7 +209,7 @@ Profile tables (routes, YL internals, signal heads/masts) load from the host’s
 
 ### JMRI package (SSH deploy to hosts)
 
-Same package carries Digicon Masters, `tables.xml`, yard-ladder button icons, and the JMRI **web home** override + Start Up scripts:
+Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and the JMRI **web home** override + Start Up scripts:
 
 | Piece | Repo SoR | Installs to |
 |-------|----------|-------------|
@@ -244,7 +243,6 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no. Deploy runs this on the tables file being shipped (`--no-sync`). `--check` reports without writing |
 | `cats/scripts/digicon_header.py` | Publication title row |
 | `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |
-| `jmri/layouts/hart/scripts/add_yard_ladder_buttons.py` | Ladder lamp buttons on Masters |
 | `cats/scripts/sync_hart_package.sh` | Stage `~/hart` package; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `cats/scripts/windows/install_hart_tables.ps1` | Windows local install helper (tables + jars + web); prefer `sync_hart_package.sh --win` |
