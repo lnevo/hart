@@ -5,8 +5,8 @@ Project write-ups and notes live here.
 | Location | Contents |
 |----------|----------|
 | **This folder** | Live HART publications (canonical outputs) |
-| `sts-docker-helpers/docs/` | STS + HART seed operational requirements |
-| `sts-docker/AGENTS.md` | STS runtime / Docker agent instructions |
+| `external/sts-helpers/docs/` | STS + HART seed operational requirements |
+| `external/sts-docker/AGENTS.md` | STS runtime / Docker agent instructions |
 | `publications/` | Rebuild scripts for official HART publications |
 
 ## Scale Operating Instructions
