@@ -39,11 +39,6 @@ python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --help
 python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local
 ```
 
-## Pending (D10)
-
-- Periodic event **125** after master RAM wipe
-- USB serial ACK / pacing on Windows bridge
-
 Spec: [`cross-repo/lcos/TIER_B.md`](../../archive/consolidation/cross-repo/lcos/TIER_B.md)
 
 ## Related pipelines

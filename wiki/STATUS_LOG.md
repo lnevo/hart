@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — MQTT mimic has nothing pending: the owner dropped periodic event 125, and USB serial ACK and pacing on the Windows bridge is resolved. Docs only; not deployed.
+
 Updated: 2026-10-31 — Wiki cleanup: dropped the facing invert, END_BUMPER and Designer items from the open lists, and removed the undated Product decision, Collaboration, Remaining and Manual launch sections from this log, all superseded (see git history). The END_BUMPER bindings themselves stay. Docs only; not deployed.
 
 Updated: 2026-10-31 — CATS panels reduced to `HART_Digicon.xml` plus the generated `HART_CTC.xml` and `HART_ABS.xml` (ADR-012). `wire_digicon.py` now reproduces the desks. It carries the station plates and Mast 32R edits that were only in the desks, reads mast templates from `signal_head_plan.csv`, and picks up the Basic aspect mapping the desks had missed. Launchers renamed; old panels and Gate 1 generators are in `archive/`. Host deploy still owed.
