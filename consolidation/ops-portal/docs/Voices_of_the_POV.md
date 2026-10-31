@@ -2,7 +2,7 @@
 
 **Prototype reference for HART** · October 2026
 
-The [Pittsburgh & Ohio Valley Railway](pittsburgh-ohio-valley-railway.html) was a small railroad, and the people on it knew each other well. This page collects the crew, sayings, and stories that Mark Connolly, a P&OV trainman and engineer from 1977 to 1991, shared on his [Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad). The stories and quotes are his. Names and jobs are as he gave them in his captions, and each "photo" or "post" link opens the original.
+The [Pittsburgh & Ohio Valley Railway](pittsburgh-ohio-valley-railway.html) was a small railroad, and the people on it knew each other well. This page collects the crew, sayings, and stories that Mark Connolly, a P&OV trainman and engineer from 1977 to 1991, shared on his [Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad). The stories and quotes are his. Names and jobs are as he gave them in his captions, and each "photo" or "post" link opens the original. Two Shenango and PC&Y neighbors below come from comments collected by Dennis DeBruler.
 
 Family details from the obituaries he reposted are left out. Only the railroad careers are kept.
 
@@ -89,6 +89,16 @@ Clerked in the evenings and summers when he was not teaching or coaching. He had
 **Chauncey Evans** · *Trainmaster*  
 Retired in 1978 as trainmaster after a 30-year career on the P&OV. The blog also shows his October 1970 paycheck. ([Tumblr post](https://www.tumblr.com/pittsburghohiovalleyrailroad/53865499600), [photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/44876629245))
 
+## Shenango and PC&Y neighbors
+
+**Stanley Quick** · *38 years at Shenango*  
+Spent “the best 38 years of my life” at Shenango Inc. He remembered the furnaces coming down in stages and said of P&OV #4 at the foundry: “I used to work on that engine.” ([post](https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html))
+
+**John Simpson** · *PC&Y*  
+Worked on the PC&Y and recalled hauling ore to Neville Island out of Scully Yard. ([post](https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html))
+
+---
+
 ## Around the yard office
 
 - Coffee runs: crews stopped at the millwrights' shop on the furnace lead after a drag to the dumper, around 10:00 to 10:30 a.m., and brought coffee back to the yard office. A four-cup holder hung on the bulletin board. ([photo](https://www.tumblr.com/pittsburghohiovalleyrailroad/61492033975))
@@ -114,3 +124,4 @@ Retired in 1978 as trainmaster after a 30-year career on the P&OV. The blog also
 ## Sources
 
 - Mark Connolly, [@pittsburghohiovalleyrailroad on Tumblr](https://www.tumblr.com/pittsburghohiovalleyrailroad), 2013–2026. Every story above links to its post.
+- Dennis DeBruler, [“Neville Island, PA: Shenango Steel Works”](https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html), *Towns and Nature*, 17 October 2022, for Stanley Quick and John Simpson.

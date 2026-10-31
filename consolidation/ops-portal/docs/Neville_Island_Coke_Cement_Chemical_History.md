@@ -43,7 +43,8 @@ During the 1960s PC&C broke apart:
 | Dec 1899 | American Steel & Wire announces a Neville Island furnace plant. Pittsburgh & Ohio Valley Railway incorporated 5 December 1899. |
 | 1900–1902 | AS&W buys about 182 acres of former farmland and builds a blast furnace. P&OV builds about 11 miles of industrial track on company land, interchanging with the Pittsburgh, Chartiers & Youghiogheny (PC&Y). |
 | 1901 | American Steel & Wire becomes a U.S. Steel subsidiary. |
-| 1918–1919 | U.S. Ordnance Department commandeers P&OV for a planned Neville Island ordnance works; property returned 1 July 1919. |
+| 1918–1919 | The federal government buys out the island's farmers by eminent domain ($8.7 million) for what was to be the world's largest munitions plant. The Ordnance Department commandeers P&OV for the work; the project is abandoned after the Armistice and the property returned 1 July 1919. |
+| 1921 | In December 1921 the government land is sold at auction, and industrial buyers outbid the displaced farmers. |
 | 1928 | Davison Coke & Iron Company incorporated (Pennsylvania filing 29 August 1928). |
 | 1929 | Davison buys the old AS&W blast-furnace property and builds new coke ovens and a cement plant. |
 | ~1930 | Cement operations underway. The coke ovens and chemical works that later became Shenango date from about this time. |
@@ -145,6 +146,8 @@ HART's Shenango map is the coke works after the iron department closed: tracks K
 
 Coke outlasted iron by about 25 years. DTE Energy bought Shenango in 2008. Citing the North American steel downturn, DTE announced closure on 17 December 2015. **The last coke came off on 6 January 2016** — that is the coke date, not pig iron. (2014–15 news about Shenango is pollution enforcement against the coke battery.) Demolition included the May 2018 stack implosion. Lindy Paving closed on the site in November 2020.
 
+Stanley Quick, 38 years at the plant, recalled that the #1 battery “went on line in 1980” and lasted until DTE shut the plant, and another plant follower remembered it as built in the 1980s. That date is a recollection only: EPA's cleanup page dates the ovens to about 1930, and no permit record has been checked. Google Earth imagery, as read by Dennis DeBruler, shows the gas holder gone between September 2005 and October 2006.
+
 This is the branch HART cards as Shenango Coke Works.
 
 ### Ingot molds (Shenango-Penn, 1939–1990)
@@ -152,6 +155,8 @@ This is the branch HART cards as Shenango Coke Works.
 The ingot-mold foundry is a different company and a different end of the island. **Shenango-Penn Mold** bought it in **1939**, at **3100 Grand Avenue** on the west end. It was casting molds through the 1940s. In those years the east end was still Pittsburgh Coke & Iron, then Pittsburgh Coke & Chemical. Shenango Furnace did not buy the coke and iron until 1962.
 
 Hot metal for the foundry came from the east-end furnaces. Plant veterans date the foundry shutdown to **January 1990**. Toxics Release Inventory reports for the foundry division drop from tens of thousands of pounds in 1989 to 5 pounds in 1990. HART does not switch this plant.
+
+Ronald Meiss, who made molds at Sharpsville, recalled Shenango foundries there, in Buffalo, and on Neville Island. Mike Laslo described a newer greensand area at Neville Island that made the stools the molds sat on, and David Finch recalled Bollinger Corp., an Ambridge engineering firm, designing new molds for Shenango. Stanley Quick placed Joe De Franco's 1978 photo of P&OV #4 at this foundry.
 
 ---
 
@@ -374,6 +379,12 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
 26e. Sharpsville (not Neville Island): Shenango Furnace No. 3 banked 1968, torn down late 1970s; No. 1 torn down 1970. Development of Sharpsville Furnace / Sharpsville Historical Society.
 
 26f. *Chemical & Engineering News*, 17 February 1958, "Pittsburgh Coke Branches Out": one Neville Island blast furnace adapted for ferromanganese and spiegeleisen, about $2.5 million, half of it a gas-cleaning system. The furnace letter is not given.
+
+26g. Dennis DeBruler, “Neville Island, PA: Shenango Steel Works,” *Towns and Nature*, 17 October 2022: comments by plant veterans (battery, foundry, molds) and imagery notes. The post's own notes contain errors this page does not follow, including closure in 2015 and furnaces gone by 1948.  
+    https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html
+
+26h. Historic American Engineering Record No. PA-217, *Coraopolis Bridge* (1989), pp. 10–11: farms, 1918 purchase, December 1921 auction.  
+    https://pghbridges.org/articles/haer/coraopolis_PA217/coraopolis_HAER_PA217a.htm
 
 27. *New York Times*, 15 Dec 1979, “Donated Park Lies Unused Because of Toxins Beneath.”
 
