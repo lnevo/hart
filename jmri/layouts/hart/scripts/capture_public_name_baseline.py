@@ -20,10 +20,8 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_TABLES = REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 DEFAULT_OUT = REPO_ROOT / "jmri" / "layouts" / "hart" / "data" / "baselines"
 CATS_MASTER_CANDIDATES = (
-    REPO_ROOT / "cats" / "panels" / "HART_Master_CTC_hold.xml",
-    REPO_ROOT / "cats" / "panels" / "HART_Master_ABS_hold.xml",
-    REPO_ROOT / "cats" / "panels" / "HART_Master.xml",
-    REPO_ROOT / "cats" / "panels" / "HART_Master_ABS.xml",
+    REPO_ROOT / "cats" / "panels" / "HART_CTC.xml",
+    REPO_ROOT / "cats" / "panels" / "HART_ABS.xml",
 )
 
 TURNOUT_MAST_SLOTS = ("signalAMast", "signalBMast", "signalCMast", "signalDMast")

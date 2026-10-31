@@ -1,28 +1,25 @@
-# Pipeline 5 — CATS Digicon Masters
+# Pipeline 5 — CATS Digicon panels
 
-Designer geometry → wired Master XML → HOLD_ONLY CTC and ABS launchers.
+Designer save → `wire_digicon.py` → the CATS CTC and CATS ABS desks.
 
 **Status:** Live desks are **CATS CTC** and **CATS ABS**. [ADR-004](../decisions/ADR-004-cats-ctc.md).
 
 ## Inputs
 
-- `cats/panels/HART_Master.xml` (geometry; rebuild from Master4 via `wire_hart_master4.py --live`)
+- `cats/panels/HART_Digicon.xml` (Designer save; the only panel to edit)
 - Device CSVs from `python3 jmri/scripts/export_hart_devices_for_cats.py`
 
 ## Outputs
 
 | File | Role |
 |------|------|
-| `cats/panels/HART_Master_CTC_hold.xml` | Live CTC — routes on; signals HOLD_ONLY; SML owns aspects |
-| `cats/panels/HART_Master_ABS_hold.xml` | Live ABS — paints SML; HOLD_ONLY |
+| `cats/panels/HART_CTC.xml` | Live CTC — routes on; signals HOLD_ONLY; SML owns aspects |
+| `cats/panels/HART_ABS.xml` | Live ABS — paints SML; HOLD_ONLY |
 
 ## Run
 
 ```bash
-python3 cats/scripts/wire_hart_master4.py --live
-python3 cats/scripts/build_hart_master_ctc_hold.py
-python3 cats/scripts/build_hart_master_abs_hold.py
-python3 cats/scripts/polish_hart_master_header.py --panel all
+python3 cats/scripts/wire_digicon.py
 python3 cats/scripts/validate_cats_panel.py
 ./cats/scripts/launch_cats.sh
 ```
@@ -33,5 +30,5 @@ System picture: [`docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_
 
 - Run CATS CTC and USS CTC (or Dispatcher System from inside CATS) at the same time
 - Store JMRI tables from a CATS session
-- Treat Gate 1 `HART.xml` as the ops board
+- Hand-edit `HART_CTC.xml` or `HART_ABS.xml`; the next build replaces them
 - Command field turnouts / publish `track/cmd` from launch or paint-fix scripts

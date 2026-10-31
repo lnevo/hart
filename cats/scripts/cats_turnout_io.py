@@ -1,6 +1,6 @@
 """Digicon turnout IO: CSV → SWITCHPOINTS SELECTEDREPORT / ROUTECOMMAND.
 
-Live SoR for plant cells and invert polarity is ``wire_hart_master4.py``
+Live SoR for plant cells and invert polarity is ``wire_digicon.py``
 ``PLANTS`` / ``INVERT_VS_JMRI``. This module only binds JMRI M2T addresses.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import build_hart_digicon_from_le as le  # noqa: E402
+import digicon_lib as le  # noqa: E402
 
 TURNOUT_CSV = ROOT / "cats/data/turnout_bindings.csv"
 HART_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"

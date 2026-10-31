@@ -10,6 +10,8 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 |------|------|
 | [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `docs/wiring/signals/signal_wiring.csv`. **Node ID = C{radio Address}** (helix DCC is **D5**). **Legacy Node ID** is the old sequential C1–C13 / D1 label. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v85. |
+| [`Layout Documentation.pptx`](Layout%20Documentation.pptx) | Editable source of the track bus, power district, bus wiring and node drawings published at `www/behind/layout-docs.html`. |
+| [`terminal_blocks.md`](terminal_blocks.md) | Terminal block wiring recovered from an October 2025 draft. Not verified against the railroad. |
 | [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | Live lower-deck Digicon ABS matrix (100L, 117LA, 114LA, …). |
 | [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
 | [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). Sequential C1–C13 IDs. |

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Install /Applications icons:
-#   CATS CTC      → HART_Master_CTC_hold.xml (HOLD_ONLY)
-#   CATS ABS      → HART_Master_ABS_hold.xml (HOLD_ONLY; paint JMRI/SML)
+#   CATS CTC      → HART_CTC.xml (HOLD_ONLY)
+#   CATS ABS      → HART_ABS.xml (HOLD_ONLY; paint JMRI/SML)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-ICNS="$ROOT/jmri/resources/CATS.icns"
+ICNS="$ROOT/cats/resources/CATS.icns"
 APPS="/Applications"
 DESKTOP="${HOME}/Desktop"
 
@@ -13,11 +13,8 @@ if [[ ! -f "$ICNS" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$ROOT/cats/panels/HART_Master_ABS_hold.xml" ]]; then
-  python3 "$ROOT/cats/scripts/build_hart_master_abs_hold.py"
-fi
-if [[ ! -f "$ROOT/cats/panels/HART_Master_CTC_hold.xml" ]]; then
-  python3 "$ROOT/cats/scripts/build_hart_master_ctc_hold.py"
+if [[ ! -f "$ROOT/cats/panels/HART_CTC.xml" || ! -f "$ROOT/cats/panels/HART_ABS.xml" ]]; then
+  python3 "$ROOT/cats/scripts/wire_digicon.py"
 fi
 
 make_app() {
@@ -67,20 +64,17 @@ PLIST
   echo "Applications: $app -> $panel"
 }
 
-make_app "CATS CTC" "HART_Master_CTC_hold.xml"
-make_app "CATS ABS" "HART_Master_ABS_hold.xml"
+make_app "CATS CTC" "HART_CTC.xml"
+make_app "CATS ABS" "HART_ABS.xml"
 
 rm -rf \
   "${APPS}/CATS.app" \
-  "${APPS}/CATS Master4.app" \
   "${APPS}/CATS CTC SML.app" \
   "${APPS}/CATS ABS-RO.app" \
   "${DESKTOP}/CATS.app" \
-  "${DESKTOP}/CATS Master4.app" \
   "${DESKTOP}/CATS CTC.app" \
   "${DESKTOP}/CATS CTC SML.app" \
   "${DESKTOP}/CATS ABS.app" \
   "${DESKTOP}/CATS ABS-RO.app"
-rm -f "${DESKTOP}/HART_Master.command" "${DESKTOP}/HART_Master_ABS.command"
 /usr/bin/osascript -e 'tell application "Finder" to update desktop' 2>/dev/null || true
 echo "DONE"

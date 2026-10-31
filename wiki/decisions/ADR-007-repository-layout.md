@@ -38,6 +38,6 @@ Consolidation decisions:
 | D11, P3a | Open goal: hart-ops is the intended car source, but no authoritative car workflow exists yet |
 | Validation tiers | Replaced by the deploy gates, one `check` command and a pre-session checklist |
 | D8, D10, D10b | Closed |
-| P4a | Open: the loose `~/Desktop/HART` files still need sorting before that folder retires |
+| P4a | Closed 2026-10-31: the loose `~/Desktop/HART` files are sorted into `media/hart-research`. The owner confirmed the two wiring `.pptx` and three root `.docx` left there are older copies to ignore: `docs/` holds the current versions, including `docs/wiring/Layout Documentation.pptx` and the recovered `docs/wiring/terminal_blocks.md` |
 
 Records under `consolidation/` that say otherwise, including `AGENTS.md`, `OBJECTIVE.md` and `DECISIONS_RECORDED.md`, are superseded by this ADR.

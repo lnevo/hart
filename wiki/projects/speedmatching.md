@@ -1,7 +1,7 @@
 # Speed matching
 
 - **Owner:** lnevo
-- **Status:** Parked — do soon (every DecoderPro roster loco now has the same synthesized 10-step / 400 mm/s profile; replace with measured profiles)
+- **Status:** Parked — future goal (every DecoderPro roster loco now has the same synthesized 10-step / 400 mm/s profile; replace with measured profiles)
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
 
 HART auto-dispatcher needs **measured** roster speed profiles for station stops. Every live DecoderPro loco currently has the same synthetic 10-step / 400 mm/s profile (`wiki/STATUS.md`). This thread is a working club procedure for a detected track circle plus JMRI POM scripts.

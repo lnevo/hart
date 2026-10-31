@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pi desktop: CATS CTC (HOLD_ONLY) + CATS ABS (stock, no hold). Removes ABS-RO / CTC SML / legacy.
+# Pi desktop: CATS CTC + CATS ABS (both HOLD_ONLY). Removes ABS-RO / CTC SML / legacy.
 set -euo pipefail
 HART="${HART:-/home/pi/hart}"
 SRC="$HART/cats/scripts/pi"

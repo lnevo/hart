@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Add switch-only CTC columns for USS plants that currently have only a Local lock.
 
-Eight Master 4 yard plants (Switches 9, 11, 17, 19, 21, 25, 27, 29) already have
+Eight Digicon yard plants (Switches 9, 11, 17, 19, 21, 25, 27, 29) already have
 LOCKTOGGLE icons on the 20-column board. They were never given switch levers, so
 the field can still throw them while the dispatcher has no N/R handle. This
 module inserts the missing CTC internals + code-button data. Code-button sensor

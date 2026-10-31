@@ -7,10 +7,10 @@ REM Prefer caller-supplied panel (CTC / ABS wrappers pass this).
 if not "%~1"=="" (
   set PANEL=%~1
 ) else (
-  set PANEL=%USERPROFILE%\hart\cats\panels\HART_Master.xml
-  if not exist "%PANEL%" set PANEL=%~dp0..\..\panels\HART_Master.xml
-  if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\panels\HART_Master.xml
-  if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\HART_Master.xml
+  set PANEL=%USERPROFILE%\hart\cats\panels\HART_CTC.xml
+  if not exist "%PANEL%" set PANEL=%~dp0..\..\panels\HART_CTC.xml
+  if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\panels\HART_CTC.xml
+  if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\HART_CTC.xml
 )
 
 REM Program Files JMRI first (not %%USERPROFILE%%\JMRI prefs folder)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Polish Digicon Master panels with a HART publication-style title block.
+"""Stamp the CATS desks with a HART publication-style title block.
 
 Follows Desktop/HART/Car Cards/docs/HART_Railroad_Publication_Standards_v1.0.docx:
   HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations
@@ -10,8 +10,6 @@ Adds SEC_NAME header cells on row Y=1 (track plan starts at Y=2). Does not move 
 
 from __future__ import annotations
 
-import argparse
-import shutil
 import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
@@ -25,24 +23,14 @@ YELLOW = "-256"  # same as FONT_CP
 
 PANELS = {
     "ctc": {
-        "path": PANELS_DIR / "HART_Master.xml",
+        "path": PANELS_DIR / "HART_CTC.xml",
         "pub_id": "DS-CTC",
         "mode": "CTC DIGICON",
     },
     "abs": {
-        "path": PANELS_DIR / "HART_Master_ABS.xml",
+        "path": PANELS_DIR / "HART_ABS.xml",
         "pub_id": "DS-ABS",
         "mode": "ABS DIGICON",
-    },
-    "abs_hold": {
-        "path": PANELS_DIR / "HART_Master_ABS_hold.xml",
-        "pub_id": "DS-ABS",
-        "mode": "ABS DIGICON",
-    },
-    "ctc_hold": {
-        "path": PANELS_DIR / "HART_Master_CTC_hold.xml",
-        "pub_id": "DS-CTC",
-        "mode": "CTC DIGICON",
     },
 }
 
@@ -161,41 +149,3 @@ def polish(
 
     tree.write(path, encoding="UTF-8", xml_declaration=True)
     print(f"polished {path.relative_to(ROOT)}  [{pub}]")
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "--panel",
-        choices=("ctc", "abs", "abs_hold", "ctc_hold", "all"),
-        default="ctc",
-        help="Which Digicon Master to polish (default: ctc for Mac test)",
-    )
-    ap.add_argument("--rev", default="A", help="Revision letter (default A)")
-    ap.add_argument(
-        "--effective",
-        default=date.today().isoformat(),
-        help="Effective date YYYY-MM-DD (default today)",
-    )
-    ap.add_argument(
-        "--checkpoint",
-        action="store_true",
-        help="Copy each target to cats/panels/checkpoints/ before writing",
-    )
-    args = ap.parse_args()
-
-    keys = list(PANELS) if args.panel == "all" else [args.panel]
-    for key in keys:
-        meta = PANELS[key]
-        path: Path = meta["path"]
-        if not path.is_file():
-            raise SystemExit(f"Missing {path}")
-        if args.checkpoint:
-            ck = ROOT / "cats/panels/checkpoints" / f"{path.stem}_pre_header.xml"
-            shutil.copy2(path, ck)
-            print(f"checkpoint {ck.relative_to(ROOT)}")
-        polish(path, meta["pub_id"], meta["mode"], args.rev, args.effective)
-
-
-if __name__ == "__main__":
-    main()

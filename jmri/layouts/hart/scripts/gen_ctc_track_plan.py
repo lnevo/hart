@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from CATS Master 4 (v77).
+"""Generate the USS CTC track diagram from the CATS Digicon (v77).
 
 20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
 101 is L/N, 102 is L/N, 117 is LNR. Mast 2035 is named L but faces east (into
@@ -25,8 +25,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from uss_switch_only_columns import ensure_columns
 
 ROOT = Path(__file__).resolve().parents[4]
-CATS_XML = ROOT / "cats/panels/HART_Master4_wired.xml"
-CATS_DESIGNER = ROOT / "cats/panels/HART_Master4.xml"
+CATS_XML = ROOT / "cats/panels/HART_CTC.xml"
+CATS_DESIGNER = ROOT / "cats/panels/HART_Digicon.xml"
 if not CATS_XML.is_file():
     CATS_XML = CATS_DESIGNER
 GUI_XML = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
@@ -1338,7 +1338,7 @@ def main() -> None:
     txt = args.gui.read_text()
     new = apply(txt, cells)
     args.gui.write_text(new)
-    print("%s: Master 4 track plan regenerated" % args.gui)
+    print("%s: Digicon track plan regenerated" % args.gui)
     install_preference_icons()
 
     pe = re.search(r"<paneleditor\b.*?</paneleditor>", new, re.S)

@@ -1,6 +1,6 @@
 # Public-name rename baselines (live)
 
-Recaptured **2026-08-26** from live `tables.xml` and **CATS CTC** (`HART_Master_CTC_hold.xml`) so the next rename pass diffs against current public names, not the pre-ADR-005 strings. The 2026-08-20 pre-convert snapshot is in git history.
+Recaptured **2026-08-26** from live `tables.xml` and **CATS CTC** (`HART_CTC.xml`) so the next rename pass diffs against current public names, not the pre-ADR-005 strings. The 2026-08-20 pre-convert snapshot is in git history.
 
 These files are read-only snapshots for regression detection; they do **not** apply any rename.
 
@@ -13,7 +13,7 @@ python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py
 Defaults:
 
 - Input: `jmri/layouts/hart/output/tables.xml`
-- CATS: `cats/panels/HART_Master_CTC_hold.xml` (falls back to ABS hold, then geometry sources)
+- CATS: `cats/panels/HART_CTC.xml` (falls back to `HART_ABS.xml`)
 - Output: this directory
 
 Optional flags: `--tables PATH`, `--out PATH`.

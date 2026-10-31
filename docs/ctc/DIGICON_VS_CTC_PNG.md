@@ -6,7 +6,7 @@ Three different pictures got mixed together:
 |----------|------------|----------------|---------------------------|
 | **PR #4 `hart_ctc_panel.png`** | Pillow drawing — Class I CTC *look* (one main, OS plates, ladders) | **No** | **No** (static art) |
 | **PR #4 `hart_ctc_0x_*.png`** | Pillow drawing of JMRI LE *geography* | **No** | **No** |
-| **`HART_le.xml` in CATS** | Real Digicon TRACKPLAN (slash/H cells) | **Yes** | Yes, once MQTT/points wired |
+| **`HART_CTC.xml` in CATS** | Real Digicon TRACKPLAN (slash/H cells) | **Yes** | Yes, once MQTT/points wired |
 
 So: the remote screenshots that “looked right” were **not** what CATS opens. CATS can only show a Digicon built from `SECTION` / `SWITCHPOINTS` / named `BLOCK`s.
 
@@ -37,5 +37,5 @@ That is the PR #4 PNG *intent*, implemented as loadable Digicon cells.
 | 112 | East End | Main → OS East Lead |
 | 113–115 | Princess | Loops (OS McKees Rocks / OS McKeesport) |
 
-Rebuild: `python3 cats/scripts/build_hart_digicon_ctc.py --mqtt` → `cats/panels/HART_ctc.xml`  
-Launch: `CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_ctc.xml`
+Rebuild: `python3 cats/scripts/wire_digicon.py`  
+Launch: `./cats/scripts/launch_cats.sh`

@@ -10,7 +10,7 @@ NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 | 2 | Public names + comments | Live | [public-names.md](public-names.md) |
 | 3 | Digicon signal beans | Live | [digicon-signal-beans.md](digicon-signal-beans.md) |
 | 4 | Native SML + NX | Live | [native-sml.md](native-sml.md) |
-| 5 | CATS Digicon Masters | Live | [cats-masters.md](cats-masters.md) |
+| 5 | CATS Digicon panels | Live | [cats-panels.md](cats-panels.md) |
 | 6 | USS CTC machine | Live (not with CATS) | [uss-ctc.md](uss-ctc.md) |
 | 7 | Dispatcher System graph | Live | [dispatcher-system.md](dispatcher-system.md) |
 | 8 | Wiring documentation | Live | [wiring-docs.md](wiring-docs.md) |

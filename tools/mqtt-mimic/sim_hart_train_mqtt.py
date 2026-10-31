@@ -35,7 +35,7 @@ except ImportError as e:  # pragma: no cover
     ) from e
 
 ROOT = Path(__file__).resolve().parents[2]
-PANEL = ROOT / "cats" / "panels" / "HART.xml"
+PANEL = ROOT / "cats" / "panels" / "HART_CTC.xml"
 HART_PROD = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 
 DEFAULT_HOST = "minipc-e5h6x.local"
@@ -97,7 +97,7 @@ def _merge(base: dict[str, str], override: dict[str, str]) -> dict[str, str]:
     return out
 
 
-# Digicon spines after Armstrong primary remap (see jmri_to_cats_digicon.py).
+# Digicon spines after Armstrong primary remap (archive/cats-scripts/jmri_to_cats_digicon.py).
 # main = Armstrong spine MW→100→Track Main West Brick–Plane→102→EME→… (JMRI-adjacent).
 # princess / south_yard / yard may need deck_transfer where Armstrong ≠ Neville.
 ROUTES: dict[str, Route] = {

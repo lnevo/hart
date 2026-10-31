@@ -6,7 +6,7 @@ switch plants, block names, labels) — not a live CATS GUI capture. It lets a
 Cloud Agent post a reviewable board image without a full JMRI/CATS install.
 
 Usage:
-    python3 cats/scripts/render_cats_panel.py cats/panels/HART_le.xml out.png
+    python3 cats/scripts/render_cats_panel.py cats/panels/HART_CTC.xml out.png
 """
 
 from __future__ import annotations

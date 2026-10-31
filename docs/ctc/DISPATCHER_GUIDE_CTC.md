@@ -2,7 +2,7 @@
 
 **Publication:** DS-CATS-DISP · Rev A · Eff 2026-08-19  
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
-**Scope:** CATS Digicon panel (`HART_Master_CTC_hold.xml`), mouse dispatching in CTC mode
+**Scope:** CATS Digicon panel (`HART_CTC.xml`), mouse dispatching in CTC mode
 
 Welcome to the desk. This guide is for **being a dispatcher on the CATS panel** — how you
 grant authority, line routes, and use fleeting, stacking, and call-on. It is **not** a

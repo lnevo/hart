@@ -32,7 +32,7 @@ Tables: `STUB_MASTS` and `YARD_BOUNDARY_MASTS` in `apply_le_cleanup.py`. Throat 
 
 ---
 
-## END_BUMPER facing-slot hack — **revisit later**
+## END_BUMPER facing-slot hack
 
 JMRI `getFacingBlock` on a connect1-only `END_BUMPER` looks up `connect2` (null) unless the mast is in the **far** slot. Geography is backwards on purpose:
 
@@ -69,9 +69,7 @@ This is the pattern the South Yard throats use. Stage 1 will ask **same sensor?*
 
 Logix **IX:DSLX:1C1** (**Run Dispatcher**) runs stock `program:jython/DispatcherSystem/Startup.py`. The HART facing overlay (`hart_dispatcher_startup.py` / `patch_dispatcher_facing.py`) is gone; it did not fix polarity.
 
-Stock `MoveTrain.set_train_direction` still inverts the facing dialog ([JMRI#15407](https://github.com/JMRI/JMRI/issues/15407)). If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir** (PDF “Change the Direction of the Train”). Do not re-add an overlay. Do not “fix” mast slots for this.
-
-Stock `MoveTrain` inverts the facing dialog ([JMRI#14365](https://github.com/JMRI/JMRI/issues/14365), still in v5.16+). Stored `"reverse"` loads `*_rvs.xml` while the transit stays Forward. Release WiThrottle before dispatch.
+Stock `MoveTrain.set_train_direction` still inverts the facing dialog: a stored `"reverse"` loads `*_rvs.xml` while the transit stays Forward ([JMRI#14365](https://github.com/JMRI/JMRI/issues/14365)). [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) was closed 2026-09-01 because it was working here, and nothing is pending. If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir** (PDF “Change the Direction of the Train”). Release WiThrottle before dispatch. Do not re-add an overlay. Do not “fix” mast slots for this.
 
 
 ## CreateTransits / Jython landmines

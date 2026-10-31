@@ -16,7 +16,7 @@ Read-only: change no file, and leave no scratch output in the repo. Shell comman
 
 You trace why the HART panel or signals behave as they do, and return the cause. You do not fix it.
 
-Start with `docs/AI_CONTEXT.md`, then only what the question needs: `wiki/pipelines/README.md`, `wiki/DISPATCHER_LAYOUT_HOOPS.md`, `docs/ctc/`, `wiki/MASTER4_SCHEMATIC.md`. The one tables file is `jmri/layouts/hart/output/tables.xml`. CATS Java source, if fetched, is in `tools/cats/src-repo/`; never unpack `cats.jar`. Local CATS logs are in the gitignored logs folder under `cats/`.
+Start with `docs/AI_CONTEXT.md`, then only what the question needs: `wiki/pipelines/README.md`, `wiki/DISPATCHER_LAYOUT_HOOPS.md`, `docs/ctc/`, `wiki/DIGICON_SCHEMATIC.md`. The one tables file is `jmri/layouts/hart/output/tables.xml`. CATS Java source, if fetched, is in `tools/cats/src-repo/`; never unpack `cats.jar`. Local CATS logs are in the gitignored logs folder under `cats/`.
 
 - Never publish to MQTT or command field hardware. If live evidence is needed, name the exact read the user should run.
 - Fixes belong in panel data, never in a patch to Dispatcher System or JMRI.

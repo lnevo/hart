@@ -926,10 +926,8 @@ def main() -> int:
     targets = [
         ROOT / "jmri/layouts/hart/output/tables.xml",
         ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
-        ROOT / "cats/panels/HART_Master.xml",
-        ROOT / "cats/panels/HART_Master_ABS.xml",
-        ROOT / "cats/panels/HART_Master_ABS_hold.xml",
-        ROOT / "cats/panels/HART_Master_CTC_hold.xml",
+        ROOT / "cats/panels/HART_CTC.xml",
+        ROOT / "cats/panels/HART_ABS.xml",
         ROOT / "cats/panels/sheets/HART_sheet_West_Yard2.xml",
         ROOT / "cats/panels/sheets/HART_sheet_West_Yard.xml",
         ROOT / "cats/panels/sheets/HART_sheet_West_Yard_SOR.xml",
