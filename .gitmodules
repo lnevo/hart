@@ -10,3 +10,6 @@
 [submodule "consolidation/external/hart-ops"]
 	path = external/hart-ops
 	url = git@github.com:lnevo/hart-ops.git
+[submodule "external/model-railroad-skills"]
+	path = external/model-railroad-skills
+	url = git@github.com:lnevo/model-railroad-skills.git

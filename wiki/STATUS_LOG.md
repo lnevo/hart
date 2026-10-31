@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — Published [model-railroad-skills](https://github.com/lnevo/model-railroad-skills): six generic skills and two read-only MCPs, checked against source. That check corrected the wiki: END_BUMPER mast slots are JMRI's normal slots, not a hack, and the facing swap is deliberate stock behaviour. Docs only; not deployed.
+
 Updated: 2026-10-31 — Listed the 3D station maps as an ongoing project in `STATUS.md` and on the wiki home page. Docs only; not deployed.
 
 Updated: 2026-10-31 — Car workflow ready (ADR-013): `bin/cars` in hart-ops takes a photo or answers, queues a card, and feeds the STS seed and an Operations Pro merge. The 28 roster-only cars joined the repository; the roster and seed are unchanged by that. Tested end to end on a scratch copy; the running STS database step and the Pi push have not been run. Not deployed.

@@ -12,7 +12,7 @@ Chat is a scratchpad. Decisions that count live here.
 | All documents | [`../docs/INDEX.md`](../docs/INDEX.md) |
 | Website | [`../www/README.md`](../www/README.md) |
 
-**Active projects:** [`projects/hart-panel.md`](projects/hart-panel.md) · [`projects/cats-integration.md`](projects/cats-integration.md) · [3D station maps](../docs/benchwork/station_maps_3d/README.md) · [`projects/speedmatching.md`](projects/speedmatching.md) (parked) · [`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md) (parked — review later)  
+**Active projects:** [`projects/hart-panel.md`](projects/hart-panel.md) · [`projects/cats-integration.md`](projects/cats-integration.md) · [3D station maps](../docs/benchwork/station_maps_3d/README.md) · [`projects/speedmatching.md`](projects/speedmatching.md) (parked) · [`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)  
 **Public names:** [ADR-002](decisions/ADR-002-naming-contract.md) · [ADR-005](decisions/ADR-005-public-equipment-names.md) · [ADR-011](decisions/ADR-011-basic-signals.md) · [`public_name_map.csv`](../jmri/layouts/hart/data/public_name_map.csv)
 **Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`  
 **CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style; source [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/))  

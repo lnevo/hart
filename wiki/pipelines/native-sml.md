@@ -13,7 +13,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 - LE mast bindings + [`jmri/layouts/hart/data/le_signal_boundaries.csv`](../../jmri/layouts/hart/data/le_signal_boundaries.csv)
 - Frozen NX ids: [`jmri/layouts/hart/scripts/nx_contract.py`](../../jmri/layouts/hart/scripts/nx_contract.py)
 - Facing: `python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py`
-- Stub `END_BUMPER` far-slot hack (keep): [`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md)
+- Stub `END_BUMPER` mast slots: [`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md)
 
 ## Outputs
 
@@ -35,5 +35,5 @@ After Discover, re-add manual Princess pairs (`Mast 36RA→Mast 40LA`, `Mast 36R
 ## Do not
 
 - Run Discover or Store tables from CATS
-- Drop the END_BUMPER far-slot bindings
+- Move the END_BUMPER mast bindings
 - Expect SML Enable lists to be the MQTT allow-list (that is field `track/signalmast/<packed>`)
