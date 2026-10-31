@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — The final cleanup epic from ADR-007 is listed under Future goals in `STATUS.md`, because it had dropped out of the open lists. Docs only; not deployed.
+
 Updated: 2026-10-31 — Pi Operations Pro roster brought up to the repository: 10 wrong ids corrected in place and 9 cars added, for 99 cars. `push_ops_cars_to_pi.sh` safety check fixed; it could never fire before. Deployed the roster to the Pi; backup `OperationsCarRoster.xml.pre_cars_20261031_173430`.
 
 Updated: 2026-10-31 — The United We Stand boxcar is HART 1776, a placeholder number, and is not yet in STS or Operations Pro. Dead links fixed in `jmri/README.md`. Docs and car data only; not deployed.

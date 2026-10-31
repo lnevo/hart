@@ -32,3 +32,4 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 ## Future goals
 
 - Measured speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md)).
+- Final cleanup epic: retire `~/sts`, `~/Desktop/HART` and the duplicates in `~/Documents`, leaving this repo as the one home ([ADR-007](decisions/ADR-007-repository-layout.md)). Undated on purpose. `~/sts` stays until after the 2026-11-08 operating session, and the `.any` track plans stay in `~/Documents`.
