@@ -31,7 +31,7 @@
 - **Packed ID:** deploy `IH*` digits; wiring CSV may use other schemes — pipeline 8 crosswalk.
 - **Bridge:** Windows serial bridge runs **foreground** only (do not `Start-Process` Hidden).
 
-## Run (live — do not change from consolidation)
+## Run
 
 ```bash
 # JMRI PanelPro with mqtt_signalhead_publisher active

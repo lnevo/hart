@@ -4,7 +4,7 @@
 - **Status:** Active — live layout is past phases 0–2 (SML, CATS, USS, Dispatcher System)
 - **Date:** 2026-08-07 (scaffold); **refreshed 2026-08-22**
 - **Layout name:** `hart`
-- **Baseline:** `jmri/layouts/linear6/linear6.xml` (connectivity + positionability)
+- **Baseline:** `jmri/layouts/hart/anyrail/hart.xml` (connectivity + positionability)
 
 ## Evidence
 

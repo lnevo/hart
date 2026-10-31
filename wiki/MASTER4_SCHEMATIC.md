@@ -1,5 +1,7 @@
 # HART Digicon schematic — plant map
 
+> Some block and switch names below predate ADR-005. Check against `public_name_map.csv`.
+
 Source: `cats/panels/HART_Master4.xml` (Designer save, 63×16, 1920×540).  
 Wire: `python3 cats/scripts/wire_hart_master4.py` → `HART_Master4_wired.xml`.  
 `--live` copies that onto CATS CTC / CATS ABS. **This is the live Digicon.**

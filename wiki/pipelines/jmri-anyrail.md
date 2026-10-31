@@ -2,32 +2,31 @@
 
 Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaults).
 
-**Status:** Frozen for **hart**. Live geometry came from linear6; do not re-run this path unless asked. Still the workflow for `mac` / `linear4`.
+**Status:** Frozen for **hart**: `hart_prod.xml` and `tables.xml` carry later JMRI work, so do not re-run unless asked. The tools stay live for future panels.
 
 ## Inputs
 
 - `jmri/layouts/<name>/anyrail/*.xml`
 - `jmri/layouts/<name>/data/layout_blocks.xlsx` (+ `block_merges.txt`)
-- Authoritative panel for styles (`mac_jmri2.xml` pattern)
+- Style template: `jmri/templates/panel_style.xml`
 
 ## Outputs
 
 - `jmri/layouts/<name>/output/*_blocked.xml`
-- linear4 also `linear4_prod.xml` (MQTT + LogixNG)
 
-## Run (`JMRI_LAYOUT=linear4` example)
+## Run (`JMRI_LAYOUT=hart` example)
 
 ```bash
-export JMRI_LAYOUT=linear4
+export JMRI_LAYOUT=hart
 python3 jmri/scripts/prepare_tables_from_anyrail.py \
-  jmri/layouts/linear4/anyrail/linear4.xml \
-  jmri/layouts/linear4/authoritative/linear4.xml \
+  jmri/layouts/hart/anyrail/hart.xml \
+  jmri/templates/panel_style.xml \
   --scale 1
 python3 jmri/scripts/build_blocks_excel.py
 python3 jmri/scripts/apply_blocks_to_panel.py \
-  jmri/layouts/linear4/anyrail/linear4.xml \
-  jmri/layouts/linear4/output/linear4_blocked.xml \
-  jmri/layouts/mac/authoritative/mac_jmri2.xml \
+  jmri/layouts/hart/anyrail/hart.xml \
+  jmri/layouts/hart/output/hart_blocked.xml \
+  jmri/templates/panel_style.xml \
   use-panel-layout no-nx
 ```
 

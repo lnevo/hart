@@ -1,10 +1,12 @@
 # Layout Editor / Dispatcher System hoops
 
+> Some mast and plate names below predate ADR-005. Check against `public_name_map.csv`.
+
 SoR for workarounds used so Dispatcher System can start and stop at HART stations. As of **2026-09-01** the live graph is **103 sections / 746 transits / 1548 HEAD_AND_TAIL traininfo** (stock Stage 1; 45 masts). S-1…S-5 are arrival/departure stations (enter/leave via 103 or East Lead). Revisit the marked hacks; do not silently delete them.
 
 Railroad English first, then the JMRI name. Operator desk: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md). Live notes: [`STATUS.md`](STATUS.md) (Dispatcher System).
 
-Writable tables: `tables/new_tables.xml`. Re-apply LE bindings with `jmri/layouts/hart/scripts/apply_le_cleanup.py`.
+Tables: `jmri/layouts/hart/output/tables.xml`. Re-apply LE bindings with `jmri/layouts/hart/scripts/apply_le_cleanup.py`.
 
 ---
 

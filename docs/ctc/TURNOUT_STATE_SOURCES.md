@@ -28,7 +28,6 @@
    MQTT host (`MQTT_HOST` / JMRI connection / `127.0.0.1` /
    `192.168.137.2` / `minipc-e5h6x.local`). Alias:
    `apply_mqtt_retain_at_startup.py`. Rebuild tables with
-   `python3 jmri/scripts/extract_hart_mqtt_tables_from_linear6.py`.
    After deferred turnout paint, the script calls Digicon
    `IOSpec.refreshScreen()` (same as **Appearance → Refresh Screen**).
    If frogs still look wrong: run that menu item once manually.
