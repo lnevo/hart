@@ -64,7 +64,7 @@ P&LE was a New York Central property (NYC interest from 1879, control by the 188
 
 B&O’s own Pittsburgh freight geography sat on other routes: the Pittsburgh Division toward Cumberland and Baltimore, and the former Pittsburgh & Western on the north side of the Ohio. At **Washington**, B&O met the Chartiers Branch through the jointly owned **Tylerdale Connecting Railroad**.
 
-In **1934** B&O obtained **trackage rights over the P&LE between McKeesport and New Castle**, used by passenger trains such as the *Capitol Limited*. B&O also held a one-third interest in the **Monongahela Railway**, the coal road south of the Monongahela. The CSX main through McKees Rocks and onto Neville Island is the former **P&LE**.
+In **1934** B&O obtained **trackage rights over the P&LE between McKeesport and New Castle**, used by passenger trains such as the *Capitol Limited*. B&O also held a one-third interest in the **Monongahela Railway**, the coal road south of the Monongahela. The CSX Ohio River main through McKees Rocks is the former **P&LE**. The branch onto Neville Island and the back-channel bridge were PC&Y, not P&LE; CSX reaches the island on trackage rights (see the short-line era below).
 
 ---
 
@@ -121,7 +121,7 @@ The **Pittsburgh, Allegheny & McKees Rocks Railroad (PAM)** is the switching roa
 
 ## Other connecting railroads
 
-**Carnegie / Rook.** The **Pittsburgh & West Virginia** (Wabash Pittsburgh Terminal, reorganized 1917 as P&WV) built through the south hills; **Rook Yard** is its Carnegie-area yard. P&WV went to the Nickel Plate, then N&W (1964), later today’s **Wheeling & Lake Erie**. West toward Mingo Junction / Brewster is W&LE geography. The Montour Railroad (P&LE coal belt) connected with the Chartiers Branch at **Hills**.
+**Carnegie / Rook.** The **Pittsburgh & West Virginia** (Wabash Pittsburgh Terminal, reorganized 1917 as P&WV) built through the south hills; **Rook Yard** is its Carnegie-area yard. P&WV was leased directly to the N&W on 16 October 1964, the same day the N&W merged the Nickel Plate; the Nickel Plate never operated it. Since 1990 it has been run by today’s **Wheeling & Lake Erie**. West toward Mingo Junction / Brewster is W&LE geography. The Montour Railroad (P&LE coal belt) connected with the Chartiers Branch at **Hills**.
 
 **Port Perry Branch.** Norfolk Southern’s (ex-PRR) high-clearance bypass around downtown Pittsburgh: Pittsburgh Line at North Versailles, Port Perry Tunnel, Port Perry Bridge over the Monongahela, connection to the **Mon Line** at Duquesne. CSX’s Pittsburgh Sub crosses that branch near PLY 11. It is the stack-train cut-across, a different piece of NS from the Panhandle connection at Duff.
 
@@ -144,7 +144,7 @@ The **Pittsburgh, Allegheny & McKees Rocks Railroad (PAM)** is the switching roa
 | 1934 | B&O trackage rights on P&LE McKeesport–New Castle |
 | Jul 1952 | Last Chartiers Branch passenger train |
 | 1968 / 1976 | Penn Central, then Conrail |
-| 1993 | CSX acquires P&LE |
+| 1991–92 | CSX acquires P&LE: part of the system in 1991, the rest through CSX’s Three Rivers Railway in September 1992 |
 | Dec 1996 | PIR (RailTex) buys Conrail Chartiers track + PC&Y mileage |
 | Feb–Dec 2000 | RailAmerica buys RailTex, sells PIR to Ohio Central as POHC |
 | 30 Dec 2008 | G&W control of Ohio Central / POHC approved |
@@ -180,3 +180,5 @@ The **Pittsburgh, Allegheny & McKees Rocks Railroad (PAM)** is the switching roa
 14. Railroad.net / railfan notes: CSX D749 Demmler–Neville Island; POHC from McKees Rocks waits for the island bridge.
 15. *Federal Register*, 17 Feb 2023, McKees Rocks Railroad LLC (PAM trackage; MRIE land).
 16. UW-Madison / Howard Shipyards: *Steel Queen* (Pressed Steel Car), burned Woods Run 16 Oct 1926.
+17. Wikipedia, Pittsburgh and West Virginia Railway (N&W lease and NKP merger, 16 Oct 1964); List of CSX Transportation predecessor railroads (P&LE: part sold to CSX 1991, remainder via Three Rivers Railway 1992).  
+    https://en.wikipedia.org/wiki/Pittsburgh_and_West_Virginia_Railway

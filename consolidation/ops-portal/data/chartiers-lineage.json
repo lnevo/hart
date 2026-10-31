@@ -1,0 +1,475 @@
+{
+  "title": "Railroads",
+  "lede": [
+    "Two railroads came up Chartiers Creek. The Chartiers Valley Railroad was chartered in 1853 to run from Pittsburgh to Washington, ran out of money in the Panic of 1857, and was finished by the Pennsylvania Railroad's Chartiers Railway in 1871. As the PRR's Chartiers Branch it carried coal from the valley's mine branches and ran passenger trains to Washington until 1952, meeting the Montour, the P&WV and the B&O along the way. The Pittsburgh, Chartiers & Youghiogheny was chartered in 1881 to reach the Youghiogheny and never did. It ran from McKees Rocks up the valley, crossed the back channel onto Neville Island, and from 1892 was owned half by the P&LE and half by the Pennsylvania's Panhandle.",
+    "The bigger roads ran around them. The P&LE, a New York Central property, held the Ohio River main through McKees Rocks; the B&O ran over it from 1934 and CSX bought it in 1991–92. The Panhandle ran west from Pittsburgh past Scully Yard, and the P&WV crossed the south hills to Rook Yard. On the island, American Steel & Wire's Pittsburgh & Ohio Valley switched the plants from 1899 until 1994.",
+    "In December 1996 the Chartiers Branch and the PC&Y were sold together to the Pittsburgh Industrial Railroad, which became today's Pittsburgh & Ohio Central. It still meets Norfolk Southern at Duff Junction and CSX at POV Junction. Use the buttons to compare a few lines side by side, or the slider to see who ran each one in a given year."
+  ],
+  "article": "library/chartiers-valley-railroads.html",
+  "trunkColor": "#b5651d",
+  "lanes": [
+    {
+      "id": "pwv",
+      "title": "South hills",
+      "link": {
+        "label": "P&WV, Rook Yard",
+        "href": "library/chartiers-valley-railroads.html"
+      },
+      "color": "#4f5d6a",
+      "steps": [
+        {
+          "name": "Wabash Pittsburgh Terminal",
+          "years": "to 1917",
+          "from": null,
+          "to": 1916,
+          "made": "Line through Pittsburgh's south hills",
+          "wordmark": "Wabash Pittsburgh Terminal"
+        },
+        {
+          "handoff": "1917 · reorganized"
+        },
+        {
+          "name": "Pittsburgh & West Virginia",
+          "years": "from 1917",
+          "from": 1917,
+          "to": 1917,
+          "made": "Rook Yard at Carnegie; met the Chartiers Branch near Bridgeville",
+          "logo": "../external/hart-ops/operator_logos/downloads/pittsburgh-west-virginia.png",
+          "maybe": [
+            1918,
+            1963
+          ]
+        },
+        {
+          "handoff": "16 Oct 1964 · leased to Norfolk & Western"
+        },
+        {
+          "name": "Norfolk & Western",
+          "years": "1964–1982",
+          "from": 1964,
+          "to": 1981,
+          "made": "Ran the P&WV",
+          "logo": "../external/hart-ops/operator_logos/downloads/norfolk-western-1958.png"
+        },
+        {
+          "handoff": "1982 · N&W joins Norfolk Southern"
+        },
+        {
+          "name": "Norfolk Southern",
+          "years": "1982–1990",
+          "from": 1982,
+          "to": 1989,
+          "made": "Ran the P&WV through its N&W subsidiary",
+          "logo": "../external/hart-ops/operator_logos/downloads/norfolk-southern.png"
+        },
+        {
+          "handoff": "1990 · lease passes to the new W&LE"
+        },
+        {
+          "name": "Wheeling & Lake Erie",
+          "years": "1990–today",
+          "from": 1990,
+          "to": null,
+          "made": "Runs the old P&WV line",
+          "logo": "../external/hart-ops/operator_logos/downloads/wheeling-lake-erie.png"
+        }
+      ],
+      "end": {
+        "text": "Today's Wheeling & Lake Erie.",
+        "state": "open"
+      }
+    },
+    {
+      "id": "panhandle",
+      "title": "Panhandle",
+      "link": {
+        "label": "NS, Duff Junction east",
+        "href": "library/chartiers-valley-railroads.html"
+      },
+      "color": "#3d3d3d",
+      "steps": [
+        {
+          "name": "Pittsburgh & Steubenville",
+          "years": "to 1867",
+          "from": null,
+          "to": 1867,
+          "made": "Pittsburgh to Steubenville, west through Scully",
+          "wordmark": "Pittsburgh & Steubenville",
+          "note": "Sold at foreclosure 6 Nov 1867"
+        },
+        {
+          "handoff": "1868 · merged into the PC&StL"
+        },
+        {
+          "name": "Pittsburgh, Cincinnati & St. Louis",
+          "years": "1868–1890",
+          "from": 1868,
+          "to": 1889,
+          "made": "The Panhandle Route west of Pittsburgh",
+          "wordmark": "Panhandle"
+        },
+        {
+          "handoff": "30 Sep 1890 · merger"
+        },
+        {
+          "name": "Pittsburgh, Cincinnati, Chicago & St. Louis",
+          "years": "1890–1920",
+          "from": 1890,
+          "to": 1920,
+          "made": "The Panhandle; took in the Chartiers line in 1907",
+          "wordmark": "PCC&StL"
+        },
+        {
+          "handoff": "1 Jan 1921 · leased to the PRR"
+        },
+        {
+          "name": "Pennsylvania Railroad",
+          "years": "1921–1968",
+          "from": 1921,
+          "to": 1967,
+          "made": "Panhandle main and Scully Yard",
+          "logo": "../external/hart-ops/operator_logos/downloads/prr-keystone.png"
+        },
+        {
+          "handoff": "1968 · Penn Central"
+        },
+        {
+          "name": "Penn Central",
+          "years": "1968–1976",
+          "from": 1968,
+          "to": 1975,
+          "made": "Panhandle main",
+          "logo": "../external/hart-ops/operator_logos/downloads/penn-central-1968.png"
+        },
+        {
+          "handoff": "1976 · Conrail"
+        },
+        {
+          "name": "Conrail",
+          "years": "1976–1999",
+          "from": 1976,
+          "to": 1998,
+          "made": "Cut the line back; west of Walkers Mill removed 1996",
+          "logo": "../external/hart-ops/operator_logos/downloads/conrail.png"
+        },
+        {
+          "handoff": "1 Jun 1999 · Conrail split; NS takes the Pittsburgh lines"
+        },
+        {
+          "name": "Norfolk Southern",
+          "years": "1999–today",
+          "from": 1999,
+          "to": null,
+          "made": "East from Duff Junction toward Pittsburgh",
+          "logo": "../external/hart-ops/operator_logos/downloads/norfolk-southern.png",
+          "note": "The NS local meets the POHC at Duff Junction"
+        }
+      ],
+      "end": {
+        "text": "The NS local still meets the POHC at Duff Junction. West of Walkers Mill the old main is the Panhandle Trail.",
+        "state": "open"
+      }
+    },
+    {
+      "id": "chartiers",
+      "title": "Chartiers Branch",
+      "link": {
+        "label": "Carnegie to Washington",
+        "href": "library/pohc-line-industries.html"
+      },
+      "color": "#8a2e22",
+      "steps": [
+        {
+          "name": "Chartiers Valley Railroad",
+          "years": "1853–1866",
+          "from": 1853,
+          "to": 1866,
+          "made": "Graded toward Washington, never finished",
+          "wordmark": "Chartiers Valley Railroad",
+          "note": "Money ran out in 1856–57"
+        },
+        {
+          "handoff": "30 Oct 1866 · foreclosure; PRR buys the assets"
+        },
+        {
+          "name": "Chartiers Railway",
+          "years": "1867–1871",
+          "from": 1867,
+          "to": 1871,
+          "made": "Finished Carnegie to Washington, about 23 miles",
+          "wordmark": "Chartiers Railway",
+          "note": "Washington opened 18 May 1871"
+        },
+        {
+          "handoff": "8 Dec 1871 · leased to the Panhandle"
+        },
+        {
+          "name": "Pennsylvania Railroad",
+          "years": "1871–1968",
+          "from": 1871,
+          "to": 1967,
+          "made": "Pittsburgh–Washington passengers and coal",
+          "logo": "../external/hart-ops/operator_logos/downloads/prr-keystone.png",
+          "note": "Panhandle owned it from 1907. Last passenger train July 1952"
+        },
+        {
+          "handoff": "1968 · Penn Central"
+        },
+        {
+          "name": "Penn Central",
+          "years": "1968–1976",
+          "from": 1968,
+          "to": 1975,
+          "made": "Freight on the branch",
+          "logo": "../external/hart-ops/operator_logos/downloads/penn-central-1968.png"
+        },
+        {
+          "handoff": "1976 · Conrail"
+        },
+        {
+          "name": "Conrail",
+          "years": "1976–1996",
+          "from": 1976,
+          "to": 1996,
+          "made": "Industrial track",
+          "logo": "../external/hart-ops/operator_logos/downloads/conrail.png",
+          "note": "Cut back from Washington, 1982–84"
+        },
+        {
+          "handoff": "6 Dec 1996 · 32.7 miles sold to PIR"
+        }
+      ]
+    },
+    {
+      "id": "pcy",
+      "title": "PC&Y",
+      "link": {
+        "label": "McKees Rocks to the island",
+        "href": "library/chartiers-valley-railroads.html"
+      },
+      "color": "#2d6a4f",
+      "steps": [
+        {
+          "name": "Pittsburgh, Chartiers & Youghiogheny",
+          "years": "1881–1892",
+          "from": 1881,
+          "to": 1891,
+          "made": "McKees Rocks to Carnegie and Woodville",
+          "wordmark": "PC&Y",
+          "note": "Never reached the Youghiogheny"
+        },
+        {
+          "handoff": "26 May 1892 · P&LE buys half"
+        },
+        {
+          "name": "PC&Y, half P&LE, half PRR",
+          "years": "1892–1996",
+          "from": 1892,
+          "to": 1996,
+          "made": "Industrial line with a branch onto Neville Island",
+          "wordmark": "PC&Y",
+          "note": "Kept its own crews into the Conrail era"
+        },
+        {
+          "handoff": "6 Dec 1996 · 16 miles sold to PIR"
+        }
+      ]
+    },
+    {
+      "id": "ple",
+      "title": "Ohio River main",
+      "link": {
+        "label": "CSX Pittsburgh Sub",
+        "href": "library/chartiers-valley-railroads.html"
+      },
+      "color": "#1f4e8c",
+      "steps": [
+        {
+          "name": "Pittsburgh & Lake Erie",
+          "years": "by 1879–1992",
+          "from": 1879,
+          "to": 1992,
+          "made": "Ohio River main through McKees Rocks",
+          "logo": "../external/hart-ops/operator_logos/downloads/pittsburgh-lake-erie.png",
+          "note": "A New York Central property. B&O trains ran over it from 1934"
+        },
+        {
+          "handoff": "1991–92 · CSX buys the P&LE"
+        },
+        {
+          "name": "CSX",
+          "years": "1992–",
+          "from": 1992,
+          "to": null,
+          "made": "Pittsburgh Subdivision",
+          "logo": "../external/hart-ops/operator_logos/downloads/csxlogo_3.png",
+          "note": "Local D749 from Demmler works the island's east end"
+        }
+      ],
+      "end": {
+        "text": "Still the Ohio River main. Meets POHC at POV Junction.",
+        "state": "open"
+      }
+    },
+    {
+      "id": "bo",
+      "title": "B&O",
+      "link": {
+        "label": "Pittsburgh lines",
+        "href": "library/chartiers-valley-railroads.html"
+      },
+      "color": "#5b3f8c",
+      "steps": [
+        {
+          "name": "Baltimore & Ohio",
+          "years": "1871–1973",
+          "from": 1871,
+          "to": 1972,
+          "made": "Into Pittsburgh from 1871; the Wheeling line met the Chartiers Branch at Washington",
+          "logo": "../external/hart-ops/operator_logos/downloads/baltimore-ohio.png",
+          "note": "Ran over the P&LE from 1934"
+        },
+        {
+          "handoff": "1973 · Chessie System"
+        },
+        {
+          "name": "Chessie System",
+          "years": "1973–1987",
+          "from": 1973,
+          "to": 1986,
+          "made": "B&O, C&O and Western Maryland under one name",
+          "logo": "../external/hart-ops/operator_logos/downloads/chessie-system.png",
+          "note": "Part of CSX Corporation from 1980"
+        },
+        {
+          "handoff": "1987 · merged into CSX Transportation"
+        },
+        {
+          "name": "CSX",
+          "years": "1987–today",
+          "from": 1987,
+          "to": null,
+          "made": "The old B&O Pittsburgh lines",
+          "logo": "../external/hart-ops/operator_logos/downloads/csxlogo_3.png"
+        }
+      ],
+      "end": {
+        "text": "The B&O's Pittsburgh lines are CSX today, along with the P&LE main CSX bought in 1991–92.",
+        "state": "open"
+      }
+    },
+    {
+      "id": "pov",
+      "title": "Neville Island",
+      "link": {
+        "label": "Pittsburgh & Ohio Valley history",
+        "href": "library/pittsburgh-ohio-valley-railway.html"
+      },
+      "color": "#7a5c12",
+      "steps": [
+        {
+          "name": "Pittsburgh & Ohio Valley",
+          "years": "1899–1918",
+          "from": 1899,
+          "to": 1918,
+          "made": "Plant railroad for American Steel & Wire",
+          "logo": "assets/logos/pov-herald.png",
+          "note": "Built 1900–1902"
+        },
+        {
+          "handoff": "20 Sep 1918 · taken over by Army Ordnance"
+        },
+        {
+          "name": "Army Ordnance Department",
+          "years": "1918–1919",
+          "from": 1918,
+          "to": 1919,
+          "made": "Held for a planned munitions plant",
+          "wordmark": "Ordnance Department"
+        },
+        {
+          "handoff": "1 Jul 1919 · returned"
+        },
+        {
+          "name": "P&OV, U.S. Steel",
+          "years": "1919–?",
+          "from": 1919,
+          "to": 1923,
+          "made": "2.04 miles of main track in 1923",
+          "logo": "assets/logos/pov-herald.png",
+          "note": "Met the P&LE and the PC&Y",
+          "maybe": [
+            1924,
+            1968
+          ]
+        },
+        {
+          "handoff": "Year not recorded · to Shenango"
+        },
+        {
+          "name": "P&OV, Shenango",
+          "years": "1960s–1994",
+          "from": 1969,
+          "to": 1994,
+          "made": "Ore, coke and hot iron at the Shenango plant",
+          "logo": "assets/logos/pov-herald.png",
+          "note": "Crews in the Shenango pension plan by the 1960s",
+          "maybe": [
+            1924,
+            1968
+          ]
+        }
+      ],
+      "end": {
+        "text": "Ended 31 Jan 1994. On the layout, HART's P&CV Division takes over its work.",
+        "state": "closed"
+      }
+    }
+  ],
+  "merge": {
+    "lanes": [
+      "chartiers",
+      "pcy"
+    ],
+    "label": "Dec 1996 · one short line",
+    "steps": [
+      {
+        "name": "Pittsburgh Industrial Railroad",
+        "years": "1996–2000",
+        "from": 1996,
+        "to": 2000,
+        "made": "Conrail's Chartiers track and the PC&Y as one line",
+        "wordmark": "Pittsburgh Industrial Railroad",
+        "note": "A RailTex company; RailAmerica from Feb 2000"
+      },
+      {
+        "handoff": "Dec 2000 · sold to Ohio Central"
+      },
+      {
+        "name": "Pittsburgh & Ohio Central",
+        "years": "2000–2008",
+        "from": 2000,
+        "to": 2008,
+        "made": "Neville Island south to Arden",
+        "logo": "../external/hart-ops/operator_logos/downloads/pohc-trim.png"
+      },
+      {
+        "handoff": "30 Dec 2008 · Genesee & Wyoming"
+      },
+      {
+        "name": "POHC, Genesee & Wyoming",
+        "years": "2008–",
+        "from": 2008,
+        "to": null,
+        "made": "Meets NS at Duff Junction and CSX at POV Junction",
+        "logo": "../external/hart-ops/operator_logos/downloads/genesee-wyoming.png",
+        "note": "Office and engines at McKees Rocks"
+      }
+    ],
+    "end": {
+      "text": "Still running from McKees Rocks onto Neville Island and south toward Arden.",
+      "state": "open"
+    }
+  },
+  "filter": "Show lines"
+}

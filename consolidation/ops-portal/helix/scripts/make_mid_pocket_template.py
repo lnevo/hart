@@ -23,6 +23,7 @@ from make_lap_template import IN, RI, sector
 from make_bracket_pocket_template import (STRAP_W, SIDE_CLEAR, BRACKET_TIP_R, TIP_CLEAR, RUN_OFF, PLATE_T,
                                           BLOCK_H, BLOCK_W, RAIL, PLATE_RI, PLATE_RO)
 from stl_text import label_cutters
+from stl_out import out_dir
 
 SCREWS_R = 27.0             # #6 x 1-1/4 in flat head, 1/2 in into the blank
 NOTCH_DEPTH, NOTCH_W = 0.3, 0.3
@@ -65,6 +66,7 @@ def build():
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     body, core = build()
-    lat.export("/Users/lnevo/Downloads/stl/bracket_pocket_template_MID", body, core)
+    lat.export(OUT + "bracket_pocket_template_MID", body, core)
     print("plate half-angle deg", round(theta, 3), "screws", np.round(screws, 3))

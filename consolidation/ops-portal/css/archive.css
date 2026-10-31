@@ -1,0 +1,431 @@
+/* Historical archive page (archive/index.html). Builds on ops.css tokens, gallery and lightbox. */
+
+.archive-tabs,
+.photo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 2px solid var(--brand);
+  margin-bottom: 0.4rem;
+}
+
+.archive-tab,
+.photo-tabs [role="tab"] {
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--rule);
+  border-bottom: 0;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  padding: 0.45rem 0.95rem;
+  margin-right: 0.3rem;
+  cursor: pointer;
+}
+
+.archive-tab[aria-selected="true"],
+.photo-tabs [role="tab"][aria-selected="true"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #f3f6f8;
+}
+
+.archive-tab .count {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.archive-tab-note {
+  margin: 0 0 0.9rem;
+  font-size: 0.9rem;
+}
+
+.archive-filters {
+  margin-bottom: 0.6rem;
+}
+
+.archive-filters .album-bar {
+  margin-bottom: 0.6rem;
+}
+
+.archive-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.archive-filter-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.archive-filter-row select,
+.archive-filter-row input {
+  font: inherit;
+  font-weight: 400;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  color: var(--ink);
+  padding: 0.35rem 0.5rem;
+  max-width: 100%;
+}
+
+.archive-filter-row input {
+  min-width: 14rem;
+}
+
+.archive-editbar {
+  border-left: 4px solid var(--accent);
+  background: var(--card);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  margin: 0 0 0.9rem;
+}
+
+/* Cards: the image is the click target, the caption holds the move buttons. */
+.archive-card {
+  cursor: default;
+}
+
+.archive-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.archive-open img {
+  display: block;
+  width: 100%;
+  background: #1a2229;
+}
+
+.archive-meta {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.archive-reason {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.84rem;
+  color: var(--signal);
+}
+
+.conf {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.05rem 0.35rem;
+  margin-left: 0.25rem;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.conf-verified {
+  color: var(--ok);
+}
+
+.conf-likely {
+  color: #8a6508;
+}
+
+.conf-none {
+  color: var(--muted);
+}
+
+.archive-move {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+}
+
+.archive-move button {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink-soft);
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.archive-move button:hover:not([disabled]) {
+  border-color: var(--brand-2);
+  color: var(--brand);
+}
+
+.archive-move button[aria-pressed="true"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #f3f6f8;
+  cursor: default;
+}
+
+/* Leaves the archive for the Operations "Layout photos" gallery. */
+.archive-move button.to-layout {
+  border-style: dashed;
+}
+
+.archive-move button.to-layout::before {
+  content: "→ ";
+}
+
+/* Lightbox additions */
+.archive-lightbox .lb-full {
+  display: block;
+  cursor: zoom-in;
+}
+
+.archive-lightbox .archive-date {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.archive-lightbox .credit a {
+  color: var(--brand-2);
+}
+
+.archive-lightbox .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.chip {
+  font-size: 0.75rem;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  padding: 0.1rem 0.45rem;
+}
+
+.archive-edit {
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.6rem;
+}
+
+.archive-edit summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.archive-edit form {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.archive-edit label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.archive-edit input,
+.archive-edit textarea,
+.archive-edit select {
+  font: inherit;
+  font-weight: 400;
+  border: 1px solid var(--rule);
+  background: #fff;
+  color: var(--ink);
+  padding: 0.35rem 0.5rem;
+}
+
+.archive-edit button[type="submit"] {
+  justify-self: start;
+  font: inherit;
+  font-weight: 700;
+  background: var(--brand);
+  color: #f3f6f8;
+  border: 0;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+}
+
+.archive-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%) translateY(1rem);
+  z-index: 90;
+  background: var(--ink);
+  color: #f3f6f8;
+  padding: 0.55rem 1rem;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.archive-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.archive-toast.bad {
+  background: var(--signal);
+}
+
+@media (max-width: 520px) {
+  .archive-tab {
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .archive-filter-row input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .archive-filter-row label {
+    flex: 1 1 100%;
+  }
+}
+
+/* Layout-room gallery curation (operators/room, local server only). */
+.g-cell {
+  break-inside: avoid;
+  margin: 0 0 0.85rem;
+}
+
+.g-cell .g-item {
+  margin: 0;
+}
+
+.g-curate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.45rem 0.5rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 0;
+}
+
+.g-curate select,
+.g-curate button {
+  max-width: 100%;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink-soft);
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.g-curate button:hover,
+.g-curate select:hover {
+  border-color: var(--brand-2);
+  color: var(--brand);
+}
+
+/* Grid / List / Gallery views (shares the Rolling stock list, stage and strip styles). */
+.archive-filter-row .archive-viewbar {
+  margin: 0 0 0 auto;
+  align-self: center;
+}
+
+.archive-list td strong {
+  display: block;
+  color: var(--ink);
+}
+
+.archive-list .archive-move {
+  margin-top: 0.35rem;
+}
+
+.archive-list .fl-note {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.view-gallery .fleet-stage .archive-open {
+  cursor: zoom-in;
+}
+
+.view-gallery .fleet-stage figcaption p {
+  margin: 0.45rem 0 0.35rem;
+}
+
+.archive-strip img {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.archive-list .archive-row {
+  cursor: zoom-in;
+}
+
+.archive-list td:nth-child(3) {
+  white-space: nowrap;
+}
+
+/* —— Photos page (photos/index.html): Historical | Layout | Rolling stock —— */
+.photo-tabs {
+  margin-bottom: 1rem;
+}
+
+.photo-cat > .muted:first-child {
+  margin-top: 0;
+}
+
+/* Layout: album chips on their own row, then Grid / List / Gallery at the right, where the other
+   tabs put it (at the end of their filter row). */
+.layout-controls #layout-view-bar {
+  justify-content: flex-end;
+  margin: 0 0 1rem;
+}
+
+/* Rolling stock filters fold behind a Filter button on a phone. */
+.fleet-filter-toggle {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .photo-tabs [role="tab"] {
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  /* Sub-chips scroll sideways instead of wrapping into a tall block. */
+  .photo-cat .album-bar:not(.fleet-viewbar) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+  }
+
+  .photo-cat .album-bar:not(.fleet-viewbar) button {
+    flex: none;
+  }
+
+  .photo-cat .fleet-filter-toggle {
+    display: inline-block;
+  }
+
+  .photo-cat .fleet-controls:not(.is-open) .fleet-filters {
+    display: none;
+  }
+}

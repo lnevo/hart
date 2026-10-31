@@ -18,6 +18,7 @@ from shapely.geometry import Point, Polygon
 from shapely import affinity
 from make_lap_template import IN, RI
 from stl_text import text_polys, centered
+from stl_out import out_dir
 
 JOINT_DEG = 1.875       # wells on the nominal joint line (under lap window and pocket slot)
 TANGENT_DEG = 5.8       # inner edge touches r=26 here: inside lap fence (4.1-8.5) and pocket fence (2.9-7.6)
@@ -87,12 +88,13 @@ for face, z0 in (("top", top_z - ENGRAVE), ("bottom", -1)):
 block = trimesh.boolean.difference([body] + cuts, engine="manifold")
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     # Print standing on the END face: well floors become vertical walls (no bridging sag)
     # and the registration face prints flat on the bed.
     printed = block.copy()
     printed.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
     printed.apply_translation(-printed.bounds[0])
-    out = "/Users/lnevo/Downloads/stl/router_depth_block.stl"
+    out = OUT + "router_depth_block.stl"
     printed.export(out)
     print(out, "watertight", printed.is_watertight, "bodies", len(printed.split(only_watertight=False)),
           "size mm", np.round(printed.extents, 1), "vol cm3", round(printed.volume / 1000, 1))

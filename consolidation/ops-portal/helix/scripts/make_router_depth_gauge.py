@@ -15,6 +15,7 @@ import trimesh
 from shapely.geometry import box
 from shapely.ops import unary_union
 from stl_text import text_polys, centered
+from stl_out import out_dir
 
 IN = 25.4
 STEP_W, DEPTH = 1.0, 1.25     # inches
@@ -48,7 +49,8 @@ block = trimesh.boolean.union(parts, engine="manifold")
 block = trimesh.boolean.difference([block] + cuts, engine="manifold")
 
 if __name__ == "__main__":
-    out = "/Users/lnevo/Downloads/stl/router_depth_gauge.stl"
+    OUT = out_dir(__doc__)
+    out = OUT + "router_depth_gauge.stl"
     block.export(out)
     print(out, "watertight", block.is_watertight, "bodies", len(block.split(only_watertight=False)),
           "size mm", np.round(block.extents, 2))

@@ -46,8 +46,6 @@ GROUPS = [
     ('Brackets', [
         (['bracket_edge_shim.stl'], 'make_bracket_edge_shim.py', 'Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed.'),
         (['bracket_plumb_shim.stl'], 'make_bracket_plumb_shim.py', 'Tapered strip (0.20 → 0.56 mm) for the sideways lean from grade. Notched edge uphill. One per bracket.'),
-        (['bracket_wedge_gap_1_64.stl', 'bracket_wedge_gap_2_64.stl', 'bracket_wedge_gap_3_64.stl', 'bracket_wedge_gap_4_64.stl'],
-         'make_bracket_wedges.py', 'Wedges for a gap between the bracket leg and the post; notches = gap in 64ths.'),
     ]),
     ('Shop tool', [
         (['router_sigerio_test_plate.stl', 'router_sigerio_test_plate_body.stl', 'router_sigerio_test_plate_screw_rings.stl'],
@@ -135,6 +133,7 @@ def main():
     # Build status page, with backticked filenames linked to the published copies.
     text = open(os.path.join(SRC, STATUS)).read()
     body = markdown.markdown(text, extensions=['tables', 'sane_lists'])
+    body = re.sub(r'<(/?)h1>', r'<\1h2>', body)  # the page head carries the one h1
 
     def link(m):
         name = m.group(1)
@@ -142,10 +141,10 @@ def main():
     body = re.sub(r'<code>([^<]+)</code>', link, body)
 
     head = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'helix_page_head.html')).read()
-    page = head.replace('{{TITLE}}', 'Helix build status').replace('{{BODY}}', f'''
+    page = head.replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Helix build status</h1>
-      <p class="muted"><a href="index.html">Neville Island helix</a> · rendered from <a href="files/{STATUS}"><code>{STATUS}</code></a></p>
+      <p class="muted">Rendered from <a href="files/{STATUS}"><code>{STATUS}</code></a></p>
     </div>
     <div class="guide-body helix-wrap prose">
 {body}
@@ -155,10 +154,10 @@ def main():
     plan_kb = size(os.path.getsize(os.path.join(SRC, PLAN)))
     tmpl_kb = size(os.path.getsize(os.path.join(SRC, 'lap_screw_template.pdf')))
     obs = ', '.join(f'<code>{f}</code>' for f in OBSOLETE)
-    index = head.replace('{{TITLE}}', 'Neville Island helix').replace('{{BODY}}', f'''
+    index = head.replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Neville Island helix</h1>
-      <p class="muted">Construction plan, build status, and the printed fixtures for the 26 / 31.75 in helix · updated 15 October 2026</p>
+      <p class="muted">Construction plan and the printed fixtures for the 26 / 31.75 in helix · updated 15 October 2026</p>
     </div>
     <div class="guide-body helix-wrap prose">
       <h2>Instructions</h2>
@@ -167,15 +166,12 @@ def main():
           <p>13 pages, {plan_kb}. Frames, braces, bracket elevations, roadbed cut sheets, build sequence, diagonal bracing. <strong>Page 13: half-lap screw template.</strong></p></a>
         <a class="card" href="files/lap_screw_template.pdf"><h3>Half-lap screw template (PDF)</h3>
           <p>US Letter, {tmpl_kb}. Print at 100% / Actual size, then check the 2 in and 50 mm bars. Six #6 × 5/8 screws per lap.</p></a>
-        <a class="card" href="build-status.html"><h3>Build status</h3>
-          <p>As-built heights and datums, frame alignment, shop process, fasteners, every fixture, and open items. Overrides the PDF where they differ.</p></a>
         <a class="card" href="files/{HANDOFF}"><h3>Design handoff (Markdown)</h3>
           <p>Design rationale, alternatives considered, and formulas behind the locked plan.</p></a>
       </div>
-      <p class="note">Read the plan first, then the build status. The plan's entry pages (2, 3, 8) are out of date; the build status has the current entry geometry.</p>
 
       <h2>Printed fixtures (STL index)</h2>
-      <p>{n_files} files, all modelled in millimetres and checked as watertight single bodies. Extents are the bounding box as exported (X × Y × Z). Unless the build status marks a part <em>tested</em>, it has only been verified in software.</p>
+      <p>{n_files} files, all modelled in millimetres and checked as watertight single bodies. Extents are the bounding box as exported (X × Y × Z). Unless a part is marked <em>tested</em>, it has only been verified in software.</p>
       <p>Printing: Creality Print 7.3, 260 mm bed. Templates print router face down, 2–3 walls, 10–15% infill, no supports. For the 3MF files, if the modifier doesn't come in, import the body and its <code>_CORE100</code> STL together as one object, set the core to Modifier, and give it 100% infill.</p>
       <div class="table-wrap">
         <table class="roster stl-index">
@@ -186,7 +182,7 @@ def main():
         </table>
       </div>
       <p class="muted">Obsolete, not published: {obs}.</p>
-      <p class="muted">Scripts need Python with <code>numpy trimesh manifold3d shapely mapbox_earcut scipy rtree networkx matplotlib pymupdf pypdf</code>. Their output paths point at the original working folder; change them before running.</p>
+      <p class="muted">Scripts need Python with <code>numpy trimesh manifold3d shapely mapbox_earcut scipy rtree networkx matplotlib pymupdf pypdf</code>. Each writes into <code>helix/stl/</code>; pass <code>--out DIR</code> to write elsewhere.</p>
     </div>''')
     open(os.path.join(OUT, 'index.html'), 'w').write(index)
 

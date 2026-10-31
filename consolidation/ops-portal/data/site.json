@@ -8,18 +8,117 @@
     "mimic": "http://localhost:8765/",
     "jmri": "http://localhost:12080/"
   },
+  "channels": {
+    "youtube": "https://www.youtube.com/@leenevo6566",
+    "tiktok": "https://www.tiktok.com/@hartrailroad"
+  },
   "nav": [
-    {"id": "home", "href": "index.html", "label": "Home"},
-    {"id": "briefing", "href": "briefing/index.html", "label": "Briefing"},
-    {"id": "industries", "href": "industries/index.html", "label": "Industries"},
-    {"id": "photos", "href": "photos/index.html", "label": "Photos"},
-    {"id": "fleet", "href": "fleet/index.html", "label": "Rolling stock"},
-    {"id": "articles", "href": "articles/index.html", "label": "Articles"},
-    {"id": "docs", "href": "docs/index.html", "label": "Publications"},
-    {"id": "about", "href": "about/index.html", "label": "About"},
-    {"id": "layout", "href": "layout/index.html", "label": "Explorer"},
-    {"id": "guides", "href": "guides/index.html", "label": "Guides"},
-    {"id": "helix", "href": "helix/index.html", "label": "Helix"},
-    {"id": "tools", "href": "tools/index.html", "label": "Tools"}
-  ]
+    {
+      "id": "home",
+      "href": "index.html",
+      "label": "Home",
+      "pages": [
+        "home"
+      ]
+    },
+    {
+      "id": "history",
+      "href": "history/index.html",
+      "label": "The Prototype",
+      "short": "History",
+      "pages": [
+        "history",
+        "articles",
+        "plants",
+        "railroads",
+        "photos"
+      ]
+    },
+    {
+      "id": "operators",
+      "href": "operators/index.html",
+      "label": "Operations",
+      "pages": [
+        "operators",
+        "briefing",
+        "glossary",
+        "cards",
+        "crew",
+        "crew-sheet",
+        "crew-maps",
+        "crew-map",
+        "crew-tt23",
+        "crew-colors",
+        "crew-scale",
+        "crew-industries",
+        "docs",
+        "guides",
+        "guide",
+        "layout",
+        "tools"
+      ]
+    },
+    {
+      "id": "behind",
+      "href": "behind/index.html",
+      "label": "Behind the Scenes",
+      "short": "Behind",
+      "pages": [
+        "behind",
+        "behind-signals",
+        "behind-bridge",
+        "behind-wiring",
+        "roster",
+        "digicon",
+        "behind-docs",
+        "behind-sts",
+        "behind-stl"
+      ]
+    },
+    {
+      "id": "build",
+      "href": "build/index.html",
+      "label": "The Build",
+      "short": "Build",
+      "pages": [
+        "build",
+        "helix",
+        "helix-status"
+      ]
+    },
+    {
+      "id": "about",
+      "href": "about/index.html",
+      "label": "About",
+      "pages": [
+        "about"
+      ]
+    }
+  ],
+  "parents": {
+    "guide": [
+      {
+        "label": "Guides",
+        "href": "guides/index.html"
+      }
+    ],
+    "helix-status": [
+      {
+        "label": "Helix",
+        "href": "helix/index.html"
+      }
+    ],
+    "behind-sts": [
+      {
+        "label": "Car forwarding",
+        "href": "behind/index.html#car-forwarding"
+      }
+    ],
+    "behind-stl": [
+      {
+        "label": "From the workbench",
+        "href": "behind/index.html#workbench"
+      }
+    ]
+  }
 }

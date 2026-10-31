@@ -1,27 +1,26 @@
 (function () {
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  var esc = HARTOps.esc;
 
   function resolveSrc(src) {
     if (!src) return "";
-    if (/^https?:\/\//i.test(src) || src.startsWith("data:") || src.startsWith("../")) {
-      // Already rooted outside the page (e.g. ../external/...) — leave alone.
-      // For nested pages, ../external from portal JSON is wrong; rewrite to ../../external.
-      var depth = HARTOps.base();
-      if (src.startsWith("../external/") && depth === "../") {
-        return src.replace(/^\.\.\//, "../../");
-      }
-      if (src.startsWith("assets/") || src.startsWith("data/")) {
-        return depth + src;
-      }
-      return src;
-    }
+    if (/^https?:\/\//i.test(src) || src.startsWith("data:")) return src;
+    // Paths in the JSON (assets/…, ../external/…) are relative to the portal root;
+    // prefix the page's depth so they resolve from any nesting level.
     return HARTOps.base() + src;
+  }
+
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  // "2025-08-09" -> {y, m, d}; null when the item has no usable date.
+  function parseDate(s) {
+    var m = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(String(s || ""));
+    return m ? { y: +m[1], m: +m[2], d: m[3] ? +m[3] : 0 } : null;
+  }
+
+  function longDate(s) {
+    var p = parseDate(s);
+    if (!p) return "";
+    return (p.d ? p.d + " " : "") + MONTHS[p.m - 1] + " " + p.y;
   }
 
   window.HARTGallery = {
@@ -32,11 +31,127 @@
       var grid = document.querySelector(opts.grid || "#gallery-grid");
       var lede = document.querySelector(opts.lede || "#gallery-lede");
       var title = document.querySelector(opts.title || "#gallery-title");
-      if (title) title.textContent = data.title || "Photo gallery";
-      if (lede) lede.textContent = data.lede || "";
+      // opts.heading === false keeps the page's own title and lede.
+      if (opts.heading !== false) {
+        if (title) title.textContent = data.title || "Photo gallery";
+        if (lede) lede.textContent = data.lede || "";
+      }
 
-      var items = data.items || [];
-      var currentAlbum = "all";
+      // opts.albums limits the page to those album ids (e.g. ["plans", "build"]).
+      var only = opts.albums && opts.albums.length ? opts.albums : null;
+      function scoped(list) {
+        if (!only) return list || [];
+        return (list || []).filter(function (it) {
+          return only.indexOf(it.album) !== -1;
+        });
+      }
+      function scopedAlbums() {
+        var albums = data.albums || [];
+        if (!only) return albums;
+        return only
+          .map(function (id) {
+            return albums.find(function (a) { return a.id === id; });
+          })
+          .filter(Boolean);
+      }
+
+      var items = scoped(data.items);
+      var currentAlbum = opts.album || (only && only.length === 1 ? only[0] : "all");
+
+      // Local curation (engineering desk only): opts.curate names the API; it is used only
+      // when the site is not public and the local review server answers.
+      var canEdit = false;
+      if (opts.curate) {
+        try {
+          var site = await HARTOps.loadSite();
+          if (!site.public) canEdit = (await fetch(opts.curate + "/ping", { cache: "no-cache" })).ok;
+        } catch (e) {
+          canEdit = false;
+        }
+      }
+      var editbar = document.querySelector(opts.editbar || "#gallery-editbar");
+      if (editbar) editbar.hidden = !canEdit;
+      var toast = document.querySelector(opts.toast || "#gallery-toast");
+
+      function showToast(msg, bad) {
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.toggle("bad", !!bad);
+        toast.classList.add("show");
+        clearTimeout(showToast.t);
+        showToast.t = setTimeout(function () {
+          toast.classList.remove("show");
+        }, 2600);
+      }
+
+      async function save(src, changes) {
+        var res = await fetch(opts.curate + "/item", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(Object.assign({ src: src }, changes)),
+        });
+        var payload = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(payload.error || "HTTP " + res.status);
+        data = payload.gallery;
+        items = scoped(data.items);
+      }
+
+      function curateControls(it) {
+        var albumOpts = (data.albums || [])
+          .map(function (a) {
+            return '<option value="' + esc(a.id) + '"' + (a.id === it.album ? " selected" : "") + ">" + esc(a.label) + "</option>";
+          })
+          .join("");
+        var s = esc(it.src);
+        return (
+          '<div class="g-curate">' +
+          '<select data-c-album="' + s + '" aria-label="Album">' + albumOpts + "</select>" +
+          '<button type="button" data-c-move="up" data-src="' + s + '" aria-label="Move earlier">↑</button>' +
+          '<button type="button" data-c-move="down" data-src="' + s + '" aria-label="Move later">↓</button>' +
+          '<button type="button" data-c-edit="' + s + '">Edit</button>' +
+          '<button type="button" data-c-archive="' + s + '">→ Photos review</button>' +
+          "</div>"
+        );
+      }
+
+      function bindCurate() {
+        async function run(src, changes, msg) {
+          try {
+            await save(src, changes);
+            showToast(msg);
+            renderAlbums();
+            renderGrid();
+          } catch (err) {
+            showToast("Not saved: " + err.message, true);
+          }
+        }
+        grid.querySelectorAll("[data-c-album]").forEach(function (el) {
+          el.addEventListener("change", function () {
+            run(el.getAttribute("data-c-album"), { album: el.value }, "Moved to " + el.options[el.selectedIndex].text);
+          });
+        });
+        grid.querySelectorAll("[data-c-move]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            run(el.getAttribute("data-src"), { move: el.getAttribute("data-c-move") }, "Reordered");
+          });
+        });
+        grid.querySelectorAll("[data-c-edit]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            var src = el.getAttribute("data-c-edit");
+            var it = items.find(function (x) { return x.src === src; }) || {};
+            var t = window.prompt("Title", it.title || "");
+            if (t === null) return;
+            var c = window.prompt("Caption", it.caption || "");
+            if (c === null) return;
+            run(src, { title: t, caption: c }, "Saved “" + t + "”");
+          });
+        });
+        grid.querySelectorAll("[data-c-archive]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            run(el.getAttribute("data-c-archive"), { to_archive: true }, "Sent to Photos › To review");
+          });
+        });
+      }
       var visible = items.slice();
       var lbIndex = 0;
 
@@ -49,11 +164,10 @@
 
       function renderAlbums() {
         if (!albumBar) return;
-        var albums = [{ id: "all", label: "All", count: items.length }].concat(
-          (data.albums || []).map(function (a) {
-            return { id: a.id, label: a.label, count: a.count };
-          })
-        );
+        var albums = scopedAlbums().map(function (a) {
+          return { id: a.id, label: a.label, count: a.count };
+        });
+        if (albums.length > 1) albums.unshift({ id: "all", label: "All", count: items.length });
         albumBar.innerHTML = albums
           .map(function (a) {
             var pressed = a.id === currentAlbum ? "true" : "false";
@@ -73,52 +187,228 @@
         albumBar.querySelectorAll("button").forEach(function (btn) {
           btn.addEventListener("click", function () {
             currentAlbum = btn.getAttribute("data-album");
+            stageIndex = 0;
             renderAlbums();
             renderGrid();
           });
         });
       }
 
-      function renderGrid() {
-        visible = filtered();
-        if (!grid) return;
-        grid.innerHTML = visible
-          .map(function (it, i) {
+      // opts.monthAlbums: albums that show as the month timeline when picked (the Photos page's build
+      // album); the grid swaps its masonry class for the timeline's.
+      function byMonth() {
+        return opts.groupBy === "month" || (opts.monthAlbums || []).indexOf(currentAlbum) !== -1;
+      }
+
+      function cellHtml(it, i) {
+        var p = byMonth() ? parseDate(it.date) : null;
+        var when = p ? '<time datetime="' + esc(it.date) + '">' + (p.d ? p.d + " " : "") + MONTHS[p.m - 1].slice(0, 3) + "</time>" : "";
+        return (
+          (canEdit ? '<div class="g-cell">' : "") +
+          '<button type="button" class="g-item" data-idx="' +
+          i +
+          '">' +
+          // Grid shows the build's thumbnail (item.thumb); the lightbox opens the full src.
+          '<img src="' +
+          esc(resolveSrc(it.thumb || it.src)) +
+          '" alt="' +
+          esc(it.title) +
+          '"' +
+          (it.width && it.height ? ' width="' + Number(it.width) + '" height="' + Number(it.height) + '"' : "") +
+          ' loading="lazy" decoding="async">' +
+          "<figcaption>" +
+          when +
+          "<strong>" +
+          esc(it.title) +
+          "</strong><span>" +
+          esc(it.caption) +
+          "</span></figcaption></button>" +
+          (canEdit ? curateControls(it) + "</div>" : "")
+        );
+      }
+
+      // opts.groupBy === "month": one row per month, in the album's own order (a timeline).
+      function monthGroups() {
+        var groups = [];
+        visible.forEach(function (it, i) {
+          var p = parseDate(it.date);
+          var key = p ? p.y + "-" + p.m : "undated";
+          var last = groups[groups.length - 1];
+          if (!last || last.key !== key) {
+            last = { key: key, label: p ? MONTHS[p.m - 1] : "Undated", year: p ? p.y : "", cells: [] };
+            groups.push(last);
+          }
+          last.cells.push(cellHtml(it, i));
+        });
+        return groups
+          .map(function (g) {
             return (
-              '<button type="button" class="g-item" data-idx="' +
-              i +
-              '">' +
-              '<img src="' +
-              esc(resolveSrc(it.src)) +
-              '" alt="' +
-              esc(it.title) +
-              '" loading="lazy">' +
-              "<figcaption><strong>" +
-              esc(it.title) +
-              "</strong><span>" +
-              esc(it.caption) +
-              "</span></figcaption></button>"
+              '<section class="g-month">' +
+              '<h3 class="g-month-label">' +
+              esc(g.label) +
+              " <span>" +
+              esc(g.year) +
+              "</span></h3>" +
+              '<div class="g-strip">' +
+              g.cells.join("") +
+              "</div></section>"
             );
           })
           .join("");
-        grid.querySelectorAll(".g-item").forEach(function (el) {
-          el.addEventListener("click", function () {
-            openLightbox(Number(el.getAttribute("data-idx")));
+      }
+
+      // opts.viewBar: Grid / List / Gallery, as on Rolling stock and Historical, remembered per browser.
+      // Grid is the masonry (or the month timeline); curation controls show only there.
+      var VIEW_KEY = "hart.gallery.view";
+      var VIEWS = [
+        { id: "grid", label: "Grid" },
+        { id: "list", label: "List" },
+        { id: "gallery", label: "Gallery" },
+      ];
+      var viewBar = opts.viewBar ? document.querySelector(opts.viewBar) : null;
+      var view = "grid";
+      var stageIndex = 0;
+      if (viewBar) {
+        try {
+          var savedView = localStorage.getItem(VIEW_KEY);
+          if (VIEWS.some(function (v) { return v.id === savedView; })) view = savedView;
+        } catch (e) {}
+      }
+
+      function renderViews() {
+        if (!viewBar) return;
+        viewBar.innerHTML = VIEWS.map(function (v) {
+          return '<button type="button" data-view="' + v.id + '" aria-pressed="' + (v.id === view) + '">' + v.label + "</button>";
+        }).join("");
+        viewBar.querySelectorAll("button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            view = b.getAttribute("data-view");
+            try {
+              localStorage.setItem(VIEW_KEY, view);
+            } catch (e) {}
+            renderViews();
+            renderGrid();
           });
         });
       }
 
+      function thumbImg(it, alt) {
+        return (
+          '<img src="' + esc(resolveSrc(it.thumb || it.src)) + '" alt="' + esc(alt) + '"' +
+          (it.width && it.height ? ' width="' + Number(it.width) + '" height="' + Number(it.height) + '"' : "") +
+          ' loading="lazy" decoding="async">'
+        );
+      }
+
+      function albumLabel(id) {
+        var a = (data.albums || []).find(function (x) { return x.id === id; });
+        return a ? a.label : "";
+      }
+
+      function listHtml() {
+        return (
+          '<div class="fleet-list-wrap"><table class="fleet-list">' +
+          '<thead><tr><th></th><th>Photo</th><th>Album</th><th>Date</th><th class="fl-note">Caption</th></tr></thead><tbody>' +
+          visible
+            .map(function (it, i) {
+              return (
+                '<tr data-idx="' + i + '" tabindex="0">' +
+                '<td class="fl-thumb">' + thumbImg(it, "") + "</td>" +
+                "<td>" + esc(it.title) + "</td>" +
+                "<td>" + esc(albumLabel(it.album)) + "</td>" +
+                '<td class="fl-num">' + esc(longDate(it.date) || "—") + "</td>" +
+                '<td class="fl-note">' + esc(it.caption) + "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></div>"
+        );
+      }
+
+      function stageHtml() {
+        var it = visible[stageIndex];
+        return (
+          '<div class="fleet-stage">' +
+          '<button type="button" class="fleet-stage-nav prev" aria-label="Previous">‹</button>' +
+          '<figure><img src="' + esc(resolveSrc(it.src)) + '" alt="' + esc(it.title) + '">' +
+          "<figcaption><strong>" + esc(it.title) + "</strong> " +
+          '<span class="muted">' + (stageIndex + 1) + " of " + visible.length + "</span><br>" +
+          esc(it.caption) + "</figcaption></figure>" +
+          '<button type="button" class="fleet-stage-nav next" aria-label="Next">›</button>' +
+          "</div>" +
+          '<div class="fleet-strip" role="list">' +
+          visible
+            .map(function (x, i) {
+              return (
+                '<button type="button" role="listitem" data-stage="' + i + '"' + (i === stageIndex ? ' aria-current="true"' : "") +
+                ' title="' + esc(x.title) + '">' + thumbImg(x, x.title) + "</button>"
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
+      function stageStep(d) {
+        stageIndex = (stageIndex + d + visible.length) % visible.length;
+        renderGrid();
+      }
+
+      function renderGrid() {
+        visible = filtered();
+        if (!grid) return;
+        if (stageIndex >= visible.length) stageIndex = 0;
+        var v = viewBar && visible.length ? view : "grid";
+        if (opts.monthAlbums || viewBar) {
+          grid.classList.toggle("build-timeline", v === "grid" && byMonth());
+          grid.classList.toggle("gallery-masonry", v === "grid" && !byMonth());
+        }
+        if (v === "list") grid.innerHTML = listHtml();
+        else if (v === "gallery") grid.innerHTML = stageHtml();
+        else grid.innerHTML = byMonth() ? monthGroups() : visible.map(cellHtml).join("");
+        if (v === "gallery") {
+          grid.querySelector(".fleet-stage-nav.prev").addEventListener("click", function () { stageStep(-1); });
+          grid.querySelector(".fleet-stage-nav.next").addEventListener("click", function () { stageStep(1); });
+          grid.querySelectorAll("[data-stage]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              stageIndex = Number(b.getAttribute("data-stage"));
+              renderGrid();
+            });
+          });
+          var cur = grid.querySelector('.fleet-strip [aria-current="true"]');
+          if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: "nearest", inline: "center" });
+          return;
+        }
+        if (canEdit && v === "grid") bindCurate();
+        grid.querySelectorAll(v === "list" ? "tr[data-idx]" : ".g-item").forEach(function (el) {
+          el.addEventListener("click", function () {
+            openLightbox(Number(el.getAttribute("data-idx")));
+          });
+          if (v === "list") {
+            el.addEventListener("keydown", function (e) {
+              if (e.key === "Enter") openLightbox(Number(el.getAttribute("data-idx")));
+            });
+          }
+        });
+      }
+
+      // Photo viewer: a modal dialog like the crew map viewer (focus on Close, Tab kept inside,
+      // Esc closes, focus goes back to the photo that opened it).
       var lb = document.createElement("div");
       lb.className = "lightbox";
+      lb.setAttribute("role", "dialog");
+      lb.setAttribute("aria-modal", "true");
+      lb.setAttribute("aria-labelledby", "g-lightbox-title");
       lb.innerHTML =
         '<button type="button" class="lightbox-close" aria-label="Close">Close</button>' +
         '<button type="button" class="lightbox-nav prev" aria-label="Previous">‹</button>' +
         '<button type="button" class="lightbox-nav next" aria-label="Next">›</button>' +
         '<div class="lightbox-card">' +
         '<img alt="">' +
-        '<div class="meta"><h2></h2><p></p><div class="credit"></div></div>' +
+        '<div class="meta"><h2 id="g-lightbox-title"></h2><p></p><div class="credit"></div></div>' +
         "</div>";
       document.body.appendChild(lb);
+      var lbReturn = null;
       var lbImg = lb.querySelector("img");
       var lbH = lb.querySelector("h2");
       var lbP = lb.querySelector("p");
@@ -131,17 +421,21 @@
         lbImg.alt = it.title || "";
         lbH.textContent = it.title || "";
         lbP.textContent = it.caption || "";
-        lbC.textContent = it.credit || "";
+        lbC.textContent = [longDate(it.date), it.credit].filter(Boolean).join(" · ");
       }
 
       function openLightbox(i) {
         lbIndex = i;
         paintLightbox();
+        lbReturn = document.activeElement;
         lb.classList.add("open");
+        lb.querySelector(".lightbox-close").focus();
       }
 
       function closeLightbox() {
         lb.classList.remove("open");
+        if (lbReturn && lbReturn.focus) lbReturn.focus();
+        lbReturn = null;
       }
 
       lb.querySelector(".lightbox-close").addEventListener("click", closeLightbox);
@@ -160,6 +454,7 @@
       });
       document.addEventListener("keydown", function (e) {
         if (!lb.classList.contains("open")) return;
+        HARTOps.trapTab(lb, e);
         if (e.key === "Escape") closeLightbox();
         if (e.key === "ArrowLeft") {
           lbIndex = (lbIndex - 1 + visible.length) % visible.length;
@@ -171,6 +466,7 @@
         }
       });
 
+      renderViews();
       renderAlbums();
       renderGrid();
       return data;

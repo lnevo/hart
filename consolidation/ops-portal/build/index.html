@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Build — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/archive.css">
+  <link rel="stylesheet" href="../css/video.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>The Build</h1>
+      <p class="section-note">
+        HART fills one room. The track plan settled in July 2025: the benchwork footprint, old maps of
+        the island laid over it to place the yards and plants, then the main line, the yard on the
+        peninsula and the helix down to staging. Crews already run sessions on the railroad while
+        construction goes on around them.
+      </p>
+    </div>
+
+    <section class="hub-group" id="progress" aria-labelledby="progress-title">
+      <h2 id="progress-title">The layout through the build</h2>
+      <p class="section-note">
+        A look back at the layout before HART, then the room month by month, from bare walls in February 2025
+        to the helix going up in October 2026. Tap a photo to see it larger.
+      </p>
+      <p class="archive-editbar" id="progress-editbar" hidden>
+        Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
+      </p>
+      <div class="build-timeline" id="progress-grid"><p class="muted">Loading…</p></div>
+      <div class="archive-toast" id="progress-toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="hub-group" id="staging" aria-labelledby="staging-title">
+      <h2 id="staging-title">The staging level</h2>
+      <p class="section-note">
+        Staging is the lower level, at the bottom of the helix. It is finished, and trains already run on it.
+      </p>
+      <div class="video-grid is-single">
+        <div class="video" data-video="K7ahrL7Bb34"><a href="https://www.youtube.com/watch?v=K7ahrL7Bb34">Video: Staging level FPV</a></div>
+      </div>
+      <div class="card-grid">
+        <a class="card" href="files/staging-level-framing.pdf">
+          <p class="card-kind">PDF, 3 pp, draft</p>
+          <h3>Framing drawings (as built)</h3>
+          <p>A draft of how staging was built: 1x3 joists on 1x4 + 1x2 L-girders, the closet framed as a long 8 inch shelf on the east wall with a separate box in each alcove, the southwest box on 2x4 legs, and the helix peninsula with its framed access hatch. Sections and plywood pieces. Some dimensions are still to be checked on site.</p>
+        </a>
+      </div>
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          HARTVideo.mount(document.getElementById("staging")).catch(function (err) {
+            console.error(err);
+          });
+        });
+      </script>
+    </section>
+
+    <section class="hub-group" id="helix" aria-labelledby="helix-title">
+      <h2 id="helix-title">The helix</h2>
+      <p class="section-note">
+        A helix is a spiral of track that lets trains change levels in a small space. HART's carries two
+        tracks down to staging in about three and a half turns, with four inches between loops. The
+        roadbed is cut from plywood and joined with half-laps, using router templates made on a 3D printer.
+      </p>
+      <div class="video-grid is-single">
+        <div class="video" data-video="dk2nJ_2-jvk"><a href="https://www.youtube.com/watch?v=dk2nJ_2-jvk">Video: Helix FPV</a></div>
+      </div>
+      <div class="card-grid">
+        <a class="card" href="../helix/files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf">
+          <p class="card-kind">PDF, 13 pp</p>
+          <h3>Construction plan</h3>
+          <p>Frames, braces, bracket heights, roadbed cut sheets, and the build sequence.</p>
+        </a>
+        <a class="card" href="../helix/index.html">
+          <p class="card-kind">Complete</p>
+          <h3>Neville Island helix</h3>
+          <p>The construction plan, the half-lap screw template, and every printed fixture with its files.</p>
+        </a>
+      </div>
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          HARTVideo.mount(document.getElementById("helix")).catch(function (err) {
+            console.error(err);
+          });
+        });
+      </script>
+    </section>
+
+    <section class="hub-group" id="main-level" aria-labelledby="main-level-title">
+      <h2 id="main-level-title">The main level</h2>
+      <p class="section-note">
+        The main level sits 15 inches above staging, at the top of the helix. Its 1x2 joists run from the
+        L-girder already on the back wall, on mitered 1x3 blocks, to a new front girder (a 1x2 web on the face over a flat 1x3 flange):
+        one piece wall to wall on the north side, tied into the peninsula on the west, with two rods per run
+        down to the staging legs. Keeping the framing shallow leaves over 11 inches to reach the staging
+        tracks underneath. The deck at 0 is 3/4 in plywood; the ledges and helix top at +4-1/4 are 1/2 in.
+        Work on the main level resumes after Thanksgiving.
+      </p>
+      <div class="card-grid">
+        <a class="card" href="files/main-level-joist-construction.pdf">
+          <p class="card-kind">PDF, 7 pp</p>
+          <h3>Framing drawings</h3>
+          <p>A framing plan of the whole level, a section through the shelf, the front girder, junction and riser block details, a typical bay, and the assembly steps with a lumber list.</p>
+        </a>
+        <a class="card" href="files/main-level-plywood-cut-plan.html">
+          <p class="card-kind">Cut plan, 4 + 5 sheets</p>
+          <h3>Plywood cut sheets</h3>
+          <p>Every main-level piece laid out on 4 x 8 sheets: four of 3/4 in for the deck at 0, five of 1/2 in for the +4-1/4 ledges and helix top, with trammel radii and edge offsets.</p>
+        </a>
+        <a class="card" href="files/main-level-marking-sheets.pdf">
+          <p class="card-kind">PDF, 11 pp</p>
+          <h3>Marking sheets</h3>
+          <p>For each cut sheet, every point to mark measured from the left and top factory edges: corners, trammel centres and radii for the arcs, and batten points every 3 in along the free curves.</p>
+        </a>
+        <a class="card" href="files/main-level-lumber-cut-list.html">
+          <p class="card-kind">Cut list, 1x2 + 1x3</p>
+          <h3>Lumber cut list</h3>
+          <p>Every joist, girder piece, closet part and riser block assigned to a stick: the closet boxes from the 1x3 on hand first, then the 16 ft sticks, with the lengths to measure in the room before cutting.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" id="photos" aria-labelledby="photos-title">
+      <h2 id="photos-title">Track plans and wiring</h2>
+      <p class="section-note">
+        How the plan changed, and the diagrams used to wire it. For the finished room on a session night,
+        see <a href="../photos/index.html#layout/session-night">Photos</a>.
+      </p>
+      <p class="muted" id="gallery-lede" hidden></p>
+      <div class="album-bar" id="album-bar"></div>
+      <div class="gallery-masonry" id="gallery-grid"></div>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/video.js"></script>
+  <script src="../js/gallery.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("build");
+        await HARTGallery.mount({
+          dataUrl: "data/gallery.json",
+          albums: ["progress"],
+          heading: false,
+          groupBy: "month",
+          albumBar: "#progress-albums", // none on this page: one album
+          grid: "#progress-grid",
+          editbar: "#progress-editbar",
+          toast: "#progress-toast",
+          curate: "/api/gallery",
+        });
+        await HARTGallery.mount({ dataUrl: "data/gallery.json", albums: ["plans", "build"], heading: false });
+        // Deep links: #plans and #wiring open that album; any hash scrolls again once the galleries have filled in.
+        var hash = location.hash.slice(1);
+        var album = { plans: "plans", wiring: "build" }[hash];
+        if (album) {
+          var btn = document.querySelector('#album-bar [data-album="' + album + '"]');
+          if (btn) btn.click();
+        }
+        var target = document.getElementById(album ? "photos" : hash);
+        if (target) target.scrollIntoView();
+      } catch (err) {
+        console.error(err);
+        HARTOps.renderError(document.getElementById("progress-grid"), { what: "the build photos", err: err });
+      }
+    });
+  </script>
+</body>
+</html>

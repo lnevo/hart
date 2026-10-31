@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Layout documentation — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    /* Drawings get the full page width. */
+    .docs-wide { max-width: none; }
+    .docs-wide figure, .docs-wide figure img { max-width: 100%; width: 100%; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Layout documentation</h1>
+      <p class="section-note">The wiring drawings for the layout: track buses and power districts, how a control node is hooked up, and where the nodes sit. Click a drawing to open it full size.</p>
+      <p class="small"><a href="../assets/behind/layout-docs/layout-documentation.pdf">Download all eight as a PDF</a> · <a href="#slide-1">Track buses</a> · <a href="#slide-2">Power districts</a> · <a href="#slide-3">Terminal bus colors</a> · <a href="#slide-4">Bus wiring</a> · <a href="#slide-5">Control node configuration</a> · <a href="#slide-6">Turnout wiring</a> · <a href="#slide-7">Control node placement</a> · <a href="#slide-8">Protocols</a></p>
+    </div>
+
+    <article class="explainer prose docs-wide">
+      <h2 id="slide-1">Track buses</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-01.png"><img src="../assets/behind/layout-docs/slide-01.png" alt="Track buses diagram" loading="lazy"></a>
+        <figcaption>Eleven booster buses: where each runs, its north and south wire colors, and the PSX hardware that protects it, auto-reverser or circuit breaker.</figcaption>
+      </figure>
+      <h2 id="slide-2">Power districts</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-02.png"><img src="../assets/behind/layout-docs/slide-02.png" alt="Power districts diagram" loading="lazy"></a>
+        <figcaption>How the command station and two boosters feed the circuit breakers and auto-reversers, and through them each district.</figcaption>
+      </figure>
+      <h2 id="slide-3">Terminal bus colors</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-03.png"><img src="../assets/behind/layout-docs/slide-03.png" alt="Terminal bus colors diagram" loading="lazy"></a>
+        <figcaption>Red and black for the primary DCC bus, green and brown for the secondary.</figcaption>
+      </figure>
+      <h2 id="slide-4">Bus wiring</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-04.png"><img src="../assets/behind/layout-docs/slide-04.png" alt="Bus wiring diagram" loading="lazy"></a>
+        <figcaption>Power supply output, the DCC control bus between the command station and boosters, and the occupancy detector boards feeding an LCOS node on the 12-volt layout control bus.</figcaption>
+      </figure>
+      <h2 id="slide-5">Control node configuration</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-05.png"><img src="../assets/behind/layout-docs/slide-05.png" alt="Control node configuration diagram" loading="lazy"></a>
+        <figcaption>One node's inputs and outputs: block sensors, buttons, turnout sensors, 12-volt and 5-volt outputs, and the universal translator for the touch toggles.</figcaption>
+      </figure>
+      <h2 id="slide-6">Turnout wiring</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-06.png"><img src="../assets/behind/layout-docs/slide-06.png" alt="Turnout wiring diagram" loading="lazy"></a>
+        <figcaption>How a switch motor's auxiliary contacts report Normal and Reverse to the node, and how the touch toggle on the fascia panel shows the switch position.</figcaption>
+      </figure>
+      <h2 id="slide-7">Control node placement</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-07.png"><img src="../assets/behind/layout-docs/slide-07.png" alt="Control node placement diagram" loading="lazy"></a>
+        <figcaption>Where each node sits on the track plan.</figcaption>
+      </figure>
+      <h2 id="slide-8">Protocols</h2>
+      <figure class="wide">
+        <a href="../assets/behind/layout-docs/slide-08.png"><img src="../assets/behind/layout-docs/slide-08.png" alt="Protocols diagram" loading="lazy"></a>
+        <figcaption>DCC, JMRI, LCN and MQTT: what each one does and how they connect.</figcaption>
+      </figure>
+      <p class="muted">Pin-by-pin wiring for every node is in the <a href="wiring.html">wiring viewer</a>.</p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-docs").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

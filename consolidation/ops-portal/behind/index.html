@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Behind the Scenes — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/video.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Behind the Scenes</h1>
+      <p class="section-note">
+        How the layout works when the crews aren't looking: the computer that keeps track of every
+        train, the signals, the radios under the benchwork, and the software that decides which cars move.
+      </p>
+    </div>
+
+    <section class="hub-group" id="electronics" aria-labelledby="elec-title">
+      <h2 id="elec-title">Electronics &amp; the bridge</h2>
+      <p class="section-note">
+        Switch motors, detectors and signal lamps are wired to small radio nodes near the track they
+        serve. An Arduino listens to those radios and passes everything on to the computer.
+      </p>
+      <div class="card-grid">
+        <a class="card" href="bridge.html">
+          <p class="card-kind">Overview</p>
+          <h3>LCOS and the Arduino bridge</h3>
+          <p>The radio nodes, what each one is wired to, and how their messages reach JMRI.</p>
+        </a>
+        <a class="card" href="../roster/index.html">
+          <p class="card-kind">Reference</p>
+          <h3>Device roster</h3>
+          <p>Every switch, signal and sensor on the railroad, searchable, with its control point and hardware.</p>
+        </a>
+        <a class="card" href="wiring.html">
+          <p class="card-kind">Reference</p>
+          <h3>Wiring viewer</h3>
+          <p>Each radio node pin by pin: which output lights each signal lamp, throws each switch, or reads each detector.</p>
+        </a>
+        <a class="card" href="layout-docs.html">
+          <p class="card-kind">Drawings</p>
+          <h3>Layout documentation</h3>
+          <p>Track buses, power districts, bus wiring, how a control node and a turnout are hooked up, and where the nodes sit.</p>
+        </a>
+        <a class="card" href="../guides/digicon-system.html" data-local-only>
+          <p class="card-kind">Engineering desk</p>
+          <h3>Digicon system reference</h3>
+          <p>The full technical write-up: panel files, signal addressing, and the startup scripts.</p>
+        </a>
+      </div>
+      <div class="video-grid is-single">
+        <div class="video" data-video="FBvN-6PZCh4"><a href="https://www.youtube.com/watch?v=FBvN-6PZCh4">Video: Integration between LCOS and JMRI via MQTT</a></div>
+      </div>
+    </section>
+
+    <section class="hub-group" id="control" aria-labelledby="control-title">
+      <h2 id="control-title">Control &amp; signals</h2>
+      <p class="section-note">
+        A computer running JMRI, free model railroad software, knows where every switch is lined and
+        which track is occupied. The dispatcher sets up routes on a CTC panel on screen, and the
+        signals in the aisle follow.
+      </p>
+      <div class="card-grid">
+        <a class="card" href="signals.html">
+          <p class="card-kind">Overview</p>
+          <h3>How the signals work</h3>
+          <p>From the dispatcher's click to a green light in the aisle, and what the signals do when nobody is dispatching.</p>
+        </a>
+        <a class="card" href="../guides/index.html">
+          <p class="card-kind">In Operations</p>
+          <h3>Dispatcher guides</h3>
+          <p>The USS lever machine, the Digicon panel, and JMRI's automatic dispatcher, written for the person in the chair.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" id="car-forwarding" aria-labelledby="cars-title">
+      <h2 id="cars-title">Car forwarding</h2>
+      <p class="section-note">
+        Cars don't move at random. Each session starts from shipper orders. STS, the Shipper-driven
+        Traffic Simulator, fills them with cars from the roster and produces the waybills and switch
+        lists the crews work from.
+      </p>
+      <div class="card-grid">
+        <a class="card" href="../library/sts-operations-article.html">
+          <p class="card-kind">Article · July 2026</p>
+          <h3>Setting up car movement on the HART Railroad</h3>
+          <p>From Post-it flags to STS: car cards and waybills, a track scale for the coke hoppers, and hundreds of simulated sessions to tune the traffic.</p>
+        </a>
+      </div>
+      <div class="video-grid is-single">
+        <div class="video" data-video="BbQ3QSvtR-M"><a href="https://www.youtube.com/watch?v=BbQ3QSvtR-M">Video: Virtual track scale using STS</a></div>
+      </div>
+    </section>
+
+    <section class="hub-group" id="locomotives" aria-labelledby="loco-title">
+      <h2 id="loco-title">Locomotives</h2>
+      <p class="section-note">
+        For the automatic dispatcher to stop a train on its mark, JMRI has to know how fast each
+        locomotive really goes at each throttle step. Measuring and matching the roster is next on the list.
+      </p>
+      <div class="card-grid">
+        <a class="card" href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf">
+          <p class="card-kind">Procedure · PDF, 37 pp</p>
+          <h3>Speed matching and the measure table</h3>
+          <p>The Short Track Rail Road club's procedure for speed matching on a test loop with detection. HART is adapting it for HO.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" id="workbench" aria-labelledby="workbench-title">
+      <h2 id="workbench-title">From the workbench</h2>
+      <p class="section-note">Tools built along the way and shared with other modelers.</p>
+      <div class="card-grid">
+        <a class="card" href="../library/stl-studio-article.html">
+          <p class="card-kind">Article · Side project</p>
+          <h3>STL Studio: building Tower LCC+Q logic with blocks</h3>
+          <p>A free web editor I built for the LCC community: snap blocks together and copy the logic into an RR-CirKits Tower LCC+Q. Not part of HART's control system.</p>
+        </a>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/video.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind").catch(function (err) {
+        console.error(err);
+      });
+      HARTVideo.mount().catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

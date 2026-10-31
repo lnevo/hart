@@ -1,16 +1,8 @@
 (function () {
   var data = null;
 
-  function base() {
-    return window.HARTOps ? window.HARTOps.base() : "../";
-  }
-
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
+  var base = HARTOps.base;
+  var esc = HARTOps.esc;
 
   function filtered() {
     var kind = document.querySelector("#kind-filter").value;
@@ -34,23 +26,23 @@
       .map(function (item) {
         return (
           '<tr id="' +
-          escapeHtml(item.id) +
+          esc(item.id) +
           '"><td><span class="kind-pill ' +
-          escapeHtml(item.kind) +
+          esc(item.kind) +
           '">' +
-          escapeHtml(item.kind) +
+          esc(item.kind) +
           "</span></td><td>" +
-          escapeHtml(item.publicName || "") +
+          esc(item.publicName || "") +
           '</td><td class="mono">' +
-          escapeHtml(item.systemName || "") +
+          esc(item.systemName || "") +
           "</td><td>" +
-          escapeHtml(item.cp || "—") +
+          esc(item.cp || "—") +
           '</td><td class="mono">' +
-          escapeHtml(item.hardware || "—") +
+          esc(item.hardware || "—") +
           '</td><td class="mono">' +
-          escapeHtml(item.mqtt || "—") +
+          esc(item.mqtt || "—") +
           "</td><td>" +
-          escapeHtml(item.comment || "") +
+          esc(item.comment || "") +
           "</td></tr>"
         );
       })
@@ -62,7 +54,7 @@
   }
 
   async function init() {
-    var res = await fetch(base() + "data/layout-index.json");
+    var res = await fetch(base() + "data/layout-index.json", { cache: "no-cache" });
     data = await res.json();
     var cps = {};
     (data.items || []).forEach(function (it) {
@@ -86,6 +78,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    window.HARTOps.mountChrome("roster").then(init);
+    window.HARTOps.mountChrome("roster")
+      .then(init)
+      .catch(function (err) {
+        console.error(err);
+        window.HARTOps.renderError(document.querySelector("main .table-wrap"), { what: "the device roster", err: err });
+      });
   });
 })();

@@ -27,7 +27,7 @@ Chat source: skills/MCP backlog discussion, 2026-09-14.
 | When | Knowledge is in git history / scripts / “never do X” | Software already has HTTP/JSON or MQTT |
 | Not | A second copy of HART ADRs | Serial ports, throttles, CATS Swing, flashing Nanos |
 
-**Already in the room:** Chrome DevTools MCP (ops portal, GitHub Pages, STS HTML, JMRI web). GitHub/`gh` and generic Docker MCPs exist off the shelf — don’t rebuild.
+**Already in the room:** Chrome DevTools MCP (ops portal, www.hartrailroad.com, STS HTML, JMRI web). GitHub/`gh` and generic Docker MCPs exist off the shelf — don’t rebuild.
 
 **Already encoded as HART rules** (don’t duplicate as portable skills unless we want them off this railroad): LCOS bridge foreground-only; Dispatcher System is stock; `tables.xml` read-only; consolidation write-only tree; commit-by-default close-out.
 
@@ -75,7 +75,7 @@ Hard-won landmines. Other JMRI / CATS / MQTT layouts hit these.
 | 20 | `google-sheets-bulk-push` | Google Sheets API | Abandoned for hart; still: `clear()` + bulk `addRows`, never per-row delete (429) |
 | 21 | `jmri-to-schematic-xlsx` | NextTrain / xlsx export | Coordinate transform via `export_options.json`; same scale for segments and control points |
 | 22 | `ops-docx-pptx` | python-docx / python-pptx | Crew pubs, station maps — don’t hand-edit generated Word |
-| 23 | `github-pages-ops-site` | GitHub Pages + Actions | Static crew portal; JSON pages need HTTP, not `file://` |
+| 23 | `static-ops-site` | Static build + rsync to a web host | Static crew portal; JSON pages need HTTP, not `file://` |
 | 24 | `macos-launchagents-helpers` | launchd | Portal / mimic agents that survive Cursor quit |
 | 25 | `mqtt-hardware-mimic` | MQTT QA without field hardware | Enroll from live `signalmast` roster, not a static allow-list |
 | 26 | `generated-xml-discipline` | any generator | Change the CSV/script, regenerate; never search-replace generated CATS/USS/signal XML |

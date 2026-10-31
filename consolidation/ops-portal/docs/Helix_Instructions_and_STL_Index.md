@@ -71,10 +71,6 @@
 |---|---|---|---|---|
 | [`bracket_edge_shim.stl`](../helix/stl/bracket_edge_shim.stl) | 13 KB | 7.0 × 38.1 × 15.9 (0.27 × 1.50 × 0.63) | [`make_bracket_edge_shim.py`](../helix/scripts/make_bracket_edge_shim.py) | Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed. |
 | [`bracket_plumb_shim.stl`](../helix/stl/bracket_plumb_shim.stl) | 2 KB | 88.9 × 15.7 × 0.6 (3.50 × 0.62 × 0.02) | [`make_bracket_plumb_shim.py`](../helix/scripts/make_bracket_plumb_shim.py) | Tapered strip (0.20 → 0.56 mm) for the sideways lean from grade. Notched edge uphill. One per bracket. |
-| [`bracket_wedge_gap_1_64.stl`](../helix/stl/bracket_wedge_gap_1_64.stl) | 2 KB | 88.9 × 0.8 × 15.7 (3.50 × 0.03 × 0.62) | [`make_bracket_wedges.py`](../helix/scripts/make_bracket_wedges.py) | Wedges for a gap between the bracket leg and the post; notches = gap in 64ths. |
-| [`bracket_wedge_gap_2_64.stl`](../helix/stl/bracket_wedge_gap_2_64.stl) | 3 KB | 88.9 × 1.2 × 15.7 (3.50 × 0.05 × 0.62) | ″ | ″ |
-| [`bracket_wedge_gap_3_64.stl`](../helix/stl/bracket_wedge_gap_3_64.stl) | 4 KB | 88.9 × 1.5 × 15.7 (3.50 × 0.06 × 0.62) | ″ | ″ |
-| [`bracket_wedge_gap_4_64.stl`](../helix/stl/bracket_wedge_gap_4_64.stl) | 5 KB | 88.9 × 1.9 × 15.7 (3.50 × 0.07 × 0.62) | ″ | ″ |
 
 ### Shop tool
 

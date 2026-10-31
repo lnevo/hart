@@ -1,135 +1,229 @@
 {
-  "title": "Official publications",
-  "lede": "Documents produced by the HART publication pipeline (hart-ops/docs/published). These are the official operator-facing sheets.",
+  "title": "Publications",
+  "lede": "The print and download shelf: every official HART publication with its number and revision. Open reads it on screen; Print gives you the paper card.",
+  "groups": [
+    {
+      "id": "start",
+      "label": "Getting started"
+    },
+    {
+      "id": "crew",
+      "label": "Crew paperwork"
+    },
+    {
+      "id": "maps",
+      "label": "Station maps"
+    },
+    {
+      "id": "reference",
+      "label": "Reference"
+    },
+    {
+      "id": "shop",
+      "label": "Shop guides",
+      "note": "Shop and build procedures, not operating paperwork."
+    }
+  ],
   "items": [
     {
       "id": "primer",
-      "title": "New Operator Primer (HB-01)",
-      "kind": "Official publication",
+      "group": "start",
+      "pub": "HB-01",
+      "revision": "B",
+      "title": "New Operator Primer",
+      "page": "briefing/index.html",
       "html": "docs/html/Neville_Island_New_Operator_Primer.html",
       "source": "../external/hart-ops/docs/published/Neville_Island_New_Operator_Primer.docx",
-      "blurb": "Primary briefing document for operators new to Neville Island."
-    },
-    {
-      "id": "scale-ops",
-      "title": "Scale Operating Instructions",
-      "kind": "Official publication",
-      "html": "docs/html/HART_Railroad_Scale_Operating_Instructions.html",
-      "source": "../external/hart-ops/docs/published/HART Railroad Scale Operating Instructions.docx",
-      "blurb": "How the scale job works on HART."
-    },
-    {
-      "id": "ym-seq",
-      "title": "Yardmaster Sequence",
-      "kind": "Official publication",
-      "html": "docs/html/Neville_Island_Yardmaster_Sequence.html",
-      "source": "../external/hart-ops/docs/published/Neville_Island_Yardmaster_Sequence.docx",
-      "blurb": "Yardmaster flow for South Yard and the island plant."
-    },
-    {
-      "id": "ds-list",
-      "title": "Dispatcher Train List",
-      "kind": "Official publication",
-      "html": "docs/html/Neville_Island_Dispatcher_Train_List.html",
-      "source": "../external/hart-ops/docs/published/Neville_Island_Dispatcher_Train_List.docx",
-      "blurb": "Dispatcher-facing train list for Neville Island sessions."
+      "blurb": "The briefing for operators new to Neville Island: the island, the jobs, the colors, the scale."
     },
     {
       "id": "crew-d749",
-      "title": "Crew sheet \u2014 D749",
-      "kind": "Crew sheet",
+      "group": "crew",
+      "pub": "CI-D749",
+      "revision": "D",
+      "title": "Crew sheet: D749",
+      "page": "crew/d749/index.html",
+      "printable": true,
       "html": "docs/html/Neville_Island_Crew_D749.html",
       "source": "../external/hart-ops/docs/published/Neville_Island_Crew_D749.docx",
-      "blurb": "Published crew sheet for D749."
+      "blurb": "CSX Neville Island Switcher, Demmler / McKeesport turn."
     },
     {
       "id": "crew-nvl",
-      "title": "Crew sheet \u2014 NVL",
-      "kind": "Crew sheet",
+      "group": "crew",
+      "pub": "CI-NVL",
+      "revision": "D",
+      "title": "Crew sheet: NVL",
+      "page": "crew/nvl/index.html",
+      "printable": true,
       "html": "docs/html/Neville_Island_Crew_NVL.html",
       "source": "../external/hart-ops/docs/published/Neville_Island_Crew_NVL.docx",
-      "blurb": "Published crew sheet for NVL."
+      "blurb": "Neville Island Turn from Scully Yard."
     },
     {
       "id": "crew-ck1",
-      "title": "Crew sheet \u2014 CK1",
-      "kind": "Crew sheet",
+      "group": "crew",
+      "pub": "CI-CK1",
+      "revision": "D",
+      "title": "Crew sheet: CK1",
+      "page": "crew/ck1/index.html",
+      "printable": true,
       "html": "docs/html/Neville_Island_Crew_CK1.html",
       "source": "../external/hart-ops/docs/published/Neville_Island_Crew_CK1.docx",
-      "blurb": "Published crew sheet for CK1."
+      "blurb": "Coke Transfer: Shenango, the scale, and the sort."
     },
     {
-      "id": "op-sheet",
-      "title": "Operator Sheet",
-      "kind": "Official publication",
-      "html": "docs/html/HART_Operator_Sheet.html",
-      "source": "../external/hart-ops/docs/published/HART_Operator_Sheet.docx",
-      "blurb": "General HART operator sheet."
+      "id": "ym-seq",
+      "group": "crew",
+      "pub": "YM-01",
+      "revision": "D",
+      "title": "Yardmaster Sequence",
+      "page": "crew/yardmaster/index.html",
+      "printable": true,
+      "html": "docs/html/Neville_Island_Yardmaster_Sequence.html",
+      "source": "../external/hart-ops/docs/published/Neville_Island_Yardmaster_Sequence.docx",
+      "blurb": "Yardmaster flow for South Yard: who gets which cut, in order."
     },
     {
-      "id": "standards",
-      "title": "Publication Standards v1.0",
-      "kind": "Standards",
-      "html": "docs/html/HART_Railroad_Publication_Standards_v1.0.html",
-      "source": "../external/hart-ops/docs/published/HART_Railroad_Publication_Standards_v1.0.docx",
-      "blurb": "How official HART publications are authored and branded."
+      "id": "ds-list",
+      "group": "crew",
+      "pub": "DS-01",
+      "revision": "D",
+      "title": "Dispatcher Train List",
+      "page": "crew/dispatcher/index.html",
+      "printable": true,
+      "html": "docs/html/Neville_Island_Dispatcher_Train_List.html",
+      "source": "../external/hart-ops/docs/published/Neville_Island_Dispatcher_Train_List.docx",
+      "blurb": "Train lineup, priority, and the Route 23 timetable."
+    },
+    {
+      "id": "tt23",
+      "group": "crew",
+      "pub": "TT-23",
+      "revision": "A",
+      "title": "Route 23 Timetable",
+      "page": "crew/tt23/index.html",
+      "printable": true,
+      "source": "../external/hart-ops/docs/published/TT-23_Route23_NevilleQueen_RevisionA_v6.pptx",
+      "sourceLabel": "pptx",
+      "blurb": "Employee Timetable No. 23 for the Neville Queen streetcar."
     },
     {
       "id": "sm-sub",
-      "title": "Station Map \u2014 Subdivision",
-      "kind": "Station map",
+      "group": "maps",
+      "pub": "SM-01",
+      "revision": "A",
+      "title": "Station Map: Subdivision",
+      "page": "crew/maps/index.html",
       "html": "docs/html/Neville_Island_Station_Map.html",
       "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map.docx",
-      "blurb": "Official subdivision station map publication."
-    },
-    {
-      "id": "sm-ee",
-      "title": "Station Map \u2014 East End",
-      "kind": "Station map",
-      "html": "docs/html/Neville_Island_Station_Map_East_End.html",
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_East_End.docx",
-      "blurb": "East End station map publication."
-    },
-    {
-      "id": "sm-sh",
-      "title": "Station Map \u2014 Shenango",
-      "kind": "Station map",
-      "html": "docs/html/Neville_Island_Station_Map_Shenango.html",
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_Shenango.docx",
-      "blurb": "Shenango station map publication."
-    },
-    {
-      "id": "sm-sy",
-      "title": "Station Map \u2014 South Yard",
-      "kind": "Station map",
-      "html": "docs/html/Neville_Island_Station_Map_South_Yard.html",
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_South_Yard.docx",
-      "blurb": "South Yard station map publication."
-    },
-    {
-      "id": "sm-barn",
-      "title": "Station Map \u2014 Barn",
-      "kind": "Station map",
-      "html": "docs/html/Neville_Island_Station_Map_Barn.html",
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_Barn.docx",
-      "blurb": "Barn / Engine House local panel: Switch 7, 9, 11, and 13."
+      "blurb": "The whole railroad on one diagram."
     },
     {
       "id": "sm-wy",
-      "title": "Station Map \u2014 West Yard",
-      "kind": "Station map",
+      "group": "maps",
+      "pub": "SM-02",
+      "revision": "A",
+      "title": "Station Map: West Yard",
+      "page": "crew/maps/west-yard/index.html",
+      "printable": true,
       "html": "docs/html/Neville_Island_Station_Map_West_Yard.html",
       "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_West_Yard.docx",
-      "blurb": "West Yard station map publication."
+      "blurb": "Brick, W-1 and W-2, and the Plane junction."
+    },
+    {
+      "id": "sm-sy",
+      "group": "maps",
+      "pub": "SM-03",
+      "revision": "A",
+      "title": "Station Map: South Yard",
+      "page": "crew/maps/south-yard/index.html",
+      "printable": true,
+      "html": "docs/html/Neville_Island_Station_Map_South_Yard.html",
+      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_South_Yard.docx",
+      "blurb": "Tracks S-1 to S-5, the scale, and the engine house leads."
+    },
+    {
+      "id": "sm-ee",
+      "group": "maps",
+      "pub": "SM-04",
+      "revision": "A",
+      "title": "Station Map: East End",
+      "page": "crew/maps/east-end/index.html",
+      "printable": true,
+      "html": "docs/html/Neville_Island_Station_Map_East_End.html",
+      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_East_End.docx",
+      "blurb": "The island industries on S-2 to S-5."
+    },
+    {
+      "id": "sm-sh",
+      "group": "maps",
+      "pub": "SM-05",
+      "revision": "A",
+      "title": "Station Map: Shenango",
+      "page": "crew/maps/shenango/index.html",
+      "printable": true,
+      "html": "docs/html/Neville_Island_Station_Map_Shenango.html",
+      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_Shenango.docx",
+      "blurb": "Princess, Shenango Coke Works, and the interchange loops. Rotated desk view included."
+    },
+    {
+      "id": "sm-barn",
+      "group": "maps",
+      "pub": "SM-06",
+      "revision": "",
+      "title": "Station Map: Barn",
+      "page": "crew/maps/barn/index.html",
+      "printable": true,
+      "html": "docs/html/Neville_Island_Station_Map_Barn.html",
+      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_Barn.docx",
+      "blurb": "Engine house EH-1 to EH-3 and switches 7, 9, 11, and 13."
+    },
+    {
+      "id": "scale-ops",
+      "group": "reference",
+      "pub": "EQ-01",
+      "revision": "D",
+      "title": "Scale Operating Instructions",
+      "page": "crew/scale/index.html",
+      "printable": true,
+      "html": "docs/html/HART_Railroad_Scale_Operating_Instructions.html",
+      "source": "../external/hart-ops/docs/published/HART Railroad Scale Operating Instructions.docx",
+      "blurb": "Calibrating the track scale and weighing outbound cars."
+    },
+    {
+      "id": "op-sheet",
+      "group": "reference",
+      "pub": "",
+      "revision": "",
+      "title": "Industry Spot Sheets",
+      "page": "crew/industries/index.html",
+      "printable": true,
+      "html": "docs/html/HART_Operator_Sheet.html",
+      "source": "../external/hart-ops/docs/published/HART_Operator_Sheet.docx",
+      "blurb": "Every customer's tracks and spots, plus the interchange yards. Formerly the “Operator Sheet”."
+    },
+    {
+      "id": "standards",
+      "group": "reference",
+      "pub": "",
+      "revision": "v1.0",
+      "title": "Publication Standards",
+      "page": "docs/html/HART_Railroad_Publication_Standards_v1.0.html",
+      "html": "docs/html/HART_Railroad_Publication_Standards_v1.0.html",
+      "source": "../external/hart-ops/docs/published/HART_Railroad_Publication_Standards_v1.0.docx",
+      "blurb": "How official HART publications are numbered, dated, and written."
     },
     {
       "id": "strr",
-      "title": "STRR Speed Match / Measure Table SOP Rev2",
-      "kind": "SOP (PDF)",
-      "html": "",
+      "group": "shop",
+      "pub": "STRR SOP",
+      "revision": "Rev 2",
+      "title": "Speed Matching & Measure Table SOP",
       "pdf": "docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf",
+      "pages": 37,
       "source": "../external/hart-ops/docs/published/STRR Speed Match-Measure Table SOP Rev2.pdf",
-      "blurb": "Speed match / measure table standard operating procedure."
+      "blurb": "Shop procedure for speed-matching locomotives on the measure table. PDF, 37 pages."
     }
   ]
 }

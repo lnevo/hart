@@ -1,0 +1,8272 @@
+{
+ "source": {
+  "file": "LCOS_Layout_Inventory_v85.xlsx",
+  "version": "v85",
+  "modified": "2026-09-08",
+  "built": "2026-10-17"
+ },
+ "nodes": [
+  {
+   "id": "M1",
+   "address": "0",
+   "location": "Helix",
+   "type": "Main",
+   "turnouts": [],
+   "signals": [],
+   "blockNames": [],
+   "summary": {
+    "outputs12v": {
+     "used": "0",
+     "free": "0"
+    },
+    "outputs5v": {
+     "used": "0",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "0",
+     "free": "0"
+    }
+   },
+   "outputs": [],
+   "inputs": [],
+   "detectors": []
+  },
+  {
+   "id": "C1",
+   "address": "1",
+   "location": "Helix - Lower (Princess)",
+   "type": "Client",
+   "turnouts": [
+    "Switch 35",
+    "Switch 37",
+    "Switch 39"
+   ],
+   "signals": [
+    "36RA",
+    "38LA",
+    "36RB",
+    "38LB"
+   ],
+   "blockNames": [
+    "East Lead",
+    "McKees Rocks",
+    "McKeesport",
+    "Switch 35a",
+    "Switch 35b",
+    "Switch 37",
+    "Switch 39",
+    "West Main Ext"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "6",
+     "free": "2"
+    },
+    "outputs5v": {
+     "used": "13",
+     "free": "3"
+    },
+    "inputs": {
+     "used": "9",
+     "free": "7"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "Helix - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C1-OU1-1",
+       "device": "Switch 35 N",
+       "kind": "motor",
+       "place": "Helix - Lower",
+       "note": "radio addr 1; M2T108 / 1-8 / DCC113 (TOL1=IT1)"
+      },
+      {
+       "pin": 2,
+       "port": "C1-OU1-2",
+       "device": "Switch 35 R",
+       "kind": "motor",
+       "place": "Helix - Lower",
+       "note": "radio addr 1; M2T108 / 1-8 / DCC113 (TOL1=IT1)"
+      },
+      {
+       "pin": 3,
+       "port": "C1-OU1-3",
+       "device": "Switch 37 N",
+       "kind": "motor",
+       "place": "Helix - Lower",
+       "note": "radio addr 1; M2T109 / 1-9 / DCC114"
+      },
+      {
+       "pin": 4,
+       "port": "C1-OU1-4",
+       "device": "Switch 37 R",
+       "kind": "motor",
+       "place": "Helix - Lower",
+       "note": "radio addr 1; M2T109 / 1-9 / DCC114"
+      },
+      {
+       "pin": 5,
+       "port": "C1-OU1-5",
+       "device": "Switch 39 N",
+       "kind": "motor",
+       "place": "Helix - Lower",
+       "note": "radio addr 1; M2T110 / 1-10 / DCC115"
+      },
+      {
+       "pin": 6,
+       "port": "C1-OU1-6",
+       "device": "Switch 39 R",
+       "kind": "motor",
+       "place": "Helix - Lower",
+       "note": "radio addr 1; M2T110 / 1-10 / DCC115"
+      },
+      {
+       "pin": 7,
+       "port": "C1-OU1-7",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 8,
+       "port": "C1-OU1-8",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Lower"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "Helix - Lower (Princess SW35)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C1-OU2-1",
+       "device": "Head 36RA T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "36RA T",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 2,
+       "port": "C1-OU2-2",
+       "device": "Head 36RA T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "36RA T",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 3,
+       "port": "C1-OU2-3",
+       "device": "Head 36RA T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "36RA T",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 4,
+       "port": "C1-OU2-4",
+       "device": "Head 36RA B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "36RA B",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 5,
+       "port": "C1-OU2-5",
+       "device": "Head 36RA B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "36RA B",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 6,
+       "port": "C1-OU2-6",
+       "device": "Head 36RA B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "36RA B",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 7,
+       "port": "C1-OU2-7",
+       "device": "Head 38LA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "38LA",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 8,
+       "port": "C1-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "Helix - Lower",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "Helix - Lower (Princess SW35)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C1-OU3-1",
+       "device": "Head 36RB T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "36RB T",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 2,
+       "port": "C1-OU3-2",
+       "device": "Head 36RB T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "36RB T",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 3,
+       "port": "C1-OU3-3",
+       "device": "Head 36RB T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "36RB T",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 4,
+       "port": "C1-OU3-4",
+       "device": "Head 36RB B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "36RB B",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 5,
+       "port": "C1-OU3-5",
+       "device": "Head 36RB B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "36RB B",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 6,
+       "port": "C1-OU3-6",
+       "device": "Head 36RB B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "36RB B",
+       "place": "Helix - Lower (Princess SW35)"
+      },
+      {
+       "pin": 7,
+       "port": "C1-OU3-7",
+       "device": "Head 38LA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "38LA",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 8,
+       "port": "C1-OU3-8",
+       "device": "Head 38LA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "38LA",
+       "place": "Helix - Lower (Princess SW37)"
+      }
+     ]
+    },
+    {
+     "board": "OU4",
+     "rail": "5V",
+     "place": "Helix - Lower (Princess SW37)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C1-OU4-1",
+       "device": "Head 38LB T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "38LB T",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 2,
+       "port": "C1-OU4-2",
+       "device": "Head 38LB T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "38LB T",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 3,
+       "port": "C1-OU4-3",
+       "device": "Head 38LB T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "38LB T",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 4,
+       "port": "C1-OU4-4",
+       "device": "Head 38LB B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "38LB B",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 5,
+       "port": "C1-OU4-5",
+       "device": "Head 38LB B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "38LB B",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 6,
+       "port": "C1-OU4-6",
+       "device": "Head 38LB B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "38LB B",
+       "place": "Helix - Lower (Princess SW37)"
+      },
+      {
+       "pin": 7,
+       "port": "C1-OU4-7",
+       "kind": "spare",
+       "place": "Helix - Lower",
+       "note": "NEW 5V DNOU8 (OU4) for second searchlight disc"
+      },
+      {
+       "pin": 8,
+       "port": "C1-OU4-8",
+       "kind": "spare",
+       "place": "Helix - Lower",
+       "note": "NEW 5V DNOU8 (OU4) for second searchlight disc"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "Helix - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C1-IN1-1",
+       "device": "Switch 35 N FB",
+       "kind": "feedback",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 2,
+       "port": "C1-IN1-2",
+       "device": "Switch 35 R FB",
+       "kind": "feedback",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 3,
+       "port": "C1-IN1-3",
+       "device": "Switch 37 N FB",
+       "kind": "feedback",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 4,
+       "port": "C1-IN1-4",
+       "device": "Switch 37 R FB",
+       "kind": "feedback",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 5,
+       "port": "C1-IN1-5",
+       "device": "Switch 39 N FB",
+       "kind": "feedback",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 6,
+       "port": "C1-IN1-6",
+       "device": "Switch 39 R FB",
+       "kind": "feedback",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 7,
+       "port": "C1-IN1-7",
+       "kind": "spare",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 8,
+       "port": "C1-IN1-8",
+       "kind": "spare",
+       "place": "Helix - Lower"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "Helix - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C1-IN2-1",
+       "device": "Switch 35 BTN",
+       "kind": "button",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 2,
+       "port": "C1-IN2-2",
+       "device": "Switch 37 BTN",
+       "kind": "button",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 3,
+       "port": "C1-IN2-3",
+       "device": "Switch 39 BTN",
+       "kind": "button",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 4,
+       "port": "C1-IN2-4",
+       "kind": "spare",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 5,
+       "port": "C1-IN2-5",
+       "kind": "spare",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 6,
+       "port": "C1-IN2-6",
+       "kind": "spare",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 7,
+       "port": "C1-IN2-7",
+       "kind": "spare",
+       "place": "Helix - Lower"
+      },
+      {
+       "pin": 8,
+       "port": "C1-IN2-8",
+       "kind": "spare",
+       "place": "Helix - Lower"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C1-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C1-B1-1",
+       "block": "McKees Rocks"
+      },
+      {
+       "channel": "2",
+       "port": "C1-B1-2",
+       "block": "McKeesport"
+      }
+     ]
+    },
+    {
+     "detector": "C1-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C1-B2-1",
+       "block": "Switch 37"
+      },
+      {
+       "channel": "2",
+       "port": "C1-B2-2",
+       "block": "Switch 39"
+      }
+     ]
+    },
+    {
+     "detector": "C1-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C1-B3-1",
+       "block": "Switch 35b"
+      },
+      {
+       "channel": "2",
+       "port": "C1-B3-2",
+       "block": "Switch 35a"
+      }
+     ]
+    },
+    {
+     "detector": "C1-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C1-B4-1",
+       "block": "East Lead"
+      },
+      {
+       "channel": "2",
+       "port": "C1-B4-2",
+       "block": "West Main Ext"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "legacy": "C3",
+   "address": "2",
+   "location": "North - Lower (East End west 24)",
+   "type": "Client",
+   "turnouts": [],
+   "signals": [
+    "24RA",
+    "24L",
+    "24RB"
+   ],
+   "blockNames": [
+    "Main East",
+    "Main West",
+    "Yard Track 1",
+    "Yard Track 2",
+    "Yard Track 3",
+    "Yard Track 4",
+    "Yard Track 5"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "8",
+     "free": "0"
+    },
+    "outputs5v": {
+     "used": "13",
+     "free": "3"
+    },
+    "inputs": {
+     "used": "12",
+     "free": "4"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "5V",
+     "place": "North - Lower (East End west 24)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C2-OU1-1",
+       "device": "Head 24RA T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "24RA T",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 2,
+       "port": "C2-OU1-2",
+       "device": "Head 24RA T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "24RA T",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 3,
+       "port": "C2-OU1-3",
+       "device": "Head 24RA T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "24RA T",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 4,
+       "port": "C2-OU1-4",
+       "device": "Head 24RA B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "24RA B",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 5,
+       "port": "C2-OU1-5",
+       "device": "Head 24RA B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "24RA B",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 6,
+       "port": "C2-OU1-6",
+       "device": "Head 24RA B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "24RA B",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 7,
+       "port": "C2-OU1-7",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "free — linear6 turnouts on radio addr 12 live on C12 (C2 radio addr is 2; block sensors only)"
+      },
+      {
+       "pin": 8,
+       "port": "C2-OU1-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "North - Lower",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "North - Lower (East End west 24)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C2-OU2-1",
+       "device": "Head 24L T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "24L T",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 2,
+       "port": "C2-OU2-2",
+       "device": "Head 24L T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "24L T",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 3,
+       "port": "C2-OU2-3",
+       "device": "Head 24L T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "24L T",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 4,
+       "port": "C2-OU2-4",
+       "device": "Head 24L B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "24L B",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 5,
+       "port": "C2-OU2-5",
+       "device": "Head 24L B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "24L B",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 6,
+       "port": "C2-OU2-6",
+       "device": "Head 24L B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "24L B",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 7,
+       "port": "C2-OU2-7",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 8,
+       "port": "C2-OU2-8",
+       "device": "C2 RELAY 1",
+       "kind": "relay",
+       "place": "North - Lower"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "North - Lower (East End west 24)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C2-OU3-1",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 2,
+       "port": "C2-OU3-2",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 3,
+       "port": "C2-OU3-3",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 4,
+       "port": "C2-OU3-4",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 5,
+       "port": "C2-OU3-5",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 6,
+       "port": "C2-OU3-6",
+       "device": "Head 24RB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "24RB",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 7,
+       "port": "C2-OU3-7",
+       "device": "Head 24RB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "24RB",
+       "place": "North - Lower (East End west 24)"
+      },
+      {
+       "pin": 8,
+       "port": "C2-OU3-8",
+       "device": "Head 24RB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "24RB",
+       "place": "North - Lower (East End west 24)"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "North - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C2-IN1-1",
+       "device": "Switch 25 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 2,
+       "port": "C2-IN1-2",
+       "device": "Switch 25 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 3,
+       "port": "C2-IN1-3",
+       "device": "Switch 27 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 4,
+       "port": "C2-IN1-4",
+       "device": "Switch 27 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 5,
+       "port": "C2-IN1-5",
+       "device": "Switch 29 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 6,
+       "port": "C2-IN1-6",
+       "device": "Switch 29 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 7,
+       "port": "C2-IN1-7",
+       "device": "Switch 31 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 8,
+       "port": "C2-IN1-8",
+       "device": "Switch 31 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "North - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C2-IN2-1",
+       "device": "Switch 25 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 2,
+       "port": "C2-IN2-2",
+       "device": "Switch 27 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 3,
+       "port": "C2-IN2-3",
+       "device": "Switch 29 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 4,
+       "port": "C2-IN2-4",
+       "device": "Switch 31 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "freed — radio addr 12 devices live on C12"
+      },
+      {
+       "pin": 5,
+       "port": "C2-IN2-5",
+       "kind": "spare",
+       "place": "North - Lower"
+      },
+      {
+       "pin": 6,
+       "port": "C2-IN2-6",
+       "kind": "spare",
+       "place": "North - Lower"
+      },
+      {
+       "pin": 7,
+       "port": "C2-IN2-7",
+       "kind": "spare",
+       "place": "North - Lower"
+      },
+      {
+       "pin": 8,
+       "port": "C2-IN2-8",
+       "kind": "spare",
+       "place": "North - Lower"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C2-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C2-B1-1",
+       "block": "Main West"
+      },
+      {
+       "channel": "2",
+       "port": "C2-B1-2",
+       "block": "Unused"
+      }
+     ]
+    },
+    {
+     "detector": "C2-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C2-B2-1",
+       "block": "Main East"
+      },
+      {
+       "channel": "2",
+       "port": "C2-B2-2",
+       "block": "Yard Track 5"
+      }
+     ]
+    },
+    {
+     "detector": "C2-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C2-B3-1",
+       "block": "Yard Track 4"
+      },
+      {
+       "channel": "2",
+       "port": "C2-B3-2",
+       "block": "Yard Track 3"
+      }
+     ]
+    },
+    {
+     "detector": "C2-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C2-B4-1",
+       "block": "Yard Track 2"
+      },
+      {
+       "channel": "2",
+       "port": "C2-B4-2",
+       "block": "Yard Track 1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "legacy": "C4",
+   "address": "3",
+   "location": "West - Lower (Switch 15–21 motors)",
+   "type": "Client",
+   "turnouts": [
+    "Switch 15",
+    "Switch 17",
+    "Switch 19",
+    "Switch 21"
+   ],
+   "signals": [],
+   "blockNames": [
+    "Switch 15",
+    "Switch 17",
+    "Switch 19",
+    "Switch 21",
+    "Switch 13"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "8",
+     "free": "0"
+    },
+    "outputs5v": {
+     "used": "1",
+     "free": "7"
+    },
+    "inputs": {
+     "used": "12",
+     "free": "4"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "West - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C3-OU1-1",
+       "device": "Switch 15 N",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T308 / 3-8 / DCC103"
+      },
+      {
+       "pin": 2,
+       "port": "C3-OU1-2",
+       "device": "Switch 15 R",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T308 / 3-8 / DCC103"
+      },
+      {
+       "pin": 3,
+       "port": "C3-OU1-3",
+       "device": "Switch 17 N",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T309 / 3-9 / DCC104"
+      },
+      {
+       "pin": 4,
+       "port": "C3-OU1-4",
+       "device": "Switch 17 R",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T309 / 3-9 / DCC104"
+      },
+      {
+       "pin": 5,
+       "port": "C3-OU1-5",
+       "device": "Switch 19 N",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T310 / 3-10 / DCC105"
+      },
+      {
+       "pin": 6,
+       "port": "C3-OU1-6",
+       "device": "Switch 19 R",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T310 / 3-10 / DCC105"
+      },
+      {
+       "pin": 7,
+       "port": "C3-OU1-7",
+       "device": "Switch 21 N",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T311 / 3-11 / DCC106"
+      },
+      {
+       "pin": 8,
+       "port": "C3-OU1-8",
+       "device": "Switch 21 R",
+       "kind": "motor",
+       "place": "West - Lower",
+       "note": "radio addr 3; M2T311 / 3-11 / DCC106"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C3-OU2-1",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 2,
+       "port": "C3-OU2-2",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 3,
+       "port": "C3-OU2-3",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 4,
+       "port": "C3-OU2-4",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 5,
+       "port": "C3-OU2-5",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 6,
+       "port": "C3-OU2-6",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 7,
+       "port": "C3-OU2-7",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 8,
+       "port": "C3-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "West - Lower",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "West - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C3-IN1-1",
+       "device": "Switch 15 N FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 2,
+       "port": "C3-IN1-2",
+       "device": "Switch 15 R FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 3,
+       "port": "C3-IN1-3",
+       "device": "Switch 17 N FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 4,
+       "port": "C3-IN1-4",
+       "device": "Switch 17 R FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 5,
+       "port": "C3-IN1-5",
+       "device": "Switch 19 N FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 6,
+       "port": "C3-IN1-6",
+       "device": "Switch 19 R FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 7,
+       "port": "C3-IN1-7",
+       "device": "Switch 21 N FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 8,
+       "port": "C3-IN1-8",
+       "device": "Switch 21 R FB",
+       "kind": "feedback",
+       "place": "West - Lower"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "West - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C3-IN2-1",
+       "device": "Switch 15 BTN",
+       "kind": "button",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 2,
+       "port": "C3-IN2-2",
+       "device": "Switch 17 BTN",
+       "kind": "button",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 3,
+       "port": "C3-IN2-3",
+       "device": "Switch 19 BTN",
+       "kind": "button",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 4,
+       "port": "C3-IN2-4",
+       "device": "Switch 21 BTN",
+       "kind": "button",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 5,
+       "port": "C3-IN2-5",
+       "kind": "spare",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 6,
+       "port": "C3-IN2-6",
+       "kind": "spare",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 7,
+       "port": "C3-IN2-7",
+       "kind": "spare",
+       "place": "West - Lower"
+      },
+      {
+       "pin": 8,
+       "port": "C3-IN2-8",
+       "kind": "spare",
+       "place": "West - Lower"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C3-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C3-B1-1",
+       "block": "Switch 13"
+      },
+      {
+       "channel": "2",
+       "port": "C3-B1-2",
+       "block": "Switch 15"
+      }
+     ]
+    },
+    {
+     "detector": "C3-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C3-B2-1",
+       "block": "Switch 17"
+      },
+      {
+       "channel": "2",
+       "port": "C3-B2-2",
+       "block": "Unused"
+      }
+     ]
+    },
+    {
+     "detector": "C3-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C3-B3-1",
+       "block": "Switch 19"
+      },
+      {
+       "channel": "2",
+       "port": "C3-B3-2",
+       "block": "Unused"
+      }
+     ]
+    },
+    {
+     "detector": "C3-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C3-B4-1",
+       "block": "Switch 21"
+      },
+      {
+       "channel": "2",
+       "port": "C3-B4-2",
+       "block": "Unused"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C4",
+   "legacy": "C6",
+   "address": "4",
+   "location": "West - Lower (Brick / Plane)",
+   "type": "Client",
+   "turnouts": [
+    "Switch 1",
+    "Switch 3",
+    "Switch 5",
+    "Switch 13"
+   ],
+   "signals": [
+    "6LB",
+    "6LA",
+    "2L",
+    "4RA",
+    "4RB"
+   ],
+   "blockNames": [
+    "Block 100-102",
+    "East Main Ext",
+    "Switch 1",
+    "Switch 3",
+    "Switch 5",
+    "West Yard Track 1",
+    "West Yard Track 2",
+    "Yard T1"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "6",
+     "free": "2"
+    },
+    "outputs5v": {
+     "used": "13",
+     "free": "3"
+    },
+    "inputs": {
+     "used": "9",
+     "free": "7"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "Peninsula - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C4-OU1-1",
+       "device": "Switch 1 N",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T408 / 4-8 / DCC100"
+      },
+      {
+       "pin": 2,
+       "port": "C4-OU1-2",
+       "device": "Switch 1 R",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T408 / 4-8 / DCC100"
+      },
+      {
+       "pin": 3,
+       "port": "C4-OU1-3",
+       "device": "Switch 3 N",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T409 / 4-9 / DCC101"
+      },
+      {
+       "pin": 4,
+       "port": "C4-OU1-4",
+       "device": "Switch 3 R",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T409 / 4-9 / DCC101"
+      },
+      {
+       "pin": 5,
+       "port": "C4-OU1-5",
+       "device": "Switch 5 N",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T410 / 4-10 / DCC102"
+      },
+      {
+       "pin": 6,
+       "port": "C4-OU1-6",
+       "device": "Switch 5 R",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T410 / 4-10 / DCC102"
+      },
+      {
+       "pin": 7,
+       "port": "C4-OU1-7",
+       "device": "Switch 13 N",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T411 / switch_id 4-11 / DCC 116; west yard TO1"
+      },
+      {
+       "pin": 8,
+       "port": "C4-OU1-8",
+       "device": "Switch 13 R",
+       "kind": "motor",
+       "place": "Peninsula - Lower",
+       "note": "radio addr 4; M2T411 / switch_id 4-11 / DCC 116; west yard TO1"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "West - Lower (Plane)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C4-OU2-1",
+       "device": "Head 6LB T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "6LB T",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 2,
+       "port": "C4-OU2-2",
+       "device": "Head 6LB T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "6LB T",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 3,
+       "port": "C4-OU2-3",
+       "device": "Head 6LB T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "6LB T",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 4,
+       "port": "C4-OU2-4",
+       "device": "Head 6LB B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "6LB B",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 5,
+       "port": "C4-OU2-5",
+       "device": "Head 6LB B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "6LB B",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 6,
+       "port": "C4-OU2-6",
+       "device": "Head 6LB B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "6LB B",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 7,
+       "port": "C4-OU2-7",
+       "device": "Head 6LA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "6LA",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 8,
+       "port": "C4-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "Peninsula - Lower",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "West - Lower (Brick east)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C4-OU3-1",
+       "device": "Head 2L T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "2L T",
+       "place": "West - Lower (Brick east)"
+      },
+      {
+       "pin": 2,
+       "port": "C4-OU3-2",
+       "device": "Head 2L T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "2L T",
+       "place": "West - Lower (Brick east)"
+      },
+      {
+       "pin": 3,
+       "port": "C4-OU3-3",
+       "device": "Head 2L T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "2L T",
+       "place": "West - Lower (Brick east)"
+      },
+      {
+       "pin": 4,
+       "port": "C4-OU3-4",
+       "device": "Head 2L B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "2L B",
+       "place": "West - Lower (Brick east)"
+      },
+      {
+       "pin": 5,
+       "port": "C4-OU3-5",
+       "device": "Head 2L B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "2L B",
+       "place": "West - Lower (Brick east)"
+      },
+      {
+       "pin": 6,
+       "port": "C4-OU3-6",
+       "device": "Head 2L B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "2L B",
+       "place": "West - Lower (Brick east)"
+      },
+      {
+       "pin": 7,
+       "port": "C4-OU3-7",
+       "device": "Head 6LA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "6LA",
+       "place": "West - Lower (Plane)"
+      },
+      {
+       "pin": 8,
+       "port": "C4-OU3-8",
+       "device": "Head 6LA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "6LA",
+       "place": "West - Lower (Plane)"
+      }
+     ]
+    },
+    {
+     "board": "OU4",
+     "rail": "5V",
+     "place": "West - Lower (Brick west)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C4-OU4-1",
+       "device": "Head 4RA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "4RA",
+       "place": "West - Lower (Brick west)"
+      },
+      {
+       "pin": 2,
+       "port": "C4-OU4-2",
+       "device": "Head 4RA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "4RA",
+       "place": "West - Lower (Brick west)"
+      },
+      {
+       "pin": 3,
+       "port": "C4-OU4-3",
+       "device": "Head 4RA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "4RA",
+       "place": "West - Lower (Brick west)"
+      },
+      {
+       "pin": 4,
+       "port": "C4-OU4-4",
+       "device": "Head 4RB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "4RB",
+       "place": "West - Lower (Brick west)"
+      },
+      {
+       "pin": 5,
+       "port": "C4-OU4-5",
+       "device": "Head 4RB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "4RB",
+       "place": "West - Lower (Brick west)"
+      },
+      {
+       "pin": 6,
+       "port": "C4-OU4-6",
+       "device": "Head 4RB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "4RB",
+       "place": "West - Lower (Brick west)"
+      },
+      {
+       "pin": 7,
+       "port": "C4-OU4-7",
+       "kind": "spare",
+       "place": "Peninsula - Lower",
+       "note": "NEW 5V DNOU8 (OU4) for second searchlight disc"
+      },
+      {
+       "pin": 8,
+       "port": "C4-OU4-8",
+       "kind": "spare",
+       "place": "Peninsula - Lower",
+       "note": "NEW 5V DNOU8 (OU4) for second searchlight disc"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "Peninsula - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C4-IN1-1",
+       "device": "Switch 1 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 2,
+       "port": "C4-IN1-2",
+       "device": "Switch 1 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 3,
+       "port": "C4-IN1-3",
+       "device": "Switch 3 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 4,
+       "port": "C4-IN1-4",
+       "device": "Switch 3 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 5,
+       "port": "C4-IN1-5",
+       "device": "Switch 5 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 6,
+       "port": "C4-IN1-6",
+       "device": "Switch 5 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 7,
+       "port": "C4-IN1-7",
+       "device": "Switch 13 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower",
+       "note": "M2S476/M2S477; Switch 4-4 FB"
+      },
+      {
+       "pin": 8,
+       "port": "C4-IN1-8",
+       "device": "Switch 13 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Lower",
+       "note": "M2S476/M2S477; Switch 4-4 FB"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "Peninsula - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C4-IN2-1",
+       "device": "Switch 1 BTN",
+       "kind": "button",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 2,
+       "port": "C4-IN2-2",
+       "device": "Switch 3 BTN",
+       "kind": "button",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 3,
+       "port": "C4-IN2-3",
+       "device": "Switch 5 BTN",
+       "kind": "button",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 4,
+       "port": "C4-IN2-4",
+       "device": "Switch 13 BTN",
+       "kind": "button",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 5,
+       "port": "C4-IN2-5",
+       "kind": "spare",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 6,
+       "port": "C4-IN2-6",
+       "kind": "spare",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 7,
+       "port": "C4-IN2-7",
+       "kind": "spare",
+       "place": "Peninsula - Lower"
+      },
+      {
+       "pin": 8,
+       "port": "C4-IN2-8",
+       "kind": "spare",
+       "place": "Peninsula - Lower"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C4-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C4-B1-1",
+       "block": "Switch 3"
+      },
+      {
+       "channel": "2",
+       "port": "C4-B1-2",
+       "block": "Switch 1"
+      }
+     ]
+    },
+    {
+     "detector": "C4-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C4-B2-1",
+       "block": "West Yard Track 2"
+      },
+      {
+       "channel": "2",
+       "port": "C4-B2-2",
+       "block": "West Yard Track 1"
+      }
+     ]
+    },
+    {
+     "detector": "C4-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C4-B3-1",
+       "block": "Switch 5"
+      },
+      {
+       "channel": "2",
+       "port": "C4-B3-2",
+       "block": "Block 100-102"
+      }
+     ]
+    },
+    {
+     "detector": "C4-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C4-B4-1",
+       "block": "East Main Ext"
+      },
+      {
+       "channel": "2",
+       "port": "C4-B4-2",
+       "block": "Yard T1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C11",
+   "legacy": "C7",
+   "address": "11",
+   "location": "Helix (Princess east 40 + balloon)",
+   "type": "Client",
+   "turnouts": [
+    "Switch 67",
+    "Switch 63",
+    "Switch 65"
+   ],
+   "signals": [
+    "40LB",
+    "2035",
+    "40LA",
+    "2036"
+   ],
+   "blockNames": [
+    "Helix Inner A",
+    "Helix Inner B",
+    "Helix Outer A",
+    "Helix Outer B"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "6",
+     "free": "2"
+    },
+    "outputs5v": {
+     "used": "13",
+     "free": "3"
+    },
+    "inputs": {
+     "used": "0",
+     "free": "0"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "Helix",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C11-OU1-1",
+       "device": "Switch 67 N",
+       "kind": "motor",
+       "place": "Helix"
+      },
+      {
+       "pin": 2,
+       "port": "C11-OU1-2",
+       "device": "Switch 67 R",
+       "kind": "motor",
+       "place": "Helix"
+      },
+      {
+       "pin": 3,
+       "port": "C11-OU1-3",
+       "device": "Switch 63 N",
+       "kind": "motor",
+       "place": "Helix"
+      },
+      {
+       "pin": 4,
+       "port": "C11-OU1-4",
+       "device": "Switch 63 R",
+       "kind": "motor",
+       "place": "Helix"
+      },
+      {
+       "pin": 5,
+       "port": "C11-OU1-5",
+       "device": "Switch 65 N",
+       "kind": "motor",
+       "place": "Helix"
+      },
+      {
+       "pin": 6,
+       "port": "C11-OU1-6",
+       "device": "Switch 65 R",
+       "kind": "motor",
+       "place": "Helix"
+      },
+      {
+       "pin": 7,
+       "port": "C11-OU1-7",
+       "kind": "spare",
+       "place": "Helix"
+      },
+      {
+       "pin": 8,
+       "port": "C11-OU1-8",
+       "kind": "spare",
+       "place": "Helix"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "Helix (Princess east SW39)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C11-OU2-1",
+       "device": "Head 40LB T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "40LB T",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 2,
+       "port": "C11-OU2-2",
+       "device": "Head 40LB T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "40LB T",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 3,
+       "port": "C11-OU2-3",
+       "device": "Head 40LB T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "40LB T",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 4,
+       "port": "C11-OU2-4",
+       "device": "Head 40LB B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "40LB B",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 5,
+       "port": "C11-OU2-5",
+       "device": "Head 40LB B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "40LB B",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 6,
+       "port": "C11-OU2-6",
+       "device": "Head 40LB B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "40LB B",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 7,
+       "port": "C11-OU2-7",
+       "device": "Head 2035 G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "2035",
+       "place": "Helix (balloon 115)"
+      },
+      {
+       "pin": 8,
+       "port": "C11-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "Helix",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "Helix (Princess east SW39)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C11-OU3-1",
+       "device": "Head 40LA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "40LA",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 2,
+       "port": "C11-OU3-2",
+       "device": "Head 40LA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "40LA",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 3,
+       "port": "C11-OU3-3",
+       "device": "Head 40LA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "40LA",
+       "place": "Helix (Princess east SW39)"
+      },
+      {
+       "pin": 4,
+       "port": "C11-OU3-4",
+       "device": "Head 2036 R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "2036",
+       "place": "Helix (balloon 114)"
+      },
+      {
+       "pin": 5,
+       "port": "C11-OU3-5",
+       "device": "Head 2036 Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "2036",
+       "place": "Helix (balloon 114)"
+      },
+      {
+       "pin": 6,
+       "port": "C11-OU3-6",
+       "device": "Head 2036 G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "2036",
+       "place": "Helix (balloon 114)"
+      },
+      {
+       "pin": 7,
+       "port": "C11-OU3-7",
+       "device": "Head 2035 R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "2035",
+       "place": "Helix (balloon 115)"
+      },
+      {
+       "pin": 8,
+       "port": "C11-OU3-8",
+       "device": "Head 2035 Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "2035",
+       "place": "Helix (balloon 115)"
+      }
+     ]
+    }
+   ],
+   "inputs": [],
+   "detectors": [
+    {
+     "detector": "C11-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C11-B1-1",
+       "block": "Helix Inner A"
+      },
+      {
+       "channel": "2",
+       "port": "C11-B1-2",
+       "block": "Helix Outer A"
+      }
+     ]
+    },
+    {
+     "detector": "C11-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C11-B2-1",
+       "block": "Helix Inner B"
+      },
+      {
+       "channel": "2",
+       "port": "C11-B2-2",
+       "block": "Helix Outer B"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C12",
+   "legacy": "C2",
+   "address": "12",
+   "location": "North - Lower (East End 34 + Switch 25–33)",
+   "type": "Client",
+   "turnouts": [
+    "Switch 25",
+    "Switch 27",
+    "Switch 29",
+    "Switch 31",
+    "Switch 23",
+    "Switch 33"
+   ],
+   "signals": [
+    "34L",
+    "32R",
+    "34R"
+   ],
+   "blockNames": [
+    "Switch 25",
+    "Switch 27",
+    "Switch 29",
+    "Switch 31",
+    "Switch 23a",
+    "Switch 23b",
+    "Switch 33"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "12",
+     "free": "4"
+    },
+    "outputs5v": {
+     "used": "16",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "6",
+     "free": "2"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "North - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-OU1-1",
+       "device": "Switch 25 N",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1208 / radio addr 12 / switch 12-8 / DCC107"
+      },
+      {
+       "pin": 2,
+       "port": "C12-OU1-2",
+       "device": "Switch 25 R",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1208 / radio addr 12 / switch 12-8 / DCC107"
+      },
+      {
+       "pin": 3,
+       "port": "C12-OU1-3",
+       "device": "Switch 27 N",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1209 / radio addr 12 / switch 12-9 / DCC108"
+      },
+      {
+       "pin": 4,
+       "port": "C12-OU1-4",
+       "device": "Switch 27 R",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1209 / radio addr 12 / switch 12-9 / DCC108"
+      },
+      {
+       "pin": 5,
+       "port": "C12-OU1-5",
+       "device": "Switch 29 N",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1210 / radio addr 12 / switch 12-10 / DCC109"
+      },
+      {
+       "pin": 6,
+       "port": "C12-OU1-6",
+       "device": "Switch 29 R",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1210 / radio addr 12 / switch 12-10 / DCC109"
+      },
+      {
+       "pin": 7,
+       "port": "C12-OU1-7",
+       "device": "Switch 31 N",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1211 / radio addr 12 / switch 12-11 / DCC110"
+      },
+      {
+       "pin": 8,
+       "port": "C12-OU1-8",
+       "device": "Switch 31 R",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1211 / radio addr 12 / switch 12-11 / DCC110"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "North - Lower (East End 34)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-OU2-1",
+       "device": "Head 34L T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "34L T",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 2,
+       "port": "C12-OU2-2",
+       "device": "Head 34L T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "34L T",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 3,
+       "port": "C12-OU2-3",
+       "device": "Head 34L T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "34L T",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 4,
+       "port": "C12-OU2-4",
+       "device": "Head 34L B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "34L B",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 5,
+       "port": "C12-OU2-5",
+       "device": "Head 34L B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "34L B",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 6,
+       "port": "C12-OU2-6",
+       "device": "Head 34L B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "34L B",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 7,
+       "port": "C12-OU2-7",
+       "device": "Head 32R R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "32R",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 8,
+       "port": "C12-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "North - Lower",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "North - Lower (East End 34)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-OU3-1",
+       "device": "Head 34R T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "34R T",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 2,
+       "port": "C12-OU3-2",
+       "device": "Head 34R T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "34R T",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 3,
+       "port": "C12-OU3-3",
+       "device": "Head 34R T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "34R T",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 4,
+       "port": "C12-OU3-4",
+       "device": "Head 34R B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "34R B",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 5,
+       "port": "C12-OU3-5",
+       "device": "Head 34R B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "34R B",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 6,
+       "port": "C12-OU3-6",
+       "device": "Head 34R B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "34R B",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 7,
+       "port": "C12-OU3-7",
+       "device": "Head 32R G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "32R",
+       "place": "North - Lower (East End 34)"
+      },
+      {
+       "pin": 8,
+       "port": "C12-OU3-8",
+       "device": "Head 32R Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "32R",
+       "place": "North - Lower (East End 34)"
+      }
+     ]
+    },
+    {
+     "board": "OU4",
+     "rail": "12V",
+     "place": "North - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-OU4-1",
+       "device": "Switch 23 N",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1212 / radio addr 12 / switch 12-12 / DCC111 (TOR32=IT36); ASSUMED C12-OU4 12V — confirm physical board"
+      },
+      {
+       "pin": 2,
+       "port": "C12-OU4-2",
+       "device": "Switch 23 R",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1212 / radio addr 12 / switch 12-12 / DCC111 (TOR32=IT36); ASSUMED C12-OU4 12V — confirm physical board"
+      },
+      {
+       "pin": 3,
+       "port": "C12-OU4-3",
+       "device": "Switch 33 N",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1213 / radio addr 12 / switch 12-13 / DCC112; ASSUMED C12-OU4 12V — confirm physical board"
+      },
+      {
+       "pin": 4,
+       "port": "C12-OU4-4",
+       "device": "Switch 33 R",
+       "kind": "motor",
+       "place": "North - Lower",
+       "note": "M2T1213 / radio addr 12 / switch 12-13 / DCC112; ASSUMED C12-OU4 12V — confirm physical board"
+      },
+      {
+       "pin": 5,
+       "port": "C12-OU4-5",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "free"
+      },
+      {
+       "pin": 6,
+       "port": "C12-OU4-6",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "free"
+      },
+      {
+       "pin": 7,
+       "port": "C12-OU4-7",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "free"
+      },
+      {
+       "pin": 8,
+       "port": "C12-OU4-8",
+       "kind": "spare",
+       "place": "North - Lower",
+       "note": "free"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "North - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-IN1-1",
+       "device": "Switch 25 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1267 / Switch 12-1 FB N / radio addr 12"
+      },
+      {
+       "pin": 2,
+       "port": "C12-IN1-2",
+       "device": "Switch 25 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1268 / Switch 12-1 FB R / radio addr 12"
+      },
+      {
+       "pin": 3,
+       "port": "C12-IN1-3",
+       "device": "Switch 27 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1269 / Switch 12-2 FB N / radio addr 12"
+      },
+      {
+       "pin": 4,
+       "port": "C12-IN1-4",
+       "device": "Switch 27 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1270 / Switch 12-2 FB R / radio addr 12"
+      },
+      {
+       "pin": 5,
+       "port": "C12-IN1-5",
+       "device": "Switch 29 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1271 / Switch 12-3 FB N / radio addr 12"
+      },
+      {
+       "pin": 6,
+       "port": "C12-IN1-6",
+       "device": "Switch 29 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1272 / Switch 12-3 FB R / radio addr 12"
+      },
+      {
+       "pin": 7,
+       "port": "C12-IN1-7",
+       "device": "Switch 31 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1273 / Switch 12-4 FB N / radio addr 12"
+      },
+      {
+       "pin": 8,
+       "port": "C12-IN1-8",
+       "device": "Switch 31 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1274 / Switch 12-4 FB R / radio addr 12"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "North - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-IN2-1",
+       "device": "Switch 25 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "radio addr 12"
+      },
+      {
+       "pin": 2,
+       "port": "C12-IN2-2",
+       "device": "Switch 27 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "radio addr 12"
+      },
+      {
+       "pin": 3,
+       "port": "C12-IN2-3",
+       "device": "Switch 29 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "radio addr 12"
+      },
+      {
+       "pin": 4,
+       "port": "C12-IN2-4",
+       "device": "Switch 31 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "radio addr 12"
+      },
+      {
+       "pin": 5,
+       "port": "C12-IN2-5",
+       "device": "Switch 23 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "radio addr 12"
+      },
+      {
+       "pin": 6,
+       "port": "C12-IN2-6",
+       "device": "Switch 33 BTN",
+       "kind": "button",
+       "place": "North - Lower",
+       "note": "radio addr 12"
+      }
+     ]
+    },
+    {
+     "board": "IN3",
+     "place": "North - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-IN3-1",
+       "device": "Switch 23 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1275 / Switch 12-5 FB N / radio addr 12"
+      },
+      {
+       "pin": 2,
+       "port": "C12-IN3-2",
+       "device": "Switch 23 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1276 / Switch 12-5 FB R / radio addr 12"
+      },
+      {
+       "pin": 3,
+       "port": "C12-IN3-3",
+       "device": "Switch 33 N FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1277 / Switch 12-6 FB N / radio addr 12"
+      },
+      {
+       "pin": 4,
+       "port": "C12-IN3-4",
+       "device": "Switch 33 R FB",
+       "kind": "feedback",
+       "place": "North - Lower",
+       "note": "M2S1278 / Switch 12-6 FB R / radio addr 12"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C12-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C12-B1-1",
+       "block": "Switch 25"
+      },
+      {
+       "channel": "2",
+       "port": "C12-B1-2",
+       "block": "Unused"
+      }
+     ]
+    },
+    {
+     "detector": "C12-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C12-B2-1",
+       "block": "Switch 27"
+      },
+      {
+       "channel": "2",
+       "port": "C12-B2-2",
+       "block": "Switch 23a"
+      }
+     ]
+    },
+    {
+     "detector": "C12-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C12-B3-1",
+       "block": "Switch 29"
+      },
+      {
+       "channel": "2",
+       "port": "C12-B3-2",
+       "block": "Switch 23b"
+      }
+     ]
+    },
+    {
+     "detector": "C12-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C12-B4-1",
+       "block": "Switch 31"
+      },
+      {
+       "channel": "2",
+       "port": "C12-B4-2",
+       "block": "Switch 33"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C13",
+   "legacy": "C5",
+   "address": "13",
+   "location": "West - Lower (Barn)",
+   "type": "Client",
+   "turnouts": [
+    "Switch 7",
+    "Switch 11",
+    "Switch 9"
+   ],
+   "signals": [
+    "8RA",
+    "S3-4",
+    "S3-5",
+    "S3-14",
+    "8LA",
+    "8LB",
+    "8RB"
+   ],
+   "blockNames": [
+    "Switch 7 (TO6)",
+    "Switch 7 (TO8)",
+    "Switch 11",
+    "Switch 9",
+    "Yard T10",
+    "Yard T11",
+    "Yard T6",
+    "Yard T9"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "6",
+     "free": "2"
+    },
+    "outputs5v": {
+     "used": "15",
+     "free": "1"
+    },
+    "inputs": {
+     "used": "9",
+     "free": "7"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "5V",
+     "place": "West - Lower (Barn left)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C13-OU1-1",
+       "device": "Head 8RA T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "8RA T",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 2,
+       "port": "C13-OU1-2",
+       "device": "Head 8RA T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "8RA T",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 3,
+       "port": "C13-OU1-3",
+       "device": "Head 8RA T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "8RA T",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 4,
+       "port": "C13-OU1-4",
+       "device": "Head 8RA B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "8RA B",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 5,
+       "port": "C13-OU1-5",
+       "device": "Head 8RA B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "8RA B",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 6,
+       "port": "C13-OU1-6",
+       "device": "Head 8RA B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "8RA B",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 7,
+       "port": "C13-OU1-7",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "spare"
+      },
+      {
+       "pin": 8,
+       "port": "C13-OU1-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "West - Lower",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "12V",
+     "place": "West - Lower (Barn)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C13-OU2-1",
+       "device": "Switch 7 N",
+       "kind": "motor",
+       "place": "West - Lower (Barn)",
+       "note": "radio 13; M2T1308 / Node: 13 Turnout: 0; DCC 117; ports 1,2"
+      },
+      {
+       "pin": 2,
+       "port": "C13-OU2-2",
+       "device": "Switch 7 R",
+       "kind": "motor",
+       "place": "West - Lower (Barn)",
+       "note": "radio 13; M2T1308 / Node: 13 Turnout: 0; DCC 117; ports 1,2"
+      },
+      {
+       "pin": 3,
+       "port": "C13-OU2-3",
+       "device": "Switch 11 N",
+       "kind": "motor",
+       "place": "West - Lower (Barn)",
+       "note": "radio 13; M2T1309 / Node: 13 Turnout: 1; DCC 118; ports 3,4"
+      },
+      {
+       "pin": 4,
+       "port": "C13-OU2-4",
+       "device": "Switch 11 R",
+       "kind": "motor",
+       "place": "West - Lower (Barn)",
+       "note": "radio 13; M2T1309 / Node: 13 Turnout: 1; DCC 118; ports 3,4"
+      },
+      {
+       "pin": 5,
+       "port": "C13-OU2-5",
+       "device": "Switch 9 N",
+       "kind": "motor",
+       "place": "West - Lower (Barn)",
+       "note": "radio 13; M2T1310 / Node: 13 Turnout: 2; DCC 119; ports 5,6"
+      },
+      {
+       "pin": 6,
+       "port": "C13-OU2-6",
+       "device": "Switch 9 R",
+       "kind": "motor",
+       "place": "West - Lower (Barn)",
+       "note": "radio 13; M2T1310 / Node: 13 Turnout: 2; DCC 119; ports 5,6"
+      },
+      {
+       "pin": 7,
+       "port": "C13-OU2-7",
+       "kind": "spare",
+       "place": "West - Lower (Barn)",
+       "note": "spare"
+      },
+      {
+       "pin": 8,
+       "port": "C13-OU2-8",
+       "kind": "spare",
+       "place": "West - Lower (Barn)",
+       "note": "spare"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "West - Lower (Barn right)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C13-OU3-1",
+       "device": "Head 8LA T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "8LA T",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 2,
+       "port": "C13-OU3-2",
+       "device": "Head 8LA T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "8LA T",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 3,
+       "port": "C13-OU3-3",
+       "device": "Head 8LA T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "8LA T",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 4,
+       "port": "C13-OU3-4",
+       "device": "Head 8LA B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "8LA B",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 5,
+       "port": "C13-OU3-5",
+       "device": "Head 8LA B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "8LA B",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 6,
+       "port": "C13-OU3-6",
+       "device": "Head 8LA B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "8LA B",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 7,
+       "port": "C13-OU3-7",
+       "device": "Head 8LB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "8LB",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 8,
+       "port": "C13-OU3-8",
+       "device": "Head 8LB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "8LB",
+       "place": "West - Lower (Barn right)"
+      }
+     ]
+    },
+    {
+     "board": "OU4",
+     "rail": "5V",
+     "place": "West - Lower (Barn left)",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C13-OU4-1",
+       "device": "Head 8RB T R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "8RB T",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 2,
+       "port": "C13-OU4-2",
+       "device": "Head 8RB T Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "8RB T",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 3,
+       "port": "C13-OU4-3",
+       "device": "Head 8RB T G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "8RB T",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 4,
+       "port": "C13-OU4-4",
+       "device": "Head 8RB B R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "8RB B",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 5,
+       "port": "C13-OU4-5",
+       "device": "Head 8RB B Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "8RB B",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 6,
+       "port": "C13-OU4-6",
+       "device": "Head 8RB B G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "8RB B",
+       "place": "West - Lower (Barn left)"
+      },
+      {
+       "pin": 7,
+       "port": "C13-OU4-7",
+       "device": "Head 8LB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "8LB",
+       "place": "West - Lower (Barn right)"
+      },
+      {
+       "pin": 8,
+       "port": "C13-OU4-8",
+       "kind": "spare",
+       "place": "West - Lower",
+       "note": "NEW 5V DNOU8 (OU4) for second searchlight disc"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "West - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C13-IN1-1",
+       "device": "Switch 7 N FB",
+       "kind": "feedback",
+       "place": "West - Lower",
+       "note": "M2S1367 / Switch 13-1 FB N; commissioned 2026-09-08"
+      },
+      {
+       "pin": 2,
+       "port": "C13-IN1-2",
+       "device": "Switch 7 R FB",
+       "kind": "feedback",
+       "place": "West - Lower",
+       "note": "M2S1368 / Switch 13-1 FB R; commissioned 2026-09-08"
+      },
+      {
+       "pin": 3,
+       "port": "C13-IN1-3",
+       "device": "Switch 11 N FB",
+       "kind": "feedback",
+       "place": "West - Lower",
+       "note": "M2S1369 / Switch 13-2 FB N; commissioned 2026-09-08"
+      },
+      {
+       "pin": 4,
+       "port": "C13-IN1-4",
+       "device": "Switch 11 R FB",
+       "kind": "feedback",
+       "place": "West - Lower",
+       "note": "M2S1370 / Switch 13-2 FB R; commissioned 2026-09-08"
+      },
+      {
+       "pin": 5,
+       "port": "C13-IN1-5",
+       "device": "Switch 9 N FB",
+       "kind": "feedback",
+       "place": "West - Lower",
+       "note": "M2S1371 / Switch 13-3 FB N; commissioned 2026-09-08"
+      },
+      {
+       "pin": 6,
+       "port": "C13-IN1-6",
+       "device": "Switch 9 R FB",
+       "kind": "feedback",
+       "place": "West - Lower",
+       "note": "M2S1372 / Switch 13-3 FB R; commissioned 2026-09-08"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "West - Lower",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C13-IN2-1",
+       "device": "Switch 7 BTN",
+       "kind": "button",
+       "place": "West - Lower",
+       "note": "local button; confirm silk"
+      },
+      {
+       "pin": 2,
+       "port": "C13-IN2-2",
+       "device": "Switch 11 BTN",
+       "kind": "button",
+       "place": "West - Lower",
+       "note": "local button; confirm silk"
+      },
+      {
+       "pin": 3,
+       "port": "C13-IN2-3",
+       "device": "Switch 9 BTN",
+       "kind": "button",
+       "place": "West - Lower",
+       "note": "local button; confirm silk"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C13-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C13-B1-1",
+       "block": "Yard T6"
+      },
+      {
+       "channel": "2",
+       "port": "C13-B1-2",
+       "block": "Switch 11"
+      }
+     ]
+    },
+    {
+     "detector": "C13-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C13-B2-1",
+       "block": "Switch 7 (TO8)"
+      },
+      {
+       "channel": "2",
+       "port": "C13-B2-2",
+       "block": "Switch 7 (TO6)"
+      }
+     ]
+    },
+    {
+     "detector": "C13-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C13-B3-1",
+       "block": "Yard T11"
+      },
+      {
+       "channel": "2",
+       "port": "C13-B3-2",
+       "block": "Yard T10"
+      }
+     ]
+    },
+    {
+     "detector": "C13-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C13-B4-1",
+       "block": "Yard T9"
+      },
+      {
+       "channel": "2",
+       "port": "C13-B4-2",
+       "block": "Switch 9"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C14",
+   "legacy": "C12",
+   "address": "14",
+   "location": "West - Upper",
+   "type": "Client",
+   "turnouts": [
+    "Switch 79",
+    "Switch 81",
+    "Switch 83",
+    "Switch 85"
+   ],
+   "signals": [
+    "76R",
+    "86L",
+    "84RA",
+    "76L",
+    "78RB"
+   ],
+   "blockNames": [
+    "PTT1",
+    "PTT2",
+    "Switch 77",
+    "Switch 79",
+    "Switch 81",
+    "Switch 83",
+    "Switch 85",
+    "TT"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "8",
+     "free": "0"
+    },
+    "outputs5v": {
+     "used": "16",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "12",
+     "free": "4"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "West - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C14-OU1-1",
+       "device": "Switch 79 N",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C14-OU1-2",
+       "device": "Switch 79 R",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C14-OU1-3",
+       "device": "Switch 81 N",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C14-OU1-4",
+       "device": "Switch 81 R",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C14-OU1-5",
+       "device": "Switch 83 N",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C14-OU1-6",
+       "device": "Switch 83 R",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C14-OU1-7",
+       "device": "Switch 85 N",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C14-OU1-8",
+       "device": "Switch 85 R",
+       "kind": "motor",
+       "place": "West - Upper"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "West - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C14-OU2-1",
+       "device": "Head 76R G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "76R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C14-OU2-2",
+       "device": "Head 76R Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "76R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C14-OU2-3",
+       "device": "Head 76R R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "76R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C14-OU2-4",
+       "device": "Head 86L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "86L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C14-OU2-5",
+       "device": "Head 86L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "86L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C14-OU2-6",
+       "device": "Head 86L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "86L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C14-OU2-7",
+       "device": "Head 84RA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "84RA",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C14-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "West - Upper",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "West - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C14-OU3-1",
+       "device": "Head 76L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "76L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C14-OU3-2",
+       "device": "Head 76L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "76L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C14-OU3-3",
+       "device": "Head 76L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "76L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C14-OU3-4",
+       "device": "Head 78RB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "78RB",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C14-OU3-5",
+       "device": "Head 78RB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "78RB",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C14-OU3-6",
+       "device": "Head 78RB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "78RB",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C14-OU3-7",
+       "device": "Head 84RA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "84RA",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C14-OU3-8",
+       "device": "Head 84RA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "84RA",
+       "place": "West - Upper"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "Peninsula - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C14-IN1-1",
+       "device": "Switch 79 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C14-IN1-2",
+       "device": "Switch 79 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C14-IN1-3",
+       "device": "Switch 81 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C14-IN1-4",
+       "device": "Switch 81 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C14-IN1-5",
+       "device": "Switch 83 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C14-IN1-6",
+       "device": "Switch 83 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C14-IN1-7",
+       "device": "Switch 85 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C14-IN1-8",
+       "device": "Switch 85 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "Peninsula - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C14-IN2-1",
+       "device": "Switch 79 BTN",
+       "kind": "button",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C14-IN2-2",
+       "device": "Switch 81 BTN",
+       "kind": "button",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C14-IN2-3",
+       "device": "Switch 83 BTN",
+       "kind": "button",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C14-IN2-4",
+       "device": "Switch 85 BTN",
+       "kind": "button",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C14-IN2-5",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C14-IN2-6",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C14-IN2-7",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C14-IN2-8",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C14-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C14-B1-1",
+       "block": "Switch 77"
+      },
+      {
+       "channel": "2",
+       "port": "C14-B1-2",
+       "block": "Switch 79"
+      }
+     ]
+    },
+    {
+     "detector": "C14-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C14-B2-1",
+       "block": "Switch 81"
+      },
+      {
+       "channel": "2",
+       "port": "C14-B2-2",
+       "block": "Switch 83"
+      }
+     ]
+    },
+    {
+     "detector": "C14-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C14-B3-1",
+       "block": "Switch 85"
+      },
+      {
+       "channel": "2",
+       "port": "C14-B3-2",
+       "block": "PTT1"
+      }
+     ]
+    },
+    {
+     "detector": "C14-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C14-B4-1",
+       "block": "PTT2"
+      },
+      {
+       "channel": "2",
+       "port": "C14-B4-2",
+       "block": "TT"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C21",
+   "legacy": "C8",
+   "address": "21",
+   "location": "Helix - Upper",
+   "type": "Client",
+   "turnouts": [
+    "Switch 61"
+   ],
+   "signals": [
+    "64R",
+    "68L",
+    "66RB",
+    "64L",
+    "66RA"
+   ],
+   "blockNames": [
+    "NIL A",
+    "NIL B",
+    "Outer Leg",
+    "Switch 61a",
+    "126",
+    "Switch 63",
+    "Switch 67",
+    "Switch 65",
+    "Switch 61c",
+    "140"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "2",
+     "free": "6"
+    },
+    "outputs5v": {
+     "used": "16",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "12",
+     "free": "4"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "Helix - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C21-OU1-1",
+       "device": "Switch 61 N",
+       "kind": "motor",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C21-OU1-2",
+       "device": "Switch 61 R",
+       "kind": "motor",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C21-OU1-3",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C21-OU1-4",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C21-OU1-5",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C21-OU1-6",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C21-OU1-7",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C21-OU1-8",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "Helix - Upper"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "Helix - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C21-OU2-1",
+       "device": "Head 64R G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "64R",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C21-OU2-2",
+       "device": "Head 64R Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "64R",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C21-OU2-3",
+       "device": "Head 64R R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "64R",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C21-OU2-4",
+       "device": "Head 68L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "68L",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C21-OU2-5",
+       "device": "Head 68L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "68L",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C21-OU2-6",
+       "device": "Head 68L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "68L",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C21-OU2-7",
+       "device": "Head 66RB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "66RB",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C21-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "Helix - Upper",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "Helix - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C21-OU3-1",
+       "device": "Head 64L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "64L",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C21-OU3-2",
+       "device": "Head 64L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "64L",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C21-OU3-3",
+       "device": "Head 64L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "64L",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C21-OU3-4",
+       "device": "Head 66RA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "66RA",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C21-OU3-5",
+       "device": "Head 66RA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "66RA",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C21-OU3-6",
+       "device": "Head 66RA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "66RA",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C21-OU3-7",
+       "device": "Head 66RB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "66RB",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C21-OU3-8",
+       "device": "Head 66RB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "66RB",
+       "place": "Helix - Upper"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "Helix - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C21-IN1-1",
+       "device": "Switch 61 N FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C21-IN1-2",
+       "device": "Switch 61 R FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C21-IN1-3",
+       "device": "Switch 67 N FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C21-IN1-4",
+       "device": "Switch 67 R FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C21-IN1-5",
+       "device": "Switch 63 N FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C21-IN1-6",
+       "device": "Switch 63 R FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C21-IN1-7",
+       "device": "Switch 65 N FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C21-IN1-8",
+       "device": "Switch 65 R FB",
+       "kind": "feedback",
+       "place": "Helix - Upper"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "Helix - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C21-IN2-1",
+       "device": "Switch 61 BTN",
+       "kind": "button",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C21-IN2-2",
+       "device": "Switch 67 BTN",
+       "kind": "button",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C21-IN2-3",
+       "device": "Switch 63 BTN",
+       "kind": "button",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C21-IN2-4",
+       "device": "Switch 65 BTN",
+       "kind": "button",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C21-IN2-5",
+       "kind": "spare",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C21-IN2-6",
+       "kind": "spare",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C21-IN2-7",
+       "kind": "spare",
+       "place": "Helix - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C21-IN2-8",
+       "kind": "spare",
+       "place": "Helix - Upper"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C21-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C21-B1-1",
+       "block": "NIL A"
+      },
+      {
+       "channel": "2",
+       "port": "C21-B1-2",
+       "block": "NIL B"
+      }
+     ]
+    },
+    {
+     "detector": "C21-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C21-B2-1",
+       "block": "Switch 67"
+      },
+      {
+       "channel": "2",
+       "port": "C21-B2-2",
+       "block": "Outer Leg"
+      }
+     ]
+    },
+    {
+     "detector": "C21-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C21-B3-1",
+       "block": "Switch 63"
+      },
+      {
+       "channel": "2",
+       "port": "C21-B3-2",
+       "block": "Switch 65"
+      }
+     ]
+    },
+    {
+     "detector": "C21-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C21-B4-1",
+       "block": "Switch 61c,140"
+      },
+      {
+       "channel": "2",
+       "port": "C21-B4-2",
+       "block": "Switch 61a,126"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C22",
+   "legacy": "C9",
+   "address": "22",
+   "location": "North - Upper",
+   "type": "Client",
+   "turnouts": [
+    "Switch 69",
+    "Switch 71"
+   ],
+   "signals": [
+    "70L",
+    "72L",
+    "70RA",
+    "74L",
+    "74RA"
+   ],
+   "blockNames": [
+    "Closet Inner",
+    "Closet Outer",
+    "Outside Inner A",
+    "Outside Outer A",
+    "Switch 71a",
+    "Switch 69a",
+    "Switch 71b",
+    "123",
+    "Switch 73"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "4",
+     "free": "4"
+    },
+    "outputs5v": {
+     "used": "16",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "9",
+     "free": "7"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "North - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C22-OU1-1",
+       "device": "Switch 69 N",
+       "kind": "motor",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C22-OU1-2",
+       "device": "Switch 69 R",
+       "kind": "motor",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C22-OU1-3",
+       "device": "Switch 71 N",
+       "kind": "motor",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C22-OU1-4",
+       "device": "Switch 71 R",
+       "kind": "motor",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C22-OU1-5",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C22-OU1-6",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C22-OU1-7",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C22-OU1-8",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "North - Upper"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "North - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C22-OU2-1",
+       "device": "Head 70L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "70L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C22-OU2-2",
+       "device": "Head 70L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "70L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C22-OU2-3",
+       "device": "Head 70L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "70L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C22-OU2-4",
+       "device": "Head 72L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "72L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C22-OU2-5",
+       "device": "Head 72L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "72L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C22-OU2-6",
+       "device": "Head 72L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "72L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C22-OU2-7",
+       "device": "Head 70RA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "70RA",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C22-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "North - Upper",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "North - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C22-OU3-1",
+       "device": "Head 74L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "74L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C22-OU3-2",
+       "device": "Head 74L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "74L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C22-OU3-3",
+       "device": "Head 74L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "74L",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C22-OU3-4",
+       "device": "Head 74RA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "74RA",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C22-OU3-5",
+       "device": "Head 74RA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "74RA",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C22-OU3-6",
+       "device": "Head 74RA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "74RA",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C22-OU3-7",
+       "device": "Head 70RA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "70RA",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C22-OU3-8",
+       "device": "Head 70RA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "70RA",
+       "place": "North - Upper"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "North - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C22-IN1-1",
+       "device": "Switch 69 N FB",
+       "kind": "feedback",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C22-IN1-2",
+       "device": "Switch 69 R FB",
+       "kind": "feedback",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C22-IN1-3",
+       "device": "Switch 71 N FB",
+       "kind": "feedback",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C22-IN1-4",
+       "device": "Switch 71 R FB",
+       "kind": "feedback",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C22-IN1-5",
+       "device": "Switch 73 N FB",
+       "kind": "feedback",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C22-IN1-6",
+       "device": "Switch 73 R FB",
+       "kind": "feedback",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C22-IN1-7",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C22-IN1-8",
+       "kind": "spare",
+       "place": "North - Upper"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "North - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C22-IN2-1",
+       "device": "Switch 69 BTN",
+       "kind": "button",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C22-IN2-2",
+       "device": "Switch 71 BTN",
+       "kind": "button",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C22-IN2-3",
+       "device": "Switch 73 BTN",
+       "kind": "button",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C22-IN2-4",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C22-IN2-5",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C22-IN2-6",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C22-IN2-7",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C22-IN2-8",
+       "kind": "spare",
+       "place": "North - Upper"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C22-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C22-B1-1",
+       "block": "Closet Inner"
+      },
+      {
+       "channel": "2",
+       "port": "C22-B1-2",
+       "block": "Closet Outer"
+      }
+     ]
+    },
+    {
+     "detector": "C22-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C22-B2-1",
+       "block": "Switch 73"
+      },
+      {
+       "channel": "2",
+       "port": "C22-B2-2",
+       "block": "Switch 71b,123"
+      }
+     ]
+    },
+    {
+     "detector": "C22-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C22-B3-1",
+       "block": "Switch 71a"
+      },
+      {
+       "channel": "2",
+       "port": "C22-B3-2",
+       "block": "Switch 69a"
+      }
+     ]
+    },
+    {
+     "detector": "C22-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C22-B4-1",
+       "block": "Outside Outer A"
+      },
+      {
+       "channel": "2",
+       "port": "C22-B4-2",
+       "block": "Outside Inner A"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C23",
+   "legacy": "C11",
+   "address": "23",
+   "location": "West - Upper",
+   "type": "Client",
+   "turnouts": [
+    "Switch 75",
+    "Switch 77"
+   ],
+   "signals": [
+    "78R",
+    "88R",
+    "84RB",
+    "92L",
+    "90L"
+   ],
+   "blockNames": [
+    "CB Inner A",
+    "CB Inner B",
+    "CB Outer A",
+    "CB Outer B",
+    "Outside Inner B",
+    "Outside Outer B",
+    "Switch 75a",
+    "Switch 75b"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "4",
+     "free": "4"
+    },
+    "outputs5v": {
+     "used": "16",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "6",
+     "free": "2"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "West - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C23-OU1-1",
+       "device": "Switch 75 N",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C23-OU1-2",
+       "device": "Switch 75 R",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C23-OU1-3",
+       "device": "Switch 77 N",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C23-OU1-4",
+       "device": "Switch 77 R",
+       "kind": "motor",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C23-OU1-5",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C23-OU1-6",
+       "device": "Reserved",
+       "kind": "reserved",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C23-OU1-7",
+       "kind": "reserved",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C23-OU1-8",
+       "kind": "reserved",
+       "place": "West - Upper"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "West - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C23-OU2-1",
+       "device": "Head 78R G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "78R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C23-OU2-2",
+       "device": "Head 78R Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "78R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C23-OU2-3",
+       "device": "Head 78R R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "78R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C23-OU2-4",
+       "device": "Head 88R G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "88R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C23-OU2-5",
+       "device": "Head 88R Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "88R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C23-OU2-6",
+       "device": "Head 88R R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "88R",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C23-OU2-7",
+       "device": "Head 84RB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "84RB",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C23-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "West - Upper",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "West - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C23-OU3-1",
+       "device": "Head 92L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "92L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C23-OU3-2",
+       "device": "Head 92L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "92L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C23-OU3-3",
+       "device": "Head 92L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "92L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C23-OU3-4",
+       "device": "Head 90L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "90L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C23-OU3-5",
+       "device": "Head 90L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "90L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C23-OU3-6",
+       "device": "Head 90L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "90L",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C23-OU3-7",
+       "device": "Head 84RB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "84RB",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C23-OU3-8",
+       "device": "Head 84RB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "84RB",
+       "place": "West - Upper"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "West - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C23-IN1-1",
+       "device": "Switch 75 N FB",
+       "kind": "feedback",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C23-IN1-2",
+       "device": "Switch 75 R FB",
+       "kind": "feedback",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C23-IN1-3",
+       "device": "Switch 77 N FB",
+       "kind": "feedback",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C23-IN1-4",
+       "device": "Switch 77 R FB",
+       "kind": "feedback",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C23-IN1-5",
+       "kind": "spare",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C23-IN1-6",
+       "kind": "spare",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C23-IN1-7",
+       "device": "Switch 75 BTN",
+       "kind": "button",
+       "place": "West - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C23-IN1-8",
+       "device": "Switch 77 BTN",
+       "kind": "button",
+       "place": "West - Upper"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C23-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C23-B1-1",
+       "block": "Outside Inner B"
+      },
+      {
+       "channel": "2",
+       "port": "C23-B1-2",
+       "block": "Outside Outer B"
+      }
+     ]
+    },
+    {
+     "detector": "C23-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C23-B2-1",
+       "block": "CB Inner A"
+      },
+      {
+       "channel": "2",
+       "port": "C23-B2-2",
+       "block": "CB Inner B"
+      }
+     ]
+    },
+    {
+     "detector": "C23-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C23-B3-1",
+       "block": "CB Outer A"
+      },
+      {
+       "channel": "2",
+       "port": "C23-B3-2",
+       "block": "CB Outer B"
+      }
+     ]
+    },
+    {
+     "detector": "C23-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C23-B4-1",
+       "block": "Switch 75a"
+      },
+      {
+       "channel": "2",
+       "port": "C23-B4-2",
+       "block": "Switch 75b"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C24",
+   "legacy": "C13",
+   "address": "24",
+   "location": "Peninsula - Upper",
+   "type": "Client",
+   "turnouts": [
+    "Switch 87",
+    "Switch 89",
+    "Switch 91"
+   ],
+   "signals": [
+    "82L",
+    "78L",
+    "88RA",
+    "78RA",
+    "88L"
+   ],
+   "blockNames": [
+    "BW1",
+    "BW2",
+    "CB Siding",
+    "CB Station",
+    "Switch 87",
+    "Switch 89",
+    "Switch 91",
+    "WH"
+   ],
+   "summary": {
+    "outputs12v": {
+     "used": "8",
+     "free": "0"
+    },
+    "outputs5v": {
+     "used": "14",
+     "free": "2"
+    },
+    "inputs": {
+     "used": "9",
+     "free": "7"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "Peninsula - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C24-OU1-1",
+       "device": "Switch 87 N",
+       "kind": "motor",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C24-OU1-2",
+       "device": "Switch 87 R",
+       "kind": "motor",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C24-OU1-3",
+       "device": "Switch 89 N",
+       "kind": "motor",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C24-OU1-4",
+       "device": "Switch 89 R",
+       "kind": "motor",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C24-OU1-5",
+       "device": "Switch 91 N",
+       "kind": "motor",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C24-OU1-6",
+       "device": "Switch 91 R",
+       "kind": "motor",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C24-OU1-7",
+       "device": "Head 82L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "82L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C24-OU1-8",
+       "device": "Head 82L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "82L",
+       "place": "Peninsula - Upper"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "Peninsula - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C24-OU2-1",
+       "device": "Head 78L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "78L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C24-OU2-2",
+       "device": "Head 78L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "78L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C24-OU2-3",
+       "device": "Head 78L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "78L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C24-OU2-4",
+       "device": "Head 88RA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "88RA",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C24-OU2-5",
+       "device": "Head 88RA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "88RA",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C24-OU2-6",
+       "device": "Head 88RA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "88RA",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C24-OU2-7",
+       "device": "Head 82L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "82L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C24-OU2-8",
+       "device": "Block sensor calibration",
+       "kind": "cal",
+       "place": "Peninsula - Upper",
+       "note": "Block sensor calibration current (first 5V OU pin 8); not a lamp"
+      }
+     ]
+    },
+    {
+     "board": "OU3",
+     "rail": "5V",
+     "place": "Peninsula - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C24-OU3-1",
+       "device": "Head 78RA G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "78RA",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C24-OU3-2",
+       "device": "Head 78RA Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "78RA",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C24-OU3-3",
+       "device": "Head 78RA R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "78RA",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C24-OU3-4",
+       "device": "Head 88L G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "88L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C24-OU3-5",
+       "device": "Head 88L Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "88L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C24-OU3-6",
+       "device": "Head 88L R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "88L",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C24-OU3-7",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C24-OU3-8",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      }
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "board": "IN1",
+     "place": "Peninsula - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C24-IN1-1",
+       "device": "Switch 87 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C24-IN1-2",
+       "device": "Switch 87 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C24-IN1-3",
+       "device": "Switch 89 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C24-IN1-4",
+       "device": "Switch 89 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C24-IN1-5",
+       "device": "Switch 91 N FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C24-IN1-6",
+       "device": "Switch 91 R FB",
+       "kind": "feedback",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C24-IN1-7",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C24-IN1-8",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "Peninsula - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C24-IN2-1",
+       "device": "Switch 87 BTN",
+       "kind": "button",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C24-IN2-2",
+       "device": "Switch 89 BTN",
+       "kind": "button",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C24-IN2-3",
+       "device": "Switch 91 BTN",
+       "kind": "button",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C24-IN2-4",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C24-IN2-5",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C24-IN2-6",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C24-IN2-7",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C24-IN2-8",
+       "kind": "spare",
+       "place": "Peninsula - Upper"
+      }
+     ]
+    }
+   ],
+   "detectors": [
+    {
+     "detector": "C24-B1",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C24-B1-1",
+       "block": "Switch 87"
+      },
+      {
+       "channel": "2",
+       "port": "C24-B1-2",
+       "block": "Switch 89"
+      }
+     ]
+    },
+    {
+     "detector": "C24-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C24-B2-1",
+       "block": "Switch 91"
+      },
+      {
+       "channel": "2",
+       "port": "C24-B2-2",
+       "block": "BW1"
+      }
+     ]
+    },
+    {
+     "detector": "C24-B3",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C24-B3-1",
+       "block": "BW2"
+      },
+      {
+       "channel": "2",
+       "port": "C24-B3-2",
+       "block": "WH"
+      }
+     ]
+    },
+    {
+     "detector": "C24-B4",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C24-B4-1",
+       "block": "CB Siding"
+      },
+      {
+       "channel": "2",
+       "port": "C24-B4-2",
+       "block": "CB Station"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C32",
+   "legacy": "C10",
+   "address": "32",
+   "location": "North - Upper",
+   "type": "Client",
+   "turnouts": [
+    "Switch 73"
+   ],
+   "signals": [
+    "70RB",
+    "74RB"
+   ],
+   "blockNames": [],
+   "summary": {
+    "outputs12v": {
+     "used": "2",
+     "free": "6"
+    },
+    "outputs5v": {
+     "used": "6",
+     "free": "2"
+    },
+    "inputs": {
+     "used": "0",
+     "free": "0"
+    }
+   },
+   "outputs": [
+    {
+     "board": "OU1",
+     "rail": "12V",
+     "place": "North - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C32-OU1-1",
+       "device": "Switch 73 N",
+       "kind": "motor",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C32-OU1-2",
+       "device": "Switch 73 R",
+       "kind": "motor",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C32-OU1-3",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C32-OU1-4",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C32-OU1-5",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C32-OU1-6",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C32-OU1-7",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C32-OU1-8",
+       "kind": "spare",
+       "place": "North - Upper"
+      }
+     ]
+    },
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "North - Upper",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C32-OU2-1",
+       "device": "Head 70RB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "70RB",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 2,
+       "port": "C32-OU2-2",
+       "device": "Head 70RB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "70RB",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 3,
+       "port": "C32-OU2-3",
+       "device": "Head 70RB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "70RB",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 4,
+       "port": "C32-OU2-4",
+       "device": "Head 74RB G",
+       "kind": "lamp",
+       "color": "G",
+       "head": "74RB",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 5,
+       "port": "C32-OU2-5",
+       "device": "Head 74RB R",
+       "kind": "lamp",
+       "color": "R",
+       "head": "74RB",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 6,
+       "port": "C32-OU2-6",
+       "device": "Head 74RB Y",
+       "kind": "lamp",
+       "color": "Y",
+       "head": "74RB",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 7,
+       "port": "C32-OU2-7",
+       "kind": "spare",
+       "place": "North - Upper"
+      },
+      {
+       "pin": 8,
+       "port": "C32-OU2-8",
+       "kind": "spare",
+       "place": "North - Upper"
+      }
+     ]
+    }
+   ],
+   "inputs": [],
+   "detectors": []
+  },
+  {
+   "id": "D5",
+   "legacy": "D1",
+   "address": "5",
+   "location": "Helix DCC (radio 5; no Digicon DNOU8)",
+   "type": "DCC",
+   "turnouts": [],
+   "signals": [],
+   "blockNames": [],
+   "summary": {
+    "outputs12v": {
+     "used": "0",
+     "free": "0"
+    },
+    "outputs5v": {
+     "used": "0",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "0",
+     "free": "0"
+    }
+   },
+   "outputs": [],
+   "inputs": [],
+   "detectors": []
+  }
+ ],
+ "signals": [
+  {
+   "head": "36RA B",
+   "mast": "36RA",
+   "disc": "B",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW35)",
+   "packed": "IH136",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU2-4",
+    "Y": "C1-OU2-5",
+    "G": "C1-OU2-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "36RA T",
+   "mast": "36RA",
+   "disc": "T",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW35)",
+   "packed": "IH135",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU2-1",
+    "Y": "C1-OU2-2",
+    "G": "C1-OU2-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "36RB B",
+   "mast": "36RB",
+   "disc": "B",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW35)",
+   "packed": "IH133",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU3-4",
+    "Y": "C1-OU3-5",
+    "G": "C1-OU3-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "36RB T",
+   "mast": "36RB",
+   "disc": "T",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW35)",
+   "packed": "IH132",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU3-1",
+    "Y": "C1-OU3-2",
+    "G": "C1-OU3-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "38LA",
+   "mast": "38LA",
+   "disc": "S",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW37)",
+   "packed": "IH143",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU3-7",
+    "Y": "C1-OU3-8",
+    "G": "C1-OU2-7"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "38LB B",
+   "mast": "38LB",
+   "disc": "B",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW37)",
+   "packed": "IH140",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU4-4",
+    "Y": "C1-OU4-5",
+    "G": "C1-OU4-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "38LB T",
+   "mast": "38LB",
+   "disc": "T",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW37)",
+   "packed": "IH139",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU4-1",
+    "Y": "C1-OU4-2",
+    "G": "C1-OU4-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "24L B",
+   "mast": "24L",
+   "disc": "B",
+   "node": "C2",
+   "place": "North - Lower (East End west 24)",
+   "packed": "IH239",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C2-OU2-4",
+    "Y": "C2-OU2-5",
+    "G": "C2-OU2-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "24L T",
+   "mast": "24L",
+   "disc": "T",
+   "node": "C2",
+   "place": "North - Lower (East End west 24)",
+   "packed": "IH233",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C2-OU2-1",
+    "Y": "C2-OU2-2",
+    "G": "C2-OU2-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "24RA B",
+   "mast": "24RA",
+   "disc": "B",
+   "node": "C2",
+   "place": "North - Lower (East End west 24)",
+   "packed": "IH238",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C2-OU1-4",
+    "Y": "C2-OU1-5",
+    "G": "C2-OU1-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "24RA T",
+   "mast": "24RA",
+   "disc": "T",
+   "node": "C2",
+   "place": "North - Lower (East End west 24)",
+   "packed": "IH232",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C2-OU1-1",
+    "Y": "C2-OU1-2",
+    "G": "C2-OU1-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "24RB",
+   "mast": "24RB",
+   "disc": "S",
+   "node": "C2",
+   "place": "North - Lower (East End west 24)",
+   "packed": "IH234",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C2-OU3-6",
+    "Y": "C2-OU3-7",
+    "G": "C2-OU3-8"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "2L B",
+   "mast": "2L",
+   "disc": "B",
+   "node": "C4",
+   "place": "West - Lower (Brick east)",
+   "packed": "IH439",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C4-OU3-4",
+    "Y": "C4-OU3-5",
+    "G": "C4-OU3-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "2L T",
+   "mast": "2L",
+   "disc": "T",
+   "node": "C4",
+   "place": "West - Lower (Brick east)",
+   "packed": "IH438",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C4-OU3-1",
+    "Y": "C4-OU3-2",
+    "G": "C4-OU3-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "4RA",
+   "mast": "4RA",
+   "disc": "S",
+   "node": "C4",
+   "place": "West - Lower (Brick west)",
+   "packed": "IH436",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C4-OU4-1",
+    "Y": "C4-OU4-2",
+    "G": "C4-OU4-3"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "4RB",
+   "mast": "4RB",
+   "disc": "S",
+   "node": "C4",
+   "place": "West - Lower (Brick west)",
+   "packed": "IH437",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C4-OU4-4",
+    "Y": "C4-OU4-5",
+    "G": "C4-OU4-6"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "6LA",
+   "mast": "6LA",
+   "disc": "S",
+   "node": "C4",
+   "place": "West - Lower (Plane)",
+   "packed": "IH434",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C4-OU2-7",
+    "Y": "C4-OU3-8",
+    "G": "C4-OU3-7"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "6LB B",
+   "mast": "6LB",
+   "disc": "B",
+   "node": "C4",
+   "place": "West - Lower (Plane)",
+   "packed": "IH433",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C4-OU2-4",
+    "Y": "C4-OU2-5",
+    "G": "C4-OU2-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "6LB T",
+   "mast": "6LB",
+   "disc": "T",
+   "node": "C4",
+   "place": "West - Lower (Plane)",
+   "packed": "IH432",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C4-OU2-1",
+    "Y": "C4-OU2-2",
+    "G": "C4-OU2-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "2035",
+   "mast": "2035",
+   "disc": "S",
+   "node": "C11",
+   "place": "Helix (balloon 115)",
+   "packed": "IH1134",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C11-OU3-7",
+    "Y": "C11-OU3-8",
+    "G": "C11-OU2-7"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "2036",
+   "mast": "2036",
+   "disc": "S",
+   "node": "C11",
+   "place": "Helix (balloon 114)",
+   "packed": "IH1133",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C11-OU3-4",
+    "Y": "C11-OU3-5",
+    "G": "C11-OU3-6"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "40LA",
+   "mast": "40LA",
+   "disc": "S",
+   "node": "C11",
+   "place": "Helix (Princess east SW39)",
+   "packed": "IH1136",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C11-OU3-1",
+    "Y": "C11-OU3-2",
+    "G": "C11-OU3-3"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "40LB B",
+   "mast": "40LB",
+   "disc": "B",
+   "node": "C11",
+   "place": "Helix (Princess east SW39)",
+   "packed": "IH1135",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C11-OU2-4",
+    "Y": "C11-OU2-5",
+    "G": "C11-OU2-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "40LB T",
+   "mast": "40LB",
+   "disc": "T",
+   "node": "C11",
+   "place": "Helix (Princess east SW39)",
+   "packed": "IH1132",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C11-OU2-1",
+    "Y": "C11-OU2-2",
+    "G": "C11-OU2-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "32R",
+   "mast": "32R",
+   "disc": "S",
+   "node": "C12",
+   "place": "North - Lower (East End 34)",
+   "packed": "IH1234",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C12-OU2-7",
+    "Y": "C12-OU3-8",
+    "G": "C12-OU3-7"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "34L B",
+   "mast": "34L",
+   "disc": "B",
+   "node": "C12",
+   "place": "North - Lower (East End 34)",
+   "packed": "IH1233",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C12-OU2-4",
+    "Y": "C12-OU2-5",
+    "G": "C12-OU2-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "34L T",
+   "mast": "34L",
+   "disc": "T",
+   "node": "C12",
+   "place": "North - Lower (East End 34)",
+   "packed": "IH1232",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C12-OU2-1",
+    "Y": "C12-OU2-2",
+    "G": "C12-OU2-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "34R B",
+   "mast": "34R",
+   "disc": "B",
+   "node": "C12",
+   "place": "North - Lower (East End 34)",
+   "packed": "IH1236",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C12-OU3-4",
+    "Y": "C12-OU3-5",
+    "G": "C12-OU3-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "34R T",
+   "mast": "34R",
+   "disc": "T",
+   "node": "C12",
+   "place": "North - Lower (East End 34)",
+   "packed": "IH1235",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C12-OU3-1",
+    "Y": "C12-OU3-2",
+    "G": "C12-OU3-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "8LA B",
+   "mast": "8LA",
+   "disc": "B",
+   "node": "C13",
+   "place": "West - Lower (Barn right)",
+   "packed": "IH1338",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C13-OU3-4",
+    "Y": "C13-OU3-5",
+    "G": "C13-OU3-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "8LA T",
+   "mast": "8LA",
+   "disc": "T",
+   "node": "C13",
+   "place": "West - Lower (Barn right)",
+   "packed": "IH1337",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C13-OU3-1",
+    "Y": "C13-OU3-2",
+    "G": "C13-OU3-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "8LB",
+   "mast": "8LB",
+   "disc": "S",
+   "node": "C13",
+   "place": "West - Lower (Barn right)",
+   "packed": "IH1334",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C13-OU3-7",
+    "Y": "C13-OU3-8",
+    "G": "C13-OU4-7"
+   },
+   "appearance": "CO-3-dwarf"
+  },
+  {
+   "head": "8RA B",
+   "mast": "8RA",
+   "disc": "B",
+   "node": "C13",
+   "place": "West - Lower (Barn left)",
+   "packed": "IH1333",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C13-OU1-4",
+    "Y": "C13-OU1-5",
+    "G": "C13-OU1-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "8RA T",
+   "mast": "8RA",
+   "disc": "T",
+   "node": "C13",
+   "place": "West - Lower (Barn left)",
+   "packed": "IH1332",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C13-OU1-1",
+    "Y": "C13-OU1-2",
+    "G": "C13-OU1-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "8RB B",
+   "mast": "8RB",
+   "disc": "B",
+   "node": "C13",
+   "place": "West - Lower (Barn left)",
+   "packed": "IH1336",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C13-OU4-4",
+    "Y": "C13-OU4-5",
+    "G": "C13-OU4-6"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "8RB T",
+   "mast": "8RB",
+   "disc": "T",
+   "node": "C13",
+   "place": "West - Lower (Barn left)",
+   "packed": "IH1335",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C13-OU4-1",
+    "Y": "C13-OU4-2",
+    "G": "C13-OU4-3"
+   },
+   "appearance": "CO-33-hi"
+  },
+  {
+   "head": "76L",
+   "node": "C14",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C14-OU3-1",
+    "Y": "C14-OU3-2",
+    "R": "C14-OU3-3"
+   },
+   "cp": "CP6",
+   "route": "OutsideOuterA → CBInner"
+  },
+  {
+   "head": "76R",
+   "node": "C14",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C14-OU2-1",
+    "Y": "C14-OU2-2",
+    "R": "C14-OU2-3"
+   },
+   "cp": "CP6",
+   "route": "OutsideInnerA → CBInner"
+  },
+  {
+   "head": "78RB",
+   "node": "C14",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C14-OU3-4",
+    "Y": "C14-OU3-5",
+    "R": "C14-OU3-6"
+   },
+   "cp": "CP6",
+   "route": "CBSiding → OutsideInnerA"
+  },
+  {
+   "head": "84RA",
+   "node": "C14",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "Y": "C14-OU2-7",
+    "G": "C14-OU3-7",
+    "R": "C14-OU3-8"
+   },
+   "cp": "CP6",
+   "route": "? → OutsideOuterA"
+  },
+  {
+   "head": "86L",
+   "node": "C14",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C14-OU2-4",
+    "R": "C14-OU2-5",
+    "Y": "C14-OU2-6"
+   },
+   "cp": "CP6",
+   "route": "? → OutsideOuterA"
+  },
+  {
+   "head": "64L",
+   "node": "C21",
+   "place": "Helix - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C21-OU3-1",
+    "Y": "C21-OU3-2",
+    "R": "C21-OU3-3"
+   },
+   "cp": "CP4",
+   "route": "Aristech → Closet Inner"
+  },
+  {
+   "head": "64R",
+   "node": "C21",
+   "place": "Helix - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C21-OU2-1",
+    "Y": "C21-OU2-2",
+    "R": "C21-OU2-3"
+   },
+   "cp": "CP4",
+   "route": "Closet Outer → Aristech"
+  },
+  {
+   "head": "66RA",
+   "mast": "Switch 65 (with 66RB)",
+   "node": "C21",
+   "place": "Helix - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C21-OU3-4",
+    "Y": "C21-OU3-5",
+    "R": "C21-OU3-6"
+   },
+   "cp": "CP4",
+   "route": "Coke Plant → Closet Inner"
+  },
+  {
+   "head": "66RB",
+   "mast": "Switch 65 (with 66RA)",
+   "node": "C21",
+   "place": "Helix - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "Y": "C21-OU2-7",
+    "G": "C21-OU3-7",
+    "R": "C21-OU3-8"
+   },
+   "cp": "CP4",
+   "route": "NIL B → Closet Inner"
+  },
+  {
+   "head": "68L",
+   "node": "C21",
+   "place": "Helix - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C21-OU2-4",
+    "Y": "C21-OU2-5",
+    "R": "C21-OU2-6"
+   },
+   "cp": "CP4",
+   "route": "Closet Inner → Aristech"
+  },
+  {
+   "head": "70L",
+   "node": "C22",
+   "place": "North - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C22-OU2-1",
+    "Y": "C22-OU2-2",
+    "R": "C22-OU2-3"
+   },
+   "cp": "CP5",
+   "route": "OutsideOuter → ClosetOuter"
+  },
+  {
+   "head": "70RA",
+   "node": "C22",
+   "place": "North - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "Y": "C22-OU2-7",
+    "G": "C22-OU3-7",
+    "R": "C22-OU3-8"
+   },
+   "cp": "CP5",
+   "route": "Bridgeville → ClosetInner"
+  },
+  {
+   "head": "72L",
+   "node": "C22",
+   "place": "North - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C22-OU2-4",
+    "Y": "C22-OU2-5",
+    "R": "C22-OU2-6"
+   },
+   "cp": "CP5",
+   "route": "ClosetOuter → OutsideOuter"
+  },
+  {
+   "head": "74L",
+   "node": "C22",
+   "place": "North - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C22-OU3-1",
+    "Y": "C22-OU3-2",
+    "R": "C22-OU3-3"
+   },
+   "cp": "CP5",
+   "route": "OutsideInner → ClosetInner"
+  },
+  {
+   "head": "74RA",
+   "node": "C22",
+   "place": "North - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C22-OU3-4",
+    "Y": "C22-OU3-5",
+    "R": "C22-OU3-6"
+   },
+   "cp": "CP5",
+   "route": "ClosetInner → Bridgeville"
+  },
+  {
+   "head": "78R",
+   "node": "C23",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C23-OU2-1",
+    "Y": "C23-OU2-2",
+    "R": "C23-OU2-3"
+   },
+   "cp": "CP6",
+   "route": "CBOuter → CBStation"
+  },
+  {
+   "head": "84RB",
+   "node": "C23",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "Y": "C23-OU2-7",
+    "G": "C23-OU3-7",
+    "R": "C23-OU3-8"
+   },
+   "cp": "CP6",
+   "route": "? → OutsideOuterA"
+  },
+  {
+   "head": "88R",
+   "node": "C23",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C23-OU2-4",
+    "Y": "C23-OU2-5",
+    "R": "C23-OU2-6"
+   },
+   "cp": "CP6",
+   "route": "CBSiding → CBInner"
+  },
+  {
+   "head": "90L",
+   "node": "C23",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C23-OU3-4",
+    "R": "C23-OU3-5",
+    "Y": "C23-OU3-6"
+   },
+   "cp": "CP6",
+   "route": "? → OutsideOuterA"
+  },
+  {
+   "head": "92L",
+   "node": "C23",
+   "place": "West - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C23-OU3-1",
+    "R": "C23-OU3-2",
+    "Y": "C23-OU3-3"
+   },
+   "cp": "CP6",
+   "route": "? → OutsideOuterA"
+  },
+  {
+   "head": "78L",
+   "node": "C24",
+   "place": "Peninsula - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C24-OU2-1",
+    "Y": "C24-OU2-2",
+    "R": "C24-OU2-3"
+   },
+   "cp": "CP6",
+   "route": "CBStation → CBOuter"
+  },
+  {
+   "head": "78RA",
+   "node": "C24",
+   "place": "Peninsula - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C24-OU3-1",
+    "Y": "C24-OU3-2",
+    "R": "C24-OU3-3"
+   },
+   "cp": "CP6",
+   "route": "CBStation → OutsideInnerA"
+  },
+  {
+   "head": "82L",
+   "node": "C24",
+   "place": "Peninsula - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C24-OU1-7",
+    "R": "C24-OU1-8",
+    "Y": "C24-OU2-7"
+   },
+   "cp": "CP6",
+   "route": "? → OutsideOuterA"
+  },
+  {
+   "head": "88L",
+   "node": "C24",
+   "place": "Peninsula - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C24-OU3-4",
+    "Y": "C24-OU3-5",
+    "R": "C24-OU3-6"
+   },
+   "cp": "CP6",
+   "route": "CBInner → CBSiding"
+  },
+  {
+   "head": "88RA",
+   "node": "C24",
+   "place": "Peninsula - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C24-OU2-4",
+    "Y": "C24-OU2-5",
+    "R": "C24-OU2-6"
+   },
+   "cp": "CP6",
+   "route": "CB Outer → CB Station"
+  },
+  {
+   "head": "70RB",
+   "mast": "Switch 69 reverse",
+   "node": "C32",
+   "place": "North - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C32-OU2-1",
+    "Y": "C32-OU2-2",
+    "R": "C32-OU2-3"
+   },
+   "cp": "CP5",
+   "route": "HelixOuterB → Bridgeville"
+  },
+  {
+   "head": "74RB",
+   "mast": "Switch 73 reverse",
+   "node": "C32",
+   "place": "North - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "G": "C32-OU2-4",
+    "R": "C32-OU2-5",
+    "Y": "C32-OU2-6"
+   },
+   "cp": "CP5",
+   "route": "HelixInnerB → Bridgeville"
+  }
+ ],
+ "masts": [
+  {
+   "mast": "6LB",
+   "node": "C4",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C4-OU2-1",
+    "C4-OU2-2",
+    "C4-OU2-3",
+    "C4-OU2-4",
+    "C4-OU2-5",
+    "C4-OU2-6"
+   ]
+  },
+  {
+   "mast": "6LA",
+   "node": "C4",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C4-OU2-7",
+    "C4-OU3-8",
+    "C4-OU3-7"
+   ]
+  },
+  {
+   "mast": "2L",
+   "node": "C4",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C4-OU3-1",
+    "C4-OU3-2",
+    "C4-OU3-3",
+    "C4-OU3-4",
+    "C4-OU3-5",
+    "C4-OU3-6"
+   ]
+  },
+  {
+   "mast": "4RA",
+   "node": "C4",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C4-OU4-1",
+    "C4-OU4-2",
+    "C4-OU4-3"
+   ]
+  },
+  {
+   "mast": "4RB",
+   "node": "C4",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C4-OU4-4",
+    "C4-OU4-5",
+    "C4-OU4-6"
+   ]
+  },
+  {
+   "mast": "8RA",
+   "node": "C13",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C13-OU1-1",
+    "C13-OU1-2",
+    "C13-OU1-3",
+    "C13-OU1-4",
+    "C13-OU1-5",
+    "C13-OU1-6"
+   ]
+  },
+  {
+   "mast": "8RB",
+   "node": "C13",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C13-OU4-1",
+    "C13-OU4-2",
+    "C13-OU4-3",
+    "C13-OU4-4",
+    "C13-OU4-5",
+    "C13-OU4-6"
+   ]
+  },
+  {
+   "mast": "8LA",
+   "node": "C13",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C13-OU3-1",
+    "C13-OU3-2",
+    "C13-OU3-3",
+    "C13-OU3-4",
+    "C13-OU3-5",
+    "C13-OU3-6"
+   ]
+  },
+  {
+   "mast": "8LB",
+   "node": "C13",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C13-OU3-7",
+    "C13-OU3-8",
+    "C13-OU4-7"
+   ]
+  },
+  {
+   "mast": "24RA",
+   "node": "C2",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C2-OU1-1",
+    "C2-OU1-2",
+    "C2-OU1-3",
+    "C2-OU1-4",
+    "C2-OU1-5",
+    "C2-OU1-6"
+   ]
+  },
+  {
+   "mast": "24RB",
+   "node": "C2",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C2-OU3-6",
+    "C2-OU3-7",
+    "C2-OU3-8"
+   ]
+  },
+  {
+   "mast": "24L",
+   "node": "C2",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C2-OU2-1",
+    "C2-OU2-2",
+    "C2-OU2-3",
+    "C2-OU2-4",
+    "C2-OU2-5",
+    "C2-OU2-6"
+   ]
+  },
+  {
+   "mast": "34L",
+   "node": "C12",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C12-OU2-1",
+    "C12-OU2-2",
+    "C12-OU2-3",
+    "C12-OU2-4",
+    "C12-OU2-5",
+    "C12-OU2-6"
+   ]
+  },
+  {
+   "mast": "32R",
+   "node": "C12",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C12-OU2-7",
+    "C12-OU3-8",
+    "C12-OU3-7"
+   ]
+  },
+  {
+   "mast": "34R",
+   "node": "C12",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C12-OU3-1",
+    "C12-OU3-2",
+    "C12-OU3-3",
+    "C12-OU3-4",
+    "C12-OU3-5",
+    "C12-OU3-6"
+   ]
+  },
+  {
+   "mast": "36RA",
+   "node": "C1",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C1-OU2-1",
+    "C1-OU2-2",
+    "C1-OU2-3",
+    "C1-OU2-4",
+    "C1-OU2-5",
+    "C1-OU2-6"
+   ]
+  },
+  {
+   "mast": "36RB",
+   "node": "C1",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C1-OU3-1",
+    "C1-OU3-2",
+    "C1-OU3-3",
+    "C1-OU3-4",
+    "C1-OU3-5",
+    "C1-OU3-6"
+   ]
+  },
+  {
+   "mast": "38LB",
+   "node": "C1",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C1-OU4-1",
+    "C1-OU4-2",
+    "C1-OU4-3",
+    "C1-OU4-4",
+    "C1-OU4-5",
+    "C1-OU4-6"
+   ]
+  },
+  {
+   "mast": "38LA",
+   "node": "C1",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C1-OU3-7",
+    "C1-OU3-8",
+    "C1-OU2-7"
+   ]
+  },
+  {
+   "mast": "40LB",
+   "node": "C11",
+   "heads": "2",
+   "appearance": "CO-33-hi",
+   "ports": [
+    "C11-OU2-1",
+    "C11-OU2-2",
+    "C11-OU2-3",
+    "C11-OU2-4",
+    "C11-OU2-5",
+    "C11-OU2-6"
+   ]
+  },
+  {
+   "mast": "40LA",
+   "node": "C11",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C11-OU3-1",
+    "C11-OU3-2",
+    "C11-OU3-3"
+   ]
+  },
+  {
+   "mast": "2036",
+   "node": "C11",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C11-OU3-4",
+    "C11-OU3-5",
+    "C11-OU3-6"
+   ]
+  },
+  {
+   "mast": "2035",
+   "node": "C11",
+   "heads": "1",
+   "appearance": "CO-3-dwarf",
+   "ports": [
+    "C11-OU3-7",
+    "C11-OU3-8",
+    "C11-OU2-7"
+   ]
+  }
+ ],
+ "turnouts": [
+  {
+   "turnout": "Switch 63",
+   "node": "C11",
+   "area": "CP4 (Helix - Upper)",
+   "elements": "Switch 63",
+   "motorN": "C11-OU1-3",
+   "motorR": "C11-OU1-4",
+   "button": "C21-IN2-3",
+   "fbN": "C21-IN1-5",
+   "fbR": "C21-IN1-6",
+   "signals": {
+    "entry": "64L",
+    "normal": "64R"
+   }
+  },
+  {
+   "turnout": "Switch 67",
+   "node": "C11",
+   "area": "CP4 (Helix - Upper)",
+   "elements": "Switch 67",
+   "motorN": "C11-OU1-1",
+   "motorR": "C11-OU1-2",
+   "button": "C21-IN2-2",
+   "fbN": "C21-IN1-3",
+   "fbR": "C21-IN1-4",
+   "signals": {
+    "entry": "68L"
+   }
+  },
+  {
+   "turnout": "Switch 65",
+   "node": "C11",
+   "area": "CP4 (Helix - Upper)",
+   "elements": "Switch 65",
+   "motorN": "C11-OU1-5",
+   "motorR": "C11-OU1-6",
+   "button": "C21-IN2-4",
+   "fbN": "C21-IN1-7",
+   "fbR": "C21-IN1-8",
+   "signals": {
+    "entry": "66RA",
+    "reverse": "66RB"
+   }
+  },
+  {
+   "turnout": "Switch 35",
+   "node": "C1",
+   "area": "Helix - Lower",
+   "elements": "Switch 35a, Switch 35b (TOL2/TOL1)",
+   "motorN": "C1-OU1-1",
+   "motorR": "C1-OU1-2",
+   "button": "C1-IN2-1",
+   "fbN": "C1-IN1-1",
+   "fbR": "C1-IN1-2",
+   "signals": {
+    "entry": "36RA",
+    "reverse": "36RB"
+   }
+  },
+  {
+   "turnout": "Switch 37",
+   "node": "C1",
+   "area": "Helix - Lower",
+   "elements": "Switch 37",
+   "motorN": "C1-OU1-3",
+   "motorR": "C1-OU1-4",
+   "button": "C1-IN2-2",
+   "fbN": "C1-IN1-3",
+   "fbR": "C1-IN1-4",
+   "signals": {
+    "entry": "2036",
+    "normal": "38LB",
+    "reverse": "38LA"
+   }
+  },
+  {
+   "turnout": "Switch 39",
+   "node": "C1",
+   "area": "Helix - Lower",
+   "elements": "Switch 39",
+   "motorN": "C1-OU1-5",
+   "motorR": "C1-OU1-6",
+   "button": "C1-IN2-3",
+   "fbN": "C1-IN1-5",
+   "fbR": "C1-IN1-6",
+   "signals": {
+    "entry": "2035",
+    "normal": "40LB",
+    "reverse": "40LA"
+   }
+  },
+  {
+   "turnout": "Switch 61",
+   "node": "C21",
+   "area": "CP4 (Helix - Upper)",
+   "elements": "Switch 61a, Switch 61b, Switch 61c, Switch 61d",
+   "motorN": "C21-OU1-1",
+   "motorR": "C21-OU1-2",
+   "button": "C21-IN2-1",
+   "fbN": "C21-IN1-1",
+   "fbR": "C21-IN1-2",
+   "signals": {
+    "entry": "62L",
+    "normal": "66RB",
+    "reverse": "66RA"
+   }
+  },
+  {
+   "turnout": "Switch 23",
+   "node": "C12",
+   "area": "North - Lower",
+   "elements": "Switch 23a, Switch 23b (TOR31/TOR32)",
+   "motorN": "C12-OU4-1",
+   "motorR": "C12-OU4-2",
+   "button": "C12-IN2-5",
+   "fbN": "C12-IN3-1",
+   "fbR": "C12-IN3-2",
+   "signals": {
+    "entry": "24L",
+    "normal": "24RA",
+    "reverse": "24RB"
+   }
+  },
+  {
+   "turnout": "Switch 33",
+   "node": "C12",
+   "area": "North - Lower",
+   "elements": "Switch 33",
+   "motorN": "C12-OU4-3",
+   "motorR": "C12-OU4-4",
+   "button": "C12-IN2-6",
+   "fbN": "C12-IN3-3",
+   "fbR": "C12-IN3-4",
+   "signals": {
+    "entry": "34L",
+    "reverse": "34R"
+   }
+  },
+  {
+   "turnout": "Switch 29",
+   "node": "C12",
+   "area": "North - Lower",
+   "elements": "Switch 29",
+   "motorN": "C12-OU1-5",
+   "motorR": "C12-OU1-6",
+   "button": "C12-IN2-3",
+   "fbN": "C12-IN1-5",
+   "fbR": "C12-IN1-6",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 31",
+   "node": "C12",
+   "area": "North - Lower",
+   "elements": "Switch 31",
+   "motorN": "C12-OU1-7",
+   "motorR": "C12-OU1-8",
+   "button": "C12-IN2-4",
+   "fbN": "C12-IN1-7",
+   "fbR": "C12-IN1-8",
+   "signals": {
+    "entry": "32R"
+   }
+  },
+  {
+   "turnout": "Switch 25",
+   "node": "C12",
+   "area": "North - Lower",
+   "elements": "Switch 25",
+   "motorN": "C12-OU1-1",
+   "motorR": "C12-OU1-2",
+   "button": "C12-IN2-1",
+   "fbN": "C12-IN1-1",
+   "fbR": "C12-IN1-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 27",
+   "node": "C12",
+   "area": "North - Lower",
+   "elements": "Switch 27",
+   "motorN": "C12-OU1-3",
+   "motorR": "C12-OU1-4",
+   "button": "C12-IN2-2",
+   "fbN": "C12-IN1-3",
+   "fbR": "C12-IN1-4",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 73",
+   "node": "C32",
+   "area": "CP5 (North - Upper)",
+   "elements": "Switch 73",
+   "motorN": "C32-OU1-1",
+   "motorR": "C32-OU1-2",
+   "button": "C22-IN2-3",
+   "fbN": "C22-IN1-5",
+   "fbR": "C22-IN1-6",
+   "signals": {
+    "entry": "74L",
+    "normal": "74RA",
+    "reverse": "74RB"
+   }
+  },
+  {
+   "turnout": "Switch 69",
+   "node": "C22",
+   "area": "CP5 (North - Upper)",
+   "elements": "Switch 69a, Switch 69b",
+   "motorN": "C22-OU1-1",
+   "motorR": "C22-OU1-2",
+   "button": "C22-IN2-1",
+   "fbN": "C22-IN1-1",
+   "fbR": "C22-IN1-2",
+   "signals": {
+    "entry": "70L",
+    "normal": "70RA",
+    "reverse": "70RB"
+   }
+  },
+  {
+   "turnout": "Switch 71",
+   "node": "C22",
+   "area": "CP5 (North - Upper)",
+   "elements": "Switch 71a, Switch 71b",
+   "motorN": "C22-OU1-3",
+   "motorR": "C22-OU1-4",
+   "button": "C22-IN2-2",
+   "fbN": "C22-IN1-3",
+   "fbR": "C22-IN1-4",
+   "signals": {
+    "entry": "72L",
+    "reverse": "74RA"
+   }
+  },
+  {
+   "turnout": "Switch 1",
+   "node": "C4",
+   "area": "Peninsula - Lower",
+   "elements": "Switch 1",
+   "motorN": "C4-OU1-1",
+   "motorR": "C4-OU1-2",
+   "button": "C4-IN2-1",
+   "fbN": "C4-IN1-1",
+   "fbR": "C4-IN1-2",
+   "signals": {
+    "entry": "2L"
+   }
+  },
+  {
+   "turnout": "Switch 3",
+   "node": "C4",
+   "area": "Peninsula - Lower",
+   "elements": "Switch 3",
+   "motorN": "C4-OU1-3",
+   "motorR": "C4-OU1-4",
+   "button": "C4-IN2-2",
+   "fbN": "C4-IN1-3",
+   "fbR": "C4-IN1-4",
+   "signals": {
+    "normal": "4RA",
+    "reverse": "4RB"
+   }
+  },
+  {
+   "turnout": "Switch 5",
+   "node": "C4",
+   "area": "Peninsula - Lower",
+   "elements": "Switch 5",
+   "motorN": "C4-OU1-5",
+   "motorR": "C4-OU1-6",
+   "button": "C4-IN2-3",
+   "fbN": "C4-IN1-5",
+   "fbR": "C4-IN1-6",
+   "signals": {
+    "entry": "6LA",
+    "reverse": "6LB"
+   }
+  },
+  {
+   "turnout": "Switch 87",
+   "node": "C24",
+   "area": "CP6 (Peninsula - Upper)",
+   "elements": "Switch 87",
+   "motorN": "C24-OU1-1",
+   "motorR": "C24-OU1-2",
+   "button": "C24-IN2-1",
+   "fbN": "C24-IN1-1",
+   "fbR": "C24-IN1-2",
+   "signals": {
+    "entry": "76L",
+    "reverse": "78RB"
+   }
+  },
+  {
+   "turnout": "Switch 89",
+   "node": "C24",
+   "area": "CP6 (Peninsula - Upper)",
+   "elements": "Switch 89",
+   "motorN": "C24-OU1-3",
+   "motorR": "C24-OU1-4",
+   "button": "C24-IN2-2",
+   "fbN": "C24-IN1-3",
+   "fbR": "C24-IN1-4",
+   "signals": {
+    "entry": "90L"
+   }
+  },
+  {
+   "turnout": "Switch 91",
+   "node": "C24",
+   "area": "CP6 (Peninsula - Upper)",
+   "elements": "Switch 91",
+   "motorN": "C24-OU1-5",
+   "motorR": "C24-OU1-6",
+   "button": "C24-IN2-3",
+   "fbN": "C24-IN1-5",
+   "fbR": "C24-IN1-6",
+   "signals": {
+    "entry": "92L"
+   }
+  },
+  {
+   "turnout": "Switch 15",
+   "node": "C3",
+   "area": "West - Lower",
+   "elements": "Switch 15",
+   "motorN": "C3-OU1-1",
+   "motorR": "C3-OU1-2",
+   "button": "C3-IN2-1",
+   "fbN": "C3-IN1-1",
+   "fbR": "C3-IN1-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 17",
+   "node": "C3",
+   "area": "West - Lower",
+   "elements": "Switch 17",
+   "motorN": "C3-OU1-3",
+   "motorR": "C3-OU1-4",
+   "button": "C3-IN2-2",
+   "fbN": "C3-IN1-3",
+   "fbR": "C3-IN1-4",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 19",
+   "node": "C3",
+   "area": "West - Lower",
+   "elements": "Switch 19",
+   "motorN": "C3-OU1-5",
+   "motorR": "C3-OU1-6",
+   "button": "C3-IN2-3",
+   "fbN": "C3-IN1-5",
+   "fbR": "C3-IN1-6",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 21",
+   "node": "C3",
+   "area": "West - Lower",
+   "elements": "Switch 21",
+   "motorN": "C3-OU1-7",
+   "motorR": "C3-OU1-8",
+   "button": "C3-IN2-4",
+   "fbN": "C3-IN1-7",
+   "fbR": "C3-IN1-8",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 75",
+   "node": "C23",
+   "area": "CP6 (Peninsula - Upper)",
+   "elements": "Switch 75a, Switch 75b",
+   "motorN": "C23-OU1-1",
+   "motorR": "C23-OU1-2",
+   "button": "C23-IN1-7",
+   "fbN": "C23-IN1-1",
+   "fbR": "C23-IN1-2",
+   "signals": {
+    "entry": "76L",
+    "reverse": "76R"
+   }
+  },
+  {
+   "turnout": "Switch 77",
+   "node": "C23",
+   "area": "CP6 (West - Upper)",
+   "elements": "Switch 77",
+   "motorN": "C23-OU1-3",
+   "motorR": "C23-OU1-4",
+   "button": "C23-IN1-8",
+   "fbN": "C23-IN1-3",
+   "fbR": "C23-IN1-4",
+   "signals": {
+    "normal": "78RA",
+    "reverse": "78RB"
+   }
+  },
+  {
+   "turnout": "Switch 79",
+   "node": "C14",
+   "area": "CP6 (West - Upper)",
+   "elements": "Switch 79",
+   "motorN": "C14-OU1-1",
+   "motorR": "C14-OU1-2",
+   "button": "C14-IN2-1",
+   "fbN": "C14-IN1-1",
+   "fbR": "C14-IN1-2",
+   "signals": {
+    "entry": "76L",
+    "normal": "78RA"
+   }
+  },
+  {
+   "turnout": "Switch 81",
+   "node": "C14",
+   "area": "CP6 (West - Upper)",
+   "elements": "Switch 81",
+   "motorN": "C14-OU1-3",
+   "motorR": "C14-OU1-4",
+   "button": "C14-IN2-2",
+   "fbN": "C14-IN1-3",
+   "fbR": "C14-IN1-4",
+   "signals": {
+    "entry": "82L"
+   }
+  },
+  {
+   "turnout": "Switch 83",
+   "node": "C14",
+   "area": "CP6 (West - Upper)",
+   "elements": "Switch 83",
+   "motorN": "C14-OU1-5",
+   "motorR": "C14-OU1-6",
+   "button": "C14-IN2-3",
+   "fbN": "C14-IN1-5",
+   "fbR": "C14-IN1-6",
+   "signals": {
+    "normal": "84RA",
+    "reverse": "84RB"
+   }
+  },
+  {
+   "turnout": "Switch 85",
+   "node": "C14",
+   "area": "CP6 (West - Upper)",
+   "elements": "Switch 85",
+   "motorN": "C14-OU1-7",
+   "motorR": "C14-OU1-8",
+   "button": "C14-IN2-4",
+   "fbN": "C14-IN1-7",
+   "fbR": "C14-IN1-8",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 13",
+   "node": "C4",
+   "area": "West - Lower / Yard",
+   "elements": "Switch 13 (TO1)",
+   "motorN": "C4-OU1-7",
+   "motorR": "C4-OU1-8",
+   "button": "C4-IN2-4",
+   "fbN": "C4-IN1-7",
+   "fbR": "C4-IN1-8",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 7",
+   "node": "C13",
+   "area": "West - Lower / Yard",
+   "elements": "Switch 7 / TO6+TO8",
+   "motorN": "C13-OU2-1",
+   "motorR": "C13-OU2-2",
+   "button": "C13-IN2-1",
+   "fbN": "C13-IN1-1",
+   "fbR": "C13-IN1-2",
+   "signals": {
+    "entry": "8RA",
+    "normal": "8LA",
+    "reverse": "8LB / 8RB"
+   }
+  },
+  {
+   "turnout": "Switch 11",
+   "node": "C13",
+   "area": "West - Lower / Yard",
+   "elements": "Switch 11 (TO11)",
+   "motorN": "C13-OU2-3",
+   "motorR": "C13-OU2-4",
+   "button": "C13-IN2-2",
+   "fbN": "C13-IN1-3",
+   "fbR": "C13-IN1-4",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 9",
+   "node": "C13",
+   "area": "West - Lower / Yard",
+   "elements": "Switch 9 (TO10)",
+   "motorN": "C13-OU2-5",
+   "motorR": "C13-OU2-6",
+   "button": "C13-IN2-3",
+   "fbN": "C13-IN1-5",
+   "fbR": "C13-IN1-6",
+   "signals": {}
+  }
+ ],
+ "blocks": [
+  {
+   "port": "C4-B1-1",
+   "node": "C4",
+   "detector": "C4-B1",
+   "channel": "1",
+   "block": "Switch 3",
+   "track": "TOL38",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-1 / M2S400; TOL38"
+  },
+  {
+   "port": "C4-B1-2",
+   "node": "C4",
+   "detector": "C4-B1",
+   "channel": "2",
+   "block": "Switch 1",
+   "track": "TOL3",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-2 / M2S401; TOL3"
+  },
+  {
+   "port": "C4-B2-1",
+   "node": "C4",
+   "detector": "C4-B2",
+   "channel": "1",
+   "block": "West Yard Track 2",
+   "track": "T-EL-TOL38,F54-S-0",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-3 / M2S402"
+  },
+  {
+   "port": "C4-B2-2",
+   "node": "C4",
+   "detector": "C4-B2",
+   "channel": "2",
+   "block": "West Yard Track 1",
+   "track": "F53-S-0,T-ER-TOL38",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-4 / M2S403"
+  },
+  {
+   "port": "C4-B3-1",
+   "node": "C4",
+   "detector": "C4-B3",
+   "channel": "1",
+   "block": "Switch 5",
+   "track": "TOL42",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-5 / M2S404; TOL42"
+  },
+  {
+   "port": "C4-B3-2",
+   "node": "C4",
+   "detector": "C4-B3",
+   "channel": "2",
+   "block": "Block 100-102",
+   "track": "T-EL-TOL3,T-I-TOL42,F62-S-0",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-6 / M2S405"
+  },
+  {
+   "port": "C4-B4-1",
+   "node": "C4",
+   "detector": "C4-B4",
+   "channel": "1",
+   "block": "East Main Ext",
+   "track": "Switch 3, Switch 5",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-7 / M2S406; From linear6 panel (IB:AUTO:0051)"
+  },
+  {
+   "port": "C4-B4-2",
+   "node": "C4",
+   "detector": "C4-B4",
+   "channel": "2",
+   "block": "Yard T1",
+   "track": "T3,T1",
+   "area": "Peninsula - Lower",
+   "district": "SC",
+   "note": "Block 4-8 / M2S407; Includes T1+T3 (shared occupancy)"
+  },
+  {
+   "port": "C3-B1-1",
+   "node": "C3",
+   "detector": "C3-B1",
+   "channel": "1",
+   "block": "Switch 13",
+   "track": "TO1",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-1 / M2S300; TO1"
+  },
+  {
+   "port": "C3-B1-2",
+   "node": "C3",
+   "detector": "C3-B1",
+   "channel": "2",
+   "block": "Switch 15",
+   "track": "TOR14",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-2 / M2S301; TOR14"
+  },
+  {
+   "port": "C3-B2-1",
+   "node": "C3",
+   "detector": "C3-B2",
+   "channel": "1",
+   "block": "Switch 17",
+   "track": "TOL15",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-3 / M2S302; TOL15"
+  },
+  {
+   "port": "C3-B2-2",
+   "node": "C3",
+   "detector": "C3-B2",
+   "channel": "2",
+   "block": "Unused",
+   "track": "Switch 17, Yard 2a",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-4 / M2S303; not used on linear6 panel"
+  },
+  {
+   "port": "C3-B3-1",
+   "node": "C3",
+   "detector": "C3-B3",
+   "channel": "1",
+   "block": "Switch 19",
+   "track": "TOL17",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-5 / M2S304; TOL17"
+  },
+  {
+   "port": "C3-B3-2",
+   "node": "C3",
+   "detector": "C3-B3",
+   "channel": "2",
+   "block": "Unused",
+   "track": "Switch 19, Yard 3a",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-6 / M2S305; not used on linear6 panel"
+  },
+  {
+   "port": "C3-B4-1",
+   "node": "C3",
+   "detector": "C3-B4",
+   "channel": "1",
+   "block": "Switch 21",
+   "track": "TOL19",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-7 / M2S306; TOL19"
+  },
+  {
+   "port": "C3-B4-2",
+   "node": "C3",
+   "detector": "C3-B4",
+   "channel": "2",
+   "block": "Unused",
+   "track": "Switch 21, Yard 4a",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 3-8 / M2S307; not used on linear6 panel"
+  },
+  {
+   "port": "C2-B1-1",
+   "node": "C2",
+   "detector": "C2-B1",
+   "channel": "1",
+   "block": "Main West",
+   "track": "T-I-TOL3,F61-S-0,T-I-TOR31",
+   "area": "North - Lower",
+   "district": "SRZ",
+   "note": "Block 2-1 / M2S200"
+  },
+  {
+   "port": "C2-B1-2",
+   "node": "C2",
+   "detector": "C2-B1",
+   "channel": "2",
+   "block": "Unused",
+   "track": "E Main A, Switch 13",
+   "area": "North - Lower",
+   "district": "SRZ",
+   "note": "Block 2-2 / M2S201; not used on linear6 panel"
+  },
+  {
+   "port": "C2-B2-1",
+   "node": "C2",
+   "detector": "C2-B2",
+   "channel": "1",
+   "block": "Main East",
+   "track": "F25-S-0,T-EL-TOL23,F26-S-0,F27-S-0,F24-S-0,F68-S-0,T5",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 2-3 / M2S202"
+  },
+  {
+   "port": "C2-B2-2",
+   "node": "C2",
+   "detector": "C2-B2",
+   "channel": "2",
+   "block": "Yard Track 5",
+   "track": "T-EL-TOR11,F21-S-0,T-ER-TOL19,F50-S-0,F13-S-0",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 2-4 / M2S203"
+  },
+  {
+   "port": "C2-B3-1",
+   "node": "C2",
+   "detector": "C2-B3",
+   "channel": "1",
+   "block": "Yard Track 4",
+   "track": "T-ER-TOR11,F49-S-0,T-EL-TOL19",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 2-5 / M2S204"
+  },
+  {
+   "port": "C2-B3-2",
+   "node": "C2",
+   "detector": "C2-B3",
+   "channel": "2",
+   "block": "Yard Track 3",
+   "track": "T-ER-TOR9,F48-S-0,T-EL-TOL17",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 2-6 / M2S205"
+  },
+  {
+   "port": "C2-B4-1",
+   "node": "C2",
+   "detector": "C2-B4",
+   "channel": "1",
+   "block": "Yard Track 2",
+   "track": "T-EL-TOL15,T-ER-TOR7,F47-S-0",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 2-7 / M2S206"
+  },
+  {
+   "port": "C2-B4-2",
+   "node": "C2",
+   "detector": "C2-B4",
+   "channel": "2",
+   "block": "Yard Track 1",
+   "track": "F46-S-0,T-EL-TOR32",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 2-8 / M2S207"
+  },
+  {
+   "port": "C12-B1-1",
+   "node": "C12",
+   "detector": "C12-B1",
+   "channel": "1",
+   "block": "Switch 25",
+   "track": "TOR11",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-1 / M2S1200; TOR11"
+  },
+  {
+   "port": "C12-B1-2",
+   "node": "C12",
+   "detector": "C12-B1",
+   "channel": "2",
+   "block": "Unused",
+   "track": "Switch 25, Yard 3a, Switch 29",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-2 / M2S1201; not used on linear6 panel"
+  },
+  {
+   "port": "C12-B2-1",
+   "node": "C12",
+   "detector": "C12-B2",
+   "channel": "1",
+   "block": "Switch 27",
+   "track": "TOR9",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-3 / M2S1202; TOR9"
+  },
+  {
+   "port": "C12-B2-2",
+   "node": "C12",
+   "detector": "C12-B2",
+   "channel": "2",
+   "block": "Switch 23a",
+   "track": "TOR31",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-4 / M2S1203; TOR31"
+  },
+  {
+   "port": "C12-B3-1",
+   "node": "C12",
+   "detector": "C12-B3",
+   "channel": "1",
+   "block": "Switch 29",
+   "track": "TOR7",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-5 / M2S1204; TOR7"
+  },
+  {
+   "port": "C12-B3-2",
+   "node": "C12",
+   "detector": "C12-B3",
+   "channel": "2",
+   "block": "Switch 23b",
+   "track": "TOR32",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-6 / M2S1205; TOR32"
+  },
+  {
+   "port": "C12-B4-1",
+   "node": "C12",
+   "detector": "C12-B4",
+   "channel": "1",
+   "block": "Switch 31",
+   "track": "TOL6",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-7 / M2S1206; TOL6"
+  },
+  {
+   "port": "C12-B4-2",
+   "node": "C12",
+   "detector": "C12-B4",
+   "channel": "2",
+   "block": "Switch 33",
+   "track": "TOL23",
+   "area": "North - Lower",
+   "district": "SC",
+   "note": "Block 12-8 / M2S1207; TOL23"
+  },
+  {
+   "port": "C1-B1-1",
+   "node": "C1",
+   "detector": "C1-B1",
+   "channel": "1",
+   "block": "McKees Rocks",
+   "track": "F56-S-0,F59-S-0,T-EL-TOL29",
+   "area": "Helix - Lower",
+   "district": "SC",
+   "note": "Block 1-1 / M2S100"
+  },
+  {
+   "port": "C1-B1-2",
+   "node": "C1",
+   "detector": "C1-B1",
+   "channel": "2",
+   "block": "McKeesport",
+   "track": "F55-S-0,F60-S-0,T-ER-TOR36",
+   "area": "Helix - Lower",
+   "district": "SC",
+   "note": "Block 1-2 / M2S101; Split from PIR Interchange; east tip"
+  },
+  {
+   "port": "C1-B2-1",
+   "node": "C1",
+   "detector": "C1-B2",
+   "channel": "1",
+   "block": "Switch 37",
+   "track": "TOR36",
+   "area": "Helix - Lower",
+   "district": "SC",
+   "note": "Block 1-3 / M2S102; TOR36"
+  },
+  {
+   "port": "C1-B2-2",
+   "node": "C1",
+   "detector": "C1-B2",
+   "channel": "2",
+   "block": "Switch 39",
+   "track": "TOL29",
+   "area": "Helix - Lower",
+   "district": "SC",
+   "note": "Block 1-4 / M2S103; TOL29"
+  },
+  {
+   "port": "C1-B3-1",
+   "node": "C1",
+   "detector": "C1-B3",
+   "channel": "1",
+   "block": "Switch 35b",
+   "track": "TOL1",
+   "area": "Helix - Lower",
+   "district": "SC",
+   "note": "Block 1-5 / M2S104; TOL1"
+  },
+  {
+   "port": "C1-B3-2",
+   "node": "C1",
+   "detector": "C1-B3",
+   "channel": "2",
+   "block": "Switch 35a",
+   "track": "TOL2",
+   "area": "Helix - Lower",
+   "district": "SC",
+   "note": "Block 1-6 / M2S105; TOL2"
+  },
+  {
+   "port": "C1-B4-1",
+   "node": "C1",
+   "detector": "C1-B4",
+   "channel": "1",
+   "block": "East Lead",
+   "track": "F22-S-0,T-I-TOL23,T-I-TOL2",
+   "area": "Helix - Lower",
+   "district": "ERZ",
+   "note": "Block 1-7 / M2S106"
+  },
+  {
+   "port": "C1-B4-2",
+   "node": "C1",
+   "detector": "C1-B4",
+   "channel": "2",
+   "block": "West Main Ext",
+   "track": "F41-S-0,T-ER-TOL1,T-EL-TOR31",
+   "area": "Helix - Lower",
+   "district": "ERZ",
+   "note": "Block 1-8 / M2S107; Main West trackage; separate occupancy"
+  },
+  {
+   "port": "C11-B1-1",
+   "node": "C11",
+   "detector": "C11-B1",
+   "channel": "1",
+   "block": "Helix Inner A",
+   "track": "Switch 39, Helix Inner B",
+   "area": "Helix",
+   "district": "HX"
+  },
+  {
+   "port": "C11-B1-2",
+   "node": "C11",
+   "detector": "C11-B1",
+   "channel": "2",
+   "block": "Helix Outer A",
+   "track": "Switch 37, Helix Outer B",
+   "area": "Helix",
+   "district": "HX"
+  },
+  {
+   "port": "C11-B2-1",
+   "node": "C11",
+   "detector": "C11-B2",
+   "channel": "1",
+   "block": "Helix Inner B",
+   "track": "Helix Inner A, Switch 73",
+   "area": "Helix",
+   "district": "HX"
+  },
+  {
+   "port": "C11-B2-2",
+   "node": "C11",
+   "detector": "C11-B2",
+   "channel": "2",
+   "block": "Helix Outer B",
+   "track": "Helix Outer A, Switch 69a",
+   "area": "Helix",
+   "district": "HX"
+  },
+  {
+   "port": "C21-B1-1",
+   "node": "C21",
+   "detector": "C21-B1",
+   "channel": "1",
+   "block": "NIL A",
+   "track": "Switch 65, NIL B",
+   "area": "Helix - Upper",
+   "district": "NIL"
+  },
+  {
+   "port": "C21-B1-2",
+   "node": "C21",
+   "detector": "C21-B1",
+   "channel": "2",
+   "block": "NIL B",
+   "track": "NIL B, Switch 67",
+   "area": "Helix - Upper",
+   "district": "NIL"
+  },
+  {
+   "port": "C21-B2-1",
+   "node": "C21",
+   "detector": "C21-B2",
+   "channel": "1",
+   "block": "Switch 67",
+   "track": "Outer Leg, East Loop B",
+   "area": "Helix - Upper",
+   "district": "PCC"
+  },
+  {
+   "port": "C21-B2-2",
+   "node": "C21",
+   "detector": "C21-B2",
+   "channel": "2",
+   "block": "Outer Leg",
+   "track": "Switch 63, Switch 67",
+   "area": "Helix - Upper",
+   "district": "PCC"
+  },
+  {
+   "port": "C21-B3-1",
+   "node": "C21",
+   "detector": "C21-B3",
+   "channel": "1",
+   "block": "Switch 63",
+   "track": "SW128, Outer Leg, Switch 61b",
+   "area": "Helix - Upper",
+   "district": "PCC"
+  },
+  {
+   "port": "C21-B3-2",
+   "node": "C21",
+   "detector": "C21-B3",
+   "channel": "2",
+   "block": "Switch 65",
+   "track": "NIL A, SW137, Switch 61c",
+   "area": "Helix - Upper",
+   "district": "PCC"
+  },
+  {
+   "port": "C21-B4-1",
+   "node": "C21",
+   "detector": "C21-B4",
+   "channel": "1",
+   "block": "Switch 61c,140",
+   "track": "Switch 65, Closet Outer",
+   "area": "Helix - Upper",
+   "district": "PCC"
+  },
+  {
+   "port": "C21-B4-2",
+   "node": "C21",
+   "detector": "C21-B4",
+   "channel": "2",
+   "block": "Switch 61a,126",
+   "track": "Switch 63, Switch 69b",
+   "area": "Helix - Upper",
+   "district": "PCC"
+  },
+  {
+   "port": "C22-B1-1",
+   "node": "C22",
+   "detector": "C22-B1",
+   "channel": "1",
+   "block": "Closet Inner",
+   "track": "Switch 61d, Switch 73",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C22-B1-2",
+   "node": "C22",
+   "detector": "C22-B1",
+   "channel": "2",
+   "block": "Closet Outer",
+   "track": "Switch 61a, Outside Outer B",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C22-B2-1",
+   "node": "C22",
+   "detector": "C22-B2",
+   "channel": "1",
+   "block": "Switch 73",
+   "track": "Closet Inner, Switch 69b, Helix Inner B",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C22-B2-2",
+   "node": "C22",
+   "detector": "C22-B2",
+   "channel": "2",
+   "block": "Switch 71b,123",
+   "track": "Switch 73, Outside Inner B, Switch 71a, Switch 69a",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C22-B3-1",
+   "node": "C22",
+   "detector": "C22-B3",
+   "channel": "1",
+   "block": "Switch 71a",
+   "track": "Bridgeville, Switch 69a, Switch 71b",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C22-B3-2",
+   "node": "C22",
+   "detector": "C22-B3",
+   "channel": "2",
+   "block": "Switch 69a",
+   "track": "Helix Outer B, Switch 71a, Switch 69b",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C22-B4-1",
+   "node": "C22",
+   "detector": "C22-B4",
+   "channel": "1",
+   "block": "Outside Outer A",
+   "track": "Outside Outer B, Switch 75a",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C22-B4-2",
+   "node": "C22",
+   "detector": "C22-B4",
+   "channel": "2",
+   "block": "Outside Inner A",
+   "track": "Outside Inner B, Switch 75b,",
+   "area": "North - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B1-1",
+   "node": "C23",
+   "detector": "C23-B1",
+   "channel": "1",
+   "block": "Outside Inner B",
+   "track": "Outside Inner A, Switch 71b",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B1-2",
+   "node": "C23",
+   "detector": "C23-B1",
+   "channel": "2",
+   "block": "Outside Outer B",
+   "track": "Outside Outer A, Switch 75a",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B2-1",
+   "node": "C23",
+   "detector": "C23-B2",
+   "channel": "1",
+   "block": "CB Inner A",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B2-2",
+   "node": "C23",
+   "detector": "C23-B2",
+   "channel": "2",
+   "block": "CB Inner B",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B3-1",
+   "node": "C23",
+   "detector": "C23-B3",
+   "channel": "1",
+   "block": "CB Outer A",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B3-2",
+   "node": "C23",
+   "detector": "C23-B3",
+   "channel": "2",
+   "block": "CB Outer B",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B4-1",
+   "node": "C23",
+   "detector": "C23-B4",
+   "channel": "1",
+   "block": "Switch 75a",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C23-B4-2",
+   "node": "C23",
+   "detector": "C23-B4",
+   "channel": "2",
+   "block": "Switch 75b",
+   "area": "West - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B1-1",
+   "node": "C14",
+   "detector": "C14-B1",
+   "channel": "1",
+   "block": "Switch 77",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B1-2",
+   "node": "C14",
+   "detector": "C14-B1",
+   "channel": "2",
+   "block": "Switch 79",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B2-1",
+   "node": "C14",
+   "detector": "C14-B2",
+   "channel": "1",
+   "block": "Switch 81",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B2-2",
+   "node": "C14",
+   "detector": "C14-B2",
+   "channel": "2",
+   "block": "Switch 83",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B3-1",
+   "node": "C14",
+   "detector": "C14-B3",
+   "channel": "1",
+   "block": "Switch 85",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B3-2",
+   "node": "C14",
+   "detector": "C14-B3",
+   "channel": "2",
+   "block": "PTT1",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B4-1",
+   "node": "C14",
+   "detector": "C14-B4",
+   "channel": "1",
+   "block": "PTT2",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C14-B4-2",
+   "node": "C14",
+   "detector": "C14-B4",
+   "channel": "2",
+   "block": "TT",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B1-1",
+   "node": "C24",
+   "detector": "C24-B1",
+   "channel": "1",
+   "block": "Switch 87",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B1-2",
+   "node": "C24",
+   "detector": "C24-B1",
+   "channel": "2",
+   "block": "Switch 89",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B2-1",
+   "node": "C24",
+   "detector": "C24-B2",
+   "channel": "1",
+   "block": "Switch 91",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B2-2",
+   "node": "C24",
+   "detector": "C24-B2",
+   "channel": "2",
+   "block": "BW1",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B3-1",
+   "node": "C24",
+   "detector": "C24-B3",
+   "channel": "1",
+   "block": "BW2",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B3-2",
+   "node": "C24",
+   "detector": "C24-B3",
+   "channel": "2",
+   "block": "WH",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B4-1",
+   "node": "C24",
+   "detector": "C24-B4",
+   "channel": "1",
+   "block": "CB Siding",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C24-B4-2",
+   "node": "C24",
+   "detector": "C24-B4",
+   "channel": "2",
+   "block": "CB Station",
+   "area": "Peninsula - Upper",
+   "district": "ML"
+  },
+  {
+   "port": "C13-B1-1",
+   "node": "C13",
+   "detector": "C13-B1",
+   "channel": "1",
+   "block": "Yard T6",
+   "track": "T6",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-1 / M2S1300; added with west yard (C13)"
+  },
+  {
+   "port": "C13-B1-2",
+   "node": "C13",
+   "detector": "C13-B1",
+   "channel": "2",
+   "block": "Switch 11",
+   "track": "TO11",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-2 / M2S1301; added with west yard (C13)"
+  },
+  {
+   "port": "C13-B2-1",
+   "node": "C13",
+   "detector": "C13-B2",
+   "channel": "1",
+   "block": "Switch 7 (TO8)",
+   "track": "TO8",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-3 / M2S1302; added with west yard (C13)"
+  },
+  {
+   "port": "C13-B2-2",
+   "node": "C13",
+   "detector": "C13-B2",
+   "channel": "2",
+   "block": "Switch 7 (TO6)",
+   "track": "TO6",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-4 / M2S1303; added with west yard (C13)"
+  },
+  {
+   "port": "C13-B3-1",
+   "node": "C13",
+   "detector": "C13-B3",
+   "channel": "1",
+   "block": "Yard T11",
+   "track": "T11",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-5 / M2S1304; added with west yard (C13)"
+  },
+  {
+   "port": "C13-B3-2",
+   "node": "C13",
+   "detector": "C13-B3",
+   "channel": "2",
+   "block": "Yard T10",
+   "track": "T10",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-6 / M2S1305; added with west yard (C13)"
+  },
+  {
+   "port": "C13-B4-1",
+   "node": "C13",
+   "detector": "C13-B4",
+   "channel": "1",
+   "block": "Yard T9",
+   "track": "T9",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-7 / M2S1306; added with west yard (C13)"
+  },
+  {
+   "port": "C13-B4-2",
+   "node": "C13",
+   "detector": "C13-B4",
+   "channel": "2",
+   "block": "Switch 9",
+   "track": "TO10",
+   "area": "West - Lower",
+   "district": "SC",
+   "note": "Block 13-8 / M2S1307; added with west yard (C13)"
+  }
+ ]
+}

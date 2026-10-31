@@ -3,55 +3,68 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>About HART</title>
+  <title>About — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    .about-links { margin: 0.9rem 0 0; font-size: 0.95rem; }
+    .about-links a { white-space: nowrap; }
+  </style>
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
   <main>
     <div class="page-head">
       <h1 id="about-title">About HART</h1>
+      <p class="section-note" id="about-lede"></p>
     </div>
+    <div id="about-sections"><p class="muted">Loading…</p></div>
     <section class="panel">
-      <h2 id="story-title"></h2>
-      <div class="prose story" id="story-body"></div>
-    </section>
-    <section class="panel">
-      <h2 id="narrative-title"></h2>
-      <ul id="narrative-bullets"></ul>
+      <h2 id="more-title"></h2>
+      <div class="card-grid" id="more-grid"></div>
     </section>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+    var esc = HARTOps.esc;
+    function link(l) {
+      return '<a href="' + esc(HARTOps.base() + l.href) + '">' + esc(l.label) + "</a>";
+    }
+    function list(items) {
+      return "<ul>" + (items || []).map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("") + "</ul>";
+    }
+    function section(s) {
+      var html = '<section class="panel"><h2>' + esc(s.heading) + '</h2><div class="prose">';
+      html += (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
+      if (s.bullets && s.bullets.length) {
+        html += "<ul>" + s.bullets.map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("") + "</ul>";
+      }
+      if (s.links && s.links.length) {
+        html += '<p class="about-links muted">See also: ' + s.links.map(link).join(" · ") + "</p>";
+      }
+      return html + "</div></section>";
     }
     document.addEventListener("DOMContentLoaded", async function () {
       try {
         await HARTOps.mountChrome("about");
         var data = await HARTOps.loadJson("data/about.json");
         document.getElementById("about-title").textContent = data.title || "About HART";
-        document.getElementById("story-title").textContent = data.story_title || "";
-        document.getElementById("story-body").innerHTML = (data.story || "")
-          .split(/\n\n+/)
-          .map(function (p) {
-            return "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>";
-          })
-          .join("");
-        document.getElementById("narrative-title").textContent = data.narrative_title || "";
-        document.getElementById("narrative-bullets").innerHTML = (data.narrative_bullets || [])
-          .map(function (b) {
-            return "<li>" + esc(b) + "</li>";
+        document.getElementById("about-lede").textContent = data.lede || "";
+        document.getElementById("about-sections").innerHTML = (data.sections || []).map(section).join("");
+        document.getElementById("more-title").textContent = data.more_title || "";
+        document.getElementById("more-grid").innerHTML = (data.more || [])
+          .map(function (m) {
+            return '<a class="card" href="' + esc(HARTOps.base() + m.href) + '"><h3>' +
+              esc(m.label) + "</h3><p>" + esc(m.blurb) + "</p></a>";
           })
           .join("");
       } catch (err) {
         console.error(err);
-        document.getElementById("story-body").innerHTML =
-          "<p>Could not load the story. Serve the portal over HTTP (see README).</p>";
+        document.getElementById("more-title").parentNode.hidden = true;
+        HARTOps.renderError(document.getElementById("about-sections"), {
+          err: err,
+          links: [{ href: "briefing/index.html", label: "New Operator Primer" }],
+        });
       }
     });
   </script>

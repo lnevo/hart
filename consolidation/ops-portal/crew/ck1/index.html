@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CK1 Coke Transfer — HART</title>
+  <meta name="description" content="Shenango Coke Works pickup and delivery, scale calibration, weigh, and sort. Power is assigned by the Yardmaster.">
+  <link rel="stylesheet" href="../../css/ops.css">
+</head>
+<body class="crew-sheet">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head crumb-only"></div>
+    <div class="sheet-head" id="sheet-head">
+      <h1>CK1 · Coke Transfer</h1>
+    </div>
+    <div id="crew-root"><p class="muted">Loading…</p></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/crew.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTCrew.page("sheet", "ck1");
+    });
+  </script>
+</body>
+</html>

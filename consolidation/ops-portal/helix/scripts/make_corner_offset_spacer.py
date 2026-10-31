@@ -21,6 +21,7 @@ Prints as modeled, flat on the bed. No supports.
 import numpy as np
 import trimesh
 import router_template_lattice as lat
+from stl_out import out_dir
 
 IN = 25.4
 FIELD_ADD = 1.65 / IN           # 2026-10-15: 0.311 prints were 1.65 mm too short
@@ -38,9 +39,10 @@ def build(h):
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     for h in (P1_GAP,):
         body = build(h)
-        path = "/Users/lnevo/Downloads/stl/corner_spacer_P1.stl"
+        path = OUT + "corner_spacer_P1.stl"
         body.export(path)
         print("watertight", body.is_watertight, "reload ok", lat.stl_roundtrip_ok(path),
               "bodies", len(body.split(only_watertight=False)), "size mm", np.round(body.extents, 3),

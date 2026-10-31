@@ -3,76 +3,82 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Official publications — HART</title>
+  <title>Publications — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
   <main>
     <div class="page-head">
-      <h1 id="pub-title">Official publications</h1>
+      <h1 id="pub-title">Publications</h1>
       <p class="muted" id="pub-lede"></p>
+      <p class="small">At the layout? <a href="../crew/index.html">Session paperwork</a> has the same sheets laid out for a phone.</p>
     </div>
-    <div class="catalog-grid" id="pub-grid"></div>
+    <div id="pub-shelf"><p class="muted">Loading…</p></div>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
+    var esc = HARTOps.esc;
     function resolve(rel) {
-      if (!rel) return "";
-      if (rel.indexOf("../external/") === 0) {
-        return rel.replace(/^\.\.\//, HARTOps.base() === "../" ? "../../" : "../");
-      }
-      return HARTOps.base() + rel;
+      return rel ? HARTOps.base() + rel : "";
     }
     document.addEventListener("DOMContentLoaded", async function () {
       try {
-        await HARTOps.mountChrome("docs");
+        var site = await HARTOps.mountChrome("docs");
         var data = await HARTOps.loadJson("data/publications.json");
         document.getElementById("pub-title").textContent = data.title || "Publications";
         document.getElementById("pub-lede").textContent = data.lede || "";
-        document.getElementById("pub-grid").innerHTML = (data.items || [])
-          .map(function (d) {
-            var actions = [];
-            if (d.html) {
-              actions.push(
-                '<a class="btn" href="view.html?doc=' +
-                  encodeURIComponent(d.id) +
-                  '">Browse</a>'
-              );
-            }
-            if (d.pdf) {
-              actions.push('<a class="btn btn-ghost" href="' + esc(encodeURI(resolve(d.pdf))) + '">PDF</a>');
-            }
-            if (d.source) {
-              actions.push(
-                '<a class="btn btn-ghost" href="' + esc(encodeURI(resolve(d.source))) + '">Source</a>'
-              );
-            }
+        var items = data.items || [];
+        document.getElementById("pub-shelf").innerHTML = (data.groups || [])
+          .map(function (g) {
+            var rows = items.filter(function (d) {
+              return d.group === g.id;
+            });
+            if (!rows.length) return "";
             return (
-              '<article class="catalog-card"><p class="kind">' +
-              esc(d.kind) +
-              "</p><h2>" +
-              esc(d.title) +
-              "</h2><p>" +
-              esc(d.blurb) +
-              '</p><div class="actions">' +
-              actions.join("") +
-              "</div></article>"
+              '<section class="shelf-group" id="' + esc(g.id) + '"><h2>' + esc(g.label) + "</h2>" +
+              (g.note ? '<p class="muted small">' + esc(g.note) + "</p>" : "") +
+              '<ul class="shelf">' +
+              rows
+                .map(function (d) {
+                  var actions = [];
+                  if (d.page) actions.push('<a class="btn" href="' + esc(resolve(d.page)) + '">Open</a>');
+                  if (d.printable) {
+                    actions.push('<a class="btn btn-ghost" href="' + esc(resolve(d.page)) + '#print">Print</a>');
+                  }
+                  if (d.pdf) {
+                    actions.push(
+                      '<a class="btn' + (d.page ? " btn-ghost" : "") + '" href="' + esc(encodeURI(resolve(d.pdf))) +
+                        '">Download PDF</a>'
+                    );
+                  }
+                  if (d.source && !site.public && !d.pdf) {
+                    // The docx files live in ../external and are not on the public site.
+                    actions.push(
+                      '<a class="btn btn-ghost" href="' + esc(encodeURI(resolve(d.source))) + '">Download ' +
+                        esc(d.sourceLabel || "docx") + "</a>"
+                    );
+                  }
+                  var rev = d.revision ? (/^(v|Rev)/.test(d.revision) ? d.revision : "Rev " + d.revision) : "";
+                  return (
+                    '<li><p class="pub-no">' + esc(d.pub || "—") + "<small>" + esc(rev) + "</small></p>" +
+                    "<div><h3>" + esc(d.title) + "</h3><p>" + esc(d.blurb) + "</p></div>" +
+                    '<div class="actions">' + actions.join("") + "</div></li>"
+                  );
+                })
+                .join("") +
+              "</ul></section>"
             );
           })
           .join("");
       } catch (err) {
         console.error(err);
-        document.getElementById("pub-lede").textContent =
-          "Could not load publications. Serve over HTTP (scripts/serve_portal.sh).";
+        HARTOps.renderError(document.getElementById("pub-shelf"), {
+          what: "the publications",
+          err: err,
+          links: [{ href: "crew/index.html", label: "Session paperwork" }],
+        });
       }
     });
   </script>

@@ -18,9 +18,9 @@ import numpy as np
 import trimesh
 from shapely.geometry import box
 from stl_text import text_polys, centered
+from stl_out import out_dir
 
 IN = 25.4
-OUT = "/Users/lnevo/Downloads/stl/"
 
 # Template height = -15 deck to TOP of P1 at Post 1. Tongue and P1 are both 3/4 in plywood, so
 # top-to-top it is the entry riser step (as printed in entry_wedge_riser_inside/outside.stl:
@@ -148,6 +148,7 @@ def template(h_in, label):
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     flip = trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0])
     total = 0.0
     for h_in, label in SPACERS:

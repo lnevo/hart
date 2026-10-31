@@ -16,6 +16,7 @@ from shapely.geometry import Polygon, LineString
 from shapely import affinity
 from shapely.ops import unary_union
 import router_template_lattice as lat
+from stl_out import out_dir
 
 IN = 25.4
 GUIDE_OFFSET = 0.0          # inches, see docstring
@@ -77,6 +78,7 @@ def build(mirror, name=""):
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     for name, mir in (("A", False), ("B", True)):
         body, core = build(mir, name)
-        lat.export(f"/Users/lnevo/Downloads/stl/roadbed_halflap_template_{name}", body, core)
+        lat.export(f"{OUT}roadbed_halflap_template_{name}", body, core)

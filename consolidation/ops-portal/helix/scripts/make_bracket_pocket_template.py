@@ -18,6 +18,7 @@ from shapely import affinity
 from make_lap_template import IN, GUIDE_OFFSET, RI, sector, band_past_line
 from shapely.ops import unary_union
 import router_template_lattice as lat
+from stl_out import out_dir
 
 JOINT_DEG = 1.875           # nominal joint line, measured from the end face
 STRAP_W = 0.600             # measured brace strap width
@@ -63,7 +64,8 @@ def build(mirror, name=""):
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     # Opposite hand from the lap template with the same letter (routed on the other face).
     for name, mir in (("A", True), ("B", False)):
         body, core = build(mir, name)
-        lat.export(f"/Users/lnevo/Downloads/stl/bracket_pocket_template_{name}", body, core)
+        lat.export(f"{OUT}bracket_pocket_template_{name}", body, core)

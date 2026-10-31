@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session paperwork — HART</title>
+  <meta name="description" content="Crew sheets, yardmaster and dispatcher sheets, station maps, the Route 23 timetable, destination colors, and spot sheets for a Neville Island session.">
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Session paperwork</h1>
+      <p class="section-note">
+        Everything on the clipboard, readable on a phone. Bookmark this page. Pick your job, and the
+        maps, colors, and timetable are one tap away.
+      </p>
+    </div>
+
+    <section class="hub-group" aria-labelledby="jobs-title">
+      <h2 id="jobs-title">Crew sheets</h2>
+      <div class="crew-grid">
+        <a class="crew-tile" href="d749/index.html">
+          <span class="code">D749</span>
+          <span><strong>CSX Neville Island Switcher</strong><small>CR 1993 · Demmler / McKeesport turn</small></span>
+        </a>
+        <a class="crew-tile" href="nvl/index.html">
+          <span class="code">NVL</span>
+          <span><strong>Neville Island Turn</strong><small>POHC 2091 · Scully, South Yard, the industries</small></span>
+        </a>
+        <a class="crew-tile" href="ck1/index.html">
+          <span class="code">CK1</span>
+          <span><strong>Coke Transfer</strong><small>Shenango, the scale, the sort</small></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" aria-labelledby="yard-title">
+      <h2 id="yard-title">Yard and desk</h2>
+      <div class="crew-grid">
+        <a class="crew-tile" href="yardmaster/index.html">
+          <span class="code">YM</span>
+          <span><strong>Yardmaster Sequence</strong><small>YM-01 · who gets which cut, in order</small></span>
+        </a>
+        <a class="crew-tile" href="dispatcher/index.html">
+          <span class="code">DS</span>
+          <span><strong>Dispatcher Train List</strong><small>DS-01 · lineup, priority, Route 23</small></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" aria-labelledby="maps-title">
+      <h2 id="maps-title">Station maps</h2>
+      <div class="crew-grid">
+        <a class="crew-tile" href="maps/index.html">
+          <span class="code">SM</span>
+          <span><strong>All station maps</strong><small>Subdivision diagram and five area maps</small></span>
+        </a>
+        <a class="crew-tile" href="maps/west-yard/index.html"><span class="code">02</span><span><strong>West Yard</strong><small>SM-02 · Brick, W-1, W-2, Plane</small></span></a>
+        <a class="crew-tile" href="maps/south-yard/index.html"><span class="code">03</span><span><strong>South Yard</strong><small>SM-03 · S-1 to S-5, the scale</small></span></a>
+        <a class="crew-tile" href="maps/barn/index.html"><span class="code">06</span><span><strong>Barn</strong><small>SM-06 · engine house EH-1 to EH-3</small></span></a>
+        <a class="crew-tile" href="maps/east-end/index.html"><span class="code">04</span><span><strong>East End</strong><small>SM-04 · the island industries</small></span></a>
+        <a class="crew-tile" href="maps/shenango/index.html"><span class="code">05</span><span><strong>Shenango</strong><small>SM-05 · Princess, coke works, interchanges</small></span></a>
+      </div>
+    </section>
+
+    <section class="hub-group" aria-labelledby="ref-title">
+      <h2 id="ref-title">Reference</h2>
+      <div class="crew-grid">
+        <a class="crew-tile" href="tt23/index.html"><span class="code">TT</span><span><strong>Route 23 timetable</strong><small>TT-23 · the Neville Queen streetcar</small></span></a>
+        <a class="crew-tile" href="colors/index.html"><span class="code">◼</span><span><strong>Destination colors</strong><small>Eight colors, eight places</small></span></a>
+        <a class="crew-tile" href="../operators/cards/index.html"><span class="code">WB</span><span><strong>Car cards &amp; waybills</strong><small>How to read them</small></span></a>
+        <a class="crew-tile" href="industries/index.html"><span class="code">IN</span><span><strong>Industry spot sheets</strong><small>Which car goes on which spot</small></span></a>
+        <a class="crew-tile" href="scale/index.html"><span class="code">EQ</span><span><strong>Scale instructions</strong><small>EQ-01 · calibrate and weigh</small></span></a>
+      </div>
+    </section>
+
+    <p class="muted">
+      First session? Read the <a href="../briefing/index.html">New Operator Primer</a> first. Want paper?
+      Every sheet has a Print button sized for the 5 × 8 in card; the <a href="../docs/index.html">publications shelf</a>
+      lists them all with revision numbers.
+    </p>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("crew").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

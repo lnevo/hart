@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Prototype — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>The Prototype</h1>
+      <p class="section-note">
+        Neville Island went from farmland to furnaces, coke ovens, and chemical plants in a
+        generation, and a small railroad switched all of it. Here is that story: how the plants
+        and railroads changed hands, and the photographs that show it.
+      </p>
+    </div>
+
+    <section class="hub-group" aria-labelledby="explore-title">
+      <h2 id="explore-title">Explore</h2>
+      <div class="card-grid">
+        <a class="card" href="../plants/index.html">
+          <p class="card-kind">Chart</p>
+          <h3>The Coke Works</h3>
+          <p>One blast furnace became Shenango, Kosmos, Calgon, and Aristech. Each company in turn, with its logo and years.</p>
+        </a>
+        <a class="card" href="../railroads/index.html">
+          <p class="card-kind">Chart</p>
+          <h3>The Railroads</h3>
+          <p>The Chartiers Branch, PC&amp;Y, P&amp;LE, P&amp;WV, and P&amp;OV, owner by owner, down to today's POHC and CSX.</p>
+        </a>
+        <a class="card" href="../photos/index.html#historical">
+          <p class="card-kind">Photos</p>
+          <h3>Historic photos</h3>
+          <p>Old photographs, advertisements, newspaper clippings, timetables, and maps of the island and its railroads, each credited to its source where we could find it.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group panel" aria-labelledby="reading-title">
+      <h2 id="reading-title">Start reading</h2>
+      <ul class="reading-list" id="reading-list">
+        <li><a href="../library/pittsburgh-ohio-valley-railway.html">Pittsburgh &amp; Ohio Valley Railway</a></li>
+        <li><a href="../library/voices-of-the-pov.html">Voices of the P&amp;OV</a></li>
+        <li><a href="../library/neville-island-coke-cement-chemical-history.html">Neville Island coke, cement, and chemical history</a></li>
+        <li><a href="../library/pohc-line-industries.html">POHC line industries, McKees Rocks to Washington</a></li>
+        <li><a href="../library/chartiers-valley-railroads.html">Railroads of the Chartiers Valley</a></li>
+      </ul>
+      <p class="muted"><a href="../articles/index.html">All articles</a></p>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    var esc = HARTOps.esc;
+    document.addEventListener("DOMContentLoaded", async function () {
+      try {
+        await HARTOps.mountChrome("history");
+        // The static list above is the fallback; articles.json (fetched no-cache) keeps it current.
+        var data = await HARTOps.loadJson("data/articles.json");
+        var items = (data.items || []).filter(function (a) {
+          return a.href && a.href.indexOf("library/") === 0;
+        });
+        if (!items.length) return;
+        document.getElementById("reading-list").innerHTML = items
+          .map(function (a) {
+            return (
+              '<li><a href="' + esc(HARTOps.base() + a.href) + '">' + esc(a.title) + "</a>" +
+              (a.kind ? '<span class="kind">' + esc(a.kind) + "</span>" : "") +
+              (a.blurb ? "<p>" + esc(a.blurb) + "</p>" : "") +
+              "</li>"
+            );
+          })
+          .join("");
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

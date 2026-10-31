@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YM-01 Yardmaster Sequence — HART</title>
+  <meta name="description" content="Keep South Yard organized: build cuts by color, hand work to each train in order, and keep D749, NVL, and CK1 from stepping on each other.">
+  <link rel="stylesheet" href="../../css/ops.css">
+</head>
+<body class="crew-sheet">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head crumb-only"></div>
+    <div class="sheet-head" id="sheet-head">
+      <h1>YM-01 · Yardmaster Sequence</h1>
+    </div>
+    <div id="crew-root"><p class="muted">Loading…</p></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/crew.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTCrew.page("sheet", "yardmaster");
+    });
+  </script>
+</body>
+</html>

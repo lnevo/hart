@@ -4,7 +4,7 @@
 
 **Operator portal (crew / Neville Island):** [`ops-portal/index.html`](ops-portal/index.html) — briefing, industries, photos, rolling stock, articles, official publications, and current Digicon/CTC/LE panels.
 
-**Public (GitHub Pages):** https://lnevo.github.io/hart/
+**Public:** https://www.hartrailroad.com/ (redeploy with `./consolidation/ops-portal/scripts/deploy_hartrailroad.sh`)
 
 Serve over HTTP locally (JSON pages need it; `file://` will look empty):
 

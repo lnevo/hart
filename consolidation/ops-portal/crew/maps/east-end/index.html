@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>East End station map — HART</title>
+  <meta name="description" content="The island industries: Aristech on S-2, Ferrellgas and A. Stucki on S-3, Kosmos on S-4, and Calgon Carbon on S-5.">
+  <link rel="stylesheet" href="../../../css/ops.css">
+</head>
+<body class="crew-map">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1 id="page-title">East End</h1>
+      <p class="sheet-pub" id="page-pub">Publication SM-04 · Revision A · Effective 23 July 2026</p>
+      <p class="muted" id="page-lede">The island industries: Aristech on S-2, Ferrellgas and A. Stucki on S-3, Kosmos on S-4, and Calgon Carbon on S-5.</p>
+    </div>
+    <div id="crew-root"><p class="muted">Loading…</p></div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../../js/nav.js"></script>
+  <script src="../../../js/crew.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTCrew.page("map", "east-end");
+    });
+  </script>
+</body>
+</html>

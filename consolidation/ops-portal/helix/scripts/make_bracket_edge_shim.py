@@ -26,6 +26,7 @@ import trimesh
 from shapely.geometry import Polygon
 import router_template_lattice as lat
 from make_lap_template import IN, RI
+from stl_out import out_dir
 
 PLY_T = 0.72                    # measured plywood
 POCKET = 3 / 32
@@ -57,8 +58,9 @@ def build():
 
 
 if __name__ == "__main__":
+    OUT = out_dir(__doc__)
     body = build()
-    base = "/Users/lnevo/Downloads/stl/bracket_edge_shim"
+    base = OUT + "bracket_edge_shim"
     body.export(base + ".stl")
     print("watertight", body.is_watertight, "reload ok", lat.stl_roundtrip_ok(base + ".stl"),
           "bodies", len(body.split(only_watertight=False)), "size mm", np.round(body.extents, 3),

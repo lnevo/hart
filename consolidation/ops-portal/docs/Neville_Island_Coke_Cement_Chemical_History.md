@@ -43,7 +43,8 @@ During the 1960s PC&C broke apart:
 | Dec 1899 | American Steel & Wire announces a Neville Island furnace plant. Pittsburgh & Ohio Valley Railway incorporated 5 December 1899. |
 | 1900–1902 | AS&W buys about 182 acres of former farmland and builds a blast furnace. P&OV builds about 11 miles of industrial track on company land, interchanging with the Pittsburgh, Chartiers & Youghiogheny (PC&Y). |
 | 1901 | American Steel & Wire becomes a U.S. Steel subsidiary. |
-| 1918–1919 | U.S. Ordnance Department commandeers P&OV for a planned Neville Island ordnance works; property returned 1 July 1919. |
+| 1918–1919 | The federal government buys out the island's farmers by eminent domain ($8.7 million) for what was to be the world's largest munitions plant. The Ordnance Department commandeers P&OV for the work; the project is abandoned after the Armistice and the property returned 1 July 1919. |
+| 1921 | In December 1921 the government land is sold at auction, and industrial buyers outbid the displaced farmers. |
 | 1928 | Davison Coke & Iron Company incorporated (Pennsylvania filing 29 August 1928). |
 | 1929 | Davison buys the old AS&W blast-furnace property and builds new coke ovens and a cement plant. |
 | ~1930 | Cement operations underway. The coke ovens and chemical works that later became Shenango date from about this time. |
@@ -61,7 +62,7 @@ During the 1960s PC&C broke apart:
 | 1960 | Activated Carbon Division pioneers granular activated carbon for drinking-water treatment. |
 | 1960–1961 | PC&C agrees to sell wholly owned Green Bag Cement Co. to Marquette Cement. |
 | 1962 | Shenango Furnace purchases the coke-and-iron operations. In 1963 Shenango Inc. is described as a 50% unconsolidated PC&C subsidiary. |
-| 1964–1966 | Industrial-chemical business enters U.S. Steel. USS Chemicals Division formed 1966. |
+| 1964–1966 | U.S. Steel buys the industrial-chemical business, by then Pittsburgh Chemical Company, in 1964. USS Chemicals Division formed 1966. |
 | 1965 | Calgon Corporation acquires Pittsburgh Activated Carbon Company. EPA cement survey lists Marquette at Neville Island, wet process, 1.75 million barrels. |
 | 1977 | Neville Land Co. donates the west-end dump to Allegheny County as Ohio River Park; toxins found 1979; land returned. Superfund listing 1990; cleanup 1998–1999. Robert Morris University Island Sports Center occupies the site today. |
 | 1982 | Lone Star Industries agrees to buy Marquette, then a Gulf & Western cement subsidiary. |
@@ -109,7 +110,7 @@ The Depression hit hard. A 1932 out-of-court plan failed. In 1935 Davison filed 
 
 ## 3. Pittsburgh Coke & Iron, then Pittsburgh Coke & Chemical
 
-Pittsburgh Coke & Iron is the company name from 1936 into the early 1940s. A 1940 annual report still uses it. Chemical products were added in 1940. University of Pittsburgh cataloging and Calgon’s corporate history treat **Pittsburgh Coke & Chemical** as the wartime identity, from about 1942.
+Pittsburgh Coke & Iron is the company name from 1936 into the early 1940s. A 1940 annual report still uses it. Chemical products were added in 1940. University of Pittsburgh cataloging and Calgon’s corporate history treat **Pittsburgh Coke & Chemical** as the wartime identity, from about 1942. A later USS Chemicals advertisement gives 1944 as the year the Pittsburgh Coke & Chemical Company “was created”; this page keeps the earlier, more widely used date.
 
 By the 1950s PC&C was a diversified coal-chemicals company:
 
@@ -145,6 +146,8 @@ HART's Shenango map is the coke works after the iron department closed: tracks K
 
 Coke outlasted iron by about 25 years. DTE Energy bought Shenango in 2008. Citing the North American steel downturn, DTE announced closure on 17 December 2015. **The last coke came off on 6 January 2016** — that is the coke date, not pig iron. (2014–15 news about Shenango is pollution enforcement against the coke battery.) Demolition included the May 2018 stack implosion. Lindy Paving closed on the site in November 2020.
 
+Stanley Quick, 38 years at the plant, recalled that the #1 battery “went on line in 1980” and lasted until DTE shut the plant, and another plant follower remembered it as built in the 1980s. That date is a recollection only: EPA's cleanup page dates the ovens to about 1930, and no permit record has been checked. Google Earth imagery, as read by Dennis DeBruler, shows the gas holder gone between September 2005 and October 2006.
+
 This is the branch HART cards as Shenango Coke Works.
 
 ### Ingot molds (Shenango-Penn, 1939–1990)
@@ -152,6 +155,8 @@ This is the branch HART cards as Shenango Coke Works.
 The ingot-mold foundry is a different company and a different end of the island. **Shenango-Penn Mold** bought it in **1939**, at **3100 Grand Avenue** on the west end. It was casting molds through the 1940s. In those years the east end was still Pittsburgh Coke & Iron, then Pittsburgh Coke & Chemical. Shenango Furnace did not buy the coke and iron until 1962.
 
 Hot metal for the foundry came from the east-end furnaces. Plant veterans date the foundry shutdown to **January 1990**. Toxics Release Inventory reports for the foundry division drop from tens of thousands of pounds in 1989 to 5 pounds in 1990. HART does not switch this plant.
+
+Ronald Meiss, who made molds at Sharpsville, recalled Shenango foundries there, in Buffalo, and on Neville Island. Mike Laslo described a newer greensand area at Neville Island that made the stools the molds sat on, and David Finch recalled Bollinger Corp., an Ambridge engineering firm, designing new molds for Shenango. Stanley Quick placed Joe De Franco's 1978 photo of P&OV #4 at this foundry.
 
 ---
 
@@ -163,7 +168,7 @@ In late 1960 and January 1961, PC&C agreed to sell wholly owned Green Bag Cement
 
 Marquette became a Gulf & Western subsidiary in 1976 and was sold to **Lone Star Industries** in 1982. Pennsylvania PUC records show truck shipments originating at **Lone Star Cement Company, Neville Island** in 1987.
 
-By the mid-1990s **Kosmos Cement Company** (Southdown 75%, Lone Star 25%) operated cement plants in Kosmosdale, Kentucky, and Pittsburgh, Pennsylvania. A 1996 Allegheny County / EPA order names Kosmos as owner/operator of Portland cement production at 200 Neville Road. Eagle Materials bought the Kosmos business in 2020, including the Pittsburgh terminal at that address. The Kosmos site today is a **cement terminal** (bulk Type IL, masonry, packaged portland), not a kiln plant.
+By the mid-1990s **Kosmos Cement Company** (Southdown 75%, Lone Star 25%) operated cement plants in Kosmosdale, Kentucky, and Pittsburgh, Pennsylvania. A 1996 Allegheny County / EPA order names Kosmos as owner/operator of Portland cement production at 200 Neville Road. Eagle Materials bought the Kosmos business in 2020, including the Pittsburgh terminal at that address. Calgon Carbon’s plant (section 6) gives the same street address in EPA and state records; how the two properties came to share it is not documented here. The Kosmos site today is a **cement terminal** (bulk Type IL, masonry, packaged portland), not a kiln plant.
 
 ---
 
@@ -179,13 +184,13 @@ After the war the Activated Carbon Division stayed on the island:
 
 The business was organized as Pittsburgh Activated Carbon Company, a PC&C subsidiary, and **Calgon Corporation acquired it in 1965**. Calgon itself was older and separate: it began as the Hagan Corporation (1918), whose chemist Ralph E. Hall developed the water-conditioning chemical sold as Calgon. After 1965 the carbon plant kept its own manufacturing and marketing. Merck bought Calgon in 1968. In 1985 management bought the carbon business out of Merck and formed **Calgon Carbon Corporation** (IPO 1987; NYSE 1991). **Kuraray** completed its acquisition of Calgon Carbon on 9 March 2018.
 
-The Neville Island plant sits on the southeast corner of the island, east of the Fleming Park Bridge (EPA lists 200 Neville Road). EPA’s 2001 site visit described three operations still on the property: **carbon reactivation**, **impregnation and drying**, and **manufacture of activated carbon in pellet form**. Calgon still lists Neville Island among its U.S. reactivation sites. In August 2003 EPA determined that no further RCRA corrective action was required at the plant. Products from the island feed drinking-water and wastewater treatment, industrial purification, odor and acid-gas control (impregnated pellets), and the company’s reactivation service — spent carbon comes in by rail or truck, is restored, and goes back out.
+The Neville Island plant sits on the southeast corner of the island, east of the Fleming Park Bridge (EPA and Pennsylvania DEP list 200 Neville Road, the same street address Kosmos gives for its cement terminal). EPA’s 2001 site visit described three operations still on the property: **carbon reactivation**, **impregnation and drying**, and **manufacture of activated carbon in pellet form**. Calgon still lists Neville Island among its U.S. reactivation sites. In August 2003 EPA determined that no further RCRA corrective action was required at the plant. Products from the island feed drinking-water and wastewater treatment, industrial purification, odor and acid-gas control (impregnated pellets), and the company’s reactivation service — spent carbon comes in by rail or truck, is restored, and goes back out.
 
 ---
 
 ## 7. Industrial chemicals → USS Chemicals → Aristech → Sunoco → BASF / Ashland
 
-Phthalic and maleic anhydride, phenolic-type chemistry, and coal-tar coatings are documented on Neville Island in the PC&C era. EPA later lists USS Chemicals, Neville Island, among phenolic-resin producers and records maleic-anhydride operations at the same plant.
+Phthalic and maleic anhydride, phenolic-type chemistry, and coal-tar coatings are documented on Neville Island in the PC&C era. EPA later lists USS Chemicals, Neville Island, among phenolic-resin producers and records maleic-anhydride operations at the same plant. U.S. Steel bought the chemical business, by then Pittsburgh Chemical Company, in 1964; the plant's own later advertising dates it from that year.
 
 Pennsylvania Human Relations Commission (*Worthy v. Aristech*) records that United States Steel formed **USS Chemicals Division in 1966** to produce and market chemical products, and that the Neville Island facility was included. The activated-carbon business went to Calgon in 1965; the industrial-chemical plant went to U.S. Steel.
 
@@ -274,6 +279,8 @@ The island industries crews switch are the surviving trade names of this east-en
 - **Aristech Plastics** — the phthalic, plasticizer, and resin line during the Aristech years (1986–2000).
 
 The island’s industrial railroad ancestor is American Steel & Wire’s **Pittsburgh & Ohio Valley**, interchanging with the **PC&Y** (later Pittsburgh Industrial / Ohio Central / **POHC**).
+
+HART operates in a freelanced 1996–2016 setting. Inside that span every name above can appear: PIR (1996–2000) and then POHC (from December 2000) on the short line, Aristech until Sunoco bought it at the start of 2001, LTV Steel’s Cleveland Works as a coke customer into 2001–02, and Shenango coke until January 2016. A dated sheet only has to fit its own date.
 
 Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley_Railroads.md) · [`POHC_Line_Industries_McKees_Rocks_to_Washington.md`](POHC_Line_Industries_McKees_Rocks_to_Washington.md)
 
@@ -373,4 +380,15 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
 
 26f. *Chemical & Engineering News*, 17 February 1958, "Pittsburgh Coke Branches Out": one Neville Island blast furnace adapted for ferromanganese and spiegeleisen, about $2.5 million, half of it a gas-cleaning system. The furnace letter is not given.
 
+26g. Dennis DeBruler, “Neville Island, PA: Shenango Steel Works,” *Towns and Nature*, 17 October 2022: comments by plant veterans (battery, foundry, molds) and imagery notes. The post's own notes contain errors this page does not follow, including closure in 2015 and furnaces gone by 1948.  
+    https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html
+
+26h. Historic American Engineering Record No. PA-217, *Coraopolis Bridge* (1989), pp. 10–11: farms, 1918 purchase, December 1921 auction.  
+    https://pghbridges.org/articles/haer/coraopolis_PA217/coraopolis_HAER_PA217a.htm
+
 27. *New York Times*, 15 Dec 1979, “Donated Park Lies Unused Because of Toxins Beneath.”
+
+28. USS Chemicals Neville Island Plant, “Proud of Our Progress” advertisement, p. 59 of an unidentified Coraopolis-area booklet (Davison 1928; PC&C 1944; Pittsburgh Chemical Company a U.S. Steel division from 1964). On the portal's Archive page.
+
+29. Pennsylvania DEP, NPDES permit PA0091227 fact sheet (Calgon Carbon Neville Island Plant, 200 Neville Road).  
+    https://files.dep.state.pa.us/water/Wastewater%20Management/eDMRPortalFiles/Permits/PA0091227_FACT_SHEET_20250303_DRAFT_V3.pdf

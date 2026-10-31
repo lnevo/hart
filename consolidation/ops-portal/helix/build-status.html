@@ -31,10 +31,10 @@
 
     <div class="page-head">
       <h1>Helix build status</h1>
-      <p class="muted"><a href="index.html">Neville Island helix</a> · rendered from <a href="files/HART_Neville_Helix_BUILD_STATUS.md"><code>HART_Neville_Helix_BUILD_STATUS.md</code></a></p>
+      <p class="muted">Rendered from <a href="files/HART_Neville_Helix_BUILD_STATUS.md"><code>HART_Neville_Helix_BUILD_STATUS.md</code></a></p>
     </div>
     <div class="guide-body helix-wrap prose">
-<h1>HART Railroad — Neville Island Helix: Build Status</h1>
+<h2>HART Railroad — Neville Island Helix: Build Status</h2>
 <p><strong>Last updated 2026-10-15.</strong> This is the single living status document. <strong>Update it in place; don't start new addenda.</strong> It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in <code>superseded/addenda_2026-09-30_to_10-13/</code> if the history is ever needed.</p>
 <p><strong>Read in this order:</strong>
 1. <a href="files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf"><code>helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf</code></a>: fabrication drawings. Its entry pages (2, 3, 8) are stale; see §8. <strong>Page 13 is the half-lap screw template</strong> (added 2026-10-15; same as <a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a>).
@@ -324,11 +324,6 @@
 <td><a href="scripts/make_bracket_plumb_shim.py"><code>make_bracket_plumb_shim.py</code></a></td>
 <td><strong>Brackets lean sideways with the grade.</strong> Strip tapered across its width, 0.20 → 0.56 mm (grade 2.29% × 0.62). <strong>Notched (thick) edge uphill.</strong> Fits the pocket's 0.35 mm slack. Prints flat, 0.2 first layer, 0.08–0.1 after. One per bracket.</td>
 </tr>
-<tr>
-<td><code>bracket_wedge_gap_{1,2,3,4}_64.stl</code></td>
-<td><a href="scripts/make_bracket_wedges.py"><code>make_bracket_wedges.py</code></a></td>
-<td>For a <strong>gap between the leg and the post</strong> (a bend that isn't square, or a roadbed tilted across its width). Taper along the length; notches = gap in 64ths. Bottom of the leg off the post: thick end toward the tip. Top off: thick end toward the post. Set the height by the roadbed top.</td>
-</tr>
 </tbody>
 </table>
 <h3>Paper</h3>
@@ -380,6 +375,6 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("helix"); });</script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("helix-status"); });</script>
 </body>
 </html>

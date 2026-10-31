@@ -1,0 +1,38 @@
+{
+  "_note": "Videos from the owner's YouTube channel. Pages show one with <div class=\"video\" data-video=\"<id>\">, which js/video.js fills from this list. \"pages\" lists where each is shown.",
+  "channel": "https://www.youtube.com/@leenevo6566",
+  "videos": [
+    {
+      "id": "dk2nJ_2-jvk",
+      "title": "Helix FPV",
+      "date": "2026-10-23",
+      "duration": "3:48",
+      "blurb": "The finished helix, climbing from staging to the top at track level.",
+      "pages": ["build/index.html#helix"]
+    },
+    {
+      "id": "BbQ3QSvtR-M",
+      "title": "Virtual track scale using STS",
+      "date": "2026-07-05",
+      "duration": "4:24",
+      "blurb": "A loaded car is weighed on a virtual track scale in STS, then routed out to the customer or back to the yard to have its load adjusted.",
+      "pages": ["behind/index.html#car-forwarding"]
+    },
+    {
+      "id": "FBvN-6PZCh4",
+      "title": "Integration between LCOS and JMRI via MQTT",
+      "date": "2026-02-20",
+      "duration": "3:07",
+      "blurb": "Status events from the LCOS radio nodes reach JMRI through an MQTT message broker. A custom node turns them into messages JMRI understands.",
+      "pages": ["behind/index.html#electronics", "behind/bridge.html"]
+    },
+    {
+      "id": "K7ahrL7Bb34",
+      "title": "Staging level FPV",
+      "date": "2026-01-23",
+      "duration": "8:53",
+      "blurb": "One full circuit of the finished staging level, seen from track level.",
+      "pages": ["build/index.html#staging"]
+    }
+  ]
+}
