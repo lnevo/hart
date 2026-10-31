@@ -10,7 +10,7 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 - **CATS panels:** `HART_Digicon.xml` is the Designer save; `wire_digicon.py` builds `HART_CTC.xml` and `HART_ABS.xml` (ADR-012).
 - **Cars:** 98 in the roster, 28 of them with no photo yet (ADR-013).
 - **Website:** public at www.hartrailroad.com from `www/`.
-- **Repo gates:** `main` is protected on GitHub, CI runs `tools/check.sh` on PRs, and `.claude/hooks/main_guard.py` guards the main session.
+- **Repo gates:** `main` is protected on GitHub, CI runs `tools/check.sh` on PRs, and `.claude/hooks/main_guard.py` guards every session, including against commits on `main` and admin merges.
 - **Build:** helix complete. Main level resumes after Thanksgiving.
 
 ## Owed

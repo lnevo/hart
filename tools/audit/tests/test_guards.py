@@ -51,6 +51,22 @@ class MainGuard(unittest.TestCase):
         self.assertEqual(self.code("git push -u origin HEAD"), 0)
         self.assertEqual(self.code("git push origin agent/claude/x"), 0)
 
+    def test_commit_on_main_is_blocked(self) -> None:
+        self.assertEqual(self.code("git commit -m x"), 2)
+        self.assertEqual(self.code("git add -A && git commit -q -m x"), 2)
+
+    def test_commit_on_agent_branch_passes(self) -> None:
+        self.branch("agent/claude/x")
+        self.assertEqual(self.code("git commit -m x"), 0)
+
+    def test_branching_first_in_one_command_passes(self) -> None:
+        self.assertEqual(self.code("git checkout -b agent/claude/x && git commit -m x"), 0)
+        self.assertEqual(self.code("git checkout -q -b agent/claude/x && git push -u origin HEAD"), 0)
+        self.assertEqual(self.code("git switch -c agent/claude/x && git push -u origin HEAD"), 0)
+
+    def test_admin_merge_is_blocked(self) -> None:
+        self.assertEqual(self.code("gh pr merge 3 --merge --admin"), 2)
+
     def test_searching_for_a_push_passes(self) -> None:
         self.assertEqual(self.code("grep -rn 'git push origin main' wiki"), 0)
 
@@ -59,6 +75,7 @@ class MainGuard(unittest.TestCase):
             subprocess.run(["git", "init", "-q", "-b", "main", other], check=True)
             self.assertEqual(self.code(f"git -C {other} push origin main"), 0)
             self.assertEqual(self.code(f"cd {other} && git push origin main"), 0)
+            self.assertEqual(self.code(f"git -C {other} commit -m x"), 0)
 
     def test_publish_and_merge_ask(self) -> None:
         for command in ("mosquitto_pub -h x -t track/cmd/1 -m THROWN", "gh pr merge 3 --merge"):

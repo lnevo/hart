@@ -23,7 +23,7 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
 1. One behavior per PR / branch when practical.  
 2. Agents do not push to `main`.  
 3. Do not amend pushed commits.  
-4. Prefer `git worktree` for parallel agents on the same machine.  
+4. Use a `git worktree` for each parallel session on the same machine. A second session in the same checkout can switch the branch under the first, so its next commit lands on the wrong branch. `ListAgents` shows whether a peer session is running.  
 5. **Close-out:** the definition of done in [`AGENTS.md`](../AGENTS.md).  
 6. Update `wiki/` when a decision changes; chat is not SoR.
 
