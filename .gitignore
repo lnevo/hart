@@ -98,5 +98,4 @@ cats/logs/
 jmri/layouts/**/*.xml.bak_*
 
 # Old validator logs and checkpoints kept locally
-archive/consolidation/audits/run_all_*.log
 archive/panels/sheets/checkpoints/HART_WestYard_BEFORE_rotate180.xml

@@ -16,4 +16,4 @@
 | [012](ADR-012-one-digicon-source.md) | One Digicon source, two desks | Accepted |
 | [013](ADR-013-car-repository.md) | One car repository | Accepted |
 
-Older consolidation decisions are in [`archive/consolidation/`](../../archive/consolidation/). ADR-007 records what became of them.
+Older consolidation decisions are in git history, and ADR-007 records what became of them.

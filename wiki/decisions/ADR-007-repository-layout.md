@@ -1,6 +1,6 @@
 # ADR-007 — Repository layout
 
-- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete, and what remains is in `archive/consolidation/`, which is not edited.
+- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete. The leftover `archive/consolidation/` folder was removed the same day and remains in git history.
 - **Date:** 2026-10-31
 - **Deciders:** lnevo
 

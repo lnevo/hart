@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — `archive/consolidation/` removed; it stays in git history. Docs only; not deployed.
+
 Updated: 2026-10-31 — Live pages no longer depend on `archive/consolidation`: the bridge smoke tests moved into [`pipelines/mqtt-mimic.md`](pipelines/mqtt-mimic.md), and the stale submodule pin pages and archived CATS and ops links were dropped. Docs only; not deployed.
 
 Updated: 2026-10-31 — The owner decided the 10 yard ladder lamp buttons stay off the CATS desks, which closes that question. Docs only; not deployed.
