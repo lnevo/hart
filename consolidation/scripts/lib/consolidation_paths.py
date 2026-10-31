@@ -1,4 +1,4 @@
-"""Path resolver for consolidation workspace — prefer local mirrors over live repo."""
+"""Path resolver for the consolidation workspace; live data is read from the repo."""
 from __future__ import annotations
 
 import os
@@ -23,9 +23,6 @@ def hart_runtime_root() -> Path:
     env = os.environ.get("HART_RUNTIME_ROOT", "").strip()
     if env:
         return Path(env).expanduser().resolve()
-    runtime = consolidation_root() / "external/hart-runtime"
-    if (runtime / "jmri/layout_paths.py").is_file():
-        return runtime
     return hart_repo_root()
 
 

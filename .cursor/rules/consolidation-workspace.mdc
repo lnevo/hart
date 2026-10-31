@@ -1,40 +1,15 @@
 ---
-description: HART consolidation workspace — parallel review track; live sources read-only
+description: HART consolidation folder is being dissolved into the repo root (ADR-007)
 globs:
   - consolidation/**
 alwaysApply: false
 ---
 
-# Consolidation workspace
+# Consolidation
 
-When the task touches **pipeline review**, **SoR consolidation**, **validators**, **refactors**, or **railroad documentation** beyond live ops:
+Read [`wiki/decisions/ADR-007-repository-layout.md`](../../wiki/decisions/ADR-007-repository-layout.md).
 
-## Read first (mandatory)
-
-1. [`consolidation/AGENTS.md`](../../consolidation/AGENTS.md)
-2. [`consolidation/OBJECTIVE.md`](../../consolidation/OBJECTIVE.md)
-3. [`consolidation/BACKLOG.md`](../../consolidation/BACKLOG.md)
-4. [`consolidation/LIVE_SOURCES.md`](../../consolidation/LIVE_SOURCES.md)
-
-Browse portal: [`consolidation/index.html`](../../consolidation/index.html)  
-F-root browse: [`consolidation/html/archive/f-root-index.html`](../../consolidation/html/archive/f-root-index.html)
-
-## Golden rule
-
-**Write only under `hart/consolidation/`** (including `consolidation/external/*` submodules). Do not edit live `jmri/`, `cats/`, `tables/`, `docs/wiring/`, live `wiki/`, or **`~/Desktop/HART/`**.
-
-We are building the **new authoritative tree**. Live paths stay read-only until that tree is complete.
-
-## Bench freeze (D12)
-
-- **No Pi / layout host deploy** from consolidation work
-- **Desktop/HART is read-only** — inventory, manifest, and F-root browse only
-- **Live hart tree untouched** during consolidation build
-
-## Validators
-
-```bash
-bash consolidation/validators/run_all.sh
-```
-
-Reports go to `consolidation/audits/`.
+- `consolidation/` is being dissolved into the root. Its old "live tree is read-only" rule is retired.
+- Until each part moves, edit it in place under `consolidation/`.
+- Do not add new top-level concepts here; use the target root in ADR-007.
+- Mirrors are gitignored, so git does not protect them. `sync_desktop_data.py` is the only sync, and `~/sts` gets none.

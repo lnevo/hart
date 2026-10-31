@@ -30,7 +30,7 @@ _hart_repo="${HART_REPO_ROOT:-$(cd "${CONSOLIDATION_ROOT}/.." && pwd)}"
 export HART_REPO_ROOT="$_hart_repo"
 
 # --- Consolidation runtime paths (defaults under CONSOLIDATION_ROOT) ---
-export HART_RUNTIME_ROOT="${HART_RUNTIME_ROOT:-${CONSOLIDATION_ROOT}/external/hart-runtime}"
+export HART_RUNTIME_ROOT="${HART_RUNTIME_ROOT:-${HART_REPO_ROOT}}"
 export HART_LIVE_ROOT="${HART_LIVE_ROOT:-${HART_RUNTIME_ROOT}}"
 export DESKTOP_DATA_ROOT="${DESKTOP_DATA_ROOT:-${CONSOLIDATION_ROOT}/external/desktop-data}"
 export HART_OPS_ROOT="${HART_OPS_ROOT:-${CONSOLIDATION_ROOT}/external/hart-ops}"

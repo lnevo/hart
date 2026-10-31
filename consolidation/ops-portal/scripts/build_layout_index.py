@@ -19,10 +19,10 @@ PORTAL = Path(__file__).resolve().parents[1]
 CONS = PORTAL.parent
 ROOT = CONS.parent
 
-PANEL = CONS / "external/hart-runtime/jmri/layouts/hart/output/hart_prod.xml"
-NAMES = CONS / "sor/names/public_name_map.csv"
+PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+NAMES = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 DEVICES = CONS / "sor/names/hart_devices_review.json"
-CPS = CONS / "external/hart-runtime/jmri/layouts/hart/data/control_points.csv"
+CPS = ROOT / "jmri/layouts/hart/data/control_points.csv"
 MAPS_SRC = CONS / "external/hart-ops/publications/assets"
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
