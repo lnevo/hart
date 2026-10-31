@@ -18,12 +18,16 @@ EXCLUDED = ("external/",)
 ROOTS = ("jmri", "cats", "docs", "www", "ops", "tools", "wiki", "archive", ".cursor", ".claude")
 LINK = re.compile(r"\]\(([^)#\s]+)")
 CODE = re.compile(r"`([^`\s]+)`")
-GITIGNORED = ("tools/cats/src-repo",)
 
 
 def agent_files() -> list[str]:
     out = subprocess.check_output(["git", "ls-files", "-z", *PATTERNS], cwd=ROOT, text=True)
     return [p for p in out.split("\0") if p and not p.startswith(EXCLUDED)]
+
+
+def is_ignored(token: str) -> bool:
+    """Gitignored data is absent from a clean clone, so a missing path is fine."""
+    return subprocess.run(["git", "check-ignore", "-q", token], cwd=ROOT).returncode == 0
 
 
 def is_repo_path(token: str) -> bool:
@@ -40,7 +44,7 @@ def problems_in(rel: str) -> list[str]:
                 found.append(f"{rel}: broken link {target}")
     for token in CODE.findall(text):
         token = token.rstrip("/")
-        if is_repo_path(token) and not token.startswith(GITIGNORED) and not (ROOT / token).exists():
+        if is_repo_path(token) and not (ROOT / token).exists() and not is_ignored(token):
             found.append(f"{rel}: missing path {token}")
     return found
 

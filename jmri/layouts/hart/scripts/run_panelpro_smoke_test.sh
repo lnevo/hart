@@ -17,8 +17,8 @@ if [[ ! -f "$PROFILE_XML" || ! -x "$STARTJMRI" ]]; then
   exit 1
 fi
 if pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
-  echo "Quit CATS/PanelPro before the smoke test" >&2
-  exit 1
+  echo "SKIPPED: quit CATS and PanelPro, then run the smoke test again" >&2
+  exit 0
 fi
 
 BACKUP="$(mktemp)"

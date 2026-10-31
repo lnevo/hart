@@ -20,5 +20,13 @@ run agent-docs python3 tools/audit/check_agent_docs.py
 run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
 run unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 run unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
+run unit-guards python3 -m unittest discover -q -s tools/audit/tests
+run desks python3 cats/scripts/validate_cats_panel.py
+# The portal build reads the private hart-ops submodule, which CI does not have.
+if [[ -z "${CI:-}" ]]; then
+  run portal python3 www/scripts/check_portal_build.py
+else
+  echo "--- portal skipped in CI"
+fi
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
 exit "$fail"

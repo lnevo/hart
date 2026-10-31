@@ -74,7 +74,7 @@ tools/cats/*.zip
 # CATS upstream source clone (Bitbucket Kb0oys/cats). Fetch:
 #   ./tools/cats/fetch_cats_src.sh
 # Do not commit the nested git checkout.
-tools/cats/src-repo/
+tools/cats/src-repo
 
 # Accidental `jar xf cats.jar` into this repo (runtime .class). Never commit.
 # Read Java from tools/cats/src-repo — do not explode the jar into cats/.

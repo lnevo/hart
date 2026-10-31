@@ -4,20 +4,8 @@
 
 - Public GitHub repo: **[lnevo/hart](https://github.com/lnevo/hart)** (local folder `hart`).  
 - Single remote: `origin` → `https://github.com/lnevo/hart.git`  
-- `main` is protected by convention: merge only with `tools/check.sh` passing and human review.  
+- `main` is protected on GitHub: PRs and a passing `check` job are required, no force-push or deletion. The owner can bypass this. CI cannot see the private `hart-ops` submodule, so it skips the portal build.  
 - Secrets never commit: `.env.local`, credentials, private keys.
-
-## Cursor Cloud Agents
-
-Cloud agents clone **GitHub**, not your Mac disk. Uncommitted local work is invisible until push.
-
-1. Confirm GitHub + **hart** are linked: [cursor.com/dashboard/cloud-agents](https://cursor.com/dashboard/cloud-agents) (Environments → select `lnevo/hart`).  
-2. Integrations: [cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations).  
-3. Prefer Agents Window → env dropdown **Cloud**, or `/in-cloud` for a cloud subagent.  
-4. Repo env defaults: [`.cursor/environment.json`](../.cursor/environment.json).  
-5. Before handoff: commit + `git push -u origin HEAD` on an `agent/...` branch (never push to `main` from agents).
-
-GUI CATS / JMRI on the Mac stays **local**. Cloud work = XML/scripts/docs + static verify; human launches CATS on the layout host.
 
 ## Branch naming
 
@@ -52,7 +40,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | Rules for every tool | `AGENTS.md` | Commands, close-out, do-nots |
 | Scoped rules | `cats/AGENTS.md` | Only what applies under that folder |
 | Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md` | Pointers only; Cursor also reads `AGENTS.md` |
-| Claude Code | `.claude/commands/done.md` | Pointer only; Claude Code reads `AGENTS.md` |
+| Claude Code | `.claude/commands/done.md`, `.claude/settings.json`, `.claude/hooks/main_guard.py` | Pointer and guard hook; Claude Code reads `AGENTS.md` |
 | Subagents | `.claude/agents/` | Five project agents; see below |
 | Facts and decisions | `wiki/`, ADRs | Never in chat or tool memory |
 | Build handoffs | `docs/benchwork/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs stay in `docs/benchwork/helix/history/` |
@@ -75,8 +63,24 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 - Run builders one at a time. `isolation: "worktree"` branches from `main`, not the current branch, so it suits only work that does not depend on unmerged changes.
 - Add an agent only when a task recurs. Do not add agents for deploys or live hardware; those stay visible in the main session.
 
+## JMRI command watcher
+
+`jmri/layouts/hart/scripts/jmri_cmd_watcher.py` is a standing part of the Pi Start Up. It runs any file dropped at `/tmp/jmri_cmd.py` inside JMRI and writes the result to `/tmp/jmri_cmd.out`, which gives agents a live way to query JMRI. That code has JMRI's full access, so the rules on field turnouts and `track/cmd` apply to it, and subagents cannot reach it because `ssh` is blocked.
+
 ## Layout env
 
 ```bash
 export JMRI_LAYOUT=hart
 ```
+
+## Cursor Cloud Agents (secondary tool)
+
+Cloud agents clone **GitHub**, not your Mac disk. Uncommitted local work is invisible until push.
+
+1. Confirm GitHub + **hart** are linked: [cursor.com/dashboard/cloud-agents](https://cursor.com/dashboard/cloud-agents) (Environments → select `lnevo/hart`).  
+2. Integrations: [cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations).  
+3. Prefer Agents Window → env dropdown **Cloud**, or `/in-cloud` for a cloud subagent.  
+4. Repo env defaults: [`.cursor/environment.json`](../.cursor/environment.json).  
+5. Before handoff: commit + `git push -u origin HEAD` on an `agent/...` branch (never push to `main` from agents).
+
+GUI CATS / JMRI on the Mac stays **local**. Cloud work = XML/scripts/docs + static verify; human launches CATS on the layout host.

@@ -12,7 +12,7 @@ import sys
 BLOCKED = re.compile(
     r"^\s*(\S+=\S*\s+)*(sudo\s+)?((ba|z)?sh\s+|python3?\s+|\S*python3?\s+)?(\S*/)?("
     r"deploy_hartrailroad\.sh|sync_hart_package\.sh|flash_nano\.py|serial_to_mqtt\.py|run_serial_mqtt"
-    r"|mosquitto_pub|ssh|scp|rsync"
+    r"|mosquitto_pub|ssh|scp|rsync|make\s+deploy\S*"
     r"|git\s+(-C\s+\S+\s+)?(commit|push|merge|rebase|reset|stash|switch|checkout|restore|clean)"
     r")\b"
 )

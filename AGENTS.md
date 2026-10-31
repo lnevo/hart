@@ -8,7 +8,10 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 
 | Do | Command |
 |----|---------|
-| Checks | `./tools/check.sh` (before any commit that changes tables or signals) |
+| List commands | `make` shows the shortcuts for what follows |
+| Checks | `./tools/check.sh` (before any commit that changes tables or signals). CI runs it on every PR, without the portal build |
+| Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
+| Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
 | Desktop folders | `python3 tools/ops/sync_desktop_data.py` previews; `--apply` copies. Never deletes. |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
@@ -16,7 +19,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | CATS source (Bitbucket) | `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` |
 | CATS binaries | `./tools/cats/fetch_cats_3.2.sh` then `./tools/cats/install_into_jmri.sh` |
 
-`/done` runs the close-out below (Cursor and Claude Code).
+`/done` runs the close-out below.
 
 ## Definition of done
 
@@ -27,10 +30,11 @@ After any task that **changed files**, do not wait to be asked:
 1. **Wiki** — if a live decision or railroad state changed, update `wiki/STATUS.md` (and an ADR if it is a decision).
 2. **Commit** on the current branch; if that is `main`, create `agent/<agent-id>/<topic>` first. Conventional one- or two-sentence message (why, not a file list). Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
 3. **Push** that branch (`git push -u origin HEAD`). Never push or merge to `main`.
-4. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, signals, jython, web home, CTC icons, CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
-5. **Report** commit hash, pushed?, hosts deployed.
+4. **PanelPro test** when `tables.xml` or panels changed: `make panelpro-test`. Report the result, including `SKIPPED` when PanelPro or CATS is open. Do not start it while the owner is operating.
+5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, signals, jython, web home, CTC icons, CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
+6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
-Sheets push (`.env.local`) stays human-gated. Do not force-push `main`.
+Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks force-pushes and pushes to `main`, and asks before `gh pr merge` or a `track/cmd` publish.
 
 ## Do not
 
@@ -54,6 +58,7 @@ New documents go in `docs/` (ADR-010); run the index command after adding one.
 ## Pointers
 
 - Pipelines / landmines: [`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md)
+- Subagents: use the five in `.claude/agents/` by name for website, review, audit, tracing and archive jobs, not `general-purpose`.
 - Git / branches, and where agent instructions live: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md)
 - Submodules: each has its own rules and repo; see [`wiki/REPOS.md`](wiki/REPOS.md)
 - CATS: [`cats/README.md`](cats/README.md) · [`cats/AGENTS.md`](cats/AGENTS.md)
