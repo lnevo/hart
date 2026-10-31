@@ -11,7 +11,7 @@
 
 ## STL index
 
-46 files, all in millimetres. Extents are the exported bounding box, X × Y × Z.
+47 files, all in millimetres. Extents are the exported bounding box, X × Y × Z.
 
 ### Router templates
 
@@ -53,8 +53,8 @@
 | [`first_loop_pier_post6.stl`](../helix/stl/first_loop_pier_post6.stl) | 107 KB | 101.6 × 38.1 × 71.1 (4.00 × 1.50 × 2.80) | ″ | ″ |
 | [`first_loop_pier_post7.stl`](../helix/stl/first_loop_pier_post7.stl) | 97 KB | 101.6 × 38.1 × 83.8 (4.00 × 1.50 × 3.30) | ″ | ″ |
 | [`layer_spacer_4in_pitch.stl`](../helix/stl/layer_spacer_4in_pitch.stl) | 63 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | [`make_layer_spacer.py`](../helix/scripts/make_layer_spacer.py) | Loop-to-loop check, 3.280 in (4.000 − 0.72). Normal mode, ~22 g. |
-| [`layer_spacer_4in_pitch_vase.stl`](../helix/stl/layer_spacer_4in_pitch_vase.stl) | 100 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | [`make_layer_spacer_vase.py`](../helix/scripts/make_layer_spacer_vase.py) | Same spacer in spiral vase mode (~10 g, or ~4 g single line). Slice gap closing radius 0.01. |
-| [`layer_spacer_4in_pitch_vase_1line.stl`](../helix/stl/layer_spacer_4in_pitch_vase_1line.stl) | 28 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | ″ | ″ |
+| [`layer_spacer_4in_pitch_vase.stl`](../helix/stl/layer_spacer_4in_pitch_vase.stl) | 317 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | [`make_layer_spacer_vase.py`](../helix/scripts/make_layer_spacer_vase.py) | Same spacer in spiral vase mode (~10 g, or ~4 g single line). Slice gap closing radius 0.01. |
+| [`layer_spacer_4in_pitch_vase_1line.stl`](../helix/stl/layer_spacer_4in_pitch_vase_1line.stl) | 270 KB | 38.1 × 38.1 × 83.3 (1.50 × 1.50 × 3.28) | ″ | ″ |
 
 ### Entry
 
@@ -63,7 +63,7 @@
 | [`entry_wedge_riser_inside.stl`](../helix/stl/entry_wedge_riser_inside.stl) | 28 KB | 25.4 × 57.2 × 32.0 (1.00 × 2.25 × 1.26) | none kept | Tongue risers, 1 × 2.25 in, 1.261 tall, step 0.864. Engraved R / L. |
 | [`entry_wedge_riser_outside.stl`](../helix/stl/entry_wedge_riser_outside.stl) | 24 KB | 25.4 × 57.2 × 32.0 (1.00 × 2.25 × 1.26) | ″ | ″ |
 | [`cork_to_plywood_transition_shim.stl`](../helix/stl/cork_to_plywood_transition_shim.stl) | 68 KB | 50.8 × 88.9 × 15.5 (2.00 × 3.50 × 0.61) | none kept | The “offset bracket” under P1: low foot 0.375 (tongue), high foot 0.611 (P1). Sits in a ~0.300 deep deck pocket. |
-| [`corner_spacer_P1.stl`](../helix/stl/corner_spacer_P1.stl) | 28 KB | 15.9 × 15.9 × 9.6 (0.62 × 0.62 × 0.38) | [`make_corner_offset_spacer.py`](../helix/scripts/make_corner_offset_spacer.py) | Barrel under each P1 wing corner, 0.376 tall (0.311 + 1.65 mm field correction), 5/8 OD. Print 2 at 100% infill. |
+| [`corner_spacer_P1.stl`](../helix/stl/corner_spacer_P1.stl) | 28 KB | 15.9 × 15.9 × 7.9 (0.62 × 0.62 × 0.31) | [`make_corner_offset_spacer.py`](../helix/scripts/make_corner_offset_spacer.py) | Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first. |
 
 ### Brackets
 
@@ -71,6 +71,16 @@
 |---|---|---|---|---|
 | [`bracket_edge_shim.stl`](../helix/stl/bracket_edge_shim.stl) | 13 KB | 7.0 × 38.1 × 15.9 (0.27 × 1.50 × 0.63) | [`make_bracket_edge_shim.py`](../helix/scripts/make_bracket_edge_shim.py) | Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed. |
 | [`bracket_plumb_shim.stl`](../helix/stl/bracket_plumb_shim.stl) | 2 KB | 88.9 × 15.7 × 0.6 (3.50 × 0.62 × 0.02) | [`make_bracket_plumb_shim.py`](../helix/scripts/make_bracket_plumb_shim.py) | Tapered strip (0.20 → 0.56 mm) for the sideways lean from grade. Notched edge uphill. One per bracket. |
+
+### Field fit
+
+| File | Size | Extents mm (in) | Script | Notes |
+|---|---|---|---|---|
+| [`bracket_wedge_gap_1_64.stl`](../helix/stl/bracket_wedge_gap_1_64.stl) | 2 KB | 88.9 × 0.8 × 15.7 (3.50 × 0.03 × 0.62) | [`make_bracket_wedges.py`](../helix/scripts/make_bracket_wedges.py) | Tapered wedges for a gap between a bracket leg and its post. Notches show the gap in 64ths. |
+| [`bracket_wedge_gap_2_64.stl`](../helix/stl/bracket_wedge_gap_2_64.stl) | 3 KB | 88.9 × 1.2 × 15.7 (3.50 × 0.05 × 0.62) | ″ | ″ |
+| [`bracket_wedge_gap_3_64.stl`](../helix/stl/bracket_wedge_gap_3_64.stl) | 4 KB | 88.9 × 1.5 × 15.7 (3.50 × 0.06 × 0.62) | ″ | ″ |
+| [`bracket_wedge_gap_4_64.stl`](../helix/stl/bracket_wedge_gap_4_64.stl) | 5 KB | 88.9 × 1.9 × 15.7 (3.50 × 0.07 × 0.62) | ″ | ″ |
+| [`rail_spacer_4in_pitch_vase.stl`](../helix/stl/rail_spacer_4in_pitch_vase.stl) | 274 KB | 38.1 × 38.1 × 80.4 (1.50 × 1.50 × 3.17) | [`make_rail_spacer_vase.py`](../helix/scripts/make_rail_spacer_vase.py) | Railhead-to-underside spacer for the outside track, 3.120 in with track height 0.160 in. Spiral vase. |
 
 ### Shop tool
 
@@ -80,4 +90,4 @@
 | [`router_sigerio_test_plate_body.stl`](../helix/stl/router_sigerio_test_plate_body.stl) | 440 KB | 152.4 × 152.4 × 4.8 (6.00 × 6.00 × 0.19) | ″ | ″ |
 | [`router_sigerio_test_plate_screw_rings.stl`](../helix/stl/router_sigerio_test_plate_screw_rings.stl) | 563 KB | 98.9 × 98.9 × 4.8 (3.89 × 3.89 × 0.19) | ″ | ″ |
 
-Obsolete, not published: `bracket_pocket_template.stl`, `entry_transition_shim.stl`, `entry_transition_shim_inside.stl`, `entry_transition_shim_outside.stl`, `entry_wedge_riser.stl`.
+Obsolete, not published: `corner_spacer_P1_new.stl`, `bracket_pocket_template.stl`, `entry_transition_shim.stl`, `entry_transition_shim_inside.stl`, `entry_transition_shim_outside.stl`, `entry_wedge_riser.stl`.

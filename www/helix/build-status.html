@@ -37,7 +37,7 @@
 <h2>HART Railroad — Neville Island Helix: Build Status</h2>
 <p><strong>Last updated 2026-10-15.</strong> This is the single living status document. <strong>Update it in place; don't start new addenda.</strong> It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in <code>superseded/addenda_2026-09-30_to_10-13/</code> if the history is ever needed.</p>
 <p><strong>Read in this order:</strong>
-1. <a href="files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf"><code>helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf</code></a>: fabrication drawings. Its entry pages (2, 3, 8) are stale; see §8. <strong>Page 13 is the half-lap screw template</strong> (added 2026-10-15; same as <a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a>).
+1. <a href="files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf"><code>helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf</code></a>: fabrication drawings. Entry pages 2, 3 and 8 were redrawn from §1 on 2026-10-22 (<code>make_entry_pages.py</code>). <strong>Page 13 is the half-lap screw template</strong> (added 2026-10-15; same as <a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a>).
 2. <a href="files/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md"><code>HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md</code></a>: design rationale, alternatives, formulas.
 3. <strong>This file:</strong> as-built facts, decisions that override the two above, every fixture and script, and open items. <strong>Where this file conflicts with the PDF or the FINAL handoff, this file wins.</strong></p>
 <p>Unless marked <em>tested</em>, the fixtures here are verified only in software (watertight, single body, sections checked).</p>
@@ -75,7 +75,7 @@
 <li>The cookie-cut tongue: <strong>5-3/8 in straight</strong> (inner and outer tracks the same) + a curve starting at <strong>4:30</strong> on the 26 in radius, with the existing track and 6 mm cork. The tongue is a <strong>liftout</strong>.</li>
 <li>At the butt joint the <strong>railheads are continuous</strong>: the tongue plywood is 0.236 in lower than P1, and the cork makes up the difference.</li>
 <li>The tongue is held by <code>entry_wedge_riser_inside/outside.stl</code> (§4). P1 sits on <a href="stl/cork_to_plywood_transition_shim.stl"><code>cork_to_plywood_transition_shim.stl</code></a> (the user calls it the "offset bracket"), which sits in a pocket cut into the deck. <a href="stl/corner_spacer_P1.stl"><code>corner_spacer_P1.stl</code></a> goes under P1's two wing corners.</li>
-<li><strong>Clearance under loop 1 over the approach:</strong> 3.12 in at the butt joint. If the tongue is a straight ramp, it drops to about <strong>3.06 in</strong> at the curve start (inner track 28 in: tongue ≈ 2.09% vs helix 2.27%; outer 30.5 in: ≈ 1.94% vs 2.09%). Cork doesn't reduce it because the railheads are continuous. Field check: <strong>loop-1 underside above the deck = 4.311 − (degrees back from the butt joint ÷ 90) in</strong>; subtract the measured railhead height at that spot.</li>
+<li><strong>Clearance under loop 1 over the approach:</strong> 3.12 in at the butt joint. The tongue plywood rises 0.795 in to the butt joint (1.031 − 0.236), so as a straight ramp it climbs about <strong>2.91%</strong> on the inner track and <strong>2.71%</strong> on the outer, steeper than the helix (2.27% / 2.09%). The gap therefore opens up toward 4:30 and the <strong>butt joint is the minimum</strong>. (Corrected 2026-10-22: the earlier 3.06 in figure assumed a tongue shallower than the helix.) Cork doesn't reduce it because the railheads are continuous. Field check: <strong>loop-1 underside above the deck = 4.311 − (degrees back from the butt joint ÷ 90) in</strong>; subtract the measured railhead height at that spot.</li>
 <li>Old deck-height chain (-15 in baseline, GRADE 0.02176): rise to nominal 6:00 = 5.375 × 0.02176 + 0.500. This is history only; the height stack (above) is authoritative.</li>
 </ul>
 <h3>Exit</h3>
@@ -268,12 +268,17 @@
 <tr>
 <td><a href="stl/layer_spacer_4in_pitch_vase.stl"><code>layer_spacer_4in_pitch_vase.stl</code></a></td>
 <td><a href="scripts/make_layer_spacer_vase.py"><code>make_layer_spacer_vase.py</code></a></td>
-<td>Same envelope, <strong>spiral vase</strong>. Solid with a 1-turn 0.1 mm spiral slit, so a 3-line (~1.95 mm) wall from one path, ~10 g. Vase on, bottom 3–4 layers, <strong>slice gap closing radius 0.01</strong>, outer line 0.45 (<code>LINE_W</code>).</td>
+<td>Same envelope, <strong>spiral vase</strong>. Solid with a 1-turn 0.1 mm spiral slit, so a 3-line (~1.95 mm) wall from one path, ~10 g. Vase on, bottom 3–4 layers, <strong>slice gap closing radius 0.01</strong>, outer line 0.45 (<code>LINE_W</code>). <strong>2026-10-18:</strong> 10 mm fillet where the flare meets the cylinder (cracks started there); same 1.5 in foot and 1/4 in flare height. Old files in <code>superseded/</code>.</td>
 </tr>
 <tr>
 <td><a href="stl/layer_spacer_4in_pitch_vase_1line.stl"><code>layer_spacer_4in_pitch_vase_1line.stl</code></a></td>
 <td>same</td>
-<td>Plain single-line vase, ~4 g, weakest.</td>
+<td>Plain single-line vase, ~4 g, weakest. <strong>2026-10-18:</strong> same fillet plus 4 radial gusset slits through the flare, up to ~15.5 mm; now also needs gap closing radius 0.01.</td>
+</tr>
+<tr>
+<td><a href="stl/rail_spacer_4in_pitch_vase.stl"><code>rail_spacer_4in_pitch_vase.stl</code></a></td>
+<td><a href="scripts/make_rail_spacer_vase.py"><code>make_rail_spacer_vase.py</code></a></td>
+<td><strong>Railhead</strong> version for the outside track (2026-10-18): railhead to the underside above = 4.000 − 0.72 − T = <strong>3.120 in</strong> with T = 0.160 nominal (<strong>caliper T and re-run</strong>). The 1-line vase body (fillet + gussets) with two 1.8 × 1.2 mm grooves 16.5 mm gauge + 1 mm head, open ends; the groove roofs sit on the railheads. Vase on, <strong>bottom shell layers 15 (≥ 3 mm)</strong> so the grooves and their roof print as solid layers before the spiral starts; gap closing radius 0.01; elephant foot compensation on. Not test-printed yet.</td>
 </tr>
 </tbody>
 </table>
@@ -324,6 +329,11 @@
 <td><a href="scripts/make_bracket_plumb_shim.py"><code>make_bracket_plumb_shim.py</code></a></td>
 <td><strong>Brackets lean sideways with the grade.</strong> Strip tapered across its width, 0.20 → 0.56 mm (grade 2.29% × 0.62). <strong>Notched (thick) edge uphill.</strong> Fits the pocket's 0.35 mm slack. Prints flat, 0.2 first layer, 0.08–0.1 after. One per bracket.</td>
 </tr>
+<tr>
+<td><code>bracket_wedge_gap_{1,2,3,4}_64.stl</code></td>
+<td><a href="scripts/make_bracket_wedges.py"><code>make_bracket_wedges.py</code></a></td>
+<td>For a <strong>gap between the leg and the post</strong> (a bend that isn't square, or a roadbed tilted across its width). Taper along the length; notches = gap in 64ths. Bottom of the leg off the post: thick end toward the tip. Top off: thick end toward the post. Set the height by the roadbed top.</td>
+</tr>
 </tbody>
 </table>
 <h3>Paper</h3>
@@ -345,8 +355,7 @@
 </ul>
 <h2>6. Regenerating</h2>
 <ul>
-<li>Scripts run from <code>~/Downloads/stl</code> with <code>python &lt;script&gt;.py</code>. There's no global trimesh; make a venv with:
-  <code>numpy trimesh manifold3d shapely mapbox_earcut scipy rtree networkx matplotlib pymupdf pypdf</code></li>
+<li>Scripts live in <code>www/helix/scripts/</code>. Use the repo environment: <code>pip install -r requirements.txt</code> into <code>.venv</code>, then <code>.venv/bin/python www/helix/scripts/&lt;script&gt;.py --out &lt;folder&gt;</code>.</li>
 <li>Run with <code>PYTHONDONTWRITEBYTECODE=1</code> to keep <code>__pycache__</code> out of the folder.</li>
 </ul>
 <h2>7. Process lessons</h2>
@@ -359,13 +368,13 @@
 </ul>
 <h2>8. Open items</h2>
 <ol>
-<li><strong>PDF entry pages (2, 3, 8)</strong> still assume a 6 in straight and the old Post 1 reference. Regenerate them from §1 (5-3/8 straight, butt-joint grid, height stack), and redo the exit table.</li>
+<li>~~PDF entry pages (2, 3, 8)~~ <strong>Done 2026-10-22:</strong> redrawn from §1 by <code>make_entry_pages.py</code> (5-3/8 straight, butt-joint grid, height stack, new exit table).</li>
 <li><strong>Exit straight plan-view direction</strong> vs the lower loop: needs a field answer.</li>
 <li><strong>Corner spacer:</strong> the 0.311 prints were 1.65 mm short, so it's now 0.376 (2026-10-15). The stack predicts 0.311, so find where the extra 1.65 mm comes from before it shows up somewhere else. The user saw the outside reading higher. By design inside and outside are equal at the same angle, so check the table, the tongue risers and the shim seat. Make inside/outside versions if they really differ.</li>
 <li><strong>Frame vs pockets:</strong> dry-fit, take the 8 A/B readings (§2), and send them in for a rotate/translate/scale fit.</li>
 <li>Measure the shortest UTRUSTTO cutter (1/2 vs 25/64).</li>
 <li>Caliper the actual track height T (0.160 assumed) before clearance sign-off.</li>
-<li>First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, the vase spacers (check the coil in the preview), wedges and plumb shims.</li>
+<li>First physical tests not yet reported: lap/pocket templates in scrap, the MID template, the depth block wells, the 3MF modifier import, wedges and plumb shims.</li>
 <li>Nesting spacing (9 in vs 8.611/8.918): decide, then add it to the PDF.</li>
 <li>Delete the obsolete STLs listed in §4 once the user agrees.</li>
 <li>Router adapter: verify the hole sizes against the real router and jig.</li>

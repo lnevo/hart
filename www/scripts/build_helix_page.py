@@ -1,6 +1,6 @@
 """Publish the Neville Island helix package into the ops portal (helix/).
 
-Reads ~/Downloads/stl. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
+Reads printed STLs from ~/Downloads/stl and documents from docs/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
 """
 import html, os, re, shutil, sys
 import markdown, trimesh
@@ -8,6 +8,7 @@ import markdown, trimesh
 SRC = os.path.expanduser('~/Downloads/stl')
 PORTAL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(PORTAL, 'helix')
+DOCS = os.path.join(os.path.dirname(PORTAL), 'docs', 'helix')
 PLAN = 'helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf'
 STATUS = 'HART_Neville_Helix_BUILD_STATUS.md'
 HANDOFF = 'HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md'
@@ -47,12 +48,17 @@ GROUPS = [
         (['bracket_edge_shim.stl'], 'make_bracket_edge_shim.py', 'Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed.'),
         (['bracket_plumb_shim.stl'], 'make_bracket_plumb_shim.py', 'Tapered strip (0.20 → 0.56 mm) for the sideways lean from grade. Notched edge uphill. One per bracket.'),
     ]),
+    ('Field fit', [
+        (['bracket_wedge_gap_1_64.stl', 'bracket_wedge_gap_2_64.stl', 'bracket_wedge_gap_3_64.stl', 'bracket_wedge_gap_4_64.stl'],
+         'make_bracket_wedges.py', 'Tapered wedges for a gap between a bracket leg and its post. Notches show the gap in 64ths.'),
+        (['rail_spacer_4in_pitch_vase.stl'], 'make_rail_spacer_vase.py', 'Railhead-to-underside spacer for the outside track, 3.120 in with track height 0.160 in. Spiral vase.'),
+    ]),
     ('Shop tool', [
         (['router_sigerio_test_plate.stl', 'router_sigerio_test_plate_body.stl', 'router_sigerio_test_plate_screw_rings.stl'],
          None, 'MW104 router to Sigerio circle-jig adapter, test plate. Hole sizes and center bore are estimates.'),
     ]),
 ]
-OBSOLETE = ['bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_transition_shim_inside.stl',
+OBSOLETE = ['corner_spacer_P1_new.stl', 'bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_transition_shim_inside.stl',
             'entry_transition_shim_outside.stl', 'entry_wedge_riser.stl']
 EXTRA_SCRIPTS = ['router_template_lattice.py', 'stl_text.py', 'make_lap_screw_template.py']
 
@@ -70,10 +76,7 @@ def dims(path):
 
 
 def main():
-    if os.path.exists(OUT):
-        shutil.rmtree(OUT)
-    for d in ('stl', 'scripts', 'files'):
-        os.makedirs(os.path.join(OUT, d))
+    os.makedirs(os.path.join(OUT, 'stl'), exist_ok=True)
 
     # Check that every current STL is classified.
     listed = {f for _, rows in GROUPS for files, _, _ in rows for f in files}
@@ -83,11 +86,7 @@ def main():
     if missing or gone:
         sys.exit(f'unclassified: {sorted(missing)}  missing: {sorted(gone)}')
 
-    for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
-        shutil.copy2(os.path.join(SRC, f), os.path.join(OUT, 'files', f))
     scripts = sorted({s for _, rows in GROUPS for _, s, _ in rows if s} | set(EXTRA_SCRIPTS))
-    for s in scripts:
-        shutil.copy2(os.path.join(SRC, s), os.path.join(OUT, 'scripts', s))
 
     published = {}
     for f in sorted(listed):
@@ -131,7 +130,7 @@ def main():
                 md.append(f'| [`{f}`](../helix/stl/{f}) | {sz} | {ext} | {s} | {nt} |')
 
     # Build status page, with backticked filenames linked to the published copies.
-    text = open(os.path.join(SRC, STATUS)).read()
+    text = open(os.path.join(DOCS, STATUS)).read()
     body = markdown.markdown(text, extensions=['tables', 'sane_lists'])
     body = re.sub(r'<(/?)h1>', r'<\1h2>', body)  # the page head carries the one h1
 

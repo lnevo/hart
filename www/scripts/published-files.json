@@ -20,5 +20,9 @@
   "build/files/main-level-lumber-cut-list.html": "benchwork/main_level/lumber_cut_list.html",
   "build/files/main-level-marking-sheets.pdf": "benchwork/main_level/main_level_marking_sheets.pdf",
   "build/files/staging-level-framing.pdf": "benchwork/staging_level/staging_level_framing.pdf",
-  "docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf": "docs/ops/STRR Speed Match-Measure Table SOP Rev2.pdf"
+  "docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf": "docs/ops/STRR Speed Match-Measure Table SOP Rev2.pdf",
+  "helix/files/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md": "docs/helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md",
+  "helix/files/HART_Neville_Helix_BUILD_STATUS.md": "docs/helix/HART_Neville_Helix_BUILD_STATUS.md",
+  "helix/files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf": "docs/helix/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf",
+  "helix/files/lap_screw_template.pdf": "docs/helix/lap_screw_template.pdf"
 }

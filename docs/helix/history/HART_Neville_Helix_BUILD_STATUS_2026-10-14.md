@@ -1,9 +1,9 @@
 # HART Railroad — Neville Island Helix: Build Status
 
-**Last updated 2026-10-15.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `superseded/addenda_2026-09-30_to_10-13/` if the history is ever needed.
+**Last updated 2026-10-14.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `superseded/addenda_2026-09-30_to_10-13/` if the history is ever needed.
 
 **Read in this order:**
-1. `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf`: fabrication drawings. Entry pages 2, 3 and 8 were redrawn from §1 on 2026-10-22 (`make_entry_pages.py`). **Page 13 is the half-lap screw template** (added 2026-10-15; same as `lap_screw_template.pdf`).
+1. `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf`: fabrication drawings. Its entry pages (2, 3, 8) are stale; see §8.
 2. `HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md`: design rationale, alternatives, formulas.
 3. **This file:** as-built facts, decisions that override the two above, every fixture and script, and open items. **Where this file conflicts with the PDF or the FINAL handoff, this file wins.**
 
@@ -16,7 +16,6 @@ Unless marked *tested*, the fixtures here are verified only in software (waterti
 ### Heights — use these for all math
 - **The height stack is definitive for the roadbed TOP.** `p1_height_template` = **1-1/32 in** (1.03125) above the -15 in deck at bracket 0, then **+1/2 in per 45°**. The user settled on 1-1/32 by test-fit on 2026-10-02 (1-1/16 was too high). The calculated value was 1.100.
 - **Plywood is 0.72 in measured.** Underside = top − 0.72 (0.311 in at P1). **Don't use a nominal 3/4.**
-- **P1 corner spacers are 0.376 in (9.56 mm), not 0.311.** The 0.311 prints came out 1.65 mm short of the deck-to-P1-underside gap (2026-10-15). The stack math still says 0.311, so the extra 1.65 mm is a measured field correction (`FIELD_ADD`). Its source isn't known yet (see §8 item 3).
 - **The first-loop piers** were sized as top − 3/4, so they're 0.03 in under the 0.72-based underside. The user checked: the wood lines up, and they stay as built.
 - **Grade and clearance:** a constant offset changes neither. Railhead-to-underside clearance in the helix = 4.000 − 0.72 − T = **3.12 in** with T = 0.160 (nominal Code 83; caliper the actual track).
 
@@ -40,7 +39,7 @@ Unless marked *tested*, the fixtures here are verified only in software (waterti
 - The cookie-cut tongue: **5-3/8 in straight** (inner and outer tracks the same) + a curve starting at **4:30** on the 26 in radius, with the existing track and 6 mm cork. The tongue is a **liftout**.
 - At the butt joint the **railheads are continuous**: the tongue plywood is 0.236 in lower than P1, and the cork makes up the difference.
 - The tongue is held by `entry_wedge_riser_inside/outside.stl` (§4). P1 sits on `cork_to_plywood_transition_shim.stl` (the user calls it the "offset bracket"), which sits in a pocket cut into the deck. `corner_spacer_P1.stl` goes under P1's two wing corners.
-- **Clearance under loop 1 over the approach:** 3.12 in at the butt joint. The tongue plywood rises 0.795 in to the butt joint (1.031 − 0.236), so as a straight ramp it climbs about **2.91%** on the inner track and **2.71%** on the outer, steeper than the helix (2.27% / 2.09%). The gap therefore opens up toward 4:30 and the **butt joint is the minimum**. (Corrected 2026-10-22: the earlier 3.06 in figure assumed a tongue shallower than the helix.) Cork doesn't reduce it because the railheads are continuous. Field check: **loop-1 underside above the deck = 4.311 − (degrees back from the butt joint ÷ 90) in**; subtract the measured railhead height at that spot.
+- **Clearance under loop 1 over the approach:** 3.12 in at the butt joint. If the tongue is a straight ramp, it drops to about **3.06 in** at the curve start (inner track 28 in: tongue ≈ 2.09% vs helix 2.27%; outer 30.5 in: ≈ 1.94% vs 2.09%). Cork doesn't reduce it because the railheads are continuous. Field check: **loop-1 underside above the deck = 4.311 − (degrees back from the butt joint ÷ 90) in**; subtract the measured railhead height at that spot.
 - Old deck-height chain (-15 in baseline, GRADE 0.02176): rise to nominal 6:00 = 5.375 × 0.02176 + 0.500. This is history only; the height stack (above) is authoritative.
 
 ### Exit
@@ -131,16 +130,17 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 |---|---|---|
 | `entry_wedge_riser_inside/outside.stl` | (none kept) | 1 × 2.25 in footprint, 1.261 tall. Step **0.864** (the chord-corrected calc says 0.859; not regenerated, and the P1 template already absorbs it). Engraved R / L. |
 | `cork_to_plywood_transition_shim.stl` | (none kept) | 2 in along the track × 3.5 radial. Low foot 0.375 (tongue), high foot 0.611 (P1); step 0.236. 2 countersunk holes per foot. Sits in a deck pocket that should be ~0.300 deep. |
-| `corner_spacer_P1.stl` | `make_corner_offset_spacer.py` | Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). **0.376 tall (9.56 mm)** = 0.311 + 1.65 mm field correction (`FIELD_ADD`; the 0.311 prints were short). 5/8 OD, 1/4 hole. Print 2 at 100% infill. |
+| `corner_spacer_P1.stl` | `make_corner_offset_spacer.py` | Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). **0.311 tall**, 5/8 OD, 1/4 hole. Print 2 at 100% infill. Measure the gap first (`P1_GAP`). |
 
 ### Brackets (Wideskall 4x4, 0.080 steel, 0.600 strap, 0.185 holes)
 | File(s) | Script | Notes |
 |---|---|---|
 | `bracket_edge_shim.stl` | `make_bracket_edge_shim.py` | Fills the gap between the 26 in edge and the 2x4 face above the bend. 0.62625 tall (0.72 − 3/32), 1.5 wide, 0.274 thick (r 26 curve vs the 2x4 face at r 25.7258), with a bracket notch. Also the radial gauge. 29 needed. Change `POST_FACE_R` if the posts are off. |
 | `bracket_plumb_shim.stl` | `make_bracket_plumb_shim.py` | **Brackets lean sideways with the grade.** Strip tapered across its width, 0.20 → 0.56 mm (grade 2.29% × 0.62). **Notched (thick) edge uphill.** Fits the pocket's 0.35 mm slack. Prints flat, 0.2 first layer, 0.08–0.1 after. One per bracket. |
+| `bracket_wedge_gap_{1,2,3,4}_64.stl` | `make_bracket_wedges.py` | For a **gap between the leg and the post** (a bend that isn't square, or a roadbed tilted across its width). Taper along the length; notches = gap in 64ths. Bottom of the leg off the post: thick end toward the tip. Top off: thick end toward the post. Set the height by the roadbed top. |
 
 ### Paper
-- `lap_screw_template.pdf` (`make_lap_screw_template.py`): US Letter, **print at 100%** (print only that page; it is also page 13 of the construction plan PDF), check the 2 in / 50 mm bars. Arc on the 26 in edge, seam line on the visible top seam (symmetric, either hand). Six screws at r 26.75 / 29.25 / 30.85, ±0.56 / 0.62 / 0.60 off the joint line, ≥ 3/16 from the pocket and ≥ 0.31 from the seams.
+- `lap_screw_template.pdf` (`make_lap_screw_template.py`): US Letter, **print at 100%**, check the 2 in / 50 mm bars. Arc on the 26 in edge, seam line on the visible top seam (symmetric, either hand). Six screws at r 26.75 / 29.25 / 30.85, ±0.56 / 0.62 / 0.60 off the joint line, ≥ 3/16 from the pocket and ≥ 0.31 from the seams.
 
 ### Shop tool
 - `router_sigerio_test_plate*.stl`: MW104 to Sigerio adapter **test** plate. 6 in, 8.32 mm. Router holes 90° countersunk, 3.000 in across the diagonal. Sigerio holes plain on a 4.5 in circle. Hole sizes (0.22, 0.25) and center bore (1.75) are estimates.
@@ -168,9 +168,9 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 - After overwriting an STL, remind the user to use **Reload from disk**.
 
 ## 8. Open items
-1. ~~PDF entry pages (2, 3, 8)~~ **Done 2026-10-22:** redrawn from §1 by `make_entry_pages.py` (5-3/8 straight, butt-joint grid, height stack, new exit table).
+1. **PDF entry pages (2, 3, 8)** still assume a 6 in straight and the old Post 1 reference. Regenerate them from §1 (5-3/8 straight, butt-joint grid, height stack), and redo the exit table.
 2. **Exit straight plan-view direction** vs the lower loop: needs a field answer.
-3. **Corner spacer:** the 0.311 prints were 1.65 mm short, so it's now 0.376 (2026-10-15). The stack predicts 0.311, so find where the extra 1.65 mm comes from before it shows up somewhere else. The user saw the outside reading higher. By design inside and outside are equal at the same angle, so check the table, the tongue risers and the shim seat. Make inside/outside versions if they really differ.
+3. **Corner spacer:** measure deck-to-P1-underside at both corners (0.311 assumed). The user saw the outside reading higher. By design inside and outside are equal at the same angle, so check the table, the tongue risers and the shim seat. Make inside/outside versions if they really differ.
 4. **Frame vs pockets:** dry-fit, take the 8 A/B readings (§2), and send them in for a rotate/translate/scale fit.
 5. Measure the shortest UTRUSTTO cutter (1/2 vs 25/64).
 6. Caliper the actual track height T (0.160 assumed) before clearance sign-off.

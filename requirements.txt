@@ -13,14 +13,20 @@ Pillow==13.0.0
 # MQTT train simulator (tools/mqtt-mimic)
 paho-mqtt==2.1.0
 
-# Benchwork drawings and helix parts
+# Benchwork drawings and helix parts. trimesh needs earcut, scipy, rtree and
+# networkx at run time even though no script imports them.
 reportlab==5.1.0
 shapely==2.2.0
 numpy==2.5.4
 trimesh==5.2.0
 matplotlib==3.11.2
 manifold3d==3.5.4
+mapbox_earcut==2.1.0
+scipy==1.18.1
+rtree==1.4.1
+networkx==3.7
 PyMuPDF==2.0
+pypdf==6.21.4
 
 # Website helix page
 Markdown==3.11.2
