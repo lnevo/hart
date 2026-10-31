@@ -6,9 +6,9 @@ Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appear
 
 ## Inputs
 
-- [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv) (3 pins per disc)
-- [`cats/data/signal_head_plan.csv`](../../cats/data/signal_head_plan.csv)
-- [`cats/data/signal_mast_plan.csv`](../../cats/data/signal_mast_plan.csv)
+- [`docs/wiring/signals/signal_wiring.csv`](../../docs/wiring/signals/signal_wiring.csv) (3 pins per disc)
+- [`docs/wiring/signals/signal_head_plan.csv`](../../docs/wiring/signals/signal_head_plan.csv)
+- [`docs/wiring/signals/signal_mast_plan.csv`](../../docs/wiring/signals/signal_mast_plan.csv)
 
 Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `IH432`).
 
@@ -19,7 +19,7 @@ Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `
 ## Run
 
 ```bash
-python3 cats/scripts/build_hart_signal_heads.py
+python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py
 ```
 
 Facing / SML chaining: [`cats/docs/SIGNAL_FACING.md`](../../cats/docs/SIGNAL_FACING.md). Decision: [`../decisions/ADR-011-co-1980-signals.md`](../decisions/ADR-006-co-1980-signals.md).

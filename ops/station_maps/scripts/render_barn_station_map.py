@@ -8,7 +8,7 @@ a straight line to the EH-1 horizontal.
 
 Print size matches the other local sheets: 8 in × 5 in (1600×1000 at 200 dpi).
 
-    python3 cats/scripts/render_barn_station_map.py
+    python3 ops/station_maps/scripts/render_barn_station_map.py
 """
 
 from __future__ import annotations
@@ -21,8 +21,8 @@ from xml.etree import ElementTree as ET
 
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path(__file__).resolve().parents[2]
-OUT_CATS = ROOT / "cats/docs/station_maps/Neville_Island_Station_Map_Barn_0.png"
+ROOT = Path(__file__).resolve().parents[3]
+OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_Barn_0.png"
 OUT_PORTAL = ROOT / "www/assets/maps/station_map_barn.png"
 HOPS = ROOT / "external/hart-ops"
 DOCX_NAME = "Neville_Island_Station_Map_Barn.docx"

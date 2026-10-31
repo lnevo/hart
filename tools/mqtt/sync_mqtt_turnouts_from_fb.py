@@ -10,8 +10,8 @@ retain from sensors only — it does not command turnout motors.
 
 Skips Switch 13/7/11/9 (DCC 116–119 — yard / engine-house, not FB-driven Digicon SoR).
 
-    python3 cats/scripts/sync_mqtt_turnouts_from_fb.py
-    python3 cats/scripts/sync_mqtt_turnouts_from_fb.py --dry-run
+    python3 tools/mqtt/sync_mqtt_turnouts_from_fb.py
+    python3 tools/mqtt/sync_mqtt_turnouts_from_fb.py --dry-run
 """
 
 from __future__ import annotations

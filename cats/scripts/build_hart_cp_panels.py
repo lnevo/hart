@@ -697,7 +697,7 @@ def _write_index(results: list[tuple[str, str, str, Path, list[str], Path | None
         "Each panel is **one CP** drawn to the Neville station-map sheet language.",
         "Critique these individually before we reassemble the full Digicon.",
         "",
-        "Station maps: `cats/docs/station_maps/`",
+        "Station maps: `ops/station_maps/maps/`",
         "",
         "Rebuild: `python3 cats/scripts/build_hart_cp_panels.py`",
         "",

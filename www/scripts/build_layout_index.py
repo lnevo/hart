@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the www layout index from live repo data.
 
-Uses the same LE geometry + overview transform as cats/scripts/render_le_layout.py
+Uses the same LE geometry + overview transform as jmri/layouts/hart/scripts/render_le_layout.py
 so hotspot pixels align with assets/layout/HART_le_schematic.png.
 """
 
@@ -26,7 +26,7 @@ MAPS_SRC = ROOT / "external/hart-ops/publications/assets"
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
 MAPS_DST = PORTAL / "assets/maps"
-RENDER = ROOT / "cats/scripts/render_le_layout.py"
+RENDER = ROOT / "jmri/layouts/hart/scripts/render_le_layout.py"
 
 PAD = 34
 TOP = 78

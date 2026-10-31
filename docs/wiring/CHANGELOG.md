@@ -4,13 +4,13 @@ Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signa
 
 ## 2026-09-08 — C13 Barn motors on OU2; Digicon 8LA/8LB on OU3
 
-Switch **7 / 11 / 9** motors move from **C13-OU3** to **C13-OU2** (12V). Former OU2 Digicon (**8LA** T+B, **8LB** R/Y) moves to **OU3**; **8LB** G stays **OU4-7**. Switch **7 / 11 / 13** are **TWOSENSOR** (FB on C13 IN1 for 7/11, C4 IN1 for 13). Switch 9 stays DIRECT until FB is commissioned. `tables/new_tables.xml` + hart `output/tables.xml` updated from Pi store. Signal Manager plan regen: [`cats/data/lcos_signal_manager_config_plan.xlsx`](../../cats/data/lcos_signal_manager_config_plan.xlsx).
+Switch **7 / 11 / 9** motors move from **C13-OU3** to **C13-OU2** (12V). Former OU2 Digicon (**8LA** T+B, **8LB** R/Y) moves to **OU3**; **8LB** G stays **OU4-7**. Switch **7 / 11 / 13** are **TWOSENSOR** (FB on C13 IN1 for 7/11, C4 IN1 for 13). Switch 9 stays DIRECT until FB is commissioned. `tables/new_tables.xml` + hart `output/tables.xml` updated from Pi store. Signal Manager plan regen: [`docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`](../../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx).
 
 ## 2026-09-05 — Stop / Approach / Clear pin order (R then Y then G)
 
 Field wiring is consecutive increasing LCOS ports **Stop → Approach → Clear** (R/Y/G). Docs had Clear on the first pin and Stop on the last; Stop and Clear ports are swapped on every disc. Example: Node 4 Signal 0 (Mast 6LB T) is now Stop port 8 (C4-OU2-1), Approach 9, Clear 10 (C4-OU2-3). Packed MQTT IDs unchanged. `tables.xml` not patched.
 
-LCOS Signal Manager punch list: [`cats/data/lcos_signal_manager_config_plan.xlsx`](../../cats/data/lcos_signal_manager_config_plan.xlsx) — **Main** vs **Diverged**, and **OR Stop** vs **Approach**, per disc. Two-head top = Main/Stop; bottom = Diverged/Stop. Diverge dwarfs = Diverged/Stop. Balloon 2035/2036 = — / Approach.
+LCOS Signal Manager punch list: [`docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`](../../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx) — **Main** vs **Diverged**, and **OR Stop** vs **Approach**, per disc. Two-head top = Main/Stop; bottom = Diverged/Stop. Diverge dwarfs = Diverged/Stop. Balloon 2035/2036 = — / Approach.
 
 ## 2026-08-29 — Upper deck Switch 61+ / clear leftover S2
 

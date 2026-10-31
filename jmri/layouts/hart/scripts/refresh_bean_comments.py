@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from apply_public_names import RenameEntry, apply_renames_to_text
 
-SIGNAL_WIRING = ROOT / "cats/data/signal_wiring.csv"
+SIGNAL_WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
@@ -937,7 +937,7 @@ def main() -> int:
         ROOT / "cats/data",
         ROOT / "cats/scripts/archive/west_yard/wire_hart_sheet_west_yard2.py",
         ROOT / "cats/scripts/validate_cats_panel.py",
-        ROOT / "cats/scripts/apply_sml_cats_pairs.py",
+        ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py",
         ROOT / "cats/docs/DISPATCHER_GUIDE_CTC.md",
         ROOT / "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
         ROOT / "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",

@@ -3,7 +3,7 @@
 # host / SoR) TO Mac and Windows JMRI profiles for visibility/backup.
 #
 # Does not commit roster (decoder CVs) to git.
-# Usage: ./cats/scripts/sync_roster_ops_from_pi.sh [--mac] [--win] [--all]
+# Usage: ./tools/hosts/sync_roster_ops_from_pi.sh [--mac] [--win] [--all]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PI_HOST="${HART_PI_SSH:-pi}"
@@ -90,7 +90,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
     "$STAGE/operations/"*.xml "${WIN_HOST}:hart/_roster_stage/operations/"
   scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
-    "$ROOT/cats/scripts/win_install_roster_ops.ps1" "${WIN_HOST}:hart/_roster_stage/win_install_roster_ops.ps1"
+    "$ROOT/tools/hosts/win_install_roster_ops.ps1" "${WIN_HOST}:hart/_roster_stage/win_install_roster_ops.ps1"
   ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
     "powershell -NoProfile -ExecutionPolicy Bypass -File hart/_roster_stage/win_install_roster_ops.ps1"
 fi

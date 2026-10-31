@@ -68,7 +68,7 @@ if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
   python3 "$PANEL_AUDIT" --strict
 fi
 
-SML_GATE="$ROOT/cats/scripts/disable_digicon_sml_in_tables.py"
+SML_GATE="$ROOT/jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py"
 if [[ -n "$TABLES" && -f "$SML_GATE" ]]; then
   if [[ "$DRY_RUN" -eq 1 ]]; then
     python3 "$SML_GATE" --dry-run --panel "$TABLES"

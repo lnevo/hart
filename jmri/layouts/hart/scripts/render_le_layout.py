@@ -9,11 +9,11 @@ professional, zoomed control-point views.
 
 Usage:
     # whole layout
-    python3 cats/scripts/render_le_layout.py <panel.xml> <out.png>
+    python3 jmri/layouts/hart/scripts/render_le_layout.py <panel.xml> <out.png>
     # full professional view set into a directory
-    python3 cats/scripts/render_le_layout.py <panel.xml> --all-views <out_dir>
+    python3 jmri/layouts/hart/scripts/render_le_layout.py <panel.xml> --all-views <out_dir>
     # single custom window
-    python3 cats/scripts/render_le_layout.py <panel.xml> <out.png> \
+    python3 jmri/layouts/hart/scripts/render_le_layout.py <panel.xml> <out.png> \
         --title "West Yard" --xwin 440 630
 """
 

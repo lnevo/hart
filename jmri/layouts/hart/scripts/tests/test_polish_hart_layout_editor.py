@@ -21,7 +21,7 @@ def load_module(name: str, path: Path):
 polish = load_module("polish_hart_layout_editor", SCRIPTS / "polish_hart_layout_editor.py")
 icons = load_module(
     "add_digicon_le_signal_icons",
-    ROOT / "cats/scripts/add_digicon_le_signal_icons.py",
+    ROOT / "jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py",
 )
 
 

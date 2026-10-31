@@ -4,12 +4,12 @@
 Edits jmri/layouts/hart/output/tables.xml.
 Also patches hart_prod.xml in place (mast names + facing; not a full copy).
 
-Facing SoR: cats/data/le_signal_boundaries.csv
+Facing SoR: jmri/layouts/hart/data/le_signal_boundaries.csv
   turnout ident + A/B/C/D → child <signalAMast>…</signalAMast> (schema, not attributes)
   anchor ident + east/west → eastboundsignalmast / westboundsignalmast attributes
 
 Does not write SignalMastLogic pairs. After facing changes, run
-`python3 cats/scripts/apply_sml_cats_pairs.py` (stored occupancy/turnouts).
+`python3 jmri/layouts/hart/scripts/apply_sml_cats_pairs.py` (stored occupancy/turnouts).
 Do not re-run Discover — it wipes those lists and dests stay inactive.
 """
 
@@ -21,9 +21,9 @@ import re
 import shutil
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
-CSV_PATH = ROOT / "cats/data/le_signal_boundaries.csv"
+CSV_PATH = ROOT / "jmri/layouts/hart/data/le_signal_boundaries.csv"
 HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
 

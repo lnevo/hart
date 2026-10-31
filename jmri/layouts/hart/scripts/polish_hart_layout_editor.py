@@ -22,7 +22,7 @@ DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
-# Keep this list in sync with cats/scripts/add_digicon_le_signal_icons.py.
+# Keep this list in sync with jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py.
 # Horizontal masts follow the North American right-hand placement convention:
 # east-facing (90 degrees) below the rail, west-facing (270) above it.
 SIGNAL_PLACEMENTS: dict[str, tuple[int, int, int]] = {

@@ -30,8 +30,8 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-DATA = ROOT / "cats/data"
+ROOT = Path(__file__).resolve().parents[4]
+DATA = ROOT / "docs/wiring/signals"
 
 SKIP_HEAD: set[str] = set()
 SKIP_MAST: set[str] = set()

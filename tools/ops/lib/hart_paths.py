@@ -139,7 +139,7 @@ def path_hart_prod_xml() -> Path:
 
 
 def path_signal_wiring() -> Path:
-    return hart_runtime_root() / "cats/data/signal_wiring.csv"
+    return hart_runtime_root() / "docs/wiring/signals/signal_wiring.csv"
 
 
 def path_lcos_bridge() -> Path:

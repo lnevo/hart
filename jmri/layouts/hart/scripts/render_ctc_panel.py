@@ -10,7 +10,7 @@ first ladder rung, and each subsequent rung peels one track off the lead, so
 This is a schematic (CTC-machine) representation, not geographic geometry.
 
 Usage:
-    python3 cats/scripts/render_ctc_panel.py <out.png>
+    python3 jmri/layouts/hart/scripts/render_ctc_panel.py <out.png>
 """
 
 from __future__ import annotations

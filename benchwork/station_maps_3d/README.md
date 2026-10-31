@@ -1,10 +1,10 @@
 # 3D-printed station maps
 
 Multi-colour fascia plates that hold Touch Toggles. Barn is first; it follows
-`cats/scripts/render_barn_station_map.py`.
+`ops/station_maps/scripts/render_barn_station_map.py`.
 
 ```bash
-./cats/station_maps_3d/build.sh   # writes stl/barn_{white,black,teal,gold}.stl
+./benchwork/station_maps_3d/build.sh   # writes stl/barn_{white,black,teal,gold}.stl
 ```
 
 ## Printing (Spark i7 + 4-colour AMS, Creality Print)

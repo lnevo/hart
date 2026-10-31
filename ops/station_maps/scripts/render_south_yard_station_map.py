@@ -7,7 +7,7 @@ three-dot Barn xover. The compact ET stub is replaced with a shrunken
 Barn engine-house plant (EH-1 / EH-2 / EH-3). Switch 13 sits on Scale
 at that throat; the Barn block is the rail between 7 and 13.
 
-    python3 cats/scripts/render_south_yard_station_map.py
+    python3 ops/station_maps/scripts/render_south_yard_station_map.py
 """
 
 from __future__ import annotations
@@ -19,9 +19,9 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path(__file__).resolve().parents[2]
-SRC = ROOT / "cats/docs/station_maps/src/south_yard_sheet.png"
-OUT_CATS = ROOT / "cats/docs/station_maps/Neville_Island_Station_Map_South_Yard_0.png"
+ROOT = Path(__file__).resolve().parents[3]
+SRC = ROOT / "ops/station_maps/maps/src/south_yard_sheet.png"
+OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_South_Yard_0.png"
 OUT_PORTAL = ROOT / "www/assets/maps/station_map_south_yard.png"
 HOPS = ROOT / "external/hart-ops"
 DOCX_NAME = "Neville_Island_Station_Map_South_Yard.docx"

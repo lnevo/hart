@@ -10,10 +10,10 @@ Each step is also checked against JMRI layoutblock adjacency from hart_prod
 so you can relay the same move onto the Neville / JMRI panel.
 
 Usage:
-  cats/.venv/bin/python cats/scripts/sim_hart_train_mqtt.py
-  cats/.venv/bin/python cats/scripts/sim_hart_train_mqtt.py --routes main,princess,return
-  cats/.venv/bin/python cats/scripts/sim_hart_train_mqtt.py --list-routes
-  cats/.venv/bin/python cats/scripts/sim_hart_train_mqtt.py --clear-only
+  cats/.venv/bin/python tools/mqtt-mimic/sim_hart_train_mqtt.py
+  cats/.venv/bin/python tools/mqtt-mimic/sim_hart_train_mqtt.py --routes main,princess,return
+  cats/.venv/bin/python tools/mqtt-mimic/sim_hart_train_mqtt.py --list-routes
+  cats/.venv/bin/python tools/mqtt-mimic/sim_hart_train_mqtt.py --clear-only
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ try:
     import paho.mqtt.client as mqtt
 except ImportError as e:  # pragma: no cover
     raise SystemExit(
-        "paho-mqtt required. Use: cats/.venv/bin/python cats/scripts/sim_hart_train_mqtt.py\n"
+        "paho-mqtt required. Use: cats/.venv/bin/python tools/mqtt-mimic/sim_hart_train_mqtt.py\n"
         f"(import error: {e})"
     ) from e
 

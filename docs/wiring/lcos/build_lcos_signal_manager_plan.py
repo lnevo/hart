@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Refresh LCOS Signal Manager plan: Stop/Clear ports + Main/Diverged + OR.
 
-Reads cats/data/signal_wiring.csv (R/Y/G pins) and lcos_signal_logic.csv.
+Reads docs/wiring/signals/signal_wiring.csv (R/Y/G pins) and lcos_signal_logic.csv.
 Keeps plant/block notes already in the workbook; rewrites Port A/B/C from
 the live wiring (Stop = R pin, Approach = Y, Clear = G).
 """
@@ -15,7 +15,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 from openpyxl.styles import Font
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 DATA = ROOT / "cats/data"
 PLAN = DATA / "lcos_signal_manager_config_plan.xlsx"
 PORT_RE = re.compile(r"^C(\d+)-OU(\d+)-(\d+)$")

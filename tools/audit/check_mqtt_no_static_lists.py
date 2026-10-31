@@ -20,7 +20,7 @@ TARGETS_STRICT = [
 ]
 
 TARGETS_GUARD_OK = [
-    HART_ROOT / "cats/scripts/build_hart_signal_heads.py",
+    HART_ROOT / "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
 ]
 
 FORBIDDEN = (

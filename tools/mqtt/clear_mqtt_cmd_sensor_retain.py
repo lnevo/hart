@@ -11,7 +11,7 @@
 Does not touch track/sensor/{addr}, track/turnout/{addr}, or packed
 track/signalhead/<digits> status/set retain.
 
-    MQTT_HOST=minipc-e5h6x.local python3 cats/scripts/clear_mqtt_cmd_sensor_retain.py
+    MQTT_HOST=minipc-e5h6x.local python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
 """
 
 from __future__ import annotations

@@ -9,9 +9,9 @@ then replaces the South Yard + East End stub peels with map geometry:
   all S-1…S-5 share one east column (rectangle, not stairs)
 
 Visual SoR:
-  cats/docs/station_maps/Neville_Island_Station_Map_*.png
+  ops/station_maps/maps/Neville_Island_Station_Map_*.png
   cats/docs/vendor/fall_river_yard_crop.jpg
-  cats/docs/STATION_MAP_CTC.md
+  ops/station_maps/README.md
 
     python3 cats/scripts/build_hart_digicon_ctc.py --mqtt
     CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_ctc.xml

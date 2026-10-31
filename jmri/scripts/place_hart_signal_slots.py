@@ -10,7 +10,7 @@ from pathlib import Path
 
 HART = Path(__file__).resolve().parents[1] / "layouts" / "hart"
 PANEL = HART / "output" / "hart_prod.xml"
-PLAN = HART.parent.parent.parent / "cats" / "data" / "signal_mast_plan.csv"
+PLAN = HART.parent.parent.parent / "docs/wiring/signals/signal_mast_plan.csv"
 PREFIX = "SIG "
 
 

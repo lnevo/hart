@@ -23,7 +23,7 @@ Turnouts still use `track/cmd/turnout/{0}` and `track/turnout/{0}`.
 Do **not** put cleanup on `launch_cats.sh`. Launch must not publish, clear, or probe MQTT.
 
 ```bash
-python3 cats/scripts/clear_mqtt_cmd_sensor_retain.py
+python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
 ```
 
 Clears `track/cmd/sensor/#`, bare numeric ACTIVE/INACTIVE roots, and leftover `_discard/cmd/sensor/#`. Leaves `track/sensor/#` and `track/turnout/#` status retain alone.

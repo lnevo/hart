@@ -10,9 +10,9 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 
 ## Inputs
 
-- LE mast bindings + [`cats/data/le_signal_boundaries.csv`](../../cats/data/le_signal_boundaries.csv)
+- LE mast bindings + [`jmri/layouts/hart/data/le_signal_boundaries.csv`](../../jmri/layouts/hart/data/le_signal_boundaries.csv)
 - Frozen NX ids: [`jmri/layouts/hart/scripts/nx_contract.py`](../../jmri/layouts/hart/scripts/nx_contract.py)
-- Facing: `python3 cats/scripts/apply_le_sml_facing.py`
+- Facing: `python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py`
 - Stub `END_BUMPER` far-slot hack (keep): [`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md)
 
 ## Outputs
@@ -24,10 +24,10 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 
 ```bash
 # PanelPro, not CATS. Modal dialogs — do not hide them.
-./cats/scripts/run_sml_discover.sh
-# wrapper also: python3 cats/scripts/disable_digicon_sml_in_tables.py
-./cats/scripts/run_nx_discover.sh   # if NX needs a refresh
-python3 cats/scripts/validate_le_signalling.py
+./jmri/layouts/hart/scripts/run_sml_discover.sh
+# wrapper also: python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py
+./jmri/layouts/hart/scripts/run_nx_discover.sh   # if NX needs a refresh
+python3 jmri/layouts/hart/scripts/validate_le_signalling.py
 ```
 
 After Discover, re-add manual Princess pairs (`Mast 36RA→Mast 40LA`, `Mast 36RB→Mast 38LA`). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.

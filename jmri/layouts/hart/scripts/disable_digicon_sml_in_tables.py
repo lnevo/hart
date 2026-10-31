@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """Store Digicon SignalMastLogic destination pairs as disabled in tables.
 
-Digicon field masts (cats/data/signal_wiring.csv) boot with SML Enabled=no so
+Digicon field masts (docs/wiring/signals/signal_wiring.csv) boot with SML Enabled=no so
 JMRI does not run ABS until mqtt_signalhead_publisher.py takes Digicon control.
 Non-Digicon SML sources (yard / approach without LCOS IH heads) are left alone.
 
 Edits jmri/layouts/hart/output/tables.xml.
-Re-run after cats/scripts/run_sml_discover.sh (Discover writes enabled=yes).
+Re-run after jmri/layouts/hart/scripts/run_sml_discover.sh (Discover writes enabled=yes).
 Deploy (`sync_hart_package.sh`) calls this with `--panel` on the shipped tables.
 
 Usage:
-  python3 cats/scripts/disable_digicon_sml_in_tables.py
-  python3 cats/scripts/disable_digicon_sml_in_tables.py --dry-run
-  python3 cats/scripts/disable_digicon_sml_in_tables.py --check --panel path/to/tables.xml
+  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py
+  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --dry-run
+  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check --panel path/to/tables.xml
 """
 
 from __future__ import annotations
@@ -23,8 +23,8 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-WIRING = ROOT / "cats/data/signal_wiring.csv"
+ROOT = Path(__file__).resolve().parents[4]
+WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 NEW_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 _LOGIC_RE = re.compile(
@@ -131,7 +131,7 @@ def main() -> None:
             if len(pairs) > 24:
                 print("  ... (%d more)" % (len(pairs) - 24), file=sys.stderr)
             print(
-                "Fix: python3 cats/scripts/disable_digicon_sml_in_tables.py",
+                "Fix: python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py",
                 file=sys.stderr,
             )
             raise SystemExit(1)

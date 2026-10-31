@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# One-shot PanelPro SML Discover → store tables.xml, then quit.
-# Refuses if CATS/PanelPro is already running (MQTT client-id).
+# One-shot PanelPro NX Discover (SML mode by default) → store tables.xml, then quit.
+# Full interlock: HART_NX_LOCK=1. Refuses if CATS/PanelPro is already running (MQTT client-id).
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 PROFILE_ID="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 PROFILE_XML="${JMRI_PROFILE_XML:-$HOME/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml}"
 TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
-SCRIPT="$ROOT/jmri/layouts/hart/scripts/discover_sml.py"
+SCRIPT="$ROOT/jmri/layouts/hart/scripts/discover_nx.py"
 PATCH="$ROOT/cats/scripts/patch_jmri_startup.py"
-MARKER="${HART_SML_DISCOVER_MARKER:-/tmp/hart_sml_discover.done}"
+MARKER="${HART_NX_DISCOVER_MARKER:-/tmp/hart_nx_discover.done}"
 STARTJMRI="$JMRI_HOME/PanelPro.app/Contents/MacOS/StartJMRI"
 
 if [[ ! -f "$PROFILE_XML" ]]; then
@@ -21,7 +21,7 @@ if [[ ! -x "$STARTJMRI" ]]; then
   exit 1
 fi
 if pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
-  echo "Quit CATS/PanelPro first — SML Discover needs this profile alone." >&2
+  echo "Quit CATS/PanelPro first — NX Discover needs this profile alone." >&2
   exit 1
 fi
 
@@ -51,11 +51,13 @@ trap restore EXIT
 python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after mqtt_signalhead_publisher.py
 rm -f "$MARKER"
 
-export HART_SML_DISCOVER_STORE=1
-export HART_SML_DISCOVER_EXIT=1
-export HART_SML_DISCOVER_MARKER="$MARKER"
-export HART_SML_DISCOVER_FILE="$TABLES"
-export HART_SML_DISCOVER_WAIT="${HART_SML_DISCOVER_WAIT:-180}"
+export HART_NX_DISCOVER_STORE=1
+export HART_NX_DISCOVER_EXIT=1
+export HART_NX_DISCOVER_MARKER="$MARKER"
+export HART_NX_DISCOVER_FILE="$TABLES"
+export HART_NX_DISCOVER_WAIT="${HART_NX_DISCOVER_WAIT:-180}"
+export HART_NX_SMOKE="${HART_NX_SMOKE:-1}"
+export HART_NX_THROW="${HART_NX_THROW:-}"
 
 if [[ -z "${JAVA_HOME:-}" ]]; then
   for ver in 21 17 11; do
@@ -66,40 +68,39 @@ if [[ -z "${JAVA_HOME:-}" ]]; then
   done
 fi
 
-echo "Launching PanelPro for SML Discover (MQTT to minipc)..."
-"$STARTJMRI" -p "$PROFILE_ID" >/tmp/hart_sml_discover_panelpro.log 2>&1 &
+echo "Launching PanelPro for NX Discover (MQTT to minipc)..."
+"$STARTJMRI" -p "$PROFILE_ID" >/tmp/hart_nx_discover_panelpro.log 2>&1 &
 JPID=$!
 
-deadline=$((SECONDS + ${HART_SML_DISCOVER_WAIT:-180} + 60))
+deadline=$((SECONDS + ${HART_NX_DISCOVER_WAIT:-180} + 60))
 while (( SECONDS < deadline )); do
   if [[ -f "$MARKER" ]]; then
     break
   fi
   if ! kill -0 "$JPID" 2>/dev/null; then
-    echo "PanelPro exited before Discover finished. Log: /tmp/hart_sml_discover_panelpro.log" >&2
-    tail -40 /tmp/hart_sml_discover_panelpro.log >&2 || true
+    echo "PanelPro exited before NX Discover finished. Log: /tmp/hart_nx_discover_panelpro.log" >&2
+    tail -40 /tmp/hart_nx_discover_panelpro.log >&2 || true
     exit 1
   fi
   sleep 2
 done
 
 if [[ ! -f "$MARKER" ]]; then
-  echo "Discover timed out. Log: /tmp/hart_sml_discover_panelpro.log" >&2
-  tail -40 /tmp/hart_sml_discover_panelpro.log >&2 || true
+  echo "NX Discover timed out. Log: /tmp/hart_nx_discover_panelpro.log" >&2
+  tail -40 /tmp/hart_nx_discover_panelpro.log >&2 || true
   kill "$JPID" 2>/dev/null || true
   exit 1
 fi
 
 status=$(head -1 "$MARKER")
 detail=$(sed -n '2p' "$MARKER")
-echo "Discover $status $detail"
+echo "NX Discover $status $detail"
 if [[ "$status" != "ok" ]]; then
-  tail -60 /tmp/hart_sml_discover_panelpro.log >&2 || true
+  tail -80 /tmp/hart_nx_discover_panelpro.log >&2 || true
   kill "$JPID" 2>/dev/null || true
   exit 1
 fi
 
-# EXIT=1 should have quit Java; don't leave a stray PanelPro.
 sleep 2
 if kill -0 "$JPID" 2>/dev/null; then
   kill "$JPID" 2>/dev/null || true
@@ -107,7 +108,4 @@ if kill -0 "$JPID" 2>/dev/null; then
   pkill -u "$(id -u)" -f 'java .*(apps\.PanelPro\.PanelPro)' >/dev/null 2>&1 || true
 fi
 
-# Discover stores Digicon dests Enabled; Digicon boot needs them Disabled until
-# mqtt_signalhead_publisher.py takes control.
-python3 "$ROOT/cats/scripts/disable_digicon_sml_in_tables.py"
 echo "DONE"

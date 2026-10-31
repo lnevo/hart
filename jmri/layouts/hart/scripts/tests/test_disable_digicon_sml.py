@@ -4,8 +4,8 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
-SCRIPT = ROOT / "cats/scripts/disable_digicon_sml_in_tables.py"
+ROOT = Path(__file__).resolve().parents[5]
+SCRIPT = ROOT / "jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py"
 NEW_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 

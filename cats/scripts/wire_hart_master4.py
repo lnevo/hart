@@ -525,7 +525,7 @@ def name_signals(tp: ET.Element) -> int:
 
 def mast_head_counts() -> dict[str, int]:
     """Packed-head count per mast userName from signal_wiring.csv."""
-    path = ROOT / "cats/data/signal_wiring.csv"
+    path = ROOT / "docs/wiring/signals/signal_wiring.csv"
     counts: dict[str, int] = {}
     with path.open(newline="") as f:
         for row in csv.DictReader(f):

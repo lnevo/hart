@@ -9,9 +9,9 @@ Serves a web UI on this Mac. Publishes to the same broker JMRI/LCOS use:
 Never publishes track/cmd/turnout (that commands motors). TWOSENSOR plants
 also flip FB N/R sensors so JMRI KnownState follows feedback.
 
-  python3 cats/scripts/lcos_mqtt_mimic.py
-  python3 cats/scripts/lcos_mqtt_mimic.py --mqtt-host 192.168.137.2 --http-port 8765
-  ./cats/scripts/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
+  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py
+  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host 192.168.137.2 --http-port 8765
+  ./tools/mqtt-mimic/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TABLES = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 NAME_MAP = ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
-HEAD_CSV = ROOT / "cats" / "data" / "signal_head_plan.csv"
+HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")
 
 MQTT_PORT = 1883

@@ -4,7 +4,7 @@
 
 | Kind | Live (read-only) | Consolidation |
 |------|------------------|---------------|
-| CATS mimic | `cats/scripts/lcos_mqtt_mimic.py` | — |
+| CATS mimic | `tools/mqtt-mimic/lcos_mqtt_mimic.py` | — |
 | JMRI publisher | `jmri/scripts/mqtt_signalhead_publisher.py` | — |
 | Bridge | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | [`cross-repo/lcos/TIER_B.md`](../../cross-repo/lcos/TIER_B.md) |
 
@@ -20,7 +20,7 @@
 
 | Path | Role |
 |------|------|
-| `cats/scripts/lcos_mqtt_mimic.py` | CATS-side mimic; reads `public_name_map.csv` |
+| `tools/mqtt-mimic/lcos_mqtt_mimic.py` | CATS-side mimic; reads `public_name_map.csv` |
 | `jmri/scripts/mqtt_signalhead_publisher.py` | JMRI jython publisher |
 | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge |
 
@@ -35,7 +35,7 @@
 
 ```bash
 # JMRI PanelPro with mqtt_signalhead_publisher active
-python3 cats/scripts/lcos_mqtt_mimic.py --help
+python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --help
 python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local
 ```
 

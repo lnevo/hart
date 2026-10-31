@@ -4,7 +4,7 @@
 Validates jmri/layouts/hart/output/tables.xml for JMRI native SML discovery readiness
 WITHOUT launching JMRI, then simulates discovery (path-walk from every
 mast to the next facing mast) and diffs the result against the CATS
-oracle PAIRS in cats/scripts/apply_sml_cats_pairs.py.
+oracle PAIRS in jmri/layouts/hart/scripts/apply_sml_cats_pairs.py.
 
 Semantics are transcribed from JMRI source (LayoutTurnout.java,
 PositionablePoint.java, LayoutBlockManager.getFacingBean,
@@ -23,9 +23,9 @@ LayoutEditorTools.isAtWestEndOfAnchor):
   the west/north segment faces the eastbound mast.
 
 Usage:
-  python3 cats/scripts/validate_le_signalling.py            # checks + diff
-  python3 cats/scripts/validate_le_signalling.py --dests    # per-mast dests
-  python3 cats/scripts/validate_le_signalling.py --strict   # fail on diff
+  python3 jmri/layouts/hart/scripts/validate_le_signalling.py            # checks + diff
+  python3 jmri/layouts/hart/scripts/validate_le_signalling.py --dests    # per-mast dests
+  python3 jmri/layouts/hart/scripts/validate_le_signalling.py --strict   # fail on diff
 """
 
 from __future__ import annotations
@@ -38,10 +38,10 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_XML = ROOT / "jmri/layouts/hart/output/tables.xml"
-DEFAULT_CSV = ROOT / "cats/data/le_signal_boundaries.csv"
-ORACLE = ROOT / "cats/scripts/apply_sml_cats_pairs.py"
+DEFAULT_CSV = ROOT / "jmri/layouts/hart/data/le_signal_boundaries.csv"
+ORACLE = ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py"
 
 PORTS = "ABCD"
 XOVER_TYPES = {"RH_XOVER", "LH_XOVER", "DOUBLE_XOVER"}

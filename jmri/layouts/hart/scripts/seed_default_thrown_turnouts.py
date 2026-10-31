@@ -10,8 +10,8 @@ Rules (SoR):
     `wire_hart_master4.py` PLANTS. Do not command MQTT/JMRI.
   - This script must not throw field points. Default = diagnose only.
 
-    python3 cats/scripts/seed_default_thrown_turnouts.py
-    python3 cats/scripts/seed_default_thrown_turnouts.py --diagnose
+    python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py
+    python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py --diagnose
 
 Writes (MQTT retain only — never JMRI turnout commands) require --write and
 are for unknown retain on Switch 1/33/37/39 defaults only. Prefer FB→MQTT via
