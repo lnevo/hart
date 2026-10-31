@@ -2,7 +2,7 @@
 
 Updated: 2026-10-31 — `archive/consolidation/` removed; it stays in git history. Docs only; not deployed.
 
-Updated: 2026-10-31 — Live pages no longer depend on `archive/consolidation`: the bridge smoke tests moved into [`pipelines/mqtt-mimic.md`](pipelines/mqtt-mimic.md), and the stale submodule pin pages and archived CATS and ops links were dropped. Docs only; not deployed.
+Updated: 2026-10-31 — Live pages no longer depend on `archive/consolidation`: the bridge smoke test moved into [`pipelines/mqtt-mimic.md`](pipelines/mqtt-mimic.md), and the stale submodule pin pages and archived CATS and ops links were dropped. Docs only; not deployed.
 
 Updated: 2026-10-31 — The owner decided the 10 yard ladder lamp buttons stay off the CATS desks, which closes that question. Docs only; not deployed.
 
@@ -20,7 +20,7 @@ Updated: 2026-10-31 — Car workflow ready (ADR-013): `bin/cars` in hart-ops tak
 
 Updated: 2026-10-31 — P4a has nothing left to check: the leftover `~/Desktop/HART` drafts are older copies to ignore. `Layout Documentation.pptx` is now tracked in `docs/wiring/`, and the terminal block table is recovered to `docs/wiring/terminal_blocks.md`, unverified and not on the website because its bus names predate the published Track Buses drawing. Docs only; not deployed.
 
-Updated: 2026-10-31 — MQTT mimic has nothing pending: the owner dropped periodic event 125, and USB serial ACK and pacing on the Windows bridge is resolved. Docs only; not deployed.
+Updated: 2026-10-31 — MQTT mimic has nothing pending: USB serial ACK and pacing on the Windows bridge is resolved. Docs only; not deployed.
 
 Updated: 2026-10-31 — Wiki cleanup: dropped the facing invert, END_BUMPER and Designer items from the open lists, and removed the undated Product decision, Collaboration, Remaining and Manual launch sections from this log, all superseded (see git history). The END_BUMPER bindings themselves stay. Docs only; not deployed.
 
