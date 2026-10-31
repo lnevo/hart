@@ -17,9 +17,9 @@ HART auto-dispatcher needs **measured** roster speed profiles for station stops.
 
 | File | Role |
 |------|------|
-| [`STRR Speed Match-Measure Table SOP Rev2.pdf`](../../jmri/docs/speedmatching/STRR%20Speed%20Match-Measure%20Table%20SOP%20Rev2.pdf) | Club SOP (37 pages) |
-| [`STRR_Speed_Match_Script_N-Scale_v4.2(NC+STRR_99_XtraSteps).py`](../../jmri/docs/speedmatching/STRR_Speed_Match_Script_N-Scale_v4.2(NC+STRR_99_XtraSteps).py) | Automated speed **matching** (load this first) |
-| [`STRR_Speed_Measure_Script_v1.1.py`](../../jmri/docs/speedmatching/STRR_Speed_Measure_Script_v1.1.py) | Live speed **measuring** + stddev (sound / POM workaround) |
+| [`STRR Speed Match-Measure Table SOP Rev2.pdf`](../../docs/ops/STRR%20Speed%20Match-Measure%20Table%20SOP%20Rev2.pdf) | Club SOP (37 pages) |
+| [`STRR_Speed_Match_Script_N-Scale_v4.2(NC+STRR_99_XtraSteps).py`](../../docs/jmri/speedmatching/STRR_Speed_Match_Script_N-Scale_v4.2(NC+STRR_99_XtraSteps).py) | Automated speed **matching** (load this first) |
+| [`STRR_Speed_Measure_Script_v1.1.py`](../../docs/jmri/speedmatching/STRR_Speed_Measure_Script_v1.1.py) | Live speed **measuring** + stddev (sound / POM workaround) |
 
 Load Matching, then Measuring. Reverse order throws errors (Bradford has not fixed that yet).
 

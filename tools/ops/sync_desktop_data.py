@@ -20,7 +20,7 @@ DESKTOP = Path.home() / "Desktop/HART"
 STATE = ROOT / "ops/car-cards/.sync_state.json"
 PAIRS = {
     "Car Cards/CarImagesFinal": "ops/car-cards/car-images/CarImagesFinal",
-    "Car Cards/docs": "ops/car-cards/docs",
+    "Car Cards/docs": "docs/ops",
     "Wiring Documentation": "docs/wiring/bench",
     "DJ Trains": "media/dj-trains",
 }

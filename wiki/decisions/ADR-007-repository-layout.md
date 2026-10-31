@@ -18,7 +18,7 @@
    - `external/` holds only the four submodules and the STS data.
    - `media/` is gitignored photo, video and archive material.
    - `archive/` holds retired material; nothing in it runs.
-5. One file per purpose. Tools stay live; superseded outputs go to `archive/`.
+5. All created documents live in `docs/`. One file per purpose. Tools stay live; superseded outputs go to `archive/`.
 6. Live data is read from the repo. `~/sts` gets no sync. Four `~/Desktop/HART` folders stay in step through `sync_desktop_data.py`, which never deletes.
 
 ## Consequences

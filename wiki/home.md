@@ -9,6 +9,7 @@ Chat is a scratchpad. Decisions that count live here.
 | Agent / git conventions | [`AGENTS_GIT.md`](AGENTS_GIT.md) |
 | AI context | [`../docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md) |
 | Repo layout | [ADR-007](decisions/ADR-007-repository-layout.md) |
+| All documents | [`../docs/INDEX.md`](../docs/INDEX.md) |
 | Website | [`../www/README.md`](../www/README.md) |
 
 **Active projects:** [`projects/hart-panel.md`](projects/hart-panel.md) · [`projects/cats-integration.md`](projects/cats-integration.md) · [`projects/speedmatching.md`](projects/speedmatching.md) (parked) · [`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md) (parked — review later)  

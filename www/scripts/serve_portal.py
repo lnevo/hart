@@ -27,12 +27,19 @@ ARCHIVE_KINDS = {"photo", "ad", "clipping", "map", "document", "graphic"}
 ARCHIVE_CONFIDENCE = {"verified", "likely", "none"}
 ARCHIVE_TEXT_FIELDS = ("title", "caption", "date", "credit", "source_url", "reason", "rights")
 LOCAL_NAMES = {"127.0.0.1", "localhost", "[::1]"}
-SERVED_ROOTS = {"www", "external", "media", "ops"}
+PUBLISHED = json.loads((ROOT / "www/scripts/published-files.json").read_text(encoding="utf-8"))
+SERVED_ROOTS = {"www", "external", "media", "ops", "docs"}
 
 
 class PortalHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
+
+    def translate_path(self, path: str) -> str:
+        """Serve manifest entries from their source, as the deployed site would."""
+        rel = unquote(urlsplit(path).path).removeprefix("/www/")
+        source = PUBLISHED.get(rel)
+        return str(ROOT / source) if source else super().translate_path(path)
 
     def _servable_path(self) -> bool:
         """Serve only the website and its media; the repo root holds .env.local and .git."""

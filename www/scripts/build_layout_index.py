@@ -10,7 +10,6 @@ from __future__ import annotations
 import csv
 import importlib.util
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -22,10 +21,8 @@ PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 NAMES = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 DEVICES = PORTAL / "review-data/hart_devices_review.json"
 CPS = ROOT / "jmri/layouts/hart/data/control_points.csv"
-MAPS_SRC = ROOT / "external/hart-ops/publications/assets"
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
-MAPS_DST = PORTAL / "assets/maps"
 RENDER = ROOT / "jmri/layouts/hart/scripts/render_le_layout.py"
 
 PAD = 34
@@ -143,18 +140,6 @@ def refresh_schematic():
     cmd = [sys.executable, str(RENDER), str(PANEL), str(SCHEMATIC)]
     print("render:", " ".join(cmd))
     subprocess.run(cmd, check=False)
-
-
-def sync_maps():
-    MAPS_DST.mkdir(parents=True, exist_ok=True)
-    n = 0
-    for src in sorted(MAPS_SRC.glob("station_map_*.png")):
-        shutil.copy2(src, MAPS_DST / src.name)
-        n += 1
-    panel = MAPS_SRC / "dispatcher_panel_neville_island.png"
-    if panel.is_file():
-        shutil.copy2(panel, PORTAL / "assets/layout/dispatcher_panel_neville_island.png")
-    print(f"copied {n} station maps")
 
 
 def build():
@@ -286,7 +271,6 @@ def main() -> int:
     if not NAMES.is_file():
         raise SystemExit(f"missing names: {NAMES}")
     refresh_schematic()
-    sync_maps()
     payload = build()
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

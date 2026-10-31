@@ -19,7 +19,7 @@ NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 | 12 | Car cards | Live (hart-ops, ADR-010) | [car-cards.md](car-cards.md) |
 | 13 | Waybills | Live (hart-ops, ADR-010) | [waybills.md](waybills.md) |
 | 14 | STS | Live (`external/sts-docker-data`) | [sts.md](sts.md) |
-| 15 | Ops publications | Live (hart-ops, ADR-010) | [ops-publications.md](ops-publications.md) |
+| 15 | Ops publications | Live (`docs/ops`, ADR-010) | [ops-publications.md](ops-publications.md) |
 | 16 | Industry routing | Live (hart-ops, ADR-010) | [industry-routing.md](industry-routing.md) |
 | 17 | Website | Live | [`www/README.md`](../../www/README.md) |
 | 18 | MQTT mimic | Tool | [mqtt-mimic.md](mqtt-mimic.md) |

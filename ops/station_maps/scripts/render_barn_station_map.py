@@ -23,10 +23,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_Barn_0.png"
-OUT_PORTAL = ROOT / "www/assets/maps/station_map_barn.png"
 HOPS = ROOT / "external/hart-ops"
 DOCX_NAME = "Neville_Island_Station_Map_Barn.docx"
-DOCX_TEMPLATE = HOPS / "docs/Neville_Island_Station_Map_West_Yard.docx"
+DOCX_TEMPLATE = ROOT / "docs/ops/Neville_Island_Station_Map_West_Yard.docx"
 
 # 8 in × 5 in landscape, same as SM-02…SM-05.
 DPI = 200
@@ -274,12 +273,8 @@ def _patch_core_title(xml_bytes: bytes, title: str) -> bytes:
 
 def main() -> None:
     render(OUT_CATS)
-    OUT_PORTAL.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(OUT_CATS, OUT_PORTAL)
-    print(f"copied {OUT_PORTAL}")
     if HOPS.is_dir():
-        _write_docx(OUT_CATS, HOPS / "docs" / DOCX_NAME)
-        _write_docx(OUT_CATS, HOPS / "docs/published" / DOCX_NAME)
+        _write_docx(OUT_CATS, ROOT / "docs/ops" / DOCX_NAME)
 
 
 if __name__ == "__main__":

@@ -53,8 +53,8 @@ SKIP_GLOBS = ("docs/*.md",)
 LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|external/sts-docker-data|\.\./media/|media/archive/|media/photos-layout|media/dj-trains|ops/car-cards")
 # Data must not point into the mirrors either; scripts (and inline page scripts) test for that
 # prefix when resolving logos and photos, so only data files are checked for it.
-MIRROR_PREFIXES = ("../external/", "../media/", "../ops/")
-DATA_LEAK = re.compile(r"\.\./(?:external|media|ops)/")
+MIRROR_PREFIXES = ("../external/", "../media/", "../ops/", "../docs/")
+DATA_LEAK = re.compile(r"\.\./(?:external|media|ops|docs)/")
 LEAK_SUFFIXES = {".html", ".json", ".css", ".md", ".txt"}
 # Share previews (Facebook, iMessage, …) read static tags only, so every page gets them at build time.
 # The site is served at the domain root; override with --site-url or HART_SITE_URL.
@@ -85,11 +85,31 @@ def _published_files() -> list[Path]:
     return files
 
 
+def _manifest() -> dict[str, str]:
+    return json.loads((PORTAL / "scripts/published-files.json").read_text(encoding="utf-8"))
+
+
+def _source(rel: str) -> Path:
+    """Where a site-relative file really lives: its manifest source, or the site tree."""
+    source = _manifest().get(rel)
+    return PORTAL.parent / source if source else (PORTAL / rel).resolve()
+
+
 def _copy_published(dest: Path) -> None:
     for rel in _published_files():
         out = dest / rel
         out.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(PORTAL / rel, out)
+    # Files the site publishes but does not hold: one source, named in the manifest.
+    for name, source in _manifest().items():
+        rel, src = Path(name), PORTAL.parent / source
+        if rel in SKIP_FILES:
+            continue
+        if not src.is_file():
+            raise SystemExit(f"published-files.json: missing source {source}")
+        out = dest / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, out)
 
 
 _LOCAL_ONLY = re.compile(r"<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*\bdata-local-only\b[^>]*>")
@@ -190,7 +210,7 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir
         src_rel = str(item.get("src") or "")
         if not src_rel.startswith(MIRROR_PREFIXES):
             continue
-        src = (PORTAL / src_rel).resolve()
+        src = _source(src_rel)
         if not src.is_file():
             continue
         album = re.sub(r"[^a-z0-9]+", "-", str(item.get("album") or "misc").lower())
@@ -270,7 +290,7 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
         if item.get("bucket", "curated") != "curated":  # review/discard stay on the engineering desk
             continue
         src_rel = str(item.get("src") or "")
-        src = (PORTAL / src_rel).resolve()
+        src = _source(src_rel)
         if not src_rel or not src.is_file():
             continue
         slug = re.sub(r"[^a-z0-9]+", "-", str(item.get("id") or src.stem).lower()).strip("-")
@@ -292,7 +312,7 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
 
 def _vendor_logo(logo: str, dest_root: Path) -> str:
     """Copy one ../external/ logo into assets/logos/ and return its public path ("" if missing)."""
-    src = (PORTAL / logo).resolve()
+    src = _source(logo)
     if not src.is_file():
         return ""
     rel = Path("assets") / "logos" / src.name

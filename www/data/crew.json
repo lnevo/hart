@@ -159,12 +159,12 @@
       "Trains may operate ahead of schedule only by dispatcher authority."
     ],
     "bulletin": "Bulletin notices affecting this timetable must be observed until superseded.",
-    "source": "../external/hart-ops/docs/published/TT-23_Route23_NevilleQueen_RevisionA_v6.pptx"
+    "source": "../docs/ops/TT-23_Route23_NevilleQueen_RevisionA_v6.pptx"
   },
   "spotsheet": {
     "title": "Industry Spot Sheets",
     "summary": "Every customer on the island: its history, what it ships and receives, and which car goes on which spot. Interchange yards and the South Yard and dispatcher notes follow.",
-    "source": "../external/hart-ops/docs/published/HART_Operator_Sheet.docx",
+    "source": "../docs/ops/HART_Operator_Sheet.docx",
     "industries": [
       {
         "id": "aristech",
@@ -553,7 +553,7 @@
     "revision": "D",
     "effective": "15 July 1999",
     "summary": "The scale is used to verify and log proper loading of outbound cars prior to departure from South Yard.",
-    "source": "../external/hart-ops/docs/published/HART Railroad Scale Operating Instructions.docx",
+    "source": "../docs/ops/HART Railroad Scale Operating Instructions.docx",
     "sections": [
       {
         "heading": "Section 1 — General rules",
@@ -655,7 +655,7 @@
     "img": "assets/maps/station_map_subdivision_tt23_panel.png",
     "alt": "Subdivision diagram: Brick and West Yard, Plane, Scale, Barn and South Yard, East End industries, Princess and Shenango, to McKeesport / McKees Rocks.",
     "what": "The whole railroad on one strip, west at the top: Brick and West Yard, Plane, Scale, Barn and South Yard, the East End industries, then Princess, Shenango, and the interchanges.",
-    "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map.docx"
+    "source": "../docs/ops/Neville_Island_Station_Map.docx"
   },
   "maps": [
     {
@@ -708,7 +708,7 @@
         "barn",
         "east-end"
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_West_Yard.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_West_Yard.docx"
     },
     {
       "id": "south-yard",
@@ -793,7 +793,7 @@
         "west-yard",
         "east-end"
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_South_Yard.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_South_Yard.docx"
     },
     {
       "id": "barn",
@@ -853,7 +853,7 @@
         "west-yard",
         "east-end"
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_Barn.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_Barn.docx"
     },
     {
       "id": "east-end",
@@ -951,7 +951,7 @@
         "barn",
         "shenango"
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_East_End.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_East_End.docx"
     },
     {
       "id": "shenango",
@@ -1030,7 +1030,7 @@
       "connects": [
         "east-end"
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Station_Map_Shenango.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_Shenango.docx"
     }
   ],
   "jobs": [
@@ -1075,7 +1075,7 @@
           "why": "Interchange at South Yard, the outbound block, and where to tie down."
         }
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Crew_D749.docx"
+      "source": "../docs/ops/Neville_Island_Crew_D749.docx"
     },
     {
       "id": "nvl",
@@ -1122,7 +1122,7 @@
           "why": "Interchange at South Yard: the local cut out, the Scully block back."
         }
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Crew_NVL.docx"
+      "source": "../docs/ops/Neville_Island_Crew_NVL.docx"
     },
     {
       "id": "ck1",
@@ -1168,7 +1168,7 @@
           "href": "crew/scale/index.html"
         }
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Crew_CK1.docx"
+      "source": "../docs/ops/Neville_Island_Crew_CK1.docx"
     },
     {
       "id": "yardmaster",
@@ -1243,7 +1243,7 @@
           "why": "When road moves will cross the shared leads at South Yard."
         }
       ],
-      "source": "../external/hart-ops/docs/published/Neville_Island_Yardmaster_Sequence.docx"
+      "source": "../docs/ops/Neville_Island_Yardmaster_Sequence.docx"
     },
     {
       "id": "dispatcher",
@@ -1345,7 +1345,7 @@
         }
       ],
       "ttOpen": true,
-      "source": "../external/hart-ops/docs/published/Neville_Island_Dispatcher_Train_List.docx"
+      "source": "../docs/ops/Neville_Island_Dispatcher_Train_List.docx"
     }
   ]
 }

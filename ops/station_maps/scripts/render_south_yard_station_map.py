@@ -22,10 +22,9 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "ops/station_maps/maps/src/south_yard_sheet.png"
 OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_South_Yard_0.png"
-OUT_PORTAL = ROOT / "www/assets/maps/station_map_south_yard.png"
 HOPS = ROOT / "external/hart-ops"
 DOCX_NAME = "Neville_Island_Station_Map_South_Yard.docx"
-DOCX_TEMPLATE = HOPS / "docs/Neville_Island_Station_Map_South_Yard.docx"
+DOCX_TEMPLATE = ROOT / "docs/ops/Neville_Island_Station_Map_South_Yard.docx"
 
 WHITE = (255, 255, 255)
 TRACK = (20, 20, 20)
@@ -213,12 +212,8 @@ def _write_docx(png: Path, dest: Path) -> None:
 
 def main() -> None:
     render(OUT_CATS)
-    OUT_PORTAL.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(OUT_CATS, OUT_PORTAL)
-    print(f"copied {OUT_PORTAL}")
     if HOPS.is_dir() and DOCX_TEMPLATE.is_file():
-        _write_docx(OUT_CATS, HOPS / "docs" / DOCX_NAME)
-        _write_docx(OUT_CATS, HOPS / "docs/published" / DOCX_NAME)
+        _write_docx(OUT_CATS, ROOT / "docs/ops" / DOCX_NAME)
 
 
 if __name__ == "__main__":

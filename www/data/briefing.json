@@ -223,7 +223,7 @@
       "href": "https://www.csx.com/index.cfm/library/files/customers/leads/proper-balancing-of-hopper-cars/"
     }
   ],
-  "source": "../external/hart-ops/docs/published/Neville_Island_New_Operator_Primer.docx",
+  "source": "../docs/ops/Neville_Island_New_Operator_Primer.docx",
   "arrive": {
     "heading": "What you'll see when you arrive",
     "more": "photos/index.html#layout/session-night",

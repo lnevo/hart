@@ -9,6 +9,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Do | Command |
 |----|---------|
 | Checks | `./tools/check.sh` (before any commit that changes tables or signals) |
+| Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
 | Desktop folders | `python3 tools/ops/sync_desktop_data.py` previews; `--apply` copies. Never deletes. |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
 | Deploy operator portal (www.hartrailroad.com) | `./www/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`www/README.md`](www/README.md) |

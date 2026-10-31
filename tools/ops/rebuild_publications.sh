@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate all pipeline-15 publications from hart-ops .
+# Regenerate the publications in docs/ops with the hart-ops scripts.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -12,32 +12,7 @@ if [[ ! -d .venv ]]; then
 fi
 
 PY=.venv/bin/python
-PUB="$HOPS/docs/published"
-
-# Rebuild scripts read masthead templates from docs/ (not docs/published/).
-link_template() {
-  local name="$1"
-  local src="$PUB/$name"
-  local dest="$HOPS/docs/$name"
-  if [[ -f "$src" && ! -f "$dest" ]]; then
-    (cd "$HOPS/docs" && ln -sf "published/$name" "$name")
-  fi
-}
-
-for f in \
-  "HART Railroad Scale Operating Instructions.docx" \
-  Neville_Island_Dispatcher_Train_List.docx \
-  Neville_Island_Yardmaster_Sequence.docx \
-  Neville_Island_Crew_D749.docx \
-  Neville_Island_Crew_NVL.docx \
-  Neville_Island_Crew_CK1.docx \
-  Neville_Island_Station_Map.docx \
-  Neville_Island_New_Operator_Primer.docx \
-  Toggle_Dimensions.png \
-  TT-23_Route23_NevilleQueen_RevisionA_v6.pptx \
-  ; do
-  link_template "$f"
-done
+DOCS="$ROOT/docs/ops"
 
 SCRIPTS=(
   publications/rebuild_scale_operating_instructions.py
@@ -56,6 +31,5 @@ for s in "${SCRIPTS[@]}"; do
   "$PY" "$s"
 done
 
-echo "Outputs: $HOPS/docs/ (and docs/published/ archive)"
-ls -1 "$HOPS/docs"/*.docx 2>/dev/null | wc -l | xargs echo "docx in docs/:"
-ls -1 "$PUB"/*.docx 2>/dev/null | wc -l | xargs echo "docx in published/:"
+echo "Outputs: $DOCS/"
+ls -1 "$DOCS"/*.docx 2>/dev/null | wc -l | xargs echo "docx in docs/ops:"

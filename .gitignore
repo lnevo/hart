@@ -39,9 +39,9 @@ external/sts-docker-data/images/
 external/sts-docker-data/MIRROR_MANIFEST.txt
 
 # Large files kept out of git
-media/
-ops/car-cards/
-docs/wiring/bench/
+/media/
+/ops/car-cards/
+/docs/wiring/bench/
 
 www/assets/f-root-previews/
 
@@ -64,8 +64,8 @@ jmri/layouts/**/*_status.txt
 jmri/host-copies/
 
 # Local CATS Signals notes (Rodney Black; do not commit)
-docs/ctc/vendor/CATS_Signals.doc
-docs/ctc/vendor/~$*
+**/CATS_Signals.doc
+**/~$*
 
 # CATS binaries (fetch with tools/cats/fetch_cats_3.2.sh)
 tools/cats/release3.2/
