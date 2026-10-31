@@ -12,7 +12,7 @@ Outputs:
   cats/panels/cp/HART_cp_<id>.xml   (single CP)
   cats/panels/cp/HART_cp_all.xml    (all CPs stacked, spaced)
   cats/screenshots/cp/HART_cp_*.png
-  cats/docs/CP_PANELS.md
+  docs/ctc/CP_PANELS.md
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ import build_hart_digicon_from_le as le  # noqa: E402
 
 OUT_DIR = ROOT / "cats/panels/cp"
 SHOT_DIR = ROOT / "cats/screenshots/cp"
-INDEX = ROOT / "cats/docs/CP_PANELS.md"
+INDEX = ROOT / "docs/ctc/CP_PANELS.md"
 OUT_ALL = OUT_DIR / "HART_cp_all.xml"
 WIDTH, HEIGHT = "900", "420"
 # Wide review board: CPs left->right with padding (avoids left-edge clip)

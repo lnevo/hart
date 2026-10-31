@@ -13,7 +13,7 @@ Related detail docs (do not duplicate here):
 | Signal facing / mast bind | [`SIGNAL_FACING.md`](SIGNAL_FACING.md) |
 | Turnout SoR / retain paint | [`TURNOUT_STATE_SOURCES.md`](TURNOUT_STATE_SOURCES.md) |
 | Sensor status-only MQTT | [`MQTT_SENSOR_STATUS_ONLY.md`](MQTT_SENSOR_STATUS_ONLY.md) |
-| Pi install notes | [`../scripts/pi/README_CATS.txt`](../scripts/pi/README_CATS.txt) |
+| Pi install notes | [`../scripts/pi/README_CATS.txt`](../../cats/scripts/pi/README_CATS.txt) |
 | Neville trackplan (reference) | [`station_maps/Neville_Island_Trackplan_Clean.png`](station_maps/Neville_Island_Trackplan_Clean.png) |
 
 ---
@@ -77,7 +77,7 @@ python3 cats/scripts/polish_hart_master_header.py --panel all
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
 
-SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/hart/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper then runs `disable_digicon_sml_in_tables.py` so Digicon source→dest pairs stay **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). `apply_sml_cats_pairs.py` is retired — its `PAIRS` list survives only as the regression oracle for `jmri/layouts/hart/scripts/validate_le_signalling.py` (static boundary/routing checks + mini-discovery, run it before deploying panel edits). Facing is in `jmri/layouts/hart/data/le_signal_boundaries.csv` (`python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **Basic** `two-searchlight` (dwarfs `one-low`), with; see `cats/docs/SIGNAL_FACING.md`.
+SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/hart/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper then runs `disable_digicon_sml_in_tables.py` so Digicon source→dest pairs stay **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). `apply_sml_cats_pairs.py` is retired — its `PAIRS` list survives only as the regression oracle for `jmri/layouts/hart/scripts/validate_le_signalling.py` (static boundary/routing checks + mini-discovery, run it before deploying panel edits). Facing is in `jmri/layouts/hart/data/le_signal_boundaries.csv` (`python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **Basic** `two-searchlight` (dwarfs `one-low`), with; see `docs/ctc/SIGNAL_FACING.md`.
 
 **PanelPro vs CATS (same profile, sequential — never simultaneous):**
 
@@ -108,7 +108,7 @@ Lamp buttons beside OS S-R…OS S-4 (left = west ladder + 116; right = east ladd
 
 - Digicon and Layout Editor share the same triggers: internal turnouts `IT:HART:YL:L1…R5`
 - JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels
-- Digicon icons: `cats/resources/buttons/lamp_{left,right}_{idle,active}.png` (paths rewritten per OS)
+- Digicon icons: `jmri/resources/buttons/lamp_{left,right}_{idle,active}.png` (paths rewritten per OS)
 - Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py` → `tables/new_tables.xml`, synced to `jmri/layouts/hart/output/tables.xml`). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red. Prefer this panel over `hart_prod.xml` (CP labels on hart_prod are oversized).
 
 ### Turnout SoR (summary)
@@ -169,9 +169,9 @@ Layout Editor icons use Basic `discriminated` (AAR searchlights) at scale 1.0. U
 
 ### Mast index (Digicon name → JMRI)
 
-Full table: [`docs/wiring/signals/signal_mast_plan.csv`](../data/signal_mast_plan.csv)  
-Port / topic / LCOS inventory: [`docs/wiring/signals/signal_wiring.csv`](../data/signal_wiring.csv)  
-Head plan: [`docs/wiring/signals/signal_head_plan.csv`](../data/signal_head_plan.csv)
+Full table: [`docs/wiring/signals/signal_mast_plan.csv`](../../cats/data/signal_mast_plan.csv)  
+Port / topic / LCOS inventory: [`docs/wiring/signals/signal_wiring.csv`](../../cats/data/signal_wiring.csv)  
+Head plan: [`docs/wiring/signals/signal_head_plan.csv`](../../cats/data/signal_head_plan.csv)
 
 Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards) · CSVs above.
 
@@ -218,8 +218,8 @@ Same package carries Digicon Masters, `tables.xml`, yard-ladder button icons, an
 |-------|----------|-------------|
 | CTC / ABS hold panels | `cats/panels/HART_Master_*hold.xml` | host `hart/cats/panels/` |
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
-| Ladder icons | `cats/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
-| Web home + STS | `cats/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
+| Ladder icons | `jmri/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
+| Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
 | JMRI Start Up scripts | `sync_layout_button.py`, `mqtt_signalhead_publisher.py` | All hosts `preference:jython/` (Pi `JMRI_UserFiles/jython/`; Mac/Windows `<profile>.jmri/jython/` because user-files=`profile:`). `hide_cats_desk_windows.py` is LogixNG, same folder. |
 
 Deploy via SSH (agent does this — no manual batch/Dropbox step):

@@ -29,7 +29,7 @@ DEFAULT_PANEL = ROOT / "cats/panels/HART_Master_ABS.xml"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 # Pi live load is preference:tables.xml → /home/pi/JMRI_UserFiles/tables.xml
 # (preference: is NOT the profile dir on the Pi). Deploy TABLES there.
-BTN_DIR = ROOT / "cats/resources/buttons"
+BTN_DIR = ROOT / "jmri/resources/buttons"
 # Lamp-only icons on a ~grid-cell canvas (placement = where the disc sits).
 LAMP_LEFT_IDLE = BTN_DIR / "lamp_left_idle.png"
 LAMP_LEFT_ACTIVE = BTN_DIR / "lamp_left_active.png"

@@ -7,8 +7,8 @@
 ## Principles
 
 - **Name:** `hart` · `export JMRI_LAYOUT=hart`
-- **Connectivity / positions:** frozen from linear6 (`reference/linear6_baseline.xml`)
-- **JMRI config:** existing profile/tables; **panel XML only** changes (ADR-003)
+- **Connectivity / positions:** from the AnyRail panel (`anyrail/hart.xml`)
+- **JMRI config:** `output/tables.xml` is the one tables file (ADR-008)
 - **Public names:** [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md) map `data/public_name_map.csv`; live index `data/block_display_names.csv`
 - Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` unless explicitly asked
 
@@ -26,10 +26,7 @@ used to replace the complete tables bundle.
 
 | Path | Role |
 |------|------|
-| `reference/linear6_baseline.xml` | Frozen linear6 copy |
 | `anyrail/hart.xml` | Geometry source snapshot |
-| `authoritative/hart.xml` | Authoritative panel snapshot |
-| `output/hart_blocked.xml` | Working blocked panel |
 | `output/tables.xml` | The one tables file: LE + SML + Dispatcher + CTC. JMRI loads it and deploy ships it |
 | `output/hart_prod.xml` | Standalone Layout Editor monitor artifact |
 | `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `comment` from Device map) |

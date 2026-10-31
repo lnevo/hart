@@ -4,7 +4,7 @@
 #   CATS ABS      → HART_Master_ABS_hold.xml (HOLD_ONLY; paint JMRI/SML)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-ICNS="$ROOT/cats/resources/CATS.icns"
+ICNS="$ROOT/jmri/resources/CATS.icns"
 APPS="/Applications"
 DESKTOP="${HOME}/Desktop"
 

@@ -197,14 +197,14 @@ install_ctc_icons_local() {
     local dest="$1/resources/buttons"
     mkdir -p "$dest"
     local f
-    for f in "$ROOT/cats/resources/buttons/"triangle_*.png; do
+    for f in "$ROOT/jmri/resources/buttons/"triangle_*.png; do
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
     done
     echo "button icons -> $dest"
   }
   _install_uss_sensor_icons_into() {
     local dest="$1/resources/icons/USS/sensor"
-    local src="$ROOT/cats/resources/icons/USS/sensor"
+    local src="$ROOT/jmri/resources/icons/USS/sensor"
     [[ -d "$src" ]] || return 0
     mkdir -p "$dest"
     local f
@@ -258,16 +258,16 @@ stage_package() {
   done
 
   local f
-  for f in "$ROOT/cats/resources/buttons/"lamp_*.png \
-           "$ROOT/cats/resources/buttons/"triangle_*.png; do
+  for f in "$ROOT/jmri/resources/buttons/"lamp_*.png \
+           "$ROOT/jmri/resources/buttons/"triangle_*.png; do
     [[ -f "$f" ]] && cp -f "$f" "$stage/cats/resources/buttons/"
   done
-  if [[ -d "$ROOT/cats/resources/icons/USS/sensor" ]]; then
-    cp -f "$ROOT/cats/resources/icons/USS/sensor/"yellow-*.gif \
+  if [[ -d "$ROOT/jmri/resources/icons/USS/sensor" ]]; then
+    cp -f "$ROOT/jmri/resources/icons/USS/sensor/"yellow-*.gif \
       "$stage/cats/resources/icons/USS/sensor/" 2>/dev/null || true
   fi
 
-  rsync -a "$ROOT/cats/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
+  rsync -a "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   rsync -a "$ROOT/cats/scripts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "$ROOT/cats/scripts/windows/" "$stage/cats/scripts/windows/"
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \
@@ -275,7 +275,7 @@ stage_package() {
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
     "$stage/cats/scripts/"
   mkdir -p "$stage/cats/docs"
-  cp -f "$ROOT/cats/docs/DISPATCHER_GUIDE_CTC.md" "$stage/cats/docs/"
+  cp -f "$ROOT/docs/ctc/DISPATCHER_GUIDE_CTC.md" "$stage/cats/docs/"
 
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"

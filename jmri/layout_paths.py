@@ -1,54 +1,22 @@
 """
 Shared paths for JMRI panel workflows.
 
-Set environment variable JMRI_LAYOUT to work on a layout other than ``mac``
-(e.g. after copying ``layouts/new/`` to ``layouts/myline/``).
+Set environment variable JMRI_LAYOUT to work on a layout other than ``hart``.
 """
 from __future__ import annotations
 
 import os
 
 JMRI_ROOT = os.path.dirname(os.path.abspath(__file__))
-ACTIVE_LAYOUT = os.environ.get("JMRI_LAYOUT", "mac")
+ACTIVE_LAYOUT = os.environ.get("JMRI_LAYOUT", "hart")
 
 # Per-layout filenames under anyrail/, authoritative/, output/
 _LAYOUT_FILES: dict[str, dict[str, str]] = {
-    "mac": {
-        "anyrail": "upper_both4.xml",
-        "authoritative": "mac_jmri2.xml",
-        "output": "mac_jmri_blocked.xml",
-    },
-    "linear3": {
-        "anyrail": "linear3.xml",
-        "authoritative": "linear3.xml",
-        "output": "linear3_blocked.xml",
-        "style_defaults": os.path.join(
-            JMRI_ROOT, "layouts", "mac", "authoritative", "mac_jmri2.xml"
-        ),
-    },
-    "linear4": {
-        "anyrail": "linear4.xml",
-        "authoritative": "linear4.xml",
-        "output": "linear4_blocked.xml",
-        "style_defaults": os.path.join(
-            JMRI_ROOT, "layouts", "mac", "authoritative", "mac_jmri2.xml"
-        ),
-    },
-    "linear5": {
-        "anyrail": "linear5.xml",
-        "authoritative": "linear5.xml",
-        "output": "linear5_blocked.xml",
-        "style_defaults": os.path.join(
-            JMRI_ROOT, "layouts", "mac", "authoritative", "mac_jmri2.xml"
-        ),
-    },
     "hart": {
         "anyrail": "hart.xml",
         "authoritative": "hart.xml",
         "output": "hart_blocked.xml",
-        "style_defaults": os.path.join(
-            JMRI_ROOT, "layouts", "mac", "authoritative", "mac_jmri2.xml"
-        ),
+        "style_defaults": os.path.join(JMRI_ROOT, "templates", "panel_style.xml"),
     },
 }
 

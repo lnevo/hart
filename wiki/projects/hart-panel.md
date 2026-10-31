@@ -10,7 +10,7 @@
 
 - linear6 was the live hand-tuned panel (MQTT switches 100–119, CP labels Brick/Plane/East End/Princess).
 - hart forked that geometry; it did **not** re-run AnyRail → Excel → blocked panel.
-- Live SoR: [`../STATUS.md`](../STATUS.md) · Digicon: [`../../cats/docs/HART_DIGICON_SYSTEM.md`](../../cats/docs/HART_DIGICON_SYSTEM.md)
+- Live SoR: [`../STATUS.md`](../STATUS.md) · Digicon: [`../../docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_SYSTEM.md)
 
 ## Problem (original)
 

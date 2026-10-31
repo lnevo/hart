@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Bootstrap jmri/layouts/hart from linear6 panel.
+"""Bootstrap jmri/layouts/hart from the AnyRail panel.
 
-- Freeze linear6 baseline (connectivity + positions)
+- Take connectivity and positions from anyrail/hart.xml
 - Copy to hart authoritative / output panels
 - Apply block display-name contract (ADR-002)
 - Remove unreferenced internal sensors (keep ISCLOCKRUNNING) (ADR-003)
 
-Does not modify live linear6.xml or tables/tables.xml.
+Does not touch the live output/tables.xml.
 """
 
 from __future__ import annotations
@@ -18,9 +18,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
-LINEAR6 = JMRI_ROOT / "layouts" / "linear6" / "linear6.xml"
 HART = JMRI_ROOT / "layouts" / "hart"
-BASELINE = HART / "reference" / "linear6_baseline.xml"
+SOURCE = HART / "anyrail" / "hart.xml"
 NAME_MAP_CSV = HART / "data" / "public_name_map.csv"
 PURGE_REPORT = HART / "data" / "sensor_purge_report.txt"
 
@@ -137,8 +136,8 @@ def main() -> int:
     ap.add_argument(
         "--source",
         type=Path,
-        default=LINEAR6,
-        help="Source panel XML (default: linear6.xml)",
+        default=SOURCE,
+        help="Source panel XML (default: anyrail/hart.xml)",
     )
     ap.add_argument(
         "--skip-rename",
@@ -159,17 +158,15 @@ def main() -> int:
     HART.mkdir(parents=True, exist_ok=True)
     for sub in (
         "anyrail",
-        "authoritative",
         "data",
         "output",
         "working",
-        "reference",
         "dispatcher",
     ):
         (HART / sub).mkdir(parents=True, exist_ok=True)
 
-    shutil.copy2(src, BASELINE)
-    shutil.copy2(src, HART / "anyrail" / "hart.xml")
+    if src != SOURCE.resolve():
+        shutil.copy2(src, SOURCE)
 
     tree = ET.parse(src)
     root = tree.getroot()
@@ -200,7 +197,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    print(f"Baseline: {BASELINE}")
+    print(f"Source: {SOURCE}")
     print(f"Output:   {out_blocked}")
     print(f"Prod:     {out_prod}")
     print(f"Renames:  {renamed}")

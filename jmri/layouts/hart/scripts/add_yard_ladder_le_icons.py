@@ -63,7 +63,7 @@ STALE_ICON_FILES = (
 
 def install_preference_icons() -> list[Path]:
     """Copy triangle PNGs into JMRI user-files / profile resources/buttons dirs."""
-    src = ROOT / "cats/resources/buttons"
+    src = ROOT / "jmri/resources/buttons"
     missing = [n for n in ICON_FILES if not (src / n).is_file()]
     if missing:
         raise SystemExit(f"Missing yard-ladder triangles: {missing}")

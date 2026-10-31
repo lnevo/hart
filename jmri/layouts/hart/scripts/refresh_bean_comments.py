@@ -938,7 +938,7 @@ def main() -> int:
         ROOT / "cats/scripts/archive/west_yard/wire_hart_sheet_west_yard2.py",
         ROOT / "cats/scripts/validate_cats_panel.py",
         ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py",
-        ROOT / "cats/docs/DISPATCHER_GUIDE_CTC.md",
+        ROOT / "docs/ctc/DISPATCHER_GUIDE_CTC.md",
         ROOT / "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
         ROOT / "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
         ROOT / "jmri/layouts/hart/scripts/audit_panel_contracts.py",

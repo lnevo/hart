@@ -23,12 +23,12 @@ CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 
 | File | Purpose |
 |------|---------|
-| [`../panels/HART.xml`](../panels/HART.xml) | **Primary** Designer Gate 1 + MQTT |
-| [`../panels/HART_magnet.xml`](../panels/HART_magnet.xml) | Gate 1 magnet |
-| [`../panels/HART_le.xml`](../panels/HART_le.xml) | LE WIP full railroad + MQTT |
-| [`../panels/HART_le_magnet.xml`](../panels/HART_le_magnet.xml) | LE WIP magnet |
-| [`../panels/HART_armstrong_magnet.xml`](../panels/HART_armstrong_magnet.xml) | Full Armstrong demo |
-| [`../panels/HART_chubb_magnet.xml`](../panels/HART_chubb_magnet.xml) | Chubb CTC look only |
+| [`../panels/HART.xml`](../../cats/panels/HART.xml) | **Primary** Designer Gate 1 + MQTT |
+| [`../panels/HART_magnet.xml`](../../cats/panels/HART_magnet.xml) | Gate 1 magnet |
+| [`../panels/HART_le.xml`](../../cats/panels/HART_le.xml) | LE WIP full railroad + MQTT |
+| [`../panels/HART_le_magnet.xml`](../../cats/panels/HART_le_magnet.xml) | LE WIP magnet |
+| [`../panels/HART_armstrong_magnet.xml`](../../cats/panels/HART_armstrong_magnet.xml) | Full Armstrong demo |
+| [`../panels/HART_chubb_magnet.xml`](../../cats/panels/HART_chubb_magnet.xml) | Chubb CTC look only |
 
 Armstrong shell resolves via `cats_paths.py` (full CATS tree or
 `reference_ArmstrongMagnet.xml`).

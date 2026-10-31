@@ -10,7 +10,7 @@ then replaces the South Yard + East End stub peels with map geometry:
 
 Visual SoR:
   ops/station_maps/maps/Neville_Island_Station_Map_*.png
-  cats/docs/vendor/fall_river_yard_crop.jpg
+  docs/ctc/vendor/fall_river_yard_crop.jpg
   ops/station_maps/README.md
 
     python3 cats/scripts/build_hart_digicon_ctc.py --mqtt

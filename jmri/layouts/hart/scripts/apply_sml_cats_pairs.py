@@ -3,7 +3,7 @@
 
 SML is now native: the Layout Editor panel defects that blocked Discover
 were fixed (see jmri/layouts/hart/scripts/validate_le_signalling.py and
-cats/docs/SIGNAL_FACING.md), Discover generates the pairs with
+docs/ctc/SIGNAL_FACING.md), Discover generates the pairs with
 useLayoutEditor=yes, and they are stored in jmri/layouts/hart/output/tables.xml. The
 startup Jython twin was removed from the Mac and Pi profiles.
 

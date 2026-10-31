@@ -6,7 +6,7 @@ from pathlib import Path
 
 HART_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = HART_ROOT / "scripts" / "add_yard_ladder_le_icons.py"
-BUTTONS = HART_ROOT.parents[2] / "cats" / "resources" / "buttons"
+BUTTONS = HART_ROOT.parents[2] / "jmri" / "resources" / "buttons"
 
 
 def _load():

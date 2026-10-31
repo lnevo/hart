@@ -22,7 +22,7 @@ Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py
 ```
 
-Facing / SML chaining: [`cats/docs/SIGNAL_FACING.md`](../../cats/docs/SIGNAL_FACING.md). Decision: [`../decisions/ADR-011-co-1980-signals.md`](../decisions/ADR-006-co-1980-signals.md).
+Facing / SML chaining: [`docs/ctc/SIGNAL_FACING.md`](../../docs/ctc/SIGNAL_FACING.md). Decision: [`../decisions/ADR-011-co-1980-signals.md`](../decisions/ADR-006-co-1980-signals.md).
 
 MQTT SET uses packed topics `track/signalhead/<digits>` and field status `track/signalmast/<digits>` — not an include list. Live roster is LCOS mast traffic.
 

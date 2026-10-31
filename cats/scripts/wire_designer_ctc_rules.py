@@ -57,7 +57,7 @@ Because a plant's throat joint can never be a block boundary (R3), the block
 holding an OS always reaches back through its approach cell - exactly what
 Chubb does (Block 14 = approach (12,3) + OS (13,3)).  Where the Designer draw
 leaves only one cell between two plants the two OS blocks unavoidably merge;
-those cases are listed in MERGED_NOTES and in cats/docs/DESIGNER_DRAWING_REVIEW.md.
+those cases are listed in MERGED_NOTES and in docs/ctc/DESIGNER_DRAWING_REVIEW.md.
 
 Do NOT invent South Yard / East End / Princess cells here. Draw them in Designer
 (Gates 3–5), save into HART_designer_raw.xml, then extend anchors only.
