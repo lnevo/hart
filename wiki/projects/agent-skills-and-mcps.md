@@ -23,7 +23,6 @@ Each rule was confirmed in JMRI, CATS or STS source. Rules that could only be su
 
 The other skills and MCPs are dropped unless a job needs one. Do not build MCPs for serial ports, CATS, Arduino flashing, WiThrottle or deploys.
 
-## Open
+## Live use
 
-- `jmri-json` has been tested against a stub, and needs a run against live PanelPro.
-- `mqtt-layout` has been tested against a local broker, and needs a run against the layout broker.
+The MCPs are used as needed, so no live run is scheduled. `jmri-json` has only been tested against a stub and `mqtt-layout` only against a local broker, so treat the first live use as their test.

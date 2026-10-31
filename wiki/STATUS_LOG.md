@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — Wiki cleanup: the yard ladder button decision moved to [`pipelines/cats-panels.md`](pipelines/cats-panels.md), `add_yard_ladder_buttons.py` removed, dark masts dropped as a topic, and the CATS docs corrected: the lamps are on the Layout Editor panel, not the desks. Not deployed.
+
 Updated: 2026-10-31 — PanelPro on the Pi is up on the deployed tables and looks good to the owner. The owner dropped the Basic signals railroad test. Agent skills and MCPs are done. Docs only; not deployed.
 
 Updated: 2026-10-31 — Deployed `--all` to the Mac, Pi and Windows from `04f27a22`: the Basic signals, the ADR-012 desks `HART_CTC.xml` and `HART_ABS.xml`, and new desktop icons. `tables.xml` on both hosts matches the repo. Cleaned `~/hart/cats/resources`: retired signal sets, `jmri-web/sts.html`, and on the Pi the unused left and right triangle buttons. Windows had no JMRI running; the Pi's PanelPro was left open and still needs a reload.
@@ -50,9 +52,9 @@ Updated: 2026-09-09 — Barn station map (SM-06): Switch **7 / 9 / 11 / 13** fro
 
 Updated: 2026-09-08 — Operator portal is on GitHub Pages: https://lnevo.github.io/hart/ (static crew site from `consolidation/ops-portal/`; F-root review and Desktop/HART gallery files stay local). Docs/static — not deployed to layout hosts.
 
-Updated: 2026-09-08 — Barn/EH motors: Switch **7 / 11** (and **13** on C4) are **TWOSENSOR** with MQTT FB. Switch **7 / 9 / 11** motors on **C13-OU2** (was OU3); Digicon **8LA / 8LB** moved to **OU3**. Tables from Pi store → `tables/new_tables.xml`. Wiring inventory + [`lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx) refreshed. Reload **PanelPro**. Deploy `--pi`.
+Updated: 2026-09-08 — Barn/EH motors: Switch **7 / 11** (and **13** on C4) are **TWOSENSOR** with MQTT FB. Switch **7 / 9 / 11** motors on **C13-OU2** (was OU3); Digicon **8LA / 8LB** moved to **OU3**. Tables from Pi store → `tables/new_tables.xml`. Wiring inventory + [`lcos_signal_manager_config_plan.xlsx`](../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx) refreshed. Reload **PanelPro**. Deploy `--pi`.
 
-Updated: 2026-09-05 — Digicon wiring docs match field pin order: consecutive LCOS ports are **Stop → Approach → Clear** (R/Y/G). Old docs had Stop/Clear reversed. LCOS Signal Manager settings (Main/Diverged + OR Stop/Approach) are in [`cats/data/lcos_signal_manager_config_plan.xlsx`](../cats/data/lcos_signal_manager_config_plan.xlsx). Docs-only, not deployed.
+Updated: 2026-09-05 — Digicon wiring docs match field pin order: consecutive LCOS ports are **Stop → Approach → Clear** (R/Y/G). Old docs had Stop/Clear reversed. LCOS Signal Manager settings (Main/Diverged + OR Stop/Approach) are in [`cats/data/lcos_signal_manager_config_plan.xlsx`](../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx). Docs-only, not deployed.
 
 Updated: 2026-09-04 — Dispatcher occupancy jewels still said `sensor="Block 1-1"` after occupancy userNames became `BS …`. JMRI MQTT then auto-created `M2SBlock 1-1` (space in the system name) on PanelPro load. Jewels now bind to the real BS sensors. Delete any leftover `M2SBlock *` rows in the Sensor table and do not Store them. Reload **PanelPro**. Deploy `--all`.
 
@@ -443,7 +445,7 @@ Updated: 2026-08-21 — LE cleanup: MTT100/113/114/115 are TWOSENSOR on the same
 
 Updated: 2026-08-21 — ADR-005 public names applied and deployed `--pi --win`. Discover 36 dests; PanelPro smoke 23/41/102/220; CTC Logic starts (12 columns). Hardware MQTT / `Block n-n` / `Switch n` unchanged. Optional later: node 13 occupancy walk-down.
 
-Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is back on the 117 yard lead. **CATS CTC** / **CATS ABS** still `HOLD_ONLY` and paint SML. System overview: [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).
+Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is back on the 117 yard lead. **CATS CTC** / **CATS ABS** still `HOLD_ONLY` and paint SML. System overview: [`cats/docs/HART_DIGICON_SYSTEM.md`](../docs/ctc/HART_DIGICON_SYSTEM.md).
 
 ## Layout Editor polish contract (2026-08-20)
 

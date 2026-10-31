@@ -22,7 +22,7 @@
 
 ## Notes
 
-Node 13 occupancy walk-down is done (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9). EH-1/EH-3 MQTT channels stay swapped vs geographic labels (`Block 13-7` = EH-1, `Block 13-5` = EH-3). Plant map: [`DIGICON_SCHEMATIC.md`](../DIGICON_SCHEMATIC.md). Gate 1 occupancy color checks (`Block 4-6` / `Block 4-2`) and Switch 100 throws from CATS were overtaken by the live desks + native SML QA (30/30). Re-open only if a plant mis-paints.
+Node 13 occupancy walk-down is done (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9). EH-1/EH-3 MQTT channels stay swapped vs geographic labels (`Block 13-7` = EH-1, `Block 13-5` = EH-3). Plant map: [`DIGICON_SCHEMATIC.md`](../DIGICON_SCHEMATIC.md).
 
 ## Related
 

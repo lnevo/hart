@@ -83,7 +83,7 @@ Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_
 
 ## Authority rule
 
-**CATS** commands turnouts/routes in CTC sessions. NextTrain and Layout Editor stay view / local (no dual-command).
+**CATS** commands turnouts/routes in CTC sessions. Layout Editor stays view / local (no dual-command).
 
 Do **not** save CATS-created SignalHead/Mast objects into JMRI tables (load-crash risk).
 JMRI tables are owned by **PanelPro**: edit and Store there only. CATS refers to those beans by JMRI user names and must not redefine them (cats-users #2534).

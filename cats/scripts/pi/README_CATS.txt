@@ -33,7 +33,7 @@ JMRI tables (routes, internal turnouts, etc.):
   On this Pi, preference: → /home/pi/JMRI_UserFiles/  (NOT the profile folder)
   Live file: /home/pi/JMRI_UserFiles/tables.xml
   Repo mirror: jmri/layouts/hart/output/tables.xml
-  Yard-ladder buttons need IO:AUTO:0201–0210 + IT:HART:YL:* in that file.
+  Yard-ladder lamps need IO:AUTO:0201–0210 + IT:HART:YL:* in that file.
   Do not patch only ~/.jmri/TCS_MQTT.jmri/tables.xml — CATS will ignore it.
 
 JMRI web home (STS link):
