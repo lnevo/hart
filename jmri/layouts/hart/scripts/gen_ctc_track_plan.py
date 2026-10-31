@@ -8,7 +8,7 @@ even on SIGNAL (same seats as the first 15-column machine). Every plant has an
 N/R switch lever (yard ladders default Local).
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v77_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview media/screenshots/master4/uss_ctc_v77_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations

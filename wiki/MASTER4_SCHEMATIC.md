@@ -86,10 +86,10 @@ The USS track diagram is `jmri/layouts/hart/ctc/GUIObjects.xml` (**v77**, 20 pac
 
 ```bash
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v73_preview.png
+python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview wiki/assets/uss_ctc_preview.png
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 ```
 
 Regen also copies GIFs + `GUIObjects.xml` into local `*.jmri/ctc/` (`preference:ctc/`).
 
-Static preview: `cats/screenshots/master4/uss_ctc_v73_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v72`.
+Static preview: `wiki/assets/uss_ctc_preview.png`. Earlier Master 4 studies are `uss_ctc_v22`–`v72`.

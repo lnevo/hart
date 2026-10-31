@@ -11,7 +11,7 @@ space between each CP so they can be read together.
 Outputs:
   cats/panels/cp/HART_cp_<id>.xml   (single CP)
   cats/panels/cp/HART_cp_all.xml    (all CPs stacked, spaced)
-  cats/screenshots/cp/HART_cp_*.png
+  media/screenshots/cp/HART_cp_*.png
   docs/ctc/CP_PANELS.md
 """
 
@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_hart_digicon_from_le as le  # noqa: E402
 
 OUT_DIR = ROOT / "cats/panels/cp"
-SHOT_DIR = ROOT / "cats/screenshots/cp"
+SHOT_DIR = ROOT / "media/screenshots/cp"
 INDEX = ROOT / "docs/ctc/CP_PANELS.md"
 OUT_ALL = OUT_DIR / "HART_cp_all.xml"
 WIDTH, HEIGHT = "900", "420"
