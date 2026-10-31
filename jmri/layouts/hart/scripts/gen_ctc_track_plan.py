@@ -938,7 +938,7 @@ def build_block(cells: dict) -> str:
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,
-                imageset="discriminated"))
+                imageset="default"))
         else:
             parts.append(HEAD.format(
                 name=name, head=head, x=x, y=y,

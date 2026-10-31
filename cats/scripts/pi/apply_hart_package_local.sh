@@ -77,7 +77,7 @@ if [[ -d "$HART/ctc/icons" ]]; then
   echo "Pi CTC icons + GUIObjects updated"
 fi
 
-# Masts are stock basic-enhanced (ADR-006). The package rsync has no --delete, so
+# Masts are stock Basic (ADR-011). The package rsync has no --delete, so
 # retired custom signal sets have to be removed here. The JMRI install's own
 # xml/signals/C&O-1980 is stock and stays.
 for sys in cats-masts hart-aar "C&O-1980"; do

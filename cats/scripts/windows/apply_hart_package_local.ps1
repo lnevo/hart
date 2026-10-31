@@ -225,7 +225,7 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
   }
 }
 
-# Masts are stock basic-enhanced (ADR-006). The package tarball never deletes, so
+# Masts are stock Basic (ADR-011). The package tarball never deletes, so
 # retired custom signal sets are removed here. The JMRI install's own
 # xml\signals\C&O-1980 is stock and stays.
 $retired = New-Object System.Collections.Generic.List[string]

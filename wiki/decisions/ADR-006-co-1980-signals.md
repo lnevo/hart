@@ -1,6 +1,6 @@
 # ADR-006 — Signal rulebook for Digicon SHSM
 
-- **Status:** Accepted (amended 2026-09-28 — basic-enhanced trial)
+- **Status:** Superseded by ADR-011 (was amended 2026-09-28 — basic-enhanced trial)
 - **Date:** 2026-09-03
 - **Deciders:** lnevo
 

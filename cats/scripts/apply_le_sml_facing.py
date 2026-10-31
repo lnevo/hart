@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assign Layout Editor facing. Does not change basic-enhanced mast types.
+"""Assign Layout Editor facing. Does not change mast types.
 
 Edits jmri/layouts/hart/output/tables.xml.
 Also patches hart_prod.xml in place (mast names + facing; not a full copy).

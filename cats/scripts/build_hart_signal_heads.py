@@ -87,8 +87,8 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     ("Mast 2035", 11, "C11", "Helix (balloon 115)", 1134, "C11-OU2-7", "C11-OU3-8", "C11-OU3-7", "S", "leftover trio (OU2-8 is BS cal)"),
 ]
 
-APPEAR = {1: "one-searchlight-low", 2: "two-searchlight-high", 3: "SL-3-high"}
-SYSTEM_BY_HEADS = {1: "basic-enhanced", 2: "basic-enhanced", 3: "AAR-1946"}
+APPEAR = {1: "one-low", 2: "two-searchlight", 3: "SL-3-high"}
+SYSTEM_BY_HEADS = {1: "basic", 2: "basic", 3: "AAR-1946"}
 DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
 PIN_ORDER = (("R", "r_port"), ("Y", "y_port"), ("G", "g_port"))
@@ -381,17 +381,6 @@ def _masts_xml(rows: list[dict]) -> str:
         parts.append(f"      <systemName>{sysname}</systemName>")
         parts.append(f"      <userName>{m}</userName>")
         parts.append('      <unlit allowed="no" />')
-        # Flashing aspects stay defined on the signal system; this layout disables
-        # them on the mast so heads are never commanded FLASHYELLOW.
-        if "two-searchlight-high" in sysname:
-            parts.append("      <disabledAspects>")
-            parts.append("        <disabledAspect>Advanced Approach</disabledAspect>")
-            parts.append("        <disabledAspect>Diverging Advanced Approach</disabledAspect>")
-            parts.append("      </disabledAspects>")
-        elif "one-searchlight-low" in sysname:
-            parts.append("      <disabledAspects>")
-            parts.append("        <disabledAspect>Advanced Approach</disabledAspect>")
-            parts.append("      </disabledAspects>")
         parts.append("    </signalmast>")
     parts.append("  </signalmasts>")
     return "\n".join(parts)

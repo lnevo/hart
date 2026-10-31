@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Bridge Digicon R-code templates to JMRI basic-enhanced aspect names.
+"""Bridge Digicon R-code templates to JMRI Basic aspect names.
 
 CATS stock templates call setAspect("R281"|…). Homes are
-basic-enhanced two-searchlight-high and dwarfs are one-searchlight-low.
-Flashing aspects (Advanced Approach, Diverging Advanced Approach) are disabled
-on the masts, so setAspect may only request Clear, Approach, Stop, Diverging
-Clear, and Diverging Approach (dwarfs: Clear, Approach, Stop). HOLD_ONLY panels
-need AppearanceKey values that match those enabled names so Digicon can paint
+Basic two-searchlight and dwarfs are one-low.
+setAspect may only request Clear, Approach, Stop, Diverging Clear, and Diverging
+Approach (dwarfs: Clear, Approach, Stop). HOLD_ONLY panels need AppearanceKey
+values that match those names so Digicon can paint
 from SML. Do not alias RES_* to Approach on 2-head templates: CATS reverse
 lookup is first-match, and RES_NORM sits before R285 (Approach would paint as
 Restricting). Aspect names with spaces cannot be XML attribute names.
@@ -98,7 +97,7 @@ _ICON = {
     "R292": "STOP",
 }
 
-# CATS IndicationName → basic-enhanced aspect (setAspect) when CATS drives the mast.
+# CATS IndicationName → Basic aspect (setAspect) when CATS drives the mast.
 # Enabled two-head aspects: Clear G/R, Approach Y/R, Diverging Clear R/G,
 # Diverging Approach R/Y, Stop R/R. Y/G and Y/Y have no enabled aspect.
 _REMAP_2 = {
@@ -134,7 +133,7 @@ _REMAP_2 = {
     "R291": "Stop",
 }
 
-# one-searchlight-low: Clear / Approach / Stop.
+# one-low: Clear / Approach / Stop.
 _REMAP_1 = {
     key: (
         "Stop"
@@ -147,12 +146,12 @@ _REMAP_1 = {
 }
 
 # HOLD_ONLY listen map: unique JMRI names on the ICON that matches ABS action.
-# Every value MUST be an enabled basic-enhanced aspect on that mast type.
+# Every value MUST be a Basic aspect on that mast type.
 # CATS Block.startUp → PhysicalSignal.refresh() calls setAspect(AppearanceKey)
 # even when HOLD_ONLY; a disabled or unknown name aborts Screen.init and freezes
 # occupancy / turnout listeners.
 #
-# two-searchlight-high, flash aspects disabled: Clear G/R, Approach Y/R,
+# two-searchlight: Clear G/R, Approach Y/R,
 # Diverging Clear R/G, Diverging Approach R/Y, Stop R/R.
 _REMAP_2_LISTEN_ASPECTS = {
     "R281": "Clear",
@@ -162,7 +161,7 @@ _REMAP_2_LISTEN_ASPECTS = {
     "R292": "Stop",
 }
 
-# one-searchlight-low: Clear / Approach / Stop. No Diverging aspects.
+# one-low: Clear / Approach / Stop. No Diverging aspects.
 _REMAP_1_LISTEN_ASPECTS = {
     "R281": "Clear",
     "R285": "Approach",

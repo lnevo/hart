@@ -6,7 +6,7 @@ output/tables.xml also contains CTC data that must never be replaced by the
 working file. The reviewed coordinates put horizontal masts on the engineer's
 right side of the governed track.
 
-Mac/Pi/Windows-safe: stock basic-enhanced appearances include imagelinks.
+Mac/Pi/Windows-safe: stock Basic appearances include imagelinks.
 Digicon also binds by userName (LE icons optional for Digicon itself).
 """
 
@@ -55,7 +55,7 @@ PLACEMENTS: list[tuple[str, int, int, int]] = [
     ("Mast 38LA", 1665, 285, 270),
 ]
 
-# basic-enhanced `discriminated` art is already 12×40 (home) / 12×17 (dwarf).
+# Basic default art is already 12×40 (home) / 12×17 (dwarf).
 HOME_SCALE = "1.0"
 DWARF_SCALE = "1.0"
 DWARF_MASTS = {
@@ -77,7 +77,7 @@ def _icon_attrs(name: str) -> str:
     return (
         'level="9" forcecontroloff="false" hidden="no" positionable="true" '
         'showtooltip="true" editable="false" clickmode="0" litmode="false" '
-        f'scale="{scale}" imageset="discriminated" '
+        f'scale="{scale}" imageset="default" '
         'class="jmri.jmrit.display.configurexml.SignalMastIconXml"'
     )
 
