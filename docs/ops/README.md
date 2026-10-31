@@ -7,7 +7,6 @@ Project write-ups and notes live here.
 | **This folder** | Live HART publications (canonical outputs) |
 | `sts-docker-helpers/docs/` | STS + HART seed operational requirements |
 | `sts-docker/AGENTS.md` | STS runtime / Docker agent instructions |
-| `archive/docs/` | Finished articles, PDFs, drafts, session invite sources |
 | `publications/` | Rebuild scripts for official HART publications |
 
 ## Scale Operating Instructions
@@ -21,8 +20,6 @@ Body content and layout are defined in
 .venv/bin/python publications/rebuild_scale_operating_instructions.py
 ```
 
-v1.0 source is archived at `archive/docs/HART Railroad Scale Operating Instructions_v1.0.docx`.
-
 ## Dispatcher Train List (DS-01)
 
 Canonical file: `Neville_Island_Dispatcher_Train_List.docx` (Revision D).
@@ -31,8 +28,6 @@ Canonical file: `Neville_Island_Dispatcher_Train_List.docx` (Revision D).
 .venv/bin/python publications/rebuild_dispatcher_train_list.py
 ```
 
-Prior draft archived at `archive/docs/Neville_Island_Dispatcher_Train_List_draft.docx`.
-
 ## Yardmaster Sequence (YM-01)
 
 Canonical file: `Neville_Island_Yardmaster_Sequence.docx` (Revision D).
@@ -40,8 +35,6 @@ Canonical file: `Neville_Island_Yardmaster_Sequence.docx` (Revision D).
 ```bash
 .venv/bin/python publications/rebuild_yardmaster_sequence.py
 ```
-
-Prior draft archived at `archive/docs/Neville_Island_Yardmaster_Sequence_draft.docx`.
 
 ## Crew Instructions (CI-D749 / CI-NVL / CI-CK1)
 
@@ -91,8 +84,7 @@ Sources: dispatcher panel labels, SM-01 topology, seed industry spot names.
 
 Canonical file: `Neville_Island_New_Operator_Primer.docx` (Revision A).
 
-Pre-session briefing for new crew. Invite-email sources used for the first
-draft live under `archive/docs/session_invites/`.
+Pre-session briefing for new crew.
 
 ```bash
 .venv/bin/python publications/rebuild_operator_primer.py

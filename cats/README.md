@@ -41,13 +41,12 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 
 - JMRI: **current** host (panel reports **5.15.4plus** — OK for CATS 3.2)
 - CTC throws: **CATS**
-- Digicon board: **Designer-first** (ADR-004); **start here:** [`docs/DESIGNER_GATE1_HOWTO.md`](../archive/docs/DESIGNER_GATE1_HOWTO.md) · checklist [`docs/GATE1_BRICK_PLANE.md`](../archive/docs/GATE1_BRICK_PLANE.md)
+- Digicon board: **Designer-first** (ADR-004); **start here:** [`wiki/pipelines/cats-panels.md`](../wiki/pipelines/cats-panels.md)
   ```bash
   ./cats/scripts/launch_designer.sh
   python3 cats/scripts/wire_digicon.py   # builds HART_CTC.xml and HART_ABS.xml from HART_Digicon.xml
   ```
   - Plant map: [`wiki/DIGICON_SCHEMATIC.md`](../wiki/DIGICON_SCHEMATIC.md)
-  - Bindings: [`docs/BRICK_BINDINGS.md`](../archive/docs/BRICK_BINDINGS.md) · Gates 2–5: [`docs/GATE2_PLUS.md`](../archive/docs/GATE2_PLUS.md)
 - Validate: `python3 cats/scripts/validate_cats_panel.py`
 
 ## Install + run (macOS)
@@ -79,7 +78,7 @@ Fallback if Cursor is still blocked: `CATS_LAUNCH_VIA=terminal`.
 
 `readelf` warnings on macOS from `cats.csh` are harmless ARM probes.
 
-Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_BUILD.md`](../archive/docs/HART_DESIGNER_BUILD.md).
+Also: sample `panels/reference_ArmstrongMagnet.xml`.
 
 ## Authority rule
 

@@ -1,20 +1,6 @@
-> **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../archive/consolidation/LIVE_SOURCES.md).
-
-## Source of record
-
-| Kind | Live (read-only) | Consolidation |
-|------|------------------|---------------|
-| CATS mimic | `tools/mqtt-mimic/lcos_mqtt_mimic.py` | — |
-| JMRI publisher | `jmri/scripts/mqtt_signalhead_publisher.py` | — |
-| Bridge | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | [`cross-repo/lcos/TIER_B.md`](../../archive/consolidation/cross-repo/lcos/TIER_B.md) |
-
-**Tier:** B (manual smoke) · Cross-cutting pipelines **3 / 5 / 9** · **D6:** live `track/signalmast/#` roster
-
----
-
 # MQTT mimic QA (CATS + JMRI)
 
-**Consolidation topic:** Pipeline 3/5/9 cross-cutting — LCOS Digicon aspect QA without physical layout.
+Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical layout.
 
 ## Live paths
 
@@ -39,7 +25,35 @@ python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --help
 python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local
 ```
 
-Spec: [`cross-repo/lcos/TIER_B.md`](../../archive/consolidation/cross-repo/lcos/TIER_B.md)
+## Bridge smoke tests
+
+Run these by hand before promoting a bridge or firmware change.
+
+### B1: mast roster from MQTT
+
+1. Subscribe to `track/signalmast/#` on broker `minipc-e5h6x.local`.
+2. After the bridge connects, confirm non-empty retained mast topics for live heads.
+3. A SET on `track/signalhead/<packed>` must be gated when the mast topic is absent.
+
+### B2: event 125 replay
+
+After an LCOS master RAM wipe, mast MQTT disappears until the display subscription (event 125) is replayed.
+
+Proposal, not approved: send 125 periodically to `kSubscribeDisplayNodes[]` after a master restart.
+
+### B3: USB serial ACK and pacing
+
+Document pacing on the Windows bridge before promotion.
+
+### Files a promotion would change
+
+- `lcos_mqtt_bridge.cpp`: subscription and 125
+- `serial_to_mqtt.py`: ACK pacing
+- `mqtt_serial.cpp`: serial layer
+
+### Broker cleanup
+
+The one-shot retain clear for stale `track/signalhead/*` and `track/signalmast/*` (keeping 432 and 433) has been done by hand. Do not encode it in a permanent script.
 
 ## Related pipelines
 

@@ -1,5 +1,9 @@
 # Status log
 
+Updated: 2026-10-31 — Live pages no longer depend on `archive/consolidation`: the bridge smoke tests moved into [`pipelines/mqtt-mimic.md`](pipelines/mqtt-mimic.md), and the stale submodule pin pages and archived CATS and ops links were dropped. Docs only; not deployed.
+
+Updated: 2026-10-31 — The owner decided the 10 yard ladder lamp buttons stay off the CATS desks, which closes that question. Docs only; not deployed.
+
 Updated: 2026-10-31 — Wiki cleanup: the yard ladder button decision moved to [`pipelines/cats-panels.md`](pipelines/cats-panels.md), `add_yard_ladder_buttons.py` removed, dark masts dropped as a topic, and the CATS docs corrected: the lamps are on the Layout Editor panel, not the desks. Not deployed.
 
 Updated: 2026-10-31 — PanelPro on the Pi is up on the deployed tables and looks good to the owner. The owner dropped the Basic signals railroad test. Agent skills and MCPs are done. Docs only; not deployed.
