@@ -36,7 +36,9 @@ The Pi holds live session state, so never replace its roster with the export.
 
 ## Compare
 
-`bin/cars compare` lists differences between the repository, the Operations Pro roster and the STS seed. It reports only; resolving them is later work.
+`bin/cars compare` lists differences between the repository, the Operations Pro roster and the STS seed. It reports only.
+
+`bin/cars fix-ops` brings a copy of the Operations Pro roster up to the repository: wrong ids listed in `ROSTER_TYPO_IDS` are corrected in place, keeping location and moves, and missing cars are added. It leaves STS and the queue alone. Install the result as in the steps above.
 
 ## Do not
 
