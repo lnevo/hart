@@ -13,6 +13,7 @@ NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 | 5 | CATS Digicon panels | Live | [cats-panels.md](cats-panels.md) |
 | 6 | USS CTC machine | Live (not with CATS) | [uss-ctc.md](uss-ctc.md) |
 | 7 | Dispatcher System graph | Live | [dispatcher-system.md](dispatcher-system.md) |
+| — | Car workflow | Live | [car-workflow.md](car-workflow.md) |
 | 8 | Wiring documentation | Live | [wiring-docs.md](wiring-docs.md) |
 | 9 | LCOS Nano firmware | Live (other repo) | [lcos-firmware.md](lcos-firmware.md) |
 | 11 | Speed matching | Parked | [speed-matching.md](speed-matching.md) |
