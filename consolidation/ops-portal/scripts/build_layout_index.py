@@ -259,8 +259,8 @@ def build():
     return {
         "source": {
             "workspace": "consolidation",
-            "panel": str(PANEL.relative_to(CONS)),
-            "names": str(NAMES.relative_to(CONS)),
+            "panel": str(PANEL.relative_to(ROOT)),
+            "names": str(NAMES.relative_to(ROOT)),
             "devices": str(DEVICES.relative_to(CONS)) if DEVICES.is_file() else None,
         },
         "image": {

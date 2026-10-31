@@ -1948,7 +1948,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1232)(IH1233)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH1232)(IH1233)",
     "userName": "Mast 24RA",
     "comment": "East End | Switch 23"
   },
@@ -1957,7 +1957,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1234)(IH1235)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH1234)(IH1235)",
     "userName": "Mast 24L",
     "comment": "East End | Switch 23"
   },
@@ -1966,7 +1966,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1237)(IH1238)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH1237)(IH1238)",
     "userName": "Mast 34L",
     "comment": "East End | Switch 33"
   },
@@ -1975,7 +1975,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1240)(IH1241)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH1240)(IH1241)",
     "userName": "Mast 34R",
     "comment": "East End | Switch 33"
   },
@@ -1984,7 +1984,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH132)(IH133)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH132)(IH133)",
     "userName": "Mast 40LB",
     "comment": "Princess | Switch 39"
   },
@@ -1993,7 +1993,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1332)(IH1333)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH1332)(IH1333)",
     "userName": "Mast 8RA",
     "comment": "Barn | Switch 7"
   },
@@ -2002,7 +2002,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1335)(IH1336)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH1335)(IH1336)",
     "userName": "Mast 8RB",
     "comment": "Barn | Switch 7"
   },
@@ -2011,7 +2011,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH1337)(IH1338)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH1337)(IH1338)",
     "userName": "Mast 8LA",
     "comment": "Barn | Switch 7"
   },
@@ -2020,7 +2020,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH135)(IH136)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH135)(IH136)",
     "userName": "Mast 36RA",
     "comment": "Princess | Switch 35"
   },
@@ -2029,7 +2029,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH137)(IH138)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH137)(IH138)",
     "userName": "Mast 36RB",
     "comment": "Princess | Switch 35"
   },
@@ -2038,7 +2038,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH139)(IH140)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH139)(IH140)",
     "userName": "Mast 38LB",
     "comment": "Princess | Switch 37"
   },
@@ -2047,7 +2047,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH432)(IH433)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH432)(IH433)",
     "userName": "Mast 6LB",
     "comment": "Plane | Switch 5"
   },
@@ -2056,7 +2056,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:hart-aar:SL-2-digicon(IH438)(IH439)",
+    "systemName": "IF$shsm:basic:two-searchlight(IH438)(IH439)",
     "userName": "Mast 2L",
     "comment": "Brick | Switch 1"
   },
