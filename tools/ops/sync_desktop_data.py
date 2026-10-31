@@ -25,6 +25,7 @@ PAIRS = {
     "DJ Trains": "media/dj-trains",
 }
 SKIP_NAMES = {".DS_Store"}
+SKIP_DIRS = {"venv", ".venv", "__pycache__"}
 
 
 def digest(path: Path) -> str:
@@ -41,7 +42,10 @@ def files(root: Path) -> set[str]:
     return {
         p.relative_to(root).as_posix()
         for p in root.rglob("*")
-        if p.is_file() and p.name not in SKIP_NAMES and not p.name.startswith("~$")
+        if p.is_file()
+        and p.name not in SKIP_NAMES
+        and not p.name.startswith("~$")
+        and not SKIP_DIRS.intersection(p.relative_to(root).parts)
     }
 
 
