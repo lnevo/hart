@@ -53,11 +53,27 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | Scoped rules | `cats/AGENTS.md` | Only what applies under that folder |
 | Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md` | Pointers only; Cursor also reads `AGENTS.md` |
 | Claude Code | `.claude/commands/done.md` | Pointer only; Claude Code reads `AGENTS.md` |
-| Subagents | None defined | Add one only when a task recurs |
+| Subagents | `.claude/agents/` | Five project agents; see below |
 | Facts and decisions | `wiki/`, ADRs | Never in chat or tool memory |
 | Build handoffs | `docs/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs stay in `docs/helix/history/` |
 | Tool memory | Per-machine, outside git | Preferences only. Anything every agent needs goes in `AGENTS.md` or an ADR |
 | Submodules | Their own repos | `external/*` rules travel with each repo |
+
+## Claude subagents
+
+| Agent | Use for | Access | Model |
+|-------|---------|--------|-------|
+| `site-builder` | Website pages and data | Edits, no publishing | Sonnet |
+| `site-reviewer` | Website review; name the lens in the brief | Read-only | Sonnet |
+| `panel-tracer` | Why the panel or signals behave as they do | Read-only | Opus |
+| `repo-auditor` | Dead code, stale docs, structure | Read-only | Sonnet |
+| `archive-researcher` | History and archive proposals | Read-only | Sonnet |
+
+- The definition holds the standing rules. The brief holds only the goal, the scope and what is already ruled out.
+- The main session commits, pushes, deploys and verifies. `.claude/hooks/subagent_guard.py` blocks those commands in subagents, but `Bash` can still write, so read-only also rests on the agent's instructions.
+- Split a job likely to pass 50 turns into stages. At `maxTurns` the agent stops with partial output and can be resumed.
+- Run builders one at a time. `isolation: "worktree"` branches from `main`, not the current branch, so it suits only work that does not depend on unmerged changes.
+- Add an agent only when a task recurs. Do not add agents for deploys or live hardware; those stay visible in the main session.
 
 ## Layout env
 
