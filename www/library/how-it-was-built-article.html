@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>How the Railroad Got a Repository — HART</title>
-  <meta name="description" content="How one model railroader runs a layout project as a repository, with AI agents doing the legwork and a handful of guardrails keeping them honest: file structure, decisions, rules and what went wrong.">
+  <title>Bringing the Railroad Together — HART</title>
+  <meta name="description" content="How scattered projects became one repository for the layout, the research and the website, and how AI helped along the way: the rules, the fences and the file structure.">
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/article.css">
   <style>
@@ -30,20 +30,19 @@
   <main>
     <article class="feature">
       <header class="feature-head">
-        <h1>How the Railroad Got a Repository: Building HART with AI Agents</h1>
-        <p class="standfirst">One person, one layout and a crew of AI helpers. A plain-language look at how the project is kept in a repository, who is allowed to touch what, and what went wrong on the way.</p>
+        <h1>Bringing the Railroad Together</h1>
+        <p class="standfirst">How scattered projects became one repository for the layout, the research and the website, and how AI helped along the way.</p>
         <p class="byline">How it was built · October 2026</p>
       </header>
 
       <nav class="feature-toc" aria-label="On this page">
         <h2>On this page</h2>
         <ol>
-          <li><a href="#repository">The railroad has a repository</a></li>
-          <li><a href="#truth">One source of truth</a></li>
-          <li><a href="#inside">Repos within the repo</a></li>
+          <li><a href="#before">Before the repository</a></li>
+          <li><a href="#august">August: bringing it together</a></li>
+          <li><a href="#serves">Three things it serves</a></li>
           <li><a href="#fences">The agents and their fences</a></li>
           <li><a href="#skills">Skills and read-only tools</a></li>
-          <li><a href="#wrong">What went wrong</a></li>
           <li><a href="#human">Where the human stays</a></li>
           <li><a href="#references">References</a></li>
         </ol>
@@ -51,55 +50,89 @@
 
       <div class="feature-body">
         <section id="intro" aria-label="Introduction">
-          <p class="lede">Since the first week of August 2026 I have run the HART project as a repository, with AI agents doing much of the legwork and a few rules keeping them honest. If you have ever lost track of which copy of a spreadsheet was the real one, you already know the problem this solves.</p>
-          <p>The railroad's traffic, the cards and the session paperwork, is told in <a href="sts-operations-article.html">the operations story</a>. This page is about something else: the working method, how the files are laid out, and the rules.</p>
+          <p class="lede">The railroad did not start in a repository. The story, the research and the first software came first, with AI in them from early on, and each piece lived wherever it was made. In August 2026 I set out to bring them together for three things: the railroad, the research and the public view.</p>
+          <p>The railroad's traffic, the cards and the session paperwork, is told in <a href="sts-operations-article.html">the operations story</a>. This page is about the rest: where the pieces came from, how they were gathered, and the rules that keep one place trustworthy.</p>
           <blockquote class="pull"><p>Chat is a scratchpad; decisions live in the wiki.</p></blockquote>
         </section>
 
-        <section id="repository" aria-labelledby="h-repository">
-          <h2 id="h-repository"><span class="num">01</span>The railroad has a repository</h2>
-          <p>A layout is a lot of files that have to agree with each other. The software that runs it, JMRI, keeps its turnouts, blocks and signals in a single XML file. The dispatcher's control panels are a drawing file. Then there are the wiring documents, the website you are reading, the 3D-print files for the benchwork, and a wiki of notes. Change one without the others and something quietly stops working.</p>
-          <p>A <b>repository</b> (repo for short) is a folder where every change is recorded. A <b>commit</b> is one saved snapshot with a note saying why. A <b>branch</b> is a side copy of the whole folder where work can happen without disturbing the main line; when it is good, it is merged back. Anyone can see what changed, when, and go back.</p>
-          <p>HART's first commit was on August 7. By October 31 there were about 675 commits, made on 47 different days. The folder layout is itself a recorded decision. Each of those decisions is an <b>ADR</b>, an architecture decision record: a short page saying what we decided, why, and what it replaced. There are 13 so far. One of them, ADR-007, sets the top-level folders: the JMRI data, the CTC panels, documents, the website, tools, the wiki and an archive for retired material.</p>
+        <section id="before" aria-labelledby="h-before">
+          <h2 id="h-before"><span class="num">01</span>Before the repository</h2>
+          <p>AI was part of this railroad long before August. The research started in early 2025, and about April is the first solid reference I can point to. ChatGPT generated just about all of the document files. All of the fictional short stories were drafted by AI. The logo is AI-generated. The track plan was settled in July 2025, and <a href="../build/index.html">the Build page</a> has progress photos from February 2025 on. The 2022 tabletop layout before it saw little AI work.</p>
+          <p>I stayed with ChatGPT for a long time, until I began using Cursor, an AI code editor, to edit the LCOS project, the software behind the layout electronics. Cursor then helped with the layout-editor work that came out of AnyRail, later CATS, and the rest. Claude took over the consolidation and some of the other work as I started testing outside Cursor.</p>
+          <p>The operations work is another place AI helped. In <a href="sts-operations-article.html">the operations story</a>, which I also wrote up for <cite>The Cannon Ball</cite> in Summer 2026<sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>, it helped build the car cards by matching photos to the roster, and it ran the heavy iteration when tuning the traffic simulation.</p>
+          <p>So by the summer of 2026 the project was real and busy, but it was scattered: documents and research in their own folders, the fiction in its drafts, control software for the layout in one project, the traffic simulation in another, car records, the bridge to the electronics, and the website. Each worked on its own. Nothing made sure they agreed.</p>
         </section>
 
-        <section id="truth" aria-labelledby="h-truth">
-          <h2 id="h-truth"><span class="num">02</span>One source of truth per thing</h2>
-          <p>Most of the decision records say the same thing in different words: there should be one real copy. Three of them were reversals of something I had set up myself.</p>
-          <div class="aside-box">
-            <h3>Three reversals</h3>
-            <ol class="step-list">
-              <li><b>One tables file (ADR-008).</b> I had a working copy of the JMRI tables beside the real one. That meant two files to keep in step, and changes could reach only one. Now there is one file, and git branches do the job the spare copy used to do.</li>
-              <li><b>One panel save, two desks (ADR-012).</b> The CATS control panels had grown to six files. They had drifted: the desks held edits the source did not, so a rebuild would have undone them. Now one Designer save is the only file anyone edits, and a script writes both dispatcher desks from it. Nobody edits a desk by hand.</li>
-              <li><b>One car repository (ADR-013).</b> Three tools held different cars. There is now a single repository that holds the whole fleet, and the others are fed from it.</li>
-            </ol>
-          </div>
+        <section id="august" aria-labelledby="h-august">
+          <h2 id="h-august"><span class="num">02</span>August: bringing it together</h2>
+          <p>A <b>repository</b> (repo for short) is a folder where every change is recorded. A <b>commit</b> is one saved snapshot with a note saying why. A <b>branch</b> is a side copy of the whole folder where work can happen without disturbing the main line; when it is good, it is merged back. Anyone can see what changed, when, and go back.</p>
+          <p>This repository's first commit was on August 7, 2026. By August 31 the other projects (the traffic software, the car data and the website) had been gathered in beside it. The research and the website's own domain followed in October.</p>
+
+          <figure>
+            <svg class="who-svg" viewBox="0 0 480 296" role="img" aria-labelledby="one-t one-d">
+              <title id="one-t">Before and after</title>
+              <desc id="one-d">On the left, labelled Before, seven separate boxes: documents and research, the fiction, control software, traffic simulation, car records, the bridge and the website. An arrow leads to a single box in the middle labelled One repository. Three arrows lead from it to three outcomes on the right: Railroad, Research and Public view.</desc>
+              <defs>
+                <marker id="one-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
+              </defs>
+
+              <!-- left: separate pieces -->
+              <rect class="strip" x="4" y="4" width="160" height="288" rx="4"/>
+              <text class="t-b" x="84" y="24" text-anchor="middle">Before</text>
+              <rect class="box" x="14" y="36" width="140" height="28" rx="2"/><text x="84" y="55" text-anchor="middle">Documents, research</text>
+              <rect class="box" x="14" y="72" width="140" height="28" rx="2"/><text x="84" y="91" text-anchor="middle">The fiction</text>
+              <rect class="box" x="14" y="108" width="140" height="28" rx="2"/><text x="84" y="127" text-anchor="middle">Control software</text>
+              <rect class="box" x="14" y="144" width="140" height="28" rx="2"/><text x="84" y="163" text-anchor="middle">Traffic simulation</text>
+              <rect class="box" x="14" y="180" width="140" height="28" rx="2"/><text x="84" y="199" text-anchor="middle">Car records</text>
+              <rect class="box" x="14" y="216" width="140" height="28" rx="2"/><text x="84" y="235" text-anchor="middle">The bridge</text>
+              <rect class="box" x="14" y="252" width="140" height="28" rx="2"/><text x="84" y="271" text-anchor="middle">The website</text>
+              <path class="line" d="M164 148 H194" marker-end="url(#one-arr)"/>
+
+              <!-- middle: one repository -->
+              <rect class="core" x="196" y="112" width="96" height="72" rx="3"/>
+              <text class="t-w t-b" x="244" y="144" text-anchor="middle">One</text>
+              <text class="t-w t-b" x="244" y="163" text-anchor="middle">repository</text>
+
+              <!-- right: three outcomes -->
+              <text class="t-b" x="400" y="24" text-anchor="middle">Serves</text>
+              <path class="line" d="M292 148 H308 V92 H322" marker-end="url(#one-arr)"/>
+              <path class="line" d="M292 148 H322" marker-end="url(#one-arr)"/>
+              <path class="line" d="M292 148 H308 V204 H322" marker-end="url(#one-arr)"/>
+              <rect class="box" x="324" y="72" width="152" height="40" rx="2"/><text class="t-b" x="400" y="97" text-anchor="middle">Railroad</text>
+              <rect class="box" x="324" y="128" width="152" height="40" rx="2"/><text class="t-b" x="400" y="153" text-anchor="middle">Research</text>
+              <rect class="box" x="324" y="184" width="152" height="40" rx="2"/><text class="t-b" x="400" y="209" text-anchor="middle">Public view</text>
+            </svg>
+            <figcaption><strong>Before and after.</strong> The separate pieces on the left now live in one repository, which serves the railroad, the research and the public view.</figcaption>
+          </figure>
+
+          <p>The folder layout is itself a recorded decision. Each of those decisions is an <b>ADR</b>, an architecture decision record: a short page saying what we decided, why, and what it replaced. There are 13 so far. ADR-007 sets the top-level folders: the JMRI data, the CTC panels, documents, the website, tools, the wiki and an archive for retired material. Most of the others say the same thing in different words, that there should be one real copy: one tables file (ADR-008), one panel save that writes both dispatcher desks (ADR-012) and one car repository (ADR-013).</p>
           <p>Documents got the same treatment (ADR-010). Anything we create lives in one folder, and the website holds no copies. A list names each published file and where it comes from, and the site build copies them.</p>
           <p>Then there is the problem of the AI forgetting. An agent starts each session knowing only what is written down, so anything not written down is lost. That is why the pull quote above is the first rule in the instructions file. The wiki has a live status page and a separate dated log. The status page says what is true today; the log says what happened and when.</p>
-        </section>
-
-        <section id="inside" aria-labelledby="h-inside">
-          <h2 id="h-inside"><span class="num">03</span>Repos within the repo</h2>
-          <p>Some of the work belongs to projects that stand on their own. A <b>submodule</b> is a pinned snapshot of another repo, kept inside this one. The main repo records exactly which version it uses, so nothing shifts underneath it unnoticed, and each submodule keeps its own history and rules.</p>
-          <p>Four of them are public, and you can read them:</p>
+          <p>Some of the work belongs to projects that stand on their own. A <b>submodule</b> is a pinned snapshot of another repo, kept inside this one. The main repo records exactly which version it uses, so nothing shifts underneath it unnoticed, and each submodule keeps its own history and rules. The public ones include:</p>
           <ul>
             <li><a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a>, the bridge that links JMRI to the layout's signal and turnout electronics (see <a href="../behind/bridge.html">Electronics &amp; the bridge</a>);</li>
             <li><a href="https://github.com/lnevo/sts-docker">sts-docker</a> and <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a>, for running the traffic simulator;</li>
             <li><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a>, covered in section 05.</li>
           </ul>
-          <p>A fifth, private repo holds the car inventory and the card and waybill tooling.</p>
+        </section>
+
+        <section id="serves" aria-labelledby="h-serves">
+          <h2 id="h-serves"><span class="num">03</span>Three things it serves</h2>
+          <p><b>The railroad.</b> The tables that describe the layout to JMRI, the control panels, the signals, the bridge to the electronics and the car cards. Signals settled on plain stock behaviour rather than a cleverer set; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the bridge.</p>
+          <p><b>The research.</b> The sources are kept together with a note of where each item came from. What is fit to share appears on this site: the <a href="../photos/index.html#historical">historic photo archive</a> and the <a href="../history/index.html">Prototype</a> articles.</p>
+          <p><b>The public view.</b> This site. It is published only from tracked files, so what you read here is what the repository holds.</p>
         </section>
 
         <section id="fences" aria-labelledby="h-fences">
           <h2 id="h-fences"><span class="num">04</span>The agents and their fences</h2>
-          <p>All the rules live in one file, <code>AGENTS.md</code>, and every tool I use reads it. It holds the commands, the list of things never to do, and a close-out routine for any task that changed files: update the wiki, commit on a branch, push, test, deploy, then report what was done.</p>
-          <p>The day-to-day AI is Claude Code, which took over in mid-October from Cursor. Cursor did most of the early work: at least 367 commits are credited to it between August 7 and October 15, and at least 270 to Claude from October 14. Both are named in the commit notes.</p>
+          <p>AI helped well before the repository; the repository is where the rules were written down. All of them live in one file, <code>AGENTS.md</code>, and every tool I use reads it. It holds the commands, the list of things never to do, and a close-out routine for any task that changed files: update the wiki, commit on a branch, push, test, deploy, then report what was done. One rule I keep: repair the data, not the package. If a stock JMRI tool fails on this layout, I fix our files and leave JMRI alone.</p>
+          <p>These counts describe this repository only, as of October 31: about 680 commits on 47 days, at least 367 credited to Cursor and at least 270 to Claude, whose first credit is October 14. Both are named in the commit notes.</p>
           <p>Some jobs are handed to a <b>subagent</b>, a helper with its own written instructions and one bounded task. I have five, kept in a folder of their own. Four are read-only: one traces why a signal or panel behaves as it does, one audits the repo for dead code and stale notes, one reviews the website through a named lens, and one researches history and sources. The fifth builds website pages and may edit only the website folder. None of them commits, pushes or deploys. The main session does that, and checks the result.</p>
 
-          <figure>
+<figure>
             <svg class="who-svg" viewBox="0 0 480 472" role="img" aria-labelledby="who-t who-d">
               <title id="who-t">Who may touch what</title>
-              <desc id="who-d">AGENTS.md, the one rule file, sits above the owner and the main session in the middle. On the left, five subagents report back to the main session: four are read-only and one edits the website folder. On the right, work passes five gates in order: branch, pull request, checks, merge and deploy. Deploy is done by the main session only. Along the bottom, submodules are pinned snapshots of other repos: four public ones, including the public skills plugin, and one private one shown with a closed lock.</desc>
+              <desc id="who-d">AGENTS.md, the one rule file, sits above the owner and the main session in the middle. On the left, five subagents report back to the main session: four are read-only and one edits the website folder. On the right, work passes five gates in order: branch, pull request, checks, merge and deploy. Deploy is done by the main session only. Along the bottom, submodules are pinned snapshots of other repos. The public ones include the bridge client, two traffic simulator repos and the public skills plugin, each marked with an open lock.</desc>
               <defs>
                 <marker id="who-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
               </defs>
@@ -177,25 +210,20 @@
                 <text x="34" y="18">STS helpers</text><text class="t-s" x="34" y="33">public</text>
               </g>
               <g transform="translate(14 410)">
-                <rect class="box" width="222" height="40" rx="2"/>
+                <rect class="box" width="452" height="40" rx="2"/>
                 <path class="shackle" d="M14 14 V10 a5 5 0 0 1 10 0"/><rect class="lock" x="11" y="14" width="16" height="12" rx="1"/>
                 <text x="34" y="18">Skills plugin</text><text class="t-s" x="34" y="33">public, nothing railroad-specific</text>
               </g>
-              <g transform="translate(244 410)">
-                <rect class="edit" width="222" height="40" rx="2"/>
-                <path class="shackle" d="M15 14 V10 a4 4 0 0 1 8 0 V14"/><rect class="lock" x="11" y="14" width="16" height="12" rx="1"/>
-                <text x="34" y="18">Car data and tooling</text><text class="t-s" x="34" y="33">private</text>
-              </g>
             </svg>
-            <figcaption><strong>Who may touch what.</strong> The rule file sits above everything. Subagents report back and never commit. Work crosses the gates on the right in order, and only the main session deploys. An open lock marks a public repo; the closed lock marks the private one.</figcaption>
+            <figcaption><strong>Who may touch what.</strong> The rule file sits above everything. Subagents report back and never commit. Work crosses the gates on the right in order, and only the main session deploys. An open lock marks a public repo.</figcaption>
           </figure>
 
           <p>The fences themselves are small scripts called <b>hooks</b>: a hook runs just before the AI executes a command and can say no. The first, <code>main_guard.py</code>, runs in every session. It stops a commit or a push to the main branch, a force-push, and an admin merge that would skip the required check. It asks me first before anything that would send a command out to the layout. I have also let agents merge a pull request once the required check passes; GitHub refuses it otherwise, and the admin-merge block still applies.</p>
           <p>The second, <code>subagent_guard.py</code>, applies to subagents only. It reads each shell command and refuses the ones that save to git history, publish the website, reach another machine or act on the railroad, and tells the subagent to report back instead. It matches where a command starts, so a subagent can still search for those names. The file says of itself that it is "a guardrail against mistakes, not a security boundary", and I take that literally. Read-only for the four reading agents rests partly on their written instructions, too.</p>
           <p>Every pull request also runs <code>tools/check.sh</code>, a set of automated checks on the tables, signals and the agent instructions themselves.</p>
           <div class="aside-box">
-            <h3>These arrived late</h3>
-            <p>None of this was there at the start. The only automated workflow before October, added on September 8, published the website. The checks on every pull request, both hooks and the five subagents arrived on October 31, after several of the mistakes in section 06 had already happened. That is part of the story.</p>
+            <h3>The guardrails came later</h3>
+            <p>The repository did not have them at the start. The only automated workflow before October, added on September 8, published the website. The checks on every pull request, both hooks and the five subagents arrived on October 31.</p>
           </div>
         </section>
 
@@ -207,25 +235,10 @@
           <p>I also decided what <em>not</em> to build. There are no tools for serial ports, flashing the electronics, deploys or CATS. Anything that can change the railroad stays with a person. The caveat is honest: the JMRI tool has only been tested against a stand-in server, and the message tool only against a local test broker. Neither has run on a live layout. The plugin holds nothing specific to this railroad.</p>
         </section>
 
-        <section id="wrong" aria-labelledby="h-wrong">
-          <h2 id="h-wrong"><span class="num">06</span>What went wrong</h2>
-          <p>Five things, picked because each one left a rule behind.</p>
-          <div class="aside-box">
-            <h3>Five mistakes and what they left</h3>
-            <ol class="step-list">
-              <li><b>Signals, three ways.</b> I tried a custom signal set, then a stock set with some aspects switched off, then settled on plain stock (ADR-006, replaced by ADR-011). The middle one showed false Stops that alternated with Approach all the way back up the line behind a real Stop. Stock beat clever. (<a href="../behind/signals.html">How the signals work</a>)</li>
-              <li><b>Patching JMRI.</b> In August a startup wrapper patched JMRI's Dispatcher System so it would run on this layout. It needed its own fixes in turn, including one by August 22 for a syntax error caused when one of our settings leaked into JMRI's shared scripting engine. The wrapper was gone by September 1. The rule now is to repair the data, not the package, and the wiki keeps a list of those repairs.</li>
-              <li><b>Trains running backwards.</b> On August 18, trains dispatched automatically kept running the wrong way, and we hunted through the facing logic for the cause. The software's answers were correct all along. JMRI shares one throttle per locomotive address, so a phone throttle holding the same locomotive, or even picking it up again, sends its last direction and flips it. The rule now is hands off the phone throttle during a dispatch.</li>
-              <li><b>A boot script moving points.</b> On August 31 a startup script meant only to light status lamps on the panel was replaying remembered turnout states, and that was moving points. It now reads state and nothing more, and the rules forbid launch scripts from commanding turnouts.</li>
-              <li><b>Two sessions, one folder.</b> Run two sessions in the same checkout and one can switch the branch under the other, so its next commit lands on the wrong branch. On October 31 the guard hook and a rule landed together: each session works in its own folder and stages files by name.</li>
-            </ol>
-          </div>
-        </section>
-
         <section id="human" aria-labelledby="h-human">
-          <h2 id="h-human"><span class="num">07</span>Where the human stays</h2>
+          <h2 id="h-human"><span class="num">06</span>Where the human stays</h2>
           <p>I decide. I run the layout and I approve what goes out. The agents read, trace, draft and build pages and files; they do not run the railroad. The bridge to the layout electronics runs in a window where I can see it, and agents do not start it.</p>
-          <p>A repository does not run a railroad. What it does is make the paperwork honest, so that when something is wrong I can find which copy to trust, and when a helper makes a mistake, the damage is small and recorded. The next step is the same as the last one: write the rule down where every tool will read it.</p>
+          <p>A repository does not run a railroad. What it does is keep the paperwork honest, so that when something is wrong I can find which copy to trust. The railroad, the research and the public view now work from one place.</p>
         </section>
 
         <section id="references" aria-labelledby="h-refs">
@@ -236,6 +249,7 @@
             <li id="ref-3">sts-docker-helpers (GitHub). <a href="https://github.com/lnevo/sts-docker-helpers">github.com/lnevo/sts-docker-helpers</a></li>
             <li id="ref-4">model-railroad-skills, the public Claude Code plugin (GitHub). <a href="https://github.com/lnevo/model-railroad-skills">github.com/lnevo/model-railroad-skills</a></li>
             <li id="ref-5">JMRI, Java Model Railroad Interface. <a href="https://www.jmri.org/">jmri.org</a></li>
+            <li id="ref-6">Lee Nevo, “Building Operations on the HART Railroad: How I used AI to turn a new layout into an operating railroad.” <cite>The Cannon Ball</cite> (Sunrise Trail Division, NMRA) 56, no. 2 (Summer 2026): 7–10. <a href="https://sunrisetraildiv.org/CannonBalls/5602Summer2026.pdf">sunrisetraildiv.org/CannonBalls/5602Summer2026.pdf</a>. Read the <a href="sts-operations-article.html">operations story</a> on this site.</li>
           </ol>
           <p class="feature-more">More: <a href="sts-operations-article.html">The operations story</a> · <a href="stl-studio-article.html">STL Studio</a> · <a href="../behind/signals.html">How the signals work</a> · <a href="../behind/bridge.html">Electronics &amp; the bridge</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
         </section>
