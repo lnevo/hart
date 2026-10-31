@@ -72,7 +72,8 @@
         "digicon",
         "behind-docs",
         "behind-sts",
-        "behind-stl"
+        "behind-stl",
+        "behind-build"
       ]
     },
     {
@@ -115,6 +116,12 @@
       }
     ],
     "behind-stl": [
+      {
+        "label": "From the workbench",
+        "href": "behind/index.html#workbench"
+      }
+    ],
+    "behind-build": [
       {
         "label": "From the workbench",
         "href": "behind/index.html#workbench"
