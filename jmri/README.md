@@ -4,7 +4,7 @@ Turn an **AnyRail export** into a **blocked JMRI panel** with occupancy sensors,
 
 ## Per-layout folders
 
-See [`layouts/README.md`](layouts/README.md). Active layout is **`mac`** unless you set:
+See [`layouts/README.md`](layouts/README.md). Active layout is **`hart`** unless you set:
 
 ```bash
 export JMRI_LAYOUT=new
@@ -21,7 +21,7 @@ export JMRI_LAYOUT=new
 
 Other scripts in `scripts/` are one-off layout edits (stubs, trim, hex arcs, schematic build).
 
-## Typical workflow (existing Mac layout)
+## Typical workflow
 
 ```bash
 cd /Users/lnevo/Panel
