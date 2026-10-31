@@ -1,9 +1,10 @@
-# jmri_cmd_watcher.py - temporary automation channel for agent-driven JMRI work.
+# jmri_cmd_watcher.py - automation channel for agent-driven JMRI work.
 #
 # Polls /tmp/jmri_cmd.py; when it appears, executes it inside this JMRI
 # session (Jython), renames it to /tmp/jmri_cmd.last and writes status +
-# any RESULT variable to /tmp/jmri_cmd.out. Remove this script from the
-# profile Start Up when the automation session is over.
+# any RESULT variable to /tmp/jmri_cmd.out. It is a standing part of the Pi
+# Start Up. Whatever is dropped there runs with JMRI's full access, so the
+# AGENTS.md rules on field turnouts and track/cmd apply to it.
 
 import os
 import time
