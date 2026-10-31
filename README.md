@@ -41,22 +41,33 @@ python3 jmri/scripts/check_hart_phase02.py
 
 **AI / handoff:** [`wiki/home.md`](wiki/home.md), [`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md), [`AGENTS.md`](AGENTS.md).
 
-## Other folders
+## Layout of this repo
 
 | Folder | Purpose |
 |--------|---------|
-| [`legacy/`](legacy/) | Superseded XML and misc CSV from earlier root clutter |
-| [`NextTrainDispatcherApp/`](NextTrainDispatcherApp/) | Next.js app (separate git clone) |
+| `jmri/` | JMRI layout, tables, resources, and the AnyRail tools |
+| `cats/` | The CTC overlay only |
+| `docs/` | Wiring and CTC documentation |
+| `www/` | The public website |
+| `ops/` | Station maps, car cards, operating packages |
+| `benchwork/` | Benchwork, helix and 3D station maps |
+| `external/` | Submodules and STS data |
+| `media/` | Photos, video and archive material (gitignored) |
+| `tools/` | Checks, MQTT and host helpers |
+| `wiki/` | Decisions, status and pipelines |
+| `archive/` | Retired material; nothing here runs |
+
+See [ADR-007](wiki/decisions/ADR-007-repository-layout.md).
 
 ## Quick commands
 
 ```bash
 # Pipeline 1 — refresh geometry from AnyRail, keep Mac defaults
-export JMRI_LAYOUT=mac
+export JMRI_LAYOUT=hart
 python3 jmri/scripts/apply_blocks_to_panel.py \
-  jmri/layouts/mac/anyrail/upper_both4.xml \
-  jmri/layouts/mac/output/mac_jmri_blocked.xml \
-  jmri/layouts/mac/authoritative/mac_jmri2.xml \
+  jmri/layouts/hart/anyrail/hart.xml \
+  jmri/layouts/hart/output/hart_blocked.xml \
+  jmri/templates/panel_style.xml \
   use-panel-layout
 
 # Pipeline 2 — linear4: export + push to Google Sheets (see dispatcher/README.md)

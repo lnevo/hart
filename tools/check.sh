@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Run before any commit that changes tables or signals. Deploy gates run separately.
+set -uo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+export JMRI_LAYOUT=hart
+fail=0
+run() {
+  echo "--- $1"
+  shift
+  "$@" || fail=1
+}
+run phase02 python3 jmri/scripts/check_hart_phase02.py
+run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
+run sml-invariants python3 tools/audit/check_sml_invariants.py
+run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
+run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
+if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
+exit "$fail"

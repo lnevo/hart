@@ -77,7 +77,7 @@ Agent-launched JMRI inherits **Cursor**’s Local Network permission. PanelPro o
 
 **Fix:** System Settings → Privacy & Security → Local Network → **Cursor** on, then **restart Cursor** and relaunch CATS. After that, `./cats/scripts/launch_cats.sh` (direct) gets MQTT.
 
-Fallback if Cursor still blocked: `CATS_LAUNCH_VIA=app` (PanelPro.app) or `=terminal`.
+Fallback if Cursor is still blocked: `CATS_LAUNCH_VIA=terminal`.
 
 `readelf` warnings on macOS from `cats.csh` are harmless ARM probes.
 

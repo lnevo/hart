@@ -8,7 +8,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 
 | Do | Command |
 |----|---------|
-| Checks | `python3 jmri/scripts/check_hart_phase02.py` · `python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict` |
+| Checks | `./tools/check.sh` (before any commit that changes tables or signals) |
 | Desktop folders | `python3 tools/ops/sync_desktop_data.py` previews; `--apply` copies. Never deletes. |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
 | Deploy operator portal (www.hartrailroad.com) | `./www/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`www/README.md`](www/README.md) |
