@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — Wiki cleanup: dropped the facing invert, END_BUMPER and Designer items from the open lists, and removed the undated Product decision, Collaboration, Remaining and Manual launch sections from this log, all superseded (see git history). The END_BUMPER bindings themselves stay. Docs only; not deployed.
+
 Updated: 2026-10-31 — CATS panels reduced to `HART_Digicon.xml` plus the generated `HART_CTC.xml` and `HART_ABS.xml` (ADR-012). `wire_digicon.py` now reproduces the desks. It carries the station plates and Mast 32R edits that were only in the desks, reads mast templates from `signal_head_plan.csv`, and picks up the Basic aspect mapping the desks had missed. Launchers renamed; old panels and Gate 1 generators are in `archive/`. Host deploy still owed.
 
 Updated: 2026-10-31 — Reconciled the wiki with what is true. Desktop sync previews 0 copies and 0 conflicts, so that item is closed. ADR-007 P4a is closed, with five `~/Desktop/HART` files to check before that folder retires. `hart-panel.md` no longer says the facing overlay is live or JMRI#15407 open. Speed matching and agent skills are future goals; deploy, Basic signal test and STS staging are deferred. Docs only; not deployed.
@@ -542,43 +544,3 @@ Updated: 2026-08-20 — Yard ladder (116 / 103) is unsignaled / local; T6 is bac
 - Local workspace folder: `Panel` (same git root)  
 - Agent branch pattern: `agent/<id>/<topic>` — see [`AGENTS_GIT.md`](AGENTS_GIT.md)  
 - Cloud Agents: link `lnevo/hart` at [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents)
-
-## Product decision (stop the abstract chase)
-
-| Deliverable | Role |
-|-------------|------|
-| **`cats/panels/HART_Master_CTC_hold.xml`** | **CATS CTC** — routes/turnouts on; signals HOLD_ONLY; JMRI SML owns aspects |
-| **`cats/panels/HART_Master_ABS_hold.xml`** | **CATS ABS** — signals HOLD_ONLY; turnouts on |
-| **`cats/panels/HART_Master.xml`** | CTC geometry source (rebuild CTC hold; no desktop icon) |
-| **`cats/panels/HART_Master_ABS.xml`** | ABS geometry source (rebuild ABS hold; no desktop icon) |
-| `cats/panels/sheets/HART_sheet_West_Yard2.xml` | Legacy sheet WIP — **do not checkpoint**; Masters are the live copy |
-| `cats/panels/HART_ctc.xml` | Earlier CTC schematic experiment |
-| `render_ctc_panel.py` PNG | **Review art only** — cannot open in CATS |
-
-See [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md) and [`cats/docs/DIGICON_VS_CTC_PNG.md`](../cats/docs/DIGICON_VS_CTC_PNG.md).
-
-## Collaboration (Mac ↔ Cloud)
-
-| Role | Owns |
-|------|------|
-| **Mac / local** | Builder cell-role fixes, live CATS load, occupancy path accept, screenshots |
-| **Cloud** | Help on builder/verify when asked; do not overwrite Mac ops branch with PNG-only commits |
-
-Active ops board is **CATS CTC** (`HART_Master_CTC_hold.xml`), not Gate 1 `HART.xml` / `HART_le.xml`. See [`cats/docs/HART_DIGICON_SYSTEM.md`](../cats/docs/HART_DIGICON_SYSTEM.md).
-
-## Remaining
-
-- Measured roster speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md))
-- Cursor skills + MCPs inventory, parked for review ([`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)) — not railroad work; do not build until reviewed
-- Dispatcher traininfo: 1004 files retargeted `via Track N` → `via OS Switch N`. Fable repair rebound 226; **196 pairs still have no transit** (EH-1/2/3 and McKeesport/McKees Rocks). Stage 1 in PanelPro is only for those holes — then `fix_traininfo_detection.py` + Princess SML pairs.
-
-## Manual launch (local Mac only)
-
-```bash
-./cats/scripts/launch_cats.sh
-# default: cats/panels/HART_Master.xml (CTC); ABS: launch_hart_master_abs.sh
-python3 cats/scripts/validate_cats_panel.py cats/panels/HART_Master_CTC_hold.xml
-```
-
-Do **not** use `CATS_LAUNCH_VIA=app`. Keep-alive LaunchAgent stays disabled.
-Never run CATS CTC and the USS machine at the same time.

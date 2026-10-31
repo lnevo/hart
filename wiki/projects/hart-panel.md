@@ -32,16 +32,13 @@ Best geometry and live wiring lived in an ad-hoc folder without a named layout p
 
 ## What landed after phase 2
 
-Native SML (98 dests: 96 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (103 sections / 746 transits / 1548 traininfo; all 22 stations are origins and destinations, including S-1…S-5 and EH outbound). Node 13 occupancy walk-down is live (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT channels swapped vs geographic labels). Load `jmri/layouts/hart/output/hart_prod.xml`; writable source `jmri/layouts/hart/output/tables.xml`.
+Native SML (98 dests: 96 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (103 sections / 746 transits / 1548 traininfo; all 22 stations are origins and destinations, including S-1…S-5 and EH outbound). Node 13 occupancy walk-down is live (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT channels swapped vs geographic labels). JMRI loads `jmri/layouts/hart/output/tables.xml` (ADR-008).
 
 ## Remaining (railroad)
 
 | Item | Notes |
 |------|--------|
-| Measured speed profiles | Synthetic 10-step / 400 mm/s on every roster loco — [`speedmatching.md`](speedmatching.md) |
-| Dispatcher S-R and S-1…S-4 platforms | Done 2026-08-22 — hidden throats + Stage 1; 62 inbound traininfo each |
-| First-registration facing invert | Nothing pending. Overlay removed 2026-09-01; [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) closed that day and [PR#15408](https://github.com/JMRI/JMRI/pull/15408) closed unmerged. If a loco runs the wrong way, use **Change Dir** ([`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md)) |
-| END_BUMPER far-slot hack | Working; no fix in progress. Keep until a real facing-block fix; still needed for W-1/W-2/K-1/K-2/EH |
+| Measured speed profiles | Future goal. Synthetic 10-step / 400 mm/s on every roster loco — [`speedmatching.md`](speedmatching.md) |
 
 ## Decisions (locked 2026-08-07)
 

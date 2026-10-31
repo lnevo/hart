@@ -1,6 +1,6 @@
 # ADR-004 — CATS as Digicon-style CTC (alongside JMRI panel)
 
-- **Status:** Accepted
+- **Status:** Accepted. Amended 2026-10-31: decisions 3 to 5 are history. `tables.xml` holds the Layout Editor panel (ADR-008), and the Digicon is one Designer source with two desks (ADR-012). NextTrain is abandoned.
 - **Date:** 2026-08-07
 - **Deciders:** lnevo
 - **Sources:** [CATS home](http://cats4ctc.wikidot.com/), [source](https://bitbucket.org/Kb0oys/cats/src/master/), [downloads](http://cats4ctc.wikidot.com/main:downloads), [user guides](http://cats4ctc.wikidot.com/main:userguides)
