@@ -34,8 +34,7 @@ cd external/hart-ops
 ## STS session (local lab)
 
 ```bash
-bash tools/ops/refresh_sts_docker_compose.sh
-cd external/sts-docker && docker compose up -d
+bash tools/ops/sts_compose.sh up -d
 ```
 
 cd ../hart-ops

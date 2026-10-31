@@ -82,13 +82,6 @@ def mirror_desktop_hart() -> Path:
     return Path.home() / "Desktop/HART"
 
 
-def mirror_sts_backups() -> Path:
-    env = os.environ.get("MIRROR_STS_BACKUPS", os.environ.get("STS_BACKUPS", "")).strip()
-    if env:
-        return Path(env).expanduser().resolve()
-    return Path.home() / "sts/sts-backups"
-
-
 def car_images_final() -> Path:
     env = os.environ.get("HART_CAR_IMAGES_FINAL", "").strip()
     if env:
@@ -171,11 +164,4 @@ def all_mirror_sources() -> dict[str, Path]:
     return {
         "HART_MIRROR_SRC": mirror_hart_src(),
         "DESKTOP_HART": mirror_desktop_hart(),
-        "MIRROR_STS_BACKUPS": mirror_sts_backups(),
-        "MIRROR_STS_DATABASE": Path(
-            os.environ.get("MIRROR_STS_DATABASE", os.environ.get("STS_DATABASE", str(Path.home() / "sts/sts-database")))
-        ).expanduser().resolve(),
-        "MIRROR_STS_IMAGES": Path(
-            os.environ.get("MIRROR_STS_IMAGES", os.environ.get("STS_IMAGES", str(Path.home() / "sts/sts-images")))
-        ).expanduser().resolve(),
     }

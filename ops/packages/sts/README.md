@@ -15,8 +15,7 @@ Pipeline script [`refresh_sts_docker_compose.sh`](../../../tools/ops/refresh_sts
 ## Run
 
 ```bash
-cd external/sts-docker
-docker compose up -d --build
+bash tools/ops/sts_compose.sh up -d --build
 ```
 
 ## Sessions
