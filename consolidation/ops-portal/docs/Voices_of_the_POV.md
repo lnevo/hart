@@ -2,7 +2,7 @@
 
 **Prototype reference for HART** · October 2026
 
-The [Pittsburgh & Ohio Valley Railway](pittsburgh-ohio-valley-railway.html) was a small railroad, and the people on it knew each other well. This page collects the crew, sayings, and stories that Mark Connolly, a P&OV trainman and engineer from 1977 to 1991, shared on his [Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad). The stories and quotes are his. Names and jobs are as he gave them in his captions, and each "photo" or "post" link opens the original. Two Shenango and PC&Y neighbors below come from comments collected by Dennis DeBruler.
+The [Pittsburgh & Ohio Valley Railway](pittsburgh-ohio-valley-railway.html) was a small railroad, and the people on it knew each other well. This page collects the crew, sayings, and stories that Mark Connolly, a P&OV trainman and engineer from 1977 to 1991, shared on his [Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad). The stories and quotes are his. Names and jobs are as he gave them in his captions, and each "photo" or "post" link opens the original. Two Shenango and PC&Y neighbors below come from comments collected by Dennis DeBruler, and Frank Condeluci from the *Post-Gazette*.
 
 Family details from the obituaries he reposted are left out. Only the railroad careers are kept.
 
@@ -96,6 +96,9 @@ Spent “the best 38 years of my life” at Shenango Inc. He remembered the furn
 
 **John Simpson** · *PC&Y*  
 Worked on the PC&Y and recalled hauling ore to Neville Island out of Scully Yard. ([post](https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html))
+
+**Frank Condeluci** · *Shenango maintenance*  
+Maintenance employee at the Shenango furnace who lost his job in the December 1990 shutdown. “It's fascinating. I've been there 15 years, and I still stop to watch a cast.” ([*Post-Gazette*, 5 December 1990](https://news.google.com/newspapers?id=bG4xAAAAIBAJ&sjid=jG4DAAAAIBAJ&pg=5305,669633))
 
 ---
 
