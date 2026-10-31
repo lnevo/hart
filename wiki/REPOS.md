@@ -60,4 +60,4 @@ bash tools/audit/run_all.sh
 
 ## Private research
 
-`lnevo/hart-research` is a private repo checked out at `media/hart-research/`. It holds research scans that have no other copy. It is not a submodule, so a fresh clone needs `git clone git@github.com:lnevo/hart-research.git media/hart-research`.
+`lnevo/hart-research` is a private repo checked out at `media/hart-research/`. It holds research scans and the sorted loose files from `~/Desktop/HART`, by category. Some have no other copy. `media/archive/` is only for material on its way out. It is not a submodule, so a fresh clone needs `git clone git@github.com:lnevo/hart-research.git media/hart-research`.

@@ -118,7 +118,7 @@
         var pending = countStatus("pending");
         var done = items.length - pending;
         stats.textContent =
-          done + " decided · " + pending + " pending · log: sor/desktop/f_root_review_log.jsonl";
+          done + " decided · " + pending + " pending · log: www/review-data/f_root_review_log.jsonl";
       }
 
       function renderStatusBar() {
