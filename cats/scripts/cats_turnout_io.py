@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_hart_digicon_from_le as le  # noqa: E402
 
 TURNOUT_CSV = ROOT / "cats/data/turnout_bindings.csv"
-HART_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+HART_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 
 def section_tracks(sec: ET.Element) -> list[str]:

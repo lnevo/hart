@@ -12,7 +12,7 @@ OS Main West ═══[ 100 Brick ]═══ OS Brick-Plane ═══[ 102 Plane
          R → OS W-2                                                    R → OS 15 → S-104–106
 ```
 
-## JMRI tip truth (`hart_prod.xml`)
+## JMRI tip truth (`tables.xml`)
 
 | Plant | Tips | Continuing |
 |-------|------|------------|

@@ -36,7 +36,7 @@ except ImportError as e:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[2]
 PANEL = ROOT / "cats" / "panels" / "HART.xml"
-HART_PROD = ROOT / "jmri" / "layouts" / "hart" / "output" / "hart_prod.xml"
+HART_PROD = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 
 DEFAULT_HOST = "minipc-e5h6x.local"
 DEFAULT_PORT = 1883

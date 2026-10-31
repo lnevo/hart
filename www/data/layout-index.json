@@ -1,9 +1,9 @@
 {
   "source": {
-    "workspace": "consolidation",
-    "panel": "jmri/layouts/hart/output/hart_prod.xml",
+    "workspace": "hart",
+    "panel": "jmri/layouts/hart/output/tables.xml",
     "names": "jmri/layouts/hart/data/public_name_map.csv",
-    "devices": "sor/names/hart_devices_review.json"
+    "devices": "www/review-data/hart_devices_review.json"
   },
   "image": {
     "path": "assets/layout/HART_le_schematic.png",
@@ -275,292 +275,6 @@
     {
       "id": "sig-0",
       "kind": "signal",
-      "x": 69.0,
-      "y": 190.3,
-      "systemName": "Mast 4LA",
-      "publicName": "Mast 4LA",
-      "cp": "Brick",
-      "hardware": "virtual $1001",
-      "mqtt": "",
-      "comment": "Brick | Switch 3",
-      "block": ""
-    },
-    {
-      "id": "sig-1",
-      "kind": "signal",
-      "x": 69.0,
-      "y": 255.1,
-      "systemName": "Mast 4LB",
-      "publicName": "Mast 4LB",
-      "cp": "Brick",
-      "hardware": "virtual $1002",
-      "mqtt": "",
-      "comment": "Brick | Switch 3",
-      "block": ""
-    },
-    {
-      "id": "sig-2",
-      "kind": "signal",
-      "x": 1819.8,
-      "y": 190.3,
-      "systemName": "Mast 40RA",
-      "publicName": "Mast 40RA",
-      "cp": "Princess",
-      "hardware": "virtual $1003",
-      "mqtt": "",
-      "comment": "Princess | Switch 39",
-      "block": ""
-    },
-    {
-      "id": "sig-3",
-      "kind": "signal",
-      "x": 1819.8,
-      "y": 255.1,
-      "systemName": "Mast 38RA",
-      "publicName": "Mast 38RA",
-      "cp": "Princess",
-      "hardware": "virtual $1004",
-      "mqtt": "",
-      "comment": "Princess | Switch 37",
-      "block": ""
-    },
-    {
-      "id": "sig-4",
-      "kind": "signal",
-      "x": 592.2,
-      "y": 204.7,
-      "systemName": "Mast 12L",
-      "publicName": "Mast 12L",
-      "cp": "Engine House",
-      "hardware": "virtual $1005",
-      "mqtt": "",
-      "comment": "Engine House | Switch 11",
-      "block": ""
-    },
-    {
-      "id": "sig-5",
-      "kind": "signal",
-      "x": 592.2,
-      "y": 216.0,
-      "systemName": "Mast 10LA",
-      "publicName": "Mast 10LA",
-      "cp": "Engine House",
-      "hardware": "virtual $1006",
-      "mqtt": "",
-      "comment": "Engine House | Switch 9",
-      "block": ""
-    },
-    {
-      "id": "sig-6",
-      "kind": "signal",
-      "x": 592.2,
-      "y": 228.4,
-      "systemName": "Mast 10LB",
-      "publicName": "Mast 10LB",
-      "cp": "Engine House",
-      "hardware": "virtual $1007",
-      "mqtt": "",
-      "comment": "Engine House | Switch 9",
-      "block": ""
-    },
-    {
-      "id": "sig-7",
-      "kind": "signal",
-      "x": 818.7,
-      "y": 307.7,
-      "systemName": "Mast 18L",
-      "publicName": "Mast 18L",
-      "cp": "South Yard",
-      "hardware": "virtual $1008",
-      "mqtt": "",
-      "comment": "South Yard | Switch 17",
-      "block": ""
-    },
-    {
-      "id": "sig-8",
-      "kind": "signal",
-      "x": 896.0,
-      "y": 356.1,
-      "systemName": "Mast 20L",
-      "publicName": "Mast 20L",
-      "cp": "South Yard",
-      "hardware": "virtual $1009",
-      "mqtt": "",
-      "comment": "South Yard | Switch 19",
-      "block": ""
-    },
-    {
-      "id": "sig-9",
-      "kind": "signal",
-      "x": 965.0,
-      "y": 404.5,
-      "systemName": "Mast 22L",
-      "publicName": "Mast 22L",
-      "cp": "South Yard",
-      "hardware": "virtual $1010",
-      "mqtt": "",
-      "comment": "South Yard | Switch 21",
-      "block": ""
-    },
-    {
-      "id": "sig-10",
-      "kind": "signal",
-      "x": 1109.2,
-      "y": 418.9,
-      "systemName": "Mast 26L",
-      "publicName": "Mast 26L",
-      "cp": "South Yard",
-      "hardware": "virtual $1011",
-      "mqtt": "",
-      "comment": "South Yard | Switch 21",
-      "block": ""
-    },
-    {
-      "id": "sig-11",
-      "kind": "signal",
-      "x": 1210.1,
-      "y": 307.7,
-      "systemName": "Mast 18R",
-      "publicName": "Mast 18R",
-      "cp": "South Yard",
-      "hardware": "virtual $1012",
-      "mqtt": "",
-      "comment": "South Yard | Switch 17",
-      "block": ""
-    },
-    {
-      "id": "sig-12",
-      "kind": "signal",
-      "x": 1210.1,
-      "y": 356.1,
-      "systemName": "Mast 20R",
-      "publicName": "Mast 20R",
-      "cp": "South Yard",
-      "hardware": "virtual $1013",
-      "mqtt": "",
-      "comment": "South Yard | Switch 19",
-      "block": ""
-    },
-    {
-      "id": "sig-13",
-      "kind": "signal",
-      "x": 1210.1,
-      "y": 404.5,
-      "systemName": "Mast 22R",
-      "publicName": "Mast 22R",
-      "cp": "South Yard",
-      "hardware": "virtual $1014",
-      "mqtt": "",
-      "comment": "South Yard | Switch 21",
-      "block": ""
-    },
-    {
-      "id": "sig-14",
-      "kind": "signal",
-      "x": 1210.1,
-      "y": 435.4,
-      "systemName": "Mast 26R",
-      "publicName": "Mast 26R",
-      "cp": "South Yard",
-      "hardware": "virtual $1015",
-      "mqtt": "",
-      "comment": "South Yard | Switch 21",
-      "block": ""
-    },
-    {
-      "id": "sig-15",
-      "kind": "signal",
-      "x": 769.3,
-      "y": 256.2,
-      "systemName": "Mast 16L",
-      "publicName": "Mast 16L",
-      "cp": "South Yard",
-      "hardware": "virtual $1016",
-      "mqtt": "",
-      "comment": "South Yard | Switch 15",
-      "block": ""
-    },
-    {
-      "id": "sig-16",
-      "kind": "signal",
-      "x": 1207.0,
-      "y": 256.2,
-      "systemName": "Mast 32L",
-      "publicName": "Mast 32L",
-      "cp": "East End",
-      "hardware": "virtual $1017",
-      "mqtt": "",
-      "comment": "East End | Switch 31",
-      "block": ""
-    },
-    {
-      "id": "sig-17",
-      "kind": "signal",
-      "x": 421.2,
-      "y": 261.3,
-      "systemName": "Mast 8LC",
-      "publicName": "Mast 8LC",
-      "cp": "Barn",
-      "hardware": "virtual $1018",
-      "mqtt": "",
-      "comment": "Barn | Switch 7",
-      "block": ""
-    },
-    {
-      "id": "sig-18",
-      "kind": "signal",
-      "x": 666.3,
-      "y": 261.3,
-      "systemName": "Mast 13R",
-      "publicName": "Mast 13R",
-      "cp": "Barn",
-      "hardware": "virtual $1019",
-      "mqtt": "",
-      "comment": "Barn | Switch 13",
-      "block": ""
-    },
-    {
-      "id": "sig-19",
-      "kind": "signal",
-      "x": 666.3,
-      "y": 225.3,
-      "systemName": "Mast 11L",
-      "publicName": "Mast 11L",
-      "cp": "Engine House",
-      "hardware": "virtual $1020",
-      "mqtt": "",
-      "comment": "Engine House | Switch 11",
-      "block": ""
-    },
-    {
-      "id": "sig-20",
-      "kind": "signal",
-      "x": 643.7,
-      "y": 223.2,
-      "systemName": "Mast 9LA",
-      "publicName": "Mast 9LA",
-      "cp": "Engine House",
-      "hardware": "virtual $1021",
-      "mqtt": "",
-      "comment": "Engine House | Switch 9",
-      "block": ""
-    },
-    {
-      "id": "sig-21",
-      "kind": "signal",
-      "x": 641.6,
-      "y": 235.6,
-      "systemName": "Mast 9LB",
-      "publicName": "Mast 9LB",
-      "cp": "Engine House",
-      "hardware": "virtual $1022",
-      "mqtt": "",
-      "comment": "Engine House | Switch 9",
-      "block": ""
-    },
-    {
-      "id": "sig-22",
-      "kind": "signal",
       "x": 417.1,
       "y": 175.8,
       "systemName": "Mast 2L",
@@ -572,7 +286,7 @@
       "block": ""
     },
     {
-      "id": "sig-23",
+      "id": "sig-1",
       "kind": "signal",
       "x": 218.3,
       "y": 212.9,
@@ -585,7 +299,7 @@
       "block": ""
     },
     {
-      "id": "sig-24",
+      "id": "sig-2",
       "kind": "signal",
       "x": 218.3,
       "y": 277.8,
@@ -598,7 +312,7 @@
       "block": ""
     },
     {
-      "id": "sig-25",
+      "id": "sig-3",
       "kind": "signal",
       "x": 404.7,
       "y": 245.9,
@@ -611,7 +325,7 @@
       "block": ""
     },
     {
-      "id": "sig-26",
+      "id": "sig-4",
       "kind": "signal",
       "x": 404.7,
       "y": 295.3,
@@ -624,7 +338,7 @@
       "block": ""
     },
     {
-      "id": "sig-27",
+      "id": "sig-5",
       "kind": "signal",
       "x": 486.1,
       "y": 284.0,
@@ -637,7 +351,7 @@
       "block": ""
     },
     {
-      "id": "sig-28",
+      "id": "sig-6",
       "kind": "signal",
       "x": 596.3,
       "y": 245.9,
@@ -650,7 +364,7 @@
       "block": ""
     },
     {
-      "id": "sig-29",
+      "id": "sig-7",
       "kind": "signal",
       "x": 486.1,
       "y": 332.4,
@@ -663,7 +377,7 @@
       "block": ""
     },
     {
-      "id": "sig-30",
+      "id": "sig-8",
       "kind": "signal",
       "x": 572.6,
       "y": 298.4,
@@ -676,7 +390,7 @@
       "block": ""
     },
     {
-      "id": "sig-31",
+      "id": "sig-9",
       "kind": "signal",
       "x": 1155.5,
       "y": 218.1,
@@ -689,7 +403,7 @@
       "block": ""
     },
     {
-      "id": "sig-32",
+      "id": "sig-10",
       "kind": "signal",
       "x": 1313.1,
       "y": 171.7,
@@ -702,7 +416,7 @@
       "block": ""
     },
     {
-      "id": "sig-33",
+      "id": "sig-11",
       "kind": "signal",
       "x": 1155.5,
       "y": 282.9,
@@ -715,7 +429,7 @@
       "block": ""
     },
     {
-      "id": "sig-34",
+      "id": "sig-12",
       "kind": "signal",
       "x": 1461.4,
       "y": 244.8,
@@ -728,7 +442,7 @@
       "block": ""
     },
     {
-      "id": "sig-35",
+      "id": "sig-13",
       "kind": "signal",
       "x": 1330.6,
       "y": 306.6,
@@ -741,7 +455,7 @@
       "block": ""
     },
     {
-      "id": "sig-36",
+      "id": "sig-14",
       "kind": "signal",
       "x": 1387.2,
       "y": 305.6,
@@ -754,7 +468,7 @@
       "block": ""
     },
     {
-      "id": "sig-37",
+      "id": "sig-15",
       "kind": "signal",
       "x": 1677.6,
       "y": 113.0,
@@ -767,7 +481,7 @@
       "block": ""
     },
     {
-      "id": "sig-38",
+      "id": "sig-16",
       "kind": "signal",
       "x": 1536.6,
       "y": 219.1,
@@ -780,7 +494,7 @@
       "block": ""
     },
     {
-      "id": "sig-39",
+      "id": "sig-17",
       "kind": "signal",
       "x": 1536.6,
       "y": 281.9,
@@ -793,7 +507,7 @@
       "block": ""
     },
     {
-      "id": "sig-40",
+      "id": "sig-18",
       "kind": "signal",
       "x": 1721.9,
       "y": 267.5,
@@ -806,7 +520,7 @@
       "block": ""
     },
     {
-      "id": "sig-41",
+      "id": "sig-19",
       "kind": "signal",
       "x": 1931.0,
       "y": 199.5,
@@ -819,7 +533,7 @@
       "block": ""
     },
     {
-      "id": "sig-42",
+      "id": "sig-20",
       "kind": "signal",
       "x": 1885.7,
       "y": 246.9,
@@ -832,7 +546,7 @@
       "block": ""
     },
     {
-      "id": "sig-43",
+      "id": "sig-21",
       "kind": "signal",
       "x": 1742.5,
       "y": 175.8,
@@ -845,7 +559,7 @@
       "block": ""
     },
     {
-      "id": "sig-44",
+      "id": "sig-22",
       "kind": "signal",
       "x": 1742.5,
       "y": 240.7,
@@ -855,6 +569,292 @@
       "hardware": "IH143",
       "mqtt": "",
       "comment": "Princess | Switch 37",
+      "block": ""
+    },
+    {
+      "id": "sig-23",
+      "kind": "signal",
+      "x": 69.0,
+      "y": 190.3,
+      "systemName": "Mast 4LA",
+      "publicName": "Mast 4LA",
+      "cp": "Brick",
+      "hardware": "virtual $1001",
+      "mqtt": "",
+      "comment": "Brick | Switch 3",
+      "block": ""
+    },
+    {
+      "id": "sig-24",
+      "kind": "signal",
+      "x": 69.0,
+      "y": 255.1,
+      "systemName": "Mast 4LB",
+      "publicName": "Mast 4LB",
+      "cp": "Brick",
+      "hardware": "virtual $1002",
+      "mqtt": "",
+      "comment": "Brick | Switch 3",
+      "block": ""
+    },
+    {
+      "id": "sig-25",
+      "kind": "signal",
+      "x": 1819.8,
+      "y": 190.3,
+      "systemName": "Mast 40RA",
+      "publicName": "Mast 40RA",
+      "cp": "Princess",
+      "hardware": "virtual $1003",
+      "mqtt": "",
+      "comment": "Princess | Switch 39",
+      "block": ""
+    },
+    {
+      "id": "sig-26",
+      "kind": "signal",
+      "x": 1819.8,
+      "y": 255.1,
+      "systemName": "Mast 38RA",
+      "publicName": "Mast 38RA",
+      "cp": "Princess",
+      "hardware": "virtual $1004",
+      "mqtt": "",
+      "comment": "Princess | Switch 37",
+      "block": ""
+    },
+    {
+      "id": "sig-27",
+      "kind": "signal",
+      "x": 592.2,
+      "y": 204.7,
+      "systemName": "Mast 12L",
+      "publicName": "Mast 12L",
+      "cp": "Engine House",
+      "hardware": "virtual $1005",
+      "mqtt": "",
+      "comment": "Engine House | Switch 11",
+      "block": ""
+    },
+    {
+      "id": "sig-28",
+      "kind": "signal",
+      "x": 592.2,
+      "y": 216.0,
+      "systemName": "Mast 10LA",
+      "publicName": "Mast 10LA",
+      "cp": "Engine House",
+      "hardware": "virtual $1006",
+      "mqtt": "",
+      "comment": "Engine House | Switch 9",
+      "block": ""
+    },
+    {
+      "id": "sig-29",
+      "kind": "signal",
+      "x": 592.2,
+      "y": 228.4,
+      "systemName": "Mast 10LB",
+      "publicName": "Mast 10LB",
+      "cp": "Engine House",
+      "hardware": "virtual $1007",
+      "mqtt": "",
+      "comment": "Engine House | Switch 9",
+      "block": ""
+    },
+    {
+      "id": "sig-30",
+      "kind": "signal",
+      "x": 818.7,
+      "y": 307.7,
+      "systemName": "Mast 18L",
+      "publicName": "Mast 18L",
+      "cp": "South Yard",
+      "hardware": "virtual $1008",
+      "mqtt": "",
+      "comment": "South Yard | Switch 17",
+      "block": ""
+    },
+    {
+      "id": "sig-31",
+      "kind": "signal",
+      "x": 896.0,
+      "y": 356.1,
+      "systemName": "Mast 20L",
+      "publicName": "Mast 20L",
+      "cp": "South Yard",
+      "hardware": "virtual $1009",
+      "mqtt": "",
+      "comment": "South Yard | Switch 19",
+      "block": ""
+    },
+    {
+      "id": "sig-32",
+      "kind": "signal",
+      "x": 965.0,
+      "y": 404.5,
+      "systemName": "Mast 22L",
+      "publicName": "Mast 22L",
+      "cp": "South Yard",
+      "hardware": "virtual $1010",
+      "mqtt": "",
+      "comment": "South Yard | Switch 21",
+      "block": ""
+    },
+    {
+      "id": "sig-33",
+      "kind": "signal",
+      "x": 1109.2,
+      "y": 418.9,
+      "systemName": "Mast 26L",
+      "publicName": "Mast 26L",
+      "cp": "South Yard",
+      "hardware": "virtual $1011",
+      "mqtt": "",
+      "comment": "South Yard | Switch 21",
+      "block": ""
+    },
+    {
+      "id": "sig-34",
+      "kind": "signal",
+      "x": 1210.1,
+      "y": 307.7,
+      "systemName": "Mast 18R",
+      "publicName": "Mast 18R",
+      "cp": "South Yard",
+      "hardware": "virtual $1012",
+      "mqtt": "",
+      "comment": "South Yard | Switch 17",
+      "block": ""
+    },
+    {
+      "id": "sig-35",
+      "kind": "signal",
+      "x": 1210.1,
+      "y": 356.1,
+      "systemName": "Mast 20R",
+      "publicName": "Mast 20R",
+      "cp": "South Yard",
+      "hardware": "virtual $1013",
+      "mqtt": "",
+      "comment": "South Yard | Switch 19",
+      "block": ""
+    },
+    {
+      "id": "sig-36",
+      "kind": "signal",
+      "x": 1210.1,
+      "y": 404.5,
+      "systemName": "Mast 22R",
+      "publicName": "Mast 22R",
+      "cp": "South Yard",
+      "hardware": "virtual $1014",
+      "mqtt": "",
+      "comment": "South Yard | Switch 21",
+      "block": ""
+    },
+    {
+      "id": "sig-37",
+      "kind": "signal",
+      "x": 1210.1,
+      "y": 435.4,
+      "systemName": "Mast 26R",
+      "publicName": "Mast 26R",
+      "cp": "South Yard",
+      "hardware": "virtual $1015",
+      "mqtt": "",
+      "comment": "South Yard | Switch 21",
+      "block": ""
+    },
+    {
+      "id": "sig-38",
+      "kind": "signal",
+      "x": 769.3,
+      "y": 256.2,
+      "systemName": "Mast 16L",
+      "publicName": "Mast 16L",
+      "cp": "South Yard",
+      "hardware": "virtual $1016",
+      "mqtt": "",
+      "comment": "South Yard | Switch 15",
+      "block": ""
+    },
+    {
+      "id": "sig-39",
+      "kind": "signal",
+      "x": 1207.0,
+      "y": 256.2,
+      "systemName": "Mast 32L",
+      "publicName": "Mast 32L",
+      "cp": "East End",
+      "hardware": "virtual $1017",
+      "mqtt": "",
+      "comment": "East End | Switch 31",
+      "block": ""
+    },
+    {
+      "id": "sig-40",
+      "kind": "signal",
+      "x": 421.2,
+      "y": 261.3,
+      "systemName": "Mast 8LC",
+      "publicName": "Mast 8LC",
+      "cp": "Barn",
+      "hardware": "virtual $1018",
+      "mqtt": "",
+      "comment": "Barn | Switch 7",
+      "block": ""
+    },
+    {
+      "id": "sig-41",
+      "kind": "signal",
+      "x": 666.3,
+      "y": 261.3,
+      "systemName": "Mast 13R",
+      "publicName": "Mast 13R",
+      "cp": "Barn",
+      "hardware": "virtual $1019",
+      "mqtt": "",
+      "comment": "Barn | Switch 13",
+      "block": ""
+    },
+    {
+      "id": "sig-42",
+      "kind": "signal",
+      "x": 666.3,
+      "y": 225.3,
+      "systemName": "Mast 11L",
+      "publicName": "Mast 11L",
+      "cp": "Engine House",
+      "hardware": "virtual $1020",
+      "mqtt": "",
+      "comment": "Engine House | Switch 11",
+      "block": ""
+    },
+    {
+      "id": "sig-43",
+      "kind": "signal",
+      "x": 643.7,
+      "y": 223.2,
+      "systemName": "Mast 9LA",
+      "publicName": "Mast 9LA",
+      "cp": "Engine House",
+      "hardware": "virtual $1021",
+      "mqtt": "",
+      "comment": "Engine House | Switch 9",
+      "block": ""
+    },
+    {
+      "id": "sig-44",
+      "kind": "signal",
+      "x": 641.6,
+      "y": 235.6,
+      "systemName": "Mast 9LB",
+      "publicName": "Mast 9LB",
+      "cp": "Engine House",
+      "hardware": "virtual $1022",
+      "mqtt": "",
+      "comment": "Engine House | Switch 9",
       "block": ""
     },
     {

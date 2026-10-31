@@ -17,7 +17,6 @@ from refresh_bean_comments import refresh_comments
 
 TABLES = [
     ROOT / "jmri/layouts/hart/output/tables.xml",
-    ROOT / "jmri/layouts/hart/output/hart_prod.xml",
 ]
 
 # Unreferenced after the 20-col pack. OpenLCB leftover sensors only.

@@ -375,7 +375,7 @@ def main() -> int:
         print("CSV dry-run (pass --write-csv)")
 
     counts = apply_comments(
-        [TABLES, HART_PROD],
+        [TABLES],
         rows,
         write=args.apply_comments,
     )

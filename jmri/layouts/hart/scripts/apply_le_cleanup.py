@@ -322,8 +322,6 @@ def main() -> int:
     ap.add_argument("--sync-output", action="store_true")
     args = ap.parse_args()
     paths = [args.panel.resolve()]
-    if args.sync_output:
-        paths.append(HART_PROD)
     for path in paths:
         if not path.is_file():
             print(f"missing {path}")

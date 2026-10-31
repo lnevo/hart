@@ -18,7 +18,7 @@ from pathlib import Path
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
 
-PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 NAMES = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 DEVICES = PORTAL / "review-data/hart_devices_review.json"
 CPS = ROOT / "jmri/layouts/hart/data/control_points.csv"

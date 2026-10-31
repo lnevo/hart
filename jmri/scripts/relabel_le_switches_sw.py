@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 HART = ROOT / "jmri/layouts/hart"
 MAP = HART / "data/public_name_map.csv"
 SRC = ROOT / "jmri/layouts/hart/output/tables.xml"
-OUTPUTS = [HART / "output/hart_prod.xml"]
+OUTPUTS: list[Path] = []
 
 # Absolute x for specific plant labels (after rename).
 # Engine-house row (y=213): even 50px centers over EH stubs→SW-13.

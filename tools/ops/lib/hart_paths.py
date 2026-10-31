@@ -135,7 +135,7 @@ def path_tables_xml() -> Path:
 
 
 def path_hart_prod_xml() -> Path:
-    return hart_runtime_root() / "jmri/layouts/hart/output/hart_prod.xml"
+    return hart_runtime_root() / "jmri/layouts/hart/output/tables.xml"
 
 
 def path_signal_wiring() -> Path:

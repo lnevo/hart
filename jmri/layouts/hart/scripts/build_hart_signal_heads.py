@@ -392,7 +392,6 @@ def patch_tables(rows: list[dict]) -> None:
     block = heads + "\n" + masts
     files = [
         ROOT / "jmri/layouts/hart/output/tables.xml",
-        ROOT / "jmri/layouts/hart/output/hart_prod.xml",
     ]
     # Match from <signalheads ...> through </signalmasts>
     pat = re.compile(

@@ -2,7 +2,7 @@
 
 Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaults).
 
-**Status:** Frozen for **hart**: `hart_prod.xml` and `tables.xml` carry later JMRI work, so do not re-run unless asked. The tools stay live for future panels.
+**Status:** Frozen for **hart**: `tables.xml` carries later JMRI work, so do not re-run unless asked. The tools stay live for future panels.
 
 ## Inputs
 

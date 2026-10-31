@@ -614,7 +614,7 @@ def main() -> int:
 
     paths = [args.panel.resolve()]
     if args.sync_output and args.panel.resolve() == DEFAULT_PANEL.resolve():
-        paths.append(STANDALONE_PANEL)
+        pass
 
     if args.overlap_cleanup:
         apply_fn = apply_overlap_cleanup

@@ -36,7 +36,7 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-HART_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+HART_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 PLAN_PATH = ROOT / "cats/data/digicon_plant_plan.json"
 OUT_DIR = ROOT / "cats/panels"
 

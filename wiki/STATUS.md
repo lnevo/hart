@@ -19,5 +19,4 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Next
 
-- Retire `hart_prod.xml` after the railroad test. Geometry matches `tables.xml`, but builder output needs checking.
 - Refresh `DISPATCHER_LAYOUT_HOOPS.md` and `MASTER4_SCHEMATIC.md` to live names.

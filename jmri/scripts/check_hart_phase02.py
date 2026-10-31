@@ -10,7 +10,7 @@ from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
 HART = JMRI_ROOT / "layouts" / "hart"
-PANEL = HART / "output" / "hart_prod.xml"
+PANEL = HART / "output" / "tables.xml"
 NAME_MAP = HART / "data" / "public_name_map.csv"
 
 
@@ -53,10 +53,17 @@ def main() -> int:
     # No duplicate block userNames
     from collections import Counter
 
+    # tables.xml stores each block twice (stub + full), so count distinct system names.
     counts = Counter(
-        (b.findtext("userName") or "").strip()
-        for b in root.iter("block")
-        if (b.findtext("userName") or "").strip()
+        user
+        for user, _system in {
+            (
+                (b.findtext("userName") or "").strip(),
+                b.get("systemName") or b.findtext("systemName") or "",
+            )
+            for b in root.iter("block")
+            if (b.findtext("userName") or "").strip()
+        }
     )
     dups = [f"{n}×{c}" for n, c in counts.items() if c > 1]
     if dups:

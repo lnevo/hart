@@ -181,11 +181,7 @@ def main() -> int:
         removed = purge_unused_internal_sensors(root)
 
     out_blocked = HART / "output" / "hart_blocked.xml"
-    out_prod = HART / "output" / "hart_prod.xml"
-    auth = HART / "authoritative" / "hart.xml"
     write_xml(root, out_blocked)
-    shutil.copy2(out_blocked, out_prod)
-    shutil.copy2(out_blocked, auth)
 
     PURGE_REPORT.write_text(
         "Unused internal sensors removed from hart panel\n"

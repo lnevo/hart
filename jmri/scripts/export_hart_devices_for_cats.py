@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
-PANEL = JMRI_ROOT / "layouts" / "hart" / "output" / "hart_prod.xml"
+PANEL = JMRI_ROOT / "layouts" / "hart" / "output" / "tables.xml"
 OUT = JMRI_ROOT.parent / "cats" / "data" / "jmri_devices.csv"
 CP_CSV = JMRI_ROOT / "layouts" / "hart" / "data" / "control_points.csv"
 

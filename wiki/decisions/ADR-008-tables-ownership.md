@@ -19,4 +19,4 @@
 ## Consequences
 
 - Git branches take over the staging role of the working copy.
-- Script `--sync-output` flags now cover `hart_prod.xml` only, until that file retires.
+- `hart_prod.xml` is retired to `archive/layouts/`. The panel lives in `tables.xml`, and script `--sync-output` flags no longer do anything.

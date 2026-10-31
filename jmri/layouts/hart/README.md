@@ -21,14 +21,11 @@ python3 jmri/scripts/bootstrap_hart_from_linear6.py
 
 For the complete live configuration, deploy/load **`output/tables.xml`**. It
 contains the Layout Editor, native SML, Dispatcher System, and USS CTC data.
-`output/hart_prod.xml` is the standalone monitor-panel artifact and must not be
-used to replace the complete tables bundle.
 
 | Path | Role |
 |------|------|
 | `anyrail/hart.xml` | Geometry source snapshot |
 | `output/tables.xml` | The one tables file: LE + SML + Dispatcher + CTC. JMRI loads it and deploy ships it |
-| `output/hart_prod.xml` | Standalone Layout Editor monitor artifact |
 | `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `comment` from Device map) |
 | `data/control_points.csv` | CP → switches |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
@@ -47,7 +44,7 @@ python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-
 
 ```
 
-Visual scripts patch `output/tables.xml` and `output/hart_prod.xml` independently.
+Visual scripts patch `output/tables.xml`.
 
 Dispatcher stations are the original mainline eight (OS Main West, OS West Main Ext,
 OS McKees Rocks, OS McKeesport, OS East Lead, OS Main East, OS East Main Ext,

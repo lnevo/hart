@@ -495,8 +495,6 @@ def main() -> int:
     )
     args = ap.parse_args()
     paths = [args.panel.resolve()]
-    if args.sync_output:
-        paths.append(HART_PROD)
     fn = apply_scale_east if args.scale_east_only else apply
     for path in paths:
         if not path.is_file():

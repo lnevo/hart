@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 HART = ROOT / "jmri/layouts/hart"
 SRC = ROOT / "jmri/layouts/hart/output/tables.xml"
-OUTPUTS = [HART / "output/hart_prod.xml"]
+OUTPUTS: list[Path] = []
 
 # text -> (size, style)  style 1=bold
 HIERARCHY = {

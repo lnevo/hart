@@ -2,7 +2,7 @@
 """Assign Layout Editor facing. Does not change mast types.
 
 Edits jmri/layouts/hart/output/tables.xml.
-Also patches hart_prod.xml in place (mast names + facing; not a full copy).
+
 
 Facing SoR: jmri/layouts/hart/data/le_signal_boundaries.csv
   turnout ident + A/B/C/D → child <signalAMast>…</signalAMast> (schema, not attributes)
@@ -217,8 +217,6 @@ def main() -> None:
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:
         return
-    if HART_PROD.is_file():
-        patch_file(HART_PROD, turnouts, anchors, dry_run=False)
     if not args.no_pref and PREF_TABLES.is_file():
         shutil.copy2(args.panel, PREF_TABLES)
         print(f"synced preference {PREF_TABLES}")

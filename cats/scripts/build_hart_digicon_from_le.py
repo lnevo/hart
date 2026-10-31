@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build HART Digicon CTC from JMRI Layout Editor geometry + connectivity.
 
-Source of truth: jmri/layouts/hart/output/hart_prod.xml
+Source of truth: jmri/layouts/hart/output/tables.xml
   - every layoutturnout (xcen/ycen, type, A/B/C/D tip blocks via segments)
   - occupancy sensors on layoutblocks / cats/data/occupancy_bindings.csv
 
@@ -39,7 +39,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-HART = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+HART = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUT_DIR = ROOT / "cats/panels"
 OCC_CSV = ROOT / "cats/data/occupancy_bindings.csv"
 

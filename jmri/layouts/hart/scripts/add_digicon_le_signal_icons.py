@@ -152,7 +152,7 @@ def main() -> None:
     if args.dry_run:
         return
     if args.sync_output:
-        for dest in (STANDALONE_PANEL,):
+        for dest in ():
             if not dest.is_file():
                 print(f"SKIP sync missing {dest}")
                 continue

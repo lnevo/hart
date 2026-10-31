@@ -71,7 +71,7 @@ def _font(size: int, bold: bool = False):
 
 def load_geometry(src: Path):
     root = ET.parse(src).getroot()
-    le = root.find("LayoutEditor")
+    le = next(e for e in root.iter("LayoutEditor") if e.get("name") in ("HART Railroad", "HART"))
     pp = {p.get("ident"): (float(p.get("x")), float(p.get("y")))
           for p in le.findall("positionablepoint")}
     legs = {}
