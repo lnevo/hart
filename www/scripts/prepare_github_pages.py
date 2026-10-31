@@ -50,7 +50,7 @@ SKIP_FILES = {
 # Markdown sources for the library articles (the HTML pages are what's published) and invitation drafts.
 SKIP_GLOBS = ("docs/*.md",)
 # Strings that mean a local host, port, or workspace path leaked into the public tree.
-LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|external/sts-docker-data|\.\./media/|media/archive/|media/photos-layout|media/dj-trains|ops/car-cards")
+LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|external/sts-docker-data|\.\./media/|media/archive/|media/hart-research|media/photos-layout|media/dj-trains|ops/car-cards")
 # Data must not point into the mirrors either; scripts (and inline page scripts) test for that
 # prefix when resolving logos and photos, so only data files are checked for it.
 MIRROR_PREFIXES = ("../external/", "../media/", "../ops/", "../docs/")
