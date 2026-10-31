@@ -10,10 +10,9 @@ The Neville Island model railroad: JMRI tables and panels, a CATS CTC overlay, w
 |--------|---------|
 | `jmri/` | JMRI layout, tables, resources, and the AnyRail tools |
 | `cats/` | The CTC overlay only |
-| `docs/` | Wiring and CTC documentation |
+| `docs/` | Wiring, CTC, benchwork and ops documents |
 | `www/` | The public website |
 | `ops/` | Station maps, car cards, operating packages |
-| `benchwork/` | Benchwork, helix and 3D station maps |
 | `external/` | Submodules and STS data |
 | `media/` | Photos, video and archive material (gitignored) |
 | `tools/` | Checks, MQTT and host helpers |

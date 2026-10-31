@@ -35,7 +35,8 @@
     </div>
     <div class="guide-body helix-wrap prose">
 <h2>HART Railroad — Neville Island Helix: Build Status</h2>
-<p><strong>Last updated 2026-10-15.</strong> This is the single living status document. <strong>Update it in place; don't start new addenda.</strong> It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in <code>superseded/addenda_2026-09-30_to_10-13/</code> if the history is ever needed.</p>
+<p><strong>Last updated 2026-10-15.</strong> This is the single living status document. <strong>Update it in place; don't start new addenda.</strong> It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in <code>history/</code> if the history is ever needed.</p>
+<p>Other <code>superseded/</code> mentions below mean the local STL working folder, not this repo.</p>
 <p><strong>Read in this order:</strong>
 1. <a href="files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf"><code>helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf</code></a>: fabrication drawings. Entry pages 2, 3 and 8 were redrawn from §1 on 2026-10-22 (<code>make_entry_pages.py</code>). <strong>Page 13 is the half-lap screw template</strong> (added 2026-10-15; same as <a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a>).
 2. <a href="files/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md"><code>HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md</code></a>: design rationale, alternatives, formulas.
@@ -355,7 +356,7 @@
 </ul>
 <h2>6. Regenerating</h2>
 <ul>
-<li>Scripts live in <code>www/helix/scripts/</code>. Use the repo environment: <code>pip install -r requirements.txt</code> into <code>.venv</code>, then <code>.venv/bin/python www/helix/scripts/&lt;script&gt;.py --out &lt;folder&gt;</code>.</li>
+<li>Scripts live in <code>docs/benchwork/helix/scripts/</code>. Use the repo environment: <code>pip install -r requirements.txt</code> into <code>.venv</code>, then <code>.venv/bin/python docs/benchwork/helix/scripts/&lt;script&gt;.py --out &lt;folder&gt;</code>.</li>
 <li>Run with <code>PYTHONDONTWRITEBYTECODE=1</code> to keep <code>__pycache__</code> out of the folder.</li>
 </ul>
 <h2>7. Process lessons</h2>

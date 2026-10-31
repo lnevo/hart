@@ -7,12 +7,13 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+TOOLING = (".py", ".sh", ".scad", ".stl", ".3mf", ".gitignore")
 SKIP = ("docs/wiring/imported/", "docs/wiring/scripts/", "docs/wiring/lcos/build_", "docs/INDEX.md")
 
 
 def tracked() -> list[str]:
     out = subprocess.check_output(["git", "ls-files", "-z", "docs"], cwd=ROOT, text=True)
-    return [p for p in out.split("\0") if p and not p.startswith(SKIP)]
+    return [p for p in out.split("\0") if p and not p.startswith(SKIP) and not p.endswith(TOOLING)]
 
 
 def last_changed() -> dict[str, str]:
