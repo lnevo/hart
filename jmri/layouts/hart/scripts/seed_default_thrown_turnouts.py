@@ -7,7 +7,7 @@ Rules (SoR):
   - Digicon SEL+CMD share one polarity. Switch 33/37/39: inverted motors — Digicon
     throw frog = rest tip (Barn / McKeesport / Rocks); keep MQTT THROWN.
   - Wrong Digicon direction → flip **that one plant only** in
-    `wire_hart_master4.py` PLANTS. Do not command MQTT/JMRI.
+    `wire_digicon.py` PLANTS. Do not command MQTT/JMRI.
   - This script must not throw field points. Default = diagnose only.
 
     python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py

@@ -23,7 +23,7 @@ python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview media/screensh
 python3 jmri/layouts/hart/scripts/ctc_logic_smoke.py
 ```
 
-Operator: [`jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md). Schematic notes: [`MASTER4_SCHEMATIC.md`](../MASTER4_SCHEMATIC.md).
+Operator: [`jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md). Schematic notes: [`DIGICON_SCHEMATIC.md`](../DIGICON_SCHEMATIC.md).
 
 Change public names in the **generator**, then regenerate (pipeline 2).
 

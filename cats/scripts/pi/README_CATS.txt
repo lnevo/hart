@@ -5,9 +5,8 @@ Installed:
   /home/pi/JMRI/cats.jar          CATS 3.2 + MQTT load-safety overlay
   /home/pi/JMRI/designer.jar
   /home/pi/JMRI/cats.csh
-  /home/pi/hart/cats/panels/HART_Master_CTC_hold.xml   <-- CATS CTC (HOLD_ONLY; SML)
-  /home/pi/hart/cats/panels/HART_Master_ABS_hold.xml   <-- CATS ABS (HOLD_ONLY; paint JMRI/SML)
-  /home/pi/hart/cats/panels/HART_Master.xml            <-- CTC geometry source
+  /home/pi/hart/cats/panels/HART_CTC.xml   <-- CATS CTC (HOLD_ONLY; SML)
+  /home/pi/hart/cats/panels/HART_ABS.xml   <-- CATS ABS (HOLD_ONLY; paint JMRI/SML)
 
 PanelPro vs CATS (same profile TCS_MQTT — sequential, never both):
   PanelPro  — edit/store JMRI tables, MQTT, Start Up. Then quit.
@@ -17,15 +16,15 @@ PanelPro vs CATS (same profile TCS_MQTT — sequential, never both):
 
 Launch CATS (after quitting PanelPro):
   /home/pi/hart/launch_cats.sh
-  # default panel = HART_Master_CTC_hold.xml
+  # default panel = HART_CTC.xml
 
 Desktop icons:
-  CATS CTC -> HART_Master_CTC_hold.xml  (/home/pi/hart/launch_hart_master_desktop.sh)
-  CATS ABS -> HART_Master_ABS_hold.xml  (HOLD_ONLY; paint JMRI/SML)
+  CATS CTC -> HART_CTC.xml  (/home/pi/hart/launch_cats_ctc_desktop.sh)
+  CATS ABS -> HART_ABS.xml  (HOLD_ONLY; paint JMRI/SML)
 
 Or with an explicit panel:
-  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_Master_CTC_hold.xml
-  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_Master_ABS_hold.xml
+  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_CTC.xml
+  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_ABS.xml
 
 Profile used: TCS_MQTT.3f32a166 (same as current PanelPro)
 

@@ -1,38 +1,35 @@
 #!/usr/bin/env python3
-"""Wire HART_Master4.xml geometry → HART_Master4_wired.xml.
+"""Build the CATS desks from the Designer panel.
 
-Designer save is HART_Master4.xml. Live desks:
+    python3 cats/scripts/wire_digicon.py
 
-    python3 cats/scripts/wire_hart_master4.py --live
-
-That copies the wired panel to HART_Master.xml / HART_Master_ABS.xml and
-rebuilds the CATS CTC / CATS ABS HOLD copies.
+HART_Digicon.xml is the Designer save and the only file to edit. This writes
+HART_CTC.xml and HART_ABS.xml. Both are HOLD_ONLY, so JMRI SML owns the aspects,
+and both bind SECSIGNAL to the real JMRI masts. Never edit them by hand: the
+next build replaces them, so a desk change belongs in this script or in
+HART_Digicon.xml.
 """
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import re
-import shutil
-import subprocess
 import sys
 import xml.etree.ElementTree as ET
-from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import build_hart_digicon_from_le as le  # noqa: E402
+import aar_aspect_bridge as bridge  # noqa: E402
 import cats_turnout_io as tio  # noqa: E402
-import jmri_to_cats_digicon as gen  # noqa: E402
+import digicon_header as header  # noqa: E402
+import digicon_lib as le  # noqa: E402
 
-SRC = ROOT / "cats/panels/HART_Master4.xml"
-DST = ROOT / "cats/panels/HART_Master4_wired.xml"
-LIVE_CTC = ROOT / "cats/panels/HART_Master.xml"
-LIVE_ABS = ROOT / "cats/panels/HART_Master_ABS.xml"
-LIVE_CTC_HOLD = ROOT / "cats/panels/HART_Master_CTC_hold.xml"
-LIVE_ABS_HOLD = ROOT / "cats/panels/HART_Master_ABS_hold.xml"
+SRC = ROOT / "cats/panels/HART_Digicon.xml"
+CTC = ROOT / "cats/panels/HART_CTC.xml"
+ABS = ROOT / "cats/panels/HART_ABS.xml"
 
 # (x, y) → (OS name, NORMAL route among non-points legs, layout_ident)
 # NORMAL is the drawn through / main. invert_vs_jmri plants put throw on
@@ -242,7 +239,9 @@ LABEL_ALIGN: dict[tuple[int, int], str] = {}
 
 # Mast 32R is on OS Switch 31 BOTTOM (110|109). A CP on OS Switch 29 would stop 109→110 N/X.
 SIGNAL_MOVES: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = []
-SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {}
+SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {
+    (42, 7, "BOTTOM"): ("LOWRIGHT", "TOP"),  # Mast 32R, SE of Switch 31
+}
 
 # Panel-edge wraps. Paint stays gapped; N/X routes through. Same BLOCK
 # name so occupancy merges: Track Main West west stubs; Princess Track McKeesport.
@@ -250,32 +249,6 @@ SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = [
     ((1, 6, "LEFT"), (1, 8, "LEFT")),
     ((63, 6, "RIGHT"), (63, 7, "RIGHT")),
 ]
-
-STATIONS = {
-    "Track W-1": "Track W-1",
-    "Track W-2": "Track W-2",
-    "Track EH-1": "Track EH-1",
-    "Track EH-2": "Track EH-2",
-    "Track EH-3": "Track EH-3",
-    "Track Scale": "West Lead",
-    "Track Barn": "West Lead",
-    "Track S-R": "Track S-R",
-    "Track S-1": "Track S-1",
-    "Track S-2": "Track S-2",
-    "Track S-3": "Track S-3",
-    "Track S-4": "Track S-4",
-    "Track K-1": "Track K-1",
-    "Track K-2": "Track K-2",
-    "Track McKees Rocks": "Track McKees Rocks",
-    "Track McKeesport": "Track McKeesport",
-    "Track East Lead": "Track East Lead",
-    "Track Main West": "Track Main West",
-    "Track West Main Ext": "Track Main West",
-    "Track Main East": "Track Main East",
-    "Track East Main Ext": "Track Main East",
-    "Track Brick-Plane": "Track Brick-Plane",
-}
-
 
 TRACK_ENDS = {
     "HORIZONTAL": frozenset({"LEFT", "RIGHT"}),
@@ -288,32 +261,9 @@ TRACK_ENDS = {
 
 _SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
 
-# Designer Digicon plates stay 100-series even though block userNames are OS Switch 1…39.
-SWITCH_OS_PLATES = {
-    "OS Switch 1": "100",
-    "OS Switch 3": "101",
-    "OS Switch 5": "102",
-    "OS Switch 15": "103",
-    "OS Switch 17": "104",
-    "OS Switch 19": "105",
-    "OS Switch 21": "106",
-    "OS Switch 25": "107",
-    "OS Switch 27": "108",
-    "OS Switch 29": "109",
-    "OS Switch 31": "110",
-    "OS Switch 23a": "111",
-    "OS Switch 23b": "111",
-    "OS Switch 33": "112",
-    "OS Switch 35a": "113",
-    "OS Switch 35b": "113",
-    "OS Switch 37": "114",
-    "OS Switch 39": "115",
-    "OS Switch 13": "116",
-    "OS Switch 7": "117",
-    "OS Switch 7b": "117",
-    "OS Switch 11": "118",
-    "OS Switch 9": "119",
-}
+def station_plate(name: str) -> str:
+    """Desk plate for a block: `OS Switch 39` -> 39, `Track West Main Ext` -> West."""
+    return name.removeprefix("OS Switch ").removeprefix("Track ").split()[0]
 
 
 def _is_switch_os(name: str | None) -> bool:
@@ -436,11 +386,7 @@ def name_blocks(tp: ET.Element) -> int:
         if blk is None:
             blk = ET.SubElement(se, "BLOCK")
         blk.set("NAME", name)
-        if _is_switch_os(name):
-            plate = SWITCH_OS_PLATES.get(name) or name.split(None, 1)[-1].split()[0]
-            blk.set("STATION", STATIONS.get(name, plate))
-        else:
-            blk.set("STATION", STATIONS.get(name, name))
+        blk.set("STATION", station_plate(name))
         blk.set("DISCIPLINE", disc.get(name, "CTC"))
         blk.set("VISIBLE", "true")
         n += 1
@@ -523,19 +469,14 @@ def name_signals(tp: ET.Element) -> int:
     return n
 
 
-def mast_head_counts() -> dict[str, int]:
-    """Packed-head count per mast userName from signal_wiring.csv."""
-    path = ROOT / "docs/wiring/signals/signal_wiring.csv"
-    counts: dict[str, int] = {}
+def mast_templates() -> dict[str, str]:
+    """CATS signal template per mast userName, from signal_head_plan.csv."""
+    path = ROOT / "docs/wiring/signals/signal_head_plan.csv"
     with path.open(newline="") as f:
-        for row in csv.DictReader(f):
-            mast = (row.get("mast_user_name") or "").strip()
-            if mast:
-                counts[mast] = counts.get(mast, 0) + 1
-    return counts
-
-
-_PHYS_BY_HEADS = {1: "single", 2: "double", 3: "triple"}
+        return {
+            row["mast_user_name"].strip(): row["physignal"].strip()
+            for row in csv.DictReader(f)
+        }
 
 
 def align_physignal_to_heads(tp: ET.Element) -> int:
@@ -543,11 +484,10 @@ def align_physignal_to_heads(tp: ET.Element) -> int:
     even when HOLD_ONLY; a two-head aspect on a one-low mast aborts Screen.init.
     SIGPANTYPE (LAMP1 vs LAMP2) is left for Designer cosmetics (Mast 8RA/Mast 8LA).
     """
-    heads = mast_head_counts()
+    templates = mast_templates()
     n = 0
     for sig in tp.iter("SECSIGNAL"):
-        name = (sig.text or "").strip()
-        want = _PHYS_BY_HEADS.get(heads.get(name, 0))
+        want = templates.get((sig.text or "").strip())
         if not want:
             continue
         phys = sig.find("PHYSIGNAL")
@@ -1118,74 +1058,24 @@ def audit_coverage(tp: ET.Element) -> None:
     )
 
 
-def promote_to_live() -> None:
-    """Copy wired Master 4 onto the live CTC/ABS Masters and rebuild HOLD copies.
-
-    Skips header polish so the Designer 1920×540 window and title row stay.
-    """
-    shutil.copy2(DST, LIVE_CTC)
-    print(f"live CTC {LIVE_CTC}")
-
-    abs_xml = LIVE_CTC.read_text(encoding="utf-8").replace(
-        'DISCIPLINE="CTC"', 'DISCIPLINE="ABS"'
-    )
-    LIVE_ABS.write_text(abs_xml, encoding="utf-8")
-    abs_tree = ET.parse(LIVE_ABS)
-    abs_tp = abs_tree.getroot().find("TRACKPLAN")
-    assert abs_tp is not None
-    today = date.today().isoformat()
-    for s in abs_tp.findall("SECTION"):
-        if int(s.get("Y", "-1")) != 1:
-            continue
-        nm = s.find("SEC_NAME")
-        if nm is None:
-            continue
-        name = nm.get("NAME") or ""
-        if name == "CTC DIGICON":
-            nm.set("NAME", "ABS DIGICON")
-        elif name.startswith("DS-CTC"):
-            nm.set("NAME", f"DS-ABS  Rev A  Eff {today}")
-    abs_tree.write(LIVE_ABS, encoding="UTF-8", xml_declaration=True)
-    subprocess.check_call(
-        [sys.executable, str(ROOT / "cats/scripts/unbind_abs_from_jmri_masts.py"), str(LIVE_ABS)]
-    )
-    print(f"live ABS {LIVE_ABS}")
-
-    hold = ROOT / "cats/scripts"
-    subprocess.check_call(
-        [
-            sys.executable,
-            str(hold / "build_hart_master_ctc_hold.py"),
-            "--src",
-            str(LIVE_CTC),
-            "--dst",
-            str(LIVE_CTC_HOLD),
-        ]
-    )
-    subprocess.check_call(
-        [
-            sys.executable,
-            str(hold / "build_hart_master_abs_hold.py"),
-            "--src",
-            str(LIVE_ABS),
-            "--dst",
-            str(LIVE_ABS_HOLD),
-        ]
-    )
+def write_desk(wired: ET.ElementTree, dst: Path, discipline: str, key: str) -> None:
+    """Write one HOLD_ONLY desk from the wired panel."""
+    tree = copy.deepcopy(wired)
+    root = tree.getroot()
+    for blk in root.iter("BLOCK"):
+        if blk.get("DISCIPLINE") == "CTC":
+            blk.set("DISCIPLINE", discipline)
+    bridge.apply_aar_bridge(root, hold_only=True)
+    tree.write(dst, encoding="UTF-8", xml_declaration=True)
+    meta = header.PANELS[key]
+    header.polish(dst, meta["pub_id"], meta["mode"], rev="A", effective=None)
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "--live",
-        action="store_true",
-        help="Promote wired Master 4 to live CATS CTC / CATS ABS Masters.",
-    )
-    args = ap.parse_args()
+    argparse.ArgumentParser(description=__doc__).parse_args()
     if not SRC.is_file():
         raise SystemExit(f"missing {SRC}")
-    shutil.copy2(SRC, DST)
-    tree = ET.parse(DST)
+    tree = ET.parse(SRC)
     root = tree.getroot()
     tp = root.find("TRACKPLAN")
     assert tp is not None
@@ -1221,9 +1111,9 @@ def main() -> None:
     for ops in root.iter("OPERATIONS"):
         ops.set("CONNECT", "false")
 
-    gen.ensure_mqtt(root)
+    le.ensure_mqtt(root)
     occ = le.load_occupancy()
-    gen.wire_occupancy(root, occ)
+    le.wire_occupancy(root, occ)
 
     # Keep the CATS window at the Designer frame (WIDTH/HEIGHT/COLUMNS/ROWS).
     src_root = ET.parse(SRC).getroot()
@@ -1236,9 +1126,8 @@ def main() -> None:
             if src_tp.get(attr) is not None:
                 tp.set(attr, src_tp.get(attr))
 
-    tree.write(DST, encoding="UTF-8", xml_declaration=True)
     print(
-        f"wrote {DST}  extra_tracks={n_tr} labels={n_lab} moved_sig={n_mv} "
+        f"wired {SRC.name}  extra_tracks={n_tr} labels={n_lab} moved_sig={n_mv} "
         f"ladder_spacers={n_gap} stripped={n_strip} "
         f"blocks={n_blk} "
         f"signals={n_sig} physignal={n_phys} new_sp={n_new_sp} empty_spurs={n_spur} foreign_sp_stripped={n_sp_strip} r3_cleared={n_r3} "
@@ -1246,8 +1135,8 @@ def main() -> None:
         f"sig_seams={n_sig_seams} blk_plain={n_plain} shared={n_share} turnout_io={n_to}"
     )
     audit_coverage(tp)
-    if args.live:
-        promote_to_live()
+    write_desk(tree, CTC, "CTC", "ctc")
+    write_desk(tree, ABS, "ABS", "abs")
 
 
 if __name__ == "__main__":

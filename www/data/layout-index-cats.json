@@ -1,7 +1,7 @@
 {
   "source": {
-    "workspace": "consolidation",
-    "panel": "cats/panels/HART_Master_CTC_hold.xml",
+    "workspace": "hart",
+    "panel": "cats/panels/HART_CTC.xml",
     "view": "digicon-cats"
   },
   "image": {

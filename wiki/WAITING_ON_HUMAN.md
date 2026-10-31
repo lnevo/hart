@@ -2,7 +2,7 @@
 
 Nothing is gated on a human decision.
 
-ADR-004 locks still hold: current host JMRI, **CATS** throws CTC switches, first plant was Brick. Gate 1 Brick / Switch 100 load-and-throw steps are retired — live desks are **CATS CTC** / **CATS ABS** (Masters), not `HART_Brick.xml`.
+ADR-004 locks still hold: current host JMRI, **CATS** throws CTC switches, first plant was Brick. Live desks are **CATS CTC** / **CATS ABS** ([ADR-012](decisions/ADR-012-one-digicon-source.md)).
 
 Railroad work that is still open is in [`STATUS.md`](STATUS.md) (Owed) and [`projects/hart-panel.md`](projects/hart-panel.md).
 

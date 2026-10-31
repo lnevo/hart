@@ -1,7 +1,7 @@
 @echo off
 setlocal
-set PANEL=%USERPROFILE%\hart\cats\panels\HART_Master_CTC_hold.xml
-if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\panels\HART_Master_CTC_hold.xml
+set PANEL=%USERPROFILE%\hart\cats\panels\HART_ABS.xml
+if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\panels\HART_ABS.xml
 echo PANEL=%PANEL%
 if not exist "%PANEL%" (
   echo ERROR: panel not found

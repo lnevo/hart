@@ -24,23 +24,21 @@ Two Digicon “Master” launchers for Neville Island ops, plus JMRI tables / sc
 
 | Launcher | Panel file | Role |
 |----------|------------|------|
-| **CATS CTC** | `cats/panels/HART_Master_CTC_hold.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
-| **CATS ABS** | `cats/panels/HART_Master_ABS_hold.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. Geometry source `HART_Master_ABS.xml` stays unbound. |
+| **CATS CTC** | `cats/panels/HART_CTC.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
+| **CATS ABS** | `cats/panels/HART_ABS.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. |
 
-Geometry sources (no desktop icons): `HART_Master4.xml` (Designer) → `wire_hart_master4.py --live` → `HART_Master.xml` / HOLD copies. Checkpoint **Masters only** (`cats/panels/checkpoints/`). West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`.
+`cats/panels/HART_Digicon.xml` is the Designer save and the only panel to edit. `wire_digicon.py` builds both desks from it; never edit a desk by hand. West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`.
 
-Each Master carries a publication title row (Y=1):
+Each desk carries a publication title row (Y=1):
 
 - **HART RAILROAD** · **NEVILLE ISLAND OPERATIONS** · **P&CV DIVISION**
 - Mode tag (`CTC DIGICON` / `ABS DIGICON`)
 - Pub id (`DS-CTC` / `DS-ABS`) · Rev · Effective date
 
-Rebuild hold panels after Master / ABS geometry edits:
+Rebuild both desks after a Designer save:
 
 ```bash
-python3 cats/scripts/build_hart_master_ctc_hold.py   # CATS CTC (HOLD_ONLY + AAR bridge + header)
-python3 cats/scripts/build_hart_master_abs_hold.py   # CATS ABS (HOLD_ONLY + AAR bridge + header)
-python3 cats/scripts/polish_hart_master_header.py --panel all
+python3 cats/scripts/wire_digicon.py
 ```
 
 ---
@@ -202,11 +200,11 @@ LE `signalmasticon`s use stock AAR-1946 schematic GIFs (no custom imagelinks req
 
 | Host | How |
 |------|-----|
-| **Mac** | `/Applications/CATS CTC.app` / `CATS ABS.app` or `./cats/scripts/launch_hart_master.sh` |
+| **Mac** | `/Applications/CATS CTC.app` / `CATS ABS.app` or `./cats/scripts/launch_cats.sh` |
 | **Pi** | Desktop **CATS CTC** / **CATS ABS** |
 | **Windows** | Desktop **CATS CTC** / **CATS ABS** |
 
-Default panel for `launch_cats.sh` is `cats/panels/HART_Master_CTC_hold.xml`.
+Default panel for `launch_cats.sh` is `cats/panels/HART_CTC.xml`.
 
 Profile tables (routes, YL internals, signal heads/masts) load from the host’s `preference:tables.xml` / Pi `JMRI_UserFiles/tables.xml` (repo mirror `jmri/layouts/hart/output/tables.xml`). Yard ladders need `IO:AUTO:0201–0210` and `IT:HART:YL:*` in that file.
 
@@ -216,7 +214,7 @@ Same package carries Digicon Masters, `tables.xml`, yard-ladder button icons, an
 
 | Piece | Repo SoR | Installs to |
 |-------|----------|-------------|
-| CTC / ABS hold panels | `cats/panels/HART_Master_*hold.xml` | host `hart/cats/panels/` |
+| CTC / ABS desks | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` | host `hart/cats/panels/` |
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
 | Ladder icons | `jmri/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
 | Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
@@ -237,16 +235,14 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 
 | Script | Purpose |
 |--------|---------|
-| `cats/scripts/wire_hart_master4.py` | Live Digicon geometry / plants / lamps (`--live` → CATS CTC / ABS) |
-| `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by Master 4) |
-| `cats/scripts/build_hart_master_ctc_hold.py` | CTC geometry → CATS CTC (`HOLD_ONLY` + AAR bridge) + header |
-| `cats/scripts/build_hart_master_abs_hold.py` | ABS geometry → CATS ABS (`HOLD_ONLY` + AAR bridge) + header |
+| `cats/scripts/wire_digicon.py` | Live Digicon geometry / plants / lamps (`--live` → CATS CTC / ABS) |
+| `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `wire_digicon.py`) |
 | `cats/scripts/aar_aspect_bridge.py` | Digicon R-codes ↔ AAR Clear/Approach/Stop |
 | `jmri/layouts/hart/scripts/apply_le_sml_facing.py` | AAR SHSM + Layout Editor `signalAMast` / block-boundary facing |
 | `jmri/layouts/hart/scripts/discover_sml.py` | PanelPro one-shot SML Discover (background; do not leave on Start Up) |
 | `jmri/layouts/hart/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit; then disable Digicon SML dests |
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no. Deploy runs this on the tables file being shipped (`--no-sync`). `--check` reports without writing |
-| `cats/scripts/polish_hart_master_header.py` | Publication title row |
+| `cats/scripts/digicon_header.py` | Publication title row |
 | `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |
 | `jmri/layouts/hart/scripts/add_yard_ladder_buttons.py` | Ladder lamp buttons on Masters |
 | `cats/scripts/sync_hart_package.sh` | Stage `~/hart` package; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
@@ -263,9 +259,4 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 2. Never publish turnout “fix” commands at launch; retain paint is read-only.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
 4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **Basic** (`two-searchlight`), dwarfs on **`one-low`**. Flashing aspects are disabled on the mast. Mast 2L is `IH438`/`IH439`.
-5. After Master / ABS geometry edits, rebuild both hold copies (`build_hart_master_ctc_hold.py`, `build_hart_master_abs_hold.py`) so `HOLD_ONLY` and mast bindings stay in sync. ABS live panel is `HART_Master_ABS_hold.xml`.
-6. Without CATS: Unhold + SML = ABS. Do not launch CTC geometry-source `HART_Master.xml` against live SML.
-
----
-
-*Office of the Superintendent · Neville Island Operations · DS-DIGICON Rev A*
+5. After a Designer save, run `wire_digicon.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.

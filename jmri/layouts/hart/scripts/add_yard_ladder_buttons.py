@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PANEL = ROOT / "cats/panels/HART_Master_ABS.xml"
+DEFAULT_PANEL = ROOT / "cats/panels/HART_ABS.xml"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 # Pi live load is preference:tables.xml → /home/pi/JMRI_UserFiles/tables.xml
 # (preference: is NOT the profile dir on the Pi). Deploy TABLES there.
@@ -508,7 +508,7 @@ def main() -> None:
         type=Path,
         default=[
             DEFAULT_PANEL,
-            ROOT / "cats/panels/HART_Master.xml",
+            ROOT / "cats/panels/HART_CTC.xml",
         ],
     )
     ap.add_argument("--skip-tables", action="store_true")

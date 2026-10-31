@@ -2,7 +2,7 @@
 """Build Digicon/CATS device-map hotspots for the operator portal.
 
 Uses the live Digicon panel (same default as cats/scripts/launch_cats.sh):
-cats/panels/HART_Master_CTC_hold.xml.
+cats/panels/HART_CTC.xml.
 
 Emits clickable:
   - turnout plants (SWITCHPOINTS)
@@ -22,7 +22,7 @@ from pathlib import Path
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
-PANEL = ROOT / "cats/panels/HART_Master_CTC_hold.xml"
+PANEL = ROOT / "cats/panels/HART_CTC.xml"
 RENDER = ROOT / "cats/scripts/render_cats_panel.py"
 OUT_IMG = PORTAL / "assets/layout/HART_cats_digicon.png"
 OUT_JSON = PORTAL / "data/layout-index-cats.json"
@@ -285,7 +285,7 @@ def build() -> dict:
     return {
         "source": {
             "workspace": "hart",
-            "panel": "cats/panels/HART_Master_CTC_hold.xml",
+            "panel": "cats/panels/HART_CTC.xml",
             "view": "digicon-cats",
         },
         "image": {

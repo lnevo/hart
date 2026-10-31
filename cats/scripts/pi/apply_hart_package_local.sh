@@ -90,6 +90,9 @@ rm -rf "${JMRI_HOME:-/home/pi/JMRI}/xml/signals/cats-masts"
 rm -f "$HART/cats/scripts/windows/install_cats_masts.ps1"
 echo "Pi retired signal sets removed"
 
+# Panels and launchers replaced by HART_CTC.xml / HART_ABS.xml (ADR-012).
+rm -f "$HART"/cats/panels/HART_Master*.xml "$HART"/launch_hart_master*.sh
+
 JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$HART/jmri/layouts/hart/scripts/sync_layout_button.py"

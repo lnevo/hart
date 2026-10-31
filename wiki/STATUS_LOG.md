@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — CATS panels reduced to `HART_Digicon.xml` plus the generated `HART_CTC.xml` and `HART_ABS.xml` (ADR-012). `wire_digicon.py` now reproduces the desks. It carries the station plates and Mast 32R edits that were only in the desks, reads mast templates from `signal_head_plan.csv`, and picks up the Basic aspect mapping the desks had missed. Launchers renamed; old panels and Gate 1 generators are in `archive/`. Host deploy still owed.
+
 Updated: 2026-10-31 — Reconciled the wiki with what is true. Desktop sync previews 0 copies and 0 conflicts, so that item is closed. ADR-007 P4a is closed, with five `~/Desktop/HART` files to check before that folder retires. `hart-panel.md` no longer says the facing overlay is live or JMRI#15407 open. Speed matching and agent skills are future goals; deploy, Basic signal test and STS staging are deferred. Docs only; not deployed.
 
 Updated: 2026-10-31 — Repo cleanup under way: ADR-007 (layout), ADR-008 (`jmri/layouts/hart/output/tables.xml` is the one tables file), ADR-011 (masts are stock **Basic**, replacing the basic-enhanced trial that showed false Stops). In PanelPro, Store to the repo file. **Owed:** deploy `--all` when hosts are online, then test on the railroad by forcing a real Stop and reading back Approach, Clear, Clear.

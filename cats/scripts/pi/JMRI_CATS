@@ -20,5 +20,5 @@ if [[ -z "${DISPLAY:-}" ]]; then
   export DISPLAY="${DISPLAY:-:1}"
 fi
 
-PANEL="${1:-/home/pi/hart/cats/panels/HART_Master.xml}"
+PANEL="${1:-/home/pi/hart/cats/panels/HART_CTC.xml}"
 exec /home/pi/hart/launch_cats.sh "$PANEL"

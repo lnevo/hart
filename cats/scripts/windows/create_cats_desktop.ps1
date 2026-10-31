@@ -11,10 +11,8 @@ foreach ($helper in @(
   'resolve_jmri_profile.ps1',
   'patch_windows_mqtt.ps1',
   'kill_cats.ps1',
-  'launch_hart_master.bat',
-  'launch_hart_master_abs.bat',
-  'launch_hart_master_abs_hold.bat',
-  'launch_hart_master_ctc_hold.bat',
+  'launch_cats_ctc.bat',
+  'launch_cats_abs.bat',
   'launch_cats_desktop.bat',
   'crandic.gif',
   'CATS.ICO'
@@ -26,11 +24,8 @@ foreach ($helper in @(
 }
 
 foreach ($panel in @(
-  'HART_Master.xml',
-  'HART_Master_ABS.xml',
-  'HART_Master_ABS_hold.xml',
-  'HART_Master_CTC_hold.xml',
-  'HART_sheet_West_Yard.xml'
+  'HART_CTC.xml',
+  'HART_ABS.xml'
 )) {
   $src = Join-Path $Work $panel
   if (Test-Path $src) {
@@ -45,7 +40,7 @@ if (Test-Path $BtnSrc) {
   Copy-Item (Join-Path $BtnSrc '*') $BtnDir -Force
 }
 $UserFiles = (Join-Path $env:USERPROFILE 'JMRI_UserFiles') -replace '\\', '/'
-foreach ($panel in @('HART_Master.xml', 'HART_Master_ABS.xml', 'HART_Master_ABS_hold.xml', 'HART_Master_CTC_hold.xml')) {
+foreach ($panel in @('HART_CTC.xml', 'HART_ABS.xml')) {
   $p = Join-Path $PanelDir $panel
   if (-not (Test-Path $p)) { continue }
   $txt = Get-Content -Raw -LiteralPath $p
@@ -77,13 +72,13 @@ $Wsh = New-Object -ComObject WScript.Shell
 $shortcuts = @(
   @{
     Name = 'CATS CTC'
-    Bat  = 'launch_hart_master.bat'
+    Bat  = 'launch_cats_ctc.bat'
     Desc = 'CATS Digicon CTC (HOLD_ONLY; JMRI SML aspects)'
   },
   @{
     Name = 'CATS ABS'
-    Bat  = 'launch_hart_master_abs.bat'
-    Desc = 'CATS Digicon ABS (stock; CATS drives aspects)'
+    Bat  = 'launch_cats_abs.bat'
+    Desc = 'CATS Digicon ABS (HOLD_ONLY; JMRI SML aspects)'
   }
 )
 

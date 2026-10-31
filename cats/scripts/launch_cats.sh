@@ -30,10 +30,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 # Default: live CATS CTC (HOLD_ONLY; JMRI SML).
-# ABS: ./cats/scripts/launch_hart_master_abs.sh
-# Gate 1: ./cats/scripts/launch_cats.sh cats/panels/HART.xml
+# ABS: ./cats/scripts/launch_cats.sh cats/panels/HART_ABS.xml
 # Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=terminal.
-PANEL="${1:-$ROOT/cats/panels/HART_Master_CTC_hold.xml}"
+PANEL="${1:-$ROOT/cats/panels/HART_CTC.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).

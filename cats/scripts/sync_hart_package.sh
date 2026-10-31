@@ -95,10 +95,8 @@ HART_JYTHON_SCRIPTS=(
 )
 
 LIVE_PANELS=(
-  HART_Master.xml
-  HART_Master_ABS.xml
-  HART_Master_ABS_hold.xml
-  HART_Master_CTC_hold.xml
+  HART_CTC.xml
+  HART_ABS.xml
 )
 
 install_dispatcher_facing_patch() {

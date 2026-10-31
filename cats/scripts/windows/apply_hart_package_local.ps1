@@ -259,7 +259,10 @@ foreach ($path in $retired) {
 
 Write-Host 'apply_hart_package_local done'
 
-$desk = Join-Path $hart 'cats\scripts\windows\create_hart_master_desktop.ps1'
+# Panels and launchers replaced by HART_CTC.xml / HART_ABS.xml (ADR-012).
+Remove-Item (Join-Path $hart 'cats\panels\HART_Master*.xml') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $hart 'launch_hart_master*.bat') -Force -ErrorAction SilentlyContinue
+$desk = Join-Path $hart 'cats\scripts\windows\create_cats_desktop.ps1'
 if (Test-Path $desk) {
   & $desk
 }

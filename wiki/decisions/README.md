@@ -13,5 +13,6 @@
 | [009](ADR-009-website-hosting.md) | Website hosting | Accepted |
 | [010](ADR-010-ops-source.md) | Ops source of record | Accepted |
 | [011](ADR-011-basic-signals.md) | Stock Basic signals | Accepted |
+| [012](ADR-012-one-digicon-source.md) | One Digicon source, two desks | Accepted |
 
 Older consolidation decisions are in [`archive/consolidation/`](../../archive/consolidation/). ADR-007 records what became of them.

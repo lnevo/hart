@@ -1,10 +1,9 @@
 # HART Digicon schematic — plant map
 
-Source: `cats/panels/HART_Master4.xml` (Designer save, 63×16, 1920×540).  
-Wire: `python3 cats/scripts/wire_hart_master4.py` → `HART_Master4_wired.xml`.  
-`--live` copies that onto CATS CTC / CATS ABS. **This is the live Digicon.**
+Source: `cats/panels/HART_Digicon.xml` (Designer save, 63×16, 1920×540).  
+Build: `python3 cats/scripts/wire_digicon.py` writes `HART_CTC.xml` and `HART_ABS.xml`, the CATS CTC and CATS ABS desks.
 
-The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. Recent geometry edits were saved into `HART_Master4_wired.xml`; copy that back to `HART_Master4.xml` before a wire pass. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. Track labels (`FONT_LABEL`) on Y≥5 are lifted `LOWCENT` → `UPCENT`. It does not move lamps, insert rails, or add/remove gaps.
+The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. Track labels (`FONT_LABEL`) on Y≥5 are lifted `LOWCENT` → `UPCENT`. It does not move lamps, insert rails, or add/remove gaps.
 
 **SHARED wraps (N/X + occupancy):** `(1,6)` LEFT ↔ `(1,8)` LEFT both **Track Main West**; `(63,6)` RIGHT ↔ `(63,7)` RIGHT both **Track McKeesport**.
 
@@ -23,7 +22,7 @@ The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occ
 
 West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Track Main West). East rims: `(63,6)` RIGHT SHARED to `(63,7)` RIGHT (Track McKeesport). Track W-1/Track W-2 east bumpers at x=9.
 
-## Plants (`wire_hart_master4.py`)
+## Plants (`wire_digicon.py`)
 
 23 frogs. Invert vs JMRI only **Switch 1 / Switch 37 / Switch 39**. **Switch 33 is not inverted** on this board (Closed LEFT = Switch 31; Thrown BOTTOM = Track Main East).
 
@@ -65,12 +64,12 @@ Designer captions stay as saved. Wire lifts `FONT_LABEL` on operating rows (`Y�
 ## Live launch
 
 ```bash
-./cats/scripts/launch_hart_master_ctc_hold.sh
+./cats/scripts/launch_cats.sh
 # or the CATS CTC / CATS ABS desktop icons
-python3 cats/scripts/wire_hart_master4.py --live   # after a Designer save
+python3 cats/scripts/wire_digicon.py   # after a Designer save
 ```
 
-Mac icons **CATS CTC** / **CATS ABS** → live HOLD desks. There is no **CATS Master4** Applications icon. Designer saves belong in `HART_Master4.xml` (not `_wired.xml`). The wire script `--live` copies the wired board onto `HART_Master.xml` and rebuilds both HOLD copies. Do not save Designer over `_hold.xml`.
+Mac icons **CATS CTC** / **CATS ABS** open the desks. Designer saves belong in `HART_Digicon.xml`.
 
 **Load rule:** a named `BLOCK` edge must face another `BlkEdge`. Occupancy cuts use **different** names (that is the only intended rail gap). Interior cells stay plain — occupancy flows through turnouts (`PtsEdge.propagateBlock`). Same-name `BlkEdge` pairs still paint a gap; they exist only where a Designer lamp sits mid-block. A `BlkEdge` facing a plain `SecEdge` ClassCasts in `discoverAdvanceVitalLogic` and leaves the Dispatcher Panel blank. Anonymous `<BLOCK />` then NPEs (`MyBlock` is null). Do not put two names on one Track. Do not put BLOCK on the edge facing SWITCHPOINTS.
 

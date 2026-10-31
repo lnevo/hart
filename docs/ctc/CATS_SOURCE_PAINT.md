@@ -84,13 +84,8 @@ A two-track cell is a turnout: the edge shared by both tracks carries
 ## HART tooling
 
 ```bash
-python3 cats/scripts/wire_designer_ctc_rules.py --mqtt
-# → cats/panels/HART_magnet.xml  (Designer XY + CTC-Tests edges)
-# → cats/panels/HART.xml         (+ occupancy)
-python3 cats/scripts/dump_cats_grid.py cats/panels/HART_magnet.xml   # inspect any panel
-CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_magnet.xml
+python3 cats/scripts/wire_digicon.py
+python3 cats/scripts/dump_cats_grid.py cats/panels/HART_CTC.xml   # inspect any panel
 ```
 
-The builder self-checks rules 1–4 above plus "every region has exactly one named
-block" and refuses to write on failure. Cell map:
-[`DESIGNER_DRAWING_REVIEW.md`](../../archive/docs/DESIGNER_DRAWING_REVIEW.md).
+Cell map: [`DIGICON_SCHEMATIC.md`](../../wiki/DIGICON_SCHEMATIC.md).

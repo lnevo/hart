@@ -49,5 +49,5 @@ Spec: [`cross-repo/lcos/TIER_B.md`](../../archive/consolidation/cross-repo/lcos/
 ## Related pipelines
 
 - [Digicon signal beans](digicon-signal-beans.md) — pipeline 3
-- [CATS Masters](cats-masters.md) — pipeline 5
+- [CATS Masters](cats-panels.md) — pipeline 5
 - [LCOS firmware](lcos-firmware.md) — pipeline 9

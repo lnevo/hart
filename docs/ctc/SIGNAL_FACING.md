@@ -17,7 +17,7 @@ Panel lamps (`SECSIGNAL` / `PANELSIGNAL`) tip **into** the named BLOCK on that e
 | `LAMP2` / double | 2 | Main / CP home — high vs medium or restricting (two speed classes) |
 | `LAMP3` / triple | 3 | High + medium + slow at one mast (none on HART Master today) |
 
-SoR wire: `cats/scripts/wire_hart_master4.py` (`SIGNAL_DEFS` / occupancy ANCHORS)  
+SoR wire: `cats/scripts/wire_digicon.py` (`SIGNAL_DEFS` / occupancy ANCHORS)  
 Plan: `docs/wiring/signals/signal_mast_plan.csv`
 
 ---
@@ -89,7 +89,7 @@ Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code 
 
 **CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting, not Clear.
 
-**OS W-1 / OS W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_hart_master4.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
+**OS W-1 / OS W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (`wire_digicon.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
 
 ### Digicon → virtual heads + SHSM (Basic)
 
@@ -101,7 +101,7 @@ Princess east exits are **2-head** (main vs OS K-1/OS K-2). Balloon intermediate
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: stock Basic `two-searchlight` / `one-low`)
-- Digicon `PHYSIGNAL`: templates remapped to C&O-1980 names (`cats/scripts/aar_aspect_bridge.py`); CATS CTC is `HOLD_ONLY`; CATS ABS SECSIGNAL names are unbound (`unbind_abs_from_jmri_masts.py`) so SML owns LE
+- Digicon `PHYSIGNAL`: templates remapped to C&O-1980 names (`cats/scripts/aar_aspect_bridge.py`); CATS CTC is `HOLD_ONLY`; CATS ABS is `HOLD_ONLY` too, with SECSIGNAL bound to the JMRI masts.
 - Layout Editor facing: `jmri/layouts/hart/data/le_signal_boundaries.csv` → `python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py` (`signalAMast` / `eastboundsignalmast`). Balloon A48 joins the east ends of the two loop blocks, so the mast named for its approach track must protect the opposite block: **OS McKeesport / `IH134` protects OS McKees Rocks and OS 39** (`westboundsignalmast`), while **OS McKees Rocks / `IH141` protects OS McKeesport and OS 37** (`eastboundsignalmast`). CATS display locations and physical IH wiring remain OS McKeesport at (45,7) TOP and Rocks at (45,6) BOTTOM; do not swap those outputs to correct the Layout Editor facing. 114/115 C homes face west (CATS SIGORIENT LEFT, LE deg 270); dest WME `111a` when 113 is normal, OS East Lead when 113 is reverse. OS K-1 / OS K-2 dwarfs dest the same westbound next masts (`111a` / OS East Lead), not the opposing 113a/113b faces. South line (Plane EME ↔ OS Barn D) dest each other across OS East Main Ext — not East End OS Main West.
 - SML dests: **native** — discovered by Layout Editor (`jmri/layouts/hart/scripts/run_sml_discover.sh`, one-shot) and stored in `tables.xml` with `useLayoutEditor=yes`; JMRI re-paths them on every load. The old hand-pair injector `apply_sml_cats_pairs.py` is retired (its `PAIRS` list is kept as a regression oracle for `validate_le_signalling.py --dests`); the startup Jython re-apply is removed from all profiles. Runtime criteria can be inspected with `jmri/layouts/hart/scripts/dump_sml_criteria.py` (one-shot, same harness env as `discover_sml.py`). CATS ABS is the visual reference only — it must not `setAspect` on JMRI masts.
 - Plant dests (CATS MQTT compare): OS Barn D (lower west) dests OS 33 when 117 is closed (east into OS Main East), not back across OS East Main Ext. 117b dests Plane EME when 117 is closed (westbound). OS East Lead dests 117b only when 112 is thrown (diverge to OS Main East). OS 33 dests 113a when 112 is thrown. OS 31 dests 113a only when 110 is thrown **and** 112 is closed (ladder into OS East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West OS Main West dests 113b; 111 thrown → both Stop.

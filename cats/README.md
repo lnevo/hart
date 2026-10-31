@@ -44,11 +44,9 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 - Digicon board: **Designer-first** (ADR-004); **start here:** [`docs/DESIGNER_GATE1_HOWTO.md`](../archive/docs/DESIGNER_GATE1_HOWTO.md) · checklist [`docs/GATE1_BRICK_PLANE.md`](../archive/docs/GATE1_BRICK_PLANE.md)
   ```bash
   ./cats/scripts/launch_designer.sh
-  python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panels/HART.xml
-  # Interim fragment (until Designer save):
-  python3 cats/scripts/jmri_to_cats_digicon.py --only gate1
+  python3 cats/scripts/wire_digicon.py   # builds HART_CTC.xml and HART_ABS.xml from HART_Digicon.xml
   ```
-  - Plant map: [`docs/HART_DIGICON_MAP.md`](../docs/ctc/HART_DIGICON_MAP.md)
+  - Plant map: [`wiki/DIGICON_SCHEMATIC.md`](../wiki/DIGICON_SCHEMATIC.md)
   - Bindings: [`docs/BRICK_BINDINGS.md`](../archive/docs/BRICK_BINDINGS.md) · Gates 2–5: [`docs/GATE2_PLUS.md`](../archive/docs/GATE2_PLUS.md)
 - Validate: `python3 cats/scripts/validate_cats_panel.py`
 
@@ -66,7 +64,7 @@ CATS **must** be copied into your JMRI folder (`cats.jar` next to `jmri.jar`). R
 #   CATS    — loads the same profile tables.xml, then the Digicon XML.
 # Never run both on the same profile; never Store tables with CATS open.
 ./cats/scripts/launch_cats.sh
-# Digicon XML is auto-opened (default: cats/panels/HART_Master.xml)
+# Digicon XML is auto-opened (default: cats/panels/HART_CTC.xml)
 
 ./cats/scripts/launch_designer.sh       # optional polish only
 ```

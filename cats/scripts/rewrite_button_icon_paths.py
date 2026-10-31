@@ -11,7 +11,7 @@ Git Masters keep the Mac repo paths. Pi/Windows copies are rewritten
 here so CATS does not look in the hart clone.
 
   python3 cats/scripts/rewrite_button_icon_paths.py \\
-    --panel cats/panels/HART_Master.xml \\
+    --panel cats/panels/HART_CTC.xml \\
     --user-files /home/pi/JMRI_UserFiles
 """
 
