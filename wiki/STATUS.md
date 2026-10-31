@@ -19,4 +19,3 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Next
 
-- Refresh `DISPATCHER_LAYOUT_HOOPS.md` and `MASTER4_SCHEMATIC.md` to live names.
