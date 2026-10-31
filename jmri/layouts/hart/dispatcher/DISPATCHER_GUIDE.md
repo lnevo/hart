@@ -13,7 +13,7 @@ or the USS panel. Run **either** CATS CTC **or** the USS machine — never both 
 and do not start Dispatcher System from inside CATS. Use PanelPro.
 
 CTC desks: [`../ctc/DISPATCHER_GUIDE.md`](../ctc/DISPATCHER_GUIDE.md) (USS) ·
-[`../../../docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../../docs/ctc/DISPATCHER_GUIDE_CTC.md)
+[`../../../docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../../../docs/ctc/DISPATCHER_GUIDE_CTC.md)
 (Digicon).
 
 ---

@@ -1,6 +1,6 @@
 # Automated Digicon helpers
 
-Topology truth is **Designer** ([`GATE1_BRICK_PLANE.md`](GATE1_BRICK_PLANE.md), ADR-004). The generator builds interim fragments and wires MQTT.
+Topology truth is **Designer** ([`GATE1_BRICK_PLANE.md`](../../archive/docs/GATE1_BRICK_PLANE.md), ADR-004). The generator builds interim fragments and wires MQTT.
 
 ## Commands
 
@@ -23,11 +23,11 @@ CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART.xml
 
 | File | Purpose |
 |------|---------|
-| [`../panels/HART.xml`](../../cats/panels/HART.xml) | **Primary** Designer Gate 1 + MQTT |
-| [`../panels/HART_magnet.xml`](../../cats/panels/HART_magnet.xml) | Gate 1 magnet |
-| [`../panels/HART_le.xml`](../../cats/panels/HART_le.xml) | LE WIP full railroad + MQTT |
-| [`../panels/HART_le_magnet.xml`](../../cats/panels/HART_le_magnet.xml) | LE WIP magnet |
-| [`../panels/HART_armstrong_magnet.xml`](../../cats/panels/HART_armstrong_magnet.xml) | Full Armstrong demo |
+| [`../panels/HART.xml`](../../archive/panels/HART.xml) | **Primary** Designer Gate 1 + MQTT |
+| [`../panels/HART_magnet.xml`](../../archive/panels/HART_magnet.xml) | Gate 1 magnet |
+| [`../panels/HART_le.xml`](../../archive/panels/HART_le.xml) | LE WIP full railroad + MQTT |
+| [`../panels/HART_le_magnet.xml`](../../archive/panels/HART_le_magnet.xml) | LE WIP magnet |
+| [`../panels/HART_armstrong_magnet.xml`](../../archive/panels/HART_armstrong_magnet.xml) | Full Armstrong demo |
 | [`../panels/HART_chubb_magnet.xml`](../../cats/panels/HART_chubb_magnet.xml) | Chubb CTC look only |
 
 Armstrong shell resolves via `cats_paths.py` (full CATS tree or

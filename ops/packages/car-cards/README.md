@@ -38,7 +38,7 @@ export HART_CAR_IMAGES_FINAL="$(pwd)/../desktop-data/car-images/CarImagesFinal"
 export HART_CAR_CARDS_ROOT="$(pwd)/../desktop-data/car-cards"
 ```
 
-Set automatically by [`../../scripts/setup_car_cards_workspace.sh`](../../scripts/setup_car_cards_workspace.sh).
+Set automatically by [`../../scripts/setup_car_cards_workspace.sh`](../../../tools/ops/setup_car_cards_workspace.sh).
 
 ## STS seed
 

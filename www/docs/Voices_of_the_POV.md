@@ -2,7 +2,7 @@
 
 **Prototype reference for HART** · October 2026
 
-The [Pittsburgh & Ohio Valley Railway](pittsburgh-ohio-valley-railway.html) was a small railroad, and the people on it knew each other well. This page collects the crew, sayings, and stories that Mark Connolly, a P&OV trainman and engineer from 1977 to 1991, shared on his [Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad). The stories and quotes are his. Names and jobs are as he gave them in his captions, and each "photo" or "post" link opens the original. Two Shenango and PC&Y neighbors below come from comments collected by Dennis DeBruler, and Frank Condeluci from the *Post-Gazette*.
+The [Pittsburgh & Ohio Valley Railway](../library/pittsburgh-ohio-valley-railway.html) was a small railroad, and the people on it knew each other well. This page collects the crew, sayings, and stories that Mark Connolly, a P&OV trainman and engineer from 1977 to 1991, shared on his [Tumblr blog](https://www.tumblr.com/pittsburghohiovalleyrailroad). The stories and quotes are his. Names and jobs are as he gave them in his captions, and each "photo" or "post" link opens the original. Two Shenango and PC&Y neighbors below come from comments collected by Dennis DeBruler, and Frank Condeluci from the *Post-Gazette*.
 
 Family details from the obituaries he reposted are left out. Only the railroad careers are kept.
 

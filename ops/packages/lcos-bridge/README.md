@@ -1,6 +1,6 @@
 # LCOS bridge package
 
-**Source:** [`../../external/lcos-bridge/`](../../external/lcos-bridge/) (git submodule)
+**Source:** [`../../external/lcos-bridge/`](../../../external/lcos-bridge) (git submodule)
 
 Includes:
 - **`lcos-bridge.ino`** — Nano firmware (Arduino IDE: open the submodule folder)
@@ -49,4 +49,4 @@ Windows helper: `scripts/windows/flash_nano.py`
 
 ## Tier B smokes
 
-[`../../cross-repo/lcos/TIER_B.md`](../../cross-repo/lcos/TIER_B.md)
+[`../../cross-repo/lcos/TIER_B.md`](../../../archive/consolidation/cross-repo/lcos/TIER_B.md)

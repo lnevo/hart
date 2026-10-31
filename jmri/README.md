@@ -25,16 +25,16 @@ Other scripts in `scripts/` are one-off layout edits (stubs, trim, hex arcs, sch
 
 ```bash
 cd /Users/lnevo/Panel
-export JMRI_LAYOUT=mac
+export JMRI_LAYOUT=hart
 
 # Normal run (authoritative panel as source)
 python3 jmri/scripts/apply_blocks_to_panel.py
 
 # Refresh track geometry from AnyRail
 python3 jmri/scripts/apply_blocks_to_panel.py \
-  jmri/layouts/mac/anyrail/upper_both4.xml \
-  jmri/layouts/mac/output/mac_jmri_blocked.xml \
-  jmri/layouts/mac/authoritative/mac_jmri2.xml \
+  jmri/layouts/hart/anyrail/hart.xml \
+  jmri/layouts/hart/output/hart_blocked.xml \
+  jmri/templates/panel_style.xml \
   use-panel-layout
 ```
 

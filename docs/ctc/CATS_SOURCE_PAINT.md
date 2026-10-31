@@ -93,4 +93,4 @@ CATS_LAUNCH_VIA=terminal ./cats/scripts/launch_cats.sh cats/panels/HART_magnet.x
 
 The builder self-checks rules 1–4 above plus "every region has exactly one named
 block" and refuses to write on failure. Cell map:
-[`DESIGNER_DRAWING_REVIEW.md`](DESIGNER_DRAWING_REVIEW.md).
+[`DESIGNER_DRAWING_REVIEW.md`](../../archive/docs/DESIGNER_DRAWING_REVIEW.md).

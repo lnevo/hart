@@ -1,6 +1,6 @@
 // Barn station map as a printed fascia plate for Touch Toggles.
 //
-// Same plant as cats/scripts/render_barn_station_map.py, in sheet inches with y
+// Same plant as ops/station_maps/scripts/render_barn_station_map.py, in sheet inches with y
 // down, so the two can be compared directly. Switch 7's dots move to the
 // toggle's 3/8 in hole pitch, which pulls Main East up to Y_MAIN below.
 //

@@ -99,7 +99,7 @@ def build_board(*, shift: bool = True) -> None:
     shift=False leaves 0-based coords so callers (e.g. CTC builder) can extend
     the grid before the mandatory CATS 1-based shift.
 
-    Tip blocks from hart_prod (segment TURNOUT_A/B/C/D):
+    Tip blocks from tables.xml (segment TURNOUT_A/B/C/D):
       TOL3  A=Main West  B=OS100     C=Brick-Plane
       TOL38 A=OS101      B=W-1 C=W-2
       TOL42 A=100-102    B=East Main Ext C=Scale

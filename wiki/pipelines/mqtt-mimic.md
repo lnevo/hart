@@ -1,4 +1,4 @@
-> **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../LIVE_SOURCES.md).
+> **Consolidation draft** — live sources are read-only. See [`LIVE_SOURCES.md`](../../archive/consolidation/LIVE_SOURCES.md).
 
 ## Source of record
 
@@ -6,7 +6,7 @@
 |------|------------------|---------------|
 | CATS mimic | `tools/mqtt-mimic/lcos_mqtt_mimic.py` | — |
 | JMRI publisher | `jmri/scripts/mqtt_signalhead_publisher.py` | — |
-| Bridge | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | [`cross-repo/lcos/TIER_B.md`](../../cross-repo/lcos/TIER_B.md) |
+| Bridge | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | [`cross-repo/lcos/TIER_B.md`](../../archive/consolidation/cross-repo/lcos/TIER_B.md) |
 
 **Tier:** B (manual smoke) · Cross-cutting pipelines **3 / 5 / 9** · **D6:** live `track/signalmast/#` roster
 
@@ -44,7 +44,7 @@ python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc
 - Periodic event **125** after master RAM wipe
 - USB serial ACK / pacing on Windows bridge
 
-Spec: [`cross-repo/lcos/TIER_B.md`](../../cross-repo/lcos/TIER_B.md)
+Spec: [`cross-repo/lcos/TIER_B.md`](../../archive/consolidation/cross-repo/lcos/TIER_B.md)
 
 ## Related pipelines
 

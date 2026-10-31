@@ -1,7 +1,7 @@
 # STS package
 
-**Runtime:** [`../../external/sts-docker/`](../../external/sts-docker/)  
-**Helpers:** [`../../external/sts-helpers/`](../../external/sts-helpers/)  
+**Runtime:** [`../../external/sts-docker/`](../../../external/sts-docker)  
+**Helpers:** [`../../external/sts-helpers/`](../../../external/sts-helpers)  
 **Data:** [`../../external/sts-docker-data/`](../../external/sts-docker-data/)
 
 ## Setup
@@ -10,7 +10,7 @@
 cp tools/env/hart.env.example tools/env/hart.env   # once
 ```
 
-Pipeline script [`refresh_sts_docker_compose.sh`](../../scripts/refresh_sts_docker_compose.sh) writes literal bind paths into `docker-compose.yml` (`backups/`, `images/`, `database/` under `sts-docker-data/`).
+Pipeline script [`refresh_sts_docker_compose.sh`](../../../tools/ops/refresh_sts_docker_compose.sh) writes literal bind paths into `docker-compose.yml` (`backups/`, `images/`, `database/` under `sts-docker-data/`).
 
 ## Run
 
@@ -27,4 +27,4 @@ cd "$STS_HELPERS_ROOT"
 ./bin/begin_session.sh --run-stg-scully --switchlists
 ```
 
-Runbook: [`../../wiki/pipelines/sts.md`](../../wiki/pipelines/sts.md)
+Runbook: [`../../wiki/pipelines/sts.md`](../../../wiki/pipelines/sts.md)

@@ -35,21 +35,21 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 | [`data/occupancy_bindings.csv`](data/occupancy_bindings.csv) | Block → occupancy sensor userName |
 | [`data/turnout_bindings.csv`](data/turnout_bindings.csv) | Layout OS → Switch / M2T* |
 | [`data/plants_from_hart.csv`](data/plants_from_hart.csv) | CP → switch list |
-| [`data/signal_mast_plan.csv`](data/signal_mast_plan.csv) | Planned mast slots |
+| [`data/signal_mast_plan.csv`](../docs/wiring/signals/signal_mast_plan.csv) | Planned mast slots |
 
 ## Decisions (Accepted)
 
 - JMRI: **current** host (panel reports **5.15.4plus** — OK for CATS 3.2)
 - CTC throws: **CATS**
-- Digicon board: **Designer-first** (ADR-004); **start here:** [`docs/DESIGNER_GATE1_HOWTO.md`](docs/DESIGNER_GATE1_HOWTO.md) · checklist [`docs/GATE1_BRICK_PLANE.md`](docs/GATE1_BRICK_PLANE.md)
+- Digicon board: **Designer-first** (ADR-004); **start here:** [`docs/DESIGNER_GATE1_HOWTO.md`](../archive/docs/DESIGNER_GATE1_HOWTO.md) · checklist [`docs/GATE1_BRICK_PLANE.md`](../archive/docs/GATE1_BRICK_PLANE.md)
   ```bash
   ./cats/scripts/launch_designer.sh
   python3 cats/scripts/jmri_to_cats_digicon.py --wire-only cats/panels/HART.xml
   # Interim fragment (until Designer save):
   python3 cats/scripts/jmri_to_cats_digicon.py --only gate1
   ```
-  - Plant map: [`docs/HART_DIGICON_MAP.md`](docs/HART_DIGICON_MAP.md)
-  - Bindings: [`docs/BRICK_BINDINGS.md`](docs/BRICK_BINDINGS.md) · Gates 2–5: [`docs/GATE2_PLUS.md`](docs/GATE2_PLUS.md)
+  - Plant map: [`docs/HART_DIGICON_MAP.md`](../docs/ctc/HART_DIGICON_MAP.md)
+  - Bindings: [`docs/BRICK_BINDINGS.md`](../archive/docs/BRICK_BINDINGS.md) · Gates 2–5: [`docs/GATE2_PLUS.md`](../archive/docs/GATE2_PLUS.md)
 - Validate: `python3 cats/scripts/validate_cats_panel.py`
 
 ## Install + run (macOS)
@@ -81,7 +81,7 @@ Fallback if Cursor is still blocked: `CATS_LAUNCH_VIA=terminal`.
 
 `readelf` warnings on macOS from `cats.csh` are harmless ARM probes.
 
-Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_BUILD.md`](docs/HART_DESIGNER_BUILD.md).
+Also: sample `panels/reference_ArmstrongMagnet.xml`, guide [`docs/HART_DESIGNER_BUILD.md`](../archive/docs/HART_DESIGNER_BUILD.md).
 
 ## Authority rule
 
@@ -92,6 +92,6 @@ JMRI tables are owned by **PanelPro**: edit and Store there only. CATS refers to
 
 ## Guides
 
-- **Dispatcher (CTC ops):** [`docs/DISPATCHER_GUIDE_CTC.md`](docs/DISPATCHER_GUIDE_CTC.md) — how to be a dispatcher on the Digicon panel (routes, stacking, fleeting, call-on). Complements, does not replace, the JMRI USS lever guide at `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`.
+- **Dispatcher (CTC ops):** [`docs/DISPATCHER_GUIDE_CTC.md`](../docs/ctc/DISPATCHER_GUIDE_CTC.md) — how to be a dispatcher on the Digicon panel (routes, stacking, fleeting, call-on). Complements, does not replace, the JMRI USS lever guide at `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`.
 - Manuals (after fetch): `tools/cats/release3.2/{DesignerManual,catsManual,ReadMe}.pdf`
 - Site: [User Guides](http://cats4ctc.wikidot.com/main:userguides)

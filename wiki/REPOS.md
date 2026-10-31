@@ -1,8 +1,8 @@
 # HART meta-repo — sibling repos and submodules
 
 **Status:** P3b **done** — submodules under `external/`  
-**Manifest:** [`cross-repo/SUBMODULE_MANIFEST.yaml`](../cross-repo/SUBMODULE_MANIFEST.yaml)  
-**Init:** [`scripts/init_external_submodules.sh`](../scripts/init_external_submodules.sh)
+**Manifest:** [`cross-repo/SUBMODULE_MANIFEST.yaml`](../archive/consolidation/cross-repo/SUBMODULE_MANIFEST.yaml)  
+**Init:** [`scripts/init_external_submodules.sh`](../tools/ops/init_external_submodules.sh)
 
 ## Hub
 
@@ -42,7 +42,7 @@ git submodule update --init --recursive
 
 ## Car inventory SoR
 
-Lives in **hart-ops** `data/` — not in JMRI Operations Pro GUI. See [`wiki/decisions/ADR-car-roster-single-sor.md`](decisions/ADR-car-roster-single-sor.md).
+Lives in **hart-ops** `data/` — not in JMRI Operations Pro GUI. See [`wiki/decisions/ADR-car-roster-single-sor.md`](../archive/consolidation/decisions/ADR-car-roster-single-sor.md).
 
 ## Clone recipe
 

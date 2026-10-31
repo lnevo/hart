@@ -14,7 +14,7 @@ Related detail docs (do not duplicate here):
 | Turnout SoR / retain paint | [`TURNOUT_STATE_SOURCES.md`](TURNOUT_STATE_SOURCES.md) |
 | Sensor status-only MQTT | [`MQTT_SENSOR_STATUS_ONLY.md`](MQTT_SENSOR_STATUS_ONLY.md) |
 | Pi install notes | [`../scripts/pi/README_CATS.txt`](../../cats/scripts/pi/README_CATS.txt) |
-| Neville trackplan (reference) | [`station_maps/Neville_Island_Trackplan_Clean.png`](station_maps/Neville_Island_Trackplan_Clean.png) |
+| Neville trackplan (reference) | [`station_maps/Neville_Island_Trackplan_Clean.png`](../../ops/station_maps/maps/Neville_Island_Trackplan_Clean.png) |
 
 ---
 
@@ -169,9 +169,9 @@ Layout Editor icons use Basic `discriminated` (AAR searchlights) at scale 1.0. U
 
 ### Mast index (Digicon name → JMRI)
 
-Full table: [`docs/wiring/signals/signal_mast_plan.csv`](../../cats/data/signal_mast_plan.csv)  
-Port / topic / LCOS inventory: [`docs/wiring/signals/signal_wiring.csv`](../../cats/data/signal_wiring.csv)  
-Head plan: [`docs/wiring/signals/signal_head_plan.csv`](../../cats/data/signal_head_plan.csv)
+Full table: [`docs/wiring/signals/signal_mast_plan.csv`](../wiring/signals/signal_mast_plan.csv)  
+Port / topic / LCOS inventory: [`docs/wiring/signals/signal_wiring.csv`](../wiring/signals/signal_wiring.csv)  
+Head plan: [`docs/wiring/signals/signal_head_plan.csv`](../wiring/signals/signal_head_plan.csv)
 
 Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards) · CSVs above.
 

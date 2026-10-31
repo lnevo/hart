@@ -1001,7 +1001,7 @@ def build_chubb(mqtt: bool) -> ET.Element:
     clear_sec_names_on_track(list(tp.findall("SECTION")))
 
     # Name stickers follow Digicon SecEdge adjacency (contiguous L→R on each
-    # deck) AND JMRI block neighbors from hart_prod — not arbitrary plant labels.
+    # deck) AND JMRI block neighbors from tables.xml — not arbitrary plant labels.
     # Each HART name appears once (no duplicate MQTT cells / christmas-tree).
     rename_blocks(
         root,
