@@ -8,6 +8,7 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 - **Counts:** 45 masts (23 real, 22 virtual), 103 sections, 746 transits, 39 NX pairs, 38 SML sources with 98 destinations, 1,548 traininfo files.
 - **Desks:** CATS CTC `HOLD_ONLY` by default; USS is the alternate. Never both.
 - **CATS panels:** `HART_Digicon.xml` is the Designer save; `wire_digicon.py` builds `HART_CTC.xml` and `HART_ABS.xml` (ADR-012).
+- **Cars:** 98 in the roster, 28 of them with no photo yet (ADR-013).
 - **Website:** public at www.hartrailroad.com from `www/`.
 - **Build:** helix complete. Main level resumes after Thanksgiving.
 
@@ -29,7 +30,8 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Next
 
-- Car workflow: reconcile Operations Pro, STS and hart-ops, then define one way to add and edit a car (ADR-007, D11/P3a).
+- Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add the new photos with `bin/cars intake`.
+- Later: resolve the differences `bin/cars compare` reports, starting with the 18 cars missing from the Pi's roster, and send corrections to existing cars through to STS and Operations Pro.
 
 ## Future goals
 

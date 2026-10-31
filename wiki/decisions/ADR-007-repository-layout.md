@@ -35,7 +35,7 @@ Consolidation decisions:
 | D2f | Closed; the 22 live virtual masts are correct |
 | D2, D2e | Kept; `public_name_map.csv` is the single names source |
 | D4, D6 | Kept |
-| D11, P3a | Open goal: hart-ops is the intended car source, but no authoritative car workflow exists yet |
+| D11, P3a | Closed by ADR-013: hart-ops holds the one car repository |
 | Validation tiers | Replaced by the deploy gates, one `check` command and a pre-session checklist |
 | D8, D10, D10b | Closed |
 | P4a | Closed 2026-10-31: the loose `~/Desktop/HART` files are sorted into `media/hart-research`. The owner confirmed the two wiring `.pptx` and three root `.docx` left there are older copies to ignore: `docs/` holds the current versions, including `docs/wiring/Layout Documentation.pptx` and the recovered `docs/wiring/terminal_blocks.md` |
