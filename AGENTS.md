@@ -34,7 +34,7 @@ After any task that **changed files**, do not wait to be asked:
 5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, signals, jython, web home, CTC icons, CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
-Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks force-pushes and pushes to `main`, and asks before `gh pr merge` or a `track/cmd` publish.
+Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks commits on `main`, pushes to `main`, force-pushes and admin merges, and asks before any other `gh pr merge` or a `track/cmd` publish.
 
 ## Working on existing scripts
 
