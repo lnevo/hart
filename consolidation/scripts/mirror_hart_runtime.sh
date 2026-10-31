@@ -46,8 +46,6 @@ for d in \
   cats/data \
   cats/panels \
   cats/scripts \
-  cats/resources/signals/hart-aar \
-  cats/resources/signals/cats-masts \
   cats/resources/jmri-web \
   cats/resources/icons/USS/sensor \
   cats/resources/buttons \

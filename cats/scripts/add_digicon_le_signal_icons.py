@@ -6,7 +6,7 @@ output/tables.xml also contains CTC data that must never be replaced by the
 working file. The reviewed coordinates put horizontal masts on the engineer's
 right side of the governed track.
 
-Mac/Pi/Windows-safe when cats-virtual appearances include imagelinks.
+Mac/Pi/Windows-safe: stock basic-enhanced appearances include imagelinks.
 Digicon also binds by userName (LE icons optional for Digicon itself).
 """
 

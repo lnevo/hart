@@ -1209,7 +1209,7 @@ def rebuild_asbuilt_inventory(ws: Worksheet, wiring: list[dict[str, str]], masts
         n = len(packed_seen)
         ports = " ".join(r["port_id"] for r in pin_rows)
         aspect = (
-            "hart C&O-1980 (two 3-pin STOP/APPROACH/CLEAR discs)"
+            "basic-enhanced two-searchlight-high (two 3-pin STOP/APPROACH/CLEAR discs)"
             if n == 2
             else "basic-enhanced one-searchlight-low (3-pin STOP/APPROACH/CLEAR)"
         )

@@ -225,11 +225,6 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
   }
 }
 
-$masts = Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'
-if (Test-Path $masts) {
-  & $masts
-}
-
 Write-Host 'apply_hart_package_local done'
 
 $desk = Join-Path $hart 'cats\scripts\windows\create_hart_master_desktop.ps1'

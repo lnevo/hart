@@ -48,7 +48,6 @@ pipelines:
       - cats/data/signal_mast_plan.csv
     live_outputs:
       - tables/new_tables.xml
-      - cats/resources/signals/hart-aar/
     validator: validators/check_audit_strict.sh
     guide: wiki/pipelines/digicon-signal-beans.md
 

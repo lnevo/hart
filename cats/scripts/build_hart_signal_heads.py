@@ -31,7 +31,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CATS_MASTS = ROOT / "cats/resources/signals/cats-masts"
 DATA = ROOT / "cats/data"
 
 SKIP_HEAD: set[str] = set()
@@ -350,125 +349,6 @@ def update_lcos_inventory(rows: list[dict]) -> None:
     print(f"updated inventory DNOU8 → {inv} and {out}")
 
 
-def write_cats_virtual_3() -> None:
-    """3-head appearance from Digicon triple ASPECTMAP + AAR SL-3 imagelinks."""
-    # Exact Digicon SIGNALTEMPLATE triple ASPECTMAP (HART_Master / West_Yard2).
-    amap = {
-        "R281": "green|red|red",
-        "R281B": "green|red|red",
-        "R281C": "green|red|red",
-        "C412": "green|red|red",
-        "R285": "yellow|red|red",
-        "R281D": "yellow|red|red",
-        "R282": "yellow|yellow|red",
-        "R284": "yellow|yellow|red",
-        "ADV_NORM": "yellow|yellow|red",
-        "ADV_LIM": "yellow|yellow|red",
-        "C413": "yellow|yellow|red",
-        "C414": "yellow|yellow|red",
-        "R283": "red|green|red",
-        "R283A": "red|green|red",
-        "R283B": "red|green|red",
-        "C417": "red|green|red",
-        "ADV_MED": "red|green|red",
-        "R286": "red|yellow|red",
-        "R287": "red|red|green",
-        "C422": "red|red|green",
-        "C423": "red|red|green",
-        "C424": "red|red|green",
-        "ADV_SLO": "red|red|green",
-        "R288": "red|red|yellow",
-        "RES_NORM": "red|red|red",
-        "RES_LIM": "red|red|red",
-        "RES_MED": "red|red|red",
-        "RES_SLO": "red|red|red",
-        "R291": "red|red|red",
-        "R292": "red|red|red",
-    }
-    # Prefer matching rule gif when present
-    icon = {
-        "R281": "rule-281.gif",
-        "R281B": "rule-281B.gif",
-        "R281C": "rule-281C.gif",
-        "R281D": "rule-285.gif",
-        "R282": "rule-282.gif",
-        "R284": "rule-284.gif",
-        "R285": "rule-285.gif",
-        "R283": "rule-283.gif",
-        "R283A": "rule-283A.gif",
-        "R283B": "rule-283B.gif",
-        "R286": "rule-286.gif",
-        "R287": "rule-287.gif",
-        "R288": "rule-288.gif",
-        "R291": "rule-292.gif",
-        "R292": "rule-292.gif",
-    }
-    base = "../../../resources/icons/smallschematics/aspects/AAR-1946/SL-3-high/"
-    lines = [
-        '<?xml version="1.0" encoding="utf-8"?>',
-        '<?xml-stylesheet href="../../XSLT/appearancetable.xsl" type="text/xsl"?>',
-        "<!-- Three-head cats-virtual; Digicon triple ASPECTMAP + SL-3 imagelinks. -->",
-        '<appearancetable xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
-        '    xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/appearancetable.xsd">',
-        "  <aspecttable>CATS Virtual Signals</aspecttable>",
-        "  <name>cats-virtual-3</name>",
-        "  <reference>CATS Digicon triple-lamp PHYSIGNAL aspect keys</reference>",
-        "  <description>Three searchlight heads driven by Digicon R/C/RES/ADV indication names</description>",
-        "  <appearances>",
-    ]
-    for aspect, colors in amap.items():
-        shows = "".join(f"<show>{c}</show>" for c in colors.split("|"))
-        gif = icon.get(aspect, "rule-292.gif")
-        lines.append(
-            f"    <appearance><aspectname>{aspect}</aspectname>{shows}"
-            f'<imagelink type="default">{base}{gif}</imagelink></appearance>'
-        )
-    stop = f"{base}rule-292.gif"
-    lines += [
-        "  </appearances>",
-        "  <specificappearances>",
-        "    <danger><aspect>R292</aspect></danger>",
-        "    <held>",
-        "      <aspect>R292</aspect>",
-        f'      <imagelink type="default">{stop}</imagelink>',
-        "    </held>",
-        "    <dark>",
-        "      <aspect>R292</aspect>",
-        f'      <imagelink type="default">{stop}</imagelink>',
-        "    </dark>",
-        "    <permissive><aspect>R285</aspect></permissive>",
-        "  </specificappearances>",
-        "  <aspectMappings/>",
-        "</appearancetable>",
-        "",
-    ]
-    (CATS_MASTS / "appearance-cats-virtual-3.xml").write_text("\n".join(lines))
-    # Ensure single-head file name element is cats-virtual (file stem match)
-    single = CATS_MASTS / "appearance-cats-virtual.xml"
-    t = single.read_text()
-    t = re.sub(r"<name>Default</name>", "<name>cats-virtual</name>", t)
-    single.write_text(t)
-    # aspects.xml appearancefiles
-    aspects = CATS_MASTS / "aspects.xml"
-    at = aspects.read_text()
-    if "appearance-cats-virtual-3.xml" not in at:
-        at = at.replace(
-            '    <appearancefile href="appearance-cats-virtual-2.xml" />\n  </appearancefiles>',
-            '    <appearancefile href="appearance-cats-virtual-2.xml" />\n'
-            '    <appearancefile href="appearance-cats-virtual-3.xml" />\n'
-            "  </appearancefiles>",
-        )
-    if "appearance-cats-virtual-dwarf.xml" not in at:
-        at = at.replace(
-            '    <appearancefile href="appearance-cats-virtual-3.xml" />\n  </appearancefiles>',
-            '    <appearancefile href="appearance-cats-virtual-3.xml" />\n'
-            '    <appearancefile href="appearance-cats-virtual-dwarf.xml" />\n'
-            "  </appearancefiles>",
-        )
-    aspects.write_text(at)
-    print("wrote appearance-cats-virtual-3.xml; updated aspects + cats-virtual name")
-
-
 def _heads_xml(rows: list[dict]) -> str:
     parts = [
         '  <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">',
@@ -572,7 +452,6 @@ def main() -> int:
         print("wiring-only: skipped inventory xlsx, tables.xml, publisher")
     else:
         update_lcos_inventory(rows)
-        write_cats_virtual_3()
         patch_tables(rows)
         write_publisher(rows)
     by: dict[int, list] = {}

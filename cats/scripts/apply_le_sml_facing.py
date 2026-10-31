@@ -31,8 +31,6 @@ PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tabl
 TURNOUT_ATTR = {"A": "signalAMast", "B": "signalBMast", "C": "signalCMast", "D": "signalDMast"}
 ANCHOR_ATTR = {"east": "eastboundsignalmast", "west": "westboundsignalmast"}
 
-_SHSM_2 = "IF$shsm:cats-masts:cats-virtual-2"
-_SHSM_1 = "IF$shsm:cats-masts:cats-virtual-dwarf"
 _AAR_2 = "IF$shsm:AAR-1946:SL-2-high-abs"
 _AAR_1 = "IF$shsm:AAR-1946:SL-1-low"
 
@@ -63,12 +61,6 @@ def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, d
             else:
                 raise SystemExit(f"Unknown kind {row['kind']!r}")
     return turnouts, anchors
-
-
-def convert_mast_system_names(text: str) -> str:
-    text = text.replace(_SHSM_2, _AAR_2)
-    text = text.replace(_SHSM_1, _AAR_1)
-    return text
 
 
 def ensure_disabled_restricting(text: str) -> str:
@@ -193,7 +185,6 @@ def enable_blockrouting(text: str) -> str:
 
 
 def transform(text: str, turnouts: dict, anchors: dict) -> str:
-    text = convert_mast_system_names(text)
     text = ensure_disabled_restricting(text)
     text = enable_blockrouting(text)
     text = apply_facing(text, turnouts, anchors)

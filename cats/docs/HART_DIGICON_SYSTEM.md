@@ -165,7 +165,7 @@ Appearances for SHSM:
 - 1 head → basic-enhanced `one-searchlight-low` (Advanced Approach disabled)
 - 2 heads → basic-enhanced `two-searchlight-high` (Advanced Approach and Diverging Advanced Approach disabled)
 
-Layout Editor icons use basic-enhanced `discriminated` (AAR searchlights) at scale 1.0. USS two-head icons use the same set at scale 0.5. The C&O-1980 user-files overlay is unused. Designer cosmetics still use `cats/resources/signals/cats-masts/` (`cats-virtual-*`).
+Layout Editor icons use basic-enhanced `discriminated` (AAR searchlights) at scale 1.0. USS two-head icons use the same set at scale 0.5.
 
 ### Mast index (Digicon name → JMRI)
 
@@ -194,7 +194,7 @@ Rebuild heads + tables (publisher roster is dynamic; build script only verifies 
 python3 cats/scripts/build_hart_signal_heads.py
 ```
 
-LE `signalmasticon`s use stock AAR-1946 schematic GIFs (no custom cats-masts imagelinks required). Digicon binds by userName either way.
+LE `signalmasticon`s use stock AAR-1946 schematic GIFs (no custom imagelinks required). Digicon binds by userName either way.
 
 ---
 

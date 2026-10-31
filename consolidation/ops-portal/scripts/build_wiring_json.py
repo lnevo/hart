@@ -647,7 +647,7 @@ def build_splits(path: Path, ctx: dict) -> dict:
     }
 
 
-# C&O 1980 rule numbers (cats/resources/signals/C&O-1980/aspects.xml), for a sanity check only.
+# C&O 1980 rule numbers (stock JMRI xml/signals/C&O-1980/aspects.xml), for a sanity check only.
 CO_RULES = {
     "281": "Clear", "282": "Approach Medium", "283": "Medium Clear", "284": "Approach Slow",
     "285": "Approach", "286": "Medium Approach", "287": "Slow Clear", "288": "Slow Approach",

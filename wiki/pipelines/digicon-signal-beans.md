@@ -14,7 +14,7 @@ Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `
 
 ## Outputs
 
-- IH / SHSM beans in tables (basic-enhanced `two-searchlight-high` two-head; `one-searchlight-low` dwarfs and dispatcher virtuals). The C&O-1980 user-files overlay is unused.
+- IH / SHSM beans in tables (basic-enhanced `two-searchlight-high` two-head; `one-searchlight-low` dwarfs and dispatcher virtuals).
 
 ## Run
 

@@ -7,13 +7,13 @@
 | Runbook | `wiki/pipelines/digicon-signal-beans.md` | this file |
 | Wiring catalog | `cats/data/signal_wiring.csv` | crosswalk: `sor/wiring/packed_id_crosswalk.csv` |
 | Head/mast plans | `cats/data/signal_head_plan.csv`, `signal_mast_plan.csv` | — |
-| Appearances | `cats/resources/signals/hart-aar/` | — |
+| Appearances | stock JMRI `basic-enhanced` | — |
 
 ---
 
 # Pipeline 3 — Digicon signal beans
 
-Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog, plus the `hart-aar` two-head appearance set.
+Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog.
 
 **Status:** Live.
 
@@ -33,8 +33,7 @@ Live MQTT topics use **deploy `IH*` digits** (`track/signalhead/<packed>` where 
 
 ## Outputs
 
-- IH / SHSM beans in tables (`hart-aar` `SL-2-digicon` two-head; AAR-1946 `SL-1-low` dwarfs)
-- [`cats/resources/signals/hart-aar/`](../../../cats/resources/signals/hart-aar/)
+- IH / SHSM beans in tables (basic-enhanced `two-searchlight-high` two-head; `one-searchlight-low` dwarfs and dispatcher virtuals)
 
 ## Run
 

@@ -189,19 +189,6 @@ install_ctc_icons_local() {
     fi
     echo "CTC icons -> $dest"
   }
-  _install_co1980_into() {
-    local src="$ROOT/cats/resources/signals/C&O-1980"
-    local dest="$1/resources/signals/C&O-1980"
-    mkdir -p "$dest/le"
-    cp -f "$src/"aspects.xml \
-      "$src/"appearance-CO-33-hi.xml \
-      "$src/"appearance-CO-3-dwarf.xml \
-      "$dest/"
-    if [[ -d "$src/le" ]]; then
-      cp -f "$src/le/"*.gif "$dest/le/"
-    fi
-    echo "C&O-1980 -> $dest"
-  }
   _install_buttons_into() {
     local dest="$1/resources/buttons"
     mkdir -p "$dest"
@@ -224,17 +211,16 @@ install_ctc_icons_local() {
   }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_co1980_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/.jmri" ]]; then
     for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_co1980_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
     _install_ctc_into "${HOME}/JMRI_UserFiles"
-    _install_co1980_into "${HOME}/JMRI_UserFiles"
     _install_buttons_into "${HOME}/JMRI_UserFiles"
     _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
   fi
@@ -278,8 +264,6 @@ stage_package() {
   fi
 
   rsync -a "$ROOT/cats/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
-  rsync -a "$ROOT/cats/resources/signals/cats-masts/" "$stage/cats/resources/signals/cats-masts/"
-  rsync -a "$ROOT/cats/resources/signals/C&O-1980/" "$stage/cats/resources/signals/C&O-1980/"
   rsync -a "$ROOT/cats/scripts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "$ROOT/cats/scripts/windows/" "$stage/cats/scripts/windows/"
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \

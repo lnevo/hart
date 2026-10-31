@@ -30,7 +30,7 @@ This invokes the same `sync_hart_package.sh` logic shipped inside the mirror at
 
 - CATS hold panels (`HART_Master_*_hold.xml`)
 - Jython startup scripts, dispatcher traininfo
-- CTC icons, hart-aar appearances, USS sensor icons
+- CTC icons, USS sensor icons
 - Deploy `tables.xml` bundle
 
 ## Host paths (defaults)

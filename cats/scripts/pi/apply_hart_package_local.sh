@@ -77,12 +77,18 @@ if [[ -d "$HART/ctc/icons" ]]; then
   echo "Pi CTC icons + GUIObjects updated"
 fi
 
-for sys in cats-masts "C&O-1980"; do
-  if [[ -d "$HART/cats/resources/signals/$sys" ]]; then
-    fanout "$HART/cats/resources/signals/$sys" "resources/signals/$sys"
-    echo "Pi $sys updated"
-  fi
+# Masts are stock basic-enhanced (ADR-006). The package rsync has no --delete, so
+# retired custom signal sets have to be removed here. The JMRI install's own
+# xml/signals/C&O-1980 is stock and stays.
+for sys in cats-masts hart-aar "C&O-1980"; do
+  rm -rf "$HART/cats/resources/signals/$sys" "$UF/resources/signals/$sys"
+  for d in /home/pi/.jmri/*.jmri; do
+    rm -rf "$d/resources/signals/$sys"
+  done
 done
+rm -rf "${JMRI_HOME:-/home/pi/JMRI}/xml/signals/cats-masts"
+rm -f "$HART/cats/scripts/windows/install_cats_masts.ps1"
+echo "Pi retired signal sets removed"
 
 JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"

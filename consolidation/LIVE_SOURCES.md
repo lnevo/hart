@@ -42,7 +42,6 @@ Legend: **RO** = treat as read-only for consolidation; **W** = live writable (do
 | `cats/data/signal_head_plan.csv` | Virtual head plan | RO |
 | `cats/data/signal_mast_plan.csv` | Mast plan | RO |
 | `cats/scripts/build_hart_signal_heads.py` | Generate IH/SHSM | RO |
-| `cats/resources/signals/hart-aar/` | Appearance XML | RO |
 | `jmri/scripts/mqtt_signalhead_publisher.py` | MQTT ↔ SML jython | RO |
 
 ---
