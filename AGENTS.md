@@ -36,6 +36,35 @@ After any task that **changed files**, do not wait to be asked:
 
 Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks force-pushes and pushes to `main`, and asks before `gh pr merge` or a `track/cmd` publish.
 
+## Working on existing scripts
+
+When a task changes or reuses a large script (about 500 lines or more) or one with no tests, leave it safer in the same PR. Match the effort to the task:
+
+- **Small fix:** add a test for the behaviour you changed.
+- **Feature or repeated rework:** also test the behaviour it depends on. Then split the script if that makes the work easier, as a separate commit that changes no behaviour, and never before those tests exist.
+- **Only running it, or a docs or comment change:** nothing is owed. If you relied on untested behaviour for something live, say so in the report.
+
+Start with `jmri/scripts/mqtt_signalhead_publisher.py` and `jmri/layouts/hart/scripts/sync_layout_button.py`, since they run in JMRI on the Pi. Do not start a cleanup nobody asked for. If the safe version is bigger than the task, name it in the report and let the owner decide. Find the largest with `git ls-files '*.py' | xargs wc -l | sort -rn`.
+
+## Subagents
+
+The owner may not name an agent, so match the task yourself:
+
+| Task | Agent |
+|------|-------|
+| Why a mast, panel, Dispatcher run or MQTT value behaves as it does | `panel-tracer` |
+| Dead code, stale docs, structure or duplication | `repo-auditor` |
+| Review of the website through a named lens | `site-reviewer` |
+| Railroad or local history, photos and sources | `archive-researcher` |
+| A bounded page or data job under `www/` | `site-builder` |
+
+- **Call the agent without being asked** when one fits a single bounded job that would mean reading across many files. State which one you used.
+- **Suggest it in one line and wait** for broad work: several agents at once, a rebuild split into stages, or a job the owner may want to steer.
+- **Stay in the main session** for a handful of tool calls, and for deploys or live hardware.
+- Use `general-purpose` only when none fits. If the same kind of job keeps landing there, suggest a new agent.
+
+Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
+
 ## Do not
 
 - Run table scripts with PanelPro or CATS open. In PanelPro, Store to `jmri/layouts/hart/output/tables.xml`, not a profile copy.
@@ -58,7 +87,6 @@ New documents go in `docs/` (ADR-010); run the index command after adding one.
 ## Pointers
 
 - Pipelines / landmines: [`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md)
-- Subagents: use the five in `.claude/agents/` by name for website, review, audit, tracing and archive jobs, not `general-purpose`.
 - Git / branches, and where agent instructions live: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md)
 - Submodules: each has its own rules and repo; see [`wiki/REPOS.md`](wiki/REPOS.md)
 - CATS: [`cats/README.md`](cats/README.md) · [`cats/AGENTS.md`](cats/AGENTS.md)
