@@ -16,7 +16,7 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 Deferred by the owner on 2026-10-31; none of these is urgent.
 
-- Deploy `sync_hart_package.sh --all` when the hosts are online. Until then the Pi and Windows run the old panels, and the desks have no Basic aspect mapping there.
+- Reload PanelPro on the Pi. It has run since 2026-10-17 on the old tables, so the 2026-10-31 deploy takes effect only after a restart. Do not Store from that session: it would overwrite the deployed `tables.xml` with the old one.
 - Railroad test of Basic signals: force a real Stop and read back Approach, Clear, Clear, in both directions and through a diverging route.
 - STS staging for the 2026-11-08 operating session. STS has to be running, and the owner starts it.
 

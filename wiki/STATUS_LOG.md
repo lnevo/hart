@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — Deployed `--all` to the Mac, Pi and Windows from `04f27a22`: the Basic signals, the ADR-012 desks `HART_CTC.xml` and `HART_ABS.xml`, and new desktop icons. `tables.xml` on both hosts matches the repo. Cleaned `~/hart/cats/resources`: retired signal sets, `jmri-web/sts.html`, and on the Pi the unused left and right triangle buttons. Windows had no JMRI running; the Pi's PanelPro was left open and still needs a reload.
+
 Updated: 2026-10-31 — Listed the 3D station maps as an ongoing project in `STATUS.md` and on the wiki home page. Docs only; not deployed.
 
 Updated: 2026-10-31 — Car workflow ready (ADR-013): `bin/cars` in hart-ops takes a photo or answers, queues a card, and feeds the STS seed and an Operations Pro merge. The 28 roster-only cars joined the repository; the roster and seed are unchanged by that. Tested end to end on a scratch copy; the running STS database step and the Pi push have not been run. Not deployed.
