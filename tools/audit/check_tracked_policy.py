@@ -24,11 +24,14 @@ def git_files(*args: str) -> list[str]:
 
 def main() -> int:
     problems = [f"tracked but ignored: {p}" for p in git_files("-ci", "--exclude-standard")]
+    for line in subprocess.check_output(["git", "ls-files", "-s"], cwd=ROOT, text=True).splitlines():
+        if line.startswith("120000 "):
+            problems.append(f"tracked symlink: {line.split(chr(9), 1)[1]}")
     for path in git_files():
         name = Path(path).name
         if name not in ALLOWED and any(fnmatch.fnmatch(name, g) for g in FORBIDDEN):
             problems.append(f"forbidden file: {path}")
-        if path.startswith(FORBIDDEN_DIRS):
+        if (path + "/").startswith(FORBIDDEN_DIRS):
             problems.append(f"belongs outside git: {path}")
     for line in problems:
         print(f"FAIL {line}")
