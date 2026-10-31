@@ -10,7 +10,7 @@ The east-end Neville Island industrial complex began with an American Steel & Wi
 
 The east end of Neville Island was one industrial machine.
 
-**Coke and iron.** Bituminous coal is baked in by-product ovens into metallurgical coke. The coke, plus iron ore and limestone flux, goes into a blast furnace to make pig iron. The ovens also make a rich chemical off-gas. That coupling lasted on Neville Island into the late 1980s. Pig iron stopped around 1990–91; coke then ran as a merchant product for other steelmakers’ blast furnaces until January 2016.
+**Coke and iron.** Bituminous coal is baked in by-product ovens into metallurgical coke. The coke, plus iron ore and limestone flux, goes into a blast furnace to make pig iron. The ovens also make a rich chemical off-gas. That coupling lasted on Neville Island into the late 1980s. Pig iron stopped at the end of 1990; coke then ran as a merchant product for other steelmakers’ blast furnaces until January 2016.
 
 **Cement from slag.** Molten blast-furnace slag is the leftover calcium-silicate glass from ironmaking. Ground and used as a pozzolan, it is a cement ingredient. National Bureau of Standards testing identified Green Bag portland-pozzolan as a Pittsburgh Coke & Chemical product “in which the pozzolanic agent is a blast furnace slag.” Bureau of Mines yearbooks describe the Neville Island works making mostly slag portland cement by the wet process, with limestone barged down the Monongahela from a Green Bag mine near Morgantown. Davison built the cement plant next to the old American Steel & Wire furnace in 1929 because the iron works supplied slag and the river supplied stone.
 
@@ -29,7 +29,7 @@ During the 1960s PC&C broke apart:
 | Branch | Sequence | HART name |
 | --- | --- | --- |
 | Coke & iron | PC&C → Shenango (1962) → DTE Energy (2008) → last coke 6 January 2016 | Shenango Coke Works |
-| Ingot molds | Shenango-Penn Mold (1939) at 3100 Grand Avenue, west end → foundry closed January 1990. Hot metal came from the east-end furnaces. This is not the 1962 coke-and-iron purchase. | — |
+| Ingot molds | Shenango-Penn Mold (1939) at 3100 Grand Avenue, west end → foundry closed in 1990. Hot metal came from the east-end furnaces. This is not the 1962 coke-and-iron purchase. | — |
 | Cement | Green Bag → Marquette (1961) → Lone Star (1982) → Kosmos (by 1996) → Eagle Materials (2020); now a terminal | Kosmos Cement |
 | Activated carbon | PC&C Activated Carbon → Pittsburgh Activated Carbon → Calgon (1965) | Calgon Carbon |
 | Industrial chemicals | PC&C chemicals → U.S. Steel / USS Chemicals (1966) → Aristech (1986) → Mitsubishi-backed buyout (1990) → Sunoco (1 Jan 2001) → plasticizer business to BASF (2004); plant to Ashland (2007) | Aristech Plastics |
@@ -66,11 +66,15 @@ During the 1960s PC&C broke apart:
 | 1965 | Calgon Corporation acquires Pittsburgh Activated Carbon Company. EPA cement survey lists Marquette at Neville Island, wet process, 1.75 million barrels. |
 | 1977 | Neville Land Co. donates the west-end dump to Allegheny County as Ohio River Park; toxins found 1979; land returned. Superfund listing 1990; cleanup 1998–1999. Robert Morris University Island Sports Center occupies the site today. |
 | 1982 | Lone Star Industries agrees to buy Marquette, then a Gulf & Western cement subsidiary. |
+| 1983 | New coke battery built, then the newest of its kind operating in the United States (*Post-Gazette*, 5 December 1990). |
 | 1986 | USX transfers USS Chemicals assets, including Neville Island, to newly formed **Aristech Chemical Corporation**. |
 | 1987 | Pennsylvania PUC records cement truck shipments originating at Lone Star Cement, Neville Island. |
 | 13 Jun 1988 | Shenango, Inc. pleads guilty to Clean Water Act discharges. EPA still describes the Neville Island plant as producing **coke and pig iron** with a blast furnace and coke ovens. |
 | Jan 1990 | Plant veterans date the shutdown of Shenango’s west-island **ingot-mold foundry** (3100 Grand Avenue) to January 1990. That foundry was a 1939 Shenango-Penn Mold plant, fed by hot metal from the east-end furnaces; it is not the coke works. TRI releases from the foundry division collapse in 1990. |
-| 1990–mid 1991 | East-end **blast furnaces taken off**. The iron-department general foreman dates the iron-department close and the sale of the pig-casting machine to this window: he left Neville Island in March 1991 and was plant manager of Maryland Pig Services at Sparrows Point from July 1991, running the machine that had been at Shenango. A 5 December 1990 *Post-Gazette* mill-closure map is described as accompanying an article on shuttering a Neville Island blast furnace; the page itself has not been transcribed here. Coke continues as a merchant product. |
+| Early Oct 1990 | Shenango Group, owned by the Aloe family, announces it will close the furnace and foundry, about 500 jobs, citing the cost of modernizing (up to $10 million to reline the furnace), a shrinking ingot-mold market, and Brazilian imports. |
+| 30 Nov 1990 | Foundry closes: the *Post-Gazette* of 5 December says it “closed Friday.” Plant veterans remember January 1990 (above); mold production had already moved to other Shenango plants. |
+| 5–6 Dec 1990 | Last blast furnace expected to run dry when the ore runs out, leaving USX's Edgar Thomson as the only ironmaking left in the Pittsburgh area. |
+| 1990–mid 1991 | East-end **blast furnaces taken off**. The iron-department general foreman dates the iron-department close and the sale of the pig-casting machine to this window: he left Neville Island in March 1991 and was plant manager of Maryland Pig Services at Sparrows Point from July 1991, running the machine that had been at Shenango. The *Post-Gazette* article of 5 December 1990 describes the final heat. |
 | 1990 | Mitsubishi-backed management buyout takes Aristech private (about $877 million; tender completed 7 March 1990). |
 | Apr 1995 | Aristech sells unsaturated polyester resin and maleic-anhydride units on Neville Island to Ashland; keeps the plasticizer plant. |
 | By 1994–1996 | Kosmos Cement (Southdown 75% / Lone Star 25%) operates a Pittsburgh cement plant. Allegheny County (1996) names Kosmos owner/operator of Portland cement production at **200 Neville Road**. |
@@ -130,7 +134,9 @@ Shenango was founded in 1962 when **Shenango Furnace purchased Pittsburgh Coke a
 
 Shenango kept the blast furnaces. Pig iron was still a Neville Island product in the late 1980s. On **13 June 1988**, when Shenango pleaded guilty to Clean Water Act discharges, EPA described the plant as producing **coke and pig iron** “using a blast furnace, coke ovens, and other ancillary equipment.” Molten iron also fed a separate ingot-mold foundry on the west end. That foundry is the next section. It is not this plant.
 
-The furnaces themselves came off around the same time. There is no company filing that names the last cast. What is on record is the close of the iron department and the departure of the pig machine. Don Marion, general foreman of the blast-furnace, steam-and-power, and pig-machine departments, dates his Neville Island iron work through March 1991 and writes that after the iron department closed, National Material bought the pig-casting machine, he dismantled it, and he rebuilt it at Bethlehem Steel’s Sparrows Point as Maryland Pig Services, where he was plant manager from July 1991. Plant veterans say the stacks were taken off in stages, one furnace first while the other kept running. A 5 December 1990 *Pittsburgh Post-Gazette* mill-closure map is described, by someone who looked at that page, as accompanying an article on shuttering a Neville Island blast furnace; that page has not been transcribed here. After the iron department closed, the east-end plant was a **merchant coke works** only. EPA’s later site writeup still mentions the 1952 second furnace in the history paragraph, but describes current operations as one **56-oven, four-meter coke battery**. A 2008 EPA iron-and-steel greenhouse-gas inventory lists Shenango at Neville Island among coke plants, not among operating blast furnaces.
+The furnaces themselves came off around the same time. No company filing names the last cast, but the *Post-Gazette* of 5 December 1990 expected the furnace to run dry that night or the next day, when the ore ran out. What is on record is the close of the iron department and the departure of the pig machine. Don Marion, general foreman of the blast-furnace, steam-and-power, and pig-machine departments, dates his Neville Island iron work through March 1991 and writes that after the iron department closed, National Material bought the pig-casting machine, he dismantled it, and he rebuilt it at Bethlehem Steel’s Sparrows Point as Maryland Pig Services, where he was plant manager from July 1991. Plant veterans say the stacks were taken off in stages, one furnace first while the other kept running. A 5 December 1990 *Pittsburgh Post-Gazette* mill-closure map is described, by someone who looked at that page, as accompanying an article on shuttering a Neville Island blast furnace; that page has not been transcribed here. After the iron department closed, the east-end plant was a **merchant coke works** only. EPA’s later site writeup still mentions the 1952 second furnace in the history paragraph, but describes current operations as one **56-oven, four-meter coke battery**. A 2008 EPA iron-and-steel greenhouse-gas inventory lists Shenango at Neville Island among coke plants, not among operating blast furnaces.
+
+The last furnace was built in 1952 and last relined in 1972, and it had made more than four million tons since, at 175 to 200 tons of iron every three hours, in batches small enough for specialized orders. Half went to Shenango's own foundry and the rest was sold. Gerry Owens, vice president of operations, called Shenango “the last of the merchant iron producers.” By then the company was Shenango Group Inc., privately held by the Aloe family. It planned to sell machinery and much of its island property, including the foundry and storage yards, and to keep two coke batteries and “a small connecting railroad” (*Post-Gazette*, 5 December 1990).
 
 Those Neville Island stacks are not the Shenango Furnace blast furnaces at **Sharpsville**, Pennsylvania. The Sharpsville No. 3 furnace was banked in 1968 and torn down in the late 1970s; No. 1 came down in 1970.
 
@@ -146,7 +152,7 @@ HART's Shenango map is the coke works after the iron department closed: tracks K
 
 Coke outlasted iron by about 25 years. DTE Energy bought Shenango in 2008. Citing the North American steel downturn, DTE announced closure on 17 December 2015. **The last coke came off on 6 January 2016** — that is the coke date, not pig iron. (2014–15 news about Shenango is pollution enforcement against the coke battery.) Demolition included the May 2018 stack implosion. Lindy Paving closed on the site in November 2020.
 
-Stanley Quick, 38 years at the plant, recalled that the #1 battery “went on line in 1980” and lasted until DTE shut the plant, and another plant follower remembered it as built in the 1980s. That date is a recollection only: EPA's cleanup page dates the ovens to about 1930, and no permit record has been checked. Google Earth imagery, as read by Dennis DeBruler, shows the gas holder gone between September 2005 and October 2006.
+In December 1990 the two batteries employed about 350 people and burned Pennsylvania and West Virginia coal. One was built in 1983, then the newest of its kind operating in the United States (*Post-Gazette*, 5 December 1990). Stanley Quick, 38 years at the plant, remembered the #1 battery going on line in 1980; the newspaper's date is used here. Google Earth imagery, as read by Dennis DeBruler, shows the gas holder gone between September 2005 and October 2006.
 
 This is the branch HART cards as Shenango Coke Works.
 
@@ -154,9 +160,9 @@ This is the branch HART cards as Shenango Coke Works.
 
 The ingot-mold foundry is a different company and a different end of the island. **Shenango-Penn Mold** bought it in **1939**, at **3100 Grand Avenue** on the west end. It was casting molds through the 1940s. In those years the east end was still Pittsburgh Coke & Iron, then Pittsburgh Coke & Chemical. Shenango Furnace did not buy the coke and iron until 1962.
 
-Hot metal for the foundry came from the east-end furnaces. Plant veterans date the foundry shutdown to **January 1990**. Toxics Release Inventory reports for the foundry division drop from tens of thousands of pounds in 1989 to 5 pounds in 1990. HART does not switch this plant.
+Hot metal for the foundry came from the east-end furnaces. The *Post-Gazette* of 5 December 1990 says the foundry “closed Friday,” which is 30 November, with mold production already moved to other Shenango plants. Plant veterans remember **January 1990**. Toxics Release Inventory reports for the foundry division drop from tens of thousands of pounds in 1989 to 5 pounds in 1990. HART does not switch this plant.
 
-Ronald Meiss, who made molds at Sharpsville, recalled Shenango foundries there, in Buffalo, and on Neville Island. Mike Laslo described a newer greensand area at Neville Island that made the stools the molds sat on, and David Finch recalled Bollinger Corp., an Ambridge engineering firm, designing new molds for Shenango. Stanley Quick placed Joe De Franco's 1978 photo of P&OV #4 at this foundry.
+Ronald Meiss, who made molds at Sharpsville, recalled Shenango foundries there, in Buffalo, and on Neville Island; in 1990 the *Post-Gazette* listed company plants at Sharpsville, at Penn in Westmoreland County, and at Hamilton, Ontario. Mike Laslo described a newer greensand area at Neville Island that made the stools the molds sat on, and David Finch recalled Bollinger Corp., an Ambridge engineering firm, designing new molds for Shenango. Stanley Quick placed Joe De Franco's 1978 photo of P&OV #4 at this foundry.
 
 ---
 
@@ -241,12 +247,12 @@ Pittsburgh Coke & Iron
 Pittsburgh Coke & Chemical
         │
         ├── Coke & iron ──► Shenango (1962) ──► DTE (2008)
-        │                     last pig iron ~1990–91; last coke 6 Jan 2016
+        │                     last pig iron Dec 1990; last coke 6 Jan 2016
         │                     Lindy Paving 2020
         │
         │   (separate plant, not this split)
         │   Shenango-Penn Mold ingot foundry, 3100 Grand Avenue
-        │       1939 purchase → closed January 1990
+        │       1939 purchase → closed 1990
         │
         ├── Cement (slag portland / Green Bag)
         │       ──► Marquette (1961) ──► Lone Star (1982)
@@ -273,7 +279,7 @@ Pittsburgh Coke & Chemical
 
 The island industries crews switch are the surviving trade names of this east-end complex:
 
-- **Shenango Coke Works** — the coke-and-iron remainder. Pig iron ended about 1990–91; coke ran through 6 January 2016. The west-end ingot-mold foundry (Shenango-Penn, 1939–January 1990) is a different plant and is not on the railroad.
+- **Shenango Coke Works** — the coke-and-iron remainder. Pig iron ended in December 1990; coke ran through 6 January 2016. The west-end ingot-mold foundry (Shenango-Penn, 1939–1990) is a different plant and is not on the railroad.
 - **Calgon Carbon** — the 1942 coal-carbon line, under the Calgon name from 1965.
 - **Kosmos Cement** — the slag-cement works, later a river terminal at 200 Neville Road.
 - **Aristech Plastics** — the phthalic, plasticizer, and resin line during the Aristech years (1986–2000).
@@ -368,7 +374,7 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
 26a. U.S. EPA, *Historical Enforcement and Compliance Data on the Petroleum and Coal Product Manufacturing Industry*: 13 June 1988 CWA plea; Neville Island “produces coke and pig iron using a blast furnace, coke ovens, and other ancillary equipment.”  
     https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=P10157EU.TXT
 
-26b. *Pittsburgh Post-Gazette*, 5 December 1990: mill-closure map. A later note on that page says it accompanied an article on shuttering a blast furnace on Neville Island. The newspaper page itself has not been transcribed here.  
+26b. Jim McKay, “Banking the fire: Final heat nears at Neville furnace,” *Pittsburgh Post-Gazette*, 5 December 1990, p. 19 (Business front, image 10 in Google's viewer), with the map “Where they made the metal.”  
     https://news.google.com/newspapers?id=bG4xAAAAIBAJ&sjid=jG4DAAAAIBAJ&pg=5305,669633
 
 26c. EPA, *Technical Support Document for the Iron and Steel Sector* (2008): Shenango, Neville Island, listed as one coke battery (514,779 tons), not an operating blast-furnace pig-iron plant.  
