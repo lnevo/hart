@@ -35,7 +35,7 @@ class LcosMimicNamingTest(unittest.TestCase):
 
     def test_occupancy_uses_os_labels(self) -> None:
         labels = {b["label"] for b in self.layout["blocks"]}
-        self.assertIn("Track 1", labels)
+        self.assertIn("OS Switch 1", labels)
         self.assertIn("Track S-R", labels)
         self.assertIn("Track Barn", labels)
         self.assertNotIn("West Yard", {b["plant"] for b in self.layout["blocks"]})

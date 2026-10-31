@@ -28,9 +28,9 @@ def fixture_tree() -> ET.ElementTree:
         root, "sensors", {"class": reconciler.INTERNAL_SENSOR_CLASS}
     )
     existing = (
-        ("McKees Rocks", 1),
-        ("McKeesport", 2),
-        ("West Main Ext", 3),
+        ("Track McKees Rocks", 1),
+        ("Track McKeesport", 2),
+        ("Track West Main Ext", 3),
     )
     for station, number in existing:
         move_to, progress = reconciler.sensor_names(station)
@@ -54,7 +54,7 @@ def fixture_tree() -> ET.ElementTree:
         )
         ET.SubElement(full, "systemName").text = f"IB:{number}"
         ET.SubElement(full, "userName").text = station
-        if station == "McKeesport":
+        if station == "Track McKeesport":
             ET.SubElement(full, "comment").text = "existing note; stop"
         ET.SubElement(full, "permissive").text = "no"
 
@@ -87,7 +87,7 @@ def fixture_tree() -> ET.ElementTree:
     # Force Main West away from its first candidate without affecting others.
     ET.SubElement(editor, "sensoricon", {"sensor": "Obstacle", "x": "100", "y": "120"})
 
-    for station in ("McKees Rocks", "McKeesport", "West Main Ext"):
+    for station in ("Track McKees Rocks", "Track McKeesport", "Track West Main Ext"):
         anchor = next(
             icon
             for icon in editor.findall("BlockContentsIcon")
@@ -141,10 +141,10 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             for sensor in root.find("sensors").findall("sensor")
         }
         self.assertEqual(
-            systems_by_user["MoveToMcKees_Rocks_stored"], "IS:DSMT:1"
+            systems_by_user["MoveToTrack_McKees_Rocks_stored"], "IS:DSMT:1"
         )
         self.assertEqual(
-            systems_by_user["MoveInProgressWest_Main_Ext"], "IS:DSMP:3"
+            systems_by_user["MoveInProgressTrack_West_Main_Ext"], "IS:DSMP:3"
         )
         self.assertEqual(ET.tostring(root.find("transits")), transit_before)
 
@@ -169,21 +169,21 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
         progress = next(
             icon
             for icon in managed
-            if icon.get("sensor") == "MoveInProgressMain_West"
+            if icon.get("sensor") == "MoveInProgressTrack_Main_West"
         )
         move_to = next(
             icon
             for icon in managed
-            if icon.get("sensor") == "MoveToMain_West_stored"
+            if icon.get("sensor") == "MoveToTrack_Main_West_stored"
         )
-        self.assertEqual(move_to.get("text"), reconciler.STATION_DISPLAY_NAMES["Main West"])
+        self.assertEqual(move_to.get("text"), reconciler.STATION_DISPLAY_NAMES["Track Main West"])
         px, py = reconciler.xy(progress)
         mx, my = reconciler.xy(move_to)
         self.assertEqual((mx - px, my - py), (reconciler.PAIR_DX, 0))
         occ = next(
             icon
             for icon in occupancy
-            if icon.get("sensor") == reconciler.STATION_OCCUPANCY["Main West"]
+            if icon.get("sensor") == reconciler.STATION_OCCUPANCY["Track Main West"]
         )
         ox, oy = reconciler.xy(occ)
         self.assertEqual(
@@ -191,7 +191,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             reconciler.OCCUPANCY_OFFSET,
         )
         eh_progress, eh_move, eh_occ = reconciler.cluster_positions(
-            "EH-1"
+            "Track EH-1"
         )
         self.assertEqual(eh_move[0] - eh_progress[0], reconciler.PAIR_DX)
         self.assertEqual(eh_progress[1], eh_occ[1])

@@ -107,7 +107,7 @@ CTC_SWITCH_MAP = {
     115: 39,
 }
 
-MAST_PROPOSED_RE = re.compile(r"^Mast (?:\d{1,3}[LR][AB]?|\d{4})$")
+MAST_PROPOSED_RE = re.compile(r"^Mast (?:\d{1,3}[LR][ABC]?|\d{4})$")
 HEAD_PROPOSED_RE = re.compile(
     r"^Head (?:\d{1,3}[LR][AB]?|\d{4})(?:\s+(Top|Bottom))?$"
 )
@@ -330,9 +330,9 @@ class PublicNameMapContractTest(unittest.TestCase):
                 if key not in BARN_TURNOUT_BLOCK:
                     violations.append(f"unexpected Barn cp on {row['layer']} {row['current']!r}")
             elif row["layer"] in {"mast", "head"}:
-                if not re.search(r"\b8[LR]", row["proposed"]):
+                if not re.search(r"\b(?:8[LR]|13R)", row["proposed"]):
                     violations.append(
-                        f"Barn signal {row['current']!r} proposed {row['proposed']!r} is not 8*"
+                        f"Barn signal {row['current']!r} proposed {row['proposed']!r} is not 8* or 13R"
                     )
             elif row["layer"] in {"occupancy", "fb", "fb_comment"}:
                 continue
@@ -366,7 +366,8 @@ class PublicNameMapContractTest(unittest.TestCase):
                 violations.append(f"mast {row['current']!r}: proposed {proposed!r}")
         for row in self.by_layer["head"]:
             proposed = row["proposed"]
-            if not HEAD_PROPOSED_RE.match(proposed):
+            # IH9990 is the panel's turnout-mode lamp, not a field head.
+            if proposed != "Turnout FB status" and not HEAD_PROPOSED_RE.match(proposed):
                 violations.append(f"head {row['current']!r}: proposed {proposed!r}")
         self.assertEqual(violations, [])
 

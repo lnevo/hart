@@ -15,5 +15,8 @@ run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py -
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
+run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
+run unit-cats python3 -m unittest discover -q -s cats/scripts/tests
+run unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
 exit "$fail"
