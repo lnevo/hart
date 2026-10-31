@@ -77,12 +77,15 @@ class MainGuard(unittest.TestCase):
             self.assertEqual(self.code(f"cd {other} && git push origin main"), 0)
             self.assertEqual(self.code(f"git -C {other} commit -m x"), 0)
 
-    def test_publish_and_merge_ask(self) -> None:
-        for command in ("mosquitto_pub -h x -t track/cmd/1 -m THROWN", "gh pr merge 3 --merge"):
-            done = run(MAIN_GUARD, command, self.repo)
-            self.assertEqual(done.returncode, 0)
-            decision = json.loads(done.stdout)["hookSpecificOutput"]["permissionDecision"]
-            self.assertEqual(decision, "ask")
+    def test_publish_asks(self) -> None:
+        done = run(MAIN_GUARD, "mosquitto_pub -h x -t track/cmd/1 -m THROWN", self.repo)
+        self.assertEqual(done.returncode, 0)
+        decision = json.loads(done.stdout)["hookSpecificOutput"]["permissionDecision"]
+        self.assertEqual(decision, "ask")
+
+    def test_plain_merge_passes_quietly(self) -> None:
+        done = run(MAIN_GUARD, "gh pr merge 3 --merge", self.repo)
+        self.assertEqual((done.returncode, done.stdout), (0, ""))
 
     def test_other_publish_passes_quietly(self) -> None:
         self.assertEqual(run(MAIN_GUARD, "mosquitto_pub -t lab/test -m 1", self.repo).stdout, "")
