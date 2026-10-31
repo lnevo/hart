@@ -352,7 +352,7 @@ def main() -> int:
     server = HTTPServer(("127.0.0.1", port), PortalHandler)
     print(f"HART portal → http://127.0.0.1:{port}/www/", flush=True)
     print(f"F-root review → http://127.0.0.1:{port}/www/review/f-root/", flush=True)
-    print(f"Archive → http://127.0.0.1:{port}/www/archive/ (edits save to data/archive.json)", flush=True)
+    print(f"Archive → http://127.0.0.1:{port}/www/photos/index.html#historical (edits save to data/archive.json)", flush=True)
     print(f"Review log API → {API_LOG}", flush=True)
     print("(Ctrl+C to stop)", flush=True)
     try:
