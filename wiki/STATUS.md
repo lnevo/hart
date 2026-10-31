@@ -12,9 +12,17 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Owed
 
+Deferred by the owner on 2026-10-31; none of these is urgent.
+
 - Deploy `sync_hart_package.sh --all` when the hosts are online.
 - Railroad test of Basic signals: force a real Stop and read back Approach, Clear, Clear, in both directions and through a diverging route.
-- Run `tools/ops/sync_desktop_data.py` and settle the first-run conflicts.
+- STS staging for the 2026-11-08 operating session. STS has to be running, and the owner starts it.
 
 ## Next
 
+- Car workflow: reconcile Operations Pro, STS and hart-ops, then define one way to add and edit a car (ADR-007, D11/P3a).
+
+## Future goals
+
+- Measured speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md)).
+- Agent skills and MCPs ([`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)).

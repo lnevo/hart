@@ -40,8 +40,8 @@ Native SML (98 dests: 96 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD
 |------|--------|
 | Measured speed profiles | Synthetic 10-step / 400 mm/s on every roster loco — [`speedmatching.md`](speedmatching.md) |
 | Dispatcher S-R and S-1…S-4 platforms | Done 2026-08-22 — hidden throats + Stage 1; 62 inbound traininfo each |
-| First-registration facing invert | Overlay live; [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) open; [PR#15408](https://github.com/JMRI/JMRI/pull/15408) closed pending more testing |
-| END_BUMPER far-slot hack | Keep until a real facing-block fix; still needed for W-1/W-2/K-1/K-2/EH |
+| First-registration facing invert | Nothing pending. Overlay removed 2026-09-01; [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) closed that day and [PR#15408](https://github.com/JMRI/JMRI/pull/15408) closed unmerged. If a loco runs the wrong way, use **Change Dir** ([`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md)) |
+| END_BUMPER far-slot hack | Working; no fix in progress. Keep until a real facing-block fix; still needed for W-1/W-2/K-1/K-2/EH |
 
 ## Decisions (locked 2026-08-07)
 
