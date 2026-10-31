@@ -14,5 +14,4 @@ The website does not hold copies: `www/scripts/published-files.json` names each 
 
 ## Consequences
 
-- There is no authoritative workflow for editing cars yet. Operations Pro, STS and hart-ops each hold different fields, and need reconciling.
-- A defined workflow should cover adding a car, building its card, and populating STS and Operations Pro.
+- ADR-013 defines the workflow for adding a car, building its card, and populating STS and Operations Pro.
