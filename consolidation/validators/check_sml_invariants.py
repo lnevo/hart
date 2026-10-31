@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "consolidation" / "scripts" / "lib"))
 from consolidation_paths import path_tables_xml
 
 TABLES = path_tables_xml()
-EXPECTED_DESTS = 93
+EXPECTED_DESTS = 98
 
 
 def text(el: ET.Element | None, child: str) -> str:
