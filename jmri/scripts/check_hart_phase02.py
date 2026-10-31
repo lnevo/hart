@@ -10,8 +10,8 @@ from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
 HART = JMRI_ROOT / "layouts" / "hart"
-PANEL = HART / "output" / "hart_prod.xml"
-CSV = HART / "data" / "block_display_names.csv"
+PANEL = HART / "output" / "tables.xml"
+NAME_MAP = HART / "data" / "public_name_map.csv"
 
 
 def main() -> int:
@@ -53,21 +53,28 @@ def main() -> int:
     # No duplicate block userNames
     from collections import Counter
 
+    # tables.xml stores each block twice (stub + full), so count distinct system names.
     counts = Counter(
-        (b.findtext("userName") or "").strip()
-        for b in root.iter("block")
-        if (b.findtext("userName") or "").strip()
+        user
+        for user, _system in {
+            (
+                (b.findtext("userName") or "").strip(),
+                b.get("systemName") or b.findtext("systemName") or "",
+            )
+            for b in root.iter("block")
+            if (b.findtext("userName") or "").strip()
+        }
     )
     dups = [f"{n}×{c}" for n, c in counts.items() if c > 1]
     if dups:
         errors.append("duplicate block userNames: " + ", ".join(dups[:8]))
 
     # Expected OS public names present on layout turnouts
-    with CSV.open(newline="", encoding="utf-8") as f:
+    with NAME_MAP.open(newline="", encoding="utf-8-sig") as f:
         expected_os = {
-            row["public_user_name"]
+            row["proposed"]
             for row in csv.DictReader(f)
-            if row.get("role") == "os"
+            if row.get("layer") == "block" and row["proposed"].startswith("OS ")
         }
     found = {t.get("blockname") for t in root.iter("layoutturnout")}
     missing = sorted(expected_os - found)

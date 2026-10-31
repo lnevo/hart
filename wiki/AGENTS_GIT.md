@@ -2,9 +2,9 @@
 
 ## Repo
 
-- Public GitHub repo: **[lnevo/hart](https://github.com/lnevo/hart)** (local folder may be named `Panel`).  
+- Public GitHub repo: **[lnevo/hart](https://github.com/lnevo/hart)** (local folder `hart`).  
 - Single remote: `origin` → `https://github.com/lnevo/hart.git`  
-- `main` is protected by convention: merge only with green checks + human review.  
+- `main` is protected by convention: merge only with `tools/check.sh` passing and human review.  
 - Secrets never commit: `.env.local`, credentials, private keys.
 
 ## Cursor Cloud Agents

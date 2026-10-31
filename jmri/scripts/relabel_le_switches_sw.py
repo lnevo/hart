@@ -2,7 +2,7 @@
 """Rewrite HART Layout Editor DCC switch labels (100–119) to SW-<plant#>.
 
 Plant numbers come from ``public_name_map.csv`` (proposed ``Switch N`` + ``DCC:``).
-Canonical writable target: ``tables/new_tables.xml``.
+Canonical writable target: ``jmri/layouts/hart/output/tables.xml``.
 """
 
 from __future__ import annotations
@@ -16,8 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 HART = ROOT / "jmri/layouts/hart"
 MAP = HART / "data/public_name_map.csv"
-SRC = ROOT / "tables/new_tables.xml"
-OUTPUTS = [HART / "output/tables.xml", HART / "output/hart_prod.xml"]
+SRC = ROOT / "jmri/layouts/hart/output/tables.xml"
+OUTPUTS: list[Path] = []
 
 # Absolute x for specific plant labels (after rename).
 # Engine-house row (y=213): even 50px centers over EH stubs→SW-13.

@@ -36,7 +36,7 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-HART_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+HART_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 PLAN_PATH = ROOT / "cats/data/digicon_plant_plan.json"
 OUT_DIR = ROOT / "cats/panels"
 
@@ -1001,7 +1001,7 @@ def build_chubb(mqtt: bool) -> ET.Element:
     clear_sec_names_on_track(list(tp.findall("SECTION")))
 
     # Name stickers follow Digicon SecEdge adjacency (contiguous L→R on each
-    # deck) AND JMRI block neighbors from hart_prod — not arbitrary plant labels.
+    # deck) AND JMRI block neighbors from tables.xml — not arbitrary plant labels.
     # Each HART name appears once (no duplicate MQTT cells / christmas-tree).
     rename_blocks(
         root,

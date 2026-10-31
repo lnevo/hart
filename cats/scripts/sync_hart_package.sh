@@ -52,7 +52,7 @@ scp_win() { scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"; }
 
 TABLES=""
 POLISH="$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py"
-if [[ -f "$POLISH" && -f "$ROOT/tables/new_tables.xml" ]]; then
+if [[ -f "$POLISH" ]]; then
   if [[ "$DRY_RUN" -eq 1 ]]; then
     python3 "$POLISH" --block-labels-only --sync-output --check
   else
@@ -61,8 +61,6 @@ if [[ -f "$POLISH" && -f "$ROOT/tables/new_tables.xml" ]]; then
 fi
 if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
   TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
-elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
-  TABLES="$ROOT/tables/new_tables.xml"
 fi
 
 PANEL_AUDIT="$ROOT/jmri/layouts/hart/scripts/audit_panel_contracts.py"
@@ -70,13 +68,13 @@ if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
   python3 "$PANEL_AUDIT" --strict
 fi
 
-SML_GATE="$ROOT/cats/scripts/disable_digicon_sml_in_tables.py"
+SML_GATE="$ROOT/jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py"
 if [[ -n "$TABLES" && -f "$SML_GATE" ]]; then
   if [[ "$DRY_RUN" -eq 1 ]]; then
     python3 "$SML_GATE" --dry-run --panel "$TABLES"
   else
-    # Flip Digicon MQTT dests to Enabled=no in the file we ship; do not copy over the other tables file.
-    python3 "$SML_GATE" --panel "$TABLES" --no-sync
+    # Flip Digicon MQTT dests to Enabled=no in the file we ship.
+    python3 "$SML_GATE" --panel "$TABLES"
   fi
 fi
 
@@ -154,13 +152,19 @@ install_tables_local() {
   local src=""
   if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
     src="$ROOT/jmri/layouts/hart/output/tables.xml"
-  elif [[ -f "$ROOT/tables/new_tables.xml" ]]; then
-    src="$ROOT/tables/new_tables.xml"
   fi
   [[ -n "$src" ]] || return 0
   _copy_tables() {
-    cp -f "$src" "$1/tables.xml"
-    echo "tables.xml -> $1/tables.xml"
+    local dest="$1/tables.xml" stamp="$1/.tables_deployed.sha256"
+    # A Store into this copy since the last deploy would be lost: stop instead.
+    if [[ -f "$dest" && -f "$stamp" && "$(shasum -a 256 "$dest" | cut -d' ' -f1)" != "$(cat "$stamp")" ]] \
+      && ! cmp -s "$src" "$dest" && [[ "${HART_OVERWRITE_PROFILE_TABLES:-0}" != "1" ]]; then
+      echo "STOP: $dest changed since the last deploy. Bring the changes into the repo, or set HART_OVERWRITE_PROFILE_TABLES=1." >&2
+      exit 1
+    fi
+    cp -f "$src" "$dest"
+    shasum -a 256 "$dest" | cut -d' ' -f1 >"$stamp"
+    echo "tables.xml -> $dest"
   }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
@@ -189,31 +193,18 @@ install_ctc_icons_local() {
     fi
     echo "CTC icons -> $dest"
   }
-  _install_co1980_into() {
-    local src="$ROOT/cats/resources/signals/C&O-1980"
-    local dest="$1/resources/signals/C&O-1980"
-    mkdir -p "$dest/le"
-    cp -f "$src/"aspects.xml \
-      "$src/"appearance-CO-33-hi.xml \
-      "$src/"appearance-CO-3-dwarf.xml \
-      "$dest/"
-    if [[ -d "$src/le" ]]; then
-      cp -f "$src/le/"*.gif "$dest/le/"
-    fi
-    echo "C&O-1980 -> $dest"
-  }
   _install_buttons_into() {
     local dest="$1/resources/buttons"
     mkdir -p "$dest"
     local f
-    for f in "$ROOT/cats/resources/buttons/"triangle_*.png; do
+    for f in "$ROOT/jmri/resources/buttons/"triangle_*.png; do
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
     done
     echo "button icons -> $dest"
   }
   _install_uss_sensor_icons_into() {
     local dest="$1/resources/icons/USS/sensor"
-    local src="$ROOT/cats/resources/icons/USS/sensor"
+    local src="$ROOT/jmri/resources/icons/USS/sensor"
     [[ -d "$src" ]] || return 0
     mkdir -p "$dest"
     local f
@@ -224,17 +215,16 @@ install_ctc_icons_local() {
   }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_co1980_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/.jmri" ]]; then
     for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_co1980_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
     _install_ctc_into "${HOME}/JMRI_UserFiles"
-    _install_co1980_into "${HOME}/JMRI_UserFiles"
     _install_buttons_into "${HOME}/JMRI_UserFiles"
     _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
   fi
@@ -268,18 +258,16 @@ stage_package() {
   done
 
   local f
-  for f in "$ROOT/cats/resources/buttons/"lamp_*.png \
-           "$ROOT/cats/resources/buttons/"triangle_*.png; do
+  for f in "$ROOT/jmri/resources/buttons/"lamp_*.png \
+           "$ROOT/jmri/resources/buttons/"triangle_*.png; do
     [[ -f "$f" ]] && cp -f "$f" "$stage/cats/resources/buttons/"
   done
-  if [[ -d "$ROOT/cats/resources/icons/USS/sensor" ]]; then
-    cp -f "$ROOT/cats/resources/icons/USS/sensor/"yellow-*.gif \
+  if [[ -d "$ROOT/jmri/resources/icons/USS/sensor" ]]; then
+    cp -f "$ROOT/jmri/resources/icons/USS/sensor/"yellow-*.gif \
       "$stage/cats/resources/icons/USS/sensor/" 2>/dev/null || true
   fi
 
-  rsync -a "$ROOT/cats/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
-  rsync -a "$ROOT/cats/resources/signals/cats-masts/" "$stage/cats/resources/signals/cats-masts/"
-  rsync -a "$ROOT/cats/resources/signals/C&O-1980/" "$stage/cats/resources/signals/C&O-1980/"
+  rsync -a "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   rsync -a "$ROOT/cats/scripts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "$ROOT/cats/scripts/windows/" "$stage/cats/scripts/windows/"
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \
@@ -287,7 +275,7 @@ stage_package() {
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
     "$stage/cats/scripts/"
   mkdir -p "$stage/cats/docs"
-  cp -f "$ROOT/cats/docs/DISPATCHER_GUIDE_CTC.md" "$stage/cats/docs/"
+  cp -f "$ROOT/docs/ctc/DISPATCHER_GUIDE_CTC.md" "$stage/cats/docs/"
 
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"

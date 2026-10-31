@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Install HART JMRI web home override (STS link) into local preference:/profile web/.
-# SoR: cats/resources/jmri-web/
+# SoR: jmri/resources/jmri-web/
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SRC="${ROOT}/cats/resources/jmri-web"
+SRC="${ROOT}/jmri/resources/jmri-web"
+# Hosts receive it at cats/resources/jmri-web in the deploy package.
+[[ -d "$SRC" ]] || SRC="${ROOT}/cats/resources/jmri-web"
 HOME_HTML="${SRC}/servlet/home/Home.html"
 
 if [[ ! -f "$HOME_HTML" ]]; then

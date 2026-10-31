@@ -8,7 +8,7 @@ even on SIGNAL (same seats as the first 15-column machine). Every plant has an
 N/R switch lever (yard ladders default Local).
 
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_v77_preview.png
+    python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview media/screenshots/master4/uss_ctc_v77_preview.png
     python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --tables jmri/layouts/hart/output/tables.xml
 """
 from __future__ import annotations
@@ -31,7 +31,6 @@ if not CATS_XML.is_file():
     CATS_XML = CATS_DESIGNER
 GUI_XML = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-NEW_TABLES = ROOT / "tables/new_tables.xml"
 SOURCE_TABLES = ROOT / "tables/tables.xml"
 THIN_DIR = ROOT / "jmri/layouts/hart/ctc/icons"
 JMRI_RES = Path("/Applications/JMRI/resources")
@@ -939,7 +938,7 @@ def build_block(cells: dict) -> str:
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,
-                imageset="discriminated"))
+                imageset="default"))
         else:
             parts.append(HEAD.format(
                 name=name, head=head, x=x, y=y,
@@ -1328,7 +1327,7 @@ def main() -> None:
     ap.add_argument("--cats", type=Path, default=CATS_XML)
     ap.add_argument("--gui", type=Path, default=GUI_XML)
     ap.add_argument("--tables", type=Path, default=None,
-                    help="Optional. output/tables.xml or tables/new_tables.xml — never tables/tables.xml")
+                    help="Optional. output/tables.xml or jmri/layouts/hart/output/tables.xml — never tables/tables.xml")
     ap.add_argument("--preview", type=Path, default=None)
     args = ap.parse_args()
     if args.tables and args.tables.resolve() == SOURCE_TABLES.resolve():
@@ -1363,10 +1362,8 @@ def main() -> None:
 
     if args.tables:
         embed(args.tables, replace_panel=True)
-    if NEW_TABLES.is_file() and (
-        not args.tables or args.tables.resolve() != NEW_TABLES.resolve()
-    ):
-        embed(NEW_TABLES, replace_panel=True)
+    elif OUTPUT_TABLES.is_file():
+        embed(OUTPUT_TABLES, replace_panel=True)
 
     if args.preview:
         render_preview(new, args.preview)

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Bootstrap jmri/layouts/hart from linear6 panel.
+"""Bootstrap jmri/layouts/hart from the AnyRail panel.
 
-- Freeze linear6 baseline (connectivity + positions)
+- Take connectivity and positions from anyrail/hart.xml
 - Copy to hart authoritative / output panels
 - Apply block display-name contract (ADR-002)
 - Remove unreferenced internal sensors (keep ISCLOCKRUNNING) (ADR-003)
 
-Does not modify live linear6.xml or tables/tables.xml.
+Does not touch the live output/tables.xml.
 """
 
 from __future__ import annotations
@@ -18,10 +18,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
-LINEAR6 = JMRI_ROOT / "layouts" / "linear6" / "linear6.xml"
 HART = JMRI_ROOT / "layouts" / "hart"
-BASELINE = HART / "reference" / "linear6_baseline.xml"
-DISPLAY_CSV = HART / "data" / "block_display_names.csv"
+SOURCE = HART / "anyrail" / "hart.xml"
+NAME_MAP_CSV = HART / "data" / "public_name_map.csv"
 PURGE_REPORT = HART / "data" / "sensor_purge_report.txt"
 
 KEEP_SENSORS = {"ISCLOCKRUNNING"}
@@ -29,10 +28,12 @@ KEEP_SENSORS = {"ISCLOCKRUNNING"}
 
 def load_display_map(path: Path) -> dict[str, str]:
     out: dict[str, str] = {}
-    with path.open(newline="", encoding="utf-8") as f:
+    with path.open(newline="", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
-            cur = (row.get("current_user_name") or "").strip()
-            pub = (row.get("public_user_name") or "").strip()
+            if row.get("layer") != "block":
+                continue
+            cur = (row.get("current") or "").strip()
+            pub = (row.get("proposed") or "").strip()
             if cur and pub and cur != pub:
                 out[cur] = pub
     return out
@@ -135,13 +136,13 @@ def main() -> int:
     ap.add_argument(
         "--source",
         type=Path,
-        default=LINEAR6,
-        help="Source panel XML (default: linear6.xml)",
+        default=SOURCE,
+        help="Source panel XML (default: anyrail/hart.xml)",
     )
     ap.add_argument(
         "--skip-rename",
         action="store_true",
-        help="Do not apply block_display_names.csv",
+        help="Do not apply block names from public_name_map.csv",
     )
     ap.add_argument(
         "--skip-purge",
@@ -157,24 +158,22 @@ def main() -> int:
     HART.mkdir(parents=True, exist_ok=True)
     for sub in (
         "anyrail",
-        "authoritative",
         "data",
         "output",
         "working",
-        "reference",
         "dispatcher",
     ):
         (HART / sub).mkdir(parents=True, exist_ok=True)
 
-    shutil.copy2(src, BASELINE)
-    shutil.copy2(src, HART / "anyrail" / "hart.xml")
+    if src != SOURCE.resolve():
+        shutil.copy2(src, SOURCE)
 
     tree = ET.parse(src)
     root = tree.getroot()
 
     renamed = 0
     if not args.skip_rename:
-        mapping = load_display_map(DISPLAY_CSV)
+        mapping = load_display_map(NAME_MAP_CSV)
         renamed = rename_blocks(root, mapping)
 
     removed: list[str] = []
@@ -182,11 +181,7 @@ def main() -> int:
         removed = purge_unused_internal_sensors(root)
 
     out_blocked = HART / "output" / "hart_blocked.xml"
-    out_prod = HART / "output" / "hart_prod.xml"
-    auth = HART / "authoritative" / "hart.xml"
     write_xml(root, out_blocked)
-    shutil.copy2(out_blocked, out_prod)
-    shutil.copy2(out_blocked, auth)
 
     PURGE_REPORT.write_text(
         "Unused internal sensors removed from hart panel\n"
@@ -198,7 +193,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    print(f"Baseline: {BASELINE}")
+    print(f"Source: {SOURCE}")
     print(f"Output:   {out_blocked}")
     print(f"Prod:     {out_prod}")
     print(f"Renames:  {renamed}")

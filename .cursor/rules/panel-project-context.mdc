@@ -13,8 +13,8 @@ Read **[`wiki/home.md`](wiki/home.md)** and **[`docs/AI_CONTEXT.md`](docs/AI_CON
 - **JMRI linear4 / hart:** Geometry **1:1** (`--scale 1`). Do not run `fit_panel_height` rebase, `fit_panel_canvas`, or `polish_layout_geometry` unless the user explicitly asks.
 - **Dispatcher sizing** is only via `jmri/layouts/<name>/dispatcher/export_options.json` (`segment_scale`, `control_point_scale`, offsets) — then re-export xlsx and `npm run push-layout`.
 - **Google Sheets:** credentials in `.env.local` (root or `NextTrainDispatcherApp/`). Push uses `sheet.clear()` + `addRows`, not per-row delete.
-- **`tables/tables.xml`** is read-only; edit `tables/new_tables.xml` only.
+- `jmri/layouts/hart/output/tables.xml` is the one tables file; edit it only.
 - Do not remove **F30-S-0** on layouts that include it (connectivity).
 - **New JMRI-drawn track:** set **Mainline → Yes** on segments and turnouts (`mainline="yes"` in XML); editor defaults to sidetrack and blocks can look wrong.
-- **Dispatcher System is stock.** Do not monkey-patch JMRI or CreateTransits. If Stage 1 fails, fix `tables/new_tables.xml` (mast bindings, block boundaries). See `.cursor/rules/dispatcher-stock-tables.mdc`.
+- **Dispatcher System is stock.** Do not monkey-patch JMRI or CreateTransits. If Stage 1 fails, fix `jmri/layouts/hart/output/tables.xml` (mast bindings, block boundaries). See `.cursor/rules/dispatcher-stock-tables.mdc`.
 - **Close-out:** commit by default (unless asked not to), then push and deploy — [`AGENTS.md`](AGENTS.md), [`.cursor/rules/commit-by-default.mdc`](commit-by-default.mdc), [`.cursor/rules/close-out.mdc`](close-out.mdc). CATS source is Bitbucket, not a decompiled jar in `cats/`.

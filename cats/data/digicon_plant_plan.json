@@ -5,8 +5,8 @@
   "primary_panel": "cats/panels/HART.xml",
   "le_wip_panel": "cats/panels/HART_le.xml",
   "reference_panel": "JMRI My Layout — Neville Island (WayVNC) for OS/name + connectivity truth",
-  "designer_docs": ["cats/docs/GATE1_BRICK_PLANE.md", "cats/docs/GATE2_PLUS.md"],
-  "comparison_doc": "cats/docs/HART_DIGICON_MAP.md",
+  "designer_docs": ["archive/docs/GATE1_BRICK_PLANE.md", "archive/docs/GATE2_PLUS.md"],
+  "comparison_doc": "docs/ctc/HART_DIGICON_MAP.md",
   "topology_truth": {
     "no_wye": true,
     "loops": "Princess east return = McKees Rocks ↔ McKeesport",

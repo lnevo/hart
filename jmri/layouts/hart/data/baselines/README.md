@@ -36,7 +36,7 @@ Optional flags: `--tables PATH`, `--out PATH`.
 | `check_hart_phase02.txt` | Phase 0–2 (historical 2026-08-20) |
 | `validate_cats_panel.txt` | Live masters (historical 2026-08-20) |
 
-Also consulted (not written): `cats/data/occupancy_bindings.csv`, `cats/data/le_signal_boundaries.csv`.
+Also consulted (not written): `cats/data/occupancy_bindings.csv`, `jmri/layouts/hart/data/le_signal_boundaries.csv`.
 
 ## After a rename
 

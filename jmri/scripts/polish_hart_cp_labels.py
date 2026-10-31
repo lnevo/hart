@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Apply the HART dispatcher label hierarchy without replacing config files.
 
-The canonical writable target is tables/new_tables.xml.  Output files are
+The canonical writable target is jmri/layouts/hart/output/tables.xml.  Output files are
 patched independently when ``--sync-output`` is requested so their CTC/SML
 content cannot be lost through a whole-file copy.
 """
@@ -14,8 +14,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HART = ROOT / "jmri/layouts/hart"
-SRC = ROOT / "tables/new_tables.xml"
-OUTPUTS = [HART / "output/tables.xml", HART / "output/hart_prod.xml"]
+SRC = ROOT / "jmri/layouts/hart/output/tables.xml"
+OUTPUTS: list[Path] = []
 
 # text -> (size, style)  style 1=bold
 HIERARCHY = {

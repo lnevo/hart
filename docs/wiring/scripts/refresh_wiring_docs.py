@@ -3,9 +3,9 @@
 
 Reads:
   cats/data/occupancy_bindings.csv
-  cats/data/signal_wiring.csv
-  cats/data/signal_head_plan.csv
-  cats/data/signal_mast_plan.csv
+  docs/wiring/signals/signal_wiring.csv
+  docs/wiring/signals/signal_head_plan.csv
+  docs/wiring/signals/signal_mast_plan.csv
   docs/wiring/imported/LCOS_Layout_Inventory_v84.xlsx
   docs/wiring/imported/signals_asbuilt_abs_v1.xlsx
   docs/wiring/imported/signals_split_v8.xlsx
@@ -32,6 +32,7 @@ ROOT = Path(__file__).resolve().parents[3]
 WIRING = ROOT / "docs/wiring"
 IMPORTED = WIRING / "imported"
 CATS = ROOT / "cats/data"
+SIGNALS = ROOT / "docs/wiring/signals"
 PUBLIC_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 BLOCK_IN_NOTES = re.compile(r"Block\s+(\d+-\d+)")
@@ -1143,7 +1144,7 @@ def add_digicon_sheet(wb, wiring: list[dict[str, str]], heads: list[dict[str, st
     if "DigiconSignals" in wb.sheetnames:
         del wb["DigiconSignals"]
     ws = wb.create_sheet("DigiconSignals", 0)
-    ws["A1"] = "HART Digicon searchlight heads (from cats/data/signal_wiring.csv)"
+    ws["A1"] = "HART Digicon searchlight heads (from docs/wiring/signals/signal_wiring.csv)"
     ws["A1"].font = Font(bold=True, size=14)
     ws.merge_cells("A1:L1")
     headers = [
@@ -1169,7 +1170,7 @@ def add_digicon_sheet(wb, wiring: list[dict[str, str]], heads: list[dict[str, st
         for c_i, key in enumerate(headers, start=1):
             ws.cell(r_i, c_i, row.get(key))
     start = 3 + len(wiring) + 2
-    ws.cell(start, 1, "Masts (cats/data/signal_head_plan.csv)")
+    ws.cell(start, 1, "Masts (docs/wiring/signals/signal_head_plan.csv)")
     ws.cell(start, 1).font = Font(bold=True, size=12)
     m_headers = list(heads[0].keys()) if heads else []
     for i, h in enumerate(m_headers, start=1):
@@ -1209,9 +1210,9 @@ def rebuild_asbuilt_inventory(ws: Worksheet, wiring: list[dict[str, str]], masts
         n = len(packed_seen)
         ports = " ".join(r["port_id"] for r in pin_rows)
         aspect = (
-            "hart C&O-1980 (two 3-pin STOP/APPROACH/CLEAR discs)"
+            "Basic two-searchlight (two 3-pin STOP/APPROACH/CLEAR discs)"
             if n == 2
-            else "basic-enhanced one-searchlight-low (3-pin STOP/APPROACH/CLEAR)"
+            else "Basic one-low (3-pin STOP/APPROACH/CLEAR)"
         )
         ws.append(
             [
@@ -1251,7 +1252,7 @@ def add_split_readme(path: Path) -> None:
         ("Live lower-deck signal matrix:", False),
         ("  docs/wiring/signals_asbuilt_abs_v2.xlsx", False),
         ("Port / MQTT / LCOS overlay:", False),
-        ("  cats/data/signal_wiring.csv", False),
+        ("  docs/wiring/signals/signal_wiring.csv", False),
         ("  docs/wiring/LCOS_Layout_Inventory_v85.xlsx  (DigiconSignals + DNOU8)", False),
         ("", False),
         ("Upper-deck CP4–CP6 (Helix/North/Peninsula Upper) still use this RGB plan.", False),
@@ -1318,9 +1319,9 @@ def refresh_inventory() -> Path:
     add_legacy_node_column(wb["Nodes"], legacy_by_row)
     sort_nodes_by_address(wb["Nodes"])
     occ = occupancy_by_hw()
-    wiring = load_csv(CATS / "signal_wiring.csv")
+    wiring = load_csv(SIGNALS / "signal_wiring.csv")
     apply_proposed_to_wiring(wiring)
-    heads = load_csv(CATS / "signal_head_plan.csv")
+    heads = load_csv(SIGNALS / "signal_head_plan.csv")
     apply_proposed_to_wiring(heads)
 
     bs_log = refresh_block_sensors(wb["BlockSensors"], occ)
@@ -1445,7 +1446,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW115="N",
             ih="IH142",
-            Notes="K-1 dwarf (one-searchlight-low). SW115 Closed = K-1. Dest 111L when 113 Normal.",
+            Notes="K-1 dwarf (one-low). SW115 Closed = K-1. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="115LA",
@@ -1472,7 +1473,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW114="N",
             ih="IH143",
-            Notes="K-2 dwarf (one-searchlight-low). SW114 Closed = K-2. Dest 111L when 113 Normal.",
+            Notes="K-2 dwarf (one-low). SW114 Closed = K-2. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="114LA",
@@ -1499,7 +1500,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW114="R",
             ih="IH134",
             Notes=(
-                "Balloon connector (one-searchlight-low). A48 east ends join: 120R/IH134 on McKeesport "
+                "Balloon connector (one-low). A48 east ends join: 120R/IH134 on McKeesport "
                 "track protects Rocks / OS 115. SW114 Thrown = McKeesport."
             ),
         ),
@@ -1515,7 +1516,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW115="R",
             ih="IH141",
             Notes=(
-                "Balloon connector (one-searchlight-low). 120L/IH141 on Rocks track protects McKeesport / "
+                "Balloon connector (one-low). 120L/IH141 on Rocks track protects McKeesport / "
                 "OS 114. SML also Stop if McKees Rocks occupied. SW115 Thrown = Rocks."
             ),
         ),
@@ -1609,9 +1610,9 @@ def refresh_asbuilt() -> Path:
     dest = WIRING / "signals_asbuilt_abs_v2.xlsx"
     shutil.copy2(src, dest)
     wb = load_workbook(dest)
-    wiring = load_csv(CATS / "signal_wiring.csv")
+    wiring = load_csv(SIGNALS / "signal_wiring.csv")
     apply_proposed_to_wiring(wiring)
-    masts = load_csv(CATS / "signal_mast_plan.csv")
+    masts = load_csv(SIGNALS / "signal_mast_plan.csv")
     for row in masts:
         if row.get("proposed_mast_name"):
             row["proposed_mast_name"] = (
@@ -1654,12 +1655,6 @@ def refresh_asbuilt() -> Path:
     )
     wb.save(dest)
     print(f"wrote {dest} ({n} cell replacements on logic/mqtt sheets, +{dwarf_n} Princess dwarf rows)")
-    cats_copy = CATS / "signals_asbuilt_abs_v2.xlsx"
-    shutil.copy2(dest, cats_copy)
-    old = CATS / "signals_asbuilt_abs_v1.xlsx"
-    if old.exists():
-        old.unlink()
-        print(f"replaced {old} → {cats_copy}")
     return dest
 
 
@@ -1673,10 +1668,10 @@ def main() -> None:
     print(f"wrote {split_dest} (CTC switch names + Mast column + README)")
     # Ports extract for cats/data
     inv = load_workbook(WIRING / "LCOS_Layout_Inventory_v85.xlsx")
-    extract = CATS / "LCOS_Layout_Inventory_v85_signal_ports.xlsx"
+    extract = SIGNALS / "LCOS_Layout_Inventory_v85_signal_ports.xlsx"
     # Keep a thin copy of the full v85 next to the old v48 extract name.
     shutil.copy2(WIRING / "LCOS_Layout_Inventory_v85.xlsx", extract)
-    old_extract = CATS / "LCOS_Layout_Inventory_v48_signal_ports.xlsx"
+    old_extract = SIGNALS / "LCOS_Layout_Inventory_v48_signal_ports.xlsx"
     if old_extract.exists():
         old_extract.unlink()
     print(f"wrote {extract}")

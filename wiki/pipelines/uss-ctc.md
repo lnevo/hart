@@ -12,14 +12,14 @@ Generate the USS track diagram and CTC table data from a Python plan (Quaker Val
 ## Outputs
 
 - `jmri/layouts/hart/ctc/GUIObjects.xml`
-- CTC beans in `tables/new_tables.xml` (when the generator writes tables)
-- Optional preview PNG under `cats/screenshots/master4/`
+- CTC beans in `jmri/layouts/hart/output/tables.xml` (when the generator writes tables)
+- Optional preview PNG under `media/screenshots/master4/`
 
 ## Run
 
 ```bash
 python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py
-python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview cats/screenshots/master4/uss_ctc_preview.png
+python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py --preview media/screenshots/master4/uss_ctc_preview.png
 python3 jmri/layouts/hart/scripts/ctc_logic_smoke.py
 ```
 

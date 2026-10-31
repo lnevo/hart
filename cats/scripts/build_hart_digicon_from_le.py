@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build HART Digicon CTC from JMRI Layout Editor geometry + connectivity.
 
-Source of truth: jmri/layouts/hart/output/hart_prod.xml
+Source of truth: jmri/layouts/hart/output/tables.xml
   - every layoutturnout (xcen/ycen, type, A/B/C/D tip blocks via segments)
   - occupancy sensors on layoutblocks / cats/data/occupancy_bindings.csv
 
@@ -39,7 +39,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-HART = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
+HART = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUT_DIR = ROOT / "cats/panels"
 OCC_CSV = ROOT / "cats/data/occupancy_bindings.csv"
 
@@ -99,7 +99,7 @@ def build_board(*, shift: bool = True) -> None:
     shift=False leaves 0-based coords so callers (e.g. CTC builder) can extend
     the grid before the mandatory CATS 1-based shift.
 
-    Tip blocks from hart_prod (segment TURNOUT_A/B/C/D):
+    Tip blocks from tables.xml (segment TURNOUT_A/B/C/D):
       TOL3  A=Main West  B=OS100     C=Brick-Plane
       TOL38 A=OS101      B=W-1 C=W-2
       TOL42 A=100-102    B=East Main Ext C=Scale

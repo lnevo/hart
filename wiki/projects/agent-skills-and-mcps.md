@@ -63,7 +63,7 @@ Hard-won landmines. Other JMRI / CATS / MQTT layouts hit these.
 | 13 | `sts-docker` | Shipit (STS) + Docker + MySQL | `sts_compose.sh`, seed/session helpers | Compose bind paths, seed roster/waybills, warm-start, switch lists, session backups |
 | 14 | `car-cards-ocr` | Python + OCR + Word | `process_car_images`, `generate_all_cards` | Lightbox photos → crop → OCR → poker-size sticker sheets |
 | 15 | `waybills-and-industries` | Excel/CSV + STS seed | waybill scripts, industry matrix validators | Commodity/car-type rules; keep paper CSV in sync with STS seed |
-| 16 | `decoderpro-speed-matching` | DecoderPro / JMRI roster | parked STRR SOP under `jmri/docs/speedmatching` | Measured speed tables vs synthetic Dispatcher profiles; adapt sensors/scale |
+| 16 | `decoderpro-speed-matching` | DecoderPro / JMRI roster | parked STRR SOP under `docs/jmri/speedmatching` | Measured speed tables vs synthetic Dispatcher profiles; adapt sensors/scale |
 | 17 | `kicad-pcbway-bom` | KiCad + Mouser + PCBWay | LCOS `build_esp32io_pcbway_bom.py` | Interactive BOM HTML + Mouser cart → manufacturing xlsx (Gerbers alone are not enough) |
 | 18 | `jython-jmri-startup` | JMRI Jython | startup patchers, ShutdownTask, LogixNG | `preference:jython/` pitfalls (`from __future__` breaks Dispatcher); boot vs quit MQTT |
 | 19 | `layout-wiring-docs` | Excel + PowerPoint from CSV | `refresh_wiring_docs.py`, schematic PPTX | Pin maps → inventory workbook + per-node slides; Desktop ARCHIVE one-offs are not SoR |
@@ -89,7 +89,7 @@ Hard-won landmines. Other JMRI / CATS / MQTT layouts hit these.
 4. `jmri-mqtt-layout` + `lcos-serial-mqtt`
 5. One **ops** skill (`sts-docker` or `car-cards-ocr`) and one **docs/hardware** skill (`layout-wiring-docs` or `kicad-pcbway-bom`)
 
-Evidence in-repo: [`wiki/pipelines/README.md`](../pipelines/README.md) (16 flows), [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md), `cats/scripts/`, `jmri/scripts/`, `consolidation/packages/`.
+Evidence in-repo: [`wiki/pipelines/README.md`](../pipelines/README.md) (16 flows), [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md), `cats/scripts/`, `jmri/scripts/`, `ops/packages/`.
 
 ---
 

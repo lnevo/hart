@@ -3,7 +3,7 @@
 Short overview for clubs and operators asking how the Neville Island (HART) CTC
 machine was implemented. For day-to-day dispatching, see
 [`DISPATCHER_GUIDE.md`](DISPATCHER_GUIDE.md). For the separate CATS Digicon panel,
-see [`cats/docs/HART_DIGICON_SYSTEM.md`](../../../../cats/docs/HART_DIGICON_SYSTEM.md).
+see [`docs/ctc/HART_DIGICON_SYSTEM.md`](../../../../docs/ctc/HART_DIGICON_SYSTEM.md).
 
 ---
 

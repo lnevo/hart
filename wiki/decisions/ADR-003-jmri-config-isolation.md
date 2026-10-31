@@ -1,6 +1,6 @@
 # ADR-003 — JMRI config isolation (panel-only change)
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-008
 - **Date:** 2026-08-07
 - **Deciders:** lnevo
 

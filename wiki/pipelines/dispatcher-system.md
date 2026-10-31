@@ -43,6 +43,6 @@ Stock facing invert is [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407). 
 ## Do not
 
 - Stage 1 or Store tables from CATS
-- Patch or wrap Dispatcher System / JMRI. Fix `tables/new_tables.xml` so stock Discover and Stage 1 succeed.
+- Patch or wrap Dispatcher System / JMRI. Fix `jmri/layouts/hart/output/tables.xml` so stock Discover and Stage 1 succeed.
 - `from __future__ import print_function` in `preference:jython/` (breaks stock Dispatcher System)
 - Hold a WiThrottle on the same DCC address while AutoActiveTrain owns it

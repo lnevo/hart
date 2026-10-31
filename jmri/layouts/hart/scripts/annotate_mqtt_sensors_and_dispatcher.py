@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Annotate MQTT sensors and add Dispatcher sections/transit for 2091.
 
-Edits tables/new_tables.xml in place (SoR). Does not invent SML.
+Edits jmri/layouts/hart/output/tables.xml in place (SoR). Does not invent SML.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[4]
-TABLES = ROOT / "tables" / "new_tables.xml"
+TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 TRAININFO_DIR = ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"

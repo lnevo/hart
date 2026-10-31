@@ -1,0 +1,1351 @@
+{
+  "_note": "Hand-maintained from external/hart-ops/publications/rebuild_*.py (crew dict, YM, DS, TT-23) and the published docx/pptx. The rebuild scripts and docx stay canonical; regenerate this file from them when they change.",
+  "colors": [
+    {
+      "id": "blue",
+      "label": "BLUE",
+      "hex": "#0000CD",
+      "ink": "#fff",
+      "dest": "Demmler Yard; McKeesport",
+      "train": "D749",
+      "group": "interchange",
+      "spot": "demmler"
+    },
+    {
+      "id": "yellow",
+      "label": "YELLOW",
+      "hex": "#FFFF00",
+      "ink": "#000",
+      "dest": "Aristech Plastics",
+      "train": "NVL",
+      "group": "island",
+      "spot": "aristech"
+    },
+    {
+      "id": "green",
+      "label": "GREEN",
+      "hex": "#008000",
+      "ink": "#fff",
+      "dest": "A. Stucki Co.",
+      "train": "NVL",
+      "group": "island",
+      "spot": "stucki"
+    },
+    {
+      "id": "purple",
+      "label": "PURPLE",
+      "hex": "#800080",
+      "ink": "#fff",
+      "dest": "Calgon Carbon",
+      "train": "NVL",
+      "group": "island",
+      "spot": "calgon"
+    },
+    {
+      "id": "red",
+      "label": "RED",
+      "hex": "#FF0000",
+      "ink": "#fff",
+      "dest": "Ferrellgas",
+      "train": "NVL",
+      "group": "island",
+      "spot": "ferrellgas"
+    },
+    {
+      "id": "pink",
+      "label": "PINK",
+      "hex": "#FFC0CB",
+      "ink": "#000",
+      "dest": "Kosmos Cement",
+      "train": "NVL",
+      "group": "island",
+      "spot": "kosmos"
+    },
+    {
+      "id": "black",
+      "label": "BLACK",
+      "hex": "#000000",
+      "ink": "#fff",
+      "dest": "Shenango Coke Works",
+      "train": "CK1",
+      "group": "island",
+      "spot": "shenango"
+    },
+    {
+      "id": "orange",
+      "label": "ORANGE",
+      "hex": "#FFA500",
+      "ink": "#000",
+      "dest": "Scully Yard; McKees Rocks",
+      "train": "NVL return",
+      "group": "interchange",
+      "spot": "scully"
+    }
+  ],
+  "timetable": {
+    "pub": "TT-23",
+    "revision": "A",
+    "title": "Route 23 Timetable",
+    "name": "Neville Queen",
+    "subtitle": "Route 23 · “Neville Queen” · Employee Timetable No. 23",
+    "summary": "Station times for the Route 23 streetcar. Freight holds until the streetcar clears.",
+    "columns": [
+      "East",
+      "Station",
+      "West"
+    ],
+    "rows": [
+      [
+        "9:00",
+        "Barn",
+        "5:00 PM"
+      ],
+      [
+        "9:06",
+        "Scale",
+        "4:54 PM"
+      ],
+      [
+        "9:12",
+        "Brick",
+        "4:48 PM"
+      ],
+      [
+        "9:18",
+        "East End",
+        "4:42 PM"
+      ],
+      [
+        "9:24",
+        "Aristech",
+        "4:36 PM"
+      ],
+      [
+        "9:30",
+        "Calgon Carbon",
+        "4:30 PM"
+      ],
+      [
+        "9:36",
+        "Kosmos Cement",
+        "4:24 PM"
+      ],
+      [
+        "9:42",
+        "Ferrel Gas",
+        "4:18 PM"
+      ],
+      [
+        "9:48",
+        "A. Stucki Co.",
+        "4:12 PM"
+      ],
+      [
+        "9:54",
+        "Princess",
+        "4:06 PM"
+      ],
+      [
+        "10:00",
+        "McKees Rocks",
+        "4:00 PM"
+      ]
+    ],
+    "note": "Eastbound service operates Barn to McKees Rocks. Westbound service operates McKees Rocks to Barn. Time shown is station time.",
+    "instructions": [
+      "Passenger trains will stop at all scheduled stations unless otherwise directed.",
+      "Time shown is station time.",
+      "Employees must compare watches before commencing duty.",
+      "Trains may operate ahead of schedule only by dispatcher authority."
+    ],
+    "bulletin": "Bulletin notices affecting this timetable must be observed until superseded.",
+    "source": "../docs/ops/TT-23_Route23_NevilleQueen_RevisionA_v6.pptx"
+  },
+  "spotsheet": {
+    "title": "Industry Spot Sheets",
+    "summary": "Every customer on the island: its history, what it ships and receives, and which car goes on which spot. Interchange yards and the South Yard and dispatcher notes follow.",
+    "source": "../docs/ops/HART_Operator_Sheet.docx",
+    "industries": [
+      {
+        "id": "aristech",
+        "name": "Aristech Plastics",
+        "color": "yellow",
+        "map": "east-end",
+        "track": "S-2",
+        "served": "NVL",
+        "history": [
+          "Founded 1986 as Aristech Chemical, spun off from U.S. Steel's USS Chemicals division with headquarters in Pittsburgh.",
+          "The Neville Island plant made plasticizers for flexible vinyl (PVC): flooring, wall coverings, wire insulation, and auto trim. They were made in batches from phthalic anhydride and 2-ethylhexanol. Aristech's acrylic sheet and polypropylene came from other plants.",
+          "Phthalic and maleic anhydride were made on the island by Pittsburgh Coke & Chemical in the 1950s, before USS Chemicals (1966). HART keeps the Aristech name the plant carried from 1986 through 2000. The pellets and resins it receives on the layout are HART's own traffic, not the prototype mix."
+        ],
+        "traffic": "Plastic pellets (HC) and process chemicals (TA) in; plastic resins (XM) out. NVL serves the plant.",
+        "spots": [
+          [
+            "1-3",
+            "Pellet Unloading",
+            "Covered Hopper",
+            "Plastic Pellets",
+            "Empty cars"
+          ],
+          [
+            "4-5",
+            "Chemical Unloading",
+            "Tank Car",
+            "Process Chemicals",
+            "Empty cars"
+          ],
+          [
+            "6",
+            "Shipping",
+            "Boxcar",
+            "Empty cars",
+            "Plastic Resins"
+          ],
+          [
+            "7",
+            "Off Spot",
+            "Covered Hopper, Tank Car, Boxcar",
+            "—",
+            "—"
+          ]
+        ]
+      },
+      {
+        "id": "stucki",
+        "name": "A. Stucki Co.",
+        "color": "green",
+        "map": "east-end",
+        "track": "S-3",
+        "served": "NVL",
+        "history": [
+          "Founded 1911 by Swiss engineer Arnold Stucki in the Pittsburgh area.",
+          "Stucki's roller side-bearing design stabilized freight cars and became a North American industry standard by the 1950s.",
+          "Grew through the 20th century as a supplier of railcar components, springs, bearings, and machined steel."
+        ],
+        "traffic": "Steel (FM/GA/XM) on the crane; general freight (XM/FM/GA) on the team track. Empties and outbound parts leave after spotting. NVL serves the plant.",
+        "spots": [
+          [
+            "1",
+            "Steel Unloading",
+            "Flat Car, Gondola, Boxcar",
+            "Steel",
+            "Empty cars"
+          ],
+          [
+            "2",
+            "Team Track",
+            "Boxcar, Flat Car, Gondola",
+            "General Freight",
+            "General Freight"
+          ],
+          [
+            "3",
+            "Off Spot",
+            "Boxcar, Flat Car, Gondola, Coil Car",
+            "—",
+            "—"
+          ]
+        ]
+      },
+      {
+        "id": "calgon",
+        "name": "Calgon Carbon",
+        "color": "purple",
+        "map": "east-end",
+        "track": "S-5",
+        "served": "NVL",
+        "history": [
+          "Traces to 1942, when Pittsburgh Coke & Chemical developed coal-based activated carbon for U.S. military gas masks during World War II.",
+          "Pioneered granular activated carbon for municipal drinking-water treatment in the 1960s; headquartered in the Pittsburgh area.",
+          "Became an independent public company in 1987; one of the world's leading activated-carbon producers by the 1990s."
+        ],
+        "traffic": "Coal (HM) and process chemicals (TA) in; activated carbon (HC) out. NVL serves the plant.",
+        "spots": [
+          [
+            "1-2",
+            "Coal Unloading",
+            "Hopper",
+            "Coal",
+            "Empty cars"
+          ],
+          [
+            "3",
+            "Carbon Loading",
+            "Covered Hopper",
+            "Empty cars",
+            "Activated Carbon"
+          ],
+          [
+            "4",
+            "Chemical Unloading",
+            "Tank Car",
+            "Process Chemicals",
+            "Empty cars"
+          ],
+          [
+            "5",
+            "Off Spot",
+            "Hopper, Covered Hopper, Tank Car",
+            "—",
+            "—"
+          ]
+        ]
+      },
+      {
+        "id": "ferrellgas",
+        "name": "Ferrellgas",
+        "color": "red",
+        "map": "east-end",
+        "track": "S-3",
+        "served": "NVL",
+        "history": [
+          "Founded 1939 as A.C. Ferrell Butane Gas Company in Atchison, Kansas.",
+          "James E. Ferrell took over in 1965 when the business had just four employees, then rebuilt it through Midwest propane dealer acquisitions.",
+          "Bulk propane storage and rail deliveries expanded through the 1970s and 1980s as residential and farm demand grew."
+        ],
+        "traffic": "LPG (TA) in at the unload racks; empty tanks out. NVL serves the plant.",
+        "spots": [
+          [
+            "1-2",
+            "LPG Unloading",
+            "Tank Car",
+            "LPG",
+            "Empty cars"
+          ],
+          [
+            "3",
+            "Storage",
+            "Tank Car",
+            "—",
+            "—"
+          ]
+        ]
+      },
+      {
+        "id": "kosmos",
+        "name": "Kosmos Cement",
+        "color": "pink",
+        "map": "east-end",
+        "track": "S-4",
+        "served": "NVL",
+        "history": [
+          "Portland cement plant at Kosmosdale, Kentucky, shipping from the same site since 1905; founded by Samuel Horner Jr. as Kosmos Portland Cement Company.",
+          "Supplied cement for early Ohio River lock and dam construction; a fleet of company towboats with names beginning in “K” moved cement and quarry stone.",
+          "The company town of Kosmosdale grew around the mill; Horner heirs sold the operation in 1957 and the plant was rebuilt in the early 1970s."
+        ],
+        "traffic": "Cement (HC) and aggregate (HM/GA) in; empty hoppers out. NVL serves the plant.",
+        "spots": [
+          [
+            "1-3",
+            "Cement Unloading",
+            "Covered Hopper",
+            "Cement",
+            "Empty cars"
+          ],
+          [
+            "4",
+            "Aggregate Unloading",
+            "Hopper, Gondola",
+            "Aggregate",
+            "Empty cars"
+          ],
+          [
+            "5",
+            "Off Spot",
+            "Covered Hopper, Hopper, Gondola",
+            "—",
+            "—"
+          ]
+        ]
+      },
+      {
+        "id": "shenango",
+        "name": "Shenango Coke Works",
+        "color": "black",
+        "map": "shenango",
+        "track": "K-1 / K-2",
+        "served": "CK1 (NVL may set out deliveries)",
+        "history": [
+          "Davison Coke & Iron (incorporated 1928) bought the old American Steel & Wire blast furnace on the eastern end of Neville Island in 1929 and built new coke ovens beside it. Reorganized in 1936 as Pittsburgh Coke & Iron, the company took the name Pittsburgh Coke & Chemical (PC&C) about 1942. The coke ovens and chemical works that later became Shenango date to about 1930.",
+          "PC&C was more than a coke plant: on the island it also made cement, industrial chemicals, and activated carbon. Those other branches became the Kosmos, Aristech, and Calgon operations still switched today.",
+          "In 1962 Shenango Furnace bought PC&C's coke-and-iron works, not the whole company. That division became Shenango Inc. and kept making coke and coke by-products on the same site for decades after the PC&C name disappeared."
+        ],
+        "traffic": "HM coke on Shipping 1 and Shipping 2 (no numbered spots). CK1 lifts for South Yard scale. Loads to U.S. Steel Edgar Thomson Works (Braddock, PA) via CSX and LTV Steel Cleveland Works (Cleveland, OH) via POHC. NVL may set out deliveries; no Shenango empty pickup on the NVL return.",
+        "trackHead": [
+          "Track",
+          "Cars",
+          "In",
+          "Out"
+        ],
+        "spots": [
+          [
+            "Shipping 1",
+            "HM",
+            "Empty / reload coke",
+            "Coke"
+          ],
+          [
+            "Shipping 2",
+            "HM",
+            "Empty / reload coke",
+            "Coke"
+          ]
+        ],
+        "spotNote": "No numbered spots. Weigh all outgoing coke at South Yard scale."
+      }
+    ],
+    "offline": [
+      {
+        "id": "scully",
+        "name": "Scully Yard",
+        "color": "orange",
+        "map": "shenango",
+        "tag": "POHC interchange · McKees Rocks offline",
+        "about": [
+          "POHC gateway. NVL takes its session-start block here. McKees Rocks-PA party tracks hold offline suppliers and customers.",
+          "Connections beyond the offline tracks are typically POHC and NS."
+        ],
+        "inbound": [
+          "Allegheny Ludlum (Brackenridge, PA)",
+          "Exxon Chemical (Bayonne, NJ)",
+          "Ferrellgas Co (Taneytown, MD)",
+          "General Chemical (Parsippany, NJ)",
+          "Hillman Coal (Canton Twp, PA)",
+          "Houghton Chemical (Allston, MA)",
+          "Kosmos Cement (Canton, OH)",
+          "Lehigh Cement (Mitchell, IN)",
+          "McConway & Torley (Pittsburgh, PA)",
+          "Michigan Limestone (Rogers City, MI)",
+          "Novacor (Indian Orchard, MA)",
+          "Republic Steel (Cleveland, OH)"
+        ],
+        "outbound": [
+          "LTV Steel Cleveland Works (Cleveland, OH) — coke",
+          "Owens-Illinois (Toledo, OH)",
+          "Bemis Company (Flemington, NJ)",
+          "Pittsburgh Forge (McKees Rocks, PA)",
+          "Univar (Salem, MA)"
+        ],
+        "inLabel": "McKees Rocks — inbound (suppliers)",
+        "outLabel": "McKees Rocks — outbound (customers)",
+        "jobs": [
+          "NVL — assign/pickup session block at Scully, then run to South Yard."
+        ]
+      },
+      {
+        "id": "demmler",
+        "name": "Demmler Yard",
+        "color": "blue",
+        "map": "shenango",
+        "tag": "CSX interchange · McKeesport offline",
+        "about": [
+          "CSX gateway. D749 lifts its inbound block here at session start. McKeesport-PA party tracks hold offline suppliers and customers.",
+          "Connections beyond the offline tracks are typically CSX (URR territory historically adjacent at McKeesport)."
+        ],
+        "inbound": [
+          "BASF (Wyandotte, MI)",
+          "Consol Energy (Pittsburgh, PA)",
+          "Dow Chemical (Midland, MI)",
+          "Ferrellgas pipeline terminal",
+          "Martin Marietta (Clairton, PA)",
+          "Medusa Cement (Charlevoix, MI)",
+          "Metal Service Co. (Apollo, PA)",
+          "R&P Coal (Brady Twp, PA)",
+          "Ryerson Steel Service",
+          "US Aggregates (Indianapolis, IN)",
+          "Washington Steel (Washington, PA)",
+          "Calgon Corp (Columbus, OH)"
+        ],
+        "outbound": [
+          "U.S. Steel Edgar Thomson Works (Braddock, PA) — coke",
+          "Calgon Corp (Columbus, OH)",
+          "Houghton Chemical (Allston, MA)",
+          "Metal Service Co. (Apollo, PA)",
+          "Owens-Illinois (Ottawa, IL)",
+          "Ryerson Steel Service"
+        ],
+        "inLabel": "McKeesport — inbound (suppliers)",
+        "outLabel": "McKeesport — outbound (customers)",
+        "jobs": [
+          "D749 — pickup Demmler block → South Yard setout to open the session; later return from McKeesport side and terminate West Yard."
+        ]
+      }
+    ],
+    "desk": [
+      {
+        "id": "south-yard-notes",
+        "name": "South Yard",
+        "tag": "Classification hub · session start",
+        "map": "south-yard",
+        "about": [
+          "Session open / class yard. West Lead = SOUTH-SCALE (CK1 weigh at 4 MPH, stretch, no brakes). Exchange: Demmler/CSX off; Island/Shenango on."
+        ],
+        "lists": [
+          {
+            "label": "Trains this session",
+            "items": [
+              "D749 (CSX turn): lift West Yard consist → Demmler pickup → South setout to open ops; interchange per YM; west when cleared.",
+              "D749: return from McKeesport; YM spots West or South; engine to terminal.",
+              "NVL (POHC Island local): Scully → South; interchange per YM; work Island industries + Shenango setouts.",
+              "NVL: finish Island/Shenango deliveries before return homebound. Final South interchange → Scully. Shenango deliver-only on return.",
+              "CK1 (Coke transfer): calibrate scale. Shenango: set out reloads, lift Shipping 1/2 coke → weigh West Lead → class. Imbalanced → reload orders.",
+              "CK1: same session, reloads South → Shenango when authorized."
+            ]
+          },
+          {
+            "label": "Blocking priority",
+            "ordered": true,
+            "items": [
+              "D749 Demmler → South setout opens the session.",
+              "NVL South exchange before Island work.",
+              "Island/Shenango setouts before NVL return homebound assigns.",
+              "CK1 weigh/resort; reloads to Shenango when ready.",
+              "D749 return → West Yard."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "dispatcher-notes",
+        "name": "Dispatcher",
+        "tag": "HART Railroad · session control",
+        "map": "",
+        "about": [
+          "Authorize road moves, keep train order, and protect the South Yard block exchange. Crews work from switch lists; yardmaster owns South class tracks."
+        ],
+        "lists": [
+          {
+            "label": "Territory",
+            "items": [
+              "Scully Yard — POHC interchange (NVL start).",
+              "Neville Island / Shenango — NVL local; CK1 coke plant.",
+              "South Yard — class hub, session open, track scale (West Lead).",
+              "Demmler Yard — CSX interchange (D749 start / return).",
+              "West Yard — D749 overnight / terminate."
+            ]
+          },
+          {
+            "label": "Session sequence",
+            "items": [
+              "D749: Demmler pickup → South setout opens ops; then west as cleared.",
+              "NVL: Scully block → South exchange → Island / Shenango work → return to Scully (Shenango deliver-only on return).",
+              "CK1: Shenango shipping → South scale → class; reloads back when ready.",
+              "D749 return from McKeesport → West Yard."
+            ]
+          },
+          {
+            "label": "Blocking priority",
+            "ordered": true,
+            "items": [
+              "Hold NVL Island work until South has taken the D749 inbound setout and completed the block exchange.",
+              "Island / Shenango deliveries before NVL builds the homebound.",
+              "CK1 scale string clear of West Lead conflicts during weigh (4 MPH).",
+              "One road move at a time across shared leads when crews meet at South."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scale": {
+    "title": "Scale Operating Instructions",
+    "pub": "EQ-01",
+    "revision": "D",
+    "effective": "15 July 1999",
+    "summary": "The scale is used to verify and log proper loading of outbound cars prior to departure from South Yard.",
+    "source": "../docs/ops/HART Railroad Scale Operating Instructions.docx",
+    "sections": [
+      {
+        "heading": "Section 1 — General rules",
+        "parts": [
+          {
+            "h": "1.1 Pre-scale alignment & approach",
+            "items": [
+              "Bring the train to a complete stop well before the scale approach track.",
+              "Ensure all handbrakes are fully released and train air is completely cut in."
+            ]
+          },
+          {
+            "h": "1.2 Slack management (coupled tension)",
+            "items": [
+              "Begin the move by gently stretching out the entire string of cars.",
+              "The train must be 100% fully stretched (in draft) before the first car reaches the scale track.",
+              "Maintain this constant tension throughout the entire weigh run."
+            ]
+          },
+          {
+            "h": "1.3 Speed & braking",
+            "items": [
+              "Maintain a strict, uniform speed between 3 and 5 MPH.",
+              "Avoid throttle adjustments, rapid acceleration, or drifting while cars are on the scale.",
+              "Do not use independent, dynamic, or automatic brakes during weighing.",
+              "All scale movements must be performed at restricted speed."
+            ]
+          },
+          {
+            "h": "1.4 Safety & operating notes",
+            "items": [
+              "Never leave the Track Scale Terminal unattended while a car is under weigh.",
+              "Protect shove movements at all times.",
+              "Report scale failures or abnormal readings immediately."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Section 2 — Scale calibration procedure",
+        "parts": [
+          {
+            "h": "2.1 Preparing the scale",
+            "items": [
+              "Verify the scale is completely clear.",
+              "Open the Track Scale Terminal and select Calibrate mode."
+            ]
+          },
+          {
+            "h": "2.2 Calibration procedure",
+            "ordered": true,
+            "items": [
+              "Place the Scale Test Car on the LEFT sensor position and weigh the car.",
+              "Adjust the LEFT sensor until Error reads 0.00 tons, then lock the sensor.",
+              "Repeat for the CENTER and RIGHT sensor positions.",
+              "When all three sensors show zero error and the terminal indicates READY, select Save calibration."
+            ]
+          },
+          {
+            "h": "2.3 Returning the scale to service",
+            "items": [
+              "Clear the scale and return the Track Scale Terminal to Weigh mode.",
+              "Return the Scale Test Car to South Yard."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Section 3 — Weighing outbound cars",
+        "parts": [
+          {
+            "h": "3.1 Preparing for weighing",
+            "ordered": true,
+            "items": [
+              "Open the Track Scale Terminal and select Weigh mode.",
+              "Observe Section 1 movement rules, then spot the car on the scale.",
+              "Select the car from Cars at Scale / Inbound Train."
+            ]
+          },
+          {
+            "h": "3.2 Track scale display",
+            "items": [
+              "The terminal displays Adjusted Gross Weight and Net Load for the car on the scale.",
+              "PASS — Record the certified net weight. The car is within prescribed tolerance and approved for outbound movement.",
+              "REJECTED — Overload or left/right imbalance beyond prescribed tolerance; do not release the car.",
+              "Assign a reload order for return to the originating industry.",
+              "Rejected cars must not depart South Yard until reweighed and approved."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "overview": {
+    "id": "overview",
+    "title": "Subdivision Diagram",
+    "pub": "SM-01",
+    "revision": "A",
+    "img": "assets/maps/station_map_subdivision_tt23_panel.png",
+    "alt": "Subdivision diagram: Brick and West Yard, Plane, Scale, Barn and South Yard, East End industries, Princess and Shenango, to McKeesport / McKees Rocks.",
+    "what": "The whole railroad on one strip, west at the top: Brick and West Yard, Plane, Scale, Barn and South Yard, the East End industries, then Princess, Shenango, and the interchanges.",
+    "source": "../docs/ops/Neville_Island_Station_Map.docx"
+  },
+  "maps": [
+    {
+      "id": "west-yard",
+      "title": "West Yard",
+      "pub": "SM-02",
+      "revision": "A",
+      "effective": "23 July 2026",
+      "img": "assets/maps/station_map_west_yard.png",
+      "alt": "West Yard station map: W-1 and W-2 off switch 101, Brick at switch 100 on Main West, Plane at switch 102 to the West Lead and Main East.",
+      "what": "Where D749 ties down: yard tracks W-1 and W-2 off Brick, and the Plane junction to the West Lead and Main East.",
+      "tracks": [
+        {
+          "track": "W-1",
+          "purpose": "West Yard track"
+        },
+        {
+          "track": "W-2",
+          "purpose": "West Yard track"
+        },
+        {
+          "track": "Main West",
+          "purpose": "Main track from Brick toward East End"
+        },
+        {
+          "track": "West Lead",
+          "purpose": "From Plane toward South Yard, past the Barn"
+        },
+        {
+          "track": "Main East",
+          "purpose": "From Plane toward East End"
+        }
+      ],
+      "switches": [
+        {
+          "n": "100",
+          "what": "Brick: Main West or the connection down to Plane"
+        },
+        {
+          "n": "101",
+          "what": "West Yard: W-1 or W-2"
+        },
+        {
+          "n": "102",
+          "what": "Plane: West Lead or Main East"
+        }
+      ],
+      "connects": [
+        "south-yard",
+        "barn",
+        "east-end"
+      ],
+      "source": "../docs/ops/Neville_Island_Station_Map_West_Yard.docx"
+    },
+    {
+      "id": "south-yard",
+      "title": "South Yard",
+      "pub": "SM-03",
+      "revision": "A",
+      "effective": "23 July 2026",
+      "img": "assets/maps/station_map_south_yard.png",
+      "alt": "South Yard station map: Scale and Barn tracks, engine house EH-1 to EH-3 off switch 13, yard ladder switches 15, 17, 19 and 21 to tracks S-1 to S-5, Switch 7 crossover to Main East.",
+      "what": "The yard where D749, NVL and CK1 meet: tracks S-1 to S-5 on the ladder, the Scale and Barn tracks, and the engine house leads.",
+      "tracks": [
+        {
+          "track": "S-1",
+          "purpose": "South Yard track"
+        },
+        {
+          "track": "S-2",
+          "purpose": "South Yard track"
+        },
+        {
+          "track": "S-3",
+          "purpose": "South Yard track"
+        },
+        {
+          "track": "S-4",
+          "purpose": "South Yard track"
+        },
+        {
+          "track": "S-5",
+          "purpose": "South Yard track"
+        },
+        {
+          "track": "Scale",
+          "purpose": "Track scale, west of the Switch 7 crossover"
+        },
+        {
+          "track": "Barn",
+          "purpose": "Between the scale and the yard ladder"
+        },
+        {
+          "track": "EH-1, EH-2, EH-3",
+          "purpose": "Engine house tracks",
+          "map": "barn"
+        },
+        {
+          "track": "Main West",
+          "purpose": "Main track, Brick to East End"
+        },
+        {
+          "track": "Main East",
+          "purpose": "Main track toward East End"
+        }
+      ],
+      "switches": [
+        {
+          "n": "7",
+          "what": "Crossover between the Scale / Barn track and Main East (toward Plane)"
+        },
+        {
+          "n": "13",
+          "what": "Barn track or the engine house lead (EH-1 to EH-3)"
+        },
+        {
+          "n": "15",
+          "what": "Yard ladder: S-1 or the rest of the ladder"
+        },
+        {
+          "n": "17",
+          "what": "Yard ladder: S-2"
+        },
+        {
+          "n": "19",
+          "what": "Yard ladder: S-3"
+        },
+        {
+          "n": "21",
+          "what": "Yard ladder: S-4 or S-5"
+        }
+      ],
+      "connects": [
+        "barn",
+        "west-yard",
+        "east-end"
+      ],
+      "source": "../docs/ops/Neville_Island_Station_Map_South_Yard.docx"
+    },
+    {
+      "id": "barn",
+      "title": "Barn",
+      "pub": "SM-06",
+      "revision": "",
+      "effective": "",
+      "img": "assets/maps/station_map_barn.png",
+      "alt": "Barn station map: Engine House EH-1, EH-2 and EH-3 into switches 9 and 11, Switch 13 on the Barn track, Switch 7 crossover to Main East.",
+      "what": "The engine terminal: engine house tracks EH-1 to EH-3 off switches 9, 11 and 13, and the Switch 7 crossover to Main East.",
+      "tracks": [
+        {
+          "track": "EH-1",
+          "purpose": "Engine house track"
+        },
+        {
+          "track": "EH-2",
+          "purpose": "Engine house track"
+        },
+        {
+          "track": "EH-3",
+          "purpose": "Engine house track"
+        },
+        {
+          "track": "Barn",
+          "purpose": "From the scale east toward South Yard"
+        },
+        {
+          "track": "Scale",
+          "purpose": "Track scale, west of the Switch 7 crossover"
+        },
+        {
+          "track": "Main East",
+          "purpose": "Main track toward East End"
+        }
+      ],
+      "switches": [
+        {
+          "n": "7",
+          "what": "Crossover between the Scale / Barn track and Main East (toward Plane)"
+        },
+        {
+          "n": "9",
+          "what": "EH-3 or EH-2"
+        },
+        {
+          "n": "11",
+          "what": "EH-1 or EH-3 / EH-2"
+        },
+        {
+          "n": "13",
+          "what": "Barn track or the engine house lead"
+        }
+      ],
+      "connects": [
+        "south-yard",
+        "west-yard",
+        "east-end"
+      ],
+      "source": "../docs/ops/Neville_Island_Station_Map_Barn.docx"
+    },
+    {
+      "id": "east-end",
+      "title": "East End",
+      "pub": "SM-04",
+      "revision": "A",
+      "effective": "23 July 2026",
+      "img": "assets/maps/station_map_east_end.png",
+      "alt": "East End station map: Aristech Plastics on S-2, Ferrellgas and A. Stucki Co. on S-3, Kosmos Cement on S-4, Calgon Carbon on S-5, ladder switches 107 to 110, crossover 111, and switch 112 to Main East.",
+      "what": "The island industries: Aristech on S-2, Ferrellgas and A. Stucki on S-3, Kosmos on S-4, and Calgon Carbon on S-5.",
+      "tracks": [
+        {
+          "track": "S-1",
+          "purpose": "Through track on the ladder; continues east as Main East to Princess"
+        },
+        {
+          "track": "S-2",
+          "purpose": "Aristech Plastics: pellets, chemicals, shipping",
+          "colors": [
+            "yellow"
+          ],
+          "spots": [
+            "aristech"
+          ]
+        },
+        {
+          "track": "S-3",
+          "purpose": "Ferrellgas (LPG) and A. Stucki Co. (crane, team track)",
+          "colors": [
+            "red",
+            "green"
+          ],
+          "spots": [
+            "ferrellgas",
+            "stucki"
+          ]
+        },
+        {
+          "track": "S-4",
+          "purpose": "Kosmos Cement: cement, aggregate",
+          "colors": [
+            "pink"
+          ],
+          "spots": [
+            "kosmos"
+          ]
+        },
+        {
+          "track": "S-5",
+          "purpose": "Calgon Carbon: coal, carbon, chemicals",
+          "colors": [
+            "purple"
+          ],
+          "spots": [
+            "calgon"
+          ]
+        },
+        {
+          "track": "Main West",
+          "purpose": "Main track, Brick to Princess"
+        },
+        {
+          "track": "Main East",
+          "purpose": "From the Barn, and east to Princess"
+        }
+      ],
+      "switches": [
+        {
+          "n": "107",
+          "what": "Ladder: S-4 or S-5"
+        },
+        {
+          "n": "108",
+          "what": "Ladder: S-3"
+        },
+        {
+          "n": "109",
+          "what": "Ladder: S-2"
+        },
+        {
+          "n": "110",
+          "what": "S-1 or the industry ladder"
+        },
+        {
+          "n": "111",
+          "what": "Crossover between Main West and S-1"
+        },
+        {
+          "n": "112",
+          "what": "Main East from the Barn joins S-1 / Main East to Princess"
+        }
+      ],
+      "connects": [
+        "west-yard",
+        "barn",
+        "shenango"
+      ],
+      "source": "../docs/ops/Neville_Island_Station_Map_East_End.docx"
+    },
+    {
+      "id": "shenango",
+      "title": "Shenango",
+      "pub": "SM-05",
+      "revision": "A",
+      "effective": "23 July 2026",
+      "img": "assets/maps/station_map_shenango.png",
+      "rotated": "assets/maps/station_map_shenango_rotated.png",
+      "alt": "Shenango station map: Princess crossover 113 between Main West and Main East, Shenango Coke Works on K-1 off switch 115 and K-2 off switch 114, loops to McKee's Rocks / Scully Yard and McKeesport / Demmler Yard.",
+      "what": "Princess junction, Shenango Coke Works on K-1 and K-2, and the loops to McKees Rocks / Scully and McKeesport / Demmler.",
+      "tracks": [
+        {
+          "track": "K-1",
+          "purpose": "Shenango Coke Works",
+          "colors": [
+            "black"
+          ],
+          "spots": [
+            "shenango"
+          ]
+        },
+        {
+          "track": "K-2",
+          "purpose": "Shenango Coke Works",
+          "colors": [
+            "black"
+          ],
+          "spots": [
+            "shenango"
+          ]
+        },
+        {
+          "track": "McKees Rocks / Scully Yard",
+          "purpose": "POHC interchange (NVL)",
+          "colors": [
+            "orange"
+          ],
+          "spots": [
+            "scully"
+          ]
+        },
+        {
+          "track": "McKeesport / Demmler Yard",
+          "purpose": "CSX interchange (D749)",
+          "colors": [
+            "blue"
+          ],
+          "spots": [
+            "demmler"
+          ]
+        },
+        {
+          "track": "Main West",
+          "purpose": "Main track to East End"
+        },
+        {
+          "track": "Main East",
+          "purpose": "Main track to East End"
+        }
+      ],
+      "switches": [
+        {
+          "n": "113",
+          "what": "Princess crossover between Main West and Main East"
+        },
+        {
+          "n": "114",
+          "what": "Main East: K-2 or the McKeesport / Demmler Yard loop"
+        },
+        {
+          "n": "115",
+          "what": "Main West: K-1 or the McKees Rocks / Scully Yard loop"
+        }
+      ],
+      "connects": [
+        "east-end"
+      ],
+      "source": "../docs/ops/Neville_Island_Station_Map_Shenango.docx"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "d749",
+      "code": "D749",
+      "kind": "crew",
+      "name": "CSX Neville Island Switcher",
+      "title": "Crew Instructions",
+      "pub": "CI-D749",
+      "revision": "D",
+      "effective": "21 July 2026",
+      "engine": {
+        "label": "CR 1993 · GE B23-7",
+        "img": "assets/crew/loco-cr-1993-thumb.jpg"
+      },
+      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart eastbound toward McKeesport, and terminate again in West Yard.",
+      "steps": [
+        "Find the train tied down in West Yard with the inbound Demmler block.",
+        "Obtain dispatcher clearance and run the inbound to South Yard.",
+        "Set out the Demmler / McKeesport inbound at South Yard.",
+        "Take the engine light to the engine terminal. Top off fuel and sand if needed.",
+        "When called for the outbound, interchange with the Yardmaster. Build and lift the Demmler / McKeesport outbound block.",
+        "With clearance, depart toward McKeesport with the outbound block.",
+        "On return, follow Yardmaster instructions and tie down in West Yard. Secure the engine."
+      ],
+      "colors": [
+        "blue"
+      ],
+      "maps": [
+        "west-yard",
+        "south-yard",
+        "barn"
+      ],
+      "talk": [
+        {
+          "who": "Dispatcher",
+          "why": "Clearance for the inbound run and the outbound departure."
+        },
+        {
+          "who": "Yardmaster",
+          "why": "Interchange at South Yard, the outbound block, and where to tie down."
+        }
+      ],
+      "source": "../docs/ops/Neville_Island_Crew_D749.docx"
+    },
+    {
+      "id": "nvl",
+      "code": "NVL",
+      "kind": "crew",
+      "name": "Neville Island Turn",
+      "title": "Crew Instructions",
+      "pub": "CI-NVL",
+      "revision": "D",
+      "effective": "21 July 2026",
+      "engine": {
+        "label": "POHC 2091 · EMD GP20",
+        "img": "assets/crew/loco-pohc-2091-thumb.jpg"
+      },
+      "summary": "Neville Island turn from Scully Yard. Interchange at South Yard, work Neville Island industries, then return to McKees Rocks / Scully with the outbound block.",
+      "steps": [
+        "Assign on the train at Scully Yard with the inbound Scully block.",
+        "Obtain dispatcher clearance and run to South Yard.",
+        "Interchange with the Yardmaster. Lift the local industry cut.",
+        "Work Neville Island industries: Aristech, A. Stucki, Calgon Carbon, Ferrellgas, Kosmos Cement, and Shenango Coke Works.",
+        "Return to South Yard for final interchange. Lift the Scully / McKees Rocks outbound block.",
+        "With dispatcher clearance, depart for McKees Rocks / Scully Yard and secure."
+      ],
+      "colors": [
+        "yellow",
+        "green",
+        "purple",
+        "red",
+        "pink",
+        "orange"
+      ],
+      "maps": [
+        "south-yard",
+        "east-end",
+        "shenango"
+      ],
+      "talk": [
+        {
+          "who": "Dispatcher",
+          "why": "Clearance to South Yard and for the return to McKees Rocks / Scully."
+        },
+        {
+          "who": "Yardmaster",
+          "why": "Interchange at South Yard: the local cut out, the Scully block back."
+        }
+      ],
+      "source": "../docs/ops/Neville_Island_Crew_NVL.docx"
+    },
+    {
+      "id": "ck1",
+      "code": "CK1",
+      "kind": "crew",
+      "name": "Coke Transfer",
+      "title": "Crew Instructions",
+      "pub": "CI-CK1",
+      "revision": "D",
+      "effective": "21 July 2026",
+      "engine": {
+        "label": "Assigned by Yardmaster",
+        "img": ""
+      },
+      "summary": "Shenango Coke Works pickup and delivery, scale calibration, weigh, and sort. Power is assigned by the Yardmaster.",
+      "steps": [
+        "Report to the Yardmaster for the assigned engine before going to work.",
+        "Calibrate the track scale with the scale test car (see EQ-01 Scale Operating Instructions).",
+        "Handle Shenango Coke Works pickup and delivery as directed by the Yardmaster.",
+        "Weigh the coke pull on the South Yard west-lead scale at a steady stretch; do not apply brakes under weigh.",
+        "Sort and set out weighed cars in South Yard for classification."
+      ],
+      "colors": [
+        "black"
+      ],
+      "maps": [
+        "south-yard",
+        "shenango"
+      ],
+      "talk": [
+        {
+          "who": "Yardmaster",
+          "why": "Your engine, Shenango pickups and deliveries, and where weighed cars go."
+        },
+        {
+          "who": "Dispatcher",
+          "why": "Clearance for road moves to and from Shenango."
+        }
+      ],
+      "links": [
+        {
+          "label": "Scale Operating Instructions (EQ-01)",
+          "href": "crew/scale/index.html"
+        }
+      ],
+      "source": "../docs/ops/Neville_Island_Crew_CK1.docx"
+    },
+    {
+      "id": "yardmaster",
+      "code": "YM-01",
+      "kind": "yardmaster",
+      "name": "Yardmaster Sequence",
+      "title": "Yardmaster Sequence",
+      "pub": "YM-01",
+      "revision": "D",
+      "effective": "21 July 2026",
+      "engine": null,
+      "summary": "Keep South Yard organized: build cuts by color, hand work to each train in order, and keep D749, NVL, and CK1 from stepping on each other.",
+      "sequence": [
+        {
+          "n": "1",
+          "train": "D749",
+          "action": "Receive inbound Demmler / McKeesport block, build and hand-off outbounds to D749.",
+          "colors": [
+            "blue"
+          ]
+        },
+        {
+          "n": "2",
+          "train": "NVL",
+          "action": "Receive the Scully setout and give NVL the local cut for delivery.",
+          "colors": [
+            "yellow",
+            "green",
+            "purple",
+            "red",
+            "pink"
+          ]
+        },
+        {
+          "n": "3",
+          "train": "CK1",
+          "action": "Hand Shenango cars to CK1 for delivery; calibrate the scale, weigh coke pull and sort.",
+          "colors": [
+            "black"
+          ]
+        },
+        {
+          "n": "4",
+          "train": "NVL return",
+          "action": "Receive NVL setouts and give the Scully / McKees Rocks block for the return.",
+          "colors": [
+            "orange"
+          ]
+        }
+      ],
+      "colors": [
+        "blue",
+        "yellow",
+        "green",
+        "purple",
+        "red",
+        "pink",
+        "black",
+        "orange"
+      ],
+      "maps": [
+        "south-yard",
+        "barn"
+      ],
+      "talk": [
+        {
+          "who": "D749, NVL and CK1 crews",
+          "why": "Interchange, cuts by color, and where each crew sets out and ties down."
+        },
+        {
+          "who": "Dispatcher",
+          "why": "When road moves will cross the shared leads at South Yard."
+        }
+      ],
+      "source": "../docs/ops/Neville_Island_Yardmaster_Sequence.docx"
+    },
+    {
+      "id": "dispatcher",
+      "code": "DS-01",
+      "kind": "dispatcher",
+      "name": "Dispatcher Train List",
+      "title": "Dispatcher Train List",
+      "pub": "DS-01",
+      "revision": "D",
+      "effective": "21 July 2026",
+      "engine": null,
+      "summary": "Authorize road moves, keep train order, and keep freight out of the streetcar's way. Work the lineup in order and the priority strip when moves conflict.",
+      "priority": [
+        "OCS-1",
+        "Route 23",
+        "D749",
+        "NVL",
+        "CK1",
+        "Yard"
+      ],
+      "lineup": [
+        {
+          "n": "1",
+          "train": "Route 23 AM",
+          "action": "Operate per timetable; hold conflicting work until the train clears."
+        },
+        {
+          "n": "2",
+          "train": "D749",
+          "action": "Demmler → South Yard to open; interchange; release outbounds to McKeesport.",
+          "colors": [
+            "blue"
+          ]
+        },
+        {
+          "n": "3",
+          "train": "OCS-1",
+          "action": "When scheduled — highest priority; clear the route."
+        },
+        {
+          "n": "4",
+          "train": "NVL",
+          "action": "Scully → South Yard; interchange; service local industries; return with outbounds; return to McKees Rocks.",
+          "colors": [
+            "yellow",
+            "green",
+            "purple",
+            "red",
+            "pink",
+            "orange"
+          ]
+        },
+        {
+          "n": "5",
+          "train": "CK1",
+          "action": "Shenango pickup and delivery; calibrate scale, weigh coke pull, and sort.",
+          "colors": [
+            "black"
+          ]
+        },
+        {
+          "n": "6",
+          "train": "D749 Return",
+          "action": "Authorize return; terminate in West Yard.",
+          "colors": [
+            "blue"
+          ]
+        },
+        {
+          "n": "7",
+          "train": "Route 23 PM",
+          "action": "Operate per timetable; hold conflicting work until the train clears."
+        }
+      ],
+      "colors": [
+        "blue",
+        "yellow",
+        "green",
+        "purple",
+        "red",
+        "pink",
+        "black",
+        "orange"
+      ],
+      "maps": [
+        "west-yard",
+        "south-yard",
+        "east-end",
+        "shenango"
+      ],
+      "talk": [
+        {
+          "who": "Every crew",
+          "why": "Clearance for road moves; one move at a time across the shared leads at South Yard."
+        },
+        {
+          "who": "Yardmaster",
+          "why": "When South Yard is ready for the next interchange."
+        }
+      ],
+      "ttOpen": true,
+      "source": "../docs/ops/Neville_Island_Dispatcher_Train_List.docx"
+    }
+  ]
+}

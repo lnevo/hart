@@ -8,15 +8,15 @@ Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is *
 
 | File | Role |
 |------|------|
-| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `cats/data/signal_wiring.csv`. **Node ID = C{radio Address}** (helix DCC is **D5**). **Legacy Node ID** is the old sequential C1–C13 / D1 label. |
+| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `docs/wiring/signals/signal_wiring.csv`. **Node ID = C{radio Address}** (helix DCC is **D5**). **Legacy Node ID** is the old sequential C1–C13 / D1 label. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v85. |
 | [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | Live lower-deck Digicon ABS matrix (100L, 117LA, 114LA, …). |
 | [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
 | [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). Sequential C1–C13 IDs. |
 
-LCOS Signal Manager punch list (ports + Main/Diverged + OR): [`cats/data/lcos_signal_manager_config_plan.xlsx`](../../cats/data/lcos_signal_manager_config_plan.xlsx). Source table: [`cats/data/lcos_signal_logic.csv`](../../cats/data/lcos_signal_logic.csv).
+LCOS Signal Manager punch list (ports + Main/Diverged + OR): [`docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`](../../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx). Source table: [`docs/wiring/lcos/lcos_signal_logic.csv`](../../docs/wiring/lcos/lcos_signal_logic.csv).
 
-CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
+CSV source of truth for Digicon ports: [`docs/wiring/signals/signal_wiring.csv`](../../docs/wiring/signals/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
 **Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is Switch 15–21 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
 
@@ -24,7 +24,7 @@ CSV source of truth for Digicon ports: [`cats/data/signal_wiring.csv`](../../cat
 
 ## Digicon heads and OU boards
 
-Pin-level source: [`cats/data/signal_wiring.csv`](../../cats/data/signal_wiring.csv). Each disc is one 3-pin `STOP/APPROACH/CLEAR` object wired **R then Y then G** on consecutive increasing LCOS ports (Port A Stop, B Approach, C Clear). **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
+Pin-level source: [`docs/wiring/signals/signal_wiring.csv`](../../docs/wiring/signals/signal_wiring.csv). Each disc is one 3-pin `STOP/APPROACH/CLEAR` object wired **R then Y then G** on consecutive increasing LCOS ports (Port A Stop, B Approach, C Clear). **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
 
 New 5V **OU4** on C1 / C4 / C13 only.
 
@@ -269,7 +269,7 @@ python3 docs/wiring/scripts/refresh_wiring_docs.py
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 ```
 
-Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`, and `Wiring_Schematic.pptx` to `~/Desktop/HART/Wiring Documentation/`. Copy `cats/data/lcos_signal_manager_config_plan.xlsx` there too when punching Signal Manager. Do not refresh Desktop until JMRI XML is applied so the bench pack matches live beans.
+Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`, and `Wiring_Schematic.pptx` to `~/Desktop/HART/Wiring Documentation/`. Copy `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` there too when punching Signal Manager. Do not refresh Desktop until JMRI XML is applied so the bench pack matches live beans.
 
 ## What v85 changed vs Desktop v84
 

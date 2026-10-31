@@ -11,7 +11,7 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 
 ## Outputs
 
-- `userName` on turnouts, sensors, blocks, heads, masts in `tables/new_tables.xml` and hart `output/`
+- `userName` on turnouts, sensors, blocks, heads, masts in `jmri/layouts/hart/output/tables.xml` and hart `output/`
 - Occupancy comments `Block n-n`; wiring comments on hardware beans
 - Names baked into USS / CATS **after regenerate**, not by string-replace of generated XML
 
@@ -28,7 +28,7 @@ python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 
 Beans **with a generator** (USS diagram, CATS Masters, signal heads): change the script or CSV, then regenerate those pipelines. Do not search-replace their output.
 
-Writable tables only: `tables/new_tables.xml` (never `tables/tables.xml`).
+Writable tables: `jmri/layouts/hart/output/tables.xml`.
 
 ## Do not
 

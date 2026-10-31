@@ -15,11 +15,9 @@ from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_SOURCES = (
-    ("working", REPO_ROOT / "tables" / "new_tables.xml"),
     ("deployment", REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"),
-    ("standalone", REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "hart_prod.xml"),
 )
-BOUNDARIES = REPO_ROOT / "cats" / "data" / "le_signal_boundaries.csv"
+BOUNDARIES = REPO_ROOT / "jmri/layouts/hart/data/le_signal_boundaries.csv"
 OCCUPANCY_BINDINGS = REPO_ROOT / "cats" / "data" / "occupancy_bindings.csv"
 TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"

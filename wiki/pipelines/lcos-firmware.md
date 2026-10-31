@@ -27,4 +27,3 @@ Run the Windows serial bridge in the **foreground**. Do not start it from an age
 
 Detail: that repo’s `README.md`, `docs/serial_mqtt_windows.md`.
 
-Periodic 125 after a master RAM wipe is a known follow-up (mast MQTT vanishes until 125 is replayed).

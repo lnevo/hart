@@ -6,7 +6,7 @@ Measured DecoderPro speed profiles so Dispatcher System station stops are realis
 
 ## Inputs
 
-- Club SOP + scripts under [`jmri/docs/speedmatching/`](../../jmri/docs/speedmatching/)
+- Club SOP + scripts under [`docs/jmri/speedmatching/`](../../docs/jmri/speedmatching/)
 - Detected loop (scripts are N-scale Kato 19″ / BDL168 `LS1`–`LS12` — **adapt** for HART)
 
 ## Outputs

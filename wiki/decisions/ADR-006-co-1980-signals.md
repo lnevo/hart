@@ -1,6 +1,6 @@
 # ADR-006 — Signal rulebook for Digicon SHSM
 
-- **Status:** Accepted (amended 2026-09-28 — basic-enhanced trial)
+- **Status:** Superseded by ADR-011 (was amended 2026-09-28 — basic-enhanced trial)
 - **Date:** 2026-09-03
 - **Deciders:** lnevo
 
@@ -25,7 +25,7 @@ Stock C&O-1980 was loaded briefly (homes `CO-33-hi`, dwarfs `CO-3-dwarf`) so the
 - Two-head lamps while the flash aspects stay disabled: Clear G/R, Approach Y/R, Diverging Clear R/G, Diverging Approach R/Y, Stop R/R. Dwarfs: Clear, Approach, Stop.
 - A mast two blocks from a real Stop shows Stop, not Clear and not flashing yellow. The chain goes green only after that Stop clears.
 - Diverging Clear speed in this system is Limited.
-- The C&O-1980 user-files overlay remains in the repo and is unused. Custom `hart-aar` remains unused.
+- The custom `cats-masts`, `hart-aar` and C&O-1980 overlay sets were retired on 2026-10-31. JMRI's own stock C&O-1980 stays in the install if the trial is ever revisited.
 - Changing mast **type** again still requires rewriting SHSM system names in tables.
 
 ## Alternatives considered

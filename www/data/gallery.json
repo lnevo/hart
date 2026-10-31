@@ -1,0 +1,554 @@
+{
+  "title": "Session night: the layout room",
+  "lede": "A walk through the room on a session night, from the crew lounge to the dispatcher's desk, the yards, the scale, and the paperwork, then the control panels the dispatcher works. Then the room's build month by month, the track plans, and the wiring.",
+  "albums": [
+    {
+      "id": "layout",
+      "label": "Session night",
+      "count": 17
+    },
+    {
+      "id": "panels",
+      "label": "Panels & screens",
+      "count": 3
+    },
+    {
+      "id": "plans",
+      "label": "Track plan development",
+      "count": 6
+    },
+    {
+      "id": "build",
+      "label": "Build & wiring",
+      "count": 5
+    },
+    {
+      "id": "progress",
+      "label": "The build, month by month",
+      "count": 37
+    }
+  ],
+  "items": [
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8944.png",
+      "title": "Crew lounge",
+      "caption": "Where operators gather before and after a session.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8953.png",
+      "title": "The layout room",
+      "caption": "The whole room: peninsulas on open benchwork, the helix framing, and the river-valley backdrop around the walls.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8949.png",
+      "title": "Dispatcher's desk",
+      "caption": "The corner desk where the dispatcher sits, surrounded by the layout.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8945.png",
+      "title": "West Yard",
+      "caption": "Engine house and coaling tower against the backdrop, with a train on the main behind.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8947.png",
+      "title": "South Yard",
+      "caption": "Freight cars filling the yard ladder, ballast down and the backdrop in place.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8946.png",
+      "title": "East Yard",
+      "caption": "Strings of hoppers on bare plywood, track down and scenery still to come.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8948.png",
+      "title": "Yard tracks by color",
+      "caption": "Colored strips mark which yard track takes cars for which destination.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8940.png",
+      "title": "Fascia track diagram",
+      "caption": "A framed track diagram with indicator lights at the fascia, below a cut of B&O hoppers.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8975.png",
+      "title": "Fascia track diagram",
+      "caption": "Indicator lights show switch positions on a yard throat diagram; NS and CSX tags mark the interchange tracks.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8976.png",
+      "title": "Fascia track diagram",
+      "caption": "Another framed diagram at the fascia, wired from below.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8952.png",
+      "title": "The scale",
+      "caption": "Scale track with the plant buildings behind it and the scale operating instructions on the deck.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8941.png",
+      "title": "Scale house and instructions",
+      "caption": "A scale-house mockup next to the HART scale operating instructions.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8950.png",
+      "title": "Crew sheets",
+      "caption": "Clipboards with crew sheets hung along the fascia, ready for a session.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8958.png",
+      "title": "The HART binder",
+      "caption": "The red operations binder, with pencils and pens for the paperwork.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8942.png",
+      "title": "Railroad reading",
+      "caption": "Railroad history books on the lounge table.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8957.png",
+      "title": "Planning board",
+      "caption": "Track plan prints, maps, and an aerial photo pinned up for planning.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "layout",
+      "src": "../media/archive/f-root/IMG_8951.png",
+      "title": "Track plan mockup",
+      "caption": "A cut-out model of the track plan on the workbench.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "panels",
+      "src": "assets/panels/digicon-ctc.png",
+      "title": "Digicon CTC",
+      "caption": "Current Digicon schematic — HART Railroad / Neville Island Operations.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "panels",
+      "src": "assets/panels/classic-ctc.png",
+      "title": "Classic CTC machine",
+      "caption": "Current classic CTC panel with switches and signal levers.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "panels",
+      "src": "assets/panels/neville-island-le.png",
+      "title": "Neville Island LE panel",
+      "caption": "Current Layout Editor / Neville Island panel with SW labels.",
+      "credit": "Live panels · Aug 2026"
+    },
+    {
+      "album": "plans",
+      "src": "../media/archive/incoming/desktop/track-plan-2025-07-06-benchwork.png",
+      "title": "Track plan, July 2025: benchwork",
+      "caption": "The benchwork footprint around the walls and the peninsula, with the aisle and closet marked and the main dimensions.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "plans",
+      "src": "../media/archive/incoming/desktop/track-plan-2025-07-06-maps.png",
+      "title": "Track plan, July 2025: prototype maps",
+      "caption": "Old maps of the island laid over the benchwork to place the yards and plants, Aristech and Calgon Carbon among them.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "plans",
+      "src": "../media/archive/incoming/desktop/track-plan-2025-07-06-main.png",
+      "title": "Track plan, July 2025: main line and yard",
+      "caption": "The double-track main around the walls, the yard on the peninsula, and spurs at the lower left.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "plans",
+      "src": "../media/archive/incoming/desktop/track-plan-2025-07-06-multitrack.png",
+      "title": "Track plan, July 2025: multi-track level",
+      "caption": "Four parallel tracks around the room and a loop on the peninsula.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "plans",
+      "src": "../media/archive/incoming/desktop/track-plan-2025-07-06-multitrack-maps.png",
+      "title": "Track plan, July 2025: South and West Yard maps",
+      "caption": "The multi-track plan with the old South Yard and West Yard maps laid over it.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "plans",
+      "src": "../media/archive/incoming/desktop/track-plan-2025-07-06.png",
+      "title": "Track plan, July 2025",
+      "caption": "The full plan as of July 2025: the coke retort on the peninsula, the double-track helix leads down to staging, the yards and industries along the walls, and the tracks continuing into the closet.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "build",
+      "src": "../media/archive/f-root/Screenshot 2025-06-20 at 12.08.15 AM.png",
+      "title": "Coke oven kit: typical arrangement",
+      "caption": "The kit maker's typical arrangement for the coke oven battery, used to plan the coke plant on the peninsula.",
+      "credit": "Credit unknown"
+    },
+    {
+      "album": "build",
+      "src": "../media/archive/f-root/lcn-connection-diagram.webp",
+      "title": "LCOS client node wiring",
+      "caption": "How one LCOS radio node is hooked up: an Arduino Nano with a radio, input and output boards, a signal driver board, block occupancy detectors, and the layout control bus that powers them.",
+      "credit": "Credit unknown"
+    },
+    {
+      "album": "build",
+      "src": "../media/archive/incoming/desktop/psx-ar-reverse-loop-wiring.png",
+      "title": "PSX-AR reverse loop wiring",
+      "caption": "Booster power through a PSX-AR auto-reverser to the reverse loop, with rail gaps at each end, a Tortoise switch machine on the loop turnout, and a momentary toggle switch.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "build",
+      "src": "../media/archive/incoming/desktop/touch-toggle-dimensions.png",
+      "title": "Touch toggle dimensions",
+      "caption": "Drilling template for the fascia touch toggles: a 3/4 in square plate with 3/16 in holes on 3/8 in spacing, in two-hole and one-hole versions.",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "build",
+      "src": "assets/f-root-previews/ba144a53d531cb34.jpg",
+      "title": "Power districts, day one",
+      "caption": "An early plan for track power: the command station and two boosters feed circuit breakers and auto-reversers, one group each for the main line, branch line and Scully Yard, the Canonsburg branch and west loop, and the helix, PC&C and east loop.",
+      "credit": "HART wiring schematic"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_1774.jpg",
+      "title": "Before HART",
+      "caption": "An earlier tabletop layout, three years before this room.",
+      "date": "2022-08-13",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_4038.jpg",
+      "title": "The empty room",
+      "caption": "Bare walls and patched drywall.",
+      "date": "2025-02-10",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_4124.jpg",
+      "title": "Paint and floor",
+      "caption": "Blue walls and a dark floor. Still empty.",
+      "date": "2025-02-26",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7806.jpg",
+      "title": "First brackets",
+      "caption": "Wall benchwork starts along the blue walls.",
+      "date": "2025-08-09",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6653.jpg",
+      "title": "Open-grid framing",
+      "caption": "The first free-standing frame in the middle of the room.",
+      "date": "2025-08-10",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6675.jpg",
+      "title": "Behind the double doors",
+      "caption": "Benchwork wraps around a desk in the small room.",
+      "date": "2025-08-12",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6755.jpg",
+      "title": "Backdrop boards",
+      "caption": "Hardboard backdrop panels go up above the shelves.",
+      "date": "2025-08-19",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6844.jpg",
+      "title": "A round end",
+      "caption": "Plywood top on a round end, with a curved hardboard view block.",
+      "date": "2025-09-01",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6857.jpg",
+      "title": "Plywood tops",
+      "caption": "Tops on the open-grid benchwork.",
+      "date": "2025-09-06",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6878.jpg",
+      "title": "Photo backdrop",
+      "caption": "The printed skyline backdrop goes up around the walls.",
+      "date": "2025-09-07",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6880.jpg",
+      "title": "Through the doors",
+      "caption": "The backdrop carries on in the small room.",
+      "date": "2025-09-07",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7226.jpg",
+      "title": "Bus wiring",
+      "caption": "Colour-coded wires meet at a terminal strip under the benchwork.",
+      "date": "2025-09-24",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7471.jpg",
+      "title": "A node on the bench",
+      "caption": "An LCOS radio node board on the workbench.",
+      "date": "2025-10-27",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7514.jpg",
+      "title": "Valance and lights",
+      "caption": "A black valance and new lights hang over the benchwork.",
+      "date": "2025-11-02",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7535.jpg",
+      "title": "Structure mock-ups",
+      "caption": "Grey mock-up buildings tried in front of the backdrop.",
+      "date": "2025-11-03",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7620.jpg",
+      "title": "Curved view block",
+      "caption": "Photo backdrop wraps the curved view block.",
+      "date": "2025-11-10",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7868.jpg",
+      "title": "Node in place",
+      "caption": "An LCOS node mounted under the benchwork, cabled up.",
+      "date": "2025-12-13",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7904.jpg",
+      "title": "Track templates",
+      "caption": "Printed full-size templates laid on the oval.",
+      "date": "2025-12-20",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7915.jpg",
+      "title": "Cork down",
+      "caption": "Cork roadbed along the wall benchwork.",
+      "date": "2025-12-20",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7956.jpg",
+      "title": "Parallel tracks",
+      "caption": "Several tracks laid side by side on cork.",
+      "date": "2025-12-24",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7986.jpg",
+      "title": "Roadbed on the curves",
+      "caption": "Cork strips follow the curved end.",
+      "date": "2025-12-25",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8070.jpg",
+      "title": "Yard ladder",
+      "caption": "A ladder of turnouts feeds parallel yard tracks.",
+      "date": "2025-12-27",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8120.jpg",
+      "title": "Around the corner",
+      "caption": "Track laid around a corner of the wall benchwork.",
+      "date": "2025-12-30",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8143.jpg",
+      "title": "Track on the oval",
+      "caption": "Track around the oval, with the opening in its middle.",
+      "date": "2025-12-31",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8307.jpg",
+      "title": "On the rails",
+      "caption": "A diesel on newly laid track.",
+      "date": "2026-01-15",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8415.jpg",
+      "title": "Trackside electronics",
+      "caption": "A small circuit board and LED fitted beside the track.",
+      "date": "2026-02-11",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8904.jpg",
+      "title": "Trains lined up",
+      "caption": "Trains on the tracks along the wall.",
+      "date": "2026-05-26",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8940.jpg",
+      "title": "Track diagram",
+      "caption": "A framed track diagram with signal dots beside the track.",
+      "date": "2026-05-30",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8947.jpg",
+      "title": "South Yard",
+      "caption": "Cars in South Yard, labelled on the edge.",
+      "date": "2026-05-30",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8954.jpg",
+      "title": "The room in May",
+      "caption": "The whole room, track down and trains on the layout.",
+      "date": "2026-05-30",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_9231.jpg",
+      "title": "New track",
+      "caption": "New turnouts and curves in front of the backdrop.",
+      "date": "2026-06-22",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_9288.jpg",
+      "title": "Engines on hand",
+      "caption": "Diesels lined up beside a small shed.",
+      "date": "2026-06-28",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_9347.jpg",
+      "title": "Car card boxes",
+      "caption": "Printed boxes for car cards, each with a customer's name.",
+      "date": "2026-07-17",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0679.jpg",
+      "title": "Helix: laying out",
+      "caption": "The Neville Island helix begins: frame pieces laid out on the oval, with the plan sheet.",
+      "date": "2026-09-27",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0691.jpg",
+      "title": "Helix: the frame",
+      "caption": "The helix frame stands over the opening.",
+      "date": "2026-09-27",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0727.jpg",
+      "title": "Helix: first roadbed",
+      "caption": "The first plywood roadbed pieces on the helix brackets.",
+      "date": "2026-10-02",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0819.jpg",
+      "title": "Helix: climbing",
+      "caption": "Helix roadbed climbing above the track on the oval.",
+      "date": "2026-10-15",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0883.jpg",
+      "title": "Helix: complete",
+      "caption": "The finished helix: every turn of roadbed up and tracked, from the oval to the top.",
+      "date": "2026-10-22",
+      "credit": "HART layout photos"
+    }
+  ]
+}

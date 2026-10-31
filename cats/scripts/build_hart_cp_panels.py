@@ -11,8 +11,8 @@ space between each CP so they can be read together.
 Outputs:
   cats/panels/cp/HART_cp_<id>.xml   (single CP)
   cats/panels/cp/HART_cp_all.xml    (all CPs stacked, spaced)
-  cats/screenshots/cp/HART_cp_*.png
-  cats/docs/CP_PANELS.md
+  media/screenshots/cp/HART_cp_*.png
+  docs/ctc/CP_PANELS.md
 """
 
 from __future__ import annotations
@@ -29,8 +29,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_hart_digicon_from_le as le  # noqa: E402
 
 OUT_DIR = ROOT / "cats/panels/cp"
-SHOT_DIR = ROOT / "cats/screenshots/cp"
-INDEX = ROOT / "cats/docs/CP_PANELS.md"
+SHOT_DIR = ROOT / "media/screenshots/cp"
+INDEX = ROOT / "docs/ctc/CP_PANELS.md"
 OUT_ALL = OUT_DIR / "HART_cp_all.xml"
 WIDTH, HEIGHT = "900", "420"
 # Wide review board: CPs left->right with padding (avoids left-edge clip)
@@ -697,7 +697,7 @@ def _write_index(results: list[tuple[str, str, str, Path, list[str], Path | None
         "Each panel is **one CP** drawn to the Neville station-map sheet language.",
         "Critique these individually before we reassemble the full Digicon.",
         "",
-        "Station maps: `cats/docs/station_maps/`",
+        "Station maps: `ops/station_maps/maps/`",
         "",
         "Rebuild: `python3 cats/scripts/build_hart_cp_panels.py`",
         "",

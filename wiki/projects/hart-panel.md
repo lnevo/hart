@@ -4,13 +4,13 @@
 - **Status:** Active — live layout is past phases 0–2 (SML, CATS, USS, Dispatcher System)
 - **Date:** 2026-08-07 (scaffold); **refreshed 2026-08-22**
 - **Layout name:** `hart`
-- **Baseline:** `jmri/layouts/linear6/linear6.xml` (connectivity + positionability)
+- **Baseline:** `jmri/layouts/hart/anyrail/hart.xml` (connectivity + positionability)
 
 ## Evidence
 
 - linear6 was the live hand-tuned panel (MQTT switches 100–119, CP labels Brick/Plane/East End/Princess).
 - hart forked that geometry; it did **not** re-run AnyRail → Excel → blocked panel.
-- Live SoR: [`../STATUS.md`](../STATUS.md) · Digicon: [`../../cats/docs/HART_DIGICON_SYSTEM.md`](../../cats/docs/HART_DIGICON_SYSTEM.md)
+- Live SoR: [`../STATUS.md`](../STATUS.md) · Digicon: [`../../docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_SYSTEM.md)
 
 ## Problem (original)
 
@@ -32,14 +32,14 @@ Best geometry and live wiring lived in an ad-hoc folder without a named layout p
 
 ## What landed after phase 2
 
-Native SML (98 dests: 96 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (103 sections / 746 transits / 1548 traininfo; all 22 stations are origins and destinations, including S-1…S-5 and EH outbound). Node 13 occupancy walk-down is live (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT channels swapped vs geographic labels). Load `jmri/layouts/hart/output/hart_prod.xml`; writable source `tables/new_tables.xml`.
+Native SML (98 dests: 96 Layout Editor + 2 manual Princess), CATS CTC + ABS HOLD_ONLY, USS 15-column machine, Dispatcher System Stage 1 (103 sections / 746 transits / 1548 traininfo; all 22 stations are origins and destinations, including S-1…S-5 and EH outbound). Node 13 occupancy walk-down is live (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9; EH-1/EH-3 MQTT channels swapped vs geographic labels). Load `jmri/layouts/hart/output/hart_prod.xml`; writable source `jmri/layouts/hart/output/tables.xml`.
 
 ## Remaining (railroad)
 
 | Item | Notes |
 |------|--------|
 | Measured speed profiles | Synthetic 10-step / 400 mm/s on every roster loco — [`speedmatching.md`](speedmatching.md) |
-| Dispatcher S-1…S-5 platforms | Done 2026-08-22 — hidden throats + Stage 1; 62 inbound traininfo each |
+| Dispatcher S-R and S-1…S-4 platforms | Done 2026-08-22 — hidden throats + Stage 1; 62 inbound traininfo each |
 | First-registration facing invert | Overlay live; [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) open; [PR#15408](https://github.com/JMRI/JMRI/pull/15408) closed pending more testing |
 | END_BUMPER far-slot hack | Keep until a real facing-block fix; still needed for W-1/W-2/K-1/K-2/EH |
 

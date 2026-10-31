@@ -12,8 +12,8 @@
 #   Agent-launched java inherits Cursor's TCC. Grant Cursor Local Network once
 #   (System Settings → Privacy & Security → Local Network), then restart Cursor
 #   / relaunch CATS. PanelPro often never appears in that list — that is fine.
-#   If Cursor is still blocked: CATS_LAUNCH_VIA=app|terminal hand off.
-#   Override: CATS_LAUNCH_VIA=direct|app|terminal|auto
+#   If Cursor is still blocked: CATS_LAUNCH_VIA=terminal hands off.
+#   Override: CATS_LAUNCH_VIA=direct|terminal|auto
 #
 # Logs (stdout+stderr via 2>&1 | tee):
 #   Default: cats/logs/cats_launch.log
@@ -32,8 +32,7 @@ JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 # Default: live CATS CTC (HOLD_ONLY; JMRI SML).
 # ABS: ./cats/scripts/launch_hart_master_abs.sh
 # Gate 1: ./cats/scripts/launch_cats.sh cats/panels/HART.xml
-# Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=app|terminal.
-# (PanelPro.app handoff changed JMRI behavior — do not use as default.)
+# Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=terminal.
 PANEL="${1:-$ROOT/cats/panels/HART_Master_CTC_hold.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
@@ -86,9 +85,9 @@ echo "Auto-open Digicon: $PANEL"
 echo "Quit PanelPro first if it is using this profile (tables load via Start Up)."
 
 resolve_via() {
-  # Default / auto → direct cats.csh only. Never auto-pick PanelPro.app.
+  # Default / auto → direct cats.csh only.
   case "${1:-direct}" in
-    app|terminal|direct) echo "$1" ;;
+    terminal|direct) echo "$1" ;;
     auto|"") echo "direct" ;;
     *) echo "direct" ;;
   esac
@@ -104,7 +103,7 @@ fi
 
 # Do NOT touch MQTT from launch (no retain clear/sync/seed, no broker probes).
 # Field + broker are SoR. Occasional junk cleanup is manual only:
-#   python3 cats/scripts/clear_mqtt_cmd_sensor_retain.py
+#   python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
 # Digicon load safety: cats-pts-nullguard overlay (tools/cats/install_into_jmri.sh).
 
 # Run cats.csh with optional tee of combined stdout/stderr.
@@ -126,26 +125,6 @@ launch_direct() {
   run_cats "$JMRI_PROFILE" "$PANEL"
 }
 
-launch_app() {
-  # PanelPro.app StartJMRI does not put cats.jar on CP by default — append it.
-  # LaunchServices attributes Local Network to jmri.PanelPro, not Cursor.
-  # Note: app handoff does not inherit our tee; use terminal|direct for logs.
-  local app="$JMRI_HOME/PanelPro.app"
-  if [[ ! -d "$app" ]]; then
-    echo "PanelPro.app not found at $app — falling back to direct" >&2
-    launch_direct
-  fi
-  if [[ -n "$CATS_LAUNCH_LOG" ]]; then
-    echo "WARN: CATS_LAUNCH_VIA=app cannot tee into $CATS_LAUNCH_LOG — use terminal or direct." >&2
-  fi
-  echo "Handing off to $app (approve Local Network for PanelPro once if prompted)."
-  open -n -a "$app" --args \
-    --cp:a=cats.jar \
-    -m cats.apps.Crandic \
-    --profile="$JMRI_PROFILE" \
-    "$PANEL"
-}
-
 launch_terminal() {
   # Runs cats.csh inside Terminal.app (usually already has Local Network).
   # stdout+stderr tee'd into CATS_LAUNCH_LOG when set.
@@ -164,10 +143,9 @@ launch_terminal() {
 
 case "$VIA" in
   direct) launch_direct ;;
-  app) launch_app ;;
   terminal) launch_terminal ;;
   *)
-    echo "Unknown CATS_LAUNCH_VIA=$VIA (use auto|app|direct|terminal)" >&2
+    echo "Unknown CATS_LAUNCH_VIA=$VIA (use auto|direct|terminal)" >&2
     exit 1
     ;;
 esac

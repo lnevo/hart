@@ -180,5 +180,5 @@ in `tables.xml` (`<ctcdata>`).
 
 This guide covers the **USS lever machine** only. For the **CATS mouse panel**
 (quick routes, N/X, stacking, fleeting, call-on), see
-[`cats/docs/DISPATCHER_GUIDE_CTC.md`](../../../../cats/docs/DISPATCHER_GUIDE_CTC.md)
+[`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../../../docs/ctc/DISPATCHER_GUIDE_CTC.md)
 (DS-CATS-DISP). Do not run both panels as CTC authority at once.

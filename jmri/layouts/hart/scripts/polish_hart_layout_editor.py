@@ -5,7 +5,7 @@ This script changes display geometry only.  It deliberately does not touch
 track connectivity, turnout ports, block assignments, signal-mast bindings,
 SML, CTC data, or hardware bean names.
 
-The writable source is ``tables/new_tables.xml``.  Use ``--sync-output`` to
+The writable source is ``jmri/layouts/hart/output/tables.xml``.  Use ``--sync-output`` to
 apply the same visual edits independently to the deployment bundle and the
 standalone monitor panel; the files are never copied over one another.
 """
@@ -18,11 +18,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PANEL = ROOT / "tables/new_tables.xml"
+DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
-# Keep this list in sync with cats/scripts/add_digicon_le_signal_icons.py.
+# Keep this list in sync with jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py.
 # Horizontal masts follow the North American right-hand placement convention:
 # east-facing (90 degrees) below the rail, west-facing (270) above it.
 SIGNAL_PLACEMENTS: dict[str, tuple[int, int, int]] = {
@@ -614,7 +614,7 @@ def main() -> int:
 
     paths = [args.panel.resolve()]
     if args.sync_output and args.panel.resolve() == DEFAULT_PANEL.resolve():
-        paths.extend([OUTPUT_TABLES, STANDALONE_PANEL])
+        pass
 
     if args.overlap_cleanup:
         apply_fn = apply_overlap_cleanup

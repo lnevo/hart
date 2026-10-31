@@ -3,13 +3,13 @@
 - **Owner:** lnevo
 - **Status:** Active — live desks are **CATS CTC** + **CATS ABS** (Masters), not Gate 1 `HART.xml`
 - **ADR:** [`../decisions/ADR-004-cats-ctc.md`](../decisions/ADR-004-cats-ctc.md)
-- **Code/docs:** [`cats/`](../../cats/) · system: [`../../cats/docs/HART_DIGICON_SYSTEM.md`](../../cats/docs/HART_DIGICON_SYSTEM.md)
+- **Code/docs:** [`cats/`](../../cats/) · system: [`../../docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_SYSTEM.md)
 
 ## Locked
 
 - JMRI: current (**5.15.4plus** / ≤5.16 for CATS 3.2)
 - CTC **route** authority: **CATS** (`HART_Master_CTC_hold.xml` HOLD_ONLY)
-- Signal **aspects**: **JMRI SML** (basic-enhanced `two-searchlight-high` / `one-searchlight-low`, flashing aspects disabled on the mast). Without CATS, Unhold = ABS.
+- Signal **aspects**: **JMRI SML** (Basic `two-searchlight` / `one-low`). Without CATS, Unhold = ABS.
 - Never run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.
 
 ## Live artifacts
@@ -31,5 +31,5 @@ Node 13 occupancy walk-down is done (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 13
 
 ## Related
 
-- Dispatcher guide: [`../../cats/docs/DISPATCHER_GUIDE_CTC.md`](../../cats/docs/DISPATCHER_GUIDE_CTC.md)
+- Dispatcher guide: [`../../docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../docs/ctc/DISPATCHER_GUIDE_CTC.md)
 - Deploy: `./cats/scripts/sync_hart_package.sh --pi` (add `--win` / `--all`)

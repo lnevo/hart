@@ -5,7 +5,7 @@ K-2, hidden stub and South Yard throat-boundary virtual masts.
 LCC aliases keep device-map userNames (`DCC Switch N`) and comments; this
 script only copies MQTT feedback/sensors onto MTT{dcc}.
 
-Writable source is tables/new_tables.xml. --sync-output also patches
+Writable source is jmri/layouts/hart/output/tables.xml. --sync-output also patches
 jmri/layouts/hart/output/tables.xml and hart_prod.xml independently.
 
 Yard body tracks use hidden throat blocks (apply_yard_throat_blocks.py) so
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lcc_turnout_contract import DCC_RE, child_text
 
-DEFAULT = ROOT / "tables/new_tables.xml"
+DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
@@ -36,30 +36,30 @@ STUB_MASTS = [
     # (null) unless the mast is in the "far" slot. West-end bumpers therefore
     # use westboundsignalmast; east-end bumpers use eastboundsignalmast.
     # Same trick as the Engine House buffers (118L / 119LA / 119LB).
-    ("IF$vsm:basic-enhanced:one-searchlight-low($1001)", "101LA", "EB70", "westboundsignalmast", 40, 236, 270),
-    ("IF$vsm:basic-enhanced:one-searchlight-low($1002)", "101LB", "EB73", "westboundsignalmast", 40, 299, 270),
-    ("IF$vsm:basic-enhanced:one-searchlight-low($1003)", "115RA", "EB71", "eastboundsignalmast", 1740, 236, 90),
-    ("IF$vsm:basic-enhanced:one-searchlight-low($1004)", "114RA", "EB72", "eastboundsignalmast", 1740, 299, 90),
-    ("IF$vsm:basic-enhanced:one-searchlight-low($1005)", "118L", "EB1", "westboundsignalmast", 548, 250, 270),
-    ("IF$vsm:basic-enhanced:one-searchlight-low($1006)", "119LA", "EB2", "westboundsignalmast", 548, 261, 270),
-    ("IF$vsm:basic-enhanced:one-searchlight-low($1007)", "119LB", "EB3", "westboundsignalmast", 548, 273, 270),
+    ("IF$vsm:basic:one-low($1001)", "101LA", "EB70", "westboundsignalmast", 40, 236, 270),
+    ("IF$vsm:basic:one-low($1002)", "101LB", "EB73", "westboundsignalmast", 40, 299, 270),
+    ("IF$vsm:basic:one-low($1003)", "115RA", "EB71", "eastboundsignalmast", 1740, 236, 90),
+    ("IF$vsm:basic:one-low($1004)", "114RA", "EB72", "eastboundsignalmast", 1740, 299, 90),
+    ("IF$vsm:basic:one-low($1005)", "118L", "EB1", "westboundsignalmast", 548, 250, 270),
+    ("IF$vsm:basic:one-low($1006)", "119LA", "EB2", "westboundsignalmast", 548, 261, 270),
+    ("IF$vsm:basic:one-low($1007)", "119LB", "EB3", "westboundsignalmast", 548, 273, 270),
 ]
 
 # South Yard throats (apply_yard_throat_blocks.py) make A53/A46/… real
 # block boundaries. Virtuals sit on those anchors, not on turnout legs.
 YARD_BOUNDARY_MASTS = [
     # ident, attr, systemName, userName, icon x, y, degrees
-    ("A53", "westboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1008)", "104L", 768, 350, 270),
-    ("A61", "eastboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1012)", "104R", 1148, 350, 90),
-    ("A46", "westboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1009)", "105L", 843, 397, 270),
-    ("A36", "eastboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1013)", "105R", 1148, 397, 90),
-    ("A41", "westboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1010)", "106L", 910, 444, 270),
-    ("A39", "eastboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1014)", "106R", 1148, 444, 90),
-    ("A15", "westboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1011)", "107L", 910, 474, 270),
-    ("A12", "eastboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1015)", "107R", 1148, 474, 90),
-    ("A81", "westboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1016)", "103L", 720, 300, 270),
-    ("A37", "eastboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1017)", "110L", 1145, 300, 90),
-    ("A45", "westboundsignalmast", "IF$vsm:basic-enhanced:one-searchlight-low($1018)", "Mast 8LC", 382, 305, 270),
+    ("A53", "westboundsignalmast", "IF$vsm:basic:one-low($1008)", "104L", 768, 350, 270),
+    ("A61", "eastboundsignalmast", "IF$vsm:basic:one-low($1012)", "104R", 1148, 350, 90),
+    ("A46", "westboundsignalmast", "IF$vsm:basic:one-low($1009)", "105L", 843, 397, 270),
+    ("A36", "eastboundsignalmast", "IF$vsm:basic:one-low($1013)", "105R", 1148, 397, 90),
+    ("A41", "westboundsignalmast", "IF$vsm:basic:one-low($1010)", "106L", 910, 444, 270),
+    ("A39", "eastboundsignalmast", "IF$vsm:basic:one-low($1014)", "106R", 1148, 444, 90),
+    ("A15", "westboundsignalmast", "IF$vsm:basic:one-low($1011)", "107L", 910, 474, 270),
+    ("A12", "eastboundsignalmast", "IF$vsm:basic:one-low($1015)", "107R", 1148, 474, 90),
+    ("A81", "westboundsignalmast", "IF$vsm:basic:one-low($1016)", "103L", 720, 300, 270),
+    ("A37", "eastboundsignalmast", "IF$vsm:basic:one-low($1017)", "110L", 1145, 300, 90),
+    ("A45", "westboundsignalmast", "IF$vsm:basic:one-low($1018)", "Mast 8LC", 382, 305, 270),
 ]
 YARD_VIRTUAL_UNAMES = {row[3] for row in YARD_BOUNDARY_MASTS}
 
@@ -322,8 +322,6 @@ def main() -> int:
     ap.add_argument("--sync-output", action="store_true")
     args = ap.parse_args()
     paths = [args.panel.resolve()]
-    if args.sync_output:
-        paths.extend([OUTPUT_TABLES, HART_PROD])
     for path in paths:
         if not path.is_file():
             print(f"missing {path}")

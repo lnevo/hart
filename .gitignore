@@ -24,52 +24,32 @@ NextTrainDispatcherApp/
 # Desktop LCOS tree (venv + ARCHIVE). Tracked copy: docs/wiring/
 Wiring Documentation
 Wiring Documentation/
-tables/.git/
 
-# Consolidation local path overrides (copy from consolidation.env.example)
-consolidation/env/consolidation.env
+# Local path overrides (copy from tools/env/hart.env.example)
+tools/env/hart.env
 
-# Portal build tree (prepare_github_pages.py) and the last deploy's manifest (deploy_hartrailroad.sh)
-consolidation/.pages-dist/
-consolidation/.deploy-manifest.json
+# Website build output and last deploy's counts
+.pages-dist/
+.deploy-manifest.json
 
-# Consolidation STS runtime data mirror (~465MB; refresh via mirror_sts_docker_data.sh)
-consolidation/external/sts-docker-data/backups/
-consolidation/external/sts-docker-data/database/
-consolidation/external/sts-docker-data/images/
-consolidation/external/sts-docker-data/MIRROR_MANIFEST.txt
+# STS runtime data
+external/sts-docker-data/backups/
+external/sts-docker-data/database/
+external/sts-docker-data/images/
+external/sts-docker-data/MIRROR_MANIFEST.txt
 
-# Consolidation HART layout ops mirror (~55MB; refresh via mirror_hart_runtime.sh)
-consolidation/external/hart-runtime/tables/
-consolidation/external/hart-runtime/jmri/
-consolidation/external/hart-runtime/cats/
-consolidation/external/hart-runtime/docs/
-consolidation/external/hart-runtime/tools/
-consolidation/external/hart-runtime/MIRROR_MANIFEST.txt
+# Large files kept out of git
+/media/
+/ops/car-cards/
+/docs/wiring/bench/
 
-consolidation/audits/run_all_*.log
-
-# Consolidation Desktop/HART data mirror (~200MB+; refresh via mirror_desktop_data.sh)
-consolidation/external/desktop-data/
-!consolidation/external/desktop-data/README.md
-
-# F-root review preview thumbs (regenerate with curate_f_root_review.py --previews)
-consolidation/ops-portal/assets/f-root-previews/
+www/assets/f-root-previews/
 
 *.bak
 *.bak-*
 *_good.xml
-jmri/layouts/linear6/reference/pi_live_tables.xml
-jmri/layouts/linear6/tables_from_pi.xml
-jmri/layouts/linear6/reference/tables_from_pi_*.xml
-jmri/layouts/linear6/linear6.xml.pi_pull
-jmri/layouts/linear6/SetBlockPreviewValues.py
 
 # Live deploy scratch (hostnames, status noise)
-jmri/layouts/linear6/.pi_*
-jmri/layouts/linear6/*.pi_*
-jmri/layouts/linear6/.block_*
-jmri/layouts/linear6/blockvalues_preview.xml
 jmri/layouts/**/.pi_*
 jmri/layouts/**/*_status.txt
 
@@ -84,8 +64,8 @@ jmri/layouts/**/*_status.txt
 jmri/host-copies/
 
 # Local CATS Signals notes (Rodney Black; do not commit)
-cats/docs/vendor/CATS_Signals.doc
-cats/docs/vendor/~$*
+**/CATS_Signals.doc
+**/~$*
 
 # CATS binaries (fetch with tools/cats/fetch_cats_3.2.sh)
 tools/cats/release3.2/
@@ -99,31 +79,15 @@ tools/cats/src-repo/
 # Accidental `jar xf cats.jar` into this repo (runtime .class). Never commit.
 # Read Java from tools/cats/src-repo — do not explode the jar into cats/.
 META-INF/
-cats/apps/
-cats/automatedTests/
-cats/common/
-cats/crew/
-cats/gui/
-cats/jmri/
-cats/jobs/
-cats/layout/
-cats/network/
-cats/rr_events/
-cats/trackCircuit/
-cats/trains/
 cats/**/*.class
-cats/package-info.class
-cats/HART.xml
 cats/panels/_qa_*.png
 cats/panels/*.png
 cats/panels/sheets/*.pre_*
-cats/panels/sheets/checkpoints/
 
 # Generated CTC evolution video (regenerate with make_ctc_evolution_video.py)
 jmri/layouts/hart/ctc/history/CTC_Evolution_crops/
 jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.gif
 jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.mp4
-cats/.venv/
 
 # CATS patch build artifacts
 tools/cats/patches/*.class
@@ -132,3 +96,7 @@ tools/cats/patches/cats.jar.stock
 # Runtime logs and one-off XML backups (not sources)
 cats/logs/
 jmri/layouts/**/*.xml.bak_*
+
+# Old validator logs and checkpoints kept locally
+archive/consolidation/audits/run_all_*.log
+archive/panels/sheets/checkpoints/HART_WestYard_BEFORE_rotate180.xml

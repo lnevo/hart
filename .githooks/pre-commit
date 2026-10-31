@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Stop a commit that would add a private or ignored file. Enable: git config core.hooksPath .githooks
+exec python3 tools/audit/check_tracked_policy.py
