@@ -36,4 +36,3 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 ## Future goals
 
 - Measured speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md)).
-- Agent skills and MCPs ([`projects/agent-skills-and-mcps.md`](projects/agent-skills-and-mcps.md)).

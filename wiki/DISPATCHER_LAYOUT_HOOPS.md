@@ -32,18 +32,16 @@ Tables: `STUB_MASTS` and `YARD_BOUNDARY_MASTS` in `apply_le_cleanup.py`. Throat 
 
 ---
 
-## END_BUMPER facing-slot hack
+## END_BUMPER mast slots
 
-JMRI `getFacingBlock` on a connect1-only `END_BUMPER` looks up `connect2` (null) unless the mast is in the **far** slot. Geography is backwards on purpose:
+A connect1-only `END_BUMPER` resolves a facing block in one slot only, set by which side of the bumper the track is on (`LayoutBlockManager.getFacingBlock`). These are JMRI's normal travel-direction slots, and its own dialog offers only that slot:
 
 | End of railroad | Bumper slot used |
 |-----------------|------------------|
 | West (W-1/W-2, EH) | `westboundsignalmast` |
 | East (K-1/K-2) | `eastboundsignalmast` |
 
-Same trick as the Engine House buffers. Comments live on `STUB_MASTS` in `apply_le_cleanup.py`. Without it, Discover and CATS SML report **No facing block found for destination mast**.
-
-**Keep the hack until someone replaces it.** Do not “fix” the slots to match compass direction.
+Bindings are on `STUB_MASTS` in `apply_le_cleanup.py`. In any other slot, Discover and CATS SML report **No facing block found for destination mast**. Do not move them.
 
 ---
 
@@ -65,11 +63,11 @@ This is the pattern the South Yard throats use. Stage 1 will ask **same sensor?*
 
 ---
 
-## Facing invert is stock — overlay removed 2026-09-01
+## Facing direction is stock — overlay removed 2026-09-01
 
 Logix **IX:DSLX:1C1** (**Run Dispatcher**) runs stock `program:jython/DispatcherSystem/Startup.py`. The HART facing overlay (`hart_dispatcher_startup.py` / `patch_dispatcher_facing.py`) is gone; it did not fix polarity.
 
-Stock `MoveTrain.set_train_direction` still inverts the facing dialog: a stored `"reverse"` loads `*_rvs.xml` while the transit stays Forward ([JMRI#14365](https://github.com/JMRI/JMRI/issues/14365)). [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) was closed 2026-09-01 because it was working here, and nothing is pending. If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir** (PDF “Change the Direction of the Train”). Release WiThrottle before dispatch. Do not re-add an overlay. Do not “fix” mast slots for this.
+Stock `MoveTrain.set_train_direction` stores the opposite of the facing button on purpose, and `set_direction` swaps it again on leaving. [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) was closed 2026-09-01 because it was working here, and nothing is pending. If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir** (PDF “Change the Direction of the Train”). Release WiThrottle before dispatch. Do not re-add an overlay, and do not change mast slots for this.
 
 
 ## CreateTransits / Jython landmines
@@ -96,5 +94,5 @@ S-R and S-1…S-4 are a yard with many platforms: enter/leave via **Switch 15** 
 - Dual-run CATS CTC and the USS machine, or start Dispatcher System from inside CATS.
 - Store tables or panels from a CATS session.
 - Put `Mast 18L`–`Mast 26L` back on turnout C/B legs. Bind them on the throat-boundary anchors.
-- Remove the END_BUMPER far-slot bindings without a replacement.
+- Move the END_BUMPER mast bindings.
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.

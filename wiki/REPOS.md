@@ -13,6 +13,7 @@
 | **`sts-docker`** | STS PHP runtime → `external/sts-docker` |
 | **`sts-docker-helpers`** | Seed, warm-start, switch lists → `external/sts-helpers` |
 | **`hart-ops`** | Car inventory SoR, cards, waybills, publications → `external/hart-ops` @ `761c1f9` |
+| **`model-railroad-skills`** | Public, generic Claude Code skills and read-only tools → `external/model-railroad-skills` |
 
 ## Submodule layout
 
