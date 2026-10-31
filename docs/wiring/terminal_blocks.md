@@ -1,5 +1,7 @@
 # Terminal block wiring
 
+These are the physical terminal blocks that show which pairs carry which main bus. They are not JMRI blocks. For reference only; not for the website.
+
 Recovered from an October 2025 draft of `Layout Documentation.pptx`. The later deck dropped this table, so it exists only here.
 
 **Not verified against the railroad.** The bus names are older than the Track Buses slide in the current deck: that slide has no West Loop or Peninsula bus, names the yard Scully Yard, and splits Canonsburg into Inner and Outer. Check a block on the layout before relying on it.
