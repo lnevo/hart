@@ -1,6 +1,6 @@
 # HART meta-repo — sibling repos and submodules
 
-**Status:** P3b **done** — submodules under `consolidation/external/`  
+**Status:** P3b **done** — submodules under `external/`  
 **Manifest:** [`cross-repo/SUBMODULE_MANIFEST.yaml`](../cross-repo/SUBMODULE_MANIFEST.yaml)  
 **Init:** [`scripts/init_external_submodules.sh`](../scripts/init_external_submodules.sh)
 
@@ -8,16 +8,16 @@
 
 | Repo | Role |
 |------|------|
-| **`lnevo/hart`** | Layout, CATS panels, JMRI tables, wiring docs, consolidation workspace |
-| **`LCOS_ESP32_MQTT_Client`** | Nano firmware + MQTT bridge → `consolidation/external/lcos-bridge` |
-| **`sts-docker`** | STS PHP runtime → `consolidation/external/sts-docker` |
-| **`sts-docker-helpers`** | Seed, warm-start, switch lists → `consolidation/external/sts-helpers` |
-| **`hart-ops`** | Car inventory SoR, cards, waybills, publications → `consolidation/external/hart-ops` @ `761c1f9` |
+| **`lnevo/hart`** | Layout, CATS panels, JMRI tables, wiring docs, repo |
+| **`LCOS_ESP32_MQTT_Client`** | Nano firmware + MQTT bridge → `external/lcos-bridge` |
+| **`sts-docker`** | STS PHP runtime → `external/sts-docker` |
+| **`sts-docker-helpers`** | Seed, warm-start, switch lists → `external/sts-helpers` |
+| **`hart-ops`** | Car inventory SoR, cards, waybills, publications → `external/hart-ops` @ `761c1f9` |
 
 ## Submodule layout
 
 ```
-hart/consolidation/external/
+hart/external/
   lcos-bridge/      → LCOS_ESP32_MQTT_Client @ ae2d8da
   sts-docker/       → sts-docker @ 899b458
   sts-helpers/      → sts-docker-helpers @ cdbbfce
@@ -27,7 +27,7 @@ hart/consolidation/external/
 ## Init (operator)
 
 ```bash
-bash consolidation/scripts/init_external_submodules.sh
+bash tools/ops/init_external_submodules.sh
 git submodule update --init --recursive
 ```
 
@@ -49,11 +49,11 @@ Lives in **hart-ops** `data/` — not in JMRI Operations Pro GUI. See [`wiki/dec
 ```bash
 git clone --recurse-submodules git@github.com:lnevo/hart.git
 export JMRI_LAYOUT=hart
-bash consolidation/validators/run_all.sh
+bash tools/audit/run_all.sh
 ```
 
 ## Do not
 
 - Monorepo-merge LCOS vendor `lcos/` into hart
 - Edit car inventory in Operations Pro as SoR (export target only)
-- Clone submodules under `$HOME` — use `consolidation/external/` only
+- Clone submodules under `$HOME` — use `external/` only

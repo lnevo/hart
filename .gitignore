@@ -26,35 +26,24 @@ Wiring Documentation
 Wiring Documentation/
 tables/.git/
 
-# Consolidation local path overrides (copy from consolidation.env.example)
-consolidation/env/consolidation.env
+# Local path overrides (copy from tools/env/hart.env.example)
+tools/env/hart.env
 
-# Portal build tree (prepare_github_pages.py) and the last deploy's manifest (deploy_hartrailroad.sh)
-consolidation/.pages-dist/
-consolidation/.deploy-manifest.json
+# Website build output and last deploy's counts
+.pages-dist/
+.deploy-manifest.json
 
-# Consolidation STS runtime data mirror (~465MB; refresh via mirror_sts_docker_data.sh)
-consolidation/external/sts-docker-data/backups/
-consolidation/external/sts-docker-data/database/
-consolidation/external/sts-docker-data/images/
-consolidation/external/sts-docker-data/MIRROR_MANIFEST.txt
+# STS runtime data
+external/sts-docker-data/backups/
+external/sts-docker-data/database/
+external/sts-docker-data/images/
+external/sts-docker-data/MIRROR_MANIFEST.txt
 
-# Consolidation HART layout ops mirror (~55MB; refresh via mirror_hart_runtime.sh)
-consolidation/external/hart-runtime/tables/
-consolidation/external/hart-runtime/jmri/
-consolidation/external/hart-runtime/cats/
-consolidation/external/hart-runtime/docs/
-consolidation/external/hart-runtime/tools/
-consolidation/external/hart-runtime/MIRROR_MANIFEST.txt
+# Large mirrors kept out of git
+external/desktop-data/
+!external/desktop-data/README.md
 
-consolidation/audits/run_all_*.log
-
-# Consolidation Desktop/HART data mirror (~200MB+; refresh via mirror_desktop_data.sh)
-consolidation/external/desktop-data/
-!consolidation/external/desktop-data/README.md
-
-# F-root review preview thumbs (regenerate with curate_f_root_review.py --previews)
-consolidation/ops-portal/assets/f-root-previews/
+www/assets/f-root-previews/
 
 *.bak
 *.bak-*

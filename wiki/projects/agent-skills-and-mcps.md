@@ -89,7 +89,7 @@ Hard-won landmines. Other JMRI / CATS / MQTT layouts hit these.
 4. `jmri-mqtt-layout` + `lcos-serial-mqtt`
 5. One **ops** skill (`sts-docker` or `car-cards-ocr`) and one **docs/hardware** skill (`layout-wiring-docs` or `kicad-pcbway-bom`)
 
-Evidence in-repo: [`wiki/pipelines/README.md`](../pipelines/README.md) (16 flows), [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md), `cats/scripts/`, `jmri/scripts/`, `consolidation/packages/`.
+Evidence in-repo: [`wiki/pipelines/README.md`](../pipelines/README.md) (16 flows), [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md), `cats/scripts/`, `jmri/scripts/`, `ops/packages/`.
 
 ---
 
