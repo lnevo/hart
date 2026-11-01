@@ -1,6 +1,6 @@
 # Pipeline 3 — Digicon signal beans
 
-Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appearances are stock **Basic** (`two-searchlight` / `one-low`). Flashing aspects are disabled on the mast. Layout Editor icons are `discriminated` at scale 1.0.
+Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appearances are stock **Basic** (`two-searchlight` / `one-low`). No aspects are disabled (ADR-011). Layout Editor icons are `discriminated` at scale 1.0.
 
 **Status:** Live.
 

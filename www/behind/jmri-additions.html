@@ -42,15 +42,13 @@
       </p>
       <p>
         Where the railroad needed something different, the rule was to change data and add small scripts
-        before touching software. The scripts use public JMRI calls. The JMRI jars themselves are stock,
-        with one honest exception: a small load-safety overlay sits on the classpath and replaces a
-        single JMRI MQTT class at run time, so that retained messages arriving while the tables load
-        cannot crash it. CATS has a few small overlays of the same kind. One suppresses a warning, one
+        before touching software. The scripts use public JMRI calls, and the JMRI jars themselves are stock.
+        CATS has a few small load-safety overlays. One suppresses a warning, one
         skips a loopback probe nobody uses, and one guards against an early crash that would otherwise
         freeze occupancy.
       </p>
       <p>
-        What follows is the main things we added, and each section starts with the problem it solves.
+        What follows is what we added, and each section starts with the problem it solves.
         The story of how the software came together is told in
         <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>, so I will
         not repeat it here.
@@ -240,7 +238,7 @@
 
       <h2>What gets installed, and how JMRI finds it</h2>
       <p>
-        Three scripts do all of this. One sets up the lamps, the ladder and the clicks. One does the
+        Four scripts get installed. One sets up the lamps, the ladder and the clicks. One does the
         coordination in the second and third sections; its file name is left over from an older purpose. Both run from JMRI's stock
         Start Up list. The third hides the Layout Editor under CATS, adds Help and Quit buttons and a
         "HART Dispatcher Guide" Help item. It is run by a stock LogixNG with four actions: hide the
@@ -252,6 +250,20 @@
         entries to the profile. JMRI finds them through its own <code>preference:jython/</code> path, so
         the same thing works on every JMRI install. Many other scripts exist, but they
         run offline to build the tables, not inside JMRI.
+      </p>
+      <p>
+        The fourth script has nothing to do with running trains, and it is worth being open about. It
+        is a remote-run hook: a small watcher that starts with JMRI and gives us, and the AI agents we
+        work with, a live way to query a running session. Twice a second it looks for a command file in
+        a fixed local place. When one appears, it runs that file as a script inside JMRI and writes back
+        the result or the error.
+      </p>
+      <p>
+        That is very handy, and it needs care. Whatever is dropped there runs with JMRI's full access,
+        so it can do anything JMRI can do, including move a turnout. The watcher opens no network
+        service of its own; reaching it takes a login on that machine. The project's rules on commanding
+        the field apply to anything sent through it, and the helper agents are blocked from the remote
+        login that would reach it.
       </p>
 
       <h2>Small resources</h2>
@@ -270,7 +282,7 @@
 
       <h2>Why so small</h2>
       <p>
-        Apart from those load-safety overlays, every item above is either a file JMRI already knows how to look up or a script written against public calls. Keeping the additions that small means that when a new stock JMRI arrives, there is
+        Apart from the CATS overlays, every item above is either a file JMRI already knows how to look up or a script written against public calls. Keeping the additions that small means that when a new stock JMRI arrives, there is
         not much of ours in the way. If you run JMRI and want to try any of it, the pattern is the useful
         part: one honest switch, a careful hand-over, and lamps that report what the layout is doing.
       </p>

@@ -65,7 +65,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 
 ## JMRI command watcher
 
-`jmri/layouts/hart/scripts/jmri_cmd_watcher.py` is a standing part of the Pi Start Up. It runs any file dropped at `/tmp/jmri_cmd.py` inside JMRI and writes the result to `/tmp/jmri_cmd.out`, which gives agents a live way to query JMRI. That code has JMRI's full access, so the rules on field turnouts and `track/cmd` apply to it, and subagents cannot reach it because `ssh` is blocked.
+`jmri/layouts/hart/scripts/jmri_cmd_watcher.py` is a standing part of Start Up in the Pi and Windows packages. It runs any file dropped at `/tmp/jmri_cmd.py` inside JMRI and writes the result to `/tmp/jmri_cmd.out`, which gives agents a live way to query JMRI. That code has JMRI's full access, so the rules on field turnouts and `track/cmd` apply to it, and subagents cannot reach it because `ssh` is blocked.
 
 ## Layout env
 
