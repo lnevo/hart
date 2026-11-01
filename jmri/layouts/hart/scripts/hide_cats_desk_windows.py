@@ -18,10 +18,9 @@
 
 from java.awt import BorderLayout, FlowLayout, Frame, Window
 from java.awt.event import ActionListener
-from java.io import File
 from java.lang import System
 
-from javax.swing import JButton, JMenuItem, JPanel
+from javax.swing import JButton, JPanel
 
 from jmri.util import JmriJFrame, ThreadingUtil
 
@@ -32,11 +31,7 @@ WRAP_NAME = "HART:CATS:Wrapped"
 TOOLBAR_NAME = "HART:CATS:Toolbar"
 HELP_NAME = "HART:CATS:Help"
 QUIT_NAME = "HART:CATS:Quit"
-GUIDE_NAME = "HART:CATS:Guide"
 QUIT_ITEM_NAME = "HART:CATS:QuitItem"
-GUIDE_SPECS = (
-    "home:hart/cats/docs/DISPATCHER_GUIDE_CTC.md",
-)
 
 _state = {"tries": 0, "hid": False, "chrome": False}
 _MAX_TRIES = 40
@@ -92,24 +87,6 @@ def _show_jmri_help():
         HelpUtil.displayHelpRef("package.apps.PanelPro.PanelPro")
 
 
-def _open_dispatcher_guide():
-    from jmri.util import FileUtil
-    from java.awt import Desktop
-    for spec in GUIDE_SPECS:
-        try:
-            path = FileUtil.getExternalFilename(spec)
-        except Exception:
-            path = None
-        if path and File(path).isFile():
-            try:
-                if Desktop.isDesktopSupported():
-                    Desktop.getDesktop().open(File(path))
-                    return
-            except Exception:
-                pass
-    _show_jmri_help()
-
-
 def _has_named(container, name):
     if container is None:
         return False
@@ -123,16 +100,6 @@ def _has_named(container, name):
                 return True
         except Exception:
             pass
-    return False
-
-
-def _menu_has_named(menu, name):
-    if menu is None:
-        return False
-    for i in range(menu.getItemCount()):
-        item = menu.getItem(i)
-        if item is not None and item.getName() == name:
-            return True
     return False
 
 
@@ -317,7 +284,7 @@ def add_script_style_buttons():
 
 
 def decorate_menus(frame):
-    """Help menu extras only. File already has Exit; do not add Quit."""
+    """Tidy the File menu. File already has Exit; do not add Quit."""
     if frame is None:
         return False
     bar = frame.getJMenuBar()
@@ -325,17 +292,6 @@ def decorate_menus(frame):
         return True
     file_menu = _find_menu(bar, "File")
     _clean_file_quit(file_menu)
-    help_menu = _find_menu(bar, "Help")
-    if help_menu is not None and not _menu_has_named(help_menu, GUIDE_NAME):
-        jmri_item = JMenuItem("Window Help...")
-        jmri_item.setName("HART:CATS:HelpItem")
-        jmri_item.addActionListener(_Call(_show_jmri_help))
-        guide_item = JMenuItem("HART Dispatcher Guide")
-        guide_item.setName(GUIDE_NAME)
-        guide_item.addActionListener(_Call(_open_dispatcher_guide))
-        help_menu.insert(guide_item, 0)
-        help_menu.insert(jmri_item, 0)
-        help_menu.insertSeparator(2)
     try:
         bar.revalidate()
         bar.repaint()

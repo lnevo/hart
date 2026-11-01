@@ -278,8 +278,6 @@ stage_package() {
     "$ROOT/cats/scripts/rewrite_button_icon_paths.py" \
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
     "$stage/cats/scripts/"
-  mkdir -p "$stage/cats/docs"
-  cp -f "$ROOT/docs/ctc/DISPATCHER_GUIDE_CTC.md" "$stage/cats/docs/"
 
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"
