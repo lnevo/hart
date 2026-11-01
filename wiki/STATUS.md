@@ -1,6 +1,6 @@
 # Live status
 
-Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
+Updated 2026-11-01. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Current state
 
@@ -30,11 +30,11 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Next
 
-- Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
 - Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add the new photos with `bin/cars intake`.
 - HART 1776 stays out of STS until its car card is generated. The 28 cars with no photo stay out too: no photo means no card, so they go in only after a photo.
 
 ## Future goals
 
 - Measured speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md)).
+- Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
 - Final cleanup epic: retire `~/sts`, `~/Desktop/HART`, the duplicates in `~/Documents` and the repo's `archive/`, leaving this repo as the one home ([ADR-007](decisions/ADR-007-repository-layout.md)). Undated on purpose. The `.any` track plans stay in `~/Documents`.
