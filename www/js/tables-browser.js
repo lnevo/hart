@@ -30,7 +30,7 @@
     $("tb-table").tBodies[0].innerHTML = list.slice(0, shown).map(function (r) {
       return "<tr>" + r.map(function (v, i) {
         var k = cur.cols[i].k;
-        var cls = isNum(v) ? "num" : (k === "sys" || k === "sens" || k === "occ" || k === "ctl" || k === "src" || k === "dst" ? "mono" : (k === "user" ? "user" : ""));
+        var cls = k === "note" ? "note" : isNum(v) ? "num" : (k === "sys" || k === "sens" || k === "occ" || k === "ctl" || k === "src" || k === "dst" ? "mono" : (k === "user" ? "user" : ""));
         return "<td" + (cls ? ' class="' + cls + '"' : "") + ">" + esc(String(v === "" ? "—" : v)) + "</td>";
       }).join("") + "</tr>";
     }).join("") || '<tr><td colspan="' + cur.cols.length + '">No rows match.</td></tr>';

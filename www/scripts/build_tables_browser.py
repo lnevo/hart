@@ -44,6 +44,11 @@ def yes(v):
     return "yes" if (v or "").strip().lower() == "yes" else "no"
 
 
+def note(e):
+    """An object's comment. JMRI stores it as a child element or an attribute."""
+    return (e.findtext("comment") or e.get("comment") or "").strip()
+
+
 def build():
     r = ET.parse(SRC).getroot()
     tables = []
@@ -56,8 +61,8 @@ def build():
     rows = []
     for e in direct(r, "sensors", "sensor"):
         s, u = names(e)
-        rows.append([s, u, "MQTT" if s.startswith("M2S") else "Internal"])
-    add("sensors", "Sensors", [("sys", "System name"), ("user", "User name"), ("kind", "Kind")], rows)
+        rows.append([s, u, "MQTT" if s.startswith("M2S") else "Internal", note(e)])
+    add("sensors", "Sensors", [("sys", "System name"), ("user", "User name"), ("kind", "Kind"), ("note", "Comment")], rows)
 
     rows = []
     for e in direct(r, "turnouts", "turnout"):
@@ -66,28 +71,28 @@ def build():
               "MONITORING": "Monitoring", "DELAYED": "Delayed", "EXACT": "Exact",
               "INDIRECT": "Indirect"}.get(e.get("feedback", ""), e.get("feedback", ""))
         sens = ", ".join(x for x in (e.get("sensor1"), e.get("sensor2")) if x)
-        rows.append([s, u, fb, sens])
+        rows.append([s, u, fb, sens, note(e)])
     add("turnouts", "Turnouts", [("sys", "System name"), ("user", "User name"),
-                                 ("fb", "Feedback"), ("sens", "Feedback sensors")], rows)
+                                 ("fb", "Feedback"), ("sens", "Feedback sensors"), ("note", "Comment")], rows)
 
-    rows = [list(names(e)) for e in direct(r, "memories", "memory")]
-    add("memories", "Memories", [("sys", "System name"), ("user", "User name")], rows)
+    rows = [list(names(e)) + [note(e)] for e in direct(r, "memories", "memory")]
+    add("memories", "Memories", [("sys", "System name"), ("user", "User name"), ("note", "Comment")], rows)
 
     rows = []
     for e in direct(r, "signalheads", "signalhead"):
         s, u = names(e)
         cls = e.get("class", "").rsplit(".", 1)[-1]
-        rows.append([s, u, "Virtual" if cls.startswith("Virtual") else cls.replace("Xml", "")])
-    add("heads", "Signal heads", [("sys", "System name"), ("user", "User name"), ("type", "Head type")], rows)
+        rows.append([s, u, "Virtual" if cls.startswith("Virtual") else cls.replace("Xml", ""), note(e)])
+    add("heads", "Signal heads", [("sys", "System name"), ("user", "User name"), ("type", "Head type"), ("note", "Comment")], rows)
 
     rows = []
     for e in [c for m in r.findall("signalmasts") for c in m if c.tag in ("signalmast", "virtualsignalmast")]:
         s, u = names(e)
         m = MAST_RE.search(s)
         kind = ("On heads" if m.group(1) == "shsm" else "Virtual") if m else ""
-        rows.append([s, u, kind, m.group(2) if m else "", m.group(3) if m else ""])
+        rows.append([s, u, kind, m.group(2) if m else "", m.group(3) if m else "", note(e)])
     add("masts", "Signal masts", [("sys", "System name"), ("user", "User name"), ("kind", "Heads"),
-                                  ("app", "Appearance system"), ("shape", "Mast type")], rows)
+                                  ("app", "Appearance system"), ("shape", "Mast type"), ("note", "Comment")], rows)
 
     # Blocks: the second, full pass only (the first pass lists names).
     rows = []
@@ -96,9 +101,9 @@ def build():
             continue
         s, u = names(e)
         rows.append([s, u, e.get("length", ""), e.findtext("occupancysensor", "") or "",
-                     len(e.findall("path"))])
+                     len(e.findall("path")), note(e)])
     add("blocks", "Blocks", [("sys", "System name"), ("user", "User name"), ("len", "Length (mm)"),
-                             ("occ", "Occupancy sensor"), ("paths", "Paths")], rows)
+                             ("occ", "Occupancy sensor"), ("paths", "Paths"), ("note", "Comment")], rows)
 
     rows = []
     for e in direct(r, "layoutblocks", "layoutblock"):
@@ -125,18 +130,18 @@ def build():
     rows = []
     for e in direct(r, "routes", "route"):
         s, u = names(e)
-        rows.append([s, u, e.get("controlTurnout", ""), len(e.findall("routeOutputTurnout"))])
+        rows.append([s, u, e.get("controlTurnout", ""), len(e.findall("routeOutputTurnout")), note(e)])
     add("routes", "Routes", [("sys", "System name"), ("user", "User name"),
-                             ("ctl", "Control turnout"), ("outs", "Turnout settings")], rows)
+                             ("ctl", "Control turnout"), ("outs", "Turnout settings"), ("note", "Comment")], rows)
 
     rows = []
     for e in direct(r, "signalmastlogics", "signalmastlogic"):
         src = e.findtext("sourceSignalMast", "")
         for d in e.findall("destinationMast"):
-            rows.append([src, d.findtext("destinationSignalMast", ""), yes(d.findtext("enabled"))])
+            rows.append([src, d.findtext("destinationSignalMast", ""), yes(d.findtext("enabled")), note(d)])
     n_src = len(direct(r, "signalmastlogics", "signalmastlogic"))
     add("sml", "Signal Mast Logic", [("src", "Source mast"), ("dst", "Destination mast"),
-                                     ("on", "Enabled")], rows)
+                                     ("on", "Enabled"), ("note", "Comment")], rows)
 
     rows = []
     for ee in r.findall("entryexitpairs"):
