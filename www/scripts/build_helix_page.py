@@ -1,14 +1,14 @@
 """Publish the Neville Island helix package into the ops portal (helix/).
 
-Reads printed STLs from ~/Downloads/stl and documents from docs/benchwork/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
+Reads STLs and documents from docs/benchwork/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
 """
-import html, os, re, shutil, sys
+import html, os, re, sys
 import markdown, trimesh
 
-SRC = os.path.expanduser('~/Downloads/stl')
 PORTAL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(PORTAL, 'helix')
 HELIX = os.path.join(os.path.dirname(PORTAL), 'docs', 'benchwork', 'helix')
+SRC = os.path.join(HELIX, 'stl')
 DOCS = HELIX
 PLAN = 'helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf'
 STATUS = 'HART_Neville_Helix_BUILD_STATUS.md'
@@ -77,8 +77,6 @@ def dims(path):
 
 
 def main():
-    os.makedirs(os.path.join(HELIX, 'stl'), exist_ok=True)
-
     # Check that every current STL is classified.
     listed = {f for _, rows in GROUPS for files, _, _ in rows for f in files}
     on_disk = {f for f in os.listdir(SRC) if f.endswith(('.stl', '.3mf'))}
@@ -91,7 +89,6 @@ def main():
 
     published = {}
     for f in sorted(listed):
-        shutil.copy2(os.path.join(SRC, f), os.path.join(HELIX, 'stl', f))
         published[f] = 'stl/' + f
     for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
         published[f] = 'files/' + f
@@ -149,8 +146,8 @@ def main():
     </div>''')
     open(os.path.join(OUT, 'build-status.html'), 'w').write(page)
 
-    plan_kb = size(os.path.getsize(os.path.join(SRC, PLAN)))
-    tmpl_kb = size(os.path.getsize(os.path.join(SRC, 'lap_screw_template.pdf')))
+    plan_kb = size(os.path.getsize(os.path.join(DOCS, PLAN)))
+    tmpl_kb = size(os.path.getsize(os.path.join(DOCS, 'lap_screw_template.pdf')))
     obs = ', '.join(f'<code>{f}</code>' for f in OBSOLETE)
     index = head.replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
     <div class="page-head">
