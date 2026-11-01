@@ -3918,3 +3918,56 @@ html.zoomer-open body {
     transform: none;
   }
 }
+
+/* The Build: short index of the levels, between the page intro and the chronology. */
+.level-index {
+  margin: 0 0 1.75rem;
+}
+
+.level-index h2 {
+  margin: 0 0 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.level-index ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+.level-index a {
+  display: block;
+  height: 100%;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.level-index a:hover {
+  border-color: var(--brand-2);
+  color: var(--ink-soft);
+}
+
+.level-index strong {
+  display: block;
+  color: var(--brand);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+}
+
+/* The phone header is two rows (about 100px), so clear it by more than the default. */
+.level-index ~ .hub-group {
+  scroll-margin-top: 7.5rem;
+}
