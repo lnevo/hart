@@ -263,23 +263,30 @@
         a screen can never throw a switch, and a test guards that rule.
       </p>
 
-      <h2>What gets installed, and how JMRI finds it</h2>
+      <h2>The scripts</h2>
       <p>
-        Four scripts get installed. One sets up the lamps, the ladder and the clicks. One does the
-        coordination in the second and third sections; its file name is left over from an older purpose. Both run from JMRI's stock
-        Start Up list. The third hides the Layout Editor under CATS, adds Help and Quit buttons and a
-        "HART Dispatcher Guide" Help item. It is run by a stock LogixNG with four actions: hide the
-        WiThrottle window, hide the USS CTC window, hide the Dispatcher System window, then run the
-        script. A small helper also lifts block labels that the Dispatcher's Stage 1 Store buries.
+        Four Jython scripts do all of this inside JMRI. They are the heart of what we added:
+      </p>
+      <div class="table-wrap">
+        <table class="roster jm-lamps">
+          <thead><tr><th>Script</th><th>How it starts</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>mqtt_signalhead_publisher.py</code></td><td>Start Up</td><td>The signal coordination. It owns the "SML Enabled" button, runs the hand-over, sends head colours to the field with Signals ON, mirrors the field with Signals OFF, and answers the crash check. The file name is left over from an older purpose.</td></tr>
+            <tr><td><code>sync_layout_button.py</code></td><td>Start Up</td><td>The panel's helper. It wires up the four lamps and their clicks, paints the yard ladder triangles from feedback, keeps Routes disabled while painting, and lifts block labels that the Dispatcher's Stage 1 Store buries.</td></tr>
+            <tr><td><code>hide_cats_desk_windows.py</code></td><td>LogixNG at startup</td><td>Tidies the screen under CATS. It hides the HART Railroad panel and adds Help and Quit buttons and a "HART Dispatcher Guide" Help item to the CTC Panel. PanelPro keeps the panel up.</td></tr>
+            <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up</td><td>The remote-run hook, described below.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The third script is run by a stock LogixNG with four actions: hide the WiThrottle window, hide
+        the USS CTC window, hide the Dispatcher System window, then run the script. Deploying copies all
+        four into the <code>jython</code> folder of the JMRI user files and adds the Start Up entries to
+        the profile, and JMRI finds them through its own <code>preference:jython/</code> path. Many other
+        scripts exist, but they run offline to build the tables, not inside JMRI.
       </p>
       <p>
-        Deploying copies the scripts into the jython folder of the JMRI user files and adds the Start Up
-        entries to the profile. JMRI finds them through its own <code>preference:jython/</code> path, so
-        the same thing works on every JMRI install. Many other scripts exist, but they
-        run offline to build the tables, not inside JMRI.
-      </p>
-      <p>
-        The fourth script has nothing to do with running trains, and it is worth being open about. It
+        <code>jmri_cmd_watcher.py</code> has nothing to do with running trains, and it is worth being open about. It
         is a remote-run hook: a small watcher that starts with JMRI and gives us, and the AI agents we
         work with, a live way to query a running session. Twice a second it looks for a command file in
         a fixed local place. When one appears, it runs that file as a script inside JMRI and writes back
@@ -304,10 +311,11 @@
           <thead><tr><th>In the profile</th><th>What it is</th></tr></thead>
           <tbody>
             <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the lamps. PanelPro loads it at startup.</td></tr>
-            <tr><td><code>jython/</code></td><td>The four scripts above, plus a few helper scripts, such as Discover and traininfo repair.</td></tr>
+            <tr><td><code>jython/</code></td><td>The four scripts above.</td></tr>
             <tr><td>Start Up entries</td><td>Added to the profile, so JMRI loads the tables and runs the scripts at launch.</td></tr>
             <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
             <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels. The amber one is simply JMRI's own.</td></tr>
+            <tr><td><code>resources/misc/linear5_panel_bg.jpg</code></td><td>The backdrop of the HART Railroad panel, 1900 by 600 pixels. It sits behind the track as a label on the panel, at the top left. The name is left over from an older layout.</td></tr>
             <tr><td><code>ctc/icons/</code> and <code>ctc/GUIObjects.xml</code></td><td>The USS CTC machine: 70 generated track icons and the panel layout, as custom cells for the stock CTC tool.</td></tr>
             <tr><td><code>dispatcher/traininfo/</code> and <code>dispatcheroptions.xml</code></td><td>Dispatcher data, not code: the options and the traininfo files that stock Stage 1 writes.</td></tr>
             <tr><td><code>web/servlet/home/Home.html</code></td><td>The web home page: a stock copy with one link added, to the traffic simulator. JMRI serves this copy before its own.</td></tr>
@@ -315,7 +323,7 @@
         </table>
       </div>
       <p>
-        The panel also has a background image. There are no custom signal drawings and no custom signal
+        There are no custom signal drawings and no custom signal
         system: the masts are stock Basic masts.
       </p>
 
