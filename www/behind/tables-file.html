@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Tables File: One File That Is the Railroad — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    /* One figure: shapes use the site tokens. */
+    .jm-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
+    .jm-svg .box { fill: var(--card); stroke: var(--rule); stroke-width: 1.5; }
+    .jm-svg .own { fill: var(--brand); stroke: var(--brand); }
+    .jm-svg .band { fill: var(--paper-2); stroke: none; }
+    .jm-svg .pill { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; }
+    .jm-svg .line { fill: none; stroke: var(--ink-soft); stroke-width: 2; }
+    .jm-svg .soft { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .jm-svg .head { fill: var(--ink-soft); }
+    .jm-svg .head-soft { fill: var(--muted); }
+    .jm-svg text { fill: var(--ink); font-size: 14px; }
+    .jm-svg .t-b { font-weight: 700; }
+    .jm-svg .t-w { fill: #fff; }
+    .jm-svg .t-s { fill: var(--muted); font-size: 13px; }
+    .jm-lamps td:first-child { font-weight: 700; white-space: nowrap; }
+    .tf-code { background: var(--paper-2); border: 1px solid var(--rule); border-radius: 6px; padding: .75rem 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
+    .tf-code code { white-space: pre; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>The Tables File: One File That Is the Railroad</h1>
+      <p class="section-note">Every switch, sensor, block, signal and route the railroad has told JMRI about lives in one XML file. Here is a tour of it by the numbers.</p>
+    </div>
+
+    <article class="explainer prose">
+      <h2>What the file is</h2>
+      <p>
+        JMRI, the free model-railroad software that runs this layout, keeps what it knows in "tables".
+        There is a table of turnouts (the switches), a table of sensors, a table of blocks (stretches of
+        track), and so on. When you save, JMRI writes all of them into one XML file. When it starts, it
+        reads that file back, and the railroad is there again.
+      </p>
+      <p>
+        Ours is called <code>tables.xml</code>. It is about 2.2 MB and 29,068 lines long, and it has 27
+        top-level sections. It is in the ordinary JMRI format, stored by PanelPro 5.15, the main JMRI
+        program. It holds no connection settings: how JMRI reaches the layout lives in the profile, a
+        separate set of preferences. Everything else is in here, including the three panels you see on
+        screen.
+      </p>
+
+      <h2>Why one file</h2>
+      <p>
+        It used to be two. There was a working copy that scripts and people edited, and a second file that
+        JMRI actually loaded. Keeping them in step was a chore, and a change made to one could miss the
+        other.
+      </p>
+      <p>
+        Now there is one tables file, and the decision is on record. PanelPro stores into it, git tracks
+        every change, and what is deployed comes from it. The scripts that generate
+        or check parts of it run only when PanelPro and CATS (the open-source CTC desk) are closed, so
+        nothing can write over a store in progress.
+      </p>
+
+      <h2>The tour by the numbers</h2>
+      <p>
+        These counts come from reading the file itself. Four groups, from the field up to the screen.
+      </p>
+      <div class="table-wrap">
+        <table class="roster jm-lamps">
+          <thead><tr><th>What</th><th>How many</th><th>What it is for</th></tr></thead>
+          <tbody>
+            <tr><td colspan="3"><strong>Things in the field</strong></td></tr>
+            <tr><td>Sensors</td><td>639</td><td>86 come from the layout over MQTT (the messaging link): 43 occupancy sensors named "BS ...", 40 switch feedback sensors named "FB ...", and 3 others. The other 553 are internal, made by JMRI and our scripts as flags and helpers.</td></tr>
+            <tr><td>Turnouts</td><td>50</td><td>20 real switches ("Switch n"), 20 "DCC Switch n" twins, and 10 internal turnouts for the yard ladders. A turnout's operation (what JMRI does after a command) is one of three stock types: NoFeedback, Raw or Sensor.</td></tr>
+            <tr><td>Memories</td><td>3</td><td>Small stored values: the current time, the clock rate and the Dispatcher version.</td></tr>
+            <tr><td colspan="3"><strong>Track and signals</strong></td></tr>
+            <tr><td>Blocks and layout blocks</td><td>55 and 55</td><td>A block is a stretch of track whose occupancy is known. They pair one to one by name: 32 "Track ..." and 23 "OS Switch ...". An "OS" is a block at a switch.</td></tr>
+            <tr><td>Block paths</td><td>126</td><td>Each says which block you can reach from which, and with which turnout setting.</td></tr>
+            <tr><td>Signal heads</td><td>37</td><td>All virtual. The lamps are driven elsewhere (see <a href="jmri-additions.html">what we added to JMRI</a>).</td></tr>
+            <tr><td>Signal masts</td><td>45</td><td>23 real ones sit on heads: 13 two-searchlight masts with 2 heads each and 10 one-low masts with 1 head each. That uses 36 heads and leaves 1 spare. The other 22 are virtual masts with no heads. All are stock Basic masts.</td></tr>
+            <tr><td>Signal Mast Logic</td><td>38 sources, 98 destinations</td><td>The rules that set a mast from the track ahead. 54 destinations are enabled and 44 are disabled; the 44 are switched on at run time, as explained in <a href="jmri-additions.html">the signal coordination</a>. 96 of the 98 use the Layout Editor to find their track.</td></tr>
+            <tr><td colspan="3"><strong>The Dispatcher's graph</strong></td></tr>
+            <tr><td>Sections</td><td>103</td><td>96 are made from pairs of masts and named "Mast A:Mast B". 7 are yard tracks we defined by hand.</td></tr>
+            <tr><td>Transits</td><td>746</td><td>Named like "From Mast X to Mast Y via OS Switch n". Together they hold 4,330 transit-sections, with one action each, 746 in all.</td></tr>
+            <tr><td colspan="3"><strong>Routes and logic</strong></td></tr>
+            <tr><td>Routes</td><td>10</td><td>Five for each side of the yard ladders, named like "Left Track S-1 ladder", with 101 turnout settings between them. An internal turnout triggers each one.</td></tr>
+            <tr><td>Entry/Exit</td><td>39 pairs</td><td>23 sources and 39 destinations, all of the signal-mast type. The routes themselves are worked out when JMRI runs, not stored.</td></tr>
+            <tr><td>Logix</td><td>2</td><td>Stock, one conditional each. One sets a few lever and lock sensors after the CTC reloads. The other runs the stock Dispatcher System start-up script when its start sensor goes active.</td></tr>
+            <tr><td>LogixNG</td><td>1</td><td>Hides some windows when the tables load. See <a href="#logixng">below</a>.</td></tr>
+            <tr><td colspan="3"><strong>Desks and panels</strong></td></tr>
+            <tr><td>CTC data</td><td>20 columns</td><td>One code-button column per CTC switch number (1, 3, 5 and on to 39), with a 2 second coding time and a 3 second time lock.</td></tr>
+            <tr><td>Panels</td><td>3</td><td>"USS CTC", a Panel Editor screen 1400 by 800 with 717 items (409 labels, 255 sensor icons, 20 turnout icons). "HART Railroad", a Layout Editor panel with 468 items (98 track segments, 70 anchors, 20 layout turnouts, 45 mast icons, 53 block-contents icons, 133 sensor icons). "Dispatcher System", a Layout Editor panel of 49 items, drawn by the Dispatcher System package.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The file holds no lights, reporters, warrants, OBlocks or ID tags.
+      </p>
+      <p>
+        One aside, because it trips people up. JMRI writes the Blocks section twice, a first pass with
+        names only and then the full pass. Count the lines naively and you get 110 blocks. There are 55.
+      </p>
+      <p>
+        The 639 sensors break down further. Of the internal ones, 192 are section sensors (96 forward and
+        96 reverse), 69 are Dispatcher System helpers, 260 are CTC panel sensors (13 kinds across 20
+        columns), 23 belong to Entry/Exit and 9 each do one job.
+      </p>
+
+      <h2>How the pieces link</h2>
+      <p>
+        The tables are not a pile. Each one points at the next by name, so a detector on the track
+        ends up as a leg of a train's route. The figure follows the chain.
+      </p>
+      <figure>
+        <svg class="jm-svg" viewBox="0 0 600 400" role="img" aria-labelledby="tf-t tf-d">
+          <title id="tf-t">How the tables link</title>
+          <desc id="tf-d">A sensor feeds a layout block, which matches a block with paths that name turnouts. Two masts form a signal mast logic pair that creates a section. Sections chain into a transit, and Entry/Exit reuses the pair.</desc>
+          <defs>
+            <marker id="tf-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="head" d="M0 0L10 5L0 10z"/></marker>
+          </defs>
+          <rect class="band" x="10" y="10" width="580" height="150" rx="8"/>
+          <text class="t-s" x="24" y="32">Track</text>
+          <rect class="box" x="24" y="52" width="150" height="62" rx="6"/>
+          <text class="t-b" x="99" y="78" text-anchor="middle">Sensor</text>
+          <text class="t-s" x="99" y="98" text-anchor="middle">BS Switch 13</text>
+          <rect class="box" x="225" y="52" width="150" height="62" rx="6"/>
+          <text class="t-b" x="300" y="78" text-anchor="middle">Layout block</text>
+          <text class="t-s" x="300" y="98" text-anchor="middle">OS Switch 13</text>
+          <rect class="own" x="426" y="52" width="150" height="62" rx="6"/>
+          <text class="t-b t-w" x="501" y="78" text-anchor="middle">Block</text>
+          <text class="t-w" x="501" y="98" text-anchor="middle" style="font-size:13px">paths name turnouts</text>
+          <path class="line" d="M174 83H223" marker-end="url(#tf-ar)"/>
+          <path class="line" d="M375 83H424" marker-end="url(#tf-ar)"/>
+          <text class="t-s" x="300" y="146" text-anchor="middle">55 layout blocks share 43 detectors</text>
+
+          <rect class="band" x="10" y="180" width="580" height="210" rx="8"/>
+          <text class="t-s" x="24" y="202">Signals and the Dispatcher</text>
+          <rect class="box" x="24" y="220" width="110" height="48" rx="6"/>
+          <text class="t-b" x="79" y="249" text-anchor="middle">Mast A</text>
+          <rect class="box" x="24" y="300" width="110" height="48" rx="6"/>
+          <text class="t-b" x="79" y="329" text-anchor="middle">Mast B</text>
+          <rect class="pill" x="190" y="252" width="130" height="64" rx="32"/>
+          <text class="t-b" x="255" y="281" text-anchor="middle">SML pair</text>
+          <text class="t-s" x="255" y="299" text-anchor="middle">A to B</text>
+          <rect class="box" x="370" y="252" width="100" height="64" rx="6"/>
+          <text class="t-b" x="420" y="281" text-anchor="middle">Section</text>
+          <text class="t-s" x="420" y="299" text-anchor="middle">A:B</text>
+          <rect class="own" x="500" y="252" width="80" height="64" rx="6"/>
+          <text class="t-b t-w" x="540" y="289" text-anchor="middle">Transit</text>
+          <path class="line" d="M134 244L188 270" marker-end="url(#tf-ar)"/>
+          <path class="line" d="M134 324L188 298" marker-end="url(#tf-ar)"/>
+          <path class="line" d="M320 284H368" marker-end="url(#tf-ar)"/>
+          <path class="line" d="M470 284H498" marker-end="url(#tf-ar)"/>
+          <path class="soft" d="M255 252V236H420V252"/>
+          <text class="t-s" x="338" y="230" text-anchor="middle">Entry/Exit reuses the pair</text>
+          <text class="t-s" x="300" y="376" text-anchor="middle">Masts stand at block boundaries; sections chain into transits</text>
+        </svg>
+        <figcaption class="section-note">Top: from a detector to a block that knows its neighbours. Bottom: from two masts to a route a train can follow.</figcaption>
+      </figure>
+      <p>
+        Start at the top. An occupancy sensor reports a train on the track. A layout block (the Layout
+        Editor's view of a block) names that sensor, and a block of the same name carries the paths.
+        Several blocks can share one detector: the yard tracks split into West and East halves, and
+        Track S-1, S-1 West and S-1 East all use "BS S-1". The same goes for OS Switch 37 and Track K-2.
+        That is how 55 layout blocks get by on 43 detectors.
+      </p>
+      <p>
+        Here is the block for OS Switch 13, trimmed to the parts that matter:
+      </p>
+      <pre class="tf-code"><code>&lt;block&gt;
+  &lt;userName&gt;OS Switch 13&lt;/userName&gt;
+  &lt;occupancysensor&gt;BS Switch 13&lt;/occupancysensor&gt;
+  &lt;path block="Track Barn"&gt;
+    &lt;beansetting setting="Closed"&gt;
+      &lt;turnout&gt;Switch 13&lt;/turnout&gt;
+    &lt;/beansetting&gt;
+  &lt;/path&gt;
+  &lt;path block="OS Switch 11"&gt;
+    &lt;beansetting setting="Thrown"&gt; ... &lt;/beansetting&gt;
+  &lt;/path&gt;
+  ...
+&lt;/block&gt;</code></pre>
+      <p>
+        Read it as a sentence: from OS Switch 13 you can go to Track Barn when Switch 13 is closed, and to
+        OS Switch 11 when it is thrown. (In the file the settings are numbers, and the blocks are
+        named by short codes. I spelled them out.) Add 126 of those and you have the map.
+      </p>
+      <p>
+        Masts sit at block boundaries. Signal Mast Logic takes two masts and works out what lies between
+        them from the Layout Editor, using those paths. Here is one destination, trimmed:
+      </p>
+      <pre class="tf-code"><code>&lt;signalmastlogic source="Mast 2036"&gt;
+  &lt;destinationMast destination="Mast 38LB"&gt;
+    &lt;enabled&gt;no&lt;/enabled&gt;
+    &lt;useLayoutEditor&gt;yes&lt;/useLayoutEditor&gt;
+    &lt;useLayoutEditorTurnouts&gt;yes&lt;/useLayoutEditorTurnouts&gt;
+    &lt;useLayoutEditorBlocks&gt;yes&lt;/useLayoutEditorBlocks&gt;
+    &lt;associatedSection&gt;Mast 2036:Mast 38LB&lt;/associatedSection&gt;
+  &lt;/destinationMast&gt;
+&lt;/signalmastlogic&gt;</code></pre>
+      <p>
+        The pair creates a section named "Mast 2036:Mast 38LB", which is why the Dispatcher's sections are
+        named after masts. The Dispatcher chains sections into a transit, a whole move from one mast to
+        another via the switches in between. Entry/Exit reuses the same pairs rather than inventing its
+        own.
+      </p>
+      <p>
+        Switches have a link of their own. This one reports its position through two sensors, one for
+        each side, so JMRI can tell "thrown" from "not yet arrived":
+      </p>
+      <pre class="tf-code"><code>&lt;turnout feedback="TWOSENSOR"
+         sensor1="FB Switch 35 R"
+         sensor2="FB Switch 35 N"&gt;
+  &lt;userName&gt;Switch 35&lt;/userName&gt;
+&lt;/turnout&gt;</code></pre>
+
+      <h2>Who writes what</h2>
+      <p>
+        PanelPro owns the file. Anything you do on screen, such as moving a mast on a panel, ends up there
+        when you store. A few jobs are better done by script, and each does one thing:
+      </p>
+      <ul>
+        <li>A name map turns working names into the public equipment names that appear on this site.</li>
+        <li>Another script places the masts and their heads.</li>
+        <li>JMRI's own Discover tool finds the Signal Mast Logic pairs from the panel.</li>
+        <li>The CTC data generator writes the CTC data, including the 20 columns of code buttons.</li>
+        <li>Validators check that names agree across the file, so a typo does not become a missing switch.</li>
+      </ul>
+      <p>
+        The scripts that edit the file directly run only with PanelPro and CATS closed. Discover is the
+        exception: it runs inside a one-shot PanelPro, with no other JMRI session open, then stores and quits.
+      </p>
+
+      <h2 id="logixng">The LogixNG</h2>
+      <p>
+        One piece of logic is not a table of things but a little program. A LogixNG (JMRI's newer
+        logic tool) called "Hide windows on start" is listed in the Initialization Table, which is why it
+        runs when the tables load. It has four ConditionalNGs, each with one stock action:
+      </p>
+      <div class="table-wrap">
+        <table class="roster jm-lamps">
+          <thead><tr><th>ConditionalNG</th><th>Stock action</th></tr></thead>
+          <tbody>
+            <tr><td>Hide WiThrottle</td><td>Window Management: hides the WiThrottle window</td></tr>
+            <tr><td>Hide USS CTC</td><td>Window Management: hides the USS CTC window</td></tr>
+            <tr><td>Hide Dispatcher System</td><td>Window Management: hides the Dispatcher System window</td></tr>
+            <tr><td>Hide HART Railroad under CATS</td><td>Run Script: runs <code>hide_cats_desk_windows.py</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The last action calls an ordinary Jython file, described among
+        <a href="jmri-additions.html#scripts">the scripts</a>. A LogixNG runs wherever the tables load, so it fires under both PanelPro
+        and CATS with no condition of its own. The script does the checking: it looks at how JMRI was
+        started and at the open windows, and if CATS is not running it does nothing. A window action
+        ignores a window that is not there, so if one is missing, nothing happens.</p>
+
+      <h2>Stock and ours</h2>
+      <p>
+        The format is stock: it is what JMRI itself writes. What is ours is the content: the names, the comments, the yard-ladder turnouts and the
+        data for the CTC machine. The same rule as on the other pages applies, which is to change data
+        before software.
+      </p>
+
+      <p class="explainer-more">
+        More: <a href="jmri-additions.html">What we added to JMRI</a> ·
+        <a href="signals.html">How the signals work</a> ·
+        <a href="bridge.html">LCOS and the Arduino bridge</a> ·
+        <a href="../roster/index.html">Device roster</a> ·
+        <a href="../guides/index.html">Dispatcher guides</a> ·
+        <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a> ·
+        <a href="https://www.jmri.org/" rel="noopener">jmri.org</a>
+      </p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-tables").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

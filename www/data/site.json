@@ -67,6 +67,7 @@
         "behind",
         "behind-signals",
         "behind-jmri",
+        "behind-tables",
         "behind-bridge",
         "behind-wiring",
         "roster",
@@ -111,6 +112,12 @@
       }
     ],
     "behind-jmri": [
+      {
+        "label": "Control & signals",
+        "href": "behind/index.html#control"
+      }
+    ],
+    "behind-tables": [
       {
         "label": "Control & signals",
         "href": "behind/index.html#control"

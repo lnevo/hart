@@ -263,7 +263,7 @@
         a screen can never throw a switch, and a test guards that rule.
       </p>
 
-      <h2>The scripts</h2>
+      <h2 id="scripts">The scripts</h2>
       <p>
         Four Jython scripts do all of this inside JMRI. They are the heart of what we added:
       </p>
@@ -273,7 +273,7 @@
           <tbody>
             <tr><td><code>signal_coordinator.py</code></td><td>Start Up</td><td>The signal coordination. It owns the "SML Enabled" button, runs the hand-over, sends head colours to the field with Signals ON, mirrors the field with Signals OFF, and answers the crash check.</td></tr>
             <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>The panel's helper. It wires up the four lamps and their clicks, paints the yard ladder triangles from feedback, keeps Routes disabled while painting, and lifts block labels that the Dispatcher's Stage 1 Store buries.</td></tr>
-            <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="#logixng">The LogixNG</a>)</td><td>Tidies the screen under CATS. It hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
+            <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="tables-file.html#logixng">The LogixNG</a>)</td><td>Tidies the screen under CATS. It hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
             <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on the main layout host only</td><td>The remote-run hook, described below.</td></tr>
           </tbody>
         </table>
@@ -298,24 +298,6 @@
         login that would reach it.
       </p>
 
-      <h2 id="logixng">The LogixNG</h2>
-      <p>
-        One addition is not a script at all. A LogixNG called "Hide windows on start" lives in
-        <code>tables.xml</code> and runs when the tables load. It has four ConditionalNGs with one stock
-        action each:
-      </p>
-      <div class="table-wrap">
-        <table class="roster jm-lamps">
-          <thead><tr><th>ConditionalNG</th><th>Stock action</th></tr></thead>
-          <tbody>
-            <tr><td>Hide WiThrottle</td><td>Window Management: hides the WiThrottle window</td></tr>
-            <tr><td>Hide USS CTC</td><td>Window Management: hides the USS CTC window</td></tr>
-            <tr><td>Hide Dispatcher System</td><td>Window Management: hides the Dispatcher System window</td></tr>
-            <tr><td>Hide HART Railroad under CATS</td><td>Run Script: runs <code>hide_cats_desk_windows.py</code></td></tr>
-          </tbody>
-        </table>
-      </div>
-
       <h2>What goes into the profile</h2>
       <p>
         Here is everything we bootstrap into a JMRI install. It all lives in the project repository, and
@@ -326,7 +308,7 @@
         <table class="roster jm-lamps">
           <thead><tr><th>In the profile</th><th>What it is</th></tr></thead>
           <tbody>
-            <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the lamps. PanelPro loads it at startup.</td></tr>
+            <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the lamps. PanelPro loads it at startup. <a href="tables-file.html">A tour of the file</a>.</td></tr>
             <tr><td><code>jython/</code></td><td>The four scripts above.</td></tr>
             <tr><td>Start Up entries</td><td>Added to the profile, so JMRI loads the tables and runs the scripts at launch.</td></tr>
             <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
