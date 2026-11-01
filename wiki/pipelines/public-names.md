@@ -30,6 +30,10 @@ Beans **with a generator** (USS diagram, CATS Masters, signal heads): change the
 
 Writable tables: `jmri/layouts/hart/output/tables.xml`.
 
+## Other text files
+
+`python3 jmri/layouts/hart/scripts/apply_public_names_tree.py <paths...>` applies the same map as string replaces to files you name, for documents outside the tables. It is a dry run until you pass `--apply`.
+
 ## Do not
 
 - Change MQTT topics or `systemName`s

@@ -97,6 +97,10 @@ The header has six links (`data/site.json` → `nav`): **Home · The Prototype �
 
 Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.
 
+## Layout Explorer data
+
+`python3 www/scripts/build_layout_index.py` writes `data/layout-index.json` from live repo data, and `python3 www/scripts/build_cats_layout_index.py` writes `data/layout-index-cats.json` and `assets/layout/HART_cats_digicon.png` from `cats/panels/HART_CTC.xml`. Rerun them after the layout or the desks change, then deploy.
+
 ## Rebuild content (legacy)
 
 `scripts/legacy/build_ops_content.py` and `scripts/legacy/refresh_galleries_and_library.py` predate the hand-edited `briefing.json`, `gallery.json`, `industries.json`, and `publications.json`; a forced run overwrites those files with older content. Both are dry runs by default (they list what they would write); `--force` writes. Check the diff before committing.

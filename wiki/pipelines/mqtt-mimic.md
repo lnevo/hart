@@ -33,6 +33,10 @@ Run this by hand after a bridge or firmware change.
 2. After the bridge connects, confirm non-empty retained mast topics for live heads.
 3. A SET on `track/signalhead/<packed>` must be gated when the mast topic is absent.
 
+### Native SML QA
+
+`python3 tools/mqtt-mimic/qa/run_native_sml_qa.py` drives retained MQTT states and checks mast aspects through JMRI JSON. It covers 100, 102, 110, 111, 114/115, K-1/K-2, the A48 balloon and 117/117b. It never publishes `track/cmd/*`, and it captures the retained baseline and restores it. Run it by hand with no operating session in progress. Its last recorded results are in `tools/mqtt-mimic/qa/`.
+
 ### Broker cleanup
 
 The one-shot retain clear for stale `track/signalhead/*` and `track/signalmast/*` (keeping 432 and 433) has been done by hand. Do not encode it in a permanent script.

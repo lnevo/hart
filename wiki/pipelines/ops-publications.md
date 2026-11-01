@@ -22,6 +22,10 @@ Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 | HB-01 | `Neville_Island_New_Operator_Primer.docx` |
 | TT-23 | `TT-23_Route23_NevilleQueen_RevisionA_v6.pptx` (map swap script) |
 
+## Regenerate docs/ops
+
+`make publications` runs `tools/ops/rebuild_publications.sh`, which uses the hart-ops scripts and writes the results to `docs/ops`.
+
 ## Run
 
 ```bash
