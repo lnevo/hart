@@ -130,7 +130,8 @@
 
         <section id="bridge" aria-labelledby="h-bridge">
           <h2 id="h-bridge"><span class="num">03</span>The bridge</h2>
-          <p>From about October 2025 the electronics took over. I chose LCOS hardware for the field bus, and Cursor helped me plan and build a bridge between LCOS and JMRI<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. It began as an ESP32 idea built on traincode, and by early 2026 it had become a Nano bridge running over a serial link. The work continued through April 2026.</p>
+          <p>From about October 2025 the electronics took over. I chose LCOS hardware for the field bus, and Cursor helped me plan and build a bridge between LCOS and JMRI<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. It began as an ESP32 idea built on traincode, and by early 2026 it had become a Nano bridge running over a serial link.</p>
+          <p>That bridge turned out to be one of the most involved pieces of the whole project, and it grew in stages. It started read-only, simply listening to what the layout reported. Then it became bi-directional, so JMRI could send commands back as well as hear them. Signal support came next. After that it had to coordinate with JMRI running on multiple clients, and finally to handle signals that could either run natively on the layout or be controlled from JMRI. That work ran on well into 2026.</p>
           <p><a href="../behind/bridge.html">Electronics &amp; the bridge</a> has the longer account.</p>
         </section>
 
