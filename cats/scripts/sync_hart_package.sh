@@ -237,7 +237,7 @@ install_ctc_icons_local() {
   fi
 }
 
-# Build the on-disk package that lands in ~/hart on the host.
+# Build the on-disk package that lands in ~/hart on the host (a transient drop on the Pi).
 stage_package() {
   local stage="$1"
   local user_files="$2"

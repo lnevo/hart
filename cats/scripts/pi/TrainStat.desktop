@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=TrainStat
+Comment=CATS train status client (yard / trainmaster)
+Exec=/home/pi/JMRI_UserFiles/cats/launch/launch_trainstat_desktop.sh
+Terminal=false
+Categories=HamRadio;Railway;

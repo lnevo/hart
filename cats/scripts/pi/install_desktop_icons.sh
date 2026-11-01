@@ -7,7 +7,7 @@ DESKTOP="${HOME}/Desktop"
 APPS="${HOME}/.local/share/applications"
 mkdir -p "$DESKTOP" "$APPS"
 
-for pair in "CATS_CTC.desktop:CATS CTC.desktop" "CATS_ABS.desktop:CATS ABS.desktop"; do
+for pair in "CATS_CTC.desktop:CATS CTC.desktop" "CATS_ABS.desktop:CATS ABS.desktop" "TrainStat.desktop:TrainStat.desktop"; do
   src="${pair%%:*}"
   dst="${pair##*:}"
   if [[ ! -f "$SRC/$src" ]]; then
@@ -16,7 +16,7 @@ for pair in "CATS_CTC.desktop:CATS CTC.desktop" "CATS_ABS.desktop:CATS ABS.deskt
   fi
   cp "$SRC/$src" "$DESKTOP/$dst"
   cp "$SRC/$src" "$APPS/$dst"
-  rm -f "$DESKTOP/$src" "$APPS/$src"
+  [[ "$src" == "$dst" ]] || rm -f "$DESKTOP/$src" "$APPS/$src"
 done
 
 rm -f \
@@ -28,5 +28,5 @@ rm -f \
   "$APPS/CATS_CTC_SML.desktop" \
   "$APPS/CATS.desktop"
 
-chmod +x "$DESKTOP/CATS CTC.desktop" "$DESKTOP/CATS ABS.desktop" 2>/dev/null || true
+chmod +x "$DESKTOP/CATS CTC.desktop" "$DESKTOP/CATS ABS.desktop" "$DESKTOP/TrainStat.desktop" 2>/dev/null || true
 echo "Pi Desktop: CATS CTC + CATS ABS"

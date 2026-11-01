@@ -5,8 +5,8 @@ Installed:
   /home/pi/JMRI/cats.jar          CATS 3.2 (stock)
   /home/pi/JMRI/designer.jar
   /home/pi/JMRI/cats.csh
-  /home/pi/hart/cats/panels/HART_CTC.xml   <-- CATS CTC (HOLD_ONLY; SML)
-  /home/pi/hart/cats/panels/HART_ABS.xml   <-- CATS ABS (HOLD_ONLY; paint JMRI/SML)
+  /home/pi/JMRI_UserFiles/cats/panels/HART_CTC.xml   <-- CATS CTC (HOLD_ONLY; SML)
+  /home/pi/JMRI_UserFiles/cats/panels/HART_ABS.xml   <-- CATS ABS (HOLD_ONLY; paint JMRI/SML)
 
 PanelPro vs CATS (same profile TCS_MQTT — sequential, never both):
   PanelPro  — edit/store JMRI tables, MQTT, Start Up. Then quit.
@@ -15,16 +15,16 @@ PanelPro vs CATS (same profile TCS_MQTT — sequential, never both):
   Desktop CATS icons refuse to start if PanelPro is still running.
 
 Launch CATS (after quitting PanelPro):
-  /home/pi/hart/launch_cats.sh
+  /home/pi/JMRI_UserFiles/cats/launch/launch_cats.sh
   # default panel = HART_CTC.xml
 
 Desktop icons:
-  CATS CTC -> HART_CTC.xml  (/home/pi/hart/launch_cats_ctc_desktop.sh)
+  CATS CTC -> HART_CTC.xml  (/home/pi/JMRI_UserFiles/cats/launch/launch_cats_ctc_desktop.sh)
   CATS ABS -> HART_ABS.xml  (HOLD_ONLY; paint JMRI/SML)
 
 Or with an explicit panel:
-  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_CTC.xml
-  /home/pi/hart/launch_cats.sh /home/pi/hart/cats/panels/HART_ABS.xml
+  /home/pi/JMRI_UserFiles/cats/launch/launch_cats.sh /home/pi/JMRI_UserFiles/cats/panels/HART_CTC.xml
+  /home/pi/JMRI_UserFiles/cats/launch/launch_cats.sh /home/pi/JMRI_UserFiles/cats/panels/HART_ABS.xml
 
 Profile used: TCS_MQTT.3f32a166 (same as current PanelPro)
 
@@ -40,15 +40,15 @@ JMRI web home (STS link):
   SoR: cats/resources/jmri-web/servlet/home/Home.html
   Live: /home/pi/JMRI_UserFiles/web/servlet/home/Home.html
   STS = Shipper-driven Traffic Simulator → http://10.0.0.53:8980/sts/
-  Install/refresh: /home/pi/hart/cats/scripts/install_jmri_web_override.sh
+  Install/refresh: run by sync_hart_package.sh --pi
   Full pack sync from Mac (SSH): ./cats/scripts/sync_hart_package.sh --pi
   Windows: ./cats/scripts/sync_hart_package.sh --win  (SSH :2222; do not use Dropbox)
 
 JMRI Start Up scripts (profile PerformScript):
   preference:jython/panel_status.py
   preference:jython/signal_coordinator.py
-  (copies live in /home/pi/JMRI_UserFiles/jython/; sync also writes
-   /home/pi/hart/jmri/... for the repo tree)
+  (copies live in /home/pi/JMRI_UserFiles/jython/. /home/pi/hart is only a
+   deploy drop: sync_hart_package.sh --pi empties it when it finishes)
   LogixNG IQC:AUTO:0004 → preference:jython/hide_cats_desk_windows.py
   (unhold_signal_masts.py retired: Held belongs to CATS CTC — hold at
    load, unhold when a route is lined; masts boot Unheld anyway)
@@ -69,13 +69,13 @@ TrainStat (optional yard/trainmaster client)
 ============================================
 
 Installed:
-  /home/pi/hart/trainstat/              TrainStat package
-  /home/pi/hart/trainstat/hart_trainstat.xml   connects to localhost:54321
+  /home/pi/JMRI_UserFiles/cats/trainstat/              TrainStat package
+  /home/pi/JMRI_UserFiles/cats/trainstat/hart_trainstat.xml   connects to localhost:54321
   (light theme: black text on white/gray — stock demo was white-on-black and
    goes invisible under GTK LAF on modern Pi Java)
 
 Launch (CATS must already be running):
-  /home/pi/hart/launch_trainstat.sh
+  /home/pi/JMRI_UserFiles/cats/launch/launch_trainstat.sh
   # or desktop icon: TrainStat
   # launcher forces MetalLookAndFeel so colors stay readable
 
