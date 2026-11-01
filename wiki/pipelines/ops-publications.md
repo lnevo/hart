@@ -2,14 +2,14 @@
 
 Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 
-**Status:** Live on Desktop. `~/Desktop/HART/Car Cards/publications/` → `docs/`.
+**Status:** Live. Sources are in `external/hart-ops/publications/`; outputs go to `docs/ops/`.
 
 ## Inputs
 
 - Content in each `rebuild_*.py`
-- Assets under `publications/assets/` (station map PNG, TT-23 trifold)
+- Assets under `external/hart-ops/publications/assets/` (station map PNG, TT-23 trifold)
 
-## Outputs (in `Car Cards/docs/`)
+## Outputs (in `docs/ops/`)
 
 | Pub | File |
 |-----|------|
@@ -22,22 +22,12 @@ Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 | HB-01 | `Neville_Island_New_Operator_Primer.docx` |
 | TT-23 | `TT-23_Route23_NevilleQueen_RevisionA_v6.pptx` (map swap script) |
 
-## Regenerate docs/ops
-
-`make publications` runs `tools/ops/rebuild_publications.sh`, which uses the hart-ops scripts and writes the results to `docs/ops`.
-
 ## Run
 
 ```bash
-cd ~/Desktop/HART/Car\ Cards
-.venv/bin/python publications/rebuild_scale_operating_instructions.py
-.venv/bin/python publications/rebuild_dispatcher_train_list.py
-.venv/bin/python publications/rebuild_yardmaster_sequence.py
-.venv/bin/python publications/rebuild_crew_instructions.py
-.venv/bin/python publications/rebuild_station_map.py
-.venv/bin/python publications/rebuild_local_station_maps.py
-.venv/bin/python publications/rebuild_operator_primer.py
-.venv/bin/python publications/update_tt23_station_map.py
+make publications
 ```
 
-Index: `Car Cards/docs/README.md`. Standards: `HART_Railroad_Publication_Standards_v1.0.docx`. Root Desktop Word files (orientation packet, old train lists) are drafts unless they match these pubs.
+This runs `tools/ops/rebuild_publications.sh`, which creates the `external/hart-ops/.venv` if needed and runs each `rebuild_*.py` plus `update_tt23_station_map.py`.
+
+Standards: `docs/ops/HART_Railroad_Publication_Standards_v1.0.docx`. Index: `docs/ops/README.md`.

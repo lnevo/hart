@@ -15,10 +15,27 @@ Usage:
 
 from __future__ import annotations
 
+import csv
+import re
 import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+MAP_CSV = Path(__file__).resolve().parents[1] / "data/public_name_map.csv"
+
+
+def public_switch_numbers(path: Path = MAP_CSV) -> dict[str, str]:
+    """DCC address -> public switch number, from the map's LCC alias rows."""
+    numbers = {}
+    with path.open(encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            name = re.fullmatch(r"DCC Switch (\d+)", row["current"])
+            hardware = re.fullmatch(r"MTT(\d+)", row["hardware"])
+            if row["layer"] == "turnout" and name and hardware:
+                numbers[hardware.group(1)] = name.group(1)
+    return numbers
+
 
 # ------- styling -------
 UNIT = 30
@@ -53,10 +70,11 @@ RUNS = [
     (YL, 70, 82, YARD_C, 3, "McKeesport", 75),
 ]
 
+# Control points below are keyed by DCC address; plates show the public number.
 # standalone control points on main/up: (col, lane, os, area, dir, stub_label)
 STANDALONE = [
     (4, MAIN, "101", "Brick", "up", "Main West"),
-    (7, MAIN, "100", "Brick", "down", "West Yard interchange"),
+    (7, MAIN, "100", "Brick", "down", "West Yard int."),
     (11, MAIN, "102", "Plane", "down", "Plane spur"),
     (56, MAIN, "111", "East End", "up", None),      # crossover to passing main
     (66, MAIN, "112", "East End", "up", None),
@@ -88,7 +106,7 @@ STATIONS = [
     ("SOUTH YARD", 42), ("EAST END", 58), ("PRINCESS", 73),
 ]
 
-MAIN_BLK = [(9, "100-102"), (26, "Main East"), (46, "East Lead")]
+MAIN_BLK = [(9, "1-5"), (26, "Main East"), (46, "East Lead")]
 
 
 def _font(size, bold=False):
@@ -99,10 +117,11 @@ def _font(size, bold=False):
             return ImageFont.truetype(p, size)
         except OSError:
             continue
-    return ImageFont.load_default()
+    return ImageFont.load_default(size)
 
 
 def render(out: Path) -> None:
+    switch_numbers = public_switch_numbers()
     max_col = 86
     max_lane = 7
     W = PAD * 2 + max_col * UNIT
@@ -146,15 +165,15 @@ def render(out: Path) -> None:
         placed.append((bx0, by0))
         d.line([(bx0 + 17, by0 + 20), (x, y - 5)], fill=OSBORD, width=1)
         d.rectangle([bx0, by0, bx0 + 34, by0 + 20], fill=OSBOX, outline=OSBORD, width=1)
-        d.text((bx0 + 17, by0 + 10), os, font=f_os, fill=OSTXT, anchor="mm")
+        d.text((bx0 + 17, by0 + 10), switch_numbers[os], font=f_os, fill=OSTXT, anchor="mm")
         d.text((bx0 + 17, by0 + 30), area, font=f_area, fill=AREATXT, anchor="mm")
         d.ellipse([x - 4, y - 4, x + 4, y + 4], fill=STATION)
         signals(x, y)
 
     # header
     d.rectangle([0, 0, W, HEADER - 34], fill=BAND)
-    d.text((PAD, 18), "HART  \u2014  CTC Dispatcher Panel", font=f_title, fill=OSTXT)
-    d.text((W - 330, 24), "WEST \u2190  main track  \u2192 EAST", font=f_st, fill=ARROW)
+    d.text((PAD, 18), "HART CTC Dispatcher Panel", font=f_title, fill=OSTXT)
+    d.text((W - 330, 24), "WEST  <  main track  >  EAST", font=f_st, fill=ARROW)
     d.line([(0, HEADER - 34), (W, HEADER - 34)], fill=OSBORD, width=1)
     for label, c in STATIONS:
         d.text((px(c), HEADER - 56), label, font=f_st, fill=STATION, anchor="mm")
