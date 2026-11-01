@@ -49,7 +49,8 @@ fanout() {
 }
 
 if [[ -f "$HART/tables.xml" ]]; then
-  cp -f "$HART/tables.xml" "$UF/tables.xml"
+  # JMRI_UserFiles holds the only copy; the deploy drop in ~/hart is transient.
+  mv -f "$HART/tables.xml" "$UF/tables.xml"
   echo "Pi tables.xml updated"
 fi
 
