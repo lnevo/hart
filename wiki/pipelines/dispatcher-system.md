@@ -17,6 +17,10 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
 - Sections / transits / traininfo in the tables bundle
 - Logix **Run Dispatcher** (`IX:DSLX:1C1`) runs stock `program:jython/DispatcherSystem/Startup.py`
 
+## Repair stale TrainInfo
+
+`jmri/layouts/hart/scripts/run_panelpro_traininfo_repair.sh` loads HART in PanelPro on the Mac, repairs stale generated TrainInfo bindings, then exits. Do not run it with PanelPro or CATS open.
+
 ## Run
 
 1. **PanelPro only** (not CATS). Load hart tables.

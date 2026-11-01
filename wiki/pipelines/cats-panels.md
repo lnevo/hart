@@ -26,6 +26,10 @@ python3 cats/scripts/validate_cats_panel.py
 
 System picture: [`docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_SYSTEM.md). Operator: [`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../docs/ctc/DISPATCHER_GUIDE_CTC.md).
 
+## Diagnosing a panel
+
+`python3 cats/scripts/analyze_cats_edges.py <panel.xml>...` reports how each `SEC_EDGE` joint is typed (block, switchpoints or plain). It is read-only.
+
 ## Do not
 
 - Run CATS CTC and USS CTC (or Dispatcher System from inside CATS) at the same time

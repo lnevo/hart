@@ -27,6 +27,10 @@ Operator: [`jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/
 
 Change public names in the **generator**, then regenerate (pipeline 2).
 
+## Schematic image
+
+`python3 jmri/layouts/hart/scripts/render_ctc_panel.py <out.png>` draws one east-to-west CTC schematic of the railroad: a straight main with numbered OS plates and the yards as ladders. It is a picture only and changes no tables or panels.
+
 ## Do not
 
 - Run USS CTC and CATS CTC together
