@@ -8,21 +8,25 @@
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/article.css">
   <style>
-    /* "Who may touch what" and "Before and after" figures: boxes use the site tokens, so it follows any theme change. */
-    .who-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
+    /* Journey strip and "Before and after" figures: shapes use the site tokens. */
+    .who-svg, .trail-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
     .who-svg .box { fill: var(--card); stroke: var(--rule); stroke-width: 1.5; }
     .who-svg .core { fill: var(--brand); stroke: var(--brand); }
-    .who-svg .edit { fill: var(--card); stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 3; }
     .who-svg .strip { fill: none; stroke: var(--rule); stroke-width: 1.5; stroke-dasharray: 3 4; }
     .who-svg .line { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; }
     .who-svg .head { fill: var(--ink-soft); }
     .who-svg text { fill: var(--ink); font-size: 14px; }
     .who-svg .t-b { font-weight: 700; }
-    .who-svg .t-s { fill: var(--muted); font-size: 12px; }
     .who-svg .t-w { fill: #fff; }
-    .who-svg .t-wm { fill: #dbe9ee; font-size: 12px; }
-    /* Sub-headings inside "How it is organised now". */
-    .feature-body section > h3 { font-family: var(--font-head, inherit); font-size: 1.15rem; margin: 1.6rem 0 .4rem; color: var(--ink); }
+    .trail-svg .rail { stroke: var(--rule); stroke-width: 3; }
+    .trail-svg .dot { fill: var(--card); stroke: var(--brand); stroke-width: 3; }
+    .trail-svg .dot.now { fill: var(--brand); }
+    .trail-svg .pill { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; }
+    .trail-svg .pill.faint { stroke: var(--rule); stroke-dasharray: 4 3; }
+    .trail-svg text { fill: var(--ink); font-size: 15px; }
+    .trail-svg .t-b { font-weight: 700; }
+    .trail-svg .t-s { fill: var(--muted); font-size: 14px; }
+    .trail-svg .t-p { font-size: 14px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -31,20 +35,20 @@
     <article class="feature">
       <header class="feature-head">
         <h1>Bringing the Railroad Together</h1>
-        <p class="standfirst">The journey from a tabletop layout to a working railroad, how AI helped along the way, and how the software, research and website are organised now.</p>
+        <p class="standfirst">How AI grew up alongside the railroad, from the first research to the way the software, research and website are organised today.</p>
         <p class="byline">How it was built · October 2026</p>
       </header>
 
       <nav class="feature-toc" aria-label="On this page">
         <h2>On this page</h2>
         <ol>
-          <li><a href="#tabletop">Where it started</a></li>
-          <li><a href="#research">Research, stories and the first AI</a></li>
-          <li><a href="#software">Software arrives</a></li>
-          <li><a href="#scattered">Everything in different places</a></li>
-          <li><a href="#gathering">Gathering it into one place</a></li>
-          <li><a href="#now">How it is organised now</a></li>
-          <li><a href="#ai">Working with AI</a></li>
+          <li><a href="#tabletop">A tabletop and very little AI</a></li>
+          <li><a href="#research">Research and the first AI</a></li>
+          <li><a href="#code">Code enters</a></li>
+          <li><a href="#operations">Paperwork and operating</a></li>
+          <li><a href="#scattered">Too many places</a></li>
+          <li><a href="#gathering">One place</a></li>
+          <li><a href="#arrived">Where it arrived</a></li>
           <li><a href="#person">What stays with a person</a></li>
           <li><a href="#references">References</a></li>
         </ol>
@@ -52,33 +56,84 @@
 
       <div class="feature-body">
         <section id="intro" aria-label="Introduction">
-          <p class="lede">The railroad grew from a tabletop layout in 2022 into a full layout, a research archive, a set of stories and a public website, and AI took part in most of it. This page follows that journey in the order it happened, then describes how the pieces are organised today.</p>
-          <p>The railroad's traffic, the cards and the session paperwork, has its own account in <a href="sts-operations-article.html">the operations story</a>. This one is about everything around it: how the railroad came together, what AI did along the way, and why I now trust the files I work from.</p>
+          <p class="lede">This railroad started in 2022 as a tabletop layout, and there was very little AI in that part of the story. Over the next four years it grew into a full layout, a research archive, a set of fictional stories, an operating system with cards and paperwork, and the website you are reading.</p>
+          <p>AI took part in most of that, and the tools changed as the work did: first ChatGPT, then Cursor, and now Claude. This is the journey in the order it happened.</p>
+          <figure>
+            <svg class="trail-svg" viewBox="0 0 480 400" role="img" aria-labelledby="trail-t trail-d">
+              <title id="trail-t">The journey, with the tool in use at each stage</title>
+              <desc id="trail-d">A vertical timeline of six stages. 2022, a tabletop layout, with little AI. 2025, research and stories, with ChatGPT. Early 2026, code and control, with Cursor. Summer 2026, operations, with Cursor. August 2026, one repository, with Cursor. October 2026, consolidation, with Claude.</desc>
+              <line class="rail" x1="24" y1="36" x2="24" y2="346"/>
+        <circle class="dot" cx="24" cy="36" r="9"/>
+        <text class="t-b" x="48" y="33">2022</text>
+        <text class="t-s" x="48" y="52">Tabletop layout</text>
+        <rect class="pill faint" x="318" y="21" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="41" text-anchor="middle">None, mostly</text>
+        <circle class="dot" cx="24" cy="98" r="9"/>
+        <text class="t-b" x="48" y="95">2025</text>
+        <text class="t-s" x="48" y="114">Research and stories</text>
+        <rect class="pill" x="318" y="83" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="103" text-anchor="middle">ChatGPT</text>
+        <circle class="dot" cx="24" cy="160" r="9"/>
+        <text class="t-b" x="48" y="157">Early 2026</text>
+        <text class="t-s" x="48" y="176">Code and control</text>
+        <rect class="pill" x="318" y="145" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="165" text-anchor="middle">Cursor</text>
+        <circle class="dot" cx="24" cy="222" r="9"/>
+        <text class="t-b" x="48" y="219">Summer 2026</text>
+        <text class="t-s" x="48" y="238">Operations</text>
+        <rect class="pill" x="318" y="207" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="227" text-anchor="middle">Cursor</text>
+        <circle class="dot" cx="24" cy="284" r="9"/>
+        <text class="t-b" x="48" y="281">August 2026</text>
+        <text class="t-s" x="48" y="300">One repository</text>
+        <rect class="pill" x="318" y="269" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="289" text-anchor="middle">Cursor</text>
+        <circle class="dot now" cx="24" cy="346" r="9"/>
+        <text class="t-b" x="48" y="343">October 2026</text>
+        <text class="t-s" x="48" y="362">Consolidation</text>
+        <rect class="pill" x="318" y="331" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="351" text-anchor="middle">Claude</text>
+            </svg>
+            <figcaption><strong>The journey.</strong> Six stages from the 2022 tabletop to today, with the tool in use at each. The dates are approximate.</figcaption>
+          </figure>
         </section>
 
         <section id="tabletop" aria-labelledby="h-tabletop">
-          <h2 id="h-tabletop"><span class="num">01</span>Where it started</h2>
-          <p>It began with a tabletop layout in 2022, three years before the room that holds the railroad now. There was very little AI in that part of the story.</p>
-          <p>The larger layout took shape from there. <a href="../build/index.html">The Build page</a> has progress photos from February 2025 on, and the research that grew up around the building is where AI comes in.</p>
+          <h2 id="h-tabletop"><span class="num">01</span>A tabletop and very little AI</h2>
+          <p>The first layout sat on a table in 2022, three years before the room that holds the railroad now. The <a href="../gallery/index.html">gallery</a> still has a photo of it, dated August 2022.</p>
+          <p>That is the honest starting point. It was a tabletop layout, and there was no AI to speak of. Everything that follows grew from there, and the order matters, because the way I use AI changed as the railroad asked for different things.</p>
         </section>
 
         <section id="research" aria-labelledby="h-research">
-          <h2 id="h-research"><span class="num">02</span>Research, stories and the first AI</h2>
-          <p>The research started in early 2025, and about April is the first solid reference I can point to. ChatGPT generated just about all of the document files. All of the fictional short stories were drafted by AI. The logo is AI-generated. The track plan was settled in July 2025.</p>
-          <p>Documents, drafts and sources were piling up by then, and the layout needed software to match, which is where the next stage began.</p>
+          <h2 id="h-research"><span class="num">02</span>Research and the first AI</h2>
+          <p>AI came in through the research. It started in early 2025 with ChatGPT, which was part writer and part research partner. First came the roster of equipment on hand, and the early questions about what to model and in which era. That ran from about March into April.</p>
+          <p>Then I had to choose which real corridor to interpret and write the fictional backstory that goes with it. That took the spring and ran into summer. The identity work followed, and the logo is AI-generated. So are the fictional short stories, which were drafted with AI. ChatGPT also generated just about all of the document files, which is a lot of paper for one hobbyist.</p>
+          <p>Meanwhile the building had begun. <a href="../build/index.html">The Build page</a> has progress photos from February 2025 on. The track plan was settled in July. The industry research ran on through the second half of the year, and it is the base of the <a href="../history/index.html">Prototype</a> pages. Later planning, benchwork and helix design conversations went through ChatGPT too.</p>
+          <p>At this stage AI was a tool that wrote documents. That was fine for documents, but a layout also needs software.</p>
         </section>
 
-        <section id="software" aria-labelledby="h-software">
-          <h2 id="h-software"><span class="num">03</span>Software arrives</h2>
-          <p>I used ChatGPT for a long time, until I began using Cursor, an AI code editor, to edit the LCOS project, the software behind the layout electronics<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. That repository's first commit is from February 2026. Cursor then helped with the layout-editor work that came out of AnyRail, later with CATS, and with the rest. The panel layouts that JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup> displays were part of the same build-out.</p>
-          <p>The operations work is one more place AI helped. It matched photos to the roster for the car cards, and it ran the heavy iteration when I tuned the traffic simulation. <a href="sts-operations-article.html">The operations story</a> tells that part, and I also wrote it up for <cite>The Cannon Ball</cite> in Summer 2026<sup><a href="#ref-2" aria-label="Reference 2">2</a></sup>.</p>
+        <section id="code" aria-labelledby="h-code">
+          <h2 id="h-code"><span class="num">03</span>Code enters</h2>
+          <p>By February 2026 the work had moved from documents to software. I began using Cursor, an AI code editor, and used it to edit the LCOS project, the software behind the layout electronics<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. That repository's first commit is from February 2026.</p>
+          <p>Cursor then helped with the layout-editor work that came out of AnyRail, later with CATS, and with the rest. The difference from chat was plain. The AI was now working in the same files I was, so the result was something I could run, not only a document to read.</p>
+        </section>
+
+        <section id="operations" aria-labelledby="h-operations">
+          <h2 id="h-operations"><span class="num">04</span>Paperwork and operating</h2>
+          <p>By then the planning was giving way to paperwork. A railroad that runs needs cards, and cards need pictures. AI helped match photos to the roster for the car cards.</p>
+          <p>In summer 2026 the traffic system, STS, came next, with an AI coding assistant helping tune its simulation. The project history credits Cursor from July. <a href="sts-operations-article.html">The operations story</a> tells that part, and I wrote it up for <cite>The Cannon Ball</cite><sup><a href="#ref-2" aria-label="Reference 2">2</a></sup>. This page only places it in the order of things: by now the AI was helping with the running of the railroad as well as the writing about it.</p>
         </section>
 
         <section id="scattered" aria-labelledby="h-scattered">
-          <h2 id="h-scattered"><span class="num">04</span>Everything in different places</h2>
+          <h2 id="h-scattered"><span class="num">05</span>Too many places</h2>
           <p>So by the summer of 2026 the project was real and busy, but it was scattered: documents and research in their own folders, the fiction in its drafts, control software for the layout in one project, the traffic simulation in another, car records, the bridge to the electronics, and the website. Each worked on its own, and nothing made sure they agreed. A change to a car name in one place might never reach the cards, the website or the simulation.</p>
-          <p>That was the problem I set out to fix in August, and the picture below shows both sides of it.</p>
+          <p>That was the problem I set out to fix in August.</p>
+        </section>
 
+        <section id="gathering" aria-labelledby="h-gathering">
+          <h2 id="h-gathering"><span class="num">06</span>One place</h2>
+          <p>The place I chose is a <b>repository</b>, a folder where every change is recorded, so anyone can see what changed and go back. This one began on August 7, 2026. By the end of the month the traffic software, the car data and the website had been gathered in, with Cursor doing that August work.</p>
+          <p>Claude took over the consolidation from mid-October, as I began testing outside Cursor, and the folders were tidied in October. One habit came with the move: important choices are written down as short decision records, each saying what we decided, why, and what it replaced. A tool that forgets everything between sessions can still read them. That is the quiet change in how I use AI. Early on I asked it for documents. Now I give it a place to work and a set of written rules to follow, and I ask the same of every tool that comes after.</p>
           <figure>
             <svg class="who-svg" viewBox="0 0 480 296" role="img" aria-labelledby="one-t one-d">
               <title id="one-t">Before and after</title>
@@ -117,110 +172,20 @@
           </figure>
         </section>
 
-        <section id="gathering" aria-labelledby="h-gathering">
-          <h2 id="h-gathering"><span class="num">05</span>Gathering it into one place</h2>
-          <p>The place I chose is a <b>repository</b> (repo for short), a folder where every change is recorded. A <b>commit</b> is one saved snapshot with a note saying why. A <b>branch</b> is a side copy of the whole folder where work can happen without disturbing the main line; when it is good, it is merged back. Anyone can see what changed, when, and go back.</p>
-          <p>This repository's first commit was on August 7, 2026. By August 31 the traffic software, the car data and the website had been gathered in, and Cursor is credited in git for that August work. Claude then took over the consolidation, as I began testing outside Cursor, from mid-October, and the top-level layout of folders was tidied in October.</p>
-          <p>Two ideas ran through it. Each important choice is written down as an <b>ADR</b>, an architecture decision record: a short page saying what we decided, why, and what it replaced. And there is one real copy of each thing, so there is never a question of which version to trust. For the layout that means one tables file, one panel save and one car repository, each named in its own ADR. For the documents it means one folder, and a website that holds no copies of them.</p>
-          <p>These counts describe this repository only, as of October 31: about 680 commits on 47 days, at least 367 credited to Cursor and at least 270 to Claude. The helpers and automatic checks I describe below arrived at the very end of October.</p>
-        </section>
-
-        <section id="now" aria-labelledby="h-now">
-          <h2 id="h-now"><span class="num">06</span>How it is organised now</h2>
-          <p>Three things now share one set of files: the software that runs the layout, the research behind it, and the website you are reading. Each has its own habits.</p>
-
-          <h3>Software</h3>
-          <p>The layout data and the control panels are kept as files, with one tables file that describes the layout to JMRI. Because they are plain files in one place, a script can check them, and a change to a panel shows up in the history like any other edit. Signals run on JMRI's stock behaviour rather than a cleverer set; <a href="../behind/signals.html">How the signals work</a> has the reasoning. The bridge links JMRI to the signal and turnout electronics; <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers its role. The traffic simulation and the car records have their place in <a href="sts-operations-article.html">the operations story</a>.</p>
-          <p>One public naming grammar for equipment (ADR-005) keeps switches, signals and tracks called the same thing everywhere. One rule I keep: repair the data, not the package. If a stock JMRI tool fails on this layout, I fix our files and leave JMRI alone.</p>
-          <p>Some of the work belongs to projects that stand on their own. A <b>submodule</b> is a pinned snapshot of another repo, kept inside this one, so nothing shifts underneath it unnoticed. The public ones are <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>. Cursor and Claude edit this code. I set the direction, and what runs on the layout is my call.</p>
-
-          <h3>Research</h3>
-          <p>The sources are kept together, each with a note of where it came from. On the site, every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source, and what cannot be credited stays out. The same research feeds the <a href="../history/index.html">Prototype</a> articles.</p>
-          <p>A research helper looks things up and returns proposals with their sources. I decide what goes in. A proposal with no source does not become a caption, and a caption with no source does not go on the site. That keeps the history on this site something a reader can check.</p>
-
-          <h3>Web design</h3>
-          <p>The site has sections for different readers, as the <a href="../about/index.html">About page</a> says. The Prototype is for anyone curious about the island, Operations for the people who come to run trains, Behind the Scenes for how the layout works, and The Build for the construction.</p>
-          <p>Pages read their text from data files, so a caption is changed in one place. Published documents come from one source through a list, so the site holds no copies of them. Only files that are checked in are published, and a build check catches broken links or private paths before anything goes out. A page-building helper may edit only the website folder, and a reviewer helper reads the site through a named lens, such as a first-time reader, a historian or a designer. This article was itself shaped that way.</p>
-        </section>
-
-        <section id="ai" aria-labelledby="h-ai">
-          <h2 id="h-ai"><span class="num">07</span>Working with AI</h2>
-          <p>Having several tools means keeping them to the same rules. All of mine live in one file, and every tool I use reads it. It holds the commands, the list of things never to do, and a close-out routine for any task that changed files: update the wiki, commit on a branch, push, test, deploy where something live changed, then report what was done.</p>
+        <section id="arrived" aria-labelledby="h-arrived">
+          <h2 id="h-arrived"><span class="num">07</span>Where it arrived</h2>
+          <p>On the software side, the layout data, the panels and the signals now sit together as plain files, with one naming rule so switches, signals and tracks are called the same thing everywhere. Signals run on the stock behaviour of JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the link to the electronics. Traffic and car records are kept the same way, so a car has one name from the card to the simulation. Some work stands on its own as pinned public projects inside this one: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>.</p>
+          <p>The research is kept together, with a note of where each source came from. Every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source. A research helper looks things up and returns proposals with their sources, and I decide what goes in. No source, no caption.</p>
+          <p>The website has sections for different readers, and its pages are drawn from one source, so a change is made once, in one place. A page-building helper makes the pages. A reviewer helper reads the site as a first-time reader, a historian or a designer would, and this article was shaped that way.</p>
+          <p>Behind all of it, every tool reads one set of written rules.</p>
           <blockquote class="pull"><p>Chat is a scratchpad; decisions live in the wiki.</p></blockquote>
-          <p>That line is near the top of the file, and the reason is plain. An agent starts each session knowing only what is written down, so anything not written down is lost. The wiki has a live status page that says what is true today, and a separate dated log that says what happened and when.</p>
-          <p>Some jobs go to a <b>subagent</b>, a helper with its own written instructions and one bounded task. I have five. Four only read: one traces why a signal or panel behaves as it does, one audits the repository for dead code and stale notes, one reviews the website through a named lens, and one researches history and sources. The fifth builds website pages and may edit only the website folder. None of them commits or publishes. The main session does that, and checks the result. A helper with one job is easier to trust than one that does everything, and when its answer is wrong, it is easy to see why.</p>
-
-          <figure>
-            <svg class="who-svg" viewBox="0 0 480 314" role="img" aria-labelledby="who-t who-d">
-              <title id="who-t">Who may touch what</title>
-              <desc id="who-d">AGENTS.md, the one rule file, sits above the owner and the main session in the middle. On the left, five subagents report back to the main session: four are read-only and one edits the website folder. On the right, work passes five gates in order: branch, pull request, checks, merge and deploy. Deploy is done by the main session only.</desc>
-              <defs>
-                <marker id="who-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
-              </defs>
-
-              <!-- rule file -->
-              <rect class="box" x="150" y="6" width="180" height="46" rx="3"/>
-              <text class="t-b" x="240" y="26" text-anchor="middle">AGENTS.md</text>
-              <text class="t-s" x="240" y="43" text-anchor="middle">the one rule file</text>
-              <path class="line" d="M240 52 V94" marker-end="url(#who-arr)"/>
-
-              <!-- middle: owner + main session -->
-              <rect class="core" x="180" y="96" width="120" height="150" rx="3"/>
-              <text class="t-w t-b" x="240" y="120" text-anchor="middle">Owner</text>
-              <text class="t-wm" x="240" y="138" text-anchor="middle">decides, approves</text>
-              <path d="M196 152 H284" stroke="#dbe9ee" stroke-width="1" stroke-dasharray="3 3"/>
-              <text class="t-w t-b" x="240" y="174" text-anchor="middle">Main session</text>
-              <text class="t-wm" x="240" y="192" text-anchor="middle">commits, pushes,</text>
-              <text class="t-wm" x="240" y="208" text-anchor="middle">deploys, verifies</text>
-
-              <!-- left: subagents -->
-              <rect class="box" x="4" y="76" width="128" height="226" rx="3"/>
-              <text class="t-b" x="68" y="98" text-anchor="middle">Five subagents</text>
-              <rect class="box" x="14" y="108" width="108" height="26" rx="2"/>
-              <text x="68" y="126" text-anchor="middle">Tracer</text>
-              <rect class="box" x="14" y="140" width="108" height="26" rx="2"/>
-              <text x="68" y="158" text-anchor="middle">Auditor</text>
-              <rect class="box" x="14" y="172" width="108" height="26" rx="2"/>
-              <text x="68" y="190" text-anchor="middle">Reviewer</text>
-              <rect class="box" x="14" y="204" width="108" height="26" rx="2"/>
-              <text x="68" y="222" text-anchor="middle">Researcher</text>
-              <text class="t-s" x="68" y="246" text-anchor="middle">four read-only</text>
-              <rect class="edit" x="14" y="256" width="108" height="36" rx="2"/>
-              <text x="68" y="272" text-anchor="middle">Site builder</text>
-              <text class="t-s" x="68" y="287" text-anchor="middle">edits www/ only</text>
-              <path class="line" d="M132 200 H178" marker-end="url(#who-arr)"/>
-              <text class="t-s" x="156" y="192" text-anchor="middle">report</text>
-
-              <!-- right: gates -->
-              <text class="t-b" x="412" y="88" text-anchor="middle">Gates, in order</text>
-              <rect class="box" x="348" y="96" width="128" height="28" rx="2"/>
-              <text x="412" y="115" text-anchor="middle">1  Branch</text>
-              <path class="line" d="M412 124 V134" marker-end="url(#who-arr)"/>
-              <rect class="box" x="348" y="136" width="128" height="28" rx="2"/>
-              <text x="412" y="155" text-anchor="middle">2  Pull request</text>
-              <path class="line" d="M412 164 V174" marker-end="url(#who-arr)"/>
-              <rect class="box" x="348" y="176" width="128" height="28" rx="2"/>
-              <text x="412" y="195" text-anchor="middle">3  Checks</text>
-              <path class="line" d="M412 204 V214" marker-end="url(#who-arr)"/>
-              <rect class="box" x="348" y="216" width="128" height="28" rx="2"/>
-              <text x="412" y="235" text-anchor="middle">4  Merge</text>
-              <path class="line" d="M412 244 V254" marker-end="url(#who-arr)"/>
-              <rect class="core" x="348" y="256" width="128" height="28" rx="2"/>
-              <text class="t-w t-b" x="412" y="275" text-anchor="middle">5  Deploy</text>
-              <text class="t-s" x="412" y="302" text-anchor="middle">deploy: main session only</text>
-              <path class="line" d="M300 120 H324 V110 H346" marker-end="url(#who-arr)"/>
-            </svg>
-            <figcaption><strong>Who may touch what.</strong> The rule file sits above everything. Subagents report back and never commit. Work crosses the gates on the right in order, and only the main session deploys.</figcaption>
-          </figure>
-
-          <p>Everything crosses the same steps: a branch, a pull request, the checks, a merge. Small automatic scripts called <b>hooks</b> run just before an agent executes a command and can say no. They exist to stop an agent doing what it should not and to ask me before anything that could affect the layout. One of them says of itself that it is "a guardrail against mistakes, not a security boundary", and I take that literally. Every pull request also runs a set of automated checks on the tables, the signals and the agent instructions themselves.</p>
-          <p>Two more terms, once. A <b>skill</b> is a written guide the AI loads when a topic comes up, so it works from the right notes instead of guessing. An <b>MCP</b> (Model Context Protocol) is a plug-in that gives the AI a tool it can call. My public plugin, <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>, has six skills and two read-only tools. Every rule in it was checked against the software's own source. The two tools have been tested against stand-ins, not a live layout, and neither can change the railroad.</p>
+          <p>The reason is plain. An agent knows only what is written down. A few helpers each have one job, and small automatic checks catch mistakes before they spread. One of those checks says of itself that it is "a guardrail against mistakes, not a security boundary", and I take that literally. A <b>skill</b> is a written guide the AI loads when a topic comes up, and an <b>MCP</b> is a plug-in tool it can call. My public plugin, <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a>, shares six skills and two read-only tools with other modelers.</p>
         </section>
 
         <section id="person" aria-labelledby="h-person">
           <h2 id="h-person"><span class="num">08</span>What stays with a person</h2>
-          <p>I run the layout, I decide what goes out, and I decide what is true. The AI reads, drafts, traces and builds pages and files; it does not run the railroad.</p>
-          <p>It began as a tabletop in 2022. It is now a layout with its research, its stories, its software and its public view in step.</p>
+          <p>Today it all lives in one place: the software that runs the layout, the research behind it, and the pages you are reading. A few helpers each do one job, and they all read the same set of written rules.</p>
+          <p>I run the railroad, and I decide what goes out and what is true. The AI does not run the railroad. What grew up beside it is a way of working: write it down, give each helper one job, and keep the judgment with the person who knows the layout.</p>
         </section>
 
         <section id="references" aria-labelledby="h-refs">
