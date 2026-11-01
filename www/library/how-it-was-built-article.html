@@ -125,6 +125,7 @@
         <section id="code" aria-labelledby="h-code">
           <h2 id="h-code"><span class="num">02</span>Code enters</h2>
           <p>The first code came in August 2025. <a href="https://github.com/lnevo/traincode">traincode</a> was an ESP32 client that connected to JMRI over MQTT, the first project where I started playing with those pieces together, and all of it was done with Cursor, an AI code editor. It became the foundation of the current client, though we later switched to a Nano bridge for LCOS compatibility.</p>
+          <p>What surprised me was how much went into it in about ten days: over-the-air firmware updates, configurable I/O so any pin could be set up as a sensor, turnout or light, mDNS so devices could find each other by name, first-time Wi-Fi setup through its own access point, a built-in web page with a device control panel, backup and restore of its settings, and automatic reconnection with its state synced again at boot. Every line of that code was written by AI, and the same goes for all of our own code the railroad uses today.</p>
           <p>The difference from chat was plain. The AI was now working in the same files I was, so the result was something I could run, not only a document to read.</p>
         </section>
 
