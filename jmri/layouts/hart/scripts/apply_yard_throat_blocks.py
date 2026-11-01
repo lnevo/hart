@@ -12,8 +12,8 @@ uses ``if "stop" in comment.lower()``. Use "not a station".
 
 S-1 is only two segments, so F46-S-0 is split at a new A81 just east of TOR14.
 
-Writable source is jmri/layouts/hart/output/tables.xml. --sync-output also patches
-output/tables.xml and hart_prod.xml. Idempotent.
+Writable source is jmri/layouts/hart/output/tables.xml. --sync-output has had no
+effect since ADR-008. Idempotent.
 """
 
 from __future__ import annotations
@@ -25,7 +25,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
 # Turnout-leg segments that become throats (already short).
 THROAT_SEGMENTS = [
@@ -182,8 +181,6 @@ def _add_block_beans(
     uname: str,
     sensor: str,
     station: str,
-    *,
-    panel_style: bool = False,
 ) -> None:
     blocks = root.find("blocks")
     lbs = root.find("layoutblocks")
@@ -212,15 +209,13 @@ def _add_block_beans(
         for b in list(blocks)
         if b.tag == "block" and b.get("length") is None and b.find("occupancysensor") is None
     ]
-    # tables.xml keeps JMRI's stub+full pair. hart_prod.xml is a panel
-    # and only has one <block> per userName — adding both fails phase02.
-    if not panel_style:
-        if stubs:
-            last_stub = stubs[-1]
-            idx = list(blocks).index(last_stub)
-            blocks.insert(idx + 1, stub)
-        else:
-            blocks.append(stub)
+    # tables.xml keeps JMRI's stub+full pair.
+    if stubs:
+        last_stub = stubs[-1]
+        idx = list(blocks).index(last_stub)
+        blocks.insert(idx + 1, stub)
+    else:
+        blocks.append(stub)
     blocks.append(full)
 
     lb = ET.SubElement(lbs, "layoutblock")
@@ -425,7 +420,6 @@ def apply(path: Path) -> int:
             uname,
             sensor,
             station,
-            panel_style=path.name == "hart_prod.xml",
         )
         names.add(uname)
         ib_n += 1

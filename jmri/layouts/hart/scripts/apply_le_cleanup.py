@@ -5,8 +5,8 @@ K-2, hidden stub and South Yard throat-boundary virtual masts.
 LCC aliases keep device-map userNames (`DCC Switch N`) and comments; this
 script only copies MQTT feedback/sensors onto MTT{dcc}.
 
-Writable source is jmri/layouts/hart/output/tables.xml. --sync-output also patches
-jmri/layouts/hart/output/tables.xml and hart_prod.xml independently.
+Writable source is jmri/layouts/hart/output/tables.xml. --sync-output has had no
+effect since ADR-008.
 
 Yard body tracks use hidden throat blocks (apply_yard_throat_blocks.py) so
 A53/A46/… are real block boundaries. Do not bind 104L–107L onto turnout
@@ -27,7 +27,6 @@ from lcc_turnout_contract import DCC_RE, child_text
 
 DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
 STUB_MASTS = [
     # systemName, userName, bumper ident, bound attr, icon x,y, degrees

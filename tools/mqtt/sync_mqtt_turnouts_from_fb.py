@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Publish MQTT turnout retain from JMRI FB N/R sensors (field SoR).
 
-TWOSENSOR convention in hart_prod:
+TWOSENSOR convention in tables.xml:
   FB R active → THROWN
   FB N active → CLOSED
 

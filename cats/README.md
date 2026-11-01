@@ -39,7 +39,7 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 
 ## Decisions (Accepted)
 
-- JMRI: **current** host (panel reports **5.15.4plus** — OK for CATS 3.2)
+- JMRI: **current** host (**5.16**, the newest CATS 3.2 supports)
 - CTC throws: **CATS**
 - Digicon board: **Designer-first** (ADR-004); **start here:** [`wiki/pipelines/cats-panels.md`](../wiki/pipelines/cats-panels.md)
   ```bash

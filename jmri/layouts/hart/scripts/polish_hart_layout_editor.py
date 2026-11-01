@@ -5,9 +5,8 @@ This script changes display geometry only.  It deliberately does not touch
 track connectivity, turnout ports, block assignments, signal-mast bindings,
 SML, CTC data, or hardware bean names.
 
-The writable source is ``jmri/layouts/hart/output/tables.xml``.  Use ``--sync-output`` to
-apply the same visual edits independently to the deployment bundle and the
-standalone monitor panel; the files are never copied over one another.
+The writable source is ``jmri/layouts/hart/output/tables.xml``.  ``--sync-output`` has had
+no effect since ADR-008.
 """
 
 from __future__ import annotations
@@ -20,7 +19,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 
 # Keep this list in sync with jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py.
 # Horizontal masts follow the North American right-hand placement convention:
@@ -597,7 +595,7 @@ def main() -> int:
     ap.add_argument(
         "--sync-output",
         action="store_true",
-        help="Also patch output/tables.xml and output/hart_prod.xml independently",
+        help="No effect since ADR-008; kept for existing callers",
     )
     ap.add_argument("--check", action="store_true", help="Validate without writing")
     ap.add_argument(

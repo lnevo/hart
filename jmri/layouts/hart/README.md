@@ -9,7 +9,7 @@
 - **Name:** `hart` · `export JMRI_LAYOUT=hart`
 - **Connectivity / positions:** from the AnyRail panel (`anyrail/hart.xml`)
 - **JMRI config:** `output/tables.xml` is the one tables file (ADR-008)
-- **Public names:** [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md) map `data/public_name_map.csv`; live index `data/block_display_names.csv`
+- **Public names:** [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md) map `data/public_name_map.csv`
 - Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` unless explicitly asked
 
 ## Bootstrap

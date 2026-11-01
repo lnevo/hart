@@ -99,11 +99,10 @@ def main():
         published[s] = 'scripts/' + s
 
     # STL index (HTML rows + Markdown rows)
-    rows_html, md = [], []
+    rows_html = []
     n_files = 0
     for group, rows in GROUPS:
         rows_html.append(f'<tr class="grp"><th colspan="5">{group}</th></tr>')
-        md += [f'\n### {group}\n', '| File | Size | Extents mm (in) | Script | Notes |', '|---|---|---|---|---|']
         for files, script, note in rows:
             cells = []
             mdcells = []
@@ -128,7 +127,6 @@ def main():
             for i, (f, sz, ext) in enumerate(mdcells):
                 s = (f'[`{script}`](../helix/scripts/{script})' if script else 'none kept') if i == 0 else '″'
                 nt = note if i == 0 else '″'
-                md.append(f'| [`{f}`](../helix/stl/{f}) | {sz} | {ext} | {s} | {nt} |')
 
     # Build status page, with backticked filenames linked to the published copies.
     text = open(os.path.join(DOCS, STATUS)).read()
@@ -186,17 +184,6 @@ def main():
     </div>''')
     open(os.path.join(OUT, 'index.html'), 'w').write(index)
 
-    mdtext = ['# Neville Island Helix — Instructions and STL Index', '',
-              '*Updated 15 October 2026. Web version: [helix/index.html](../helix/index.html).*', '',
-              '## Instructions', '',
-              f'- [Construction plan PDF](../helix/files/{PLAN}): 13 pages. **Page 13 is the half-lap screw template.**',
-              '- [Half-lap screw template PDF](../helix/files/lap_screw_template.pdf): US Letter, print at 100%, check the 2 in / 50 mm bars.',
-              f'- [Build status](../helix/files/{STATUS}): as-built facts; overrides the PDF where they differ.',
-              f'- [Design handoff](../helix/files/{HANDOFF}): rationale and formulas.', '',
-              '## STL index', '',
-              f'{n_files} files, all in millimetres. Extents are the exported bounding box, X × Y × Z.'] + md + [
-              '', 'Obsolete, not published: ' + ', '.join(f'`{f}`' for f in OBSOLETE) + '.', '']
-    open(os.path.join(PORTAL, 'docs', 'Helix_Instructions_and_STL_Index.md'), 'w').write('\n'.join(mdtext))
     print('files', n_files, 'scripts', len(scripts))
 
 

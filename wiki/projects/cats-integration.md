@@ -7,7 +7,7 @@
 
 ## Locked
 
-- JMRI: current (**5.15.4plus** / ≤5.16 for CATS 3.2)
+- JMRI: current (**5.16**, the newest CATS 3.2 supports)
 - CTC **route** authority: **CATS** (`HART_CTC.xml` HOLD_ONLY)
 - Signal **aspects**: **JMRI SML** (Basic `two-searchlight` / `one-low`). Without CATS, Unhold = ABS.
 - Never run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.

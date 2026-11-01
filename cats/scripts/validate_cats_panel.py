@@ -37,7 +37,7 @@ GATE1_BLOCKS_LEGACY = {
     "East Main Ext",
 }
 
-# Gate 2 SoR — required on LE WIP (cats/panels/HART_le.xml) once built.
+# Gate 2 SoR.
 GATE2_BLOCKS = {
     "OS Switch 13",
     "OS Switch 7",

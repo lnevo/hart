@@ -6,7 +6,7 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1]
 
 
-class SyncLayoutButtonBootContractTest(unittest.TestCase):
+class PanelStatusContractTest(unittest.TestCase):
     def test_boot_does_not_paint_or_command_plant_turnouts(self) -> None:
         src = (SCRIPTS / "panel_status.py").read_text(encoding="utf-8")
         self.assertIn('("IT:HART:YL:R1", (("M2T1211", CLOSED), ("M2T1213", CLOSED)))', src)

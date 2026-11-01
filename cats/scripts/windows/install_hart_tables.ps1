@@ -351,8 +351,7 @@ function Copy-PackScript([string]$name, [string]$destDir) {
 foreach ($s in @(
   'discover_sml.py',
   'panel_status.py',
-  'add_yard_ladder_le_icons.py',
-  'install_yl_windows.py'
+  'add_yard_ladder_le_icons.py'
 )) {
   [void](Copy-PackScript $s $layoutDst)
 }
