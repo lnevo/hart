@@ -78,21 +78,21 @@ fi
 if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Push → Windows $WIN_HOST $WIN_PROFILE_REMOTE"
   ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
-    "mkdir hart\\_roster_stage\\roster hart\\_roster_stage\\operations 2>nul & mkdir \"C:\\Users\\lnevo\\JMRI\\My_JMRI_Railroad.jmri\\roster\" \"C:\\Users\\lnevo\\JMRI\\My_JMRI_Railroad.jmri\\operations\" 2>nul & echo ok"
+    "mkdir AppData\\Local\\Temp\\hart-roster-stage\\roster AppData\\Local\\Temp\\hart-roster-stage\\operations 2>nul & mkdir \"C:\\Users\\lnevo\\JMRI\\My_JMRI_Railroad.jmri\\roster\" \"C:\\Users\\lnevo\\JMRI\\My_JMRI_Railroad.jmri\\operations\" 2>nul & echo ok"
   scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
-    "$STAGE/roster.xml" "${WIN_HOST}:hart/_roster_stage/roster.xml"
+    "$STAGE/roster.xml" "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/roster.xml"
   # scp -r of a dir ending in /. can send "." which OpenSSH rejects.
   # Skip macOS AppleDouble (._*) so Windows copy does not choke.
   find "$STAGE/roster" -maxdepth 1 -type f ! -name '._*' -print0 | \
     tar -C "$STAGE/roster" --null -T - -cf - | \
     ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
-      "tar -xf - -C hart/_roster_stage/roster"
+      "tar -xf - -C AppData/Local/Temp/hart-roster-stage/roster"
   scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
-    "$STAGE/operations/"*.xml "${WIN_HOST}:hart/_roster_stage/operations/"
+    "$STAGE/operations/"*.xml "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/operations/"
   scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
-    "$ROOT/tools/hosts/win_install_roster_ops.ps1" "${WIN_HOST}:hart/_roster_stage/win_install_roster_ops.ps1"
+    "$ROOT/tools/hosts/win_install_roster_ops.ps1" "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/win_install_roster_ops.ps1"
   ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
-    "powershell -NoProfile -ExecutionPolicy Bypass -File hart/_roster_stage/win_install_roster_ops.ps1"
+    "powershell -NoProfile -ExecutionPolicy Bypass -File AppData/Local/Temp/hart-roster-stage/win_install_roster_ops.ps1"
 fi
 
 echo "DONE (Pi remains SoR; reopen DecoderPro/Operations on Mac/Win to see copies)"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Pi desktop: CATS CTC + CATS ABS (both HOLD_ONLY). Removes ABS-RO / CTC SML / legacy.
 set -euo pipefail
-HART="${HART:-/home/pi/hart}"
+HART="${HART:?HART must name the deploy drop}"
 SRC="$HART/cats/scripts/pi"
 DESKTOP="${HOME}/Desktop"
 APPS="${HOME}/.local/share/applications"

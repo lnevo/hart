@@ -47,8 +47,8 @@ JMRI web home (STS link):
 JMRI Start Up scripts (profile PerformScript):
   preference:jython/panel_status.py
   preference:jython/signal_coordinator.py
-  (copies live in /home/pi/JMRI_UserFiles/jython/. /home/pi/hart is only a
-   deploy drop: sync_hart_package.sh --pi empties it when it finishes)
+  (copies live in /home/pi/JMRI_UserFiles/jython/. sync_hart_package.sh --pi
+   unpacks into a /tmp folder and removes it when it finishes)
   LogixNG IQC:AUTO:0004 → preference:jython/hide_cats_desk_windows.py
   (unhold_signal_masts.py retired: Held belongs to CATS CTC — hold at
    load, unhold when a route is lined; masts boot Unheld anyway)

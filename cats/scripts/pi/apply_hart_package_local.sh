@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Install the deploy drop at /home/pi/hart into JMRI_UserFiles and ~/.jmri profiles, then empty it.
-# Called by sync_hart_package.sh --pi after rsync.
+# Install the deploy drop into JMRI_UserFiles and ~/.jmri profiles, then remove the drop.
+# Called by sync_hart_package.sh --pi with HART set to a /tmp folder.
 set -euo pipefail
-HART="${HART:-/home/pi/hart}"
+HART="${HART:?HART must name the deploy drop}"
 UF="${JMRI_USERFILES:-/home/pi/JMRI_UserFiles}"
 
-if [[ ! -d "$HART" ]]; then
-  echo "Missing $HART" >&2
-  exit 1
-fi
+case "$HART" in
+  /tmp/hart-deploy.*) ;;
+  *) echo "Refusing drop outside /tmp: $HART" >&2; exit 1 ;;
+esac
+trap 'rm -rf "$HART"' EXIT
 
 chmod +x "$HART/cats/scripts/pi/"*.sh "$HART/cats/scripts/pi/JMRI_CATS" \
   "$HART/cats/scripts/install_jmri_web_override.sh" 2>/dev/null || true
 
 mkdir -p "$UF"
 
-# CATS has no JMRI home: it opens real paths, so its files live here. ~/hart is
-# only the deploy drop and is emptied at the end of this script.
+# CATS has no JMRI home: it opens real paths, so its files live here.
 CATS_HOME="$UF/cats"
 mkdir -p "$CATS_HOME/panels" "$CATS_HOME/launch" "$CATS_HOME/logs"
 cp -f "$HART/cats/panels/"HART_CTC.xml "$HART/cats/panels/"HART_ABS.xml "$CATS_HOME/panels/"
@@ -27,9 +27,6 @@ done
 shopt -u nullglob
 chmod +x "$CATS_HOME/launch/"*
 cp -f "$HART/cats/scripts/pi/README_CATS.txt" "$CATS_HOME/"
-if [[ -d "$HART/trainstat" && ! -d "$CATS_HOME/trainstat" ]]; then
-  mv "$HART/trainstat" "$CATS_HOME/trainstat"
-fi
 
 copy_into() {
   local src="$1" dest="$2"
@@ -56,7 +53,7 @@ fanout() {
 }
 
 if [[ -f "$HART/tables.xml" ]]; then
-  # JMRI_UserFiles holds the only copy; the deploy drop in ~/hart is transient.
+  # JMRI_UserFiles holds the only copy.
   mv -f "$HART/tables.xml" "$UF/tables.xml"
   echo "Pi tables.xml updated"
 fi
@@ -92,8 +89,7 @@ if [[ -d "$HART/ctc/icons" ]]; then
   echo "Pi CTC icons + GUIObjects updated"
 fi
 
-# Masts are stock Basic (ADR-011). The package rsync has no --delete, so
-# retired custom signal sets have to be removed here. The JMRI install's own
+# Masts are stock Basic (ADR-011). Retired custom signal sets have to be removed here. The JMRI install's own
 # xml/signals/C&O-1980 is stock and stays.
 for sys in cats-masts hart-aar "C&O-1980"; do
   rm -rf "$HART/cats/resources/signals/$sys" "$UF/resources/signals/$sys"
@@ -167,9 +163,5 @@ fi
 if [[ -x "$HART/cats/scripts/pi/install_desktop_icons.sh" ]]; then
   bash "$HART/cats/scripts/pi/install_desktop_icons.sh"
 fi
-
-# Everything is installed; nothing runs from the drop folder.
-find "$HART" -mindepth 1 -delete
-echo "Pi deploy drop emptied: $HART"
 
 echo "Pi apply_hart_package_local done"
