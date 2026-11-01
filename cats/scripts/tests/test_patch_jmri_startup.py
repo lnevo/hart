@@ -151,5 +151,19 @@ class HideCatsChromeSource(unittest.TestCase):
         self.assertNotIn("\u2014", text)
 
 
+    def test_load_tables_points_start_up_at_one_path(self) -> None:
+        mod = _load()
+        sample = (
+            '<perform xmlns="" class="jmri.util.startup.configurexml.PerformFileModelXml" '
+            'enabled="yes" name="preference:tables.xml" type="XmlFile"/>'
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            profile = Path(tmp) / "profile.xml"
+            profile.write_text(sample, encoding="utf-8")
+            self.assertEqual(mod.load_tables_from(profile, "home:hart/x/tables.xml"), "changed")
+            self.assertIn('name="home:hart/x/tables.xml"', profile.read_text(encoding="utf-8"))
+            self.assertEqual(mod.load_tables_from(profile, "home:hart/x/tables.xml"), "already")
+
+
 if __name__ == "__main__":
     unittest.main()

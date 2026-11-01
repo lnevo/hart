@@ -22,23 +22,6 @@ install_into() {
   echo "Installed JMRI web home override -> ${dest_root}/web"
 }
 
-# macOS JMRI preferences profiles
-if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
-  for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-    [[ -d "$d" ]] || continue
-    install_into "$d"
-  done
-fi
-
-# Linux / Pi: ~/.jmri profiles + JMRI_UserFiles (preference:)
-if [[ -d "${HOME}/.jmri" ]]; then
-  for d in "${HOME}/.jmri"/*.jmri; do
-    [[ -d "$d" ]] || continue
-    install_into "$d"
-  done
-fi
-if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
-  install_into "${HOME}/JMRI_UserFiles"
-fi
+install_into "${HOME}/JMRI_UserFiles"
 
 echo "DONE — refresh JMRI web home (or restart Digicon/PanelPro web server)"

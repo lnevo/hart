@@ -39,17 +39,12 @@ copy_into() {
   fi
 }
 
-# Fan-out a file or directory into UserFiles + every ~/.jmri/*.jmri profile.
+# Install a file or directory into JMRI_UserFiles.
 fanout() {
   local src="$1"
   local rel="$2" # path under the profile root
   copy_into "$src" "$UF/$rel"
   echo "$rel -> $UF/$rel"
-  local d
-  for d in /home/pi/.jmri/*.jmri; do
-    [[ -d "$d" ]] || continue
-    copy_into "$src" "$d/$rel"
-  done
 }
 
 if [[ -f "$HART/tables.xml" ]]; then
@@ -80,11 +75,6 @@ if [[ -d "$HART/ctc/icons" ]]; then
   if [[ -f "$HART/ctc/GUIObjects.xml" ]]; then
     mkdir -p "$UF/ctc"
     cp -f "$HART/ctc/GUIObjects.xml" "$UF/ctc/GUIObjects.xml"
-    for d in /home/pi/.jmri/*.jmri; do
-      [[ -d "$d" ]] || continue
-      mkdir -p "$d/ctc"
-      cp -f "$HART/ctc/GUIObjects.xml" "$d/ctc/GUIObjects.xml"
-    done
   fi
   echo "Pi CTC icons + GUIObjects updated"
 fi

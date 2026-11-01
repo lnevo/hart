@@ -2,7 +2,7 @@
 
 Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live in `wiki/`.
 
-**Layout:** `hart` (`export JMRI_LAYOUT=hart`). JMRI loads `jmri/layouts/hart/output/tables.xml`, the one tables file (ADR-008).
+**Layout:** `hart` (`export JMRI_LAYOUT=hart`). `jmri/layouts/hart/output/tables.xml` is the one tables file (ADR-008). Every host installs into `JMRI_UserFiles` and loads `preference:tables.xml` (ADR-014).
 
 ## Commands
 
@@ -12,6 +12,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Checks | `./tools/check.sh` (before any commit that changes tables or signals). CI runs it on every PR, without the portal build |
 | Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
+| Bring a PanelPro Store into the repo | `make tables-pull` |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
 | Desktop folders | `python3 tools/ops/sync_desktop_data.py` previews; `--apply` copies. Never deletes. |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
@@ -67,7 +68,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
 
-- Run table scripts with PanelPro or CATS open. In PanelPro, Store to `jmri/layouts/hart/output/tables.xml`, not a profile copy.
+- Run table scripts with PanelPro or CATS open. A PanelPro Store goes to `~/JMRI_UserFiles/tables.xml`; run `make tables-pull` before committing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry`, or 2× draw scale unless asked.

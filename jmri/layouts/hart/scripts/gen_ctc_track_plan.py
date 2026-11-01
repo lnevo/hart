@@ -1293,9 +1293,6 @@ def install_preference_icons() -> list[Path]:
     dests: list[Path] = []
     candidates = [
         Path.home() / "JMRI_UserFiles",
-        Path.home() / "Library/Preferences/JMRI",
-        Path.home() / ".jmri",
-        Path.home() / "JMRI",
     ]
     for base in candidates:
         if not base.is_dir():

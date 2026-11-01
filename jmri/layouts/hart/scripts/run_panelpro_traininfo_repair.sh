@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 PROFILE_ID="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 PROFILE_XML="${JMRI_PROFILE_XML:-$HOME/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml}"
-PROFILE_TRAININFO="${HART_PROFILE_TRAININFO:-$HOME/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/dispatcher/traininfo}"
+PROFILE_TRAININFO="${HART_PROFILE_TRAININFO:-$HOME/JMRI_UserFiles/dispatcher/traininfo}"
 REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 STARTJMRI="$JMRI_HOME/PanelPro.app/Contents/MacOS/StartJMRI"
 PATCH="$ROOT/cats/scripts/patch_jmri_startup.py"
@@ -33,6 +33,8 @@ restore() {
   rm -f "$BACKUP"
 }
 trap restore EXIT
+python3 "$ROOT/cats/scripts/patch_jmri_startup.py" load-tables --profile "$PROFILE_XML" \
+  --tables home:hart/jmri/layouts/hart/output/tables.xml   # automation works on the repo file
 
 python3 - "$PROFILE_XML" <<'PY'
 import re

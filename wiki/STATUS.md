@@ -4,13 +4,13 @@ Updated 2026-11-01. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Current state
 
-- **Layout:** `hart`. Masts are stock Basic (ADR-011). JMRI loads `jmri/layouts/hart/output/tables.xml` (ADR-008).
+- **Layout:** `hart`. Masts are stock Basic (ADR-011). The repo's `jmri/layouts/hart/output/tables.xml` is the master (ADR-008). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014).
 - **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports. Do not go past 5.16 until the CATS downloads page does.
 - **Stock distributions:** JMRI 5.16 and CATS 3.2 run unpatched on all three hosts since 2026-10-31, under monitoring. If something breaks, compensate around them rather than changing them. JMRI Simple Server (port 2048) starts with each profile so CATS finds its operations server.
 - **MQTT startup race:** Expect `ConcurrentModificationException` with `Can't subscribe` at startup: a JMRI race that drops the broker for a few seconds, then reconnects and resubscribes on its own (seen on the Mac 2026-10-31, on the Pi 2026-09-06). Retained messages alone trigger it, with no HART scripts running. Worry only if `Succeeded to reconnect` does not follow.
 - **CATS load risk:** a turnout report during panel load can raise `NullPointerException ... requestLockClear` and kill the CATS event thread, freezing occupancy and turnout control. Do not move turnouts while CATS starts. If that error appears or occupancy stops updating, restart CATS. After CATS starts, use Appearance → Refresh Screen. Never use Refresh Layout: it can move points to a stale route.
 - **Counts:** 45 masts (23 real, 22 virtual), 103 sections, 746 transits, 39 NX pairs, 38 SML sources with 98 destinations, 1,548 traininfo files.
-- **Host files:** CATS panels, launchers and logs live in `JMRI_UserFiles/cats/` on the Pi and Windows, plus TrainStat on the Pi. Deploy unpacks into a temporary folder (`/tmp`, `%TEMP%`) and removes it. The Pi and Windows profiles set `user-files` to `JMRI_UserFiles`, so that is where `preference:` resolves and where deploy writes.
+- **Host files:** CATS panels, launchers and logs live in `JMRI_UserFiles/cats/` on the Pi and Windows, plus TrainStat on the Pi. Deploy unpacks into a temporary folder (`/tmp`, `%TEMP%`) and removes it. Every profile sets `user-files` to `JMRI_UserFiles`, so that is where `preference:` resolves and where deploy writes. Run `make tables-pull` after a PanelPro Store.
 - **JMRI scripts:** `signal_coordinator.py` and `panel_status.py` run from Start Up, `jmri_cmd_watcher.py` too on the Pi. A LogixNG in `tables.xml` calls `hide_cats_desk_windows.py`.
 - **Desks:** CATS CTC `HOLD_ONLY` by default; USS is the alternate. Never both.
 - **CATS panels:** `HART_Digicon.xml` is the Designer save; `wire_digicon.py` builds `HART_CTC.xml` and `HART_ABS.xml` (ADR-012).

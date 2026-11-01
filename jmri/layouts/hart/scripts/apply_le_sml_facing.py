@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 CSV_PATH = ROOT / "jmri/layouts/hart/data/le_signal_boundaries.csv"
-PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
+PREF_TABLES = Path.home() / "JMRI_UserFiles/tables.xml"
 
 TURNOUT_ATTR = {"A": "signalAMast", "B": "signalBMast", "C": "signalCMast", "D": "signalDMast"}
 ANCHOR_ATTR = {"east": "eastboundsignalmast", "west": "westboundsignalmast"}

@@ -202,9 +202,9 @@ LE `signalmasticon`s use stock AAR-1946 schematic GIFs (no custom imagelinks req
 | **Pi** | Desktop **CATS CTC** / **CATS ABS** |
 | **Windows** | Desktop **CATS CTC** / **CATS ABS** |
 
-Default panel for `launch_cats.sh` is `cats/panels/HART_CTC.xml`.
+Default panel for `launch_cats.sh` is `~/JMRI_UserFiles/cats/panels/HART_CTC.xml`, which deploy installs.
 
-Profile tables (routes, YL internals, signal heads/masts) load from the host’s `preference:tables.xml` / Pi `JMRI_UserFiles/tables.xml` (repo mirror `jmri/layouts/hart/output/tables.xml`). Yard ladders need `IO:AUTO:0201–0210` and `IT:HART:YL:*` in that file.
+Profile tables (routes, YL internals, signal heads/masts) load from `preference:tables.xml`, which is `JMRI_UserFiles/tables.xml` (repo mirror `jmri/layouts/hart/output/tables.xml`). Yard ladders need `IO:AUTO:0201–0210` and `IT:HART:YL:*` in that file.
 
 ### JMRI package (SSH deploy to hosts)
 
@@ -214,8 +214,8 @@ Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and
 |-------|----------|-------------|
 | CTC / ABS desks | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` | host `JMRI_UserFiles/cats/panels/` |
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
-| Ladder icons | `jmri/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
-| Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
+| Ladder icons | `jmri/resources/buttons/lamp_*.png` | `JMRI_UserFiles/resources/buttons/` |
+| Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | `JMRI_UserFiles/web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
 | JMRI Start Up scripts | `panel_status.py`, `signal_coordinator.py` | All hosts `preference:jython/` (Pi `JMRI_UserFiles/jython/`; Mac/Windows `<profile>.jmri/jython/` because user-files=`profile:`). `hide_cats_desk_windows.py` is LogixNG, same folder. |
 
 Deploy via SSH (agent does this — no manual batch/Dropbox step):

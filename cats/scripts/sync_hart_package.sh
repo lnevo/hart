@@ -116,7 +116,7 @@ install_jython_scripts() {
       rsync -a --delete "$traininfo/" "$profile/dispatcher/traininfo/"
       echo "Dispatcher traininfo -> $profile/dispatcher/traininfo"
     fi
-    local profxml="$profile/profile/profile.xml"
+    local profxml="${HOME}/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
     if [[ -f "$profxml" && -f "$patch_startup" ]]; then
       python3 "$patch_startup" retarget-jython \
         --profile "$profxml" \
@@ -130,19 +130,8 @@ install_jython_scripts() {
       echo "Start Up retargeted -> preference:jython ($profxml)"
     fi
   }
-  if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
-    for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_jython_into "$d"
-    done
-  fi
-  if [[ -d "${HOME}/.jmri" ]]; then
-    for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_jython_into "$d"
-    done
-  fi
-  if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
-    _install_jython_into "${HOME}/JMRI_UserFiles"
-  fi
+  mkdir -p "${HOME}/JMRI_UserFiles"
+  _install_jython_into "${HOME}/JMRI_UserFiles"
 }
 
 install_tables_local() {
@@ -156,26 +145,26 @@ install_tables_local() {
     # A Store into this copy since the last deploy would be lost: stop instead.
     if [[ -f "$dest" && -f "$stamp" && "$(shasum -a 256 "$dest" | cut -d' ' -f1)" != "$(cat "$stamp")" ]] \
       && ! cmp -s "$src" "$dest" && [[ "${HART_OVERWRITE_PROFILE_TABLES:-0}" != "1" ]]; then
-      echo "STOP: $dest changed since the last deploy. Bring the changes into the repo, or set HART_OVERWRITE_PROFILE_TABLES=1." >&2
+      echo "STOP: $dest changed since the last deploy. Run make tables-pull to bring the changes into the repo, or set HART_OVERWRITE_PROFILE_TABLES=1." >&2
       exit 1
     fi
     cp -f "$src" "$dest"
     shasum -a 256 "$dest" | cut -d' ' -f1 >"$stamp"
     echo "tables.xml -> $dest"
   }
-  if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
-    for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _copy_tables "$d"
-    done
-  fi
-  if [[ -d "${HOME}/.jmri" ]]; then
-    for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _copy_tables "$d"
-    done
-  fi
-  if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
-    _copy_tables "${HOME}/JMRI_UserFiles"
-  fi
+  mkdir -p "${HOME}/JMRI_UserFiles"
+  _copy_tables "${HOME}/JMRI_UserFiles"
+}
+
+install_cats_panels_local() {
+  local dest="${HOME}/JMRI_UserFiles/cats/panels"
+  mkdir -p "$dest"
+  local p
+  for p in "${LIVE_PANELS[@]}"; do
+    python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" \
+      --user-files "${HOME}/JMRI_UserFiles" --out "$dest/$p"
+  done
+  echo "CATS panels -> $dest"
 }
 
 install_ctc_icons_local() {
@@ -217,22 +206,11 @@ install_ctc_icons_local() {
     done
     echo "USS sensor icons -> $dest"
   }
-  if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
-    for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_misc_into "$d" && _install_uss_sensor_icons_into "$d"
-    done
-  fi
-  if [[ -d "${HOME}/.jmri" ]]; then
-    for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_misc_into "$d" && _install_uss_sensor_icons_into "$d"
-    done
-  fi
-  if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
-    _install_ctc_into "${HOME}/JMRI_UserFiles"
-    _install_buttons_into "${HOME}/JMRI_UserFiles"
-    _install_misc_into "${HOME}/JMRI_UserFiles"
-    _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
-  fi
+  mkdir -p "${HOME}/JMRI_UserFiles"
+  _install_ctc_into "${HOME}/JMRI_UserFiles"
+  _install_buttons_into "${HOME}/JMRI_UserFiles"
+  _install_misc_into "${HOME}/JMRI_UserFiles"
+  _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
 }
 
 # Build the package that lands in a temporary folder on the host. The apply scripts install it from there.
@@ -333,6 +311,7 @@ push_tar_scp() {
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
   install_tables_local
+  install_cats_panels_local
   install_ctc_icons_local
   install_jython_scripts
 fi
