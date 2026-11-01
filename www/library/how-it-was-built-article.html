@@ -45,7 +45,11 @@
           <li><a href="#tabletop">A tabletop and very little AI</a></li>
           <li><a href="#research">Research and the first AI</a></li>
           <li><a href="#code">Code enters</a></li>
-          <li><a href="#operations">Paperwork and operating</a></li>
+          <li><a href="#bridge">The bridge</a></li>
+          <li><a href="#wiring">The wiring</a></li>
+          <li><a href="#panels">From track plan to panels</a></li>
+          <li><a href="#operations">Cards and the traffic simulator</a></li>
+          <li><a href="#desks">The desks</a></li>
           <li><a href="#scattered">Too many places</a></li>
           <li><a href="#gathering">One place</a></li>
           <li><a href="#arrived">Where it arrived</a></li>
@@ -59,10 +63,10 @@
           <p class="lede">This railroad started in 2022 as a tabletop layout, and there was very little AI in that part of the story. Over the next four years it grew into a full layout, a research archive, a set of fictional stories, an operating system with cards and paperwork, and the website you are reading.</p>
           <p>AI took part in most of that, and the tools changed as the work did: first ChatGPT, then Cursor, and now Claude. This is the journey in the order it happened.</p>
           <figure>
-            <svg class="trail-svg" viewBox="0 0 480 462" role="img" aria-labelledby="trail-t trail-d">
+            <svg class="trail-svg" viewBox="0 0 480 524" role="img" aria-labelledby="trail-t trail-d">
               <title id="trail-t">The journey, with the tool in use at each stage</title>
-              <desc id="trail-d">A vertical timeline of seven stages. 2022, a tabletop layout, with little AI. 2025, research and stories, with ChatGPT. August 2025, first code, with Cursor. Early 2026, control software, with Cursor. Summer 2026, operations, with Cursor. August 2026, one repository, with Cursor. October 2026, consolidation, with Claude.</desc>
-              <line class="rail" x1="24" y1="36" x2="24" y2="408"/>
+              <desc id="trail-d">A vertical timeline of eight stages. 2022, a tabletop layout, with little AI. 2025, research and stories, with ChatGPT. August 2025, first code, with Cursor. Late 2025, the LCOS bridge and wiring, with Cursor. Early 2026, track plan to panels, with Cursor. Summer 2026, operations, with Cursor. August 2026, desks and one repository, with Cursor. October 2026, consolidation, with Claude.</desc>
+              <line class="rail" x1="24" y1="36" x2="24" y2="470"/>
         <circle class="dot" cx="24" cy="36" r="9"/>
         <text class="t-b" x="48" y="33">2022</text>
         <text class="t-s" x="48" y="52">Tabletop layout</text>
@@ -79,27 +83,32 @@
         <rect class="pill" x="318" y="145" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="165" text-anchor="middle">Cursor</text>
         <circle class="dot" cx="24" cy="222" r="9"/>
-        <text class="t-b" x="48" y="219">Early 2026</text>
-        <text class="t-s" x="48" y="238">Control software</text>
+        <text class="t-b" x="48" y="219">Late 2025</text>
+        <text class="t-s" x="48" y="238">LCOS bridge and wiring</text>
         <rect class="pill" x="318" y="207" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="227" text-anchor="middle">Cursor</text>
         <circle class="dot" cx="24" cy="284" r="9"/>
-        <text class="t-b" x="48" y="281">Summer 2026</text>
-        <text class="t-s" x="48" y="300">Operations</text>
+        <text class="t-b" x="48" y="281">Early 2026</text>
+        <text class="t-s" x="48" y="300">Track plan to panels</text>
         <rect class="pill" x="318" y="269" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="289" text-anchor="middle">Cursor</text>
         <circle class="dot" cx="24" cy="346" r="9"/>
-        <text class="t-b" x="48" y="343">August 2026</text>
-        <text class="t-s" x="48" y="362">One repository</text>
+        <text class="t-b" x="48" y="343">Summer 2026</text>
+        <text class="t-s" x="48" y="362">Operations</text>
         <rect class="pill" x="318" y="331" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="351" text-anchor="middle">Cursor</text>
-        <circle class="dot now" cx="24" cy="408" r="9"/>
-        <text class="t-b" x="48" y="405">October 2026</text>
-        <text class="t-s" x="48" y="424">Consolidation</text>
+        <circle class="dot" cx="24" cy="408" r="9"/>
+        <text class="t-b" x="48" y="405">August 2026</text>
+        <text class="t-s" x="48" y="424">Desks and one repository</text>
         <rect class="pill" x="318" y="393" width="152" height="30" rx="15"/>
-        <text class="t-p" x="394" y="413" text-anchor="middle">Claude</text>
+        <text class="t-p" x="394" y="413" text-anchor="middle">Cursor</text>
+        <circle class="dot now" cx="24" cy="470" r="9"/>
+        <text class="t-b" x="48" y="467">October 2026</text>
+        <text class="t-s" x="48" y="486">Consolidation</text>
+        <rect class="pill" x="318" y="455" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="475" text-anchor="middle">Claude</text>
             </svg>
-            <figcaption><strong>The journey.</strong> Seven stages from the 2022 tabletop to today, with the tool in use at each. The dates are approximate.</figcaption>
+            <figcaption><strong>The journey.</strong> Eight stages from the 2022 tabletop to today, with the tool in use at each. The dates are approximate.</figcaption>
           </figure>
         </section>
 
@@ -114,32 +123,56 @@
           <p>AI came in through the research. It started in early 2025 with ChatGPT, which was part writer and part research partner. First came the roster of equipment on hand, and the early questions about what to model and in which era. That ran from about March into April.</p>
           <p>Then I had to choose which real corridor to interpret and write the fictional backstory that goes with it. That took the spring and ran into summer. The identity work followed, and the logo is AI-generated. So are the fictional short stories, which were drafted with AI. ChatGPT also generated just about all of the document files, which is a lot of paper for one hobbyist.</p>
           <p>Meanwhile the building had begun. <a href="../build/index.html">The Build page</a> has progress photos from February 2025 on. The track plan was settled in July. The industry research ran on through the second half of the year, and it is the base of the <a href="../history/index.html">Prototype</a> pages. Later planning, benchwork and helix design conversations went through ChatGPT too.</p>
-          <p>At this stage AI was a tool that wrote documents. That was fine for documents, but a layout also needs software.</p>
+          <p>For the first months AI was a tool that wrote documents. That was fine for documents, but a layout also needs software, and the first of that arrived in August.</p>
         </section>
 
         <section id="code" aria-labelledby="h-code">
           <h2 id="h-code"><span class="num">03</span>Code enters</h2>
           <p>The first code came in August 2025. <a href="https://github.com/lnevo/traincode">traincode</a> was an ESP32 client that connected to JMRI over MQTT, the first project where I started playing with those pieces together, and all of it was done with Cursor, an AI code editor. It became the foundation of the current client, though we later switched to a Nano bridge for LCOS compatibility.</p>
-          <p>By February 2026 I was using Cursor to edit the LCOS project, the software behind the layout electronics<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. That repository begins in February 2026.</p>
-          <p>Cursor then helped with the layout-editor work that came out of AnyRail, later with CATS, and with the rest. The difference from chat was plain. The AI was now working in the same files I was, so the result was something I could run, not only a document to read.</p>
+          <p>The difference from chat was plain. The AI was now working in the same files I was, so the result was something I could run, not only a document to read.</p>
+        </section>
+
+        <section id="bridge" aria-labelledby="h-bridge">
+          <h2 id="h-bridge"><span class="num">04</span>The bridge</h2>
+          <p>From about October 2025 the electronics took over. I chose LCOS hardware for the field bus, and Cursor helped me plan and build a bridge between LCOS and JMRI<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. It began as an ESP32 idea built on traincode, and by early 2026 it had become a Nano bridge running over a serial link. The work continued through April 2026.</p>
+          <p><a href="../behind/bridge.html">Electronics &amp; the bridge</a> has the longer account.</p>
+        </section>
+
+        <section id="wiring" aria-labelledby="h-wiring">
+          <h2 id="h-wiring"><span class="num">05</span>The wiring</h2>
+          <p>A railroad that is going to be wired has to know what it is wiring. In November and December 2025 I had a hand-drawn ASCII sketch of the layout, made of plain typed characters. With Cursor it became a spreadsheet of switches, signals and locations, and then a versioned wiring inventory workbook.</p>
+          <p>That workbook later fed the wiring documents. Around the same time I tried some early experiments with JMRI Operations Pro, which did not become the car system.</p>
+        </section>
+
+        <section id="panels" aria-labelledby="h-panels">
+          <h2 id="h-panels"><span class="num">06</span>From track plan to panels</h2>
+          <p>With the list of what existed, the next job was getting the track into JMRI. The plan had been drawn in AnyRail. Between about January and June 2026, Cursor wrote a pipeline that turned AnyRail exports into JMRI Layout Editor panels, the schematic drawings JMRI uses to know where the track, turnouts and blocks are.</p>
+          <p>Each generation of that pipeline did the job better than the one before, and the first production panel went live in May 2026. Cursor helped with CATS, the dispatching software, along the way too.</p>
+          <p>In March 2026 I also made a side project for other modelers, <a href="stl-studio-article.html">STL Studio</a>, a block editor for writing RR-CirKits Tower LCC+Q logic. The railroad does not use it.</p>
         </section>
 
         <section id="operations" aria-labelledby="h-operations">
-          <h2 id="h-operations"><span class="num">04</span>Paperwork and operating</h2>
+          <h2 id="h-operations"><span class="num">07</span>Cards and the traffic simulator</h2>
           <p>By then the planning was giving way to paperwork. A railroad that runs needs cards, and cards need pictures. AI helped match photos to the roster for the car cards.</p>
-          <p>In summer 2026 the traffic system, STS, came next, with an AI coding assistant helping tune its simulation. The project history credits Cursor from July. <a href="sts-operations-article.html">The operations story</a> tells that part, and I wrote it up for <cite>The Cannon Ball</cite><sup><a href="#ref-2" aria-label="Reference 2">2</a></sup>. This page only places it in the order of things: by now the AI was helping with the running of the railroad as well as the writing about it.</p>
+          <p>In June and July 2026 the traffic system, STS, came next, with Cursor helping to extend it and tune its simulation. <a href="sts-operations-article.html">The operations story</a> tells that part, and I wrote it up for <cite>The Cannon Ball</cite><sup><a href="#ref-2" aria-label="Reference 2">2</a></sup>. This page only places it in the order of things: by now the AI was helping with the operating side of the railroad as well as the writing about it.</p>
+        </section>
+
+        <section id="desks" aria-labelledby="h-desks">
+          <h2 id="h-desks"><span class="num">08</span>The desks</h2>
+          <p>August 2026 was the busiest month. The CATS CTC desk was drawn in Designer as the dispatcher's desk, and the stock JMRI CTC machine was built beside it as an alternate. The Dispatcher System was set up to run trains automatically, and Signal Mast Logic ended up owning the aspects. Grok also helped for part of the conversion of route logic into native Signal Mast Logic.</p>
+          <p>The agents implemented and debugged. I was building and deciding at the bench.</p>
         </section>
 
         <section id="scattered" aria-labelledby="h-scattered">
-          <h2 id="h-scattered"><span class="num">05</span>Too many places</h2>
-          <p>So by the summer of 2026 the project was real and busy, but it was scattered: documents and research in their own folders, the fiction in its drafts, control software for the layout in one project, the traffic simulation in another, car records, the bridge to the electronics, and the website. Each worked on its own, and nothing made sure they agreed. A change to a car name in one place might never reach the cards, the website or the simulation.</p>
-          <p>That was the problem I set out to fix in August.</p>
+          <h2 id="h-scattered"><span class="num">09</span>Too many places</h2>
+          <p>So by August 2026 the project was real and busy, but it was scattered: documents and research in their own folders, the fiction in its drafts, control software for the layout in one project, the traffic simulation in another, car records, the bridge to the electronics, and the website. Each worked on its own, and nothing made sure they agreed. A change to a car name in one place might never reach the cards, the website or the simulation.</p>
+          <p>That was the problem I set out to fix.</p>
         </section>
 
         <section id="gathering" aria-labelledby="h-gathering">
-          <h2 id="h-gathering"><span class="num">06</span>One place</h2>
-          <p>The place I chose is a <b>repository</b>, a folder where every change is recorded, so anyone can see what changed and go back. This one began on August 7, 2026. By the end of the month the traffic software, the car data and the website had been gathered in, with Cursor doing that August work.</p>
-          <p>Claude took over the consolidation from mid-October, as I began testing outside Cursor, and the folders were tidied in October. One habit came with the move: important choices are written down as short decision records, each saying what we decided, why, and what it replaced. A tool that forgets everything between sessions can still read them. That is the quiet change in how I use AI. Early on I asked it for documents. Now I give it a place to work and a set of written rules to follow, and I ask the same of every tool that comes after.</p>
+          <h2 id="h-gathering"><span class="num">10</span>One place</h2>
+          <p>The place I chose is a <b>repository</b>, a folder where every change is recorded, so anyone can see what changed and go back. This one began on August 7, 2026. From the end of August the traffic software, the car data and the website were gathered in, with Cursor doing that work. I took stock of what lived where, and the operator portal, which had run only from a local server, moved to a domain of its own.</p>
+          <p>Claude took over the consolidation from mid-October, as I began testing outside Cursor. The folders were tidied, and the generic knowledge went into a public plugin for other modelers. One habit came with the move: important choices are written down as short decision records, each saying what we decided, why, and what it replaced. A tool that forgets everything between sessions can still read them. That is the quiet change in how I use AI. Early on I asked it for documents. Now I give it a place to work and a set of written rules to follow, and I ask the same of every tool that comes after.</p>
           <figure>
             <svg class="who-svg" viewBox="0 0 480 296" role="img" aria-labelledby="one-t one-d">
               <title id="one-t">Before and after</title>
@@ -179,8 +212,8 @@
         </section>
 
         <section id="arrived" aria-labelledby="h-arrived">
-          <h2 id="h-arrived"><span class="num">07</span>Where it arrived</h2>
-          <p>On the software side, the layout data, the panels and the signals now sit together as plain files, with one naming rule so switches, signals and tracks are called the same thing everywhere. Signals run on the stock behaviour of JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the link to the electronics. Traffic and car records are kept the same way, so a car has one name from the card to the simulation. Some work stands on its own as pinned public projects inside this one: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>.</p>
+          <h2 id="h-arrived"><span class="num">11</span>Where it arrived</h2>
+          <p>On the software side, the layout data, the panels and the signals now sit together as plain files, with one naming rule so switches, signals and tracks are called the same thing everywhere. Several signal systems were tried through September before I settled on the stock behaviour of JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the link to the electronics. Traffic and car records are kept the same way, so a car has one name from the card to the simulation. Some work stands on its own as pinned public projects inside this one: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>.</p>
           <p>The research is kept together, with a note of where each source came from. Every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source. A research helper looks things up and returns proposals with their sources, and I decide what goes in. No source, no caption.</p>
           <p>The website has sections for different readers, and its pages are drawn from one source, so a change is made once, in one place. A page-building helper makes the pages. A reviewer helper reads the site as a first-time reader, a historian or a designer would, and this article was shaped that way.</p>
           <p>Behind all of it, every tool reads one set of written rules.</p>
@@ -189,7 +222,7 @@
         </section>
 
         <section id="person" aria-labelledby="h-person">
-          <h2 id="h-person"><span class="num">08</span>What stays with a person</h2>
+          <h2 id="h-person"><span class="num">12</span>What stays with a person</h2>
           <p>Today it all lives in one place: the software that runs the layout, the research behind it, and the pages you are reading. A few helpers each do one job, and they all read the same set of written rules.</p>
           <p>I run the railroad, and I decide what goes out and what is true. The AI does not run the railroad. What grew up beside it is a way of working: write it down, give each helper one job, and keep the judgment with the person who knows the layout.</p>
         </section>
