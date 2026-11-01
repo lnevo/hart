@@ -60,6 +60,8 @@ fi
 
 if [[ -d "$HART/cats/resources/misc" ]]; then
   fanout "$HART/cats/resources/misc" "resources/misc"
+  rm -f "$HART/cats/resources/misc/linear5_panel_bg.jpg" "$UF/resources/misc/linear5_panel_bg.jpg" \
+    /home/pi/.jmri/*.jmri/resources/misc/linear5_panel_bg.jpg
   echo "Pi panel background updated"
 fi
 

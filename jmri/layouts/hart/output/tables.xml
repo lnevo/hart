@@ -26145,7 +26145,7 @@
       <iconmaps />
     </turnouticon>
     <positionablelabel x="9" y="0" level="1" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:resources/misc/linear5_panel_bg.jpg" degrees="0" scale="1.0">
+      <icon url="preference:resources/misc/hart_panel_bg.jpg" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>

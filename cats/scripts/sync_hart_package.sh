@@ -205,6 +205,7 @@ install_ctc_icons_local() {
     local dest="$1/resources/misc"
     mkdir -p "$dest"
     cp -f "$ROOT/jmri/resources/misc/"* "$dest/"
+    rm -f "$dest/linear5_panel_bg.jpg"
     echo "panel background -> $dest"
   }
   _install_uss_sensor_icons_into() {
