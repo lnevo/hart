@@ -51,6 +51,7 @@
           <li><a href="#desks">The desks</a></li>
           <li><a href="#scattered">Too many places</a></li>
           <li><a href="#gathering">One place</a></li>
+          <li><a href="#helix">The helix</a></li>
           <li><a href="#arrived">Where it arrived</a></li>
           <li><a href="#person">What stays with a person</a></li>
           <li><a href="#references">References</a></li>
@@ -59,13 +60,13 @@
 
       <div class="feature-body">
         <section id="intro" aria-label="Introduction">
-          <p class="lede">This railroad became an idea in January 2025, and AI came into it very shortly after. In less than two years it grew into a full layout, a research archive, a set of fictional stories, an operating system with cards and paperwork, and the website you are reading.</p>
-          <p>AI took part in most of that, and the tools changed as the work did: first ChatGPT, then Cursor, and now Claude. This is the journey in the order it happened.</p>
+          <p class="lede">In January 2025 this railroad was only an idea, and AI came into it very shortly after. At first that meant ChatGPT, helping me research a place and write it down. Nothing about it looked like a way of building a railroad. It grew one job at a time, as the layout kept asking for something new.</p>
+          <p>Less than two years later, that help has drafted the documents and the stories, written the software that reaches the layout's electronics, planned a helix and produced the printed parts that built it, and helped pull the whole project into order. This page follows that journey as it happened: what I was trying to build, which tool I used, and what each step left behind.</p>
           <figure>
-            <svg class="trail-svg" viewBox="0 0 480 462" role="img" aria-labelledby="trail-t trail-d">
+            <svg class="trail-svg" viewBox="0 0 480 524" role="img" aria-labelledby="trail-t trail-d">
               <title id="trail-t">The journey, with the tool in use at each stage</title>
-              <desc id="trail-d">A vertical timeline of seven stages. January 2025, the idea, research and stories, with ChatGPT. August 2025, first code, with Cursor. Late 2025, the LCOS bridge and wiring, with Cursor. Early 2026, track plan to panels, with Cursor. Summer 2026, operations, with Cursor. August 2026, desks and one repository, with Cursor. October 2026, consolidation, with Claude.</desc>
-              <line class="rail" x1="24" y1="36" x2="24" y2="408"/>
+              <desc id="trail-d">A vertical timeline of eight stages. January 2025, the idea, research and stories, with ChatGPT. August 2025, first code, with Cursor. Late 2025, the LCOS bridge and wiring, with Cursor. Early 2026, track plan to panels, with Cursor. Summer 2026, operations, with Cursor. August 2026, desks and one repository, with Cursor. September 2026, the helix plan, with ChatGPT. October 2026, consolidation, with Claude.</desc>
+              <line class="rail" x1="24" y1="36" x2="24" y2="470"/>
         <circle class="dot" cx="24" cy="36" r="9"/>
         <text class="t-b" x="48" y="33">January 2025</text>
         <text class="t-s" x="48" y="52">The idea, research, stories</text>
@@ -96,13 +97,18 @@
         <text class="t-s" x="48" y="362">Desks and one repository</text>
         <rect class="pill" x="318" y="331" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="351" text-anchor="middle">Cursor</text>
-        <circle class="dot now" cx="24" cy="408" r="9"/>
-        <text class="t-b" x="48" y="405">October 2026</text>
-        <text class="t-s" x="48" y="424">Consolidation</text>
+        <circle class="dot" cx="24" cy="408" r="9"/>
+        <text class="t-b" x="48" y="405">September 2026</text>
+        <text class="t-s" x="48" y="424">The helix plan</text>
         <rect class="pill" x="318" y="393" width="152" height="30" rx="15"/>
-        <text class="t-p" x="394" y="413" text-anchor="middle">Claude</text>
+        <text class="t-p" x="394" y="413" text-anchor="middle">ChatGPT</text>
+        <circle class="dot now" cx="24" cy="470" r="9"/>
+        <text class="t-b" x="48" y="467">October 2026</text>
+        <text class="t-s" x="48" y="486">Consolidation</text>
+        <rect class="pill" x="318" y="455" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="475" text-anchor="middle">Claude</text>
             </svg>
-            <figcaption><strong>The journey.</strong> Seven stages from the first idea to today, with the tool in use at each. The dates are approximate.</figcaption>
+            <figcaption><strong>The journey.</strong> Eight stages from the first idea to today, with the tool in use at each. The dates are approximate.</figcaption>
           </figure>
         </section>
 
@@ -110,7 +116,7 @@
           <h2 id="h-research"><span class="num">01</span>An idea, and the first AI</h2>
           <p>The current layout became an idea in January 2025, and AI came in very shortly after, through the research. ChatGPT was part writer and part research partner. First came the roster of equipment on hand, and the early questions about what to model and in which era. That ran from about March into April.</p>
           <p>Then I had to choose which real corridor to interpret and write the fictional backstory that goes with it. That took the spring and ran into summer. The identity work followed, and the logo is AI-generated. So are the fictional short stories, which were drafted with AI. ChatGPT also generated just about all of the document files, which is a lot of paper for one hobbyist.</p>
-          <p>Meanwhile the building had begun. <a href="../build/index.html">The Build page</a> has progress photos from February 2025 on. The track plan was settled in July. The industry research ran on through the second half of the year, and it is the base of the <a href="../history/index.html">Prototype</a> pages. Later planning, benchwork and helix design conversations went through ChatGPT too.</p>
+          <p>Meanwhile the building had begun. <a href="../build/index.html">The Build page</a> has progress photos from February 2025 on. The track plan was settled in July. The industry research ran on through the second half of the year, and it is the base of the <a href="../history/index.html">Prototype</a> pages. Later planning and benchwork conversations went through ChatGPT too.</p>
           <p>For the first months AI was a tool that wrote documents. That was fine for documents, but a layout also needs software, and the first of that arrived in August.</p>
         </section>
 
@@ -199,8 +205,15 @@
           </figure>
         </section>
 
+        <section id="helix" aria-labelledby="h-helix">
+          <h2 id="h-helix"><span class="num">10</span>The helix</h2>
+          <p>While the files were coming together, the biggest physical job on the railroad was under way: the helix that climbs from staging to the main level. The planning for it was some of the most valuable AI work on the whole project. Radius, grade, clearance, how the roadbed would be cut and joined, and the order it would all go up were worked through in conversation with ChatGPT before any wood was cut. By September 23, 2026 that had become a construction plan and a written design record.</p>
+          <p>Then the work left the screen. The plan became scripts, the scripts became STL files, and the STL files became printed parts: router templates, height spacers, shims and other fixtures, 47 files in all. These were not models of anything. They were tools, and they went on the bench and into the build. The frame was standing by the end of September, the first roadbed was up on October 2, and the finished helix was up and tracked by October 22.</p>
+          <p>That was a real milestone. Until then the AI's work had been documents and software. Now it was something I could pick up and use to build the railroad. The <a href="../helix/index.html">helix page</a> has the plan and every fixture, and <a href="../build/index.html#helix">The Build</a> has the photos.</p>
+        </section>
+
         <section id="arrived" aria-labelledby="h-arrived">
-          <h2 id="h-arrived"><span class="num">10</span>Where it arrived</h2>
+          <h2 id="h-arrived"><span class="num">11</span>Where it arrived</h2>
           <p>On the software side, the layout data, the panels and the signals now sit together as plain files, with one naming rule so switches, signals and tracks are called the same thing everywhere. Several signal systems were tried through September before I settled on the stock behaviour of JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the link to the electronics. Traffic and car records are kept the same way, so a car has one name from the card to the simulation. Some work stands on its own as pinned public projects inside this one: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>.</p>
           <p>The research is kept together, with a note of where each source came from. Every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source. A research helper looks things up and returns proposals with their sources, and I decide what goes in. No source, no caption.</p>
           <p>The website has sections for different readers, and its pages are drawn from one source, so a change is made once, in one place. A page-building helper makes the pages. A reviewer helper reads the site as a first-time reader, a historian or a designer would, and this article was shaped that way.</p>
@@ -210,9 +223,10 @@
         </section>
 
         <section id="person" aria-labelledby="h-person">
-          <h2 id="h-person"><span class="num">11</span>What stays with a person</h2>
-          <p>Today it all lives in one place: the software that runs the layout, the research behind it, and the pages you are reading. A few helpers each do one job, and they all read the same set of written rules.</p>
-          <p>I run the railroad, and I decide what goes out and what is true. The AI does not run the railroad. What grew up beside it is a way of working: write it down, give each helper one job, and keep the judgment with the person who knows the layout.</p>
+          <h2 id="h-person"><span class="num">12</span>What stays with a person</h2>
+          <p>Looking back along that timeline, the tools changed, but so did what I asked of them. ChatGPT gave me documents and a plan. Cursor gave me software I could run. The helix gave me parts I could hold. Claude helped put all of it in one place, under one set of rules.</p>
+          <p>None of that runs the railroad. I run it, and I decide what goes out and what is true. The AI works from what has been written down, and the judgment stays with the person who knows the layout.</p>
+          <p>The railroad is not finished. The main level comes next, and this way of working will go with it: write it down, give each helper one job, and keep building.</p>
         </section>
 
         <section id="references" aria-labelledby="h-refs">
