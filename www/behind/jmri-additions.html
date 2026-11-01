@@ -74,7 +74,7 @@
         The join between the two worlds is JMRI's virtual signal heads. SML sets the mast and its heads,
         and a script listens to the heads. A head only sends a colour once the field has reported that
         head, so a node that has never reported is not sent a command. The sessions also share one
-        small shared status flag, kept so a newly started session can read it, that says whether
+        small status word, kept on the broker so a newly started session can read it, that says whether
         JMRI currently has control.
       </p>
       <ul>
@@ -201,6 +201,34 @@
         other windows are tucked away.
       </p>
 
+      <h2>The topics behind the logic</h2>
+      <p>
+        All of this runs over MQTT, using ordinary topics that JMRI, the bridge and the scripts share.
+        The number at the end of a topic identifies one device. The signal coordination comes down to
+        these:
+      </p>
+      <div class="table-wrap">
+        <table class="roster jm-lamps">
+          <thead><tr><th>Topic</th><th>Direction</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>track/bridge/sml_mode</code></td><td>Both ways</td><td>The shared status word. It is retained, so a new session can read it. Values: <code>enabled</code>, <code>enabling</code>, <code>aborting</code>, <code>aborted</code>, <code>disabling</code>, <code>disabled</code>, and <code>query</code> (not retained), which asks whether anyone is in control.</td></tr>
+            <tr><td><code>track/signalhead/&lt;n&gt;</code></td><td>JMRI to field</td><td>With Signals ON, the colour for one head, such as <code>Red</code>, <code>Yellow</code> or <code>Green</code>. Releasing a head back to the field goes this way too.</td></tr>
+            <tr><td><code>track/signalmast/&lt;n&gt;</code></td><td>Field to JMRI</td><td>What a signal is showing, such as <code>Stop; Lit; Unheld</code>. This is how a head gets enrolled, and with Signals OFF it is what the panels mirror.</td></tr>
+            <tr><td><code>track/state</code></td><td>JMRI to bridge</td><td>JMRI's own online status. An offline report sets off the crash check.</td></tr>
+            <tr><td><code>track/bridge/status</code></td><td>Bridge to all</td><td>Whether the bridge program is <code>online</code> or <code>offline</code>. Retained.</td></tr>
+            <tr><td><code>track/bridge/cmd</code></td><td>JMRI to bridge</td><td>Bridge requests. Clicking the LCOS lamp sends <code>RESUBSCRIBE</code> here.</td></tr>
+            <tr><td><code>track/sensor/&lt;n&gt;</code></td><td>Field to JMRI</td><td>Occupancy and feedback sensors. One reserved sensor reports the health of the LCOS link and drives the LCOS lamp.</td></tr>
+            <tr><td><code>track/turnout/&lt;n&gt;</code></td><td>Field to JMRI</td><td>The reported position of a switch.</td></tr>
+            <tr><td><code>track/cmd/turnout/&lt;n&gt;</code></td><td>JMRI to field</td><td>A command to move a switch. Keeping commands on their own topic is what lets the lamps and scripts read state without ever moving anything.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        So the boot, quit and crash stories above are mostly conversations on
+        <code>track/bridge/sml_mode</code>: a session announces what it is doing, the others react, and
+        the bridge asks <code>query</code> when a session seems to have vanished.
+      </p>
+
       <h2>Four lamps</h2>
       <p>
         An operator glancing at a screen wants four answers fast: is the bridge up, are the switches
@@ -265,18 +293,30 @@
         login that would reach it.
       </p>
 
-      <h2>Small resources</h2>
+      <h2>What goes into the profile</h2>
       <p>
-        The rest is files. Two 16-pixel icons are the triangle lamps. The USS CTC panel has 70 generated
-        track icons plus its GUIObjects file: custom track cells for a stock CTC tool. The web home page
-        is a stock copy with one link added, to the traffic simulator; JMRI serves the copy in the user
-        folder before its own. The panel has a background image. JMRI finds all of these through
-        <code>preference:</code> paths.
+        Here is everything we bootstrap into a JMRI install. It all lives in the project repository, and
+        deploying copies it into the JMRI user files and profiles. JMRI finds each piece through its own
+        <code>preference:</code> paths, so none of it touches the JMRI program folder.
       </p>
+      <div class="table-wrap">
+        <table class="roster jm-lamps">
+          <thead><tr><th>In the profile</th><th>What it is</th></tr></thead>
+          <tbody>
+            <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the lamps. PanelPro loads it at startup.</td></tr>
+            <tr><td><code>jython/</code></td><td>The four scripts above, plus a few helper scripts, such as Discover and traininfo repair.</td></tr>
+            <tr><td>Start Up entries</td><td>Added to the profile, so JMRI loads the tables and runs the scripts at launch.</td></tr>
+            <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
+            <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels. The amber one is simply JMRI's own.</td></tr>
+            <tr><td><code>ctc/icons/</code> and <code>ctc/GUIObjects.xml</code></td><td>The USS CTC machine: 70 generated track icons and the panel layout, as custom cells for the stock CTC tool.</td></tr>
+            <tr><td><code>dispatcher/traininfo/</code> and <code>dispatcheroptions.xml</code></td><td>Dispatcher data, not code: the options and the traininfo files that stock Stage 1 writes.</td></tr>
+            <tr><td><code>web/servlet/home/Home.html</code></td><td>The web home page: a stock copy with one link added, to the traffic simulator. JMRI serves this copy before its own.</td></tr>
+          </tbody>
+        </table>
+      </div>
       <p>
-        There are no custom signal drawings and no custom signal system. The masts are stock Basic masts.
-        The Dispatcher files are data rather than code: options plus the traininfo files that stock
-        Stage 1 writes.
+        The panel also has a background image. There are no custom signal drawings and no custom signal
+        system: the masts are stock Basic masts.
       </p>
 
       <h2>Why so small</h2>
