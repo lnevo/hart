@@ -21,6 +21,11 @@ class PiTablesTest(unittest.TestCase):
                     self.assertNotIn("USERPROFILE%\\hart", source, path.name)
                     self.assertNotIn("USERPROFILE 'hart", source, path.name)
 
+    def test_windows_deploy_writes_only_to_user_files(self) -> None:
+        source = (SCRIPT.parent.parent / "windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
+        self.assertNotIn("$dests.Add((Join-Path $_.FullName 'tables.xml'))", source)
+        self.assertNotIn("$roots.Add($_.FullName)", source)
+
     def test_pi_drop_stays_in_tmp_and_is_removed(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn("/tmp/hart-deploy.*)", source)
