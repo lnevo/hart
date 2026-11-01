@@ -19,18 +19,10 @@
 7. **Load safety:** `install_into_jmri.sh` overlays known-good
    `cats-pts-nullguard.jar` so stock’s early-SELECTEDREPORT NPE cannot kill
    `RREventManager` (occupancy). Launch does **not** write MQTT.
-8. **Boot state from MQTT retain (standard on Mac / Pi / Windows):** CATS
-   profile Start Up runs `jmri/layouts/hart/scripts/apply_maintain_mqtt.py`
-   after `tables.xml`. Script **reads** broker retain only (never publishes):
-   sensors via `setOwnState`; TWOSENSOR plants via
-   `setInitialKnownStateFromFeedback()` (never `newKnownState` on MQTT
-   turnouts — that can publish `track/cmd/turnout`). Auto-picks
-   MQTT host (`MQTT_HOST` / JMRI connection / `127.0.0.1` /
-   `192.168.137.2` / `minipc-e5h6x.local`). Alias:
-   `apply_mqtt_retain_at_startup.py`. Rebuild tables with
-   After deferred turnout paint, the script calls Digicon
-   `IOSpec.refreshScreen()` (same as **Appearance → Refresh Screen**).
-   If frogs still look wrong: run that menu item once manually.
+8. **No boot fill from MQTT retain.** `apply_maintain_mqtt.py` is retired: the package does
+   not deploy it, and host apply removes it. `sync_layout_button.py` logs a skip at boot and
+   fills nothing, so state arrives from live LCOS reports. If frogs look wrong, use
+   **Appearance → Refresh Screen** in Digicon.
 
 ## Stock CATS load race
 

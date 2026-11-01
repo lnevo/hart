@@ -56,8 +56,7 @@ updates both `ctc/GUIObjects.xml` and the embedded panel in `tables.xml`.
 ### 3. Runtime glue (still Jython, but not “building the panel”)
 
 Startup scripts on the Pi handle MQTT feedback, default lever positions, yard
-ladder lock toggles, etc. (`ctc_default_reverse_levers.py`, `apply_maintain_mqtt.py`,
-…). SML itself is maintained via Layout Editor **Discover** — CTC consumes it; it
+ladder lock toggles, etc. (`ctc_default_reverse_levers.py`, …). SML itself is maintained via Layout Editor **Discover** — CTC consumes it; it
 does not replace it.
 
 ---
