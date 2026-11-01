@@ -13,7 +13,7 @@ HART never commands field sensors over MQTT.
 
 - Option **11.5** (receive): `track/sensor/{0}`
 - Option **11.3** (send): keep `_discard/cmd/sensor/{0}` so `MqttSensor.setKnownState` cannot hit LCOS. Do **not** empty it: JMRI then publishes `ACTIVE`/`INACTIVE` to bare `{addr}` at the broker root.
-- JMRI is stock, so these publishes reach the broker and can be retained under `_discard/`. They go nowhere near the field. Clear them with `tools/mqtt/clear_mqtt_cmd_sensor_retain.py` if they build up.
+- Publishes to this sink never reach the field.
 - Never `setKnownState` for MQTT sensors from scripts.
 
 Turnouts still use `track/cmd/turnout/{0}` and `track/turnout/{0}`.
