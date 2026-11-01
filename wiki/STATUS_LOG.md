@@ -1,6 +1,6 @@
 # Status log
 
-Updated: 2026-10-31 — JMRI upgraded to production 5.16 on the Mac (from 5.15.5), Pi (5.15.4) and Windows (dev 5.15.11plus), with Java and CATS unchanged. `hart-startup-guard.jar` needs no rebuild: `MqttAdapter` is byte-identical in 5.15.5 and 5.16. `make panelpro-test` passed; CATS itself has not been launched on 5.16. Rollback: `/Applications/JMRI.5.15.5`, `~/JMRI.5.15.4` on the Pi, `C:\Users\lnevo\JMRI.5.15.11plus.install-backup` on Windows.
+Updated: 2026-10-31 — JMRI upgraded to production 5.16 on the Mac (from 5.15.5), Pi (dev 5.15.4plus) and Windows (dev 5.15.11plus), with Java and CATS unchanged. `hart-startup-guard.jar` needs no rebuild: `MqttAdapter` is byte-identical in 5.15.5 and 5.16. `make panelpro-test` passed; CATS itself has not been launched on 5.16. Rollback: `/Applications/JMRI.5.15.5`, `~/JMRI.5.15.4` on the Pi, `C:\Users\lnevo\JMRI.5.15.11plus.install-backup` on Windows.
 
 Updated: 2026-10-31 — The final cleanup epic from ADR-007 is listed under Future goals in `STATUS.md`, because it had dropped out of the open lists. Docs only; not deployed.
 
