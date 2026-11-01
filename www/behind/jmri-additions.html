@@ -42,10 +42,9 @@
       </p>
       <p>
         Where the railroad needed something different, the rule was to change data and add small scripts
-        before touching software. The scripts use public JMRI calls, and the JMRI jars themselves are stock.
-        CATS has a few small load-safety overlays. One suppresses a warning, one
-        skips a loopback probe nobody uses, and one guards against an early crash that would otherwise
-        freeze occupancy.
+        before touching software. The scripts use public JMRI calls, and both JMRI and CATS run as stock
+        distributions, with nothing patched. If something breaks, we work around it rather than change
+        them.
       </p>
       <p>
         What follows is what we added, and each section starts with the problem it solves.
@@ -282,7 +281,7 @@
 
       <h2>Why so small</h2>
       <p>
-        Apart from the CATS overlays, every item above is either a file JMRI already knows how to look up or a script written against public calls. Keeping the additions that small means that when a new stock JMRI arrives, there is
+        Every item above is either a file JMRI already knows how to look up or a script written against public calls. Keeping the additions that small means that when a new stock JMRI arrives, there is
         not much of ours in the way. If you run JMRI and want to try any of it, the pattern is the useful
         part: one honest switch, a careful hand-over, and lamps that report what the layout is doing.
       </p>

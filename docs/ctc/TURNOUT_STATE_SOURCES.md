@@ -25,7 +25,7 @@
 
 ## Stock CATS load race
 
-Without the overlay, the session log shows `Uncaught Exception … [RREventManager]`
+On stock CATS, the session log can show `Uncaught Exception … [RREventManager]`
 at `PtsVitalLogic.setSelectedTrack` and occupancy freezes until relaunch.
 
 ## Diagnose (read-only)
