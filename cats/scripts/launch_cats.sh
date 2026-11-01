@@ -103,7 +103,6 @@ fi
 # Do NOT touch MQTT from launch (no retain clear/sync/seed, no broker probes).
 # Field + broker are SoR. Occasional junk cleanup is manual only:
 #   python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
-# Digicon load safety: cats-pts-nullguard overlay (tools/cats/install_into_jmri.sh).
 
 # Run cats.csh with optional tee of combined stdout/stderr.
 run_cats() {

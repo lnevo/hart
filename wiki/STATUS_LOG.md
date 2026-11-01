@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-10-31 — Removed `cats-pts-nullguard` so CATS is stock too, as the owner directed; the earlier note calling the Block test stock CATS was wrong, since this overlay was installed, though it does not touch `Track` or `BlkEdge`. On an isolated broker with no HART scripts, the MQTT race hit 2 of 3 runs with real retained state and 0 of 2 with an empty broker, so retained replay alone causes it. Stock CATS raised its load NPE in 1 of 3 runs under a heavy turnout stress test. Added JMRI Simple Server to each profile, which clears the CATS `Connection refused` warning.
+
 Updated: 2026-10-31 — Removed `hart-startup-guard.jar` so JMRI runs stock on every host, as the owner directed: fix causes, do not mask them. Stock CATS 3.2 on JMRI 5.16 loaded `HART_CTC.xml` and `HART_ABS.xml` with no Block warnings on an isolated broker, and a planted conflict raised both warnings, so the panel rebuild already fixed that cause. The MQTT startup race stays: stock PanelPro hit it on its first run, lost the broker for about 7 seconds, and recovered on its own. It is being monitored.
 
 Updated: 2026-10-31 — JMRI upgraded to production 5.16 on the Mac (from 5.15.5), Pi (dev 5.15.4plus) and Windows (dev 5.15.11plus), with Java and CATS unchanged. `hart-startup-guard.jar` needs no rebuild: `MqttAdapter` is byte-identical in 5.15.5 and 5.16. `make panelpro-test` passed; CATS itself has not been launched on 5.16. Rollback: `/Applications/JMRI.5.15.5`, `~/JMRI.5.15.4` on the Pi, `C:\Users\lnevo\JMRI.5.15.11plus.install-backup` on Windows.

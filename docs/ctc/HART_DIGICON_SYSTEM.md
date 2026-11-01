@@ -113,7 +113,7 @@ Live Digicon follows field feedback for most plants; Digicon `SELECTEDREPORT` an
 
 ### Load safety
 
-Installed Digicon jar includes the `cats-pts-nullguard` overlay so early `SELECTEDREPORT` cannot kill `RREventManager` (occupancy freeze).
+CATS is stock. A turnout report that arrives during panel load can kill `RREventManager`, which freezes occupancy until CATS restarts; see `wiki/STATUS.md`.
 
 ---
 

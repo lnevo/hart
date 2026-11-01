@@ -2,7 +2,7 @@ HART Digicon (CATS) on this Pi
 ==============================
 
 Installed:
-  /home/pi/JMRI/cats.jar          CATS 3.2 + MQTT load-safety overlay
+  /home/pi/JMRI/cats.jar          CATS 3.2 (stock)
   /home/pi/JMRI/designer.jar
   /home/pi/JMRI/cats.csh
   /home/pi/hart/cats/panels/HART_CTC.xml   <-- CATS CTC (HOLD_ONLY; SML)
