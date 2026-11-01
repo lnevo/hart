@@ -70,6 +70,25 @@ if (Test-Path $btnSrc) {
   }
 }
 
+$miscSrc = Join-Path $hart 'cats\resources\misc'
+if (Test-Path $miscSrc) {
+  $roots = New-Object System.Collections.Generic.List[string]
+  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  $jmri = Join-Path $env:USERPROFILE 'JMRI'
+  if (Test-Path $jmri) {
+    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+      [void]$roots.Add($_.FullName)
+    }
+  }
+  foreach ($r in ($roots | Select-Object -Unique)) {
+    if (-not (Test-Path $r)) { continue }
+    $dest = Join-Path $r 'resources\misc'
+    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+    Copy-Item (Join-Path $miscSrc '*') $dest -Force
+    Write-Host ("panel background -> {0}" -f $dest)
+  }
+}
+
 $ussSrc = Join-Path $hart 'cats\resources\icons\USS\sensor'
 if (Test-Path $ussSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
@@ -185,6 +204,22 @@ foreach ($r in ($roots | Select-Object -Unique)) {
 }
 
 $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
+# Old scripts no Start Up uses; copies are kept in archive/jmri-scripts or the repo.
+$retiredJython = @('sync_turnout_buttons.py', 'sync_yard_ladder_buttons.py', 'apply_dispatcher_roster_profiles.py', 'SetBlockPreviewValues.py')
+$jythonDirs = New-Object System.Collections.Generic.List[string]
+[void]$jythonDirs.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\jython'))
+Get-ChildItem (Join-Path $env:USERPROFILE 'JMRI') -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
+  [void]$jythonDirs.Add((Join-Path $_.FullName 'jython'))
+}
+foreach ($d in $jythonDirs) {
+  foreach ($name in $retiredJython) {
+    $old = Join-Path $d $name
+    if (Test-Path $old) {
+      Remove-Item $old -Force
+      Write-Host ("retired jython removed: {0}" -f $old)
+    }
+  }
+}
 $retargetNames = @(
   'sync_layout_button.py',
   'mqtt_signalhead_publisher.py',

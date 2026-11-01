@@ -111,6 +111,7 @@ install_dispatcher_facing_patch() {
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
     done
     rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"
+    (cd "$dest" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py)
     echo "preference:jython scripts -> $dest"
     if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
@@ -200,6 +201,12 @@ install_ctc_icons_local() {
     done
     echo "button icons -> $dest"
   }
+  _install_misc_into() {
+    local dest="$1/resources/misc"
+    mkdir -p "$dest"
+    cp -f "$ROOT/jmri/resources/misc/"* "$dest/"
+    echo "panel background -> $dest"
+  }
   _install_uss_sensor_icons_into() {
     local dest="$1/resources/icons/USS/sensor"
     local src="$ROOT/jmri/resources/icons/USS/sensor"
@@ -213,17 +220,18 @@ install_ctc_icons_local() {
   }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_misc_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/.jmri" ]]; then
     for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_uss_sensor_icons_into "$d"
+      [[ -d "$d" ]] && _install_ctc_into "$d" && _install_buttons_into "$d" && _install_misc_into "$d" && _install_uss_sensor_icons_into "$d"
     done
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
     _install_ctc_into "${HOME}/JMRI_UserFiles"
     _install_buttons_into "${HOME}/JMRI_UserFiles"
+    _install_misc_into "${HOME}/JMRI_UserFiles"
     _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
   fi
 }
@@ -237,6 +245,7 @@ stage_package() {
     "$stage/cats/panels" \
     "$stage/cats/resources/buttons" \
     "$stage/cats/resources/icons/USS/sensor" \
+    "$stage/cats/resources/misc" \
     "$stage/cats/scripts" \
     "$stage/ctc/icons" \
     "$stage/jmri/layouts/hart/scripts" \
@@ -258,6 +267,8 @@ stage_package() {
     cp -f "$ROOT/jmri/resources/icons/USS/sensor/"yellow-*.gif \
       "$stage/cats/resources/icons/USS/sensor/" 2>/dev/null || true
   fi
+
+  cp -f "$ROOT/jmri/resources/misc/"* "$stage/cats/resources/misc/"
 
   rsync -a "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   rsync -a "$ROOT/cats/scripts/pi/" "$stage/cats/scripts/pi/"

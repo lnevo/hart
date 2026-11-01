@@ -58,6 +58,11 @@ if [[ -d "$HART/cats/resources/buttons" ]]; then
   echo "Pi button icons updated"
 fi
 
+if [[ -d "$HART/cats/resources/misc" ]]; then
+  fanout "$HART/cats/resources/misc" "resources/misc"
+  echo "Pi panel background updated"
+fi
+
 if [[ -d "$HART/cats/resources/icons/USS/sensor" ]]; then
   fanout "$HART/cats/resources/icons/USS/sensor" "resources/icons/USS/sensor"
   echo "Pi USS sensor icons updated"
@@ -105,6 +110,10 @@ for f in "${JYTHON[@]}"; do
   [[ -f "$f" ]] && cp -f "$f" "$UF/jython/"
 done
 rm -f "$UF/jython/hart_dispatcher_startup.py" "$UF/jython/patch_dispatcher_facing.py"
+for d in "$UF/jython" /home/pi/.jmri/*.jmri/jython; do
+  [[ -d "$d" ]] || continue
+  (cd "$d" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py)
+done
 echo "preference:jython scripts -> $UF/jython"
 
 TRAININFO="$HART/jmri/layouts/hart/dispatcher/traininfo"
