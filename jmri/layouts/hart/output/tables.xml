@@ -435,7 +435,7 @@
     <sensor inverted="false">
       <systemName>M2S1567</systemName>
       <userName>Bridge HBLOOP</userName>
-      <comment>Bridge node 15 control UID 67 | track/sensor/1567 ACTIVE=established; click=RESUBSCRIBE</comment>
+      <comment>LCOS lamp; ACTIVE=link up</comment>
     </sensor>
   </sensors>
   <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
@@ -443,7 +443,7 @@
     <sensor inverted="false">
       <systemName>IS1:LEVER</systemName>
       <userName>CTC 3 lever</userName>
-      <comment>USS CTC Switch 3: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 3: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS1:SWNI</systemName>
@@ -468,37 +468,37 @@
     <sensor inverted="false">
       <systemName>IS2:LDGK</systemName>
       <userName>CTC 3 sig L lamp</userName>
-      <comment>USS CTC Switch 3 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 3 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LDGL</systemName>
       <userName>CTC 3 sig L lever</userName>
-      <comment>USS CTC Switch 3 signals: left signal lever</comment>
+      <comment>USS CTC Switch 3 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:LOCKTOGGLE</systemName>
       <userName>CTC 3 sig local</userName>
-      <comment>USS CTC Switch 3 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 3 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:NGK</systemName>
       <userName>CTC 3 sig N lamp</userName>
-      <comment>USS CTC Switch 3 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 3 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:NGL</systemName>
       <userName>CTC 3 sig N lever</userName>
-      <comment>USS CTC Switch 3 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 3 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:RDGK</systemName>
       <userName>CTC 3 sig R lamp</userName>
-      <comment>USS CTC Switch 3 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 3 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:RDGL</systemName>
       <userName>CTC 3 sig R lever</userName>
-      <comment>USS CTC Switch 3 signals: right signal lever</comment>
+      <comment>USS CTC Switch 3 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS2:UNLOCKEDINDICATOR</systemName>
@@ -508,7 +508,7 @@
     <sensor inverted="false">
       <systemName>IS3:LEVER</systemName>
       <userName>CTC 1 lever</userName>
-      <comment>USS CTC Switch 1: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 1 rests Thrown</comment>
+      <comment>USS CTC Switch 1: lever (ACTIVE=Normal); rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS3:SWNI</systemName>
@@ -533,37 +533,37 @@
     <sensor inverted="false">
       <systemName>IS4:LDGK</systemName>
       <userName>CTC 1 sig L lamp</userName>
-      <comment>USS CTC Switch 1 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 1 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LDGL</systemName>
       <userName>CTC 1 sig L lever</userName>
-      <comment>USS CTC Switch 1 signals: left signal lever</comment>
+      <comment>USS CTC Switch 1 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:LOCKTOGGLE</systemName>
       <userName>CTC 1 sig local</userName>
-      <comment>USS CTC Switch 1 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 1 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:NGK</systemName>
       <userName>CTC 1 sig N lamp</userName>
-      <comment>USS CTC Switch 1 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 1 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:NGL</systemName>
       <userName>CTC 1 sig N lever</userName>
-      <comment>USS CTC Switch 1 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 1 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:RDGK</systemName>
       <userName>CTC 1 sig R lamp</userName>
-      <comment>USS CTC Switch 1 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 1 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:RDGL</systemName>
       <userName>CTC 1 sig R lever</userName>
-      <comment>USS CTC Switch 1 signals: right signal lever</comment>
+      <comment>USS CTC Switch 1 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS4:UNLOCKEDINDICATOR</systemName>
@@ -573,7 +573,7 @@
     <sensor inverted="false">
       <systemName>IS5:LEVER</systemName>
       <userName>CTC 5 lever</userName>
-      <comment>USS CTC Switch 5: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 5: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS5:SWNI</systemName>
@@ -598,37 +598,37 @@
     <sensor inverted="false">
       <systemName>IS6:LDGK</systemName>
       <userName>CTC 5 sig L lamp</userName>
-      <comment>USS CTC Switch 5 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 5 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LDGL</systemName>
       <userName>CTC 5 sig L lever</userName>
-      <comment>USS CTC Switch 5 signals: left signal lever</comment>
+      <comment>USS CTC Switch 5 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:LOCKTOGGLE</systemName>
       <userName>CTC 5 sig local</userName>
-      <comment>USS CTC Switch 5 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 5 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:NGK</systemName>
       <userName>CTC 5 sig N lamp</userName>
-      <comment>USS CTC Switch 5 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 5 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:NGL</systemName>
       <userName>CTC 5 sig N lever</userName>
-      <comment>USS CTC Switch 5 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 5 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:RDGK</systemName>
       <userName>CTC 5 sig R lamp</userName>
-      <comment>USS CTC Switch 5 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 5 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:RDGL</systemName>
       <userName>CTC 5 sig R lever</userName>
-      <comment>USS CTC Switch 5 signals: right signal lever</comment>
+      <comment>USS CTC Switch 5 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS6:UNLOCKEDINDICATOR</systemName>
@@ -638,7 +638,7 @@
     <sensor inverted="false">
       <systemName>IS7:LEVER</systemName>
       <userName>CTC 7 lever</userName>
-      <comment>USS CTC Switch 7: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 7: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS7:SWNI</systemName>
@@ -663,37 +663,37 @@
     <sensor inverted="false">
       <systemName>IS8:LDGK</systemName>
       <userName>CTC 7 sig L lamp</userName>
-      <comment>USS CTC Switch 7 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 7 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LDGL</systemName>
       <userName>CTC 7 sig L lever</userName>
-      <comment>USS CTC Switch 7 signals: left signal lever</comment>
+      <comment>USS CTC Switch 7 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:LOCKTOGGLE</systemName>
       <userName>CTC 7 sig local</userName>
-      <comment>USS CTC Switch 7 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 7 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:NGK</systemName>
       <userName>CTC 7 sig N lamp</userName>
-      <comment>USS CTC Switch 7 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 7 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:NGL</systemName>
       <userName>CTC 7 sig N lever</userName>
-      <comment>USS CTC Switch 7 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 7 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:RDGK</systemName>
       <userName>CTC 7 sig R lamp</userName>
-      <comment>USS CTC Switch 7 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 7 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:RDGL</systemName>
       <userName>CTC 7 sig R lever</userName>
-      <comment>USS CTC Switch 7 signals: right signal lever</comment>
+      <comment>USS CTC Switch 7 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS8:UNLOCKEDINDICATOR</systemName>
@@ -703,7 +703,7 @@
     <sensor inverted="false">
       <systemName>IS9:LEVER</systemName>
       <userName>CTC 13 lever</userName>
-      <comment>USS CTC Switch 13: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 13: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS9:SWNI</systemName>
@@ -728,37 +728,37 @@
     <sensor inverted="false">
       <systemName>IS10:LDGK</systemName>
       <userName>CTC 13 lock L lamp</userName>
-      <comment>USS CTC Switch 13 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 13 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LDGL</systemName>
       <userName>CTC 13 lock L lever</userName>
-      <comment>USS CTC Switch 13 lock: left signal lever</comment>
+      <comment>USS CTC Switch 13 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:LOCKTOGGLE</systemName>
       <userName>CTC 13 lock local</userName>
-      <comment>USS CTC Switch 13 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 13 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:NGK</systemName>
       <userName>CTC 13 lock N lamp</userName>
-      <comment>USS CTC Switch 13 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 13 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:NGL</systemName>
       <userName>CTC 13 lock N lever</userName>
-      <comment>USS CTC Switch 13 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 13 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:RDGK</systemName>
       <userName>CTC 13 lock R lamp</userName>
-      <comment>USS CTC Switch 13 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 13 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:RDGL</systemName>
       <userName>CTC 13 lock R lever</userName>
-      <comment>USS CTC Switch 13 lock: right signal lever</comment>
+      <comment>USS CTC Switch 13 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS10:UNLOCKEDINDICATOR</systemName>
@@ -768,7 +768,7 @@
     <sensor inverted="false">
       <systemName>IS11:LEVER</systemName>
       <userName>CTC 15 lever</userName>
-      <comment>USS CTC Switch 15: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 15: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS11:SWNI</systemName>
@@ -793,37 +793,37 @@
     <sensor inverted="false">
       <systemName>IS12:LDGK</systemName>
       <userName>CTC 15 lock L lamp</userName>
-      <comment>USS CTC Switch 15 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 15 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LDGL</systemName>
       <userName>CTC 15 lock L lever</userName>
-      <comment>USS CTC Switch 15 lock: left signal lever</comment>
+      <comment>USS CTC Switch 15 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:LOCKTOGGLE</systemName>
       <userName>CTC 15 lock local</userName>
-      <comment>USS CTC Switch 15 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 15 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:NGK</systemName>
       <userName>CTC 15 lock N lamp</userName>
-      <comment>USS CTC Switch 15 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 15 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:NGL</systemName>
       <userName>CTC 15 lock N lever</userName>
-      <comment>USS CTC Switch 15 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 15 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:RDGK</systemName>
       <userName>CTC 15 lock R lamp</userName>
-      <comment>USS CTC Switch 15 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 15 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:RDGL</systemName>
       <userName>CTC 15 lock R lever</userName>
-      <comment>USS CTC Switch 15 lock: right signal lever</comment>
+      <comment>USS CTC Switch 15 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS12:UNLOCKEDINDICATOR</systemName>
@@ -833,7 +833,7 @@
     <sensor inverted="false">
       <systemName>IS13:LEVER</systemName>
       <userName>CTC 25 lever</userName>
-      <comment>USS CTC Switch 25: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 25: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS13:SWNI</systemName>
@@ -858,37 +858,37 @@
     <sensor inverted="false">
       <systemName>IS14:LDGK</systemName>
       <userName>CTC 25 lock L lamp</userName>
-      <comment>USS CTC Switch 25 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 25 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:LDGL</systemName>
       <userName>CTC 25 lock L lever</userName>
-      <comment>USS CTC Switch 25 lock: left signal lever</comment>
+      <comment>USS CTC Switch 25 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:LOCKTOGGLE</systemName>
       <userName>CTC 25 lock local</userName>
-      <comment>USS CTC Switch 25 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 25 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:NGK</systemName>
       <userName>CTC 25 lock N lamp</userName>
-      <comment>USS CTC Switch 25 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 25 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:NGL</systemName>
       <userName>CTC 25 lock N lever</userName>
-      <comment>USS CTC Switch 25 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 25 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:RDGK</systemName>
       <userName>CTC 25 lock R lamp</userName>
-      <comment>USS CTC Switch 25 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 25 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:RDGL</systemName>
       <userName>CTC 25 lock R lever</userName>
-      <comment>USS CTC Switch 25 lock: right signal lever</comment>
+      <comment>USS CTC Switch 25 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS14:UNLOCKEDINDICATOR</systemName>
@@ -898,7 +898,7 @@
     <sensor inverted="false">
       <systemName>IS15:LEVER</systemName>
       <userName>CTC 27 lever</userName>
-      <comment>USS CTC Switch 27: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 27: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS15:SWNI</systemName>
@@ -923,37 +923,37 @@
     <sensor inverted="false">
       <systemName>IS16:LDGK</systemName>
       <userName>CTC 27 lock L lamp</userName>
-      <comment>USS CTC Switch 27 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 27 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:LDGL</systemName>
       <userName>CTC 27 lock L lever</userName>
-      <comment>USS CTC Switch 27 lock: left signal lever</comment>
+      <comment>USS CTC Switch 27 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:LOCKTOGGLE</systemName>
       <userName>CTC 27 lock local</userName>
-      <comment>USS CTC Switch 27 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 27 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:NGK</systemName>
       <userName>CTC 27 lock N lamp</userName>
-      <comment>USS CTC Switch 27 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 27 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:NGL</systemName>
       <userName>CTC 27 lock N lever</userName>
-      <comment>USS CTC Switch 27 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 27 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:RDGK</systemName>
       <userName>CTC 27 lock R lamp</userName>
-      <comment>USS CTC Switch 27 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 27 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:RDGL</systemName>
       <userName>CTC 27 lock R lever</userName>
-      <comment>USS CTC Switch 27 lock: right signal lever</comment>
+      <comment>USS CTC Switch 27 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS16:UNLOCKEDINDICATOR</systemName>
@@ -963,7 +963,7 @@
     <sensor inverted="false">
       <systemName>IS17:LEVER</systemName>
       <userName>CTC 23 lever</userName>
-      <comment>USS CTC Switch 23: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 23: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS17:SWNI</systemName>
@@ -988,37 +988,37 @@
     <sensor inverted="false">
       <systemName>IS18:LDGK</systemName>
       <userName>CTC 23 sig L lamp</userName>
-      <comment>USS CTC Switch 23 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 23 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LDGL</systemName>
       <userName>CTC 23 sig L lever</userName>
-      <comment>USS CTC Switch 23 signals: left signal lever</comment>
+      <comment>USS CTC Switch 23 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:LOCKTOGGLE</systemName>
       <userName>CTC 23 sig local</userName>
-      <comment>USS CTC Switch 23 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 23 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:NGK</systemName>
       <userName>CTC 23 sig N lamp</userName>
-      <comment>USS CTC Switch 23 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 23 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:NGL</systemName>
       <userName>CTC 23 sig N lever</userName>
-      <comment>USS CTC Switch 23 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 23 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:RDGK</systemName>
       <userName>CTC 23 sig R lamp</userName>
-      <comment>USS CTC Switch 23 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 23 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:RDGL</systemName>
       <userName>CTC 23 sig R lever</userName>
-      <comment>USS CTC Switch 23 signals: right signal lever</comment>
+      <comment>USS CTC Switch 23 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS18:UNLOCKEDINDICATOR</systemName>
@@ -1028,7 +1028,7 @@
     <sensor inverted="false">
       <systemName>IS19:LEVER</systemName>
       <userName>CTC 29 lever</userName>
-      <comment>USS CTC Switch 29: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 29: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS19:SWNI</systemName>
@@ -1053,37 +1053,37 @@
     <sensor inverted="false">
       <systemName>IS20:LDGK</systemName>
       <userName>CTC 29 lock L lamp</userName>
-      <comment>USS CTC Switch 29 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 29 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:LDGL</systemName>
       <userName>CTC 29 lock L lever</userName>
-      <comment>USS CTC Switch 29 lock: left signal lever</comment>
+      <comment>USS CTC Switch 29 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:LOCKTOGGLE</systemName>
       <userName>CTC 29 lock local</userName>
-      <comment>USS CTC Switch 29 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 29 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:NGK</systemName>
       <userName>CTC 29 lock N lamp</userName>
-      <comment>USS CTC Switch 29 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 29 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:NGL</systemName>
       <userName>CTC 29 lock N lever</userName>
-      <comment>USS CTC Switch 29 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 29 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:RDGK</systemName>
       <userName>CTC 29 lock R lamp</userName>
-      <comment>USS CTC Switch 29 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 29 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:RDGL</systemName>
       <userName>CTC 29 lock R lever</userName>
-      <comment>USS CTC Switch 29 lock: right signal lever</comment>
+      <comment>USS CTC Switch 29 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS20:UNLOCKEDINDICATOR</systemName>
@@ -1093,7 +1093,7 @@
     <sensor inverted="false">
       <systemName>IS21:LEVER</systemName>
       <userName>CTC 31 lever</userName>
-      <comment>USS CTC Switch 31: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 31: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS21:SWNI</systemName>
@@ -1118,37 +1118,37 @@
     <sensor inverted="false">
       <systemName>IS22:LDGK</systemName>
       <userName>CTC 31 lock L lamp</userName>
-      <comment>USS CTC Switch 31 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 31 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LDGL</systemName>
       <userName>CTC 31 lock L lever</userName>
-      <comment>USS CTC Switch 31 lock: left signal lever</comment>
+      <comment>USS CTC Switch 31 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:LOCKTOGGLE</systemName>
       <userName>CTC 31 lock local</userName>
-      <comment>USS CTC Switch 31 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 31 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:NGK</systemName>
       <userName>CTC 31 lock N lamp</userName>
-      <comment>USS CTC Switch 31 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 31 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:NGL</systemName>
       <userName>CTC 31 lock N lever</userName>
-      <comment>USS CTC Switch 31 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 31 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:RDGK</systemName>
       <userName>CTC 31 lock R lamp</userName>
-      <comment>USS CTC Switch 31 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 31 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:RDGL</systemName>
       <userName>CTC 31 lock R lever</userName>
-      <comment>USS CTC Switch 31 lock: right signal lever</comment>
+      <comment>USS CTC Switch 31 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS22:UNLOCKEDINDICATOR</systemName>
@@ -1158,7 +1158,7 @@
     <sensor inverted="false">
       <systemName>IS23:LEVER</systemName>
       <userName>CTC 33 lever</userName>
-      <comment>USS CTC Switch 33: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 33 rests Thrown</comment>
+      <comment>USS CTC Switch 33: lever (ACTIVE=Normal); rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS23:SWNI</systemName>
@@ -1183,37 +1183,37 @@
     <sensor inverted="false">
       <systemName>IS24:LDGK</systemName>
       <userName>CTC 33 sig L lamp</userName>
-      <comment>USS CTC Switch 33 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 33 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LDGL</systemName>
       <userName>CTC 33 sig L lever</userName>
-      <comment>USS CTC Switch 33 signals: left signal lever</comment>
+      <comment>USS CTC Switch 33 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:LOCKTOGGLE</systemName>
       <userName>CTC 33 sig local</userName>
-      <comment>USS CTC Switch 33 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 33 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:NGK</systemName>
       <userName>CTC 33 sig N lamp</userName>
-      <comment>USS CTC Switch 33 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 33 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:NGL</systemName>
       <userName>CTC 33 sig N lever</userName>
-      <comment>USS CTC Switch 33 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 33 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:RDGK</systemName>
       <userName>CTC 33 sig R lamp</userName>
-      <comment>USS CTC Switch 33 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 33 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:RDGL</systemName>
       <userName>CTC 33 sig R lever</userName>
-      <comment>USS CTC Switch 33 signals: right signal lever</comment>
+      <comment>USS CTC Switch 33 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS24:UNLOCKEDINDICATOR</systemName>
@@ -1223,7 +1223,7 @@
     <sensor inverted="false">
       <systemName>IS25:LEVER</systemName>
       <userName>CTC 35 lever</userName>
-      <comment>USS CTC Switch 35: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 35: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS25:SWNI</systemName>
@@ -1248,37 +1248,37 @@
     <sensor inverted="false">
       <systemName>IS26:LDGK</systemName>
       <userName>CTC 35 sig L lamp</userName>
-      <comment>USS CTC Switch 35 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 35 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LDGL</systemName>
       <userName>CTC 35 sig L lever</userName>
-      <comment>USS CTC Switch 35 signals: left signal lever</comment>
+      <comment>USS CTC Switch 35 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:LOCKTOGGLE</systemName>
       <userName>CTC 35 sig local</userName>
-      <comment>USS CTC Switch 35 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 35 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:NGK</systemName>
       <userName>CTC 35 sig N lamp</userName>
-      <comment>USS CTC Switch 35 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 35 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:NGL</systemName>
       <userName>CTC 35 sig N lever</userName>
-      <comment>USS CTC Switch 35 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 35 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:RDGK</systemName>
       <userName>CTC 35 sig R lamp</userName>
-      <comment>USS CTC Switch 35 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 35 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:RDGL</systemName>
       <userName>CTC 35 sig R lever</userName>
-      <comment>USS CTC Switch 35 signals: right signal lever</comment>
+      <comment>USS CTC Switch 35 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS26:UNLOCKEDINDICATOR</systemName>
@@ -1288,7 +1288,7 @@
     <sensor inverted="false">
       <systemName>IS27:LEVER</systemName>
       <userName>CTC 37 lever</userName>
-      <comment>USS CTC Switch 37: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 37 rests Thrown</comment>
+      <comment>USS CTC Switch 37: lever (ACTIVE=Normal); rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS27:SWNI</systemName>
@@ -1313,37 +1313,37 @@
     <sensor inverted="false">
       <systemName>IS28:LDGK</systemName>
       <userName>CTC 37 sig L lamp</userName>
-      <comment>USS CTC Switch 37 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 37 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LDGL</systemName>
       <userName>CTC 37 sig L lever</userName>
-      <comment>USS CTC Switch 37 signals: left signal lever</comment>
+      <comment>USS CTC Switch 37 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:LOCKTOGGLE</systemName>
       <userName>CTC 37 sig local</userName>
-      <comment>USS CTC Switch 37 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 37 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:NGK</systemName>
       <userName>CTC 37 sig N lamp</userName>
-      <comment>USS CTC Switch 37 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 37 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:NGL</systemName>
       <userName>CTC 37 sig N lever</userName>
-      <comment>USS CTC Switch 37 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 37 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:RDGK</systemName>
       <userName>CTC 37 sig R lamp</userName>
-      <comment>USS CTC Switch 37 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 37 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:RDGL</systemName>
       <userName>CTC 37 sig R lever</userName>
-      <comment>USS CTC Switch 37 signals: right signal lever</comment>
+      <comment>USS CTC Switch 37 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS28:UNLOCKEDINDICATOR</systemName>
@@ -1353,7 +1353,7 @@
     <sensor inverted="false">
       <systemName>IS29:LEVER</systemName>
       <userName>CTC 39 lever</userName>
-      <comment>USS CTC Switch 39: switch lever (ACTIVE=Normal, INACTIVE=Reverse); Default Reverse: Switch 39 rests Thrown</comment>
+      <comment>USS CTC Switch 39: lever (ACTIVE=Normal); rests Thrown</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS29:SWNI</systemName>
@@ -1378,37 +1378,37 @@
     <sensor inverted="false">
       <systemName>IS30:LDGK</systemName>
       <userName>CTC 39 sig L lamp</userName>
-      <comment>USS CTC Switch 39 signals: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 39 signals: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LDGL</systemName>
       <userName>CTC 39 sig L lever</userName>
-      <comment>USS CTC Switch 39 signals: left signal lever</comment>
+      <comment>USS CTC Switch 39 signals: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:LOCKTOGGLE</systemName>
       <userName>CTC 39 sig local</userName>
-      <comment>USS CTC Switch 39 signals: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 39 signals: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:NGK</systemName>
       <userName>CTC 39 sig N lamp</userName>
-      <comment>USS CTC Switch 39 signals: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 39 signals: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:NGL</systemName>
       <userName>CTC 39 sig N lever</userName>
-      <comment>USS CTC Switch 39 signals: normal signal lever</comment>
+      <comment>USS CTC Switch 39 signals: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:RDGK</systemName>
       <userName>CTC 39 sig R lamp</userName>
-      <comment>USS CTC Switch 39 signals: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 39 signals: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:RDGL</systemName>
       <userName>CTC 39 sig R lever</userName>
-      <comment>USS CTC Switch 39 signals: right signal lever</comment>
+      <comment>USS CTC Switch 39 signals: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS30:UNLOCKEDINDICATOR</systemName>
@@ -1418,7 +1418,7 @@
     <sensor inverted="false">
       <systemName>IS31:LEVER</systemName>
       <userName>CTC 9 lever</userName>
-      <comment>USS CTC Switch 9: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 9: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS31:SWNI</systemName>
@@ -1443,37 +1443,37 @@
     <sensor inverted="false">
       <systemName>IS32:LDGK</systemName>
       <userName>CTC 9 lock L lamp</userName>
-      <comment>USS CTC Switch 9 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 9 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:LDGL</systemName>
       <userName>CTC 9 lock L lever</userName>
-      <comment>USS CTC Switch 9 lock: left signal lever</comment>
+      <comment>USS CTC Switch 9 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:LOCKTOGGLE</systemName>
       <userName>CTC 9 lock local</userName>
-      <comment>USS CTC Switch 9 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 9 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:NGK</systemName>
       <userName>CTC 9 lock N lamp</userName>
-      <comment>USS CTC Switch 9 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 9 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:NGL</systemName>
       <userName>CTC 9 lock N lever</userName>
-      <comment>USS CTC Switch 9 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 9 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:RDGK</systemName>
       <userName>CTC 9 lock R lamp</userName>
-      <comment>USS CTC Switch 9 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 9 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:RDGL</systemName>
       <userName>CTC 9 lock R lever</userName>
-      <comment>USS CTC Switch 9 lock: right signal lever</comment>
+      <comment>USS CTC Switch 9 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS32:UNLOCKEDINDICATOR</systemName>
@@ -1483,7 +1483,7 @@
     <sensor inverted="false">
       <systemName>IS33:LEVER</systemName>
       <userName>CTC 11 lever</userName>
-      <comment>USS CTC Switch 11: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 11: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS33:SWNI</systemName>
@@ -1508,37 +1508,37 @@
     <sensor inverted="false">
       <systemName>IS34:LDGK</systemName>
       <userName>CTC 11 lock L lamp</userName>
-      <comment>USS CTC Switch 11 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 11 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:LDGL</systemName>
       <userName>CTC 11 lock L lever</userName>
-      <comment>USS CTC Switch 11 lock: left signal lever</comment>
+      <comment>USS CTC Switch 11 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:LOCKTOGGLE</systemName>
       <userName>CTC 11 lock local</userName>
-      <comment>USS CTC Switch 11 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 11 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:NGK</systemName>
       <userName>CTC 11 lock N lamp</userName>
-      <comment>USS CTC Switch 11 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 11 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:NGL</systemName>
       <userName>CTC 11 lock N lever</userName>
-      <comment>USS CTC Switch 11 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 11 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:RDGK</systemName>
       <userName>CTC 11 lock R lamp</userName>
-      <comment>USS CTC Switch 11 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 11 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:RDGL</systemName>
       <userName>CTC 11 lock R lever</userName>
-      <comment>USS CTC Switch 11 lock: right signal lever</comment>
+      <comment>USS CTC Switch 11 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS34:UNLOCKEDINDICATOR</systemName>
@@ -1548,7 +1548,7 @@
     <sensor inverted="false">
       <systemName>IS35:LEVER</systemName>
       <userName>CTC 17 lever</userName>
-      <comment>USS CTC Switch 17: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 17: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS35:SWNI</systemName>
@@ -1573,37 +1573,37 @@
     <sensor inverted="false">
       <systemName>IS36:LDGK</systemName>
       <userName>CTC 17 lock L lamp</userName>
-      <comment>USS CTC Switch 17 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 17 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:LDGL</systemName>
       <userName>CTC 17 lock L lever</userName>
-      <comment>USS CTC Switch 17 lock: left signal lever</comment>
+      <comment>USS CTC Switch 17 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:LOCKTOGGLE</systemName>
       <userName>CTC 17 lock local</userName>
-      <comment>USS CTC Switch 17 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 17 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:NGK</systemName>
       <userName>CTC 17 lock N lamp</userName>
-      <comment>USS CTC Switch 17 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 17 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:NGL</systemName>
       <userName>CTC 17 lock N lever</userName>
-      <comment>USS CTC Switch 17 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 17 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:RDGK</systemName>
       <userName>CTC 17 lock R lamp</userName>
-      <comment>USS CTC Switch 17 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 17 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:RDGL</systemName>
       <userName>CTC 17 lock R lever</userName>
-      <comment>USS CTC Switch 17 lock: right signal lever</comment>
+      <comment>USS CTC Switch 17 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS36:UNLOCKEDINDICATOR</systemName>
@@ -1613,7 +1613,7 @@
     <sensor inverted="false">
       <systemName>IS37:LEVER</systemName>
       <userName>CTC 19 lever</userName>
-      <comment>USS CTC Switch 19: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 19: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS37:SWNI</systemName>
@@ -1638,37 +1638,37 @@
     <sensor inverted="false">
       <systemName>IS38:LDGK</systemName>
       <userName>CTC 19 lock L lamp</userName>
-      <comment>USS CTC Switch 19 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 19 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:LDGL</systemName>
       <userName>CTC 19 lock L lever</userName>
-      <comment>USS CTC Switch 19 lock: left signal lever</comment>
+      <comment>USS CTC Switch 19 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:LOCKTOGGLE</systemName>
       <userName>CTC 19 lock local</userName>
-      <comment>USS CTC Switch 19 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 19 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:NGK</systemName>
       <userName>CTC 19 lock N lamp</userName>
-      <comment>USS CTC Switch 19 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 19 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:NGL</systemName>
       <userName>CTC 19 lock N lever</userName>
-      <comment>USS CTC Switch 19 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 19 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:RDGK</systemName>
       <userName>CTC 19 lock R lamp</userName>
-      <comment>USS CTC Switch 19 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 19 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:RDGL</systemName>
       <userName>CTC 19 lock R lever</userName>
-      <comment>USS CTC Switch 19 lock: right signal lever</comment>
+      <comment>USS CTC Switch 19 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS38:UNLOCKEDINDICATOR</systemName>
@@ -1678,7 +1678,7 @@
     <sensor inverted="false">
       <systemName>IS39:LEVER</systemName>
       <userName>CTC 21 lever</userName>
-      <comment>USS CTC Switch 21: switch lever (ACTIVE=Normal, INACTIVE=Reverse)</comment>
+      <comment>USS CTC Switch 21: lever (ACTIVE=Normal)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS39:SWNI</systemName>
@@ -1703,37 +1703,37 @@
     <sensor inverted="false">
       <systemName>IS40:LDGK</systemName>
       <userName>CTC 21 lock L lamp</userName>
-      <comment>USS CTC Switch 21 lock: left signal indicator lamp</comment>
+      <comment>USS CTC Switch 21 lock: left lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:LDGL</systemName>
       <userName>CTC 21 lock L lever</userName>
-      <comment>USS CTC Switch 21 lock: left signal lever</comment>
+      <comment>USS CTC Switch 21 lock: left lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:LOCKTOGGLE</systemName>
       <userName>CTC 21 lock local</userName>
-      <comment>USS CTC Switch 21 lock: Local/Locked (ACTIVE=Local)</comment>
+      <comment>USS CTC Switch 21 lock: lock (ACTIVE=Local)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:NGK</systemName>
       <userName>CTC 21 lock N lamp</userName>
-      <comment>USS CTC Switch 21 lock: normal signal indicator lamp</comment>
+      <comment>USS CTC Switch 21 lock: normal lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:NGL</systemName>
       <userName>CTC 21 lock N lever</userName>
-      <comment>USS CTC Switch 21 lock: normal signal lever</comment>
+      <comment>USS CTC Switch 21 lock: normal lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:RDGK</systemName>
       <userName>CTC 21 lock R lamp</userName>
-      <comment>USS CTC Switch 21 lock: right signal indicator lamp</comment>
+      <comment>USS CTC Switch 21 lock: right lamp</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:RDGL</systemName>
       <userName>CTC 21 lock R lever</userName>
-      <comment>USS CTC Switch 21 lock: right signal lever</comment>
+      <comment>USS CTC Switch 21 lock: right lever</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS40:UNLOCKEDINDICATOR</systemName>
@@ -2817,12 +2817,12 @@
     <sensor inverted="false">
       <systemName>IS:SML_MODE</systemName>
       <userName>SML Mode</userName>
-      <comment>Panel Signals lamp; Digicon ACTIVE=enabled; click toggles SML</comment>
+      <comment>Signals lamp; ACTIVE=SML on</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:TRACK_POWER</systemName>
       <userName>Track Power</userName>
-      <comment>Panel Track Power lamp; ACTIVE=LCC layout power ON; click toggles PowerManager</comment>
+      <comment>Track Power lamp; ACTIVE=on</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISCLOCKRUNNING</systemName>
@@ -2832,117 +2832,117 @@
     <sensor inverted="false">
       <systemName>ISNX:100L</systemName>
       <userName>NX Mast 2L</userName>
-      <comment>Entry/Exit at mast Mast 2L; Brick east main westbound; lever 4 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Brick east main westbound; lever 4 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:101RA</systemName>
       <userName>NX Mast 4RA</userName>
-      <comment>Entry/Exit at mast Mast 4RA; Brick Track W-1 dwarf eastbound; lever 2 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Brick Track W-1 dwarf eastbound; lever 2 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:101RB</systemName>
       <userName>NX Mast 4RB</userName>
-      <comment>Entry/Exit at mast Mast 4RB; Brick Track W-2 dwarf eastbound; lever 2 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Brick Track W-2 dwarf eastbound; lever 2 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:102LA</systemName>
       <userName>NX Mast 6LA</userName>
-      <comment>Entry/Exit at mast Mast 6LA; Plane, Track Scale westbound; lever 6 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Plane, Track Scale westbound; lever 6 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:102LB</systemName>
       <userName>NX Mast 6LB</userName>
-      <comment>Entry/Exit at mast Mast 6LB; Plane, Track East Main Ext westbound; lever 6 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Plane, Track East Main Ext westbound; lever 6 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:110R</systemName>
       <userName>NX Mast 32R</userName>
-      <comment>Entry/Exit at mast Mast 32R; East End, OS Switch 31 dwarf eastbound; lever 20 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>East End, OS Switch 31 dwarf eastbound; lever 20 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:111L</systemName>
       <userName>NX Mast 24L</userName>
-      <comment>Entry/Exit at mast Mast 24L; East End, OS Switch 23a westbound; lever 18 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>East End, OS Switch 23a westbound; lever 18 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:111RA</systemName>
       <userName>NX Mast 24RA</userName>
-      <comment>Entry/Exit at mast Mast 24RA; East End, Track Main West eastbound; lever 18 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>East End, Track Main West eastbound; lever 18 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:111RB</systemName>
       <userName>NX Mast 24RB</userName>
-      <comment>Entry/Exit at mast Mast 24RB; East End, Track S-R dwarf eastbound; lever 18 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>East End, Track S-R dwarf eastbound; lever 18 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:112L</systemName>
       <userName>NX Mast 34L</userName>
-      <comment>Entry/Exit at mast Mast 34L; East End lead westbound; lever 24 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>East End lead westbound; lever 24 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:112R</systemName>
       <userName>NX Mast 34R</userName>
-      <comment>Entry/Exit at mast Mast 34R; East End, Track Main East eastbound; lever 24 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>East End, Track Main East eastbound; lever 24 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:113RA</systemName>
       <userName>NX Mast 36RA</userName>
-      <comment>Entry/Exit at mast Mast 36RA; Princess, Track Main West eastbound; lever 26 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track Main West eastbound; lever 26 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:113RB</systemName>
       <userName>NX Mast 36RB</userName>
-      <comment>Entry/Exit at mast Mast 36RB; Princess, Track East Lead eastbound; lever 26 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track East Lead eastbound; lever 26 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:114LA</systemName>
       <userName>NX Mast 38LA</userName>
-      <comment>Entry/Exit at mast Mast 38LA; Princess, Track K-2 dwarf westbound; lever 28 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track K-2 dwarf westbound; lever 28 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:114LB</systemName>
       <userName>NX Mast 38LB</userName>
-      <comment>Entry/Exit at mast Mast 38LB; Princess, Track McKeesport westbound; lever 28 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track McKeesport westbound; lever 28 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:115LA</systemName>
       <userName>NX Mast 40LA</userName>
-      <comment>Entry/Exit at mast Mast 40LA; Princess, Track K-1 dwarf westbound; lever 30 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track K-1 dwarf westbound; lever 30 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:115LB</systemName>
       <userName>NX Mast 40LB</userName>
-      <comment>Entry/Exit at mast Mast 40LB; Princess, Track McKees Rocks westbound; lever 30 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track McKees Rocks westbound; lever 30 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117LA</systemName>
       <userName>NX Mast 8LA</userName>
-      <comment>Entry/Exit at mast Mast 8LA; Track Barn, Track East Main Ext westbound; lever 8 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Track Barn, Track East Main Ext westbound; lever 8 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117LB</systemName>
       <userName>NX Mast 8LB</userName>
-      <comment>Entry/Exit at mast Mast 8LB; Track Barn, Track Barn dwarf westbound; lever 8 Left. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Track Barn, Track Barn dwarf westbound; lever 8 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117RA</systemName>
       <userName>NX Mast 8RA</userName>
-      <comment>Entry/Exit at mast Mast 8RA; Track Barn, yard eastbound; lever 8 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Track Barn, yard eastbound; lever 8 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117RB</systemName>
       <userName>NX Mast 8RB</userName>
-      <comment>Entry/Exit at mast Mast 8RB; Track Barn, Track East Main Ext eastbound; lever 8 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Track Barn, Track East Main Ext eastbound; lever 8 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:120L</systemName>
       <userName>NX Mast 2035</userName>
-      <comment>Entry/Exit at mast Mast 2035; Princess, Track McKees Rocks dwarf eastbound; lever 30 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track McKees Rocks dwarf eastbound; lever 30 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:120R</systemName>
       <userName>NX Mast 2036</userName>
-      <comment>Entry/Exit at mast Mast 2036; Princess, Track McKeesport dwarf eastbound; lever 28 Right. SML mode: throws the path from Layout Editor routing. Digicon dests stay Disabled until the MQTT publisher enables them.</comment>
+      <comment>Princess, Track McKeesport dwarf eastbound; lever 28 Right</comment>
     </sensor>
   </sensors>
   <turnouts class="jmri.jmrix.mqtt.configurexml.MqttTurnoutManagerXml">
@@ -3423,7 +3423,7 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH9990</systemName>
       <userName>Turnout FB status</userName>
-      <comment>Panel Turnouts lamp: Green=TWOSENSOR Yellow=mixed Red=DIRECT; click toggles mode (2-sensor M2T/MTT)</comment>
+      <comment>Turnouts lamp: green feedback; red direct</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">

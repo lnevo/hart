@@ -493,7 +493,7 @@ mast,117RA,Mast 8RA,Barn,IH1332 IH1333,Barn | Switch 7,historical alias; lever 8
 mast,West Yard West OS 117,Mast 8RA,Barn,IH1332 IH1333,Barn | Switch 7,historical alias; lever 8 Right; yard
 mast,117RB,Mast 8RB,Barn,IH1335 IH1336,Barn | Switch 7,historical alias; lever 8 Right; main
 mast,West Yard West East Main Ext,Mast 8RB,Barn,IH1335 IH1336,Barn | Switch 7,historical alias; lever 8 Right; main
-head,Turnout FB status,Turnout FB status,,IH9990,Panel Turnouts lamp: Green=TWOSENSOR Yellow=mixed Red=DIRECT,
+head,Turnout FB status,Turnout FB status,,IH9990,Turnouts lamp: green feedback; red direct,
 head,Head 2035,Head 2035,Princess,IH141,"Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",
 head,Head 2036,Head 2036,Princess,IH134,"Node: 11 Signal: 1 | OU: 3 Ports: 4,5,6",
 head,Head 24L Bottom,Head 24L Bottom,East End,IH1235,"Node: 2 Signal: 7 | OU: 2 Ports: 4,5,6",
