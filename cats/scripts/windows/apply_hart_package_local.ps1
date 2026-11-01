@@ -85,6 +85,7 @@ if (Test-Path $miscSrc) {
     $dest = Join-Path $r 'resources\misc'
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
     Copy-Item (Join-Path $miscSrc '*') $dest -Force
+    Remove-Item (Join-Path $dest 'linear5_panel_bg.jpg') -Force -ErrorAction SilentlyContinue
     Write-Host ("panel background -> {0}" -f $dest)
   }
 }

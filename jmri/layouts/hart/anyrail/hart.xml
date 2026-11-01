@@ -2154,7 +2154,7 @@
     <positionablelabel x="943" y="438" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 4" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="943" y="480" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" text="Track 5" fontFamily="Dialog" fontname="Dialog.plain" size="14" style="0" red="0" green="0" blue="0" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="9" y="0" level="1" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" icon="yes" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <icon url="preference:resources/misc/linear5_panel_bg.jpg" degrees="0" scale="1.0">
+      <icon url="preference:resources/misc/hart_panel_bg.jpg" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </icon>
     </positionablelabel>
