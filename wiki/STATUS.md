@@ -33,7 +33,6 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
 - Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add the new photos with `bin/cars intake`.
 - HART 1776 stays out of STS until its car card is generated. The 28 cars with no photo stay out too: no photo means no card, so they go in only after a photo.
-- The 9 cars added to the Pi on 2026-10-31 stay at 40 ft (owner's decision). All 70 STS cars match the repository's ids, types and lengths, so STS needs no edits.
 
 ## Future goals
 
