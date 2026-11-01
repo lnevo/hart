@@ -147,11 +147,11 @@ def _set_indicator_known(sn, state):
             to.newKnownState(state)
         else:
             print(
-                "sync_layout_button: cannot light %s (no newKnownState)"
+                "panel_status: cannot light %s (no newKnownState)"
                 % sn
             )
     except Exception as e:
-        print("sync_layout_button: indicator %s → %s failed: %s" % (sn, state, e))
+        print("panel_status: indicator %s → %s failed: %s" % (sn, state, e))
 
 
 def _ladder_routes():
@@ -162,7 +162,7 @@ def _ladder_routes():
             if "ladder" in un.lower():
                 out.append(route)
     except Exception as e:
-        print("sync_layout_button: list ladder routes failed: %s" % e)
+        print("panel_status: list ladder routes failed: %s" % e)
     return out
 
 
@@ -176,7 +176,7 @@ def _paint_indicators_without_commanding(left, right):
     """Light YL lamps with ladder routes disabled so M2T outputs are not commanded."""
     found = _ladder_routes()
     if not found:
-        print("sync_layout_button: skip YL paint (ladder routes not loaded)")
+        print("panel_status: skip YL paint (ladder routes not loaded)")
         return
     disabled = []
     try:
@@ -187,7 +187,7 @@ def _paint_indicators_without_commanding(left, right):
                     disabled.append(route)
             except Exception as e:
                 print(
-                    "sync_layout_button: disable %s failed: %s"
+                    "panel_status: disable %s failed: %s"
                     % (route.getUserName(), e)
                 )
         _paint_side_indicators(LEFT_INDICATORS, left)
@@ -198,7 +198,7 @@ def _paint_indicators_without_commanding(left, right):
                 route.setEnabled(True)
             except Exception as e:
                 print(
-                    "sync_layout_button: re-enable %s failed: %s"
+                    "panel_status: re-enable %s failed: %s"
                     % (route.getUserName(), e)
                 )
 
@@ -221,7 +221,7 @@ def _included_plant_turnouts():
             if _has_two_fb_sensors(to):
                 out.append(to)
     except Exception as e:
-        print("sync_layout_button: scan turnouts failed: %s" % e)
+        print("panel_status: scan turnouts failed: %s" % e)
     return out
 
 
@@ -252,10 +252,10 @@ def _ensure_turnout_fb_head():
 
         head = VirtualSignalHead(TURNOUT_FB_HEAD)
         mgr.register(head)
-        print("sync_layout_button: created VirtualSignalHead %s" % TURNOUT_FB_HEAD)
+        print("panel_status: created VirtualSignalHead %s" % TURNOUT_FB_HEAD)
         return head
     except Exception as e:
-        print("sync_layout_button: Turnouts lamp head unavailable: %s" % e)
+        print("panel_status: Turnouts lamp head unavailable: %s" % e)
         return None
 
 
@@ -275,7 +275,7 @@ def _set_head_appearance(head, appearance):
                     pass
                 head.setAppearance(appearance)
             except Exception as e:
-                print("sync_layout_button: setAppearance failed: %s" % e)
+                print("panel_status: setAppearance failed: %s" % e)
 
     try:
         if SwingUtilities.isEventDispatchThread():
@@ -321,7 +321,7 @@ def _rebind_turnout_fb_icons(head):
                     icon.setSignalHead(TURNOUT_FB_HEAD)
                     rebound = True
                     print(
-                        "sync_layout_button: rebound Turnouts icon -> %s"
+                        "panel_status: rebound Turnouts icon -> %s"
                         % TURNOUT_FB_HEAD
                     )
                 except Exception:
@@ -372,9 +372,9 @@ def sync_turnout_fb_lamp():
         _set_head_appearance(head, appearance)
         if appearance != _last_fb_appearance:
             _last_fb_appearance = appearance
-            print("sync_layout_button: Turnouts lamp %s" % label)
+            print("panel_status: Turnouts lamp %s" % label)
     except Exception as e:
-        print("sync_layout_button: Turnouts lamp set failed: %s" % e)
+        print("panel_status: Turnouts lamp set failed: %s" % e)
 
 
 def _show_amber_head():
@@ -395,7 +395,7 @@ def _show_amber_sensor(sys_name):
             s = sensors.provideSensor(sys_name)
         s.setKnownState(jmri.Sensor.INCONSISTENT)
     except Exception as e:
-        print("sync_layout_button: amber %s failed: %s" % (sys_name, e))
+        print("panel_status: amber %s failed: %s" % (sys_name, e))
 
 
 def _after_paint(fn, delay_ms=80):
@@ -407,7 +407,7 @@ def _after_paint(fn, delay_ms=80):
             try:
                 fn()
             except Exception as e:
-                print("sync_layout_button: deferred action failed: %s" % e)
+                print("panel_status: deferred action failed: %s" % e)
 
     t = Timer(delay_ms, _Go())
     t.setRepeats(False)
@@ -417,7 +417,7 @@ def _after_paint(fn, delay_ms=80):
 def _toggle_turnout_fb_mode_body():
     included = _included_plant_turnouts()
     if not included:
-        print("sync_layout_button: no 2-sensor M2T/MTT plants to toggle")
+        print("panel_status: no 2-sensor M2T/MTT plants to toggle")
         sync_turnout_fb_lamp()
         return
     modes = set()
@@ -444,11 +444,11 @@ def _toggle_turnout_fb_mode_body():
             n += 1
         except Exception as e:
             print(
-                "sync_layout_button: setFeedbackMode %s failed: %s"
+                "panel_status: setFeedbackMode %s failed: %s"
                 % (to.getSystemName(), e)
             )
     print(
-        "sync_layout_button: Turnouts lamp click → %s on %d plant(s)"
+        "panel_status: Turnouts lamp click → %s on %d plant(s)"
         % (label, n)
     )
     sync_turnout_fb_lamp()
@@ -470,16 +470,16 @@ def _mqtt_publish(topic, payload):
             jmri.jmrix.mqtt.MqttSystemConnectionMemo
         )
         if memo is None:
-            print("sync_layout_button: no MQTT connection")
+            print("panel_status: no MQTT connection")
             return False
         adapter = memo.getMqttAdapter()
         if adapter is None:
-            print("sync_layout_button: no MQTT adapter")
+            print("panel_status: no MQTT adapter")
             return False
         adapter.publish(topic, payload)
         return True
     except Exception as e:
-        print("sync_layout_button: MQTT publish failed: %s" % e)
+        print("panel_status: MQTT publish failed: %s" % e)
         return False
 
 
@@ -500,7 +500,7 @@ def _restore_lcos_lamp(prev_state):
                 else:
                     s.setKnownState(jmri.Sensor.INACTIVE)
             except Exception as e:
-                print("sync_layout_button: LCOS restore failed: %s" % e)
+                print("panel_status: LCOS restore failed: %s" % e)
 
     # RESUBSCRIBE is fire-and-forget; give the bridge a moment to refresh HBLOOP.
     t = Timer(2000, _Restore())
@@ -522,7 +522,7 @@ def publish_lcos_resubscribe():
     def _do():
         if _mqtt_publish(BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD):
             print(
-                "sync_layout_button: LCOS lamp → %s %s"
+                "panel_status: LCOS lamp → %s %s"
                 % (BRIDGE_CMD_TOPIC, RESUBSCRIBE_PAYLOAD)
             )
         _restore_lcos_lamp(prev)
@@ -585,7 +585,7 @@ def _watch_sml_amber_clear():
                 # Fallback: assume disabled if Digicon missing.
                 s.setKnownState(jmri.Sensor.INACTIVE)
             except Exception as e:
-                print("sync_layout_button: SML amber clear failed: %s" % e)
+                print("panel_status: SML amber clear failed: %s" % e)
 
     t = Timer(500, _Watch(0))
     t.setRepeats(False)
@@ -600,8 +600,8 @@ def toggle_sml_mode():
         ctrl = _digicon_controller()
         if ctrl is None:
             print(
-                "sync_layout_button: Digicon SML controller not found "
-                "(is mqtt_signalhead_publisher running?)"
+                "panel_status: Digicon SML controller not found "
+                "(is signal_coordinator running?)"
             )
             try:
                 sensors.provideSensor(SML_MODE_SENSOR).setKnownState(
@@ -613,7 +613,7 @@ def toggle_sml_mode():
         try:
             ctrl.toggle_from_panel()
         except Exception as e:
-            print("sync_layout_button: SML toggle failed: %s" % e)
+            print("panel_status: SML toggle failed: %s" % e)
         _watch_sml_amber_clear()
 
     _after_paint(_do)
@@ -631,7 +631,7 @@ def _sync_track_power_sensor():
     try:
         s = sensors.provideSensor(TRACK_POWER_SENSOR)
     except Exception as e:
-        print("sync_layout_button: Track Power sensor unavailable: %s" % e)
+        print("panel_status: Track Power sensor unavailable: %s" % e)
         return
     pm = _power_manager()
     if pm is None:
@@ -645,7 +645,7 @@ def _sync_track_power_sensor():
         if s.getKnownState() != want:
             s.setKnownState(want)
     except Exception as e:
-        print("sync_layout_button: Track Power lamp set failed: %s" % e)
+        print("panel_status: Track Power lamp set failed: %s" % e)
 
 
 class _PowerListener(PropertyChangeListener):
@@ -654,7 +654,7 @@ class _PowerListener(PropertyChangeListener):
             if event.getPropertyName() == "power":
                 _sync_track_power_sensor()
         except Exception as e:
-            print("sync_layout_button: power listener error: %s" % e)
+            print("panel_status: power listener error: %s" % e)
 
 
 _power_listener = None
@@ -678,7 +678,7 @@ def toggle_track_power():
     def _do():
         pm = _power_manager()
         if pm is None:
-            print("sync_layout_button: no PowerManager for Track Power toggle")
+            print("panel_status: no PowerManager for Track Power toggle")
             _sync_track_power_sensor()
             return
         try:
@@ -688,9 +688,9 @@ def toggle_track_power():
             else:
                 pm.setPower(jmri.PowerManager.ON)
                 label = "ON"
-            print("sync_layout_button: Track Power lamp click → %s" % label)
+            print("panel_status: Track Power lamp click → %s" % label)
         except Exception as e:
-            print("sync_layout_button: Track Power toggle failed: %s" % e)
+            print("panel_status: Track Power toggle failed: %s" % e)
         _sync_track_power_sensor()
 
     _after_paint(_do, delay_ms=_LAMP_AMBER_MS)
@@ -707,13 +707,13 @@ def sync_ladder_buttons(event=None):
         if (left, right) != _last:
             _last = (left, right)
             print(
-                "sync_layout_button: left=%s right=%s"
+                "panel_status: left=%s right=%s"
                 % (left or "none", right or "none")
             )
         _paint_indicators_without_commanding(left, right)
         sync_turnout_fb_lamp()
     except Exception as e:
-        print("sync_layout_button: sync error: %s" % e)
+        print("panel_status: sync error: %s" % e)
     finally:
         _busy = False
 
@@ -741,7 +741,7 @@ def _schedule_sync():
         else:
             SwingUtilities.invokeLater(_Restart())
     except Exception as e:
-        print("sync_layout_button: schedule failed: %s" % e)
+        print("panel_status: schedule failed: %s" % e)
 
 
 class _TurnoutListener(PropertyChangeListener):
@@ -751,7 +751,7 @@ class _TurnoutListener(PropertyChangeListener):
             if name in ("KnownState", "FeedbackMode", "Sensor1", "Sensor2"):
                 _schedule_sync()
         except Exception as e:
-            print("sync_layout_button: listener error: %s" % e)
+            print("panel_status: listener error: %s" % e)
 
 
 class _SensorListener(PropertyChangeListener):
@@ -760,7 +760,7 @@ class _SensorListener(PropertyChangeListener):
             if event.getPropertyName() == "KnownState":
                 _schedule_sync()
         except Exception as e:
-            print("sync_layout_button: sensor listener error: %s" % e)
+            print("panel_status: sensor listener error: %s" % e)
 
 
 def _sensor_sys(icon):
@@ -809,7 +809,7 @@ class _LampClick(MouseAdapter):
         try:
             self._action()
         except Exception as e:
-            print("sync_layout_button: lamp click failed: %s" % e)
+            print("panel_status: lamp click failed: %s" % e)
         finally:
             _click_busy = False
 
@@ -822,7 +822,7 @@ def _arm_status_lamp_clicks():
     try:
         from jmri.jmrit.display import EditorManager, SensorIcon, SignalHeadIcon
     except Exception as e:
-        print("sync_layout_button: display imports failed: %s" % e)
+        print("panel_status: display imports failed: %s" % e)
         return False
 
     em = jmri.InstanceManager.getDefault(EditorManager)
@@ -857,12 +857,12 @@ def _arm_status_lamp_clicks():
                         icon.addMouseListener(_LampClick(toggle_turnout_fb_mode))
                         found["turnouts"] += 1
             except Exception as e:
-                print("sync_layout_button: icon wire failed: %s" % e)
+                print("panel_status: icon wire failed: %s" % e)
 
     if found["lcos"] and found["turnouts"] and found["signals"] and found["power"]:
         _clicks_armed = True
         print(
-            "sync_layout_button: status lamp clicks ready "
+            "panel_status: status lamp clicks ready "
             "(LCOS/Turnouts/Signals/Track Power)"
         )
         return True
@@ -895,7 +895,7 @@ def _reload_mqtt_retain_at_boot():
         except Exception:
             path = None
     if not path or not os.path.isfile(path):
-        print("sync_layout_button: apply_maintain_mqtt.py not found; skip MQTT reload")
+        print("panel_status: apply_maintain_mqtt.py not found; skip MQTT reload")
         return False
 
     ns = {
@@ -912,7 +912,7 @@ def _reload_mqtt_retain_at_boot():
         exec(compile(src, path, "exec"), ns)
         fn = ns.get("reload_mqtt_retain")
         if fn is None:
-            print("sync_layout_button: reload_mqtt_retain missing")
+            print("panel_status: reload_mqtt_retain missing")
             return False
         # Sensors only. Never paint M2T/MTT here (that can command field points).
         n_s, n_t = fn(
@@ -920,15 +920,15 @@ def _reload_mqtt_retain_at_boot():
             settle_secs=0,
             paint_turnouts=False,
             unknown_sensors_only=True,
-            log_prefix="sync_layout_button/mqtt",
+            log_prefix="panel_status/mqtt",
         )
         print(
-            "sync_layout_button: MQTT retain sensors=%s (turnouts skipped, queued=%s)"
+            "panel_status: MQTT retain sensors=%s (turnouts skipped, queued=%s)"
             % (n_s, n_t)
         )
         return True
     except Exception as e:
-        print("sync_layout_button: MQTT retain reload failed: %s" % e)
+        print("panel_status: MQTT retain reload failed: %s" % e)
         return False
 
 
@@ -944,7 +944,7 @@ def _raise_block_labels():
     try:
         from jmri.jmrit.display import BlockContentsIcon, EditorManager
     except Exception as e:
-        print("sync_layout_button: BlockContentsIcon import failed: %s" % e)
+        print("panel_status: BlockContentsIcon import failed: %s" % e)
         return 0
     em = jmri.InstanceManager.getDefault(EditorManager)
     if em is None:
@@ -966,7 +966,7 @@ def _raise_block_labels():
                     icon.setDisplayLevel(_BCI_LEVEL)
                     n += 1
             except Exception as e:
-                print("sync_layout_button: raise BCI failed: %s" % e)
+                print("panel_status: raise BCI failed: %s" % e)
         if n:
             try:
                 frame = ed.getTargetFrame()
@@ -976,7 +976,7 @@ def _raise_block_labels():
                 pass
     if n:
         print(
-            "sync_layout_button: raised %d BlockContentsIcon(s) to level %d"
+            "panel_status: raised %d BlockContentsIcon(s) to level %d"
             % (n, _BCI_LEVEL)
         )
     _bci_raised = True
@@ -1013,7 +1013,7 @@ def _arm_listeners():
             pass
     _armed = True
     print(
-        "sync_layout_button: armed (watch=%d plantFB=%d)"
+        "panel_status: armed (watch=%d plantFB=%d)"
         % (len(WATCH), _plant_count)
     )
     return True
@@ -1027,10 +1027,10 @@ class _ArmAttempt(ActionListener):
         event.getSource().stop()
         if not _watch_turnouts_present():
             if self.attempt + 1 >= _ARM_MAX_ATTEMPTS:
-                print("sync_layout_button: watch turnouts missing; arming anyway")
+                print("panel_status: watch turnouts missing; arming anyway")
             else:
                 if self.attempt == 0:
-                    print("sync_layout_button: waiting for watch turnouts…")
+                    print("panel_status: waiting for watch turnouts…")
                 t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
                 t.setRepeats(False)
                 t.start()
@@ -1043,7 +1043,7 @@ class _ArmAttempt(ActionListener):
             _raise_block_labels()
             sync_ladder_buttons()
         except Exception as e:
-            print("sync_layout_button: arm failed: %s" % e)
+            print("panel_status: arm failed: %s" % e)
         t = Timer(_CLICK_RETRY_MS, _RetryClicks(0))
         t.setRepeats(False)
         t.start()
@@ -1059,16 +1059,16 @@ class _RetryClicks(ActionListener):
             if _arm_status_lamp_clicks():
                 return
         except Exception as e:
-            print("sync_layout_button: click retry failed: %s" % e)
+            print("panel_status: click retry failed: %s" % e)
         if self.attempt + 1 < _CLICK_MAX_ATTEMPTS:
             t = Timer(_CLICK_RETRY_MS, _RetryClicks(self.attempt + 1))
             t.setRepeats(False)
             t.start()
         else:
-            print("sync_layout_button: status lamp icons not found on panel")
+            print("panel_status: status lamp icons not found on panel")
 
 
-print("sync_layout_button: loaded; arming in %dms" % _ARM_FIRST_MS)
+print("panel_status: loaded; arming in %dms" % _ARM_FIRST_MS)
 _t0 = Timer(_ARM_FIRST_MS, _ArmAttempt(0))
 _t0.setRepeats(False)
 _t0.start()

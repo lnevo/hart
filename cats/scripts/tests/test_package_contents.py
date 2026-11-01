@@ -12,6 +12,8 @@ OLD = (
     "sync_yard_ladder_buttons.py",
     "apply_dispatcher_roster_profiles.py",
     "SetBlockPreviewValues.py",
+    "sync_layout_button.py",
+    "mqtt_signalhead_publisher.py",
 )
 
 

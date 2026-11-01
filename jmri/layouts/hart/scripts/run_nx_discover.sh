@@ -48,7 +48,7 @@ restore() {
 }
 trap restore EXIT
 
-python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after mqtt_signalhead_publisher.py
+python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after signal_coordinator.py
 rm -f "$MARKER"
 
 export HART_NX_DISCOVER_STORE=1

@@ -14,7 +14,7 @@ HART_ROOT = hart_runtime_root()
 LCOS = path_lcos_bridge()
 
 TARGETS_STRICT = [
-    HART_ROOT / "jmri/scripts/mqtt_signalhead_publisher.py",
+    HART_ROOT / "jmri/scripts/signal_coordinator.py",
     LCOS / "serial_to_mqtt.py",
     LCOS / "lcos_mqtt_bridge.cpp",
 ]

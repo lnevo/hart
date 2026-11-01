@@ -164,9 +164,9 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
 
 $jythonSrc = @(
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\sync_layout_button.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
-  (Join-Path $hart 'jmri\scripts\mqtt_signalhead_publisher.py')
+  (Join-Path $hart 'jmri\scripts\signal_coordinator.py')
 )
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 $roots = New-Object System.Collections.Generic.List[string]
@@ -206,7 +206,7 @@ foreach ($r in ($roots | Select-Object -Unique)) {
 
 $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
 # Old scripts no Start Up uses; copies are kept in archive/jmri-scripts or the repo.
-$retiredJython = @('sync_turnout_buttons.py', 'sync_yard_ladder_buttons.py', 'apply_dispatcher_roster_profiles.py', 'SetBlockPreviewValues.py')
+$retiredJython = @('sync_turnout_buttons.py', 'sync_yard_ladder_buttons.py', 'apply_dispatcher_roster_profiles.py', 'SetBlockPreviewValues.py', 'sync_layout_button.py', 'mqtt_signalhead_publisher.py')
 $jythonDirs = New-Object System.Collections.Generic.List[string]
 [void]$jythonDirs.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\jython'))
 Get-ChildItem (Join-Path $env:USERPROFILE 'JMRI') -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
@@ -222,8 +222,8 @@ foreach ($d in $jythonDirs) {
   }
 }
 $retargetNames = @(
-  'sync_layout_button.py',
-  'mqtt_signalhead_publisher.py',
+  'panel_status.py',
+  'signal_coordinator.py',
   'jmri_cmd_watcher.py'
 )
 $patchPy = Join-Path $hart 'cats\scripts\patch_jmri_startup.py'

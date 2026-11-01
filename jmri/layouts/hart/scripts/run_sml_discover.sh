@@ -48,7 +48,7 @@ restore() {
 }
 trap restore EXIT
 
-python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after mqtt_signalhead_publisher.py
+python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after signal_coordinator.py
 rm -f "$MARKER"
 
 export HART_SML_DISCOVER_STORE=1
@@ -108,6 +108,6 @@ if kill -0 "$JPID" 2>/dev/null; then
 fi
 
 # Discover stores Digicon dests Enabled; Digicon boot needs them Disabled until
-# mqtt_signalhead_publisher.py takes control.
+# signal_coordinator.py takes control.
 python3 "$ROOT/jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py"
 echo "DONE"

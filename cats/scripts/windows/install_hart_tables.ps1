@@ -350,13 +350,13 @@ function Copy-PackScript([string]$name, [string]$destDir) {
 
 foreach ($s in @(
   'discover_sml.py',
-  'sync_layout_button.py',
+  'panel_status.py',
   'add_yard_ladder_le_icons.py',
   'install_yl_windows.py'
 )) {
   [void](Copy-PackScript $s $layoutDst)
 }
-[void](Copy-PackScript 'mqtt_signalhead_publisher.py' $pubDst)
+[void](Copy-PackScript 'signal_coordinator.py' $pubDst)
 if (Test-Path (Join-Path $Work 'signal_wiring.csv')) {
   $dataDir = Join-Path $env:USERPROFILE 'hart\cats\data'
   New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
