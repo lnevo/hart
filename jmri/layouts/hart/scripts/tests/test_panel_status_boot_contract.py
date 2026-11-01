@@ -9,7 +9,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 
 class SyncLayoutButtonBootContractTest(unittest.TestCase):
     def test_boot_reload_skips_plant_turnouts(self) -> None:
-        src = (SCRIPTS / "sync_layout_button.py").read_text(encoding="utf-8")
+        src = (SCRIPTS / "panel_status.py").read_text(encoding="utf-8")
         self.assertIn("paint_turnouts=False", src)
         self.assertIn('("IT:HART:YL:R1", (("M2T1211", CLOSED), ("M2T1213", CLOSED)))', src)
         self.assertIn("unknown_sensors_only=True", src)

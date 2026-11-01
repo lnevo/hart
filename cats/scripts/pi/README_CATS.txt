@@ -45,8 +45,8 @@ JMRI web home (STS link):
   Windows: ./cats/scripts/sync_hart_package.sh --win  (SSH :2222; do not use Dropbox)
 
 JMRI Start Up scripts (profile PerformScript):
-  preference:jython/sync_layout_button.py
-  preference:jython/mqtt_signalhead_publisher.py
+  preference:jython/panel_status.py
+  preference:jython/signal_coordinator.py
   (copies live in /home/pi/JMRI_UserFiles/jython/; sync also writes
    /home/pi/hart/jmri/... for the repo tree)
   LogixNG IQC:AUTO:0004 → preference:jython/hide_cats_desk_windows.py

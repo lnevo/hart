@@ -412,7 +412,7 @@ def patch_tables(rows: list[dict]) -> None:
 
 def write_publisher(rows: list[dict]) -> None:
     """Publisher Digicon roster is dynamic (LCOS IH masts + MQTT enroll); no HEAD_NAMES rewrite."""
-    path = ROOT / "jmri/scripts/mqtt_signalhead_publisher.py"
+    path = ROOT / "jmri/scripts/signal_coordinator.py"
     if not path.is_file():
         raise SystemExit(f"missing {path}")
     text = path.read_text()

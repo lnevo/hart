@@ -38,8 +38,8 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 for name in (
     "apply_maintain_mqtt.py",
-    "sync_layout_button.py",
-    "mqtt_signalhead_publisher.py",
+    "panel_status.py",
+    "signal_coordinator.py",
 ):
     pattern = re.compile(
         r'<perform\b(?=[^>]*\bname="[^"]*'
@@ -57,7 +57,7 @@ path.write_text(text, encoding="utf-8")
 PY
 
 python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" \
-  --after mqtt_signalhead_publisher.py
+  --after signal_coordinator.py
 rm -f "$MARKER"
 export HART_CTC_LOGIC_SMOKE_MARKER="$MARKER"
 

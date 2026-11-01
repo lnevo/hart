@@ -16,8 +16,8 @@ foreach ($p in @(
 Write-Host '=== companion scripts ==='
 @(
   'C:\Users\lnevo\hart\jmri\layouts\hart\scripts\apply_maintain_mqtt.py',
-  'C:\Users\lnevo\hart\jmri\layouts\hart\scripts\sync_layout_button.py',
-  'C:\Users\lnevo\hart\jmri\scripts\mqtt_signalhead_publisher.py'
+  'C:\Users\lnevo\hart\jmri\layouts\hart\scripts\panel_status.py',
+  'C:\Users\lnevo\hart\jmri\scripts\signal_coordinator.py'
 ) | ForEach-Object {
   if (Test-Path $_) {
     $i = Get-Item $_

@@ -103,9 +103,9 @@ rm -f "$HART"/cats/panels/HART_Master*.xml "$HART"/launch_hart_master*.sh
 
 JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$HART/jmri/layouts/hart/scripts/sync_layout_button.py"
+  "$HART/jmri/layouts/hart/scripts/panel_status.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
-  "$HART/jmri/scripts/mqtt_signalhead_publisher.py"
+  "$HART/jmri/scripts/signal_coordinator.py"
 )
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
@@ -114,7 +114,7 @@ done
 rm -f "$UF/jython/hart_dispatcher_startup.py" "$UF/jython/patch_dispatcher_facing.py"
 for d in "$UF/jython" /home/pi/.jmri/*.jmri/jython; do
   [[ -d "$d" ]] || continue
-  (cd "$d" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py)
+  (cd "$d" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py sync_layout_button.py mqtt_signalhead_publisher.py)
 done
 echo "preference:jython scripts -> $UF/jython"
 
@@ -135,8 +135,8 @@ PATCH="$HART/cats/scripts/patch_jmri_startup.py"
 if [[ -f "$PATCH" ]]; then
   python3 "$PATCH" retarget-jython \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
-    --script sync_layout_button.py \
-    --script mqtt_signalhead_publisher.py \
+    --script panel_status.py \
+    --script signal_coordinator.py \
     --script jmri_cmd_watcher.py
   python3 "$PATCH" remove \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \

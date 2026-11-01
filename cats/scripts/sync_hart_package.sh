@@ -80,13 +80,13 @@ fi
 
 JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$ROOT/jmri/layouts/hart/scripts/sync_layout_button.py"
+  "$ROOT/jmri/layouts/hart/scripts/panel_status.py"
   "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
-  "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py"
+  "$ROOT/jmri/scripts/signal_coordinator.py"
 )
 
 HART_JYTHON_SCRIPTS=(
-  jmri/layouts/hart/scripts/sync_layout_button.py
+  jmri/layouts/hart/scripts/panel_status.py
   jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py
   jmri/layouts/hart/scripts/discover_sml.py
   jmri/layouts/hart/scripts/hide_cats_desk_windows.py
@@ -111,7 +111,7 @@ install_dispatcher_facing_patch() {
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
     done
     rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"
-    (cd "$dest" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py)
+    (cd "$dest" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py sync_layout_button.py mqtt_signalhead_publisher.py)
     echo "preference:jython scripts -> $dest"
     if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
@@ -122,8 +122,8 @@ install_dispatcher_facing_patch() {
     if [[ -f "$profxml" && -f "$patch_startup" ]]; then
       python3 "$patch_startup" retarget-jython \
         --profile "$profxml" \
-        --script sync_layout_button.py \
-        --script mqtt_signalhead_publisher.py \
+        --script panel_status.py \
+        --script signal_coordinator.py \
         --script jmri_cmd_watcher.py
       python3 "$patch_startup" remove \
         --profile "$profxml" \
@@ -288,7 +288,7 @@ stage_package() {
     cp -f "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" \
       "$stage/jmri/layouts/hart/scripts/"
   fi
-  cp -f "$ROOT/jmri/scripts/mqtt_signalhead_publisher.py" "$stage/jmri/scripts/"
+  cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "$stage/jmri/scripts/"
 
   local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
   if [[ -d "$traininfo" ]]; then

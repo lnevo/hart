@@ -7,7 +7,7 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 | Path | Role |
 |------|------|
 | `tools/mqtt-mimic/lcos_mqtt_mimic.py` | CATS-side mimic; reads `public_name_map.csv` |
-| `jmri/scripts/mqtt_signalhead_publisher.py` | JMRI jython publisher |
+| `jmri/scripts/signal_coordinator.py` | JMRI jython publisher |
 | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge |
 
 ## Behavior
@@ -20,7 +20,7 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 ## Run
 
 ```bash
-# JMRI PanelPro with mqtt_signalhead_publisher active
+# JMRI PanelPro with signal_coordinator active
 python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --help
 python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local
 ```

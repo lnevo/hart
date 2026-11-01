@@ -108,7 +108,7 @@ Princess east exits are **2-head** (main vs OS K-1/OS K-2). Balloon intermediate
 - Ports + topics: `docs/wiring/signals/signal_wiring.csv` (also updates `docs/wiring/LCOS_Layout_Inventory_v85.xlsx` DNOU8)
 - Mast index: `docs/wiring/signals/signal_head_plan.csv` / enriched `signal_mast_plan.csv`
 - Rebuild heads: `python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py`
-- Signal heads: `jmri/scripts/mqtt_signalhead_publisher.py` listens to SHSM / SML
+- Signal heads: `jmri/scripts/signal_coordinator.py` listens to SHSM / SML
   and **publishes** Virtual-head appearances JMRI → MQTT (`track/signalhead/IH###`)
   so LCOS sees SML / Digicon state. JMRI’s MQTT connection is the transport;
   no mosquitto CLI, no retain-paint of heads, no `setAppearance`.

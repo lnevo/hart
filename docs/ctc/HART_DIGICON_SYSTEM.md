@@ -69,8 +69,8 @@ python3 cats/scripts/wire_digicon.py
 
 **Boot sequence (profile Start Up, after `tables.xml`):**
 
-1. `jmri/layouts/hart/scripts/sync_layout_button.py` — yard-ladder lamps from live plant/FB state. It never commands plant turnouts. Its boot retain reload needs `apply_maintain_mqtt.py`, which is retired and not deployed, so it logs a skip and fills nothing. Panel status lamps: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
-2. `jmri/scripts/mqtt_signalhead_publisher.py` — Digicon SML MQTT bridge: main-window **SML Enabled / SML Disabled** toggle; when Enabled, publish IH appearances on `track/signalhead/<packed>`; when Disabled (global or per-mast SML off), apply `track/signalmast/<packed>` → IH and (on per-mast disable edges / operator Disable) publish `Unheld`. Answers `track/bridge/sml_mode` **query** / **disabling** with **enabled** while globally Enabled. **Boot:** if Digicon dests loaded **Enabled** (stored tables), warning popup, publish **`enabling`** and leave dests on (that instance does not abort). Operator **Force override** (sml_mode already enabled) publishes the same **`enabling`** token. Other agents seeing that token publish **`aborting`**, uncheck immediately (no Hold/Red/Unheld), then **`aborted`**, and stay Disabled. After ~3s the originator publishes **`enabled`**. Solo has nobody to abort; if `enabled` never arrives, the LCOS bridge challenges to **disabled**. Clean boot still holds dests off and **reads** `sml_mode` only (no retain publish); missing/`disabled`/`disabling` → take Digicon (enable); `enabled` / enabling-abort tokens → stay Disabled with **no Unheld** (originator owns resume). Digicon SML dests should be stored **Enabled=no** in `tables.xml` (`jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py`).
+1. `jmri/layouts/hart/scripts/panel_status.py` — yard-ladder lamps from live plant/FB state. It never commands plant turnouts. Its boot retain reload needs `apply_maintain_mqtt.py`, which is retired and not deployed, so it logs a skip and fills nothing. Panel status lamps: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
+2. `jmri/scripts/signal_coordinator.py` — Digicon SML MQTT bridge: main-window **SML Enabled / SML Disabled** toggle; when Enabled, publish IH appearances on `track/signalhead/<packed>`; when Disabled (global or per-mast SML off), apply `track/signalmast/<packed>` → IH and (on per-mast disable edges / operator Disable) publish `Unheld`. Answers `track/bridge/sml_mode` **query** / **disabling** with **enabled** while globally Enabled. **Boot:** if Digicon dests loaded **Enabled** (stored tables), warning popup, publish **`enabling`** and leave dests on (that instance does not abort). Operator **Force override** (sml_mode already enabled) publishes the same **`enabling`** token. Other agents seeing that token publish **`aborting`**, uncheck immediately (no Hold/Red/Unheld), then **`aborted`**, and stay Disabled. After ~3s the originator publishes **`enabled`**. Solo has nobody to abort; if `enabled` never arrives, the LCOS bridge challenges to **disabled**. Clean boot still holds dests off and **reads** `sml_mode` only (no retain publish); missing/`disabled`/`disabling` → take Digicon (enable); `enabled` / enabling-abort tokens → stay Disabled with **no Unheld** (originator owns resume). Digicon SML dests should be stored **Enabled=no** in `tables.xml` (`jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py`).
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
 
@@ -131,7 +131,7 @@ Digicon binds by **mast userName** (exact string match). Panel lamps (`LAMP1|2|3
 
 - Digicon internals speak rule codes (`R281` Clear, `R285` Approach, `R292` Stop, `RES_*` Restricting, …).
 - **Basic** SHSM aspects are Clear / Approach / Diverging Clear / Diverging Approach / Stop (2-head) or Clear / Approach / Stop (dwarf). `aar_aspect_bridge.py` remaps Digicon R-codes to those names.
-- Virtual heads get GREEN / YELLOW / RED appearances; `mqtt_signalhead_publisher.py` publishes those names on `track/signalhead/<packed>`.
+- Virtual heads get GREEN / YELLOW / RED appearances; `signal_coordinator.py` publishes those names on `track/signalhead/<packed>`.
 
 ### Authority
 
@@ -173,7 +173,7 @@ Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and
 
 ### JMRI ↔ MQTT for Virtual heads
 
-`jmri/scripts/mqtt_signalhead_publisher.py` (Start Up): Digicon plants are discovered from JMRI SignalMasts that carry LCOS Virtual `IH*` heads (UID 32–47). MQTT SET/Unheld requires enrollment from `track/signalmast/<packed>` (bridge + field status). `build_hart_signal_heads.py` no longer patches a `HEAD_NAMES` list.
+`jmri/scripts/signal_coordinator.py` (Start Up): Digicon plants are discovered from JMRI SignalMasts that carry LCOS Virtual `IH*` heads (UID 32–47). MQTT SET/Unheld requires enrollment from `track/signalmast/<packed>` (bridge + field status). `build_hart_signal_heads.py` no longer patches a `HEAD_NAMES` list.
 
 Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publish when Enabled (enrolled heads only), mast→IH when SML off, per-mast `Unheld` on disable **edges**, `track/bridge/sml_mode` query ACK. Digicon SML pairs are stored **Enabled=no** in tables. Stored-Enabled boot or Force override publishes **`enabling`** and does not abort; other agents abort (immediate uncheck, no RELEASE) then **`aborted`**; originator announces **`enabled`** after ~3s. Clean boot holds dests off, **reads** `sml_mode` (no retain publish); missing/`disabled` → enable Digicon; `enabled` / enabling-abort tokens → stay Disabled with no Unheld. SML / SHSM still own aspects while Enabled; Held remains CATS/USS veto.
 
@@ -216,7 +216,7 @@ Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
 | Ladder icons | `jmri/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
 | Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
-| JMRI Start Up scripts | `sync_layout_button.py`, `mqtt_signalhead_publisher.py` | All hosts `preference:jython/` (Pi `JMRI_UserFiles/jython/`; Mac/Windows `<profile>.jmri/jython/` because user-files=`profile:`). `hide_cats_desk_windows.py` is LogixNG, same folder. |
+| JMRI Start Up scripts | `panel_status.py`, `signal_coordinator.py` | All hosts `preference:jython/` (Pi `JMRI_UserFiles/jython/`; Mac/Windows `<profile>.jmri/jython/` because user-files=`profile:`). `hide_cats_desk_windows.py` is LogixNG, same folder. |
 
 Deploy via SSH (agent does this — no manual batch/Dropbox step):
 
@@ -246,7 +246,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `cats/scripts/windows/install_hart_tables.ps1` | Windows local install helper (tables + jars + web); prefer `sync_hart_package.sh --win` |
 | `jmri/layouts/hart/scripts/jmri_cmd_watcher.py` | Remote-run hook: runs a dropped command file inside JMRI ([`wiki/AGENTS_GIT.md`](../../wiki/AGENTS_GIT.md)) |
-| `jmri/scripts/mqtt_signalhead_publisher.py` | Digicon SML MQTT: SET when Enabled, mast→IH when Disabled, sml_mode guard ACK |
+| `jmri/scripts/signal_coordinator.py` | Digicon SML MQTT: SET when Enabled, mast→IH when Disabled, sml_mode guard ACK |
 
 ---
 

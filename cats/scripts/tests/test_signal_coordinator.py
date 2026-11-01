@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-PUBLISHER = ROOT / "jmri/scripts/mqtt_signalhead_publisher.py"
+PUBLISHER = ROOT / "jmri/scripts/signal_coordinator.py"
 BUILD = ROOT / "jmri/layouts/hart/scripts/build_hart_signal_heads.py"
 
 

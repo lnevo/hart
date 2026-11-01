@@ -44,7 +44,7 @@ When a task changes or reuses a large script (about 500 lines or more) or one wi
 - **Feature or repeated rework:** also test the behaviour it depends on. Then split the script if that makes the work easier, as a separate commit that changes no behaviour, and never before those tests exist.
 - **Only running it, or a docs or comment change:** nothing is owed. If you relied on untested behaviour for something live, say so in the report.
 
-Start with `jmri/scripts/mqtt_signalhead_publisher.py` and `jmri/layouts/hart/scripts/sync_layout_button.py`, since they run in JMRI on the Pi. Do not start a cleanup nobody asked for. If the safe version is bigger than the task, name it in the report and let the owner decide. Find the largest with `git ls-files '*.py' | xargs wc -l | sort -rn`.
+Start with `jmri/scripts/signal_coordinator.py` and `jmri/layouts/hart/scripts/panel_status.py`, since they run in JMRI on the Pi. Do not start a cleanup nobody asked for. If the safe version is bigger than the task, name it in the report and let the owner decide. Find the largest with `git ls-files '*.py' | xargs wc -l | sort -rn`.
 
 ## Subagents
 

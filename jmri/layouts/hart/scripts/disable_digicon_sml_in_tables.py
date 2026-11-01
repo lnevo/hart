@@ -2,7 +2,7 @@
 """Store Digicon SignalMastLogic destination pairs as disabled in tables.
 
 Digicon field masts (docs/wiring/signals/signal_wiring.csv) boot with SML Enabled=no so
-JMRI does not run ABS until mqtt_signalhead_publisher.py takes Digicon control.
+JMRI does not run ABS until signal_coordinator.py takes Digicon control.
 Non-Digicon SML sources (yard / approach without LCOS IH heads) are left alone.
 
 Edits jmri/layouts/hart/output/tables.xml.

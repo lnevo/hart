@@ -1,7 +1,5 @@
 # JMRI jython -- Digicon MQTT <-> SML hand-off (publisher + receiver + global toggle).
 #
-# Name kept as mqtt_signalhead_publisher.py for existing profile Start Up entries.
-#
 # Global toggle: SML Enabled / SML Disabled (main window button).
 #   Enabled  -> publish appearances on track/signalhead/<packed> (SET)
 #   Disabled -> apply track/signalmast/<packed> to IH heads; no SET
@@ -189,7 +187,7 @@ class DigiconMqttSml(
 ):
     """Global SML toggle + Digicon MQTT SET / mast->IH / query ACK."""
 
-    # Cross-script handle for panel status-lamp clicks (sync_layout_button).
+    # Cross-script handle for panel status-lamp clicks (panel_status).
     INSTANCE = None
 
     def __init__(self):
