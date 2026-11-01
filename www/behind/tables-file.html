@@ -21,6 +21,29 @@
     .jm-svg .t-w { fill: #fff; }
     .jm-svg .t-s { fill: var(--muted); font-size: 13px; }
     .jm-lamps td:first-child { font-weight: 700; white-space: nowrap; }
+    /* Order-of-the-file bar and its table. */
+    .tf-order td:last-child:not([colspan]), .tf-order th:last-child { text-align: right; white-space: nowrap; }
+    .tf-order tr.tf-panel td { background: var(--paper-2); }
+    .jm-svg .acc { fill: var(--accent); stroke: var(--accent); }
+    .jm-svg .t-d { fill: #1a1406; }
+    .tf-pair { margin: .5rem 0 1rem; }
+    /* Tables browser. */
+    .tb-tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .75rem; }
+    .tb-tabs button { font: inherit; font-size: .9rem; padding: .35rem .7rem; border: 1px solid var(--rule); background: var(--card); color: var(--ink); cursor: pointer; }
+    .tb-tabs button[aria-selected="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .tb-pick { display: none; width: 100%; font: inherit; padding: .5rem .65rem; border: 1px solid var(--rule); background: var(--card); color: var(--ink); }
+    .tb-bar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .6rem; }
+    .tb-bar input { flex: 1 1 14rem; min-width: 0; font: inherit; padding: .45rem .65rem; border: 1px solid var(--rule); background: var(--card); }
+    .tb-wrap { max-height: 28rem; }
+    #tb-table td { white-space: nowrap; }
+    #tb-table td.user { white-space: normal; min-width: 9rem; overflow-wrap: anywhere; }
+    #tb-table td.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem; }
+    #tb-table td.num, #tb-table th.num { text-align: right; }
+    .tb-more { margin-top: .6rem; }
+    @media (max-width: 640px) {
+      .tb-tabs { display: none; }
+      .tb-pick { display: block; margin-bottom: .6rem; }
+    }
     .tf-code { background: var(--paper-2); border: 1px solid var(--rule); border-radius: 6px; padding: .75rem 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
     .tf-code code { white-space: pre; }
   </style>
@@ -49,9 +72,75 @@
         screen.
       </p>
 
+      <h2 id="layout">How the file is laid out</h2>
+      <p>
+        The file is one long list of sections, one after another. It falls into two broad parts.
+        <strong>Objects</strong> are the things JMRI keeps track of: sensors, turnouts, masts, blocks and
+        so on. Each has a <em>system name</em>, JMRI's internal id, and usually a <em>user name</em>, the
+        public name people use. <strong>Panels</strong> are the drawn screens. They hold no objects of
+        their own; they refer to the objects by name.
+      </p>
+      <pre class="tf-code tf-pair"><code>systemName  M2S100
+userName    BS McKees Rocks</code></pre>
+      <p>
+        That is a real sensor, with its comment removed. A sensor icon on a panel carries only
+        "BS McKees Rocks", and JMRI finds the sensor from that.
+      </p>
+      <p>
+        Mind the order. The panels are what you see first on screen, but in the file they come last:
+        about 19,000 lines of objects, then about 10,000 of panels. A short record of loads and stores
+        closes the file.
+      </p>
+      <figure>
+        <svg class="jm-svg" viewBox="0 0 360 96" role="img" aria-labelledby="tf-o-t tf-o-d">
+          <title id="tf-o-t">The file from top to bottom</title>
+          <desc id="tf-o-d">A bar for the 29,068 lines of the file. About two thirds are objects, then about one third panels, then a thin sliver of file history.</desc>
+          <rect class="own" x="8" y="14" width="224" height="34" rx="3"/>
+          <rect class="acc" x="232" y="14" width="119" height="34" rx="3"/>
+          <rect class="own" x="351" y="14" width="1" height="34" style="fill:var(--muted);stroke:var(--muted)"/>
+          <text class="t-b t-w" x="120" y="36" text-anchor="middle">Objects</text>
+          <text class="t-b t-d" x="291" y="36" text-anchor="middle">Panels</text>
+          <text class="t-s" x="8" y="66">line 9</text>
+          <text class="t-s" x="232" y="66" text-anchor="middle">line 18,975</text>
+          <text class="t-s" x="8" y="88">29,068 lines in all</text>
+          <text class="t-s" x="352" y="88" text-anchor="end">file history from line 28,966</text>
+        </svg>
+        <figcaption class="section-note">The bar is drawn to scale: lines, top to bottom, left to right.</figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table class="roster jm-lamps tf-order">
+          <thead><tr><th>Section</th><th>Starts at line</th></tr></thead>
+          <tbody>
+            <tr><td colspan="2"><strong>Objects</strong></td></tr>
+            <tr><td>Sensors (two groups)</td><td>9</td></tr>
+            <tr><td>Turnouts (three groups)</td><td>2,948</td></tr>
+            <tr><td>Memories</td><td>3,225</td></tr>
+            <tr><td>Signal heads</td><td>3,242</td></tr>
+            <tr><td>Signal masts</td><td>3,429</td></tr>
+            <tr><td>Blocks</td><td>3,720</td></tr>
+            <tr><td>Layout blocks</td><td>4,762</td></tr>
+            <tr><td>Sections</td><td>4,984</td></tr>
+            <tr><td>Transits</td><td>6,372</td></tr>
+            <tr><td>Routes</td><td>15,180</td></tr>
+            <tr><td>Signal Mast Logic</td><td>15,333</td></tr>
+            <tr><td>Logix</td><td>16,566</td></tr>
+            <tr><td>LogixNG</td><td>16,599</td></tr>
+            <tr><td>CTC data</td><td>16,778</td></tr>
+            <tr><td>Entry/Exit</td><td>18,885</td></tr>
+            <tr><td colspan="2"><strong>Panels</strong></td></tr>
+            <tr class="tf-panel"><td>USS CTC (Panel Editor)</td><td>18,975</td></tr>
+            <tr class="tf-panel"><td>HART Railroad (Layout Editor)</td><td>25,830</td></tr>
+            <tr class="tf-panel"><td>Dispatcher System (Layout Editor)</td><td>28,554</td></tr>
+            <tr><td colspan="2"><strong>Record of loads and stores</strong></td></tr>
+            <tr><td>File history</td><td>28,966</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <h2>The tour by the numbers</h2>
       <p>
-        These counts come from reading the file itself. Four groups, from the field up to the screen.
+        These counts come from reading the file itself. They are grouped as a story, from the field up
+        to the screen, which is not the order they sit in the file.
       </p>
       <div class="table-wrap">
         <table class="roster jm-lamps">
@@ -93,6 +182,24 @@
         96 reverse), 69 are Dispatcher System helpers, 260 are CTC panel sensors (13 kinds across 20
         columns), 23 belong to Entry/Exit and 9 each do one job.
       </p>
+
+      <h2 id="browse">Browse the tables</h2>
+      <p>
+        Here are the rows themselves, for the tables that hold named objects. Pick a table, type to filter, and the list narrows to
+        the rows that contain your text in any column.
+      </p>
+      <div id="tb-app">
+        <div class="tb-tabs" role="tablist" aria-label="Tables" id="tb-tabs"></div>
+        <select class="tb-pick" id="tb-pick" aria-label="Table"></select>
+        <div class="tb-bar">
+          <input id="tb-q" type="search" placeholder="Filter rows" aria-label="Filter rows" autocomplete="off">
+          <span class="muted" id="tb-count" aria-live="polite">Loading…</span>
+        </div>
+        <div class="table-wrap tb-wrap" id="tb-wrap">
+          <table class="roster" id="tb-table"><thead></thead><tbody></tbody></table>
+        </div>
+        <button type="button" class="btn btn-outline tb-more" id="tb-more" hidden></button>
+      </div>
 
       <h2>How the pieces link</h2>
       <p>
@@ -263,6 +370,7 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/tables-browser.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       HARTOps.mountChrome("behind-tables").catch(function (err) {
