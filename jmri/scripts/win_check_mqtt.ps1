@@ -15,7 +15,6 @@ foreach ($p in @(
 }
 Write-Host '=== companion scripts ==='
 @(
-  'C:\Users\lnevo\hart\jmri\layouts\hart\scripts\apply_maintain_mqtt.py',
   'C:\Users\lnevo\hart\jmri\layouts\hart\scripts\panel_status.py',
   'C:\Users\lnevo\hart\jmri\scripts\signal_coordinator.py'
 ) | ForEach-Object {
