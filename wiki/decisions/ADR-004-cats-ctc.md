@@ -11,7 +11,7 @@ HART has a Layout Editor panel (`hart_prod.xml`) with MQTT occupancy and turnout
 
 ## Decision
 
-1. **JMRI version:** use the **current** layout host build. Panel XML reports **5.15.4plus** — within **CATS 3.2** support (**JMRI 4.24–5.16**). Re-check downloads before any JMRI upgrade past 5.16.
+1. **JMRI version:** use the **current** layout host build. Layout hosts run **5.16** (upgraded 2026-10-31) — the top of **CATS 3.2** support (**JMRI 4.24–5.16**). Re-check downloads before any JMRI upgrade past 5.16.
 2. **CATS** is the live **CTC command authority** for turnouts/routes during CTC sessions.
 3. Keep **`hart_prod.xml` Layout Editor** as the hardware/monitor panel (MQTT devices, block colors, field labels).
 4. **Redraw** the railroad in CATS **Designer** under `cats/panels/`; bind the **same JMRI names** (`OS 100 (Brick)`, `M2T408` / Switch 100, occupancy `Block 4-2`, …).

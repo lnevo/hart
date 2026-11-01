@@ -13,7 +13,7 @@
 ## JMRI pin
 
 Use **CATS 3.2** with **JMRI 4.24–5.16** ([downloads](http://cats4ctc.wikidot.com/main:downloads)).  
-HART’s recent panels target JMRI **5.15.5** — compatible with 3.2.
+HART runs JMRI **5.16**, the newest version 3.2 supports.
 
 ```bash
 ./tools/cats/fetch_cats_src.sh   # Bitbucket source → tools/cats/src-repo/ (gitignored)

@@ -5,6 +5,7 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 ## Current state
 
 - **Layout:** `hart`. Masts are stock Basic (ADR-011). JMRI loads `jmri/layouts/hart/output/tables.xml` (ADR-008).
+- **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports. Do not go past 5.16 until the CATS downloads page does.
 - **Counts:** 45 masts (23 real, 22 virtual), 103 sections, 746 transits, 39 NX pairs, 38 SML sources with 98 destinations, 1,548 traininfo files.
 - **Desks:** CATS CTC `HOLD_ONLY` by default; USS is the alternate. Never both.
 - **CATS panels:** `HART_Digicon.xml` is the Designer save; `wire_digicon.py` builds `HART_CTC.xml` and `HART_ABS.xml` (ADR-012).
