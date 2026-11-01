@@ -2,7 +2,7 @@
 
 **Last updated 2026-10-15.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `history/` if the history is ever needed.
 
-Other `superseded/` mentions below mean the local STL working folder, not this repo.
+Other `superseded/` mentions below mean `history/superseded/`; the obsolete STLs are in `history/superseded/obsolete_stl/`.
 
 **Read in this order:**
 1. `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf`: fabrication drawings. Entry pages 2, 3 and 8 were redrawn from §1 on 2026-10-22 (`make_entry_pages.py`). **Page 13 is the half-lap screw template** (added 2026-10-15; same as `lap_screw_template.pdf`).
@@ -103,7 +103,7 @@ The posts must line up with the pockets already routed. **Don't resize the frame
 
 ---
 
-## 4. Fixtures and scripts (`~/Downloads/stl`, all STLs in mm, watertight single bodies)
+## 4. Fixtures and scripts (`stl/` and `scripts/`, all STLs in mm, watertight single bodies)
 
 Same filename = overwritten on regeneration. In Creality Print use **Reload from disk**.
 

@@ -93,7 +93,7 @@ The header has six links (`data/site.json` → `nav`): **Home · The Prototype �
 | **Layout** | Clickable LE schematic |
 | **Guides / Tools** | Dispatcher how-tos and live links |
 | **Historic photos** | Historical photos, ads, clippings, and period maps in three tabs (Curated / To review / Discard) with credits (the Historical tab of `photos/`, data in `data/archive.json`). On `serve_portal.sh` the owner can move items between tabs and edit captions; saves go to `data/archive.json`, with a log in `sor/desktop/archive_review_log.jsonl`. Public site is read-only. |
-| **Helix** | Neville Island helix construction plan (with the half-lap screw template), build status, and the STL fixture index (`helix/`, built by `scripts/build_helix_page.py`, which copies from `~/Downloads/stl` and would overwrite `helix/scripts/` with the copies there). The fixture scripts in `helix/scripts/` write to `helix/stl/` by default (`--out DIR` to change); they need numpy, scipy, trimesh, shapely and matplotlib |
+| **Helix** | Neville Island helix construction plan (with the half-lap screw template), build status, and the STL fixture index (`helix/`, built by `scripts/build_helix_page.py` from `docs/benchwork/helix`). The fixture scripts in `docs/benchwork/helix/scripts/` write to `docs/benchwork/helix/stl/` by default (`--out DIR` to change); they need numpy, scipy, trimesh, shapely and matplotlib |
 
 Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.
 
