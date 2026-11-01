@@ -39,6 +39,12 @@
     #tb-table td.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem; }
     #tb-table td.num, #tb-table th.num { text-align: right; }
     .tb-more { margin-top: .6rem; }
+    /* On wide screens the browser leaves the text column and uses the full page width. */
+    @media (min-width: 900px) {
+      #tb-app { position: relative; width: min(calc(100vw - 2.5rem), calc(var(--max) - 2.5rem)); }
+      #tb-table { width: 100%; }
+      #tb-table td.mono { white-space: normal; overflow-wrap: anywhere; }
+    }
     @media (max-width: 640px) {
       .tb-tabs { display: none; }
       .tb-pick { display: block; margin-bottom: .6rem; }
