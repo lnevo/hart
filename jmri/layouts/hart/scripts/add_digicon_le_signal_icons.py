@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
+PREF_TABLES = Path.home() / "JMRI_UserFiles/tables.xml"
 
 # Digicon PANELSIGNAL SIGORIENT → LE SignalMastIcon degrees:
 #   RIGHT → 90  (horizontal, heads east / post west)

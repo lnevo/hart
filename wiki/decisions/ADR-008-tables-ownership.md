@@ -1,6 +1,6 @@
 # ADR-008 — One tables file
 
-- **Status:** Accepted. Supersedes ADR-003's "panel XML only" scope and consolidation D3.
+- **Status:** Accepted, amended by [ADR-014](ADR-014-jmri-user-files.md). Supersedes ADR-003's "panel XML only" scope and consolidation D3.
 - **Date:** 2026-10-31
 - **Deciders:** lnevo
 

@@ -16,7 +16,7 @@ TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 TRAININFO_DIR = ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
-MAC_PROFILE = Path.home() / "Library" / "Preferences" / "JMRI" / "My_JMRI_Railroad.jmri"
+MAC_PROFILE = Path.home() / "JMRI_UserFiles"
 
 FORWARD = 4  # jmri.Section.FORWARD / EntryPoint.FORWARD (JMRI 5.x)
 REVERSE = 8  # jmri.Section.REVERSE / EntryPoint.REVERSE

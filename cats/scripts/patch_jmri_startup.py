@@ -115,9 +115,25 @@ def retarget_to_preference_jython(profile: Path, scripts: list[str]) -> list[str
     return notes
 
 
+def load_tables_from(profile: Path, path: str) -> str:
+    """Point the Start Up tables load at path (for example preference:tables.xml)."""
+    text = profile.read_text(encoding="utf-8")
+    new, count = re.subn(
+        r'(<perform\b[^>]*PerformFileModelXml[^>]*\bname=")[^"]*tables\.xml(")',
+        lambda m: m.group(1) + path + m.group(2),
+        text,
+    )
+    if count != 1:
+        raise SystemExit(f"expected one tables load in {profile}, found {count}")
+    if new == text:
+        return "already"
+    profile.write_text(new, encoding="utf-8")
+    return "changed"
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("action", choices=("insert", "remove", "retarget-jython"))
+    ap.add_argument("action", choices=("insert", "remove", "retarget-jython", "load-tables"))
     ap.add_argument("--profile", type=Path, required=True)
     ap.add_argument(
         "--script",
@@ -126,7 +142,13 @@ def main() -> None:
         help="Script path or basename (repeatable for retarget-jython)",
     )
     ap.add_argument("--after", help="Existing perform filename to insert after (insert only)")
+    ap.add_argument("--tables", help="Tables path for load-tables")
     args = ap.parse_args()
+    if args.action == "load-tables":
+        if not args.tables:
+            raise SystemExit("load-tables requires --tables")
+        print(load_tables_from(args.profile, args.tables))
+        return
     if not args.script:
         raise SystemExit("--script is required")
     if args.action == "insert":

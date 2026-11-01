@@ -28,6 +28,8 @@ restore() {
   rm -f "$BACKUP"
 }
 trap restore EXIT
+python3 "$ROOT/cats/scripts/patch_jmri_startup.py" load-tables --profile "$PROFILE_XML" \
+  --tables home:hart/jmri/layouts/hart/output/tables.xml   # automation works on the repo file
 
 python3 - "$PROFILE_XML" <<'PY'
 import re

@@ -15,5 +15,6 @@
 | [011](ADR-011-basic-signals.md) | Stock Basic signals | Accepted |
 | [012](ADR-012-one-digicon-source.md) | One Digicon source, two desks | Accepted |
 | [013](ADR-013-car-repository.md) | One car repository | Accepted |
+| [014](ADR-014-jmri-user-files.md) | JMRI_UserFiles on every host | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.

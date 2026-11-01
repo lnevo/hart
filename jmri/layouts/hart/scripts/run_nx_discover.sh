@@ -47,6 +47,8 @@ restore() {
   rm -f "$BAK"
 }
 trap restore EXIT
+python3 "$ROOT/cats/scripts/patch_jmri_startup.py" load-tables --profile "$PROFILE_XML" \
+  --tables home:hart/jmri/layouts/hart/output/tables.xml   # automation works on the repo file
 
 python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after signal_coordinator.py
 rm -f "$MARKER"

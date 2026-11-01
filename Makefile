@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help check portal-check desks panelpro-test docs-index publications shot deploy-layout deploy-all deploy-site
+.PHONY: help check portal-check desks panelpro-test docs-index publications tables-pull shot deploy-layout deploy-all deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -21,6 +21,9 @@ panelpro-test:  ## Load tables.xml in real PanelPro on this Mac
 
 docs-index:  ## Rebuild docs/INDEX.md
 	python3 tools/ops/build_docs_index.py
+
+tables-pull:  ## Bring a PanelPro Store from JMRI_UserFiles into the repo
+	./tools/ops/pull_tables.sh
 
 publications:  ## Regenerate docs/ops from hart-ops
 	./tools/ops/rebuild_publications.sh

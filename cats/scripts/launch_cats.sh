@@ -32,7 +32,7 @@ JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 # Default: live CATS CTC (HOLD_ONLY; JMRI SML).
 # ABS: ./cats/scripts/launch_cats.sh cats/panels/HART_ABS.xml
 # Always use direct cats.csh unless you explicitly set CATS_LAUNCH_VIA=terminal.
-PANEL="${1:-$ROOT/cats/panels/HART_CTC.xml}"
+PANEL="${1:-$HOME/JMRI_UserFiles/cats/panels/HART_CTC.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).
@@ -109,9 +109,9 @@ run_cats() {
   local profile="$1" panel="$2"
   if [[ -n "$CATS_LAUNCH_LOG" ]]; then
     # Keep Terminal/console live; also append everything to the log.
-    ./cats.csh --profile="$profile" "$panel" 2>&1 | tee -a "$CATS_LAUNCH_LOG"
+    ./cats.csh -Dcats.folder="$HOME/JMRI_UserFiles/cats/panels" --profile="$profile" "$panel" 2>&1 | tee -a "$CATS_LAUNCH_LOG"
   else
-    exec ./cats.csh --profile="$profile" "$panel"
+    exec ./cats.csh -Dcats.folder="$HOME/JMRI_UserFiles/cats/panels" --profile="$profile" "$panel"
   fi
 }
 
