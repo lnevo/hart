@@ -101,12 +101,8 @@ def sensor_comment(mast: str, mode: str) -> str:
     note = CTC_MASTS[mast]
     if mode == "lock":
         extra = "Full interlock. CATS CTC and USS Logic off while NX is in use."
-    else:
-        extra = (
-            "SML mode: throws the path from Layout Editor routing. "
-            "Digicon dests stay Disabled until the MQTT publisher enables them."
-        )
-    return f"Entry/Exit at mast {mast}; {note}. {extra}"
+        return f"Entry/Exit at mast {mast}; {note}. {extra}"
+    return note
 
 
 def sensor_xml(mast: str, mode: str = "sml") -> str:

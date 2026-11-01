@@ -63,7 +63,7 @@ class FrozenIsnx(unittest.TestCase):
         self.assertNotIn("ISNX:Mast 2L", out)
         self.assertIn("<systemName>ISNX:100L</systemName>", out)
         self.assertEqual(out.count("<systemName>ISNX:"), 23)
-        self.assertIn("SML mode: throws the path", out)
+        self.assertNotIn("SML mode: throws the path", out)
         self.assertNotIn("Full interlock. CATS CTC", out)
         self.assertIn('<sensorA>NX Mast 2L</sensorA>', out)
         self.assertEqual(counts["sensors"], 22)

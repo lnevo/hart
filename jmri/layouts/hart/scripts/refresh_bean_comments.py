@@ -397,15 +397,15 @@ CTC_SWITCH = {
 }
 
 CTC_SUFFIX = {
-    "LEVER": "switch lever (ACTIVE=Normal, INACTIVE=Reverse)",
-    "LOCKTOGGLE": "Local/Locked (ACTIVE=Local)",
+    "LEVER": "lever (ACTIVE=Normal)",
+    "LOCKTOGGLE": "lock (ACTIVE=Local)",
     "CB": "code button",
-    "LDGK": "left signal indicator lamp",
-    "NGK": "normal signal indicator lamp",
-    "RDGK": "right signal indicator lamp",
-    "LDGL": "left signal lever",
-    "NGL": "normal signal lever",
-    "RDGL": "right signal lever",
+    "LDGK": "left lamp",
+    "NGK": "normal lamp",
+    "RDGK": "right lamp",
+    "LDGL": "left lever",
+    "NGL": "normal lever",
+    "RDGL": "right lever",
     "SWNI": "switch normal indicator",
     "SWRI": "switch reverse indicator",
     "CALLON": "call-on toggle",
@@ -827,9 +827,8 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
         ctc = ctc_comment(system_name)
         if ctc:
             extra = ""
-            found = re.search(r"Default Reverse:.*", existing)
-            if found:
-                extra = f"; {found.group(0).strip()}"
+            if "rests Thrown" in existing:
+                extra = "; rests Thrown"
             return ctc + extra
         if user_name.startswith("MoveTo") and user_name.endswith("_stored"):
             station = user_name[len("MoveTo") : -len("_stored")].replace("_", " ")
