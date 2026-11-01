@@ -12,16 +12,20 @@ class PiTablesTest(unittest.TestCase):
         self.assertIn('mv -f "$HART/tables.xml" "$UF/tables.xml"', source)
         self.assertNotIn('cp -f "$HART/tables.xml"', source)
 
-    def test_nothing_runs_from_the_deploy_drop(self) -> None:
-        for path in SCRIPT.parent.iterdir():
-            if path.name in {"apply_hart_package_local.sh", "install_desktop_icons.sh", "README_CATS.txt"}:
-                continue
-            self.assertNotIn("/home/pi/hart", path.read_text(encoding="utf-8"), path.name)
+    def test_hosts_have_no_hart_folder(self) -> None:
+        for folder in (SCRIPT.parent, SCRIPT.parent.parent / "windows"):
+            for path in folder.iterdir():
+                if path.suffix in {".sh", ".bat", ".ps1", ".desktop", ".txt"} or path.name == "JMRI_CATS":
+                    source = path.read_text(encoding="utf-8", errors="replace")
+                    self.assertNotIn("/home/pi/hart", source, path.name)
+                    self.assertNotIn("USERPROFILE%\\hart", source, path.name)
+                    self.assertNotIn("USERPROFILE 'hart", source, path.name)
 
-    def test_deploy_installs_panels_then_empties_the_drop(self) -> None:
+    def test_pi_drop_stays_in_tmp_and_is_removed(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
-        self.assertIn('"$CATS_HOME/panels/"', source)
-        self.assertLess(source.index('"$CATS_HOME/panels/"'), source.index('find "$HART" -mindepth 1 -delete'))
+        self.assertIn("/tmp/hart-deploy.*)", source)
+        self.assertIn("""trap 'rm -rf "$HART"' EXIT""", source)
+
 
 if __name__ == "__main__":
     unittest.main()

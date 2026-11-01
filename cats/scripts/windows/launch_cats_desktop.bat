@@ -7,8 +7,8 @@ REM Prefer caller-supplied panel (CTC / ABS wrappers pass this).
 if not "%~1"=="" (
   set PANEL=%~1
 ) else (
-  set PANEL=%USERPROFILE%\hart\cats\panels\HART_CTC.xml
-  if not exist "%PANEL%" set PANEL=%~dp0..\..\panels\HART_CTC.xml
+  set PANEL=%USERPROFILE%\JMRI_UserFiles\cats\panels\HART_CTC.xml
+  if not exist "%PANEL%" set PANEL=%~dp0..\panels\HART_CTC.xml
   if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\panels\HART_CTC.xml
   if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\HART_CTC.xml
 )
@@ -52,13 +52,13 @@ REM Clean up fake Digicon "profile" from earlier bug
 if exist "%USERPROFILE%\JMRI\HART_sheet_West_Yard.jmri" rmdir /S /Q "%USERPROFILE%\JMRI\HART_sheet_West_Yard.jmri" 2>nul
 if exist "%APPDATA%\JMRI\HART_sheet_West_Yard.jmri" rmdir /S /Q "%APPDATA%\JMRI\HART_sheet_West_Yard.jmri" 2>nul
 
-set IDFILE=%USERPROFILE%\hart\jmri_profile_id.txt
+set IDFILE=%~dp0jmri_profile_id.txt
 set RESOLVER=%USERPROFILE%\Dropbox\HART_sync\resolve_jmri_profile.ps1
-if not exist "%RESOLVER%" set RESOLVER=%USERPROFILE%\hart\resolve_jmri_profile.ps1
+if not exist "%RESOLVER%" set RESOLVER=%~dp0resolve_jmri_profile.ps1
 set PATCHMQTT=%USERPROFILE%\Dropbox\HART_sync\patch_windows_mqtt.ps1
-if not exist "%PATCHMQTT%" set PATCHMQTT=%USERPROFILE%\hart\patch_windows_mqtt.ps1
+if not exist "%PATCHMQTT%" set PATCHMQTT=%~dp0patch_windows_mqtt.ps1
 set KILLPS=%USERPROFILE%\Dropbox\HART_sync\kill_cats.ps1
-if not exist "%KILLPS%" set KILLPS=%USERPROFILE%\hart\kill_cats.ps1
+if not exist "%KILLPS%" set KILLPS=%~dp0kill_cats.ps1
 
 REM Quietly stop any prior Crandic (no pause)
 if exist "%KILLPS%" powershell -NoProfile -ExecutionPolicy Bypass -File "%KILLPS%" >nul 2>&1
@@ -95,7 +95,7 @@ echo PANEL=%PANEL%
 echo Starting CATS...
 
 REM Lock config to CatsConfig.xml so Digicon XML is layout-only, not a new profile
-LaunchJMRI.exe /profile %JMRI_PROFILE% -J-Dorg.jmri.Apps.configFilename=CatsConfig.xml --cp:a=cats.jar cats.apps.Crandic "%PANEL%"
+LaunchJMRI.exe /profile %JMRI_PROFILE% -J-Dorg.jmri.Apps.configFilename=CatsConfig.xml -J-Dcats.folder=%USERPROFILE%\JMRI_UserFiles\cats\panels --cp:a=cats.jar cats.apps.Crandic "%PANEL%"
 set RC=%ERRORLEVEL%
 if not "%RC%"=="0" (
   echo LaunchJMRI exited %RC%

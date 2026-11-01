@@ -1,13 +1,14 @@
-# Apply HART package already under %USERPROFILE%\hart into JMRI locations.
-# Called by sync_hart_package.sh --win over SSH.
+# Apply the HART package in a temporary drop folder into JMRI locations.
+# Called by sync_hart_package.sh --win over SSH, which removes the drop afterwards.
+param([Parameter(Mandatory = $true)][string]$Hart)
 $ErrorActionPreference = 'Stop'
-$hart = Join-Path $env:USERPROFILE 'hart'
 
 $src = Join-Path $hart 'tables.xml'
 if (Test-Path $src) {
   $dests = New-Object System.Collections.Generic.List[string]
   [void]$dests.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\tables.xml'))
   $jmri = Join-Path $env:USERPROFILE 'JMRI'
+  if (Test-Path (Join-Path $jmri 'tables.xml')) { [void]$dests.Add((Join-Path $jmri 'tables.xml')) }
   if (Test-Path $jmri) {
     Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
       [void]$dests.Add((Join-Path $_.FullName 'tables.xml'))
@@ -20,7 +21,7 @@ if (Test-Path $src) {
     Write-Host ("tables.xml -> {0}" -f $d)
   }
 } else {
-  Write-Host 'No hart\tables.xml (skip tables)'
+  Write-Host 'No tables.xml in the drop (skip tables)'
 }
 
 $homeHtml = Join-Path $hart 'cats\resources\jmri-web\servlet\home\Home.html'
@@ -159,7 +160,7 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
     Write-Host ("ctc icons -> {0}\ctc" -f $r)
   }
 } else {
-  Write-Host 'No hart\ctc\icons (skip CTC icons)'
+  Write-Host 'No ctc icons in the drop (skip CTC icons)'
 }
 
 $jythonSrc = @(
@@ -296,9 +297,6 @@ foreach ($path in $retired) {
 
 Write-Host 'apply_hart_package_local done'
 
-# Panels and launchers replaced by HART_CTC.xml / HART_ABS.xml (ADR-012).
-Remove-Item (Join-Path $hart 'cats\panels\HART_Master*.xml') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $hart 'launch_hart_master*.bat') -Force -ErrorAction SilentlyContinue
 $desk = Join-Path $hart 'cats\scripts\windows\create_cats_desktop.ps1'
 if (Test-Path $desk) {
   & $desk

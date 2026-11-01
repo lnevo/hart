@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set PANEL=%USERPROFILE%\hart\cats\panels\HART_ABS.xml
+set PANEL=%USERPROFILE%\JMRI_UserFiles\cats\panels\HART_ABS.xml
 if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\panels\HART_ABS.xml
 echo PANEL=%PANEL%
 if not exist "%PANEL%" (
@@ -8,4 +8,4 @@ if not exist "%PANEL%" (
   pause
   exit /b 1
 )
-call "%USERPROFILE%\hart\cats\scripts\windows\launch_cats_desktop.bat" "%PANEL%"
+call "%~dp0launch_cats_desktop.bat" "%PANEL%"

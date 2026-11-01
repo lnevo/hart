@@ -212,7 +212,7 @@ Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and
 
 | Piece | Repo SoR | Installs to |
 |-------|----------|-------------|
-| CTC / ABS desks | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` | Pi `JMRI_UserFiles/cats/panels/`; Windows `hart/cats/panels/` |
+| CTC / ABS desks | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` | host `JMRI_UserFiles/cats/panels/` |
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
 | Ladder icons | `jmri/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
 | Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
@@ -242,7 +242,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no. Deploy runs this on the tables file being shipped (`--no-sync`). `--check` reports without writing |
 | `cats/scripts/digicon_header.py` | Publication title row |
 | `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |
-| `cats/scripts/sync_hart_package.sh` | Stage `~/hart` package; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
+| `cats/scripts/sync_hart_package.sh` | Stage the package to a temporary folder on the host; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `cats/scripts/windows/install_hart_tables.ps1` | Windows local install helper (tables + jars + web); prefer `sync_hart_package.sh --win` |
 | `jmri/layouts/hart/scripts/jmri_cmd_watcher.py` | Remote-run hook: runs a dropped command file inside JMRI ([`wiki/AGENTS_GIT.md`](../../wiki/AGENTS_GIT.md)) |

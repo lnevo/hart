@@ -14,8 +14,6 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WIN_HOST="${HART_WIN_SSH:-lnevo@10.0.0.6}"
 WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
 PI_HOST="${HART_PI_SSH:-pi}"
-PI_HART="${HART_PI_HART:-/home/pi/hart}"
-WIN_HART_REL="${HART_WIN_HART:-hart}"
 PI_USERFILES="${HART_PI_USERFILES:-/home/pi/JMRI_UserFiles}"
 WIN_USERFILES="${HART_WIN_USERFILES:-C:/Users/lnevo/JMRI_UserFiles}"
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
@@ -35,8 +33,8 @@ if [[ $# -gt 0 ]]; then
       --dry-run) DRY_RUN=1 ;;
       -h|--help)
         echo "Usage: $0 [--pi] [--win] [--all] [--dry-run]"
-        echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %USERPROFILE%/${WIN_HART_REL}"
-        echo "  Pi SSH:      ${PI_HOST} → ${PI_HART} + JMRI_UserFiles"
+        echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %TEMP% drop + JMRI_UserFiles"
+        echo "  Pi SSH:      ${PI_HOST} → /tmp drop + JMRI_UserFiles"
         echo "  Transfer:    rsync (Pi) / tar+scp (Windows). Not git pull."
         exit 0
         ;;
@@ -237,7 +235,7 @@ install_ctc_icons_local() {
   fi
 }
 
-# Build the on-disk package that lands in ~/hart on the host (a transient drop on the Pi).
+# Build the package that lands in a temporary folder on the host. The apply scripts install it from there.
 stage_package() {
   local stage="$1"
   local user_files="$2"
@@ -320,14 +318,15 @@ push_tar_scp() {
   tgz="$(mktemp /tmp/hart-pkg.XXXXXX.tgz)"
   COPYFILE_DISABLE=1 tar -C "$stage" -czf "$tgz" .
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "dry-run: would scp $(du -h "$tgz" | awk '{print $1}') package → ${WIN_HOST}:${WIN_HART_REL}/"
+    echo "dry-run: would scp $(du -h "$tgz" | awk '{print $1}') package → ${WIN_HOST}:%TEMP%"
     rm -f "$tgz"
     return 0
   fi
   # Windows OpenSSH is cmd.exe; extract with PowerShell so it is not shell-specific.
-  ssh_win "if not exist ${WIN_HART_REL} mkdir ${WIN_HART_REL}"
-  scp_win "$tgz" "${WIN_HOST}:${WIN_HART_REL}/_pkg.tgz"
-  ssh_win "powershell -NoProfile -Command \"Set-Location '${WIN_HART_REL}'; tar -xzf _pkg.tgz; Remove-Item _pkg.tgz -Force\""
+  WIN_DROP="$(ssh_win "powershell -NoProfile -Command \"\$d = Join-Path \$env:TEMP ('hart-deploy-' + [guid]::NewGuid().ToString('N')); New-Item -ItemType Directory \$d | Out-Null; \$d\"" | tr -d '\r' | tail -1)"
+  [[ -n "$WIN_DROP" ]] || { echo "Could not create a Windows temp folder" >&2; rm -f "$tgz"; exit 1; }
+  scp_win "$tgz" "${WIN_HOST}:${WIN_DROP//\\//}/_pkg.tgz"
+  ssh_win "powershell -NoProfile -Command \"Set-Location '${WIN_DROP}'; tar -xzf _pkg.tgz; Remove-Item _pkg.tgz -Force\""
   rm -f "$tgz"
 }
 
@@ -343,14 +342,15 @@ if [[ "$DO_PI" -eq 1 ]]; then
   STAGE=$(mktemp -d)
   trap 'rm -rf "$STAGE"' EXIT
   stage_package "$STAGE" "$PI_USERFILES"
+  PI_DROP="/tmp/hart-deploy.dry-run"
   if [[ "$DRY_RUN" -eq 0 ]]; then
-    ssh_pi "mkdir -p ${PI_HART}"
+    PI_DROP="$(ssh_pi "mktemp -d /tmp/hart-deploy.XXXXXX")"
   fi
-  push_rsync "$STAGE" "${PI_HOST}:${PI_HART}/"
+  push_rsync "$STAGE" "${PI_HOST}:${PI_DROP}/"
   rm -rf "$STAGE"
   trap - EXIT
   if [[ "$DRY_RUN" -eq 0 ]]; then
-    ssh_pi "bash ${PI_HART}/cats/scripts/pi/apply_hart_package_local.sh"
+    ssh_pi "HART=${PI_DROP} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
   fi
   echo "Pi deploy done."
 fi
@@ -364,8 +364,10 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   rm -rf "$STAGE"
   trap - EXIT
   if [[ "$DRY_RUN" -eq 0 ]]; then
-    ssh_win 'powershell -NoProfile -ExecutionPolicy Bypass -File hart\cats\scripts\windows\apply_hart_package_local.ps1'
-    ssh_win 'if exist %USERPROFILE%\JMRI\tables.xml copy /Y %USERPROFILE%\hart\tables.xml %USERPROFILE%\JMRI\tables.xml'
+    rc=0
+    ssh_win "powershell -NoProfile -ExecutionPolicy Bypass -File \"${WIN_DROP}\\cats\\scripts\\windows\\apply_hart_package_local.ps1\" -Hart \"${WIN_DROP}\"" || rc=$?
+    ssh_win "powershell -NoProfile -Command \"Remove-Item -LiteralPath '${WIN_DROP}' -Recurse -Force\""
+    [[ "$rc" -eq 0 ]] || exit "$rc"
   fi
   echo "Windows deploy done."
 fi
