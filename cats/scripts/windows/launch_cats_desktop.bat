@@ -95,12 +95,7 @@ echo PANEL=%PANEL%
 echo Starting CATS...
 
 REM Lock config to CatsConfig.xml so Digicon XML is layout-only, not a new profile
-set GUARD=%USERPROFILE%\hart\tools\jmri\patches\hart-startup-guard.jar
-if exist "%GUARD%" (
-  LaunchJMRI.exe /profile %JMRI_PROFILE% -J-Dorg.jmri.Apps.configFilename=CatsConfig.xml --cp:p="%GUARD%" --cp:a=cats.jar cats.apps.Crandic "%PANEL%"
-) else (
-  LaunchJMRI.exe /profile %JMRI_PROFILE% -J-Dorg.jmri.Apps.configFilename=CatsConfig.xml --cp:a=cats.jar cats.apps.Crandic "%PANEL%"
-)
+LaunchJMRI.exe /profile %JMRI_PROFILE% -J-Dorg.jmri.Apps.configFilename=CatsConfig.xml --cp:a=cats.jar cats.apps.Crandic "%PANEL%"
 set RC=%ERRORLEVEL%
 if not "%RC%"=="0" (
   echo LaunchJMRI exited %RC%

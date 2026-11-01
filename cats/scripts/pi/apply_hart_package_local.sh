@@ -88,6 +88,7 @@ for sys in cats-masts hart-aar "C&O-1980"; do
 done
 rm -rf "${JMRI_HOME:-/home/pi/JMRI}/xml/signals/cats-masts"
 rm -f "$HART/cats/scripts/windows/install_cats_masts.ps1"
+rm -rf "$HART/tools/jmri/patches"
 echo "Pi retired signal sets removed"
 
 # Panels and launchers replaced by HART_CTC.xml / HART_ABS.xml (ADR-012).

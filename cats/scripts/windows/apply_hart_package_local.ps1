@@ -246,6 +246,7 @@ foreach ($root in $signalRoots) {
 [void]$retired.Add('C:\Program Files\JMRI\xml\signals\cats-masts')
 [void]$retired.Add('C:\Program Files (x86)\JMRI\xml\signals\cats-masts')
 [void]$retired.Add((Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'))
+[void]$retired.Add((Join-Path $hart 'tools\jmri\patches'))
 foreach ($path in $retired) {
   if (Test-Path -LiteralPath $path) {
     try {

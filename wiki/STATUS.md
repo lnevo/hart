@@ -6,6 +6,7 @@ Updated 2026-10-31. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 - **Layout:** `hart`. Masts are stock Basic (ADR-011). JMRI loads `jmri/layouts/hart/output/tables.xml` (ADR-008).
 - **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports. Do not go past 5.16 until the CATS downloads page does.
+- **JMRI overlay:** removed everywhere on 2026-10-31; JMRI is stock on all three hosts and under monitoring. Expect `ConcurrentModificationException` with `Can't subscribe` at startup: a JMRI race that drops the broker for a few seconds, then reconnects and resubscribes on its own (seen on the Mac 2026-10-31, on the Pi 2026-09-06). Worry only if `Succeeded to reconnect` does not follow. `cats-pts-nullguard` inside `cats.jar` stays; it is a CATS patch.
 - **Counts:** 45 masts (23 real, 22 virtual), 103 sections, 746 transits, 39 NX pairs, 38 SML sources with 98 destinations, 1,548 traininfo files.
 - **Desks:** CATS CTC `HOLD_ONLY` by default; USS is the alternate. Never both.
 - **CATS panels:** `HART_Digicon.xml` is the Designer save; `wire_digicon.py` builds `HART_CTC.xml` and `HART_ABS.xml` (ADR-012).
