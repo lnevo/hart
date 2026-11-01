@@ -18,9 +18,7 @@
    Digicon → JMRI — do not use it to fix boot paint.
 7. **Load safety:** CATS is stock, so a turnout report during panel load can kill
    `RREventManager` and freeze occupancy until CATS restarts. Launch does **not** write MQTT.
-8. **No boot fill from MQTT retain.** `apply_maintain_mqtt.py` is retired: the package does
-   not deploy it, and host apply removes it. `panel_status.py` logs a skip at boot and
-   fills nothing, so state arrives from live LCOS reports. If frogs look wrong, use
+8. **No boot fill from MQTT retain.** State arrives from live LCOS reports. If frogs look wrong, use
    **Appearance → Refresh Screen** in Digicon.
 
 ## Stock CATS load race

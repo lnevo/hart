@@ -11,7 +11,6 @@
 # Match peels from FB N/R only. JMRI KnownState defaults CLOSED, which would
 # light S-R and command that canned alignment — not last field state.
 #
-# Boot: fill UNKNOWN MQTT sensors from broker retain (setOwnState).
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
@@ -869,69 +868,6 @@ def _arm_status_lamp_clicks():
     return False
 
 
-def _reload_mqtt_retain_at_boot():
-    """Fill UNKNOWN MQTT sensors from broker retain. Do not touch plant turnouts.
-
-    apply_maintain_mqtt already paints turnout KnownState on its own delay.
-    This script only needs occupancy/FB sensors so YL icons can match.
-    """
-    import os
-
-    path = None
-    try:
-        path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "apply_maintain_mqtt.py",
-        )
-    except Exception:
-        path = None
-    if not path or not os.path.isfile(path):
-        try:
-            from jmri.util import FileUtil
-
-            path = FileUtil.getExternalFilename(
-                "preference:jython/apply_maintain_mqtt.py"
-            )
-        except Exception:
-            path = None
-    if not path or not os.path.isfile(path):
-        print("panel_status: apply_maintain_mqtt.py not found; skip MQTT reload")
-        return False
-
-    ns = {
-        "_HART_MQTT_RETAIN_AS_LIBRARY": True,
-        "__name__": "apply_maintain_mqtt_lib",
-        "__file__": path,
-    }
-    try:
-        f = open(path, "r")
-        try:
-            src = f.read()
-        finally:
-            f.close()
-        exec(compile(src, path, "exec"), ns)
-        fn = ns.get("reload_mqtt_retain")
-        if fn is None:
-            print("panel_status: reload_mqtt_retain missing")
-            return False
-        # Sensors only. Never paint M2T/MTT here (that can command field points).
-        n_s, n_t = fn(
-            turnout_delay_ms=0,
-            settle_secs=0,
-            paint_turnouts=False,
-            unknown_sensors_only=True,
-            log_prefix="panel_status/mqtt",
-        )
-        print(
-            "panel_status: MQTT retain sensors=%s (turnouts skipped, queued=%s)"
-            % (n_s, n_t)
-        )
-        return True
-    except Exception as e:
-        print("panel_status: MQTT retain reload failed: %s" % e)
-        return False
-
-
 _BCI_LEVEL = 4
 _bci_raised = False
 
@@ -1036,7 +972,6 @@ class _ArmAttempt(ActionListener):
                 t.start()
                 return
         try:
-            _reload_mqtt_retain_at_boot()
             _arm_listeners()
             _arm_power_listener()
             _sync_track_power_sensor()

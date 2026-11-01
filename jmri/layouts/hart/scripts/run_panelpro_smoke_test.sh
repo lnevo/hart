@@ -39,7 +39,6 @@ from pathlib import Path
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 for name in (
-    "apply_maintain_mqtt.py",
     "panel_status.py",
     "signal_coordinator.py",
 ):

@@ -1,6 +1,5 @@
 # JMRI jython — optional UNKNOWN→THROWN for a few plants (not used at CATS boot).
 #
-# Prefer apply_mqtt_retain_at_startup.py: one-shot MQTT retain → JMRI KnownState.
 # Keep this for manual Script Entry if a turnout is UNKNOWN with no retain.
 
 DEFAULT_THROWN = (
