@@ -22,8 +22,6 @@
     .jm-svg .t-s { fill: var(--muted); font-size: 13px; }
     .jm-lamps td:first-child { font-weight: 700; white-space: nowrap; }
     /* Order-of-the-file bar and its table. */
-    .tf-order td:last-child:not([colspan]), .tf-order th:last-child { text-align: right; white-space: nowrap; }
-    .tf-order tr.tf-panel td { background: var(--paper-2); }
     .jm-svg .acc { fill: var(--accent); stroke: var(--accent); }
     .jm-svg .t-d { fill: #1a1406; }
     .tf-pair { margin: .5rem 0 1rem; }
@@ -37,6 +35,7 @@
     .tb-wrap { max-height: 28rem; }
     #tb-table td { white-space: nowrap; }
     #tb-table td.user { white-space: normal; min-width: 9rem; overflow-wrap: anywhere; }
+    #tb-table td.note { white-space: normal; min-width: 14rem; overflow-wrap: anywhere; }
     #tb-table td.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem; }
     #tb-table td.num, #tb-table th.num { text-align: right; }
     .tb-more { margin-top: .6rem; }
@@ -53,7 +52,7 @@
   <main>
     <div class="page-head">
       <h1>The Tables File: One File That Is the Railroad</h1>
-      <p class="section-note">Every switch, sensor, block, signal and route the railroad has told JMRI about lives in one XML file. Here is a tour of it by the numbers.</p>
+      <p class="section-note">Every switch, sensor, block, signal and route the railroad has told JMRI about lives in one XML file. Here is how it is laid out, and every object in it to browse.</p>
     </div>
 
     <article class="explainer prose">
@@ -83,110 +82,60 @@
       <pre class="tf-code tf-pair"><code>systemName  M2S100
 userName    BS McKees Rocks</code></pre>
       <p>
-        That is a real sensor, with its comment removed. A sensor icon on a panel carries only
-        "BS McKees Rocks", and JMRI finds the sensor from that.
+        That is a real sensor. Many objects also carry a comment, a free note such as "Node: 1 Block: 1".
+        A sensor icon on a panel carries only "BS McKees Rocks", and JMRI finds the sensor from that.
       </p>
       <p>
         Mind the order. The panels are what you see first on screen, but in the file they come last:
-        about 19,000 lines of objects, then about 10,000 of panels. A short record of loads and stores
+        about two thirds of the file is objects, then about one third is panels. A short record of loads and stores
         closes the file.
       </p>
       <figure>
-        <svg class="jm-svg" viewBox="0 0 360 96" role="img" aria-labelledby="tf-o-t tf-o-d">
+        <svg class="jm-svg" viewBox="0 0 360 58" role="img" aria-labelledby="tf-o-t tf-o-d">
           <title id="tf-o-t">The file from top to bottom</title>
-          <desc id="tf-o-d">A bar for the 29,068 lines of the file. About two thirds are objects, then about one third panels, then a thin sliver of file history.</desc>
+          <desc id="tf-o-d">A bar for the whole file. About two thirds are objects, then about one third panels, then a thin sliver of file history.</desc>
           <rect class="own" x="8" y="14" width="224" height="34" rx="3"/>
           <rect class="acc" x="232" y="14" width="119" height="34" rx="3"/>
           <rect class="own" x="351" y="14" width="1" height="34" style="fill:var(--muted);stroke:var(--muted)"/>
           <text class="t-b t-w" x="120" y="36" text-anchor="middle">Objects</text>
           <text class="t-b t-d" x="291" y="36" text-anchor="middle">Panels</text>
-          <text class="t-s" x="8" y="66">line 9</text>
-          <text class="t-s" x="232" y="66" text-anchor="middle">line 18,975</text>
-          <text class="t-s" x="8" y="88">29,068 lines in all</text>
-          <text class="t-s" x="352" y="88" text-anchor="end">file history from line 28,966</text>
         </svg>
-        <figcaption class="section-note">The bar is drawn to scale: lines, top to bottom, left to right.</figcaption>
+        <figcaption class="section-note">The file from top to bottom, left to right, drawn to scale.</figcaption>
       </figure>
       <div class="table-wrap">
         <table class="roster jm-lamps tf-order">
-          <thead><tr><th>Section</th><th>Starts at line</th></tr></thead>
+          <thead><tr><th>Section</th><th>What it holds</th></tr></thead>
           <tbody>
             <tr><td colspan="2"><strong>Objects</strong></td></tr>
-            <tr><td>Sensors (two groups)</td><td>9</td></tr>
-            <tr><td>Turnouts (three groups)</td><td>2,948</td></tr>
-            <tr><td>Memories</td><td>3,225</td></tr>
-            <tr><td>Signal heads</td><td>3,242</td></tr>
-            <tr><td>Signal masts</td><td>3,429</td></tr>
-            <tr><td>Blocks</td><td>3,720</td></tr>
-            <tr><td>Layout blocks</td><td>4,762</td></tr>
-            <tr><td>Sections</td><td>4,984</td></tr>
-            <tr><td>Transits</td><td>6,372</td></tr>
-            <tr><td>Routes</td><td>15,180</td></tr>
-            <tr><td>Signal Mast Logic</td><td>15,333</td></tr>
-            <tr><td>Logix</td><td>16,566</td></tr>
-            <tr><td>LogixNG</td><td>16,599</td></tr>
-            <tr><td>CTC data</td><td>16,778</td></tr>
-            <tr><td>Entry/Exit</td><td>18,885</td></tr>
+            <tr><td>Sensors</td><td>Inputs: occupancy and switch feedback from the layout, plus internal flags and helpers.</td></tr>
+            <tr><td>Turnouts</td><td>The switches, their DCC twins, and internal turnouts for the yard ladders.</td></tr>
+            <tr><td>Memories</td><td>Small stored values, such as the fast-clock time.</td></tr>
+            <tr><td>Signal heads</td><td>Virtual heads that carry each lamp's colour.</td></tr>
+            <tr><td>Signal masts</td><td>The signals, real and virtual, all stock Basic.</td></tr>
+            <tr><td>Blocks</td><td>Stretches of track, each with an occupancy sensor and paths to its neighbours.</td></tr>
+            <tr><td>Layout blocks</td><td>The Layout Editor's view of each block.</td></tr>
+            <tr><td>Sections</td><td>Dispatcher track pieces, mostly made from pairs of masts.</td></tr>
+            <tr><td>Transits</td><td>Whole moves that the Dispatcher builds from sections.</td></tr>
+            <tr><td>Routes</td><td>Sets of switches thrown together, used by the yard ladders.</td></tr>
+            <tr><td>Signal Mast Logic</td><td>The rules that set a mast from the track ahead.</td></tr>
+            <tr><td>Logix</td><td>Two older-style logic items.</td></tr>
+            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows at startup</a>.</td></tr>
+            <tr><td>CTC data</td><td>The USS CTC machine's code buttons and settings.</td></tr>
+            <tr><td>Entry/Exit</td><td>Pairs that line a route from a click on the panel.</td></tr>
             <tr><td colspan="2"><strong>Panels</strong></td></tr>
-            <tr class="tf-panel"><td>USS CTC (Panel Editor)</td><td>18,975</td></tr>
-            <tr class="tf-panel"><td>HART Railroad (Layout Editor)</td><td>25,830</td></tr>
-            <tr class="tf-panel"><td>Dispatcher System (Layout Editor)</td><td>28,554</td></tr>
-            <tr><td colspan="2"><strong>Record of loads and stores</strong></td></tr>
-            <tr><td>File history</td><td>28,966</td></tr>
+            <tr><td>USS CTC</td><td>The lever machine, a Panel Editor screen.</td></tr>
+            <tr><td>HART Railroad</td><td>The track diagram, a Layout Editor panel.</td></tr>
+            <tr><td>Dispatcher System</td><td>A Layout Editor panel drawn by the Dispatcher System package.</td></tr>
+            <tr><td colspan="2"><strong>At the end</strong></td></tr>
+            <tr><td>File history</td><td>A short record of loads and stores.</td></tr>
           </tbody>
         </table>
       </div>
-
-      <h2>The tour by the numbers</h2>
-      <p>
-        These counts come from reading the file itself. They are grouped as a story, from the field up
-        to the screen, which is not the order they sit in the file.
-      </p>
-      <div class="table-wrap">
-        <table class="roster jm-lamps">
-          <thead><tr><th>What</th><th>How many</th><th>What it is for</th></tr></thead>
-          <tbody>
-            <tr><td colspan="3"><strong>Things in the field</strong></td></tr>
-            <tr><td>Sensors</td><td>639</td><td>86 come from the layout over MQTT (the messaging link): 43 occupancy sensors named "BS ...", 40 switch feedback sensors named "FB ...", and 3 others. The other 553 are internal, made by JMRI and our scripts as flags and helpers.</td></tr>
-            <tr><td>Turnouts</td><td>50</td><td>20 real switches ("Switch n"), 20 "DCC Switch n" twins, and 10 internal turnouts for the yard ladders. A turnout's operation (what JMRI does after a command) is one of three stock types: NoFeedback, Raw or Sensor.</td></tr>
-            <tr><td>Memories</td><td>3</td><td>Small stored values: the current time, the clock rate and the Dispatcher version.</td></tr>
-            <tr><td colspan="3"><strong>Track and signals</strong></td></tr>
-            <tr><td>Blocks and layout blocks</td><td>55 and 55</td><td>A block is a stretch of track whose occupancy is known. They pair one to one by name: 32 "Track ..." and 23 "OS Switch ...". An "OS" is a block at a switch.</td></tr>
-            <tr><td>Block paths</td><td>126</td><td>Each says which block you can reach from which, and with which turnout setting.</td></tr>
-            <tr><td>Signal heads</td><td>37</td><td>All virtual. The lamps are driven elsewhere (see <a href="jmri-additions.html">what we added to JMRI</a>).</td></tr>
-            <tr><td>Signal masts</td><td>45</td><td>23 real ones sit on heads: 13 two-searchlight masts with 2 heads each and 10 one-low masts with 1 head each. That uses 36 heads and leaves 1 spare. The other 22 are virtual masts with no heads. All are stock Basic masts.</td></tr>
-            <tr><td>Signal Mast Logic</td><td>38 sources, 98 destinations</td><td>The rules that set a mast from the track ahead. 54 destinations are enabled and 44 are disabled; the 44 are switched on at run time, as explained in <a href="jmri-additions.html">the signal coordination</a>. 96 of the 98 use the Layout Editor to find their track.</td></tr>
-            <tr><td colspan="3"><strong>The Dispatcher's graph</strong></td></tr>
-            <tr><td>Sections</td><td>103</td><td>96 are made from pairs of masts and named "Mast A:Mast B". 7 are yard tracks we defined by hand.</td></tr>
-            <tr><td>Transits</td><td>746</td><td>Named like "From Mast X to Mast Y via OS Switch n". Together they hold 4,330 transit-sections, with one action each, 746 in all.</td></tr>
-            <tr><td colspan="3"><strong>Routes and logic</strong></td></tr>
-            <tr><td>Routes</td><td>10</td><td>Five for each side of the yard ladders, named like "Left Track S-1 ladder", with 101 turnout settings between them. An internal turnout triggers each one.</td></tr>
-            <tr><td>Entry/Exit</td><td>39 pairs</td><td>23 sources and 39 destinations, all of the signal-mast type. The routes themselves are worked out when JMRI runs, not stored.</td></tr>
-            <tr><td>Logix</td><td>2</td><td>Stock, one conditional each. One sets a few lever and lock sensors after the CTC reloads. The other runs the stock Dispatcher System start-up script when its start sensor goes active.</td></tr>
-            <tr><td>LogixNG</td><td>1</td><td>Hides some windows when the tables load. See <a href="#logixng">below</a>.</td></tr>
-            <tr><td colspan="3"><strong>Desks and panels</strong></td></tr>
-            <tr><td>CTC data</td><td>20 columns</td><td>One code-button column per CTC switch number (1, 3, 5 and on to 39), with a 2 second coding time and a 3 second time lock.</td></tr>
-            <tr><td>Panels</td><td>3</td><td>"USS CTC", a Panel Editor screen 1400 by 800 with 717 items (409 labels, 255 sensor icons, 20 turnout icons). "HART Railroad", a Layout Editor panel with 468 items (98 track segments, 70 anchors, 20 layout turnouts, 45 mast icons, 53 block-contents icons, 133 sensor icons). "Dispatcher System", a Layout Editor panel of 49 items, drawn by the Dispatcher System package.</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p>
-        The file holds no lights, reporters, warrants, OBlocks or ID tags.
-      </p>
-      <p>
-        One aside, because it trips people up. JMRI writes the Blocks section twice, a first pass with
-        names only and then the full pass. Count the lines naively and you get 110 blocks. There are 55.
-      </p>
-      <p>
-        The 639 sensors break down further. Of the internal ones, 192 are section sensors (96 forward and
-        96 reverse), 69 are Dispatcher System helpers, 260 are CTC panel sensors (13 kinds across 20
-        columns), 23 belong to Entry/Exit and 9 each do one job.
-      </p>
 
       <h2 id="browse">Browse the tables</h2>
       <p>
-        Here are the rows themselves, for the tables that hold named objects. Pick a table, type to filter, and the list narrows to
-        the rows that contain your text in any column.
+        Here are the rows themselves, with their comments, for the tables that hold named objects. Pick a
+        table, type to filter, and the list narrows to the rows that contain your text in any column.
       </p>
       <div id="tb-app">
         <div class="tb-tabs" role="tablist" aria-label="Tables" id="tb-tabs"></div>
