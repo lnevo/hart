@@ -1,4 +1,4 @@
-# Apply the HART package in a temporary drop folder into JMRI locations.
+# Apply the HART package in a temporary drop folder into JMRI_UserFiles, the profile's user files.
 # Called by sync_hart_package.sh --win over SSH, which removes the drop afterwards.
 param([Parameter(Mandatory = $true)][string]$Hart)
 $ErrorActionPreference = 'Stop'
@@ -7,13 +7,6 @@ $src = Join-Path $hart 'tables.xml'
 if (Test-Path $src) {
   $dests = New-Object System.Collections.Generic.List[string]
   [void]$dests.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\tables.xml'))
-  $jmri = Join-Path $env:USERPROFILE 'JMRI'
-  if (Test-Path (Join-Path $jmri 'tables.xml')) { [void]$dests.Add((Join-Path $jmri 'tables.xml')) }
-  if (Test-Path $jmri) {
-    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-      [void]$dests.Add((Join-Path $_.FullName 'tables.xml'))
-    }
-  }
   foreach ($d in ($dests | Select-Object -Unique)) {
     $dir = Split-Path $d -Parent
     if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
@@ -28,12 +21,6 @@ $homeHtml = Join-Path $hart 'cats\resources\jmri-web\servlet\home\Home.html'
 if (Test-Path $homeHtml) {
   $roots = New-Object System.Collections.Generic.List[string]
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
-  $jmri = Join-Path $env:USERPROFILE 'JMRI'
-  if (Test-Path $jmri) {
-    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-      [void]$roots.Add($_.FullName)
-    }
-  }
   foreach ($r in ($roots | Select-Object -Unique)) {
     if (-not (Test-Path $r)) { continue }
     $hd = Join-Path $r 'web\servlet\home'
@@ -51,12 +38,6 @@ $btnSrc = Join-Path $hart 'cats\resources\buttons'
 if (Test-Path $btnSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
-  $jmri = Join-Path $env:USERPROFILE 'JMRI'
-  if (Test-Path $jmri) {
-    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-      [void]$roots.Add($_.FullName)
-    }
-  }
   $pngs = @()
   $pngs += Get-ChildItem $btnSrc -Filter 'triangle_*.png' -ErrorAction SilentlyContinue
   $pngs += Get-ChildItem $btnSrc -Filter 'lamp_*.png' -ErrorAction SilentlyContinue
@@ -75,12 +56,6 @@ $miscSrc = Join-Path $hart 'cats\resources\misc'
 if (Test-Path $miscSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
-  $jmri = Join-Path $env:USERPROFILE 'JMRI'
-  if (Test-Path $jmri) {
-    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-      [void]$roots.Add($_.FullName)
-    }
-  }
   foreach ($r in ($roots | Select-Object -Unique)) {
     if (-not (Test-Path $r)) { continue }
     $dest = Join-Path $r 'resources\misc'
@@ -95,12 +70,6 @@ $ussSrc = Join-Path $hart 'cats\resources\icons\USS\sensor'
 if (Test-Path $ussSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
-  $jmri = Join-Path $env:USERPROFILE 'JMRI'
-  if (Test-Path $jmri) {
-    Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-      [void]$roots.Add($_.FullName)
-    }
-  }
   $gifs = @(Get-ChildItem $ussSrc -Filter 'yellow-*.gif' -ErrorAction SilentlyContinue)
   foreach ($r in ($roots | Select-Object -Unique)) {
     if (-not (Test-Path $r)) { continue }
@@ -129,25 +98,7 @@ if (Test-Path $ussSrc) {
 $ctcSrc = Join-Path $hart 'ctc'
 if (Test-Path (Join-Path $ctcSrc 'icons')) {
   $roots = New-Object System.Collections.Generic.List[string]
-  foreach ($p in @(
-    (Join-Path $env:USERPROFILE 'JMRI_UserFiles'),
-    (Join-Path $env:USERPROFILE 'JMRI'),
-    (Join-Path $env:USERPROFILE 'Documents\JMRI')
-  )) {
-    if (Test-Path $p) { [void]$roots.Add($p) }
-  }
-  foreach ($root in @(
-    (Join-Path $env:USERPROFILE 'JMRI'),
-    (Join-Path $env:USERPROFILE 'Documents\JMRI'),
-    (Join-Path $env:USERPROFILE '.jmri'),
-    (Join-Path $env:APPDATA 'JMRI')
-  )) {
-    if (Test-Path $root) {
-      Get-ChildItem $root -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-        [void]$roots.Add($_.FullName)
-      }
-    }
-  }
+  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
   foreach ($r in ($roots | Select-Object -Unique)) {
     $dest = Join-Path $r 'ctc\icons'
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
@@ -172,12 +123,6 @@ $jythonSrc = @(
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 $roots = New-Object System.Collections.Generic.List[string]
 [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
-$jmri = Join-Path $env:USERPROFILE 'JMRI'
-if (Test-Path $jmri) {
-  Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-    [void]$roots.Add($_.FullName)
-  }
-}
 foreach ($r in ($roots | Select-Object -Unique)) {
   if (-not (Test-Path $r)) { continue }
   $dest = Join-Path $r 'jython'
