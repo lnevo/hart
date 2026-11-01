@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What We Added to JMRI (and What We Left Alone) — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    /* Two figures: shapes use the site tokens. */
+    .jm-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
+    .jm-svg .box { fill: var(--card); stroke: var(--rule); stroke-width: 1.5; }
+    .jm-svg .own { fill: var(--brand); stroke: var(--brand); }
+    .jm-svg .band { fill: var(--paper-2); stroke: none; }
+    .jm-svg .pill { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; }
+    .jm-svg .line { fill: none; stroke: var(--ink-soft); stroke-width: 2; }
+    .jm-svg .soft { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .jm-svg .head { fill: var(--ink-soft); }
+    .jm-svg .head-soft { fill: var(--muted); }
+    .jm-svg text { fill: var(--ink); font-size: 14px; }
+    .jm-svg .t-b { font-weight: 700; }
+    .jm-svg .t-w { fill: #fff; }
+    .jm-svg .t-s { fill: var(--muted); font-size: 13px; }
+    .jm-lamps td:first-child { font-weight: 700; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>What We Added to JMRI (and What We Left Alone)</h1>
+      <p class="section-note">Almost everything here is stock JMRI. This page is about the small part that is not, and why each piece is there.</p>
+    </div>
+
+    <article class="explainer prose">
+      <h2>Stock first</h2>
+      <p>
+        If you run JMRI yourself, you will recognise most of what runs this railroad: Basic signal masts,
+        Signal Mast Logic (SML) with its Discover tool, Entry/Exit, the Layout Editor, the Dispatcher
+        System (run untouched), the CTC tool, the web server, the MQTT connection, Routes, LogixNG, and
+        the green and red lamp icons. CATS, the open-source CTC desk, is stock too. None of that is ours,
+        and we do not claim it.
+      </p>
+      <p>
+        Where the railroad needed something different, the rule was to change data and add small scripts
+        before touching software. The scripts use public JMRI calls. The JMRI jars themselves are stock,
+        with one honest exception: a small load-safety overlay sits on the classpath and replaces a
+        single JMRI MQTT class at run time, so that retained messages arriving while the tables load
+        cannot crash it. CATS has a few small overlays of the same kind. One suppresses a warning, one
+        skips a loopback probe nobody uses, and one guards against an early crash that would otherwise
+        freeze occupancy.
+      </p>
+      <p>
+        What follows is the main things we added, and each section starts with the problem it solves.
+        The story of how the software came together is told in
+        <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>, so I will
+        not repeat it here.
+      </p>
+
+      <h2>Two brains, one lamp</h2>
+      <p>
+        The railroad has 23 signal masts out on the layout. Their lamps are driven by small field
+        electronics (the nodes described on <a href="bridge.html">LCOS and the Arduino bridge</a>, and
+        listed in the <a href="../roster/index.html">device roster</a>). Those electronics have a
+        signal logic of their own, and JMRI has Signal Mast Logic. Two brains deciding one lamp is a fight
+        waiting to happen. And if a JMRI session crashes while it owns the lamps, they could sit frozen
+        on whatever colour they last had.
+      </p>
+      <p>
+        So one switch decides who is in charge: JMRI's logic, or the field logic. Nothing exotic is
+        flipped to make it so. Each source-to-destination pair in SML has a stock Enabled checkbox, and
+        the switch ticks or unticks those boxes. On the 23 field masts that is 44 destinations, all moved
+        together. The other 15 sources, with 54 destinations, have no field heads at all. They stay
+        enabled and are left alone. The set of field masts is not hard-coded: the script finds it from
+        the signals the field electronics report.
+      </p>
+      <p>
+        The join between the two worlds is JMRI's virtual signal heads. SML sets the mast and its heads,
+        and a script listens to the heads. A head only sends a colour once the field has reported that
+        head, so a node that has never reported is not sent a command. The sessions also share one
+        small shared status flag, kept so a newly started session can read it, that says whether
+        JMRI currently has control.
+      </p>
+      <ul>
+        <li><strong>Signals ON.</strong> JMRI's logic decides every aspect and the script sends each
+          virtual head's colour out to the field. The <a href="../guides/cats-ctc.html">CATS</a> and
+          <a href="../guides/uss-ctc.html">USS</a> desks only hold or release masts.</li>
+        <li><strong>Signals OFF.</strong> The field logic decides. The script lets go of the heads and
+          copies the field's status back onto the heads and masts, so the panels show what the lamps are
+          really doing.</li>
+        <li><strong>One pair unchecked.</strong> The same let-go and mirror, for that one mast only.</li>
+      </ul>
+      <figure>
+        <svg class="jm-svg" viewBox="0 0 480 372" role="img" aria-labelledby="own-t own-d">
+          <title id="own-t">Who drives the lamps in each mode</title>
+          <desc id="own-d">Three rows, each with JMRI on the left, the field masts' lamps in the middle and the field electronics on the right. With signals on, a solid arrow runs from JMRI to the lamps and the field electronics are idle. With signals off, a solid arrow runs from the field electronics to the lamps and a dashed arrow carries status back to JMRI. With one pair unchecked, the same as off, for one mast. In each row the CATS and USS desks reach the lamps only with a dashed Hold arrow.</desc>
+          <defs>
+            <marker id="own-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
+            <marker id="own-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-soft" d="M0 0 L10 5 L0 10 z"/></marker>
+          </defs>
+
+          <rect class="band" x="2" y="4" width="476" height="26" rx="3"/>
+          <text class="t-b" x="12" y="22">Signals ON</text>
+          <rect class="own" x="10" y="42" width="120" height="44" rx="3"/>
+          <text class="t-w t-b" x="70" y="60" text-anchor="middle">JMRI</text><text class="t-w" x="70" y="77" text-anchor="middle">decides</text>
+          <rect class="box" x="180" y="42" width="120" height="44" rx="3"/>
+          <text class="t-b" x="240" y="69" text-anchor="middle">Mast lamps</text>
+          <rect class="box" x="350" y="42" width="120" height="44" rx="3"/>
+          <text x="410" y="60" text-anchor="middle">Field logic</text><text class="t-s" x="410" y="77" text-anchor="middle">idle</text>
+          <path class="line" d="M130 64 H178" marker-end="url(#own-a)"/>
+          <rect class="pill" x="200" y="98" width="80" height="22" rx="11"/>
+          <text x="240" y="114" text-anchor="middle" style="font-size:12px">CATS / USS</text>
+          <path class="soft" d="M240 98 V88" marker-end="url(#own-s)"/>
+          <text class="t-s" x="292" y="114">Hold only</text>
+
+          <rect class="band" x="2" y="132" width="476" height="26" rx="3"/>
+          <text class="t-b" x="12" y="150">Signals OFF</text>
+          <rect class="box" x="10" y="170" width="120" height="44" rx="3"/>
+          <text x="70" y="188" text-anchor="middle">JMRI</text><text class="t-s" x="70" y="205" text-anchor="middle">mirrors</text>
+          <rect class="box" x="180" y="170" width="120" height="44" rx="3"/>
+          <text class="t-b" x="240" y="197" text-anchor="middle">Mast lamps</text>
+          <rect class="own" x="350" y="170" width="120" height="44" rx="3"/>
+          <text class="t-w t-b" x="410" y="188" text-anchor="middle">Field logic</text><text class="t-w" x="410" y="205" text-anchor="middle">decides</text>
+          <path class="line" d="M350 192 H302" marker-end="url(#own-a)"/>
+          <path class="soft" d="M240 214 V224 H70 V216" marker-end="url(#own-s)"/>
+          <text class="t-s" x="155" y="240" text-anchor="middle">status mirrored</text>
+          <rect class="pill" x="200" y="236" width="80" height="22" rx="11"/>
+          <text x="240" y="252" text-anchor="middle" style="font-size:12px">CATS / USS</text>
+          <path class="soft" d="M240 236 V226" marker-end="url(#own-s)"/>
+          <text class="t-s" x="292" y="252">Hold only</text>
+
+          <rect class="band" x="2" y="270" width="476" height="26" rx="3"/>
+          <text class="t-b" x="12" y="288">One pair unchecked</text>
+          <text class="t-s" x="12" y="322">The same as OFF, for that one mast only.</text>
+          <text class="t-s" x="12" y="342">Every other mast keeps following JMRI.</text>
+          <rect class="pill" x="340" y="308" width="130" height="22" rx="11"/>
+          <text x="405" y="324" text-anchor="middle" style="font-size:12px">one mast, field-driven</text>
+        </svg>
+        <figcaption>Who owns the lamps. The dark box decides; the dashed arrows carry status or a Hold, never an aspect.</figcaption>
+      </figure>
+
+      <h2>Handing over safely</h2>
+      <p>
+        Changing who is in charge while a train is approaching a signal would be rude. So the hand-over
+        is a short routine rather than a flip. To switch JMRI on: hold all 23 masts, wait about three
+        seconds, tick the pairs, release the holds, announce that JMRI is in control, and push the current
+        colours out. To switch it off: hold, wait about three seconds, untick, release the heads to the
+        field, drop the holds, and announce that JMRI is out. Either way the whole thing takes about four
+        seconds, and the masts are held while it happens.
+      </p>
+      <p>Three short stories show why it is built this way.</p>
+      <h3>Boot</h3>
+      <p>
+        Normally every pair is forced off when JMRI starts. The script then listens for a second. If
+        nobody has control, this session takes it. If another session already has it, this one stays off
+        and disturbs nothing. If the pairs were somehow stored as enabled, a warning appears and the
+        script takes over safely rather than trusting them. Our deploy also ships the field pairs switched
+        off, because Discover writes them on. If an operator turns signals on while another session owns
+        them, the script probes first and then asks "Force override?" before doing anything.
+      </p>
+      <h3>Quit</h3>
+      <p>
+        Closing JMRI runs the same careful steps in reverse: hold, wait, release, announce disabled. It is
+        hooked in through a stock shutdown task, so a normal exit never leaves lamps stranded.
+      </p>
+      <h3>Crash</h3>
+      <p>
+        A crash is the case that matters, because nothing gets to clean up. The bridge sees a status
+        that still says "enabled" and challenges it. A live session answers and the challenge is
+        cancelled. With no answer, the bridge sets the signals to red, waits about three seconds and
+        releases them to the field logic, which carries on.
+      </p>
+      <figure>
+        <svg class="jm-svg" viewBox="0 0 480 300" role="img" aria-labelledby="crash-t crash-d">
+          <title id="crash-t">What happens when a session crashes</title>
+          <desc id="crash-d">A stale enabled status is found by the bridge, which challenges it. If a live session answers, the challenge is cancelled and nothing changes. If nobody answers, the bridge sets the signals to red, waits about three seconds, and releases them to the field logic.</desc>
+          <defs>
+            <marker id="crash-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
+          </defs>
+          <rect class="box" x="130" y="6" width="220" height="38" rx="3"/>
+          <text x="240" y="30" text-anchor="middle">A stale "enabled" is found</text>
+          <path class="line" d="M240 44 V66" marker-end="url(#crash-a)"/>
+          <rect class="own" x="130" y="68" width="220" height="38" rx="3"/>
+          <text class="t-w t-b" x="240" y="92" text-anchor="middle">The bridge challenges it</text>
+          <path class="line" d="M240 106 V124 H110 V144" marker-end="url(#crash-a)"/>
+          <path class="line" d="M240 106 V124 H370 V144" marker-end="url(#crash-a)"/>
+          <text class="t-s" x="104" y="138" text-anchor="end">answered</text>
+          <text class="t-s" x="376" y="138">no answer</text>
+          <rect class="box" x="20" y="146" width="180" height="50" rx="3"/>
+          <text x="110" y="167" text-anchor="middle">A live session replies</text><text class="t-s" x="110" y="185" text-anchor="middle">challenge cancelled</text>
+          <rect class="box" x="290" y="146" width="180" height="38" rx="3"/>
+          <text x="380" y="170" text-anchor="middle">Signals set to red</text>
+          <path class="line" d="M380 184 V200" marker-end="url(#crash-a)"/>
+          <rect class="box" x="290" y="202" width="180" height="38" rx="3"/>
+          <text x="380" y="226" text-anchor="middle">Wait about 3 seconds</text>
+          <path class="line" d="M380 240 V256" marker-end="url(#crash-a)"/>
+          <rect class="own" x="290" y="258" width="180" height="38" rx="3"/>
+          <text class="t-w t-b" x="380" y="282" text-anchor="middle">Released to the field</text>
+        </svg>
+        <figcaption>The crash path. A live session always wins; red-then-release is only for when nobody is there.</figcaption>
+      </figure>
+      <p>
+        The operator's handle on all of this is a button on the main JMRI window strip, "SML Enabled" or
+        "SML Disabled" depending on state. It stays available under CATS, on the CTC Panel, where the
+        other windows are tucked away.
+      </p>
+
+      <h2>Four lamps</h2>
+      <p>
+        An operator glancing at a screen wants four answers fast: is the bridge up, are the switches
+        using feedback, who owns the signals, is the track powered. Four lamps at the bottom left of the
+        HART Railroad panel say so. They are stock icons on a stock Layout Editor panel; the only thing
+        we added is a script that makes them clickable. Amber means a change is under way. Under CATS the
+        lamps are hidden, but the signals button remains.
+      </p>
+      <div class="table-wrap">
+        <table class="roster jm-lamps">
+          <thead><tr><th scope="col">Lamp</th><th scope="col">Green</th><th scope="col">Red</th><th scope="col">Amber</th><th scope="col">Click</th></tr></thead>
+          <tbody>
+            <tr><td>LCOS</td><td>Bridge link established</td><td>Not established</td><td>Click pending; "?" until the first report</td><td>Asks the bridge to sign up with the nodes again. If nothing arrives, the old colour returns after 2 seconds.</td></tr>
+            <tr><td>Turnouts</td><td>All two-sensor switches use feedback</td><td>All in direct mode</td><td>Mixed, or a click pending</td><td>Flips all 40 between feedback and direct. From mixed, goes to feedback.</td></tr>
+            <tr><td>Signals</td><td>Signals on</td><td>Off, or this session does not own them</td><td>Hand-off under way</td><td>Same as the button. A watcher clears a stuck amber within about 20 seconds.</td></tr>
+            <tr><td>Track Power</td><td>On</td><td>Off</td><td>Pending</td><td>Toggles the stock power manager; a listener keeps the lamp true.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Lamps that tell the truth</h2>
+      <p>
+        The yards have ladders of tracks, and a dispatcher or yard crew wants to see which one is lined,
+        not which one was last asked for. Ten small triangle lamps sit on the Layout Editor panel, five
+        for each yard ladder: tracks S-R and S-1 to S-4. Clicking a triangle fires an ordinary JMRI
+        Route that lines that track. The one for Track S-1, for instance, sets five real switches.
+      </p>
+      <p>
+        The part that earns the name: the lit lamp comes from the feedback sensors, not from the
+        command. If a switch did not go over, the lamp does not claim it did. If the switches match no
+        track, no triangle lights. Routes are also disabled while the panel is being painted, so redrawing
+        a screen can never throw a switch, and a test guards that rule.
+      </p>
+
+      <h2>What gets installed, and how JMRI finds it</h2>
+      <p>
+        Three scripts do all of this. One sets up the lamps, the ladder and the clicks. One does the
+        coordination in the second and third sections; its file name is left over from an older purpose. Both run from JMRI's stock
+        Start Up list. The third hides the Layout Editor under CATS, adds Help and Quit buttons and a
+        "HART Dispatcher Guide" Help item. It is run by a stock LogixNG with four actions: hide the
+        WiThrottle window, hide the USS CTC window, hide the Dispatcher System window, then run the
+        script. A small helper also lifts block labels that the Dispatcher's Stage 1 Store buries.
+      </p>
+      <p>
+        Deploying copies the scripts into the jython folder of the JMRI user files and adds the Start Up
+        entries to the profile. JMRI finds them through its own <code>preference:jython/</code> path, so
+        the same thing works on every JMRI install. Many other scripts exist, but they
+        run offline to build the tables, not inside JMRI.
+      </p>
+
+      <h2>Small resources</h2>
+      <p>
+        The rest is files. Two 16-pixel icons are the triangle lamps. The USS CTC panel has 70 generated
+        track icons plus its GUIObjects file: custom track cells for a stock CTC tool. The web home page
+        is a stock copy with one link added, to the traffic simulator; JMRI serves the copy in the user
+        folder before its own. The panel has a background image. JMRI finds all of these through
+        <code>preference:</code> paths.
+      </p>
+      <p>
+        There are no custom signal drawings and no custom signal system. The masts are stock Basic masts.
+        The Dispatcher files are data rather than code: options plus the traininfo files that stock
+        Stage 1 writes.
+      </p>
+
+      <h2>Why so small</h2>
+      <p>
+        Apart from those load-safety overlays, every item above is either a file JMRI already knows how to look up or a script written against public calls. Keeping the additions that small means that when a new stock JMRI arrives, there is
+        not much of ours in the way. If you run JMRI and want to try any of it, the pattern is the useful
+        part: one honest switch, a careful hand-over, and lamps that report what the layout is doing.
+      </p>
+
+      <p class="explainer-more">
+        More: <a href="signals.html">How the signals work</a> ·
+        <a href="bridge.html">LCOS and the Arduino bridge</a> ·
+        <a href="../guides/index.html">Dispatcher guides</a> ·
+        <a href="../roster/index.html">Device roster</a>
+      </p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-jmri").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>

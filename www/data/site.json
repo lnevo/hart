@@ -66,6 +66,7 @@
       "pages": [
         "behind",
         "behind-signals",
+        "behind-jmri",
         "behind-bridge",
         "behind-wiring",
         "roster",
@@ -107,6 +108,12 @@
       {
         "label": "Helix",
         "href": "helix/index.html"
+      }
+    ],
+    "behind-jmri": [
+      {
+        "label": "Control & signals",
+        "href": "behind/index.html#control"
       }
     ],
     "behind-sts": [
