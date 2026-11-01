@@ -53,7 +53,8 @@
           <li><a href="#gathering">One place</a></li>
           <li><a href="#helix">The helix</a></li>
           <li><a href="#arrived">Where it arrived</a></li>
-          <li><a href="#person">What stays with a person</a></li>
+          <li><a href="#reuse">Tools you can reuse</a></li>
+          <li><a href="#next">More ways to use it</a></li>
           <li><a href="#references">References</a></li>
         </ol>
       </nav>
@@ -154,7 +155,6 @@
         <section id="desks" aria-labelledby="h-desks">
           <h2 id="h-desks"><span class="num">07</span>The desks</h2>
           <p>August 2026 was the busiest month. The CATS CTC desk was drawn in Designer as the dispatcher's desk, and the stock JMRI CTC machine was built beside it as an alternate. The Dispatcher System was set up to run trains automatically, and Signal Mast Logic ended up owning the aspects. Grok also helped for part of the conversion of route logic into native Signal Mast Logic.</p>
-          <p>The agents implemented and debugged. I was building and deciding at the bench.</p>
         </section>
 
         <section id="scattered" aria-labelledby="h-scattered">
@@ -165,8 +165,8 @@
 
         <section id="gathering" aria-labelledby="h-gathering">
           <h2 id="h-gathering"><span class="num">09</span>One place</h2>
-          <p>The place I chose is a <b>repository</b>, a folder where every change is recorded, so anyone can see what changed and go back. This one began on August 7, 2026. From the end of August the traffic software, the car data and the website were gathered in, with Cursor doing that work. I took stock of what lived where, and the operator portal, which had run only from a local server, moved to a domain of its own.</p>
-          <p>Claude took over the consolidation from mid-October, as I began testing outside Cursor. The folders were tidied, and the generic knowledge went into a public plugin for other modelers. One habit came with the move: important choices are written down as short decision records, each saying what we decided, why, and what it replaced. A tool that forgets everything between sessions can still read them. That is the quiet change in how I use AI. Early on I asked it for documents. Now I give it a place to work and a set of written rules to follow, and I ask the same of every tool that comes after.</p>
+          <p>The place I chose is a <b>repository</b>, a folder where every change is recorded, so anyone can see what changed and go back. This one began in August 2026. From the end of August the traffic software, the car data and the website were gathered in, with Cursor doing that work. I took stock of what lived where, and the operator portal, which had run only from a local server, moved to a domain of its own.</p>
+          <p>Claude took over the consolidation as I began testing outside Cursor. The folders were tidied, and the generic knowledge went into a public plugin for other modelers. One habit came with the move: important choices are written down as short decision records, each saying what we decided, why, and what it replaced. A tool that forgets everything between sessions can still read them. That is the quiet change in how I use AI. Early on I asked it for documents. Now I give it a place to work and a set of written rules to follow, and I ask the same of every tool that comes after.</p>
           <figure>
             <svg class="who-svg" viewBox="0 0 480 296" role="img" aria-labelledby="one-t one-d">
               <title id="one-t">Before and after</title>
@@ -207,26 +207,31 @@
 
         <section id="helix" aria-labelledby="h-helix">
           <h2 id="h-helix"><span class="num">10</span>The helix</h2>
-          <p>While the files were coming together, the biggest physical job on the railroad was under way: the helix that climbs from staging to the main level. The planning for it was some of the most valuable AI work on the whole project. Radius, grade, clearance, how the roadbed would be cut and joined, and the order it would all go up were worked through in conversation with ChatGPT before any wood was cut. By September 23, 2026 that had become a construction plan and a written design record.</p>
-          <p>Then the work moved to Claude, to build the files and carry the effort on, and it left the screen. The plan became scripts, the scripts became STL files, and the STL files became printed parts: router templates, height spacers, shims and other fixtures, 47 files in all. These were not models of anything. They were tools, and they went on the bench and into the build. The frame was standing by the end of September, the first roadbed was up on October 2, and the finished helix was up and tracked by October 22.</p>
+          <p>While the files were coming together, the biggest physical job on the railroad was under way: the helix that climbs from staging to the main level. The planning for it was some of the most valuable AI work on the whole project. Radius, grade, clearance, how the roadbed would be cut and joined, and the order it would all go up were worked through in conversation with ChatGPT before any wood was cut. All of that became a construction plan and a written design record.</p>
+          <p>Then the work moved to Claude, to build the files and carry the effort on, and it left the screen. The plan became scripts, the scripts became STL files, and the STL files became printed parts: router templates, height spacers, shims and other fixtures, 47 files in all. These were not models of anything. They were tools, and they went on the bench and into the build. The frame went up, the roadbed followed, and in about a month the helix was finished and tracked.</p>
           <p>That was a real milestone. Until then the AI's work had been documents and software. Now it was something I could pick up and use to build the railroad. The <a href="../helix/index.html">helix page</a> has the plan and every fixture, and <a href="../build/index.html#helix">The Build</a> has the photos.</p>
         </section>
 
         <section id="arrived" aria-labelledby="h-arrived">
           <h2 id="h-arrived"><span class="num">11</span>Where it arrived</h2>
           <p>On the software side, the layout data, the panels and the signals now sit together as plain files, with one naming rule so switches, signals and tracks are called the same thing everywhere. Several signal systems were tried through September before I settled on the stock behaviour of JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the link to the electronics. Traffic and car records are kept the same way, so a car has one name from the card to the simulation. Some work stands on its own as pinned public projects inside this one: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>.</p>
-          <p>The research is kept together, with a note of where each source came from. Every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source. A research helper looks things up and returns proposals with their sources, and I decide what goes in. No source, no caption.</p>
+          <p>The research is kept together, with a note of where each source came from. Every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source. A research helper looks things up and returns proposals with their sources. No source, no caption.</p>
           <p>The website has sections for different readers, and its pages are drawn from one source, so a change is made once, in one place. A page-building helper makes the pages. A reviewer helper reads the site as a first-time reader, a historian or a designer would, and this article was shaped that way.</p>
           <p>Behind all of it, every tool reads one set of written rules.</p>
           <blockquote class="pull"><p>Chat is a scratchpad; decisions live in the wiki.</p></blockquote>
-          <p>The reason is plain. An agent knows only what is written down. A few helpers each have one job, and small automatic checks catch mistakes before they spread. One of those checks says of itself that it is "a guardrail against mistakes, not a security boundary", and I take that literally. A <b>skill</b> is a written guide the AI loads when a topic comes up, and an <b>MCP</b> is a plug-in tool it can call. My public plugin, <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a>, shares six skills and two read-only tools with other modelers.</p>
+          <p>The reason is plain. An agent knows only what is written down. A few helpers each have one job, and small automatic checks catch mistakes before they spread. One of those checks says of itself that it is "a guardrail against mistakes, not a security boundary", and I take that literally.</p>
         </section>
 
-        <section id="person" aria-labelledby="h-person">
-          <h2 id="h-person"><span class="num">12</span>What stays with a person</h2>
-          <p>Looking back along that timeline, the tools changed, but so did what I asked of them. ChatGPT gave me documents and a plan. Cursor gave me software I could run. Claude turned the helix plan into parts I could hold, then helped put all of it in one place, under one set of rules.</p>
-          <p>None of that runs the railroad. I run it, and I decide what goes out and what is true. The AI works from what has been written down, and the judgment stays with the person who knows the layout.</p>
-          <p>The railroad is not finished. The main level comes next, and this way of working will go with it: write it down, give each helper one job, and keep building.</p>
+        <section id="reuse" aria-labelledby="h-reuse">
+          <h2 id="h-reuse"><span class="num">12</span>Tools you can reuse</h2>
+          <p>Some of what came out of this is not about this railroad at all. Along the way the AI learned how JMRI, CATS and STS really behave, and that knowledge is worth sharing, so I packaged it for anyone to use on their own layout.</p>
+          <p><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a> is a public plugin for Claude Code. A <b>skill</b> is a written guide the AI loads when a topic comes up, so it works from the right notes instead of guessing. There are six: editing JMRI panel files safely, signal mast logic, the Dispatcher System, JMRI and MQTT, running CATS on JMRI, and running STS in Docker. An <b>MCP</b> is a plug-in tool the AI can call, and there are two, both read-only, so the AI can look at what JMRI and the layout are reporting. Every rule was checked against the software's own source, and nothing in the plugin is specific to this railroad.</p>
+        </section>
+
+        <section id="next" aria-labelledby="h-next">
+          <h2 id="h-next"><span class="num">13</span>More ways to use it</h2>
+          <p>Looking back along that timeline, what stands out is not any one tool. I still use all three. Claude is taking over from Cursor, and ChatGPT still has its own usefulness. What changed is how much I ask of them: first documents, then software, then parts I could hold, then a whole project in order.</p>
+          <p>Each new use made the next one easier to see, and the value keeps growing as we find more ways to use it. The main level comes next, and I expect it will find a few more.</p>
         </section>
 
         <section id="references" aria-labelledby="h-refs">
