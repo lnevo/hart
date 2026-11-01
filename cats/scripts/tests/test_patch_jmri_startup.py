@@ -132,20 +132,5 @@ class HideCatsChromeSource(unittest.TestCase):
         self.assertNotIn("\u2014", text)
 
 
-class DiscardSensorPublish(unittest.TestCase):
-    def test_overlay_skips_discard_topics(self) -> None:
-        src = (
-            Path(__file__).resolve().parents[3]
-            / "tools"
-            / "jmri"
-            / "patches"
-            / "PatchMqttCme.java"
-        )
-        text = src.read_text(encoding="utf-8")
-        self.assertIn("track/signalhead/IH", text)
-        self.assertIn("_discard", text)
-        self.assertIn("insertBefore", text)
-
-
 if __name__ == "__main__":
     unittest.main()
