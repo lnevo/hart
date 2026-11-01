@@ -59,10 +59,10 @@
           <p class="lede">This railroad started in 2022 as a tabletop layout, and there was very little AI in that part of the story. Over the next four years it grew into a full layout, a research archive, a set of fictional stories, an operating system with cards and paperwork, and the website you are reading.</p>
           <p>AI took part in most of that, and the tools changed as the work did: first ChatGPT, then Cursor, and now Claude. This is the journey in the order it happened.</p>
           <figure>
-            <svg class="trail-svg" viewBox="0 0 480 400" role="img" aria-labelledby="trail-t trail-d">
+            <svg class="trail-svg" viewBox="0 0 480 462" role="img" aria-labelledby="trail-t trail-d">
               <title id="trail-t">The journey, with the tool in use at each stage</title>
-              <desc id="trail-d">A vertical timeline of six stages. 2022, a tabletop layout, with little AI. 2025, research and stories, with ChatGPT. Early 2026, code and control, with Cursor. Summer 2026, operations, with Cursor. August 2026, one repository, with Cursor. October 2026, consolidation, with Claude.</desc>
-              <line class="rail" x1="24" y1="36" x2="24" y2="346"/>
+              <desc id="trail-d">A vertical timeline of seven stages. 2022, a tabletop layout, with little AI. 2025, research and stories, with ChatGPT. August 2025, first code, with Cursor. Early 2026, control software, with Cursor. Summer 2026, operations, with Cursor. August 2026, one repository, with Cursor. October 2026, consolidation, with Claude.</desc>
+              <line class="rail" x1="24" y1="36" x2="24" y2="408"/>
         <circle class="dot" cx="24" cy="36" r="9"/>
         <text class="t-b" x="48" y="33">2022</text>
         <text class="t-s" x="48" y="52">Tabletop layout</text>
@@ -74,27 +74,32 @@
         <rect class="pill" x="318" y="83" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="103" text-anchor="middle">ChatGPT</text>
         <circle class="dot" cx="24" cy="160" r="9"/>
-        <text class="t-b" x="48" y="157">Early 2026</text>
-        <text class="t-s" x="48" y="176">Code and control</text>
+        <text class="t-b" x="48" y="157">August 2025</text>
+        <text class="t-s" x="48" y="176">First code</text>
         <rect class="pill" x="318" y="145" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="165" text-anchor="middle">Cursor</text>
         <circle class="dot" cx="24" cy="222" r="9"/>
-        <text class="t-b" x="48" y="219">Summer 2026</text>
-        <text class="t-s" x="48" y="238">Operations</text>
+        <text class="t-b" x="48" y="219">Early 2026</text>
+        <text class="t-s" x="48" y="238">Control software</text>
         <rect class="pill" x="318" y="207" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="227" text-anchor="middle">Cursor</text>
         <circle class="dot" cx="24" cy="284" r="9"/>
-        <text class="t-b" x="48" y="281">August 2026</text>
-        <text class="t-s" x="48" y="300">One repository</text>
+        <text class="t-b" x="48" y="281">Summer 2026</text>
+        <text class="t-s" x="48" y="300">Operations</text>
         <rect class="pill" x="318" y="269" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="289" text-anchor="middle">Cursor</text>
-        <circle class="dot now" cx="24" cy="346" r="9"/>
-        <text class="t-b" x="48" y="343">October 2026</text>
-        <text class="t-s" x="48" y="362">Consolidation</text>
+        <circle class="dot" cx="24" cy="346" r="9"/>
+        <text class="t-b" x="48" y="343">August 2026</text>
+        <text class="t-s" x="48" y="362">One repository</text>
         <rect class="pill" x="318" y="331" width="152" height="30" rx="15"/>
-        <text class="t-p" x="394" y="351" text-anchor="middle">Claude</text>
+        <text class="t-p" x="394" y="351" text-anchor="middle">Cursor</text>
+        <circle class="dot now" cx="24" cy="408" r="9"/>
+        <text class="t-b" x="48" y="405">October 2026</text>
+        <text class="t-s" x="48" y="424">Consolidation</text>
+        <rect class="pill" x="318" y="393" width="152" height="30" rx="15"/>
+        <text class="t-p" x="394" y="413" text-anchor="middle">Claude</text>
             </svg>
-            <figcaption><strong>The journey.</strong> Six stages from the 2022 tabletop to today, with the tool in use at each. The dates are approximate.</figcaption>
+            <figcaption><strong>The journey.</strong> Seven stages from the 2022 tabletop to today, with the tool in use at each. The dates are approximate.</figcaption>
           </figure>
         </section>
 
@@ -114,8 +119,8 @@
 
         <section id="code" aria-labelledby="h-code">
           <h2 id="h-code"><span class="num">03</span>Code enters</h2>
-          <p>The first code came in August 2025. <a href="https://github.com/lnevo/traincode">traincode</a> was an ESP32 client that connected to JMRI over MQTT, the first project where I started playing with those pieces together. It became the foundation of the current client, though we later switched to a Nano bridge for LCOS compatibility.</p>
-          <p>By February 2026 I had begun using Cursor, an AI code editor, to edit the LCOS project, the software behind the layout electronics<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. That repository begins in February 2026.</p>
+          <p>The first code came in August 2025. <a href="https://github.com/lnevo/traincode">traincode</a> was an ESP32 client that connected to JMRI over MQTT, the first project where I started playing with those pieces together, and all of it was done with Cursor, an AI code editor. It became the foundation of the current client, though we later switched to a Nano bridge for LCOS compatibility.</p>
+          <p>By February 2026 I was using Cursor to edit the LCOS project, the software behind the layout electronics<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. That repository begins in February 2026.</p>
           <p>Cursor then helped with the layout-editor work that came out of AnyRail, later with CATS, and with the rest. The difference from chat was plain. The AI was now working in the same files I was, so the result was something I could run, not only a document to read.</p>
         </section>
 
