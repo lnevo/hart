@@ -274,7 +274,7 @@
             <tr><td><code>signal_coordinator.py</code></td><td>Start Up</td><td>The signal coordination. It owns the "SML Enabled" button, runs the hand-over, sends head colours to the field with Signals ON, mirrors the field with Signals OFF, and answers the crash check.</td></tr>
             <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>The panel's helper. It wires up the four lamps and their clicks, paints the yard ladder triangles from feedback, keeps Routes disabled while painting, and lifts block labels that the Dispatcher's Stage 1 Store buries.</td></tr>
             <tr><td><code>hide_cats_desk_windows.py</code></td><td>LogixNG at startup</td><td>Tidies the screen under CATS. It hides the HART Railroad panel and adds Help and Quit buttons and a "HART Dispatcher Guide" Help item to the CTC Panel. PanelPro keeps the panel up.</td></tr>
-            <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up</td><td>The remote-run hook, described below.</td></tr>
+            <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on the main layout host only</td><td>The remote-run hook, described below.</td></tr>
           </tbody>
         </table>
       </div>
