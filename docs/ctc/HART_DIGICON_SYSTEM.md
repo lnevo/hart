@@ -11,7 +11,7 @@ Related detail docs (do not duplicate here):
 | Topic | Doc |
 |-------|-----|
 | Signal facing / mast bind | [`SIGNAL_FACING.md`](SIGNAL_FACING.md) |
-| Turnout SoR / retain paint | [`TURNOUT_STATE_SOURCES.md`](TURNOUT_STATE_SOURCES.md) |
+| Turnout SoR | [`TURNOUT_STATE_SOURCES.md`](TURNOUT_STATE_SOURCES.md) |
 | Sensor status-only MQTT | [`MQTT_SENSOR_STATUS_ONLY.md`](MQTT_SENSOR_STATUS_ONLY.md) |
 | Pi install notes | [`../scripts/pi/README_CATS.txt`](../../cats/scripts/pi/README_CATS.txt) |
 | Neville trackplan (reference) | [`station_maps/Neville_Island_Trackplan_Clean.png`](../../ops/station_maps/maps/Neville_Island_Trackplan_Clean.png) |
@@ -54,7 +54,7 @@ python3 cats/scripts/wire_digicon.py
          │ occupancy paints from JMRI sensors                  │ Appearance
          ▼                                                     ▼
 ┌─────────────────┐                                  ┌──────────────────┐
-│ JMRI Turnouts / │◄── MQTT retain paint (boot) ────│ MQTT broker       │
+│ JMRI Turnouts / │◄── live MQTT reports ───────────│ MQTT broker       │
 │ Sensors / Blocks│                                  │ minipc / Pi       │
 └────────┬────────┘                                  └────────┬─────────┘
          │                                                    │
@@ -105,7 +105,7 @@ Lamps beside OS S-R…OS S-4 on the Layout Editor panel and JMRI web, not on the
 
 - Triggers: internal turnouts `IT:HART:YL:L1…R5`
 - JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels
-- Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py` → `tables/new_tables.xml`, synced to `jmri/layouts/hart/output/tables.xml`). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red. Prefer this panel over `hart_prod.xml` (CP labels on hart_prod are oversized).
+- Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py` → `tables/new_tables.xml`, synced to `jmri/layouts/hart/output/tables.xml`). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red.
 
 ### Turnout SoR (summary)
 
@@ -253,7 +253,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 ## 7. Operating rules (short)
 
 1. **CATS CTC** and **CATS ABS** both `HOLD_ONLY`: SML sets aspects; Digicon paints JMRI appearances. CTC also Held/Unhold on coded routes. ABS Hold/Unhold follows Digicon ABS vital logic. Layout Editor is always SML.
-2. Never publish turnout “fix” commands at launch; retain paint is read-only.
+2. Never publish turnout “fix” commands at launch.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
 4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **Basic** (`two-searchlight`), dwarfs on **`one-low`**. No aspects are disabled. Mast 2L is `IH438`/`IH439`.
 5. After a Designer save, run `wire_digicon.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.

@@ -5,7 +5,7 @@
 #
 # Usage:
 #   ./cats/scripts/launch_cats.sh
-#   ./cats/scripts/launch_cats.sh cats/panels/HART_splice_magnet.xml
+#   ./cats/scripts/launch_cats.sh cats/panels/HART_ABS.xml
 #   JMRI_PROFILE=My_JMRI_Railroad.3ef75bfd ./cats/scripts/launch_cats.sh
 #
 # macOS Local Network / MQTT:
@@ -71,7 +71,7 @@ if [[ -z "${JAVA_HOME:-}" ]]; then
   done
 fi
 if [[ -z "${JAVA_HOME:-}" || ! -x "${JAVA_HOME}/bin/java" ]]; then
-  echo "Need Java 11+ (JMRI 5.15). Install a JDK and retry." >&2
+  echo "Need Java 11+ (JMRI 5.16). Install a JDK and retry." >&2
   /usr/libexec/java_home -V 2>&1 || true
   exit 1
 fi

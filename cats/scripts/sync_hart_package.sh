@@ -99,10 +99,10 @@ LIVE_PANELS=(
   HART_ABS.xml
 )
 
-install_dispatcher_facing_patch() {
+install_jython_scripts() {
   local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
   local patch_startup="$ROOT/cats/scripts/patch_jmri_startup.py"
-  _install_facing_into() {
+  _install_jython_into() {
     local profile="$1"
     local dest="$profile/jython"
     mkdir -p "$dest"
@@ -134,16 +134,16 @@ install_dispatcher_facing_patch() {
   }
   if [[ -d "${HOME}/Library/Preferences/JMRI" ]]; then
     for d in "${HOME}/Library/Preferences/JMRI"/*.jmri; do
-      [[ -d "$d" ]] && _install_facing_into "$d"
+      [[ -d "$d" ]] && _install_jython_into "$d"
     done
   fi
   if [[ -d "${HOME}/.jmri" ]]; then
     for d in "${HOME}/.jmri"/*.jmri; do
-      [[ -d "$d" ]] && _install_facing_into "$d"
+      [[ -d "$d" ]] && _install_jython_into "$d"
     done
   fi
   if [[ -d "${HOME}/JMRI_UserFiles" ]]; then
-    _install_facing_into "${HOME}/JMRI_UserFiles"
+    _install_jython_into "${HOME}/JMRI_UserFiles"
   fi
 }
 
@@ -282,10 +282,6 @@ stage_package() {
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"
   done
-  if [[ -f "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" ]]; then
-    cp -f "$ROOT/jmri/layouts/hart/scripts/install_yl_windows.py" \
-      "$stage/jmri/layouts/hart/scripts/"
-  fi
   cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "$stage/jmri/scripts/"
 
   local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
@@ -339,7 +335,7 @@ if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
   install_tables_local
   install_ctc_icons_local
-  install_dispatcher_facing_patch
+  install_jython_scripts
 fi
 
 if [[ "$DO_PI" -eq 1 ]]; then

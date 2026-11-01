@@ -19,7 +19,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-STANDALONE_PANEL = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 PREF_TABLES = Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/tables.xml"
 
 # Digicon PANELSIGNAL SIGORIENT → LE SignalMastIcon degrees:
@@ -133,7 +132,7 @@ def main() -> None:
     ap.add_argument(
         "--sync-output",
         action="store_true",
-        help="Patch output/tables.xml and hart_prod.xml independently",
+        help="No effect since ADR-008; kept for existing callers",
     )
     ap.add_argument(
         "--sync-pref",

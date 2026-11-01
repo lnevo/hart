@@ -354,7 +354,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if not MANIFEST.is_file():
-        print("Missing manifest — run classify_f_ingest.py first", file=sys.stderr)
+        print("Missing manifest www/review-data/class_f_ingest_manifest.csv; its generator is retired", file=sys.stderr)
         return 1
 
     rows = load_manifest_rows()

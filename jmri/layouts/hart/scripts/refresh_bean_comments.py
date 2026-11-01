@@ -916,39 +916,37 @@ def refresh_comments(text: str) -> tuple[str, int]:
     return BEAN_RE.sub(repl, text), changed
 
 
+TARGETS = [
+    ROOT / "jmri/layouts/hart/output/tables.xml",
+    ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
+    ROOT / "cats/panels/HART_CTC.xml",
+    ROOT / "cats/panels/HART_ABS.xml",
+    ROOT / "cats/data",
+    ROOT / "cats/scripts/validate_cats_panel.py",
+    ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py",
+    ROOT / "docs/ctc/DISPATCHER_GUIDE_CTC.md",
+    ROOT / "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
+    ROOT / "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
+    ROOT / "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+    ROOT / "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
+    ROOT / "jmri/layouts/hart/scripts/annotate_mqtt_sensors_and_dispatcher.py",
+    ROOT / "jmri/scripts/check_hart_phase02.py",
+    ROOT / "jmri/layouts/hart/data/block_lengths.csv",
+    ROOT / "jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md",
+    ROOT / "jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md",
+    ROOT / "jmri/layouts/hart/dispatcher/traininfo",
+    ROOT / "jmri/layouts/hart/README.md",
+]
+
+
 def main() -> int:
     n_map = sync_map_head_comments()
     if n_map:
         print(f"public_name_map.csv: {n_map} head comments from signal_wiring.csv")
         global DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER
         DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
-    targets = [
-        ROOT / "jmri/layouts/hart/output/tables.xml",
-        ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
-        ROOT / "cats/panels/HART_CTC.xml",
-        ROOT / "cats/panels/HART_ABS.xml",
-        ROOT / "cats/panels/sheets/HART_sheet_West_Yard2.xml",
-        ROOT / "cats/panels/sheets/HART_sheet_West_Yard.xml",
-        ROOT / "cats/panels/sheets/HART_sheet_West_Yard_SOR.xml",
-        ROOT / "cats/data",
-        ROOT / "cats/scripts/archive/west_yard/wire_hart_sheet_west_yard2.py",
-        ROOT / "cats/scripts/validate_cats_panel.py",
-        ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py",
-        ROOT / "docs/ctc/DISPATCHER_GUIDE_CTC.md",
-        ROOT / "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
-        ROOT / "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
-        ROOT / "jmri/layouts/hart/scripts/audit_panel_contracts.py",
-        ROOT / "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
-        ROOT / "jmri/layouts/hart/scripts/annotate_mqtt_sensors_and_dispatcher.py",
-        ROOT / "jmri/scripts/check_hart_phase02.py",
-        ROOT / "jmri/layouts/hart/data/block_lengths.csv",
-        ROOT / "jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md",
-        ROOT / "jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md",
-        ROOT / "jmri/layouts/hart/dispatcher/traininfo",
-        ROOT / "jmri/layouts/hart/README.md",
-    ]
     files = 0
-    for raw in targets:
+    for raw in TARGETS:
         paths = list(raw.rglob("*")) if raw.is_dir() else [raw]
         for path in paths:
             if not path.is_file() or should_skip(path):

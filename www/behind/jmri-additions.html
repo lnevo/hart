@@ -279,8 +279,8 @@
         </table>
       </div>
       <p>
-        Deploying copies all four into the <code>jython</code> folder of the JMRI user files and adds the Start Up entries to
-        the profile, and JMRI finds them through its own <code>preference:jython/</code> path. Many other
+        Deploying copies all four into the <code>jython</code> folder of the JMRI user files and points the profile's existing Start Up entries
+        at them, and JMRI finds them through its own <code>preference:jython/</code> path. Many other
         scripts exist, but they run offline to build the tables, not inside JMRI.
       </p>
       <p>
@@ -310,7 +310,7 @@
           <tbody>
             <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the lamps. PanelPro loads it at startup. <a href="tables-file.html">More on the tables file</a>.</td></tr>
             <tr><td><code>jython/</code></td><td>The four scripts above.</td></tr>
-            <tr><td>Start Up entries</td><td>Added to the profile, so JMRI loads the tables and runs the scripts at launch.</td></tr>
+            <tr><td>Start Up entries</td><td>Kept in the profile, so JMRI loads the tables and runs the scripts at launch. Deploy repoints the script entries; it does not add them.</td></tr>
             <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
             <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels. The amber one is simply JMRI's own.</td></tr>
             <tr><td><code>resources/misc/hart_panel_bg.jpg</code></td><td>The backdrop of the HART Railroad panel, 1900 by 600 pixels. It sits behind the track as a label on the panel, at the top left.</td></tr>

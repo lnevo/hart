@@ -119,10 +119,6 @@ def path_public_name_map() -> Path:
     return hart_runtime_root() / "jmri/layouts/hart/data/public_name_map.csv"
 
 
-def path_block_display_names() -> Path:
-    return hart_runtime_root() / "jmri/layouts/hart/data/block_display_names.csv"
-
-
 def path_tables_xml() -> Path:
     return hart_runtime_root() / "jmri/layouts/hart/output/tables.xml"
 

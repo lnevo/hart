@@ -89,10 +89,6 @@ jmri/layouts/hart/ctc/history/CTC_Evolution_crops/
 jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.gif
 jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.mp4
 
-# CATS patch build artifacts
-tools/cats/patches/*.class
-tools/cats/patches/cats.jar.stock
-
 # Runtime logs and one-off XML backups (not sources)
 cats/logs/
 jmri/layouts/**/*.xml.bak_*

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Diagnose Digicon turnout MQTT vs FB (read-only by default).
+"""Diagnose Digicon turnout MQTT vs FB (read-only).
 
 Rules (SoR):
   - Live Digicon state follows **FB** for all turnouts except Switch 13/7/11/9
@@ -8,13 +8,12 @@ Rules (SoR):
     throw frog = rest tip (Barn / McKeesport / Rocks); keep MQTT THROWN.
   - Wrong Digicon direction → flip **that one plant only** in
     `wire_digicon.py` PLANTS. Do not command MQTT/JMRI.
-  - This script must not throw field points. Default = diagnose only.
+  - This script must not throw field points.
 
     python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py
     python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py --diagnose
 
-Writes (MQTT retain only — never JMRI turnout commands) require --write and
-are for unknown retain on Switch 1/33/37/39 defaults only. Prefer FB→MQTT via
+Read-only: the retained-write mode was removed with the boot retain fill. Use
 sync_mqtt_turnouts_from_fb.py only when Digicon must track FB for non-inverted plants.
 """
 
@@ -81,22 +80,6 @@ def _mqtt_retain(addr: int) -> str | None:
         return out or None
     except subprocess.CalledProcessError:
         return None
-
-
-def _mqtt_pub(addr: int, msg: str) -> None:
-    subprocess.run(
-        [
-            "mosquitto_pub",
-            "-h",
-            MQTT_HOST,
-            "-t",
-            f"track/turnout/{addr}",
-            "-m",
-            msg,
-            "-r",
-        ],
-        check=False,
-    )
 
 
 def _fb_implied(d: dict) -> str | None:
@@ -167,34 +150,12 @@ def diagnose(by_name: dict) -> int:
     return 0
 
 
-def seed_unknown_only(by_name: dict) -> int:
-    """MQTT retain only when missing/unknown — never JMRI turnout commands."""
-    for sw, addr in sorted(DEFAULT_THROWN.items()):
-        sys_name = f"M2T{addr}"
-        d = by_name.get(sys_name)
-        retain = _mqtt_retain(addr)
-        fb = _fb_implied(d) if d else None
-        if retain in ("CLOSED", "THROWN"):
-            print(f"Switch {sw} M2T{addr}: retain={retain} — leave (fb→{fb})")
-            continue
-        # Prefer FB if clear; else THROWN default for these four.
-        msg = fb if fb in ("CLOSED", "THROWN") else "THROWN"
-        _mqtt_pub(addr, msg)
-        print(f"Switch {sw} M2T{addr}: no retain → MQTT {msg} only (fb→{fb}; no JMRI cmd)")
-    return 0
-
-
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--diagnose",
         action="store_true",
-        help="Print table (default if no --write)",
-    )
-    ap.add_argument(
-        "--write",
-        action="store_true",
-        help="Publish MQTT retain only when missing for 100/112/114/115 (no JMRI cmds)",
+        help="Print table (the default)",
     )
     args = ap.parse_args()
 
@@ -209,8 +170,6 @@ def main() -> int:
         d = item.get("data", item)
         by_name[d.get("name")] = d
 
-    if args.write:
-        return seed_unknown_only(by_name)
     return diagnose(by_name)
 
 

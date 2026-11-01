@@ -1,7 +1,7 @@
 # HART meta-repo — sibling repos and submodules
 
 **Status:** P3b **done** — submodules under `external/`  
-**Init:** [`scripts/init_external_submodules.sh`](../tools/ops/init_external_submodules.sh)
+**Init:** [`tools/ops/init_external_submodules.sh`](../tools/ops/init_external_submodules.sh)
 
 ## Hub
 
@@ -11,17 +11,18 @@
 | **`LCOS_ESP32_MQTT_Client`** | Nano firmware + MQTT bridge → `external/lcos-bridge` |
 | **`sts-docker`** | STS PHP runtime → `external/sts-docker` |
 | **`sts-docker-helpers`** | Seed, warm-start, switch lists → `external/sts-helpers` |
-| **`hart-ops`** | Car inventory SoR, cards, waybills, publications → `external/hart-ops` @ `761c1f9` |
+| **`hart-ops`** | Car inventory SoR, cards, waybills, publications → `external/hart-ops` |
 | **`model-railroad-skills`** | Public, generic Claude Code skills and read-only tools → `external/model-railroad-skills` |
 
 ## Submodule layout
 
 ```
 hart/external/
-  lcos-bridge/      → LCOS_ESP32_MQTT_Client @ ae2d8da
-  sts-docker/       → sts-docker @ 899b458
-  sts-helpers/      → sts-docker-helpers @ cdbbfce
-  hart-ops/         → hart-ops @ 761c1f9
+  lcos-bridge/            → LCOS_ESP32_MQTT_Client
+  sts-docker/             → sts-docker
+  sts-helpers/            → sts-docker-helpers
+  hart-ops/               → hart-ops
+  model-railroad-skills/  → model-railroad-skills
 ```
 
 ## Init (operator)
@@ -44,7 +45,7 @@ Lives in **hart-ops** `data/` — not in JMRI Operations Pro GUI. See [ADR-013](
 ```bash
 git clone --recurse-submodules git@github.com:lnevo/hart.git
 export JMRI_LAYOUT=hart
-bash tools/audit/run_all.sh
+./tools/check.sh
 ```
 
 ## Do not

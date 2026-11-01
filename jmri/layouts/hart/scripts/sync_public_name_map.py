@@ -25,7 +25,6 @@ from refresh_bean_comments import public_comment
 
 CSV_PATH = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-HART_PROD = ROOT / "jmri/layouts/hart/output/hart_prod.xml"
 DEFAULT_CANVAS = Path.home() / ".cursor/projects/Users-lnevo-hart/canvases/hart-device-map.canvas.tsx"
 
 KIND_LAYER = {
