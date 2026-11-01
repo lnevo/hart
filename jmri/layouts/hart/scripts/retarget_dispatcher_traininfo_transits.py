@@ -26,7 +26,6 @@ DEFAULT_DIRS = [
 ]
 DEFAULT_TABLES = [
     Path("/home/pi/JMRI_UserFiles/tables.xml"),
-    Path("/home/pi/hart/tables.xml"),
     ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml",
 ]
 VIA_TRACK = re.compile(r"\bvia Track ([0-9]+[a-z]?)\b")

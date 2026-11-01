@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the HART tree at /home/pi/hart into JMRI_UserFiles and ~/.jmri profiles.
+# Install the deploy drop at /home/pi/hart into JMRI_UserFiles and ~/.jmri profiles, then empty it.
 # Called by sync_hart_package.sh --pi after rsync.
 set -euo pipefail
 HART="${HART:-/home/pi/hart}"
@@ -10,19 +10,26 @@ if [[ ! -d "$HART" ]]; then
   exit 1
 fi
 
-# Desktop Exec= paths are /home/pi/hart/launch_*.sh (not cats/scripts/pi/).
-shopt -s nullglob
-for f in "$HART/cats/scripts/pi/"launch_*.sh \
-         "$HART/cats/scripts/pi/JMRI_CATS" \
-         "$HART/cats/scripts/pi/README_CATS.txt"; do
-  [[ -e "$f" ]] || continue
-  cp -f "$f" "$HART/"
-done
-chmod +x "$HART/"launch_*.sh "$HART/JMRI_CATS" \
-  "$HART/cats/scripts/pi/install_desktop_icons.sh" \
+chmod +x "$HART/cats/scripts/pi/"*.sh "$HART/cats/scripts/pi/JMRI_CATS" \
   "$HART/cats/scripts/install_jmri_web_override.sh" 2>/dev/null || true
 
 mkdir -p "$UF"
+
+# CATS has no JMRI home: it opens real paths, so its files live here. ~/hart is
+# only the deploy drop and is emptied at the end of this script.
+CATS_HOME="$UF/cats"
+mkdir -p "$CATS_HOME/panels" "$CATS_HOME/launch" "$CATS_HOME/logs"
+cp -f "$HART/cats/panels/"HART_CTC.xml "$HART/cats/panels/"HART_ABS.xml "$CATS_HOME/panels/"
+shopt -s nullglob
+for f in "$HART/cats/scripts/pi/"launch_*.sh "$HART/cats/scripts/pi/JMRI_CATS"; do
+  cp -f "$f" "$CATS_HOME/launch/"
+done
+shopt -u nullglob
+chmod +x "$CATS_HOME/launch/"*
+cp -f "$HART/cats/scripts/pi/README_CATS.txt" "$CATS_HOME/"
+if [[ -d "$HART/trainstat" && ! -d "$CATS_HOME/trainstat" ]]; then
+  mv "$HART/trainstat" "$CATS_HOME/trainstat"
+fi
 
 copy_into() {
   local src="$1" dest="$2"
@@ -160,5 +167,9 @@ fi
 if [[ -x "$HART/cats/scripts/pi/install_desktop_icons.sh" ]]; then
   bash "$HART/cats/scripts/pi/install_desktop_icons.sh"
 fi
+
+# Everything is installed; nothing runs from the drop folder.
+find "$HART" -mindepth 1 -delete
+echo "Pi deploy drop emptied: $HART"
 
 echo "Pi apply_hart_package_local done"

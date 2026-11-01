@@ -212,7 +212,7 @@ Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and
 
 | Piece | Repo SoR | Installs to |
 |-------|----------|-------------|
-| CTC / ABS desks | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` | host `hart/cats/panels/` |
+| CTC / ABS desks | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` | Pi `JMRI_UserFiles/cats/panels/`; Windows `hart/cats/panels/` |
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
 | Ladder icons | `jmri/resources/buttons/lamp_*.png` | `hart/cats/resources/buttons/` |
 | Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | profile / UserFiles `web/servlet/home/` (STS link in Home.html → `http://localhost:8980/sts/`; STS is Mac-hosted for now) |
