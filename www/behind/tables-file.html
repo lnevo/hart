@@ -49,19 +49,6 @@
         screen.
       </p>
 
-      <h2>Why one file</h2>
-      <p>
-        It used to be two. There was a working copy that scripts and people edited, and a second file that
-        JMRI actually loaded. Keeping them in step was a chore, and a change made to one could miss the
-        other.
-      </p>
-      <p>
-        Now there is one tables file, and the decision is on record. PanelPro stores into it, git tracks
-        every change, and what is deployed comes from it. The scripts that generate
-        or check parts of it run only when PanelPro and CATS (the open-source CTC desk) are closed, so
-        nothing can write over a store in progress.
-      </p>
-
       <h2>The tour by the numbers</h2>
       <p>
         These counts come from reading the file itself. Four groups, from the field up to the screen.
