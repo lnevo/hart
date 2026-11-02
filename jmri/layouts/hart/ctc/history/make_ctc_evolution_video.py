@@ -42,7 +42,6 @@ FRAMES: list[tuple[str, str]] = [
     ("Screenshot 2026-08-19 at 11.33.05\u202fPM.png", "Title banner + live lever art"),
     ("Screenshot 2026-08-19 at 11.35.49\u202fPM.png", "Connected — occupancy + aspects"),
     ("Screenshot 2026-08-20 at 1.34.22\u202fAM.png", "HART RAILROAD — NEVILLE ISLAND"),
-    ("Screenshot 2026-08-20 at 7.42.19\u202fAM.png", "Final USS panel"),
 ]
 
 

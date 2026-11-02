@@ -19,8 +19,12 @@ evolution video and [`HOW_WE_BUILT_CTC.md`](../HOW_WE_BUILT_CTC.md).
 | 11 | `Screenshot 2026-08-20 at 1.34.22 AM.png` | HART RAILROAD — NEVILLE ISLAND |
 
 Stop-motion outputs (`CTC_Panel_Evolution.gif`, `.mp4`, `CTC_Evolution_crops/`) are
-generated locally and gitignored. Regenerate:
+generated locally and gitignored; the copies the site uses live in `www/assets/behind/panel-evolution/`. Regenerate:
 
 ```bash
 python3 jmri/layouts/hart/ctc/history/make_ctc_evolution_video.py
 ```
+
+The CATS panel film comes from dated screenshots in `media/screenshots/` (gitignored,
+8 to 9 Aug 2026); `make_cats_evolution_video.py` crops each to the panel and builds
+`CATS_Panel_Evolution.mp4`. Override the source folder with `HART_SCREENSHOTS`.

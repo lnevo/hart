@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How the dispatcher panels grew — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    .explainer video { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: #000; }
+    .explainer ol.stages { margin: 0.6rem 0 1.4rem; padding-left: 1.4rem; }
+    .explainer ol.stages li { margin: 0.15rem 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>How the dispatcher panels grew</h1>
+      <p class="section-note">Two CTC panels, both built during August 2026, shown a step at a time.</p>
+    </div>
+
+    <article class="explainer prose">
+      <p>
+        HART has two dispatcher panels over the same railroad (see <a href="signals.html">How the signals work</a>).
+        Neither was drawn in one go. Each grew from a few track pieces and station names into the full plant, and
+        the screenshots taken along the way make a short film. Both loop, with no sound.
+      </p>
+
+      <h2>The JMRI lever machine</h2>
+      <p>
+        This is the stock JMRI CTC machine, a Union Switch &amp; Signal style panel of levers and code buttons over a gold
+        track board. It was built by scripts rather than by hand: Python code running inside JMRI creates the fifteen
+        control points and their locking, and a separate generator draws the track diagram. The pilot was only two
+        locations, Brick and Plane, three columns wide. The rest followed over a single long session, from the evening of 19 August into the early hours of 20 August, and the finished
+        panel carries the railroad's name across the top.
+      </p>
+      <figure>
+        <video controls autoplay muted loop playsinline preload="metadata" poster="../assets/behind/panel-evolution/uss-poster.jpg"
+               aria-label="Eleven screenshots of the JMRI lever machine panel in order, from a three-column pilot to the finished panel">
+          <source src="../assets/behind/panel-evolution/uss-panel-evolution.mp4" type="video/mp4">
+          <img src="../assets/behind/panel-evolution/uss-poster.jpg" alt="The finished JMRI lever machine panel, titled for Neville Island">
+        </video>
+        <figcaption>The lever machine panel, from the first pilot to the finished board, 19 to 20 August 2026.</figcaption>
+      </figure>
+      <ol class="stages">
+        <li>Pilot: Brick and Plane, three columns</li>
+        <li>Wireframe track and the lever machine</li>
+        <li>Station labels</li>
+        <li>Main West and South Yard routing</li>
+        <li>Engine Terminal and the yard ladders</li>
+        <li>West Yard stubs, W-1 and W-2</li>
+        <li>The full plant geometry</li>
+        <li>Engine House and the McKees Rocks stubs</li>
+        <li>Title banner and the lever art</li>
+        <li>Connected: occupancy and signal aspects live</li>
+        <li>The finished panel, titled for Neville Island</li>
+      </ol>
+
+      <h2>The CATS Digicon panel</h2>
+      <p>
+        The CATS panel is the mouse-driven one. It was drawn in CATS Designer, not generated, so the pictures show a
+        diagram being redrawn: station names first, then the track grows, then the route labels. The set below
+        starts on the night of 8 August 2026 and runs to the titled Rev A drawing of 26 August. Only the cleaner
+        screenshots were used. The panel's later look, with colour and lined routes, is on the
+        <a href="signals.html">signals page</a>.
+      </p>
+      <figure>
+        <video controls autoplay muted loop playsinline preload="metadata" poster="../assets/behind/panel-evolution/cats-poster.jpg"
+               aria-label="Eleven screenshots of the CATS dispatcher panel in order, from bare track and station names to the titled Rev A diagram">
+          <source src="../assets/behind/panel-evolution/cats-panel-evolution.mp4" type="video/mp4">
+          <img src="../assets/behind/panel-evolution/cats-poster.jpg" alt="The CATS dispatcher panel: white track on black with station names and route labels">
+        </video>
+        <figcaption>The CATS dispatcher panel, 8 to 26 August 2026. <a href="../assets/behind/panel-evolution/cats-poster.jpg">Open the last frame full size</a>.</figcaption>
+      </figure>
+      <ol class="stages">
+        <li>First draft: station names and bare track</li>
+        <li>The yard ladder grows; Barn and Main East appear</li>
+        <li>Some labels renamed as control points: CP Brick, CP Plane, CP 112</li>
+        <li>The main runs through to Shenango and the yard ladder is redrawn</li>
+        <li>Route labels added along the diagram</li>
+        <li>Live: West Yard, Brick and the yard tracks S-1 to S-5</li>
+        <li>Yard tracks T9 to T11 and the West Lead added</li>
+        <li>Redrawn on straight mains, with engine house tracks EH-1 to EH-3</li>
+        <li>Title block: Neville Island Operations, CTC Digicon</li>
+        <li>Retitled ABS Digicon; Brick-Plane, Scale and Barn labelled</li>
+        <li>Rev A, effective 26 August</li>
+      </ol>
+
+      <p>
+        The wider story of how these panels fit into the rest of the project is in
+        <a href="../library/how-it-was-built-article.html#desks">Bringing the Railroad Together</a>.
+      </p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.querySelectorAll("video").forEach(function (v) { v.removeAttribute("autoplay"); v.pause(); });
+    }
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-panels").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>
