@@ -1,6 +1,6 @@
 # Plugin faults from the showcase build
 
-**Resolved.** Every item below was fixed or settled in the plugin by 2026-11-02, and the full suite passed 765 tests on JMRI 5.16 at `0f402a4`. The rest of this page is the original report, kept as history. Its line numbers and test count are from before the fixes, and `faults.csv` has the resolution for each F number.
+**Resolved.** Every item below was fixed or settled in the plugin by 2026-11-02, and the full suite last passed 778 tests on JMRI 5.16. The rest of this page is the original report, kept as history. Its line numbers and test count are from before the fixes, and `faults.csv` has the resolution for each F number.
 
 ## Resolutions
 
@@ -28,15 +28,26 @@
 
 A second review after these fixes found 26 more faults. All are merged, as the commits from `c6c4e72` to `0f402a4`.
 
-## Still open
+## After the reviews
 
-None of these came from this list:
+The items left open were closed on 2026-11-02, and 778 tests passed on JMRI 5.16.
 
-- Following generated loads from staging to staging is not checked in `ops_why_not`.
-- JMRI's `Integer.decode` of an automation item's action code is not checked.
-- Not settled by the second review: D3 in aggressive mode, D9 double count, B19 `_mb_matches`, `mirror_schedule` with a blank ship load, the `set_train_leg` finding, and some automation claims.
-- `staging-departure-blocked` may still fire on an empty staging track mid-session.
-- A locomotive with no terminal track and overlapping pool dates both report `not_checked`, though the first fails a real build.
+| Item | Result |
+|---|---|
+| D3 in aggressive mode | Fixed from source: stays open in a multiple pass build. Not run in a real build |
+| D9 double count | Real, and fixed. A real build took a caboose under a limit that fits one |
+| B19 on a rebuild | Real, and fixed. A real rebuild offered the car to its manual line again |
+| `mirror_schedule` blank ship | Help text now says it takes any load of the type |
+| `set_train_leg` caboose change | New `leg-caboose-stop` audit error. Real builds failed for both add and remove |
+| Automation, autosave and CSV claims | Eight statements corrected against the source |
+| Automation action code | Added to `file-number` |
+| Empty staging mid-session | A warning when another train can refill the track, otherwise still an error |
+
+Recorded as limits, not fixed, in the guide's Known limits:
+
+- `ops_why_not` does not follow a load generated for a staging-to-staging move.
+- A locomotive with no terminal track shows `not_checked`, though that build fails.
+- Overlapping staging pool dates show `not_checked`.
 
 # Original report
 
