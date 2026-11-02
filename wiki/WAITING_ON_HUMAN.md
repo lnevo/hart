@@ -9,7 +9,7 @@ The fault fixes and the showcase are merged. Backup sets stay: the plugin warns 
 
 ADR-004 locks still hold: current host JMRI, **CATS** throws CTC switches. Live desks are **CATS CTC** / **CATS ABS** ([ADR-012](decisions/ADR-012-one-digicon-source.md)).
 
-Railroad work that is still open is in [`STATUS.md`](STATUS.md) (Owed) and [`projects/hart-panel.md`](projects/hart-panel.md) (Remaining).
+Railroad work that is still open is in [`STATUS.md`](STATUS.md) (Owed).
 
 ## Future goals (not a gate)
 
