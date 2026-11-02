@@ -42,3 +42,15 @@ OS Switch 7,Block 13-3,10,estimate,cut from Track Main East
 OS Switch 7b,Block 13-4,10,estimate,cut from West Lead
 OS Switch 11,Block 13-2,10,estimate,switch
 OS Switch 9,Block 13-8,10,estimate,switch
+Track K-1,BS Switch 39 / BS K-1,24,estimate,Princess stub east of Switch 39
+Track K-2,BS Switch 37 / BS K-2,24,estimate,stub east of Switch 37
+Track S-1 West,BS S-1,15.748,stub,hidden throat of Track S-1; same detector; not a station
+Track S-1 East,BS S-1,15.748,stub,hidden throat of Track S-1; same detector; not a station
+Track S-2 West,BS S-2,15.748,stub,hidden throat of Track S-2; same detector; not a station
+Track S-2 East,BS S-2,15.748,stub,hidden throat of Track S-2; same detector; not a station
+Track S-3 West,BS S-3,15.748,stub,hidden throat of Track S-3; same detector; not a station
+Track S-3 East,BS S-3,15.748,stub,hidden throat of Track S-3; same detector; not a station
+Track S-4 West,BS S-4,15.748,stub,hidden throat of Track S-4; same detector; not a station
+Track S-4 East,BS S-4,15.748,stub,hidden throat of Track S-4; same detector; not a station
+Track S-R West,BS S-R,15.748,stub,hidden throat of Track S-R; same detector; not a station
+Track S-R East,BS S-R,15.748,stub,hidden throat of Track S-R; same detector; not a station
