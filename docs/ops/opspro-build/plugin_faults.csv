@@ -15,3 +15,5 @@ F13,3A,Silent reuse,"add_industry names the schedule <spur> Schedule and a same-
 F14,3A,Missing field,"add_industry has no pick up or set out list fields, so a spur restricted to one train needs a second update_track action",update_track in the same plan,Open
 F15,3C,Field shape,"add_engine with location set to the track name (Scully Interchange) replies No location; it wants location plus track, unlike the wording of its help",Pass location and track,Open
 F16,3C,Stale help,"ops_actions lists no load field for update_car, yet a plan accepts and applies it; the field list is incomplete",Probe with an unapplied plan,Open
+F17,3D,Missing action,"No action changes a car's type; a car added with the wrong type must be deleted and re-added",delete_car then add_car,Open
+F18,3D,Missing output,"ops_list cars shows location and final destination as ids (5/5s1), not names",Map ids by hand,Open

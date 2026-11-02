@@ -10,3 +10,5 @@ L8,3A,"Give spurs unique names across industries, or create the schedule under i
 L9,3B,"A schedule whose lines point at a track that has no schedule yet still applies; cross-references between the two offline spurs need no ordering"
 L10,3C,"update_car works inside an ops_plan after the add_car for the same car, so a car and its load go in one plan"
 L11,3C,"Passenger types with no track raise type-no-track errors; cars that stay unplaced need accept_new_errors or a track that takes their type"
+L12,3D,"To deliver a car onto a spur, give it the load the schedule line receives (usually E), not the load it carried in the old system; match mode refuses a car no line receives"
+L13,3D,"Check each delivered car's type against the spur's type list before the plan; the tool reports the mismatch only at delivery"

@@ -51,3 +51,10 @@ Written 2026-11-02 during the unattended build ([`OPSPRO_BUILD_PROMPT.md`](OPSPR
 | Q8 | Which day name should the session carry, if any, for the manifest header | None |
 | Q9 | Is "A. Stucki Co." or "A Stucki Co" the name to print (crew card vs STS) | Crew card: "A. Stucki Co." |
 | Q10 | Should Route 23 (streetcar 4678) and the passenger OCS-1 train be in Operations at all | Left out |
+
+## Added during stages 3 and 4
+
+| # | Decision | Reason | To reverse |
+|---|---|---|---|
+| D31 | NW 12986 (STS code HC, a covered hopper) starts empty on Scully Interchange, not on the Shenango coke track where STS had it | K-1 takes Coke Hopper only; the STS position looks like a slip | `place_car` to any covered hopper spot |
+| D32 | Five delivered cars carry a schedule-chosen load that differs from their STS order: CBQ 171856 and BO 133007 Coal, BO 283057 and BO 283069 Steel Coils, RMLI 2018 Plastic Resins | The offline and team-track schedules pick the next load by rotation (D29) | `update_car load` |

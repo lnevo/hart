@@ -55,13 +55,13 @@ BO30222,BO,30222,Coke Hopper,34,66,,Black,,Ordered,on D749,West Yard,W-1,place,E
 BO133007,BO,133007,Hopper,50,88,6-23,Black,,Loaded,CONSOLEN-COAL,McKeesport,CSX Offline,deliver,E,"STS CONSOLEN-COAL; delivered through the CSX Offline schedule, which picks the next load"
 BO132315,BO,132315,Hopper,50,88,6-23,Black,yes,Unavailable,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
 NW12988,NW,12988,Coke Hopper,40,76,5-35,Black,,Unloading,USSTEELE-COKE,McKeesport,CSX Offline,deliver,Coke,"STS USSTEELE-COKE COKE-USS-BULK; delivered through the CSX Offline schedule, which picks the next load"
-NW12986,NW,12986,Covered Hopper,40,76,5-35,Black,,Empty,SHEN-COKE-SHIPPING,Shenango Coke Works,K-1,deliver,E,
+NW12986,NW,12986,Covered Hopper,40,76,5-35,Black,,Empty,SHEN-COKE-SHIPPING,Scully Yard,Scully Interchange,place,E,STS had this covered hopper on the coke shipping track (K-1 takes Coke Hopper only); starts empty on Scully Interchange instead (D31)
 BO625509,BO,625509,Coke Hopper,40,76,,Black,,Unloading,USSTEELE-COKE,McKeesport,CSX Offline,deliver,Coke,"STS USSTEELE-COKE COKE-USS-BULK; delivered through the CSX Offline schedule, which picks the next load"
 BO625943,BO,625943,Coke Hopper,40,76,,Black,,Unloading,USSTEELE-COKE,McKeesport,CSX Offline,deliver,Coke,"STS USSTEELE-COKE COKE-USS-BULK; delivered through the CSX Offline schedule, which picks the next load"
 BO625238,BO,625238,Coke Hopper,40,76,3-56,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
 BO625082,BO,625082,Coke Hopper,40,76,,Black,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,
 CO142374,CO,142374,Hopper,40,,11-80,Black,,Empty,SOUTH-YARD,South Yard,S-1,place,E,
-WLE621,WLE,621,Coke Hopper,40,76,,Black,,Unloading,SHEN-COKE-SHIPPING,Shenango Coke Works,K-1,deliver,Coke,COKE-RELOAD-SHEN
+WLE621,WLE,621,Coke Hopper,40,76,,Black,,Unloading,SHEN-COKE-SHIPPING,Shenango Coke Works,K-1,deliver,E,COKE-RELOAD-SHEN; delivered empty so the K-1 schedule loads it with Coke
 URR15003,URR,15003,Coke Hopper,50,88,11-17,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
 BO132392,BO,132392,Hopper,50,88,,Black,,Empty,SOUTH-YARD,South Yard,S-2,place,E,
 URR15044,URR,15044,Coke Hopper,50,88,11-17,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
