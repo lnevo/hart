@@ -1,0 +1,6 @@
+rule,severity,count,example,why
+type-no-track,error,5,Baggage,"The passenger types exist for the roster only; no track takes them until the owner places the cars (D24)"
+car-unplaced,warning,29,HART 1776,"Cars STS does not position start with no location (D24, Q3)"
+engine-no-train,warning,8,BO 9602,"Spare and display locomotives; D749 and NVL are pinned to CR 1993 and POHC 2091"
+route-stop-dead,warning,1,"D749, West Yard","The tie-down stop does no work on purpose (D8 revised)"
+train-not-on-list,info,2,K-1,"NVL may set out on the coke tracks but only CK1 pulls them (D9)"

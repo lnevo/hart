@@ -1,0 +1,3 @@
+id,what,reason
+H1,"ordered_session.py: five chained jobs through the plugin's own JMRI worker (run_worker with build, only, terminate, save, keep)","ops_dry_run builds every train from one start state and cannot show a hand-off or an interchange emptying; the worker is the plugin's, the chaining is not an action"
+H2,"Legacy Operations files removed with git before stage 2A","The plugin starts a blank railroad only in an empty folder; the old files stay in history at c695b78b"

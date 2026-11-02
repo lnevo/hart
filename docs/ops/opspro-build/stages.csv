@@ -1,0 +1,13 @@
+stage,work,model,state,commit,note
+1,"Mapping, 33 decisions, 10 questions, car start table, 112 schedule lines",Fable 5.1,Done,38f636ef,"Sources: STS session 3 dump, seed config, crew cards, station maps, car repository"
+2A,"Limits, settings, 7 car types, 39 type/load pairs",Sonnet 5.5,Done,4b195dac,"Railroad name had no action (set per train in stage 5)"
+2B,"12 locations, 15 measured tracks",Sonnet 5.5,Done,147ec9e1,"No accepted errors"
+2C,"5 routes, 5 trains, interchange lists",Sonnet 5.5,Done,572a70ca,"Audit clean"
+3A,"6 island industries, 11 spurs, 28 lines",Sonnet 5.5,Done,303924e9,"Caught the shared-schedule trap (F13)"
+3B,"2 offline mirror schedules, 84 lines",Sonnet 5.5,Done,2976dc4b,"No faults"
+3C,"10 locomotives, train power, 69 cars",Sonnet 5.5,Done,30a8a0ec,"Passenger cars stay unplaced"
+3D,"30 cars delivered through schedules",Sonnet 5.5,Done,3041ecb4,"29 of 30; NW 12986 re-placed (D31)"
+4,"Audit, dry run, why_not, diagnoser",Sonnet 5.5,Done,2700f7d8,"All five build; dry run cannot order a session (F22)"
+5,"Automations, manifest settings",Sonnet 5.5,Done,f73dfb41,"Session and Session Replay"
+Order,"Ordered session on chained copies via the plugin worker",Fable 5.1,Done,,"Hand-off at South Yard proved; three design faults found"
+Rework,"D749 from Demmler, alternates refuse E/L, offline spurs last",Fable 5.1,Done,938a619e,"Confirmed by a third ordered run"
