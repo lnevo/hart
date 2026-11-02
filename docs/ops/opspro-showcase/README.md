@@ -6,7 +6,7 @@ The master copy of the railroad stays in the plugin as an example: `plugins/oper
 
 | Path | What it is |
 |---|---|
-| `PLUGIN_FAULTS.md` | The prioritised plugin fault list. It lives only here |
+| `PLUGIN_FAULTS.md` | The plugin fault list, all resolved, with what is still open. It lives only here |
 | `railroad/operations/` | The six Operations XML files, build reports and one backup set |
 | `railroad/GUIDE.md` | The tour of the 43 cases |
 | `railroad/RESULTS.md` | Per-case results and the review summary |
@@ -17,4 +17,4 @@ The master copy of the railroad stays in the plugin as an example: `plugins/oper
 
 `railroad/build.py` expects the plugin's `servers/` folder at its plugin location, so run it from the plugin copy.
 
-To fix the faults, use [`../OPSPRO_PLUGIN_FIXES_PROMPT.md`](../OPSPRO_PLUGIN_FIXES_PROMPT.md).
+The faults were fixed with [`../OPSPRO_PLUGIN_FIXES_PROMPT.md`](../OPSPRO_PLUGIN_FIXES_PROMPT.md), which is kept as history.

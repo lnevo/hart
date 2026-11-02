@@ -1,5 +1,7 @@
 # Prompt: fix the Operations Pro plugin faults
 
+**Done on 2026-11-02, kept as history.** See `docs/ops/opspro-showcase/PLUGIN_FAULTS.md` for the results.
+
 Paste everything below the line into a fresh Claude Code session started in the hart repo, with the plugin active:
 
 `claude --plugin-dir <worktree>/plugins/operations-pro`
