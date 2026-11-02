@@ -95,3 +95,6 @@ jmri/layouts/**/*.xml.bak_*
 
 # Old validator logs and checkpoints kept locally
 archive/panels/sheets/checkpoints/HART_WestYard_BEFORE_rotate180.xml
+
+# Operations Pro plugin backups made when changing the repo copy
+jmri/layouts/hart/operations/backups/
