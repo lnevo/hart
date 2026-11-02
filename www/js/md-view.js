@@ -103,8 +103,8 @@
   // —— Case-aware pass for the walkthrough ——
   // The guide is a run of "### U01. Title" cases, each with labelled lines. This pass splits
   // it into cases and the other sections, and leaves render() above as it was.
-  var LABELS = { "What you can build": "what", "How it works": "how", "Find it": "find",
-                 "See it work": "see", "Try this": "tryit" };
+  var LABELS = { "What you can build": "what", "Why you'd want it": "why", "How it works": "how",
+                 "Set it up": "setup", "Find it": "find", "See it work": "see", "Try this": "tryit" };
 
   // "Find it" names become tags; prose between them stays as text.
   function findHtml(s) {
@@ -145,7 +145,7 @@
 
   function parseCase(c) {
     var r = { code: c.code, id: c.code.toLowerCase(), title: inline(c.title, true), titleText: c.title,
-              what: "", how: "", find: "", see: "", tryit: "", other: "", fallback: "" };
+              what: "", why: "", how: "", setup: "", find: "", see: "", tryit: "", other: "", fallback: "" };
     var raw = {}, other = [], target = null, m;
     c.lines.forEach(function (l) {
       if (!l.trim()) { target = null; return; }
@@ -160,7 +160,9 @@
       }
     });
     r.what = raw.what === undefined ? "" : inline(raw.what, true);
+    r.why = raw.why === undefined ? "" : inline(raw.why);
     r.how = raw.how === undefined ? "" : inline(raw.how);
+    r.setup = raw.setup === undefined ? "" : inline(raw.setup);
     r.find = raw.find === undefined ? "" : findHtml(raw.find);
     r.see = raw.see === undefined ? "" : inline(raw.see);
     r.tryit = raw.tryit === undefined ? "" : inline(raw.tryit);
@@ -169,7 +171,7 @@
     return r;
   }
 
-  // Returns {cases:[{code,id,title,what,how,find,see,tryit,other,fallback}], sections:[{id,title,html}]}.
+  // Returns {cases:[{code,id,title,what,why,how,setup,find,see,tryit,other,fallback}], sections:[{id,title,html}]}.
   // Sections are the guide's "##" parts other than "Part N"; text before the first one is
   // the "intro" section. Nothing in the guide is dropped except the key table, rules and Part headings.
   function renderCases(text) {

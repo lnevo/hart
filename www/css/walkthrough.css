@@ -154,3 +154,6 @@
   .walk-body .case-what { display: block; overflow: visible; }
   .walk-body .case summary::after { content: none; }
 }
+
+/* One or two sentences under a goal heading. */
+.walk-body .goal-about { max-width: 44rem; margin: 0 0 0.8rem; color: var(--ink-soft); }

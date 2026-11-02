@@ -28,7 +28,7 @@
           <button type="button" id="case-toggle" class="walk-btn" disabled>Open all</button>
         </div>
         <p id="case-status" class="walk-status" role="status" aria-live="polite"></p>
-        <p class="walk-key">Every case: What you can build &middot; How it works &middot; Find it &middot; See it work &middot; Try this.</p>
+        <p class="walk-key">Every case: What you can build · Why you'd want it · How it works · Set it up · Find it · See it work · Try this.</p>
         <p class="walk-setup">To follow along you need the railroad's files: see <a href="#before">Before you begin</a>.</p>
       </div>
 
@@ -46,16 +46,16 @@
     // run: 0 = "What your railroad does", 1 = "How a car finds its way".
     var RUNS = ["What your railroad does", "How a car finds its way"];
     var GROUPS = [
-      { name: "Give cars a reason to move", covers: "Loads, schedules, divisions", run: 0, codes: ["U01", "U02", "U03", "U09", "U10", "U21", "U24"] },
-      { name: "Decide where cars go", covers: "Move counts, pools, full spurs", run: 0, codes: ["U04", "U05", "U11", "U19"] },
-      { name: "Run staging and fiddle yards", covers: "Generated loads, swaps, virtual spurs", run: 0, codes: ["U06", "U07", "U08", "U12"] },
-      { name: "Build the trains you want", covers: "Equipment, passenger and special cars", run: 0, codes: ["U13", "U16", "U18", "U22"] },
-      { name: "Run the session", covers: "Days, automations, paperwork, backups", run: 0, codes: ["U14", "U15", "U17", "U20", "U23"] },
-      { name: "Move a car with one or more trains", covers: "Interchanges, yards, chains, staging", run: 1, codes: ["R01", "R02", "R03", "R04", "R05", "R19"] },
-      { name: "Set what a train or track takes", covers: "Filters, routed cars, directions", run: 1, codes: ["R06", "R07", "R08", "R13", "R14", "R15"] },
-      { name: "Handle full tracks", covers: "Alternates and overflow", run: 1, codes: ["R09", "R10"] },
-      { name: "Work a yard or town with a switcher", covers: "A/D tracks, local moves", run: 1, codes: ["R11", "R12", "R16"] },
-      { name: "Connect to the outside world", covers: "Off-layout interchanges", run: 1, codes: ["R17", "R18"] }
+      { name: "Give cars a reason to move", about: "Loads and schedules give each car a job. These cases turn cars that wander into shipments with a shipper, a customer and a reason to be on the train.", covers: "Loads, schedules, divisions", run: 0, codes: ["U01", "U02", "U03", "U09", "U10", "U21", "U24"] },
+      { name: "Decide where cars go", about: "When more than one track could take a car, the builder has to choose. These cases show how to steer that choice and keep busy tracks working.", covers: "Move counts, pools, full spurs", run: 0, codes: ["U04", "U05", "U11", "U19"] },
+      { name: "Run staging and fiddle yards", about: "Staging is where trains come from and go to. These cases keep it supplied, send its cars out with a purpose and stop it blocking the next train.", covers: "Generated loads, swaps, virtual spurs", run: 0, codes: ["U06", "U07", "U08", "U12"] },
+      { name: "Build the trains you want", about: "A train is more than a list of cars. These cases cover the equipment, the order of the train and the cars that need special handling.", covers: "Equipment, passenger and special cars", run: 0, codes: ["U13", "U16", "U18", "U22"] },
+      { name: "Run the session", about: "These cases are about operating day itself: which trains run, what the crews read, and how to run a session and recover from one.", covers: "Days, automations, paperwork, backups", run: 0, codes: ["U14", "U15", "U17", "U20", "U23"] },
+      { name: "Move a car with one or more trains", about: "Give a car a final destination and JMRI works out how to get it there. These cases start with one train and grow to chains and trips through staging.", covers: "Interchanges, yards, chains, staging", run: 1, codes: ["R01", "R02", "R03", "R04", "R05", "R19"] },
+      { name: "Set what a train or track takes", about: "Routing follows the rules you set on trains and tracks. These cases show the settings that open or close a path.", covers: "Filters, routed cars, directions", run: 1, codes: ["R06", "R07", "R08", "R13", "R14", "R15"] },
+      { name: "Handle full tracks", about: "Tracks fill up during a busy session. These cases keep cars moving when the first choice has no room.", covers: "Alternates and overflow", run: 1, codes: ["R09", "R10"] },
+      { name: "Work a yard or town with a switcher", about: "A switcher works one place rather than running the line. These cases set up that local work, from a sorting yard to a town split in two.", covers: "A/D tracks, local moves", run: 1, codes: ["R11", "R12", "R16"] },
+      { name: "Connect to the outside world", about: "Your railroad doesn't end at the edge of the layout. These cases stand in for the railroads you don't model.", covers: "Off-layout interchanges", run: 1, codes: ["R17", "R18"] }
     ];
     var GUIDE_GITHUB = "https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/";
     var OPS_GITHUB = "https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations";
@@ -79,7 +79,9 @@
         (c.what ? '<span class="case-what">' + c.what + "</span>" : "") + "</summary>";
       var body;
       if (c.what && c.how && c.find && c.see) {
-        body = '<dl class="case-list"><dt>How it works</dt><dd>' + c.how + "</dd>" +
+        body = '<dl class="case-list">' + (c.why ? "<dt>Why you'd want it</dt><dd class=\"case-why\">" + c.why + "</dd>" : "") +
+          "<dt>How it works</dt><dd>" + c.how + "</dd>" +
+          (c.setup ? "<dt>Set it up</dt><dd>" + c.setup + "</dd>" : "") +
           '<dt>Find it</dt><dd class="tags">' + c.find + "</dd></dl>" +
           '<div class="panel see"><h4>See it work</h4><p>' + c.see + "</p></div>" +
           (c.tryit ? '<div class="panel try"><h4>Try this</h4><p>' + c.tryit + "</p></div>" : "") +
@@ -105,7 +107,7 @@
           console.warn("Walkthrough GROUPS lists a case the guide lacks:", k);
           return false;
         });
-        return { name: g.name, covers: g.covers, run: g.run, cases: codes.map(function (k) { return byCode[k]; }) };
+        return { name: g.name, covers: g.covers, about: g.about, run: g.run, cases: codes.map(function (k) { return byCode[k]; }) };
       });
       var left = res.cases.filter(function (c) { return !seen[c.code]; });
       if (left.length) {
@@ -121,6 +123,7 @@
           '<h2 id="' + g.id + '-h"><span class="num">' + g.num + '</span><span class="goal-name">' + esc(g.name) + "</span>" +
           '<span class="count">&middot; ' + plural(g.cases.length) + "</span>" +
           '<a class="up" href="#goals">&uarr; All goals</a></h2>' +
+          (g.about ? '<p class="goal-about">' + esc(g.about) + "</p>" : "") +
           g.cases.map(function (c, i) {
             return cardHtml(c, g.cases[i - 1], g.cases[i + 1], g.id, g.num);
           }).join("") + "</section>";
@@ -193,7 +196,7 @@
       var cards = Array.prototype.slice.call(document.querySelectorAll("details.case"));
       var goals = Array.prototype.slice.call(document.querySelectorAll("section.goal"));
       cards.forEach(function (d) {
-        var parts = [d.querySelector(".case-title"), d.querySelector(".case-what"), d.querySelector(".tags")];
+        var parts = [d.querySelector(".case-title"), d.querySelector(".case-what"), d.querySelector(".case-why"), d.querySelector(".tags")];
         d.dataset.text = (d.dataset.code + " " + parts.map(function (n) { return n ? n.textContent : ""; }).join(" ")).toLowerCase();
       });
 
