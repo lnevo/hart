@@ -17,6 +17,25 @@ if (Test-Path $src) {
   Write-Host 'No tables.xml in the drop (skip tables)'
 }
 
+# Operations Pro files (ADR-015). A running JMRI would overwrite them, so skip them then.
+$opsSrc = Join-Path $hart 'operations'
+if (Test-Path $opsSrc) {
+  $opsDest = Join-Path $env:USERPROFILE 'JMRI_UserFiles\operations'
+  if (Get-Process java -ErrorAction SilentlyContinue) {
+    Write-Host 'SKIP Operations files: JMRI is running and would overwrite them. Deploy again with it closed.'
+  } else {
+    New-Item -ItemType Directory -Force -Path $opsDest | Out-Null
+    Get-ChildItem $opsDest -Filter 'Operations*.xml' -File -ErrorAction SilentlyContinue |
+      Where-Object { Test-Path (Join-Path $opsSrc $_.Name) } | ForEach-Object {
+        $backup = Join-Path $opsDest 'backups\pre_deploy'
+        New-Item -ItemType Directory -Force -Path $backup | Out-Null
+        Copy-Item $_.FullName $backup -Force
+      }
+    Copy-Item (Join-Path $opsSrc '*.xml') $opsDest -Force
+    Write-Host ("Operations files -> {0}" -f $opsDest)
+  }
+}
+
 $homeHtml = Join-Path $hart 'cats\resources\jmri-web\servlet\home\Home.html'
 if (Test-Path $homeHtml) {
   $roots = New-Object System.Collections.Generic.List[string]

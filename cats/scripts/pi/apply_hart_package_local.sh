@@ -16,6 +16,9 @@ chmod +x "$HART/cats/scripts/pi/"*.sh "$HART/cats/scripts/pi/JMRI_CATS" \
 
 mkdir -p "$UF"
 
+# First, so unpulled session state stops the deploy before anything changes.
+bash "$HART/cats/scripts/install_ops_files.sh" "$HART/operations" "$UF/operations" --guard
+
 # CATS has no JMRI home: it opens real paths, so its files live here.
 CATS_HOME="$UF/cats"
 mkdir -p "$CATS_HOME/panels" "$CATS_HOME/launch" "$CATS_HOME/logs"
