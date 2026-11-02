@@ -55,7 +55,7 @@
           <p>The Operations Pro plugin is an attempt at that problem. To test it, it was used to build a small invented railroad from a blank folder, and the result was written up as a walkthrough you can follow in your own copy of JMRI.</p>
           <div class="aside-box cta">
             <h3>Start here</h3>
-            <p>Forty-three cases on the Juniper Falls &amp; Northern, each one something you can build on your own railroad, shown working. You read what it gives you and how it works, find it on the railroad, ask Claude to show it working, and can break it on purpose.</p>
+            <p>Forty-three cases on the Juniper Falls &amp; Northern, each one something you can build on your own railroad, shown working. You read what it gives you, why you'd want it and how to set it up, find it on the railroad, ask Claude to show it working, and can break it on purpose.</p>
             <p><a class="btn" href="opspro-showcase-guide.html">Open the walkthrough</a> <a class="btn btn-ghost" href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro">Get the plugin on GitHub</a></p>
           </div>
         </section>
@@ -93,7 +93,7 @@
           <p>Case R02 in the walkthrough is a car that needs two trains. JFN 5201 starts at Carrow Packing and has to reach Cold Store at Northwood. The train <code>EAST FREIGHT</code> does not call at Northwood after the car's stop, so on its own it cannot deliver the car.</p>
           <p>Asked about that move with <code>EAST FREIGHT</code> named, <code>ops_why_not</code> reports that the car can move. The router found the route: two trains through the interchange Ferris Exchange, <code>EAST FREIGHT</code> then <code>NORTH JOB</code>. Its direct check, the one-train reading, fails at gate D1, "no stop at Northwood after the car's stop on this route". That is the reason one train alone cannot do it.</p>
           <p>The guide then says what real JMRI 5.16 did. In session 1 the car is left on Ferris Exchange with load Produce. In session 2 it reaches Cold Store, and the schedule turns it into an empty. The guide's "Try this" shows the other side: tell the interchange it may only send cars to Linden, and the same question fails at G12, "no chain of trains found". In a build the car stays at Carrow Packing with no destination.</p>
-          <p>That is the pattern in every case: what you can build, how it works, where to find it, how to see it work, and a change to try.</p>
+          <p>That is the pattern in every case: what you can build, why you'd want it, how it works, how to set it up, where to find it, how to see it work, and a change to try.</p>
         </section>
 
         <section id="built" aria-labelledby="h-built">
@@ -174,7 +174,7 @@
           <ol class="step-list">
             <li><b>Copy the railroad.</b> Copy the <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations"><code>operations/</code> folder</a> into a scratch JMRI profile, or open it with the plugin's reading tools. Nothing in it needs changing.</li>
             <li><b>Pick a case.</b> The index at the top of the guide links each one.</li>
-            <li><b>Read, find, ask.</b> Read <i>What you can build</i> and <i>How it works</i>, find the objects named under <i>Find it</i>, then ask Claude the question under <i>See it work</i>. Name the train when you ask about a car.</li>
+            <li><b>Read, find, ask.</b> Read <i>What you can build</i>, <i>Why you'd want it</i>, <i>How it works</i> and <i>Set it up</i>, find the objects named under <i>Find it</i>, then ask Claude the question under <i>See it work</i>. Name the train when you ask about a car.</li>
             <li><b>Break it, if you like.</b> <i>Try this</i> names one change to make on the scratch copy, and says what the tool then reports. Never run it on the shipped folder.</li>
           </ol>
           <p>The guide itself is the plugin's own file, shown on this site without changes. It sits beside the railroad in the plugin's repository, which is the master.</p>
