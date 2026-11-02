@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Operations Pro Plugin — HART</title>
+  <meta name="description" content="A Claude Code plugin that sets up, checks, changes and explains a JMRI Operations Pro railroad, and the invented railroad it built as its own test, with a 43-case walkthrough.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <style>
+    /* Build-stages figure: shapes use the site tokens. */
+    .stage-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
+    .stage-svg .rail { stroke: var(--rule); stroke-width: 3; }
+    .stage-svg .dot { fill: var(--card); stroke: var(--brand); stroke-width: 3; }
+    .stage-svg .dot.now { fill: var(--brand); }
+    .stage-svg .pill { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; }
+    .stage-svg text { fill: var(--ink); font-size: 15px; }
+    .stage-svg .t-b { font-weight: 700; }
+    .stage-svg .t-s { fill: var(--muted); font-size: 14px; }
+    .stage-svg .t-p { font-size: 14px; font-weight: 700; }
+    /* Walkthrough call to action. */
+    .feature-body .cta { border-top-color: var(--accent); }
+    .feature-body .cta h3 { margin: 0 0 0.35rem; }
+    .feature-body .cta .btn { margin-top: 0.3rem; }
+    .feature-body .scorecard { width: 100%; border-collapse: collapse; font-family: var(--font-body); font-size: 0.95rem; margin: 0 0 1.05rem; }
+    .feature-body .scorecard th, .feature-body .scorecard td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    .feature-body .scorecard th { background: var(--paper-2); }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>The Operations Pro Plugin</h1>
+        <p class="standfirst">A plugin for Claude Code that sets up, checks, changes and explains a JMRI Operations Pro railroad, and tells you why a car will not move. It built an invented railroad as its own test, and a 43-case walkthrough came out of that.</p>
+        <p class="byline">From the workbench · November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#what">What it is</a></li>
+          <li><a href="#can">What it can do</a></li>
+          <li><a href="#example">One case, up close</a></li>
+          <li><a href="#built">How it built the demo</a></li>
+          <li><a href="#wrong">What went wrong</a></li>
+          <li><a href="#checked">How the claims were checked</a></li>
+          <li><a href="#walkthrough">Using the walkthrough</a></li>
+          <li><a href="#get">Get it</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">JMRI Operations Pro can run a whole railroad's freight traffic: cars, loads, schedules, trains, staging. It is also hard to read when it fails. A car sits on a track and nothing says why. A train will not build and the report runs to hundreds of lines.</p>
+          <p>The Operations Pro plugin is an attempt at that problem. To test it, it was used to build a small invented railroad from a blank folder, and the result was written up as a walkthrough you can follow in your own copy of JMRI.</p>
+          <div class="aside-box cta">
+            <h3>Start with the walkthrough</h3>
+            <p>Forty-three cases on the Juniper Falls &amp; Northern, each one a setup that people found hard, shown done correctly. You read the difficulty, find the objects, confirm it with a tool, and can break it on purpose.</p>
+            <p><a class="btn" href="opspro-showcase-guide.html">Open the walkthrough</a></p>
+          </div>
+        </section>
+
+        <section id="what" aria-labelledby="h-what">
+          <h2 id="h-what"><span class="num">01</span>What it is</h2>
+          <p>It is a plugin for Claude Code, an AI coding assistant. You ask in plain words and it does the work with a set of tools made for Operations Pro. It has two parts. A written skill carries the rules the program applies, such as the order in which the train builder tests a car. The tools do the work at the level of the railroad, not one field at a time, so a change that spans many screens is made in one step.</p>
+          <p>The rules were checked against the JMRI 5.16 source or tested in JMRI 5.16, except where a reference file says a point was not checked. That is the version it is written for. Other versions may differ.</p>
+          <p>Its status is <b>in development</b>. At the time of writing the README counts 85 actions and 21 tools. It is not a finished product, and it has not been checked on versions of JMRI other than 5.16.</p>
+        </section>
+
+        <section id="can" aria-labelledby="h-can">
+          <h2 id="h-can"><span class="num">02</span>What it can do</h2>
+          <ul class="chips" aria-label="Capabilities">
+            <li>Set up from nothing</li>
+            <li>Audit a railroad</li>
+            <li>Change files safely</li>
+            <li>Run trains in JMRI</li>
+            <li>Explain a build</li>
+            <li>Explain a stuck car</li>
+          </ul>
+          <ol class="step-list">
+            <li><b>Set up a railroad from nothing.</b> Locations, tracks, industries with schedules, routes, trains, loads, cars, locomotives, train days and paperwork settings, in the order the program needs. A folder with no Operations files starts as an empty railroad.</li>
+            <li><b>Audit one.</b> <code>ops_audit</code> looks across the railroad for faults such as a car type no train can carry, a locomotive no train takes, or a schedule with only one destination.</li>
+            <li><b>Change the files safely, with JMRI exited.</b> JMRI holds Operations data in memory and writes whole files, so an edit made while it runs can be overwritten. Every change is a plan you see first, then a backup, the change, an audit, and a restore if anything fails. Move counts are kept, because they steer the builder.</li>
+            <li><b>Run trains in a running JMRI.</b> Build, move, terminate and reset trains through a small agent that JMRI runs from its startup scripts.</li>
+            <li><b>Explain what the builder did.</b> <code>ops_explain_build</code> reads the build report JMRI writes and names the gate behind each refusal, the tracks tried, and the screen that changes it.</li>
+            <li><b>Explain why a car will not move.</b> <code>ops_why_not</code> walks each requirement in the builder's order and names the setting that blocks the car.</li>
+          </ol>
+          <p>It can also check a change against JMRI's own builder: <code>ops_build_check</code> builds copies of your files several times each side of a change and compares the results, and <code>ops_dry_run</code> builds and terminates every enabled train on a copy.</p>
+        </section>
+
+        <section id="example" aria-labelledby="h-example">
+          <h2 id="h-example"><span class="num">03</span>One case, up close</h2>
+          <p>Case R02 in the walkthrough is a car that needs two trains. JFN 5201 starts at Carrow Packing and has to reach Cold Store at Northwood. The train <code>EAST FREIGHT</code> does not call at Northwood after the car's stop, so on its own it cannot deliver the car.</p>
+          <p>Asked about that move with <code>EAST FREIGHT</code> named, <code>ops_why_not</code> reports that the car can move. The router found the route: two trains through the interchange Ferris Exchange, <code>EAST FREIGHT</code> then <code>NORTH JOB</code>. Its direct check, the one-train reading, fails at gate D1, "no stop at Northwood after the car's stop on this route". That is the reason one train alone cannot do it.</p>
+          <p>The guide then says what real JMRI 5.16 did. In session 1 the car is left on Ferris Exchange with load Produce. In session 2 it reaches Cold Store, and the schedule turns it into an empty. The guide's "Try this" shows the other side: tell the interchange it may only send cars to Linden, and the same question fails at G12, "no chain of trains found". In a build the car stays at Carrow Packing with no destination.</p>
+          <p>That is the pattern in every case: a difficulty, where to find it, a tool that confirms it, and a change that breaks it.</p>
+        </section>
+
+        <section id="built" aria-labelledby="h-built">
+          <h2 id="h-built"><span class="num">04</span>How it built the demo</h2>
+          <p>The Juniper Falls &amp; Northern is invented, with invented towns, industries and roads. It has no connection to any real layout. It has 15 locations, 18 trains, 118 cars and 7 locomotives. It was built by the plugin itself, as the test of the plugin.</p>
+          <p>The brief was to build a railroad that works, where every train builds and every car goes where the design intends. Its cases were drawn from setups that people on a model railroad user list found hard, shown set up correctly, plus every kind of routing the plugin's skill covers.</p>
+          <figure>
+            <svg class="stage-svg" viewBox="0 0 480 400" role="img" aria-labelledby="st-t st-d">
+              <title id="st-t">The build, stage by stage</title>
+              <desc id="st-d">Six stages from blank to checked. Plan, proved on throwaway railroads. Skeleton, with locations, routes, trains and options. Six batches of cases, A to F. Replay of every step with the plugin's own tools. Ship, with one JMRI load and save and a real build of every train. Check, with tests and a review of 201 claims.</desc>
+              <line class="rail" x1="24" y1="36" x2="24" y2="348"/>
+              <circle class="dot" cx="24" cy="36" r="9"/>
+              <text class="t-b" x="48" y="33">1 Plan</text>
+              <text class="t-s" x="48" y="52">Proved on throwaway railroads</text>
+              <rect class="pill" x="318" y="21" width="152" height="30" rx="15"/>
+              <text class="t-p" x="394" y="41" text-anchor="middle">A design file</text>
+              <circle class="dot" cx="24" cy="98" r="9"/>
+              <text class="t-b" x="48" y="95">2 Skeleton</text>
+              <text class="t-s" x="48" y="114">Locations, routes, 18 trains, options</text>
+              <rect class="pill" x="318" y="83" width="152" height="30" rx="15"/>
+              <text class="t-p" x="394" y="103" text-anchor="middle">From blank</text>
+              <circle class="dot" cx="24" cy="160" r="9"/>
+              <text class="t-b" x="48" y="157">3 Six batches</text>
+              <text class="t-s" x="48" y="176">Cases built in parallel, A to F</text>
+              <rect class="pill" x="318" y="145" width="152" height="30" rx="15"/>
+              <text class="t-p" x="394" y="165" text-anchor="middle">Plugin actions</text>
+              <circle class="dot" cx="24" cy="222" r="9"/>
+              <text class="t-b" x="48" y="219">4 Replay</text>
+              <text class="t-s" x="48" y="238">Every step redone with the tools</text>
+              <rect class="pill" x="318" y="207" width="152" height="30" rx="15"/>
+              <text class="t-p" x="394" y="227" text-anchor="middle">Same files</text>
+              <circle class="dot" cx="24" cy="284" r="9"/>
+              <text class="t-b" x="48" y="281">5 Ship</text>
+              <text class="t-s" x="48" y="300">One JMRI load and save, real builds</text>
+              <rect class="pill" x="318" y="269" width="152" height="30" rx="15"/>
+              <text class="t-p" x="394" y="289" text-anchor="middle">18 of 18 build</text>
+              <circle class="dot now" cx="24" cy="346" r="9"/>
+              <text class="t-b" x="48" y="343">6 Check</text>
+              <text class="t-s" x="48" y="362">Tests, then a review of 201 claims</text>
+              <rect class="pill" x="318" y="331" width="152" height="30" rx="15"/>
+              <text class="t-p" x="394" y="351" text-anchor="middle">Guide corrected</text>
+            </svg>
+            <figcaption><strong>The build.</strong> Six stages from a blank folder to a checked guide. The right-hand label is what each stage left behind.</figcaption>
+          </figure>
+          <p>In the first stage, the design was tried on throwaway railroads in real JMRI 5.16, using plugin actions only. What it proved shaped the plan, such as the way two trains that share a staging track take turns unless the track has planned pick ups. The second stage built a shared skeleton in one plan: the locations, the 18 routes and trains, and the global options.</p>
+          <p>The third stage built the cases in six batches, A to F, each owning its own locations and tracks so a pointer in the guide names one thing. The batches were then replayed in order on a fresh skeleton. The batches were applied with the plugin's actions, and a car's final destination with <code>ops_deliver_car</code>. In places this went through the plugin's server functions from a script, which is why the next stage exists. The record lists no hand edits to the Operations files.</p>
+          <p>In the fourth stage, every step of every batch was applied again through the plugin's native tools on a fresh copy, by helpers that were not allowed to write scripts. The six Operations XML files from that copy were byte for byte the same as the scripted replay, before JMRI's own save was merged in. The shipped folder is that replay, one real JMRI load and save, and a real build of every train, which gives each train a build report in the folder.</p>
+        </section>
+
+        <section id="wrong" aria-labelledby="h-wrong">
+          <h2 id="h-wrong"><span class="num">05</span>What went wrong</h2>
+          <p>Plenty. Two things came out of building it.</p>
+          <p><b>The cases did not all behave as expected.</b> Of 43 cases, 14 worked first time. The other 29 needed rework. For 25 of the 43, the case was reworded to match what real JMRI did, and 18 were proved as first written. None was dropped. Some examples from the record:</p>
+          <ul>
+            <li>Two depots that case U06 needs were in the plan but never built. They were found when the cases met, and added.</li>
+            <li>In the first session, default boxcars of other cases were drawn onto three Carrow spurs. Road lists were added to fence them out.</li>
+            <li>A "Try this" prediction for R15 was wrong, and was replaced with what JMRI did.</li>
+            <li>An automation that waits for a train it has itself terminated never finishes in JMRI 5.16, so a second automation, <code>Close Out</code>, does the terminating.</li>
+          </ul>
+          <p><b>The plugin had faults.</b> The build surfaced 25, and no plugin code was changed while it ran. The worst gave a wrong answer. <code>ops_why_not</code> said a car could not move when JMRI moved it, and said a car could move when JMRI left it in staging. <code>ops_audit</code> raised a warning whose verdict depended on the order of cars in a file. Other items were friction: action fields that were hard to discover, and output that ran to tens of kilobytes. After the build, all 25 were fixed or settled.</p>
+          <p>A second review of the plugin then found 26 more faults. All are merged. Three limits were recorded and not fixed, and they appear in the guide's "Known limits". <code>ops_why_not</code> does not follow a load generated for a staging-to-staging move. A locomotive with no terminal track shows as not checked, though that build fails. Overlapping staging pool dates also show as not checked.</p>
+        </section>
+
+        <section id="checked" aria-labelledby="h-checked">
+          <h2 id="h-checked"><span class="num">06</span>How the claims were checked</h2>
+          <p>The guide's rule is that what a case says is what real headless JMRI 5.16 did on that railroad. Each case is asserted in a test that runs JMRI, in three chains of three sessions. A reader can see the same results with the plugin's own tools.</p>
+          <table class="scorecard">
+            <thead><tr><th>Check</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td>Cases</td><td>43: 24 use-cases (U01 to U24) and 19 routing variations (R01 to R19)</td></tr>
+              <tr><td>Trains that build in session 1</td><td>All 18. Four staging trains run out of cars in later sessions, by design</td></tr>
+              <tr><td>Behaviour check of each case</td><td>18 proved as first written, 25 reworded, 0 dropped</td></tr>
+              <tr><td>Independent review of the guide</td><td>201 claims: 181 passed, 17 failed, 3 could not be verified. The guide was corrected from the failures</td></tr>
+              <tr><td>Audit of the shipped railroad</td><td>Three findings, none an error, kept on purpose and listed in the guide</td></tr>
+              <tr><td>Test suite</td><td>The fault record states 778 tests passing on JMRI 5.16 on 2 November 2026</td></tr>
+            </tbody>
+          </table>
+          <p>The plugin was also tried with five new Claude sessions, each asked one plain question with no tool named. The skill loaded in all five, and the right tools were chosen. The diagnosing agent, which reads reports with read-only tools, was used in none of them. After fixes, a second set of five questions had it run in three, and the skill loaded in three. Five sessions is a small sample.</p>
+        </section>
+
+        <section id="walkthrough" aria-labelledby="h-walk">
+          <h2 id="h-walk"><span class="num">07</span>Using the walkthrough</h2>
+          <p>The walkthrough has 43 cases in two parts. <b>U</b> cases are use-cases, setups that people found hard, from industries that receive empties to a RIP track. <b>R</b> cases are routing variations, from one train direct to a staging-to-staging turn.</p>
+          <ol class="step-list">
+            <li><b>Copy the railroad.</b> Copy the <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations"><code>operations/</code> folder</a> into a scratch JMRI profile, or open it with the plugin's reading tools. Nothing in it needs changing.</li>
+            <li><b>Pick a case.</b> The index at the top of the guide links each one.</li>
+            <li><b>Read, find, confirm.</b> Read <i>The difficulty</i>, find the objects named under <i>Find it</i>, then use the tool under <i>Confirm it</i>. Name the train when you ask <code>ops_why_not</code>.</li>
+            <li><b>Break it, if you like.</b> <i>Try this</i> names one change to make on the scratch copy, and says what the tool then reports. Never run it on the shipped folder.</li>
+          </ol>
+          <p>The guide itself is the plugin's own file, shown on this site without changes. It sits beside the railroad in the plugin's repository, which is the master.</p>
+          <div class="aside-box cta">
+            <h3>Open the walkthrough</h3>
+            <p>43 cases: 24 use-cases and 19 routing variations. Keep the railroad's <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations"><code>operations/</code> folder</a> beside you.</p>
+            <p><a class="btn" href="opspro-showcase-guide.html">Open the walkthrough</a></p>
+          </div>
+        </section>
+
+        <section id="get" aria-labelledby="h-get">
+          <h2 id="h-get"><span class="num">08</span>Get it</h2>
+          <p>The plugin is public and free, under the MIT licence: <a href="https://github.com/lnevo/model-railroad-skills">github.com/lnevo/model-railroad-skills</a>. It is a separate install from the read-only skills in the same repository, because it changes your data. Add the repository as a plugin marketplace in Claude Code, then install it:</p>
+<pre>claude plugin marketplace add lnevo/model-railroad-skills
+claude plugin install operations-pro@model-railroad-skills</pre>
+          <p>Then point it at your Operations folder with the <code>OPS_DIR</code> setting, or pass the folder with each call. A few tools run JMRI's own builder on copies, and those need JMRI installed.</p>
+          <p>To run trains in a live JMRI, add a startup item for the web server in JMRI's preferences, exit JMRI, run <code>ops_install_agent</code> and apply its plan, then start JMRI.</p>
+          <div class="aside-box">
+            <h3>Know before you use it</h3>
+            <ul>
+              <li><b>Status:</b> in development. Rules are written for JMRI 5.16.</li>
+              <li><b>File changes need JMRI fully exited.</b> The tools check the computer they run on, but cannot see another computer that has the same folder open.</li>
+              <li><b>It does not</b> write a train's build or terminate script, change a track's type, set a car's final destination, or print. JMRI's own importer errors are not diagnosed. Moving between JMRI versions is outside what was checked.</li>
+              <li><b>Take a backup first.</b> The plugin takes its own before each change, in JMRI's <code>backups</code> folder, but your own copy is cheap.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="references" aria-labelledby="h-refs">
+          <h2 id="h-refs"><span class="num">Notes</span>References</h2>
+          <ol class="refs">
+            <li id="ref-1">model-railroad-skills, the public Claude Code plugin repository (GitHub). <a href="https://github.com/lnevo/model-railroad-skills">github.com/lnevo/model-railroad-skills</a></li>
+            <li id="ref-2">The Operations Pro plugin README (GitHub). <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro">plugins/operations-pro</a></li>
+            <li id="ref-3">The showcase walkthrough, master copy (GitHub). <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/GUIDE.md">examples/showcase/GUIDE.md</a>. Read it on this site: <a href="opspro-showcase-guide.html">the walkthrough</a></li>
+            <li id="ref-4">JMRI, Java Model Railroad Interface. <a href="https://www.jmri.org/">jmri.org</a></li>
+          </ol>
+          <p class="feature-more">More: <a href="opspro-showcase-guide.html">The walkthrough</a> · <a href="how-it-was-built-article.html">Bringing the Railroad Together</a> · <a href="stl-studio-article.html">STL Studio</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-opspro").catch(function (err) {
+        console.error(err);
+      });
+
+      // Mark the contents entry for the section being read.
+      var links = Array.prototype.slice.call(document.querySelectorAll(".feature-toc a"));
+      if (!("IntersectionObserver" in window) || !links.length) return;
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting || !byId[e.target.id]) return;
+          links.forEach(function (a) { a.removeAttribute("aria-current"); });
+          byId[e.target.id].setAttribute("aria-current", "true");
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      Object.keys(byId).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>
