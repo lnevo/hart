@@ -172,13 +172,13 @@ Max train length 1000 ft at every stop. Trains take every car type and road (`ad
 - `deliver`: `add_car` on the interchange of that side (Scully Interchange for McKees Rocks and the island, Demmler Interchange for McKeesport), set the load, then `ops_deliver_car` to the start track so the schedule runs and the car gets its next load and final destination, as Set Car would. The STS load is kept where a receive line exists for it; otherwise the car is delivered empty (D29).
 - `none`: `add_car` with no location. These are the 28 cars STS does not hold (passenger cars, cabooses, no-photo freight cars) and HART 1776 (D24).
 
-Cars STS had on D749 at session end sit on W-1, the train tied down. Ten cars are out of service (repository flag, STS Unavailable).
+Cars STS had on D749 at session end sit on Demmler Interchange with CR 1993: on paper D749 departs Demmler with them, physically the train is tied down in West Yard. Ten cars are out of service (repository flag, STS Unavailable).
 
 Locomotives (road, number, model, type Diesel, length, hp, start track):
 
 | Engine | Model | Length | HP | Start |
 |---|---|---|---|---|
-| CR 1993 | B23-7 | 62 | 2250 | West Yard W-1 (D749's power) |
+| CR 1993 | B23-7 | 62 | 2250 | Demmler Interchange (D749's power; on paper the train departs Demmler, physically it sleeps in West Yard) |
 | POHC 2091 | GP20 | 56 | 2000 | Scully Interchange (NVL's power) |
 | BO 9602 | SW1200 | 45 | 1200 | South Yard EH-1 |
 | BO 572 | NW2 | 45 | 1000 | South Yard EH-1 |
