@@ -22,6 +22,8 @@ Updated: 2026-10-31 — JMRI upgraded to production 5.16 on the Mac (from 5.15.5
 
 Updated: 2026-10-31 — The final cleanup epic from ADR-007 is listed under Future goals in `STATUS.md`, because it had dropped out of the open lists. Docs only; not deployed.
 
+Updated: 2026-11-02 — Operations Pro files moved into `jmri/layouts/hart/operations/` (ADR-015) and installed on the Pi with the 10 STS Unavailable cars Out of Service; backup `operations/backups/pre_repo_20261102_154929`. Mac `JMRI_UserFiles` brought up to the Pi.
+
 Updated: 2026-10-31 — Pi Operations Pro roster brought up to the repository: 10 wrong ids corrected in place and 9 cars added, for 99 cars. `push_ops_cars_to_pi.sh` safety check fixed; it could never fire before. Deployed the roster to the Pi; backup `OperationsCarRoster.xml.pre_cars_20261031_173430`.
 
 Updated: 2026-10-31 — The United We Stand boxcar is HART 1776, a placeholder number, and is not yet in STS or Operations Pro. Dead links fixed in `jmri/README.md`. Docs and car data only; not deployed.
