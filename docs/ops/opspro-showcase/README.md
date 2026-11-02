@@ -8,7 +8,8 @@ The master copy of the railroad stays in the plugin as an example: `plugins/oper
 |---|---|
 | `PLUGIN_FAULTS.md` | The plugin fault list, all resolved, with the known limits. It lives only here |
 | `railroad/operations/` | The six Operations XML files, build reports and one backup set |
-| `railroad/GUIDE.md` | The tour of the 43 cases |
+| `railroad/GUIDE.md` | The plain-language tour of the 43 cases |
+| `railroad/REFERENCE.md` | The same cases with the exact tool calls and test detail |
 | `railroad/RESULTS.md` | Per-case results and the review summary |
 | `railroad/PLAN.md` | The design plan, with an as-built note |
 | `railroad/build/`, `railroad/build.py` | The steps that rebuild the railroad from blank |
