@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operations Pro Walkthrough — HART</title>
+  <meta name="description" content="The 43-case walkthrough of the Juniper Falls & Northern, an invented railroad built to show what JMRI Operations Pro can do: the difficulty, where to find it, how to confirm it, and a way to break it.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    .walk-wrap { max-width: 52rem; min-width: 0; overflow-wrap: anywhere; }
+    .walk-body, .getit, .case-index { min-width: 0; max-width: 100%; }
+    .walk-wrap code { font-size: 0.9em; overflow-wrap: anywhere; }
+    .walk-wrap .back { margin: 0 0 0.4rem; font-size: 0.9rem; }
+    .walk-wrap .getit {
+      margin: 0 0 1.4rem; padding: 1rem 1.15rem 1.1rem; background: var(--card);
+      border: 1px solid var(--rule); border-top: 3px solid var(--brand-2); font-size: 0.97rem; line-height: 1.5;
+    }
+    .walk-wrap .getit h2 { margin: 0 0 0.4rem; font-size: 1.05rem; color: var(--brand); }
+    .walk-wrap .getit p { margin: 0 0 0.6rem; }
+    .walk-wrap .getit ul { margin: 0; padding-left: 1.2rem; }
+    .walk-wrap .getit li { margin: 0.25rem 0; }
+    .case-index { margin: 0 0 1.6rem; font-size: 0.9rem; }
+    .case-index h2 { margin: 0 0 0.4rem; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .case-index h3 { margin: 0.7rem 0 0.3rem; font-size: 0.95rem; color: var(--brand-2); }
+    .case-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .case-index a {
+      display: block; padding: 0.25rem 0.55rem; border: 1px solid var(--rule); background: var(--card);
+      color: var(--ink-soft); text-decoration: none; font-weight: 600;
+    }
+    .case-index a:hover { color: var(--brand); border-color: var(--brand-2); }
+    .walk-body h2 { font-family: var(--font-display); font-size: 1.7rem; letter-spacing: 0.03em; color: var(--brand); margin: 2rem 0 0.6rem; }
+    .walk-body h3 { font-size: 1.15rem; margin: 2rem 0 0.5rem; color: var(--brand-2); scroll-margin-top: calc(var(--header-h) + 1rem); }
+    .walk-body h2 { scroll-margin-top: calc(var(--header-h) + 1rem); }
+    .walk-body h1 { display: none; }
+    .walk-body p { margin: 0 0 0.7rem; }
+    .walk-body ul, .walk-body ol { margin: 0 0 1rem; padding-left: 1.3rem; }
+    .walk-body li { margin: 0.3rem 0; }
+    .walk-body code { overflow-wrap: anywhere; font-size: 0.92em; }
+    .walk-body table.roster { font-size: 0.9rem; }
+    .walk-body .anchor { font-size: 0.8em; color: var(--muted); text-decoration: none; opacity: 0; }
+    .walk-body h2:hover .anchor, .walk-body h3:hover .anchor, .walk-body .anchor:focus { opacity: 1; }
+    .walk-foot { margin-top: 2rem; font-size: 0.92rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Operations Pro Walkthrough</h1>
+      <p class="muted">43 cases on the Juniper Falls &amp; Northern, an invented railroad</p>
+    </div>
+    <div class="walk-wrap">
+      <p class="back"><a href="operations-pro-article.html">&larr; Back to the article: the Operations Pro plugin</a></p>
+
+      <div class="getit">
+        <h2>Before you start</h2>
+        <p>The guide below is the plugin's own, shown here unchanged. Its cases point at the railroad's Operations files, which are not on this site. Get them from the plugin's repository:</p>
+        <ul>
+          <li><a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations">The railroad's <code>operations/</code> folder</a> on GitHub. Copy it into a scratch JMRI profile.</li>
+          <li><a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/GUIDE.md">The master guide</a> on GitHub, which this page follows. <a href="opspro-showcase-guide.md">Plain text copy</a>.</li>
+          <li>In the guide, names such as <code>RESULTS.md</code>, <code>tests/test_showcase.py</code> and <code>examples/showcase/operations/</code> are files in that repository, in <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase">the showcase folder</a> and the plugin's <code>tests</code> folder. They are not pages here.</li>
+        </ul>
+      </div>
+
+      <nav class="case-index" id="case-index" aria-label="Cases"></nav>
+
+      <div class="walk-body guide-body" id="walk-body"><p>Loading the walkthrough&hellip;</p></div>
+
+      <p class="walk-foot"><a href="operations-pro-article.html">&larr; Back to the article</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/md-view.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-opspro-guide").catch(function (err) { console.error(err); });
+
+      var body = document.getElementById("walk-body");
+      fetch("opspro-showcase-guide.md", { cache: "no-cache" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+        .then(function (text) {
+          var res = HARTMarkdown.render(text);
+          body.innerHTML = res.html;
+
+          // Case index: one chip per case, grouped by the guide's two parts.
+          var groups = [], g = null;
+          res.headings.forEach(function (h) {
+            if (h.level === 2 && /^Part \d/.test(h.text)) { g = { title: h.text, items: [] }; groups.push(g); }
+            else if (h.level === 3 && g && /^[UR]\d\d\./.test(h.text)) {
+              g.items.push('<li><a href="#' + h.id + '" title="' + HARTOps.esc(h.text.replace(/^[UR]\d\d\.\s*/, "")) + '">' + h.text.slice(0, 3) + "</a></li>");
+            }
+          });
+          document.getElementById("case-index").innerHTML = '<h2>Jump to a case</h2>' + groups.map(function (x) {
+            return "<h3>" + HARTOps.esc(x.title) + "</h3><ul>" + x.items.join("") + "</ul>";
+          }).join("");
+
+          if (location.hash) {
+            var el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+            if (el) el.scrollIntoView();
+          }
+        })
+        .catch(function (err) {
+          HARTOps.renderError(body, {
+            what: "the walkthrough",
+            links: [{ label: "Read it on GitHub", href: "https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/GUIDE.md" }],
+            err: err
+          });
+        });
+    });
+  </script>
+</body>
+</html>
