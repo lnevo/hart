@@ -12,3 +12,5 @@ L10,3C,"update_car works inside an ops_plan after the add_car for the same car, 
 L11,3C,"Passenger types with no track raise type-no-track errors; cars that stay unplaced need accept_new_errors or a track that takes their type"
 L12,3D,"To deliver a car onto a spur, give it the load the schedule line receives (usually E), not the load it carried in the old system; match mode refuses a car no line receives"
 L13,3D,"Check each delivered car's type against the spur's type list before the plan; the tool reports the mismatch only at delivery"
+L14,4,"A dry run answers gate and routing questions, not session-order questions; to prove a hand-off, run an ordered automation on the copy"
+L15,4,"Ask ops_why_not one car and one train at a time and read first_failure and router; the gate list is for the diagnoser"

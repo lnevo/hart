@@ -17,3 +17,7 @@ F15,3C,Field shape,"add_engine with location set to the track name (Scully Inter
 F16,3C,Stale help,"ops_actions lists no load field for update_car, yet a plan accepts and applies it; the field list is incomplete",Probe with an unapplied plan,Open
 F17,3D,Missing action,"No action changes a car's type; a car added with the wrong type must be deleted and re-added",delete_car then add_car,Open
 F18,3D,Missing output,"ops_list cars shows location and final destination as ids (5/5s1), not names",Map ids by hand,Open
+F19,4,Output size,"ops_dry_run with detail normal returns about 150 KB for five trains, over the tool reply limit, and is saved to a file",Parse the saved JSON; call one train at a time,Open
+F20,4,Filter,"ops_list cars with filter Demmler returns nothing: the filter does not match location names; a wrong parameter name returns the bare error 'type'",Read the roster XML,Open
+F21,4,Noise,"ops_why_not with failing_only true still prints every not_checked gate (about 40) and drops only the passed ones",Read the first_failure and router fields,Open
+F22,4,Missing option,"ops_dry_run builds the trains in one pass from one start state with no terminate between them and not in departure order (CK1 first), so hand-offs and interchange room are never exercised; it runs the startup automation, which is the only way to test an ordered session",Set a replay automation as startup for the dry run,Open
