@@ -6,135 +6,255 @@
   <title>Operations Pro Walkthrough — HART</title>
   <meta name="description" content="The walkthrough of the Juniper Falls & Northern, an invented railroad built to show what JMRI Operations Pro can do: what you can build, how it works, where to find it, how to see it work, and a change to try.">
   <link rel="stylesheet" href="../css/ops.css">
-  <style>
-    .walk-wrap { max-width: 52rem; min-width: 0; overflow-wrap: anywhere; }
-    .walk-body, .getit, .case-index { min-width: 0; max-width: 100%; }
-    .walk-wrap code { font-size: 0.9em; overflow-wrap: anywhere; }
-    .walk-wrap .back { margin: 0 0 0.4rem; font-size: 0.9rem; }
-    .walk-wrap .getit {
-      margin: 0 0 1.4rem; padding: 1rem 1.15rem 1.1rem; background: var(--card);
-      border: 1px solid var(--rule); border-top: 3px solid var(--brand-2); font-size: 0.97rem; line-height: 1.5;
-    }
-    .walk-wrap .getit h2 { margin: 0 0 0.4rem; font-size: 1.05rem; color: var(--brand); }
-    .walk-wrap .getit p { margin: 0 0 0.6rem; }
-    .walk-wrap .getit ul { margin: 0; padding-left: 1.2rem; }
-    .walk-wrap .getit li { margin: 0.25rem 0; }
-    .walk-wrap .lead { margin: 0 0 1.2rem; }
-    .case-index { margin: 0 0 1.8rem; }
-    .case-index h2 { margin: 0 0 0.5rem; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-    .case-index .sections { margin: 0 0 1rem; font-size: 0.95rem; }
-    .case-index h3 { margin: 1.1rem 0 0.4rem; font-size: 0.95rem; color: var(--ink-soft); }
-    .case-index .groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 0.5rem; align-items: start; }
-    .case-index details { background: var(--card); border: 1px solid var(--rule); }
-    .case-index summary { padding: 0.6rem 0.8rem; min-height: 44px; cursor: pointer; }
-    .case-index summary b { font-weight: 600; color: var(--brand); }
-    .case-index summary .covers { display: block; font-size: 0.86rem; color: var(--ink-soft); }
-    .case-index ul { list-style: none; margin: 0; padding: 0 0.8rem 0.5rem; }
-    .case-index li { margin: 0; padding: 0.3rem 0; border-top: 1px solid var(--rule); font-size: 0.92rem; line-height: 1.35; }
-    .case-index .code { font-weight: 700; color: var(--muted); margin-right: 0.3rem; }
-    .walk-body .to-contents { margin-left: 0.5rem; font-size: 0.72em; font-weight: 400; }
-    .walk-body h2 { font-family: var(--font-display); font-size: 1.7rem; letter-spacing: 0.03em; color: var(--brand); margin: 2rem 0 0.6rem; }
-    .walk-body h3 { font-size: 1.15rem; margin: 2rem 0 0.5rem; color: var(--brand-2); scroll-margin-top: calc(var(--header-h) + 1rem); }
-    .walk-body h2 { scroll-margin-top: calc(var(--header-h) + 1rem); }
-    .walk-body h1 { display: none; }
-    .walk-body p { margin: 0 0 0.7rem; }
-    .walk-body ul, .walk-body ol { margin: 0 0 1rem; padding-left: 1.3rem; }
-    .walk-body li { margin: 0.3rem 0; }
-    .walk-body code { overflow-wrap: anywhere; font-size: 0.92em; }
-    .walk-body table.roster { font-size: 0.9rem; }
-    .walk-body .anchor { font-size: 0.8em; color: var(--muted); text-decoration: none; opacity: 0; }
-    .walk-body h2:hover .anchor, .walk-body h3:hover .anchor, .walk-body .anchor:focus { opacity: 1; }
-    @media (hover: none) { .walk-body .anchor { opacity: 1; } }
-    .walk-foot { margin-top: 2rem; font-size: 0.92rem; }
-  </style>
+  <link rel="stylesheet" href="../css/article.css">
+  <link rel="stylesheet" href="../css/walkthrough.css">
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
   <main>
-    <div class="page-head">
-      <h1>Operations Pro Walkthrough</h1>
-      <p class="muted"><span id="case-count">43</span> things you can build with JMRI Operations Pro, each shown working on the Juniper Falls &amp; Northern, an invented railroad</p>
-    </div>
-    <div class="walk-wrap">
-      <p class="back"><a href="operations-pro-article.html">&larr; Back to the article: the Operations Pro plugin</a></p>
+    <article class="feature walk">
+      <header class="feature-head">
+        <p class="kicker"><a href="operations-pro-article.html">&larr; The Operations Pro Plugin</a></p>
+        <h1>Operations Pro Walkthrough</h1>
+        <p class="standfirst"><span id="case-count">Forty-three</span> things you can set up on a model railroad, each one shown working on an invented one, the Juniper Falls &amp; Northern.</p>
+        <p class="rule" aria-hidden="true"></p>
+      </header>
 
-      <p class="lead">Find what you want to build on your railroad. Each case says what it gives you and how it works, then shows you what to ask Claude to see it working. You need <a href="#before">the railroad's files</a> to follow along.</p>
-
-      <nav class="case-index" id="case-index" aria-label="Contents"></nav>
-
-      <div class="getit" id="before">
-        <h2>Before you start</h2>
-        <p>The cases use the railroad's Operations files, which are not on this site. Copy the <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations"><code>operations/</code> folder</a> from GitHub into a scratch JMRI profile, and work only on that copy.</p>
-        <p>This guide is the plugin's own, shown unchanged: <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/GUIDE.md">master on GitHub</a>, or a <a href="opspro-showcase-guide.md">plain text copy</a>. For the exact tool calls and test results behind each case, see the <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/REFERENCE.md">technical reference</a>.</p>
+      <div class="walk-tools">
+        <div class="walk-search">
+          <label class="walk-sr" for="case-q">Find a case</label>
+          <input id="case-q" type="search" placeholder="Find a case: try staging, caboose, hazmat" autocomplete="off" spellcheck="false">
+          <button type="button" id="case-clear" class="walk-btn" hidden>Clear</button>
+          <button type="button" id="case-toggle" class="walk-btn" disabled>Open all</button>
+        </div>
+        <p id="case-status" class="walk-status" role="status" aria-live="polite"></p>
+        <p class="walk-key">Every case: What you can build &middot; How it works &middot; Find it &middot; See it work &middot; Try this.</p>
+        <p class="walk-setup">To follow along you need the railroad's files: see <a href="#before">Before you begin</a>.</p>
       </div>
 
-      <div class="walk-body guide-body" id="walk-body"><p>Loading the walkthrough&hellip;</p></div>
+      <nav class="feature-toc walk-toc" id="goals" aria-label="Goals"></nav>
 
-      <p class="walk-foot"><a href="operations-pro-article.html">&larr; Back to the article</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
-    </div>
+      <div class="feature-body walk-body" id="walk-body"><p>Loading the walkthrough&hellip;</p></div>
+    </article>
+    <p class="walk-foot"><a href="operations-pro-article.html">&larr; Back to the article</a> &middot; <a href="../behind/index.html">Behind the Scenes</a></p>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script src="../js/md-view.js"></script>
   <script>
-    // Hand-kept: the goal groups. Titles come from the guide, and a case not listed
-    // here still appears, under "Not yet grouped".
+    // Hand-kept: the ten goals. A case not listed here still appears, in "More cases".
+    // run: 0 = "What your railroad does", 1 = "How a car finds its way".
+    var RUNS = ["What your railroad does", "How a car finds its way"];
     var GROUPS = [
-      ["Give cars a reason to move", "Loads, schedules, divisions", ["U01", "U02", "U03", "U09", "U10", "U21"]],
-      ["Decide where cars go", "Move counts, pools, full spurs", ["U04", "U05", "U11", "U19", "U24"]],
-      ["Run staging and fiddle yards", "Generated loads, swaps, virtual spurs", ["U06", "U07", "U08", "U12"]],
-      ["Build the trains you want", "Equipment, passenger and special cars", ["U13", "U16", "U18", "U22"]],
-      ["Run the session", "Days, automations, paperwork, backups", ["U14", "U15", "U17", "U20", "U23"]],
-      ["Move a car with one or more trains", "Interchanges, yards, chains, staging", ["R01", "R02", "R03", "R04", "R05", "R19"]],
-      ["Set what a train or track takes", "Filters, routed cars, directions", ["R06", "R07", "R08", "R13", "R14", "R15"]],
-      ["Handle full tracks", "Alternates and overflow", ["R09", "R10"]],
-      ["Work a yard or town with a switcher", "A/D tracks, local moves", ["R11", "R12", "R16"]],
-      ["Connect to the outside world", "Off-layout interchanges", ["R17", "R18"]]
+      { name: "Give cars a reason to move", covers: "Loads, schedules, divisions", run: 0, codes: ["U01", "U02", "U03", "U09", "U10", "U21", "U24"] },
+      { name: "Decide where cars go", covers: "Move counts, pools, full spurs", run: 0, codes: ["U04", "U05", "U11", "U19"] },
+      { name: "Run staging and fiddle yards", covers: "Generated loads, swaps, virtual spurs", run: 0, codes: ["U06", "U07", "U08", "U12"] },
+      { name: "Build the trains you want", covers: "Equipment, passenger and special cars", run: 0, codes: ["U13", "U16", "U18", "U22"] },
+      { name: "Run the session", covers: "Days, automations, paperwork, backups", run: 0, codes: ["U14", "U15", "U17", "U20", "U23"] },
+      { name: "Move a car with one or more trains", covers: "Interchanges, yards, chains, staging", run: 1, codes: ["R01", "R02", "R03", "R04", "R05", "R19"] },
+      { name: "Set what a train or track takes", covers: "Filters, routed cars, directions", run: 1, codes: ["R06", "R07", "R08", "R13", "R14", "R15"] },
+      { name: "Handle full tracks", covers: "Alternates and overflow", run: 1, codes: ["R09", "R10"] },
+      { name: "Work a yard or town with a switcher", covers: "A/D tracks, local moves", run: 1, codes: ["R11", "R12", "R16"] },
+      { name: "Connect to the outside world", covers: "Off-layout interchanges", run: 1, codes: ["R17", "R18"] }
     ];
+    var GUIDE_GITHUB = "https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/";
+    var OPS_GITHUB = "https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations";
 
-    function buildContents(text, headings) {
+    var ONES = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+      "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+    var TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+    function words(n) {
+      if (n < 1 || n > 99) return String(n);
+      var w = n < 20 ? ONES[n] : TENS[Math.floor(n / 10)] + (n % 10 ? "-" + ONES[n % 10] : "");
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }
+    function plural(n) { return n + (n === 1 ? " case" : " cases"); }
+    function num(i) { return (i < 9 ? "0" : "") + (i + 1); }
+
+    // One card per case. If a labelled line is missing, the guide's own text shows instead.
+    function cardHtml(c, prev, next, gid, gnum) {
       var esc = HARTOps.esc;
-      var cases = {}, extras = [], count = 0;
-      headings.forEach(function (h) {
-        var c = /^([UR]\d\d)\.\s*(.*)$/.exec(h.text);
-        if (h.level === 3 && c) { cases[c[1]] = { id: h.id, title: c[2] }; count++; }
-        else if (h.level === 2 && !/^Part \d/.test(h.text)) extras.push(h);
-      });
-
-      function row(code) {
-        return '<li><a href="#' + cases[code].id + '"><span class="code">' + code + "</span>" + esc(cases[code].title) + "</a></li>";
+      var head = '<summary><span class="case-top"><span class="case-title">' + c.title + '</span>' +
+        '<span class="case-code">' + c.code + '</span></span>' +
+        (c.what ? '<span class="case-what">' + c.what + "</span>" : "") + "</summary>";
+      var body;
+      if (c.what && c.how && c.find && c.see) {
+        body = '<dl class="case-list"><dt>How it works</dt><dd>' + c.how + "</dd>" +
+          '<dt>Find it</dt><dd class="tags">' + c.find + "</dd></dl>" +
+          '<div class="panel see"><h4>See it work</h4><p>' + c.see + "</p></div>" +
+          (c.tryit ? '<div class="panel try"><h4>Try this</h4><p>' + c.tryit + "</p></div>" : "") +
+          (c.other ? '<div class="case-other">' + c.other + "</div>" : "");
+      } else {
+        body = '<div class="case-other">' + c.fallback + "</div>";
       }
-      function group(name, covers, codes) {
-        return '<details><summary><b>' + esc(name) + "</b> (" + codes.length + ')<span class="covers">' + esc(covers) + "</span></summary><ul>" +
-          codes.map(row).join("") + "</ul></details>";
-      }
+      var foot = '<nav class="case-foot" aria-label="' + esc(c.code) + ' links">' +
+        (prev ? '<a class="prev" href="#' + prev.id + '" rel="prev"><span aria-hidden="true">&larr; </span>' + prev.code + "</a>" : "") +
+        (next ? '<a class="next" href="#' + next.id + '" rel="next">' + next.code + '<span aria-hidden="true"> &rarr;</span></a>' : "") +
+        '<a class="back" href="#' + gid + '">Back to group ' + gnum + "</a></nav>";
+      return '<details class="case" id="' + c.id + '" data-code="' + c.code + '">' + head +
+        '<div class="case-body">' + body + foot + "</div></details>";
+    }
 
-      var seen = {};
-      function part(prefix, title) {
-        var html = GROUPS.filter(function (g) { return g[2][0].charAt(0) === prefix; }).map(function (g) {
-          var codes = g[2].filter(function (c) { return cases[c]; });
-          codes.forEach(function (c) { seen[c] = 1; });
-          return group(g[0], g[1], codes);
+    function buildPage(res) {
+      var esc = HARTOps.esc, byCode = {}, seen = {};
+      res.cases.forEach(function (c) { byCode[c.code] = c; });
+
+      var groups = GROUPS.map(function (g) {
+        var codes = g.codes.filter(function (k) {
+          if (byCode[k]) { seen[k] = 1; return true; }
+          console.warn("Walkthrough GROUPS lists a case the guide lacks:", k);
+          return false;
         });
-        var left = Object.keys(cases).filter(function (c) { return c.charAt(0) === prefix && !seen[c]; }).sort();
-        if (left.length) {
-          console.warn("Walkthrough cases not in GROUPS:", left);
-          html.push(group("Not yet grouped", "New cases", left));
-        }
-        return "<h3>" + title + '</h3><div class="groups">' + html.join("") + "</div>";
-      }
-
-      document.getElementById("case-count").textContent = count;
-      document.getElementById("case-index").innerHTML = "<h2>Contents</h2>" +
-        '<p class="sections">' + extras.map(function (h) {
-          return '<a href="#' + h.id + '">' + esc(h.text) + "</a>";
-        }).join(" · ") + "</p>" +
-        part("U", "Use-cases") + part("R", "Routing");
-
-      Object.keys(cases).forEach(function (code) {
-        document.getElementById(cases[code].id).insertAdjacentHTML("beforeend",
-          '<a class="to-contents" href="#case-index">Contents</a>');
+        return { name: g.name, covers: g.covers, run: g.run, cases: codes.map(function (k) { return byCode[k]; }) };
       });
+      var left = res.cases.filter(function (c) { return !seen[c.code]; });
+      if (left.length) {
+        console.warn("Walkthrough cases not in GROUPS:", left.map(function (c) { return c.code; }));
+        groups.push({ name: "More cases", covers: "Cases not yet grouped", run: 1, cases: left });
+      }
+      groups = groups.filter(function (g) { return g.cases.length; });
+      groups.forEach(function (g, i) { g.id = "g" + num(i); g.num = num(i); });
+
+      // Page body: the goals, then the guide's other sections.
+      var html = groups.map(function (g) {
+        return '<section class="goal" id="' + g.id + '" aria-labelledby="' + g.id + '-h">' +
+          '<h2 id="' + g.id + '-h"><span class="num">' + g.num + '</span><span class="goal-name">' + esc(g.name) + "</span>" +
+          '<span class="count">&middot; ' + plural(g.cases.length) + "</span>" +
+          '<a class="up" href="#goals">&uarr; All goals</a></h2>' +
+          g.cases.map(function (c, i) {
+            return cardHtml(c, g.cases[i - 1], g.cases[i + 1], g.id, g.num);
+          }).join("") + "</section>";
+      }).join("");
+
+      var sec = {};
+      res.sections.forEach(function (s) { sec[s.id] = s; });
+      var used = {};
+      function take(id) { used[id] = 1; return sec[id] ? sec[id].html : ""; }
+      function sub(title, id) { var h = take(id); return h ? '<h3>' + title + "</h3>" + h : ""; }
+
+      html += '<section class="plain" id="before" aria-labelledby="before-h"><h2 id="before-h">Before you begin</h2>' +
+        "<p>The cases use the railroad's Operations files, which are not on this site. Copy the " +
+        '<a href="' + OPS_GITHUB + '"><code>operations/</code> folder</a> from GitHub into a scratch JMRI profile, and work only on that copy.</p>' +
+        '<ul class="walk-links"><li><a href="' + OPS_GITHUB + '">The <code>operations/</code> folder</a></li>' +
+        '<li><a href="' + GUIDE_GITHUB + 'GUIDE.md">This guide, master on GitHub</a></li>' +
+        '<li><a href="opspro-showcase-guide.md">Plain text copy of this guide</a></li>' +
+        '<li><a href="' + GUIDE_GITHUB + 'REFERENCE.md">Technical reference (REFERENCE.md)</a></li></ul>' +
+        take("intro") + sub("How to use it", "how-to-use-it") +
+        sub("What a check of the railroad reports", "what-a-check-of-the-railroad-reports") + "</section>";
+      html += '<section class="plain" id="limits" aria-labelledby="limits-h"><h2 id="limits-h">Known limits</h2>' + take("known-limits") + "</section>";
+      html += '<section class="plain" id="detail" aria-labelledby="detail-h"><h2 id="detail-h">The exact detail</h2>' + take("the-exact-detail") + "</section>";
+      res.sections.forEach(function (s) {
+        if (!used[s.id]) {
+          console.warn("Walkthrough section shown as found:", s.title);
+          html += '<section class="plain" id="' + s.id + '"><h2>' + esc(s.title) + "</h2>" + s.html + "</section>";
+        }
+      });
+      document.getElementById("walk-body").innerHTML = html;
+
+      // Goals nav: the article's rail on wide screens, a ten-row list on phones.
+      var nav = '<h2>Goals</h2>';
+      RUNS.forEach(function (name, r) {
+        var rows = groups.filter(function (g) { return g.run === r; });
+        if (!rows.length) return;
+        nav += '<div class="toc-run"><h3>' + esc(name) + "</h3><ol>" + rows.map(function (g) {
+          return '<li><a href="#' + g.id + '" data-goal="' + g.id + '"><span class="n">' + g.num + "</span>" +
+            '<span class="t"><b>' + esc(g.name) + '</b><span class="cov">' + esc(g.covers) + " &middot; " + plural(g.cases.length) + "</span></span></a></li>";
+        }).join("") + "</ol></div>";
+      });
+      nav += '<ul class="toc-more"><li><a href="#before">Before you begin</a></li><li><a href="#limits">Known limits</a></li></ul>';
+      document.getElementById("goals").innerHTML = nav;
+
+      document.getElementById("case-count").textContent = words(res.cases.length);
+      return groups;
+    }
+
+    // Scroll-spy: mark the rail entry for the part being read.
+    function watchRail() {
+      var links = Array.prototype.slice.call(document.querySelectorAll(".walk-toc a"));
+      if (!("IntersectionObserver" in window) || !links.length) return;
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting || !byId[e.target.id]) return;
+          links.forEach(function (a) { a.removeAttribute("aria-current"); });
+          byId[e.target.id].setAttribute("aria-current", "true");
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      Object.keys(byId).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    }
+
+    function setupTools(total) {
+      var q = document.getElementById("case-q"), clear = document.getElementById("case-clear");
+      var toggle = document.getElementById("case-toggle"), status = document.getElementById("case-status");
+      var cards = Array.prototype.slice.call(document.querySelectorAll("details.case"));
+      var goals = Array.prototype.slice.call(document.querySelectorAll("section.goal"));
+      cards.forEach(function (d) {
+        var parts = [d.querySelector(".case-title"), d.querySelector(".case-what"), d.querySelector(".tags")];
+        d.dataset.text = (d.dataset.code + " " + parts.map(function (n) { return n ? n.textContent : ""; }).join(" ")).toLowerCase();
+      });
+
+      function visible() { return cards.filter(function (d) { return !d.hidden; }); }
+      function syncToggle() {
+        var v = visible();
+        toggle.disabled = !v.length;
+        toggle.textContent = v.length && v.every(function (d) { return d.open; }) ? "Close all" : "Open all";
+      }
+      function filter() {
+        var terms = q.value.toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
+        cards.forEach(function (d) {
+          d.hidden = !terms.every(function (t) { return d.dataset.text.indexOf(t) !== -1; });
+          if (!d.hidden) shown++;
+        });
+        goals.forEach(function (g) {
+          var any = !!g.querySelector("details.case:not([hidden])");
+          g.hidden = !any;
+          var a = document.querySelector('.walk-toc a[data-goal="' + g.id + '"]');
+          if (a) a.classList.toggle("is-empty", !any);
+        });
+        clear.hidden = !q.value;
+        status.textContent = !terms.length ? "" : shown ? "Showing " + shown + " of " + total + " cases." :
+          "No cases match “" + q.value.trim() + "”. Clear the search to see all " + total + ".";
+        syncToggle();
+      }
+      q.addEventListener("input", filter);
+      q.addEventListener("keydown", function (e) { if (e.key === "Escape" && q.value) { q.value = ""; filter(); } });
+      clear.addEventListener("click", function () { q.value = ""; filter(); q.focus(); });
+      toggle.addEventListener("click", function () {
+        var v = visible(), open = !v.every(function (d) { return d.open; });
+        v.forEach(function (d) { d.open = open; });
+        syncToggle();
+      });
+      document.addEventListener("toggle", syncToggle, true);
+
+      // Print shows every card open, and puts them back afterwards.
+      var before = null;
+      window.addEventListener("beforeprint", function () {
+        before = cards.map(function (d) { return d.open; });
+        cards.forEach(function (d) { d.open = true; });
+      });
+      window.addEventListener("afterprint", function () {
+        if (before) cards.forEach(function (d, i) { d.open = before[i]; });
+        before = null;
+      });
+
+      // #u05 opens that card and scrolls to it, on load and on hashchange.
+      function openHash() {
+        var id = location.hash.length > 1 ? decodeURIComponent(location.hash.slice(1)) : "";
+        var el = id && document.getElementById(id);
+        if (!el) return;
+        if (el.classList.contains("case")) {
+          if (el.hidden) { q.value = ""; filter(); }
+          el.open = true;
+        }
+        el.scrollIntoView();
+      }
+      window.addEventListener("hashchange", openHash);
+      filter();
+      openHash();
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -144,20 +264,15 @@
       fetch("opspro-showcase-guide.md", { cache: "no-cache" })
         .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
         .then(function (text) {
-          var res = HARTMarkdown.render(text);
-          body.innerHTML = res.html;
-
-          buildContents(text, res.headings);
-
-          if (location.hash) {
-            var el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-            if (el) el.scrollIntoView();
-          }
+          var res = HARTMarkdown.renderCases(text);
+          buildPage(res);
+          watchRail();
+          setupTools(res.cases.length);
         })
         .catch(function (err) {
           HARTOps.renderError(body, {
             what: "the walkthrough",
-            links: [{ label: "Read it on GitHub", href: "https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/GUIDE.md" }],
+            links: [{ label: "Read it on GitHub", href: GUIDE_GITHUB + "GUIDE.md" }],
             err: err
           });
         });
