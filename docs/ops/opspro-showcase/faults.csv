@@ -1,0 +1,26 @@
+id,stage,kind,fault,workaround
+F1,4 (and C),Wrong finding,"ops_audit single-destination-schedule false positive for a destination spur or hop track with a Roads Include list: the sample car is the first car of the type in the file, so the verdict depends on file order (3 warnings on the saved folder: Fiddle North, Fiddle South, Grain Co Loads; none before JMRI saves it)",Listed as intended findings; hop tracks and Carrow Transfer/Relay carry no road list (batch C)
+F2,3 E,Wrong diagnosis,"ops_why_not disagrees with real JMRI: one-stop switcher with local moves off (G3 fails, JMRI still moves the cars); second route stop (D1); R05 first_failure D14/G8 with can_move true while JMRI delivers; multi-train routes show first_failure D1 with can_move true",Read the router field and the real build; recorded in Known limits
+F3,3 A,Wrong diagnosis,"ops_why_not HZMX 9 passenger false: can_move true, no failing gate; real JMRI leaves the car in staging",Manifest and build log show it
+F4,3 E,Wrong diagnosis,ops_why_not cannot show the service-all-cars setting (identical output both ways),ops_explain_build G6 shows it
+F5,4,Wrong diagnosis,"ops_why_not passes E9 for a spur that real build fills during the same build (R09: needs 44, used 0)",ops_explain_build on the build
+F6,3 A,Wrong finding,"staging-departure-blocked names a wrong gate and track (Carrow Yard D16 E4) when the real cause is the occupied terminal staging track (A7, D12)",ops_why_not and the build report
+F7,3 C,Gap,ops_explain_build does not show manual build lines; only the report text does,Read report_text
+F8,3 F,Gap,"On-time abort writes no build report (status Error), so ops_explain_build has nothing; ops_build_check/dry run not checked for this",ops_why_not A2 and the log line
+F9,3 F,Friction,A wait_for_train_to_terminate for a train the same automation terminated never finishes; sessions.md does not say the wait needs another actor,Second automation Close Out
+F10,3 F,Harness,"run_worker saves as soon as its own job ends, before a startup automation's thread finishes; its terminate job raises KeyError for trains built by an automation; an intermittent 'Directory wasn't created' log line",Build other trains to keep the worker alive; retry up to three times (commented in the test)
+F11,2,Friction,"A plan adding loads first is blocked by audit errors (44 load-no-train/load-no-track); also staging trains block until cars and engines exist; also ordering across batches (a schedule destination before the track exists, Northwood Steel before Ferris Relay)",accept_new_errors where the error clears in a later step; reorder where possible
+F12,2,Friction,"Raw TypeError text leaks as 'Action n (x): f() got an unexpected keyword argument' when a field name is wrong (comment on tracks, position, new_name, engines, track on set_track_moves, day on set_active_day); ops_actions lists no field names",Read the action source for field names
+F13,2,Missing action,"add_track and update_track take no comment, so track tags cannot be set",Tracks pointed at by name; test_isolation uses car tags and the guide's Find it lines
+F14,2,Limit,Covered Hopper refused: 14 characters over the 12 limit,set_control_limits max_len_attribute 14 first
+F15,2,Friction,A route stop with max_moves 0 raises the route-stop-dead warning,Carrow stop on SWAP-E and SWAP-W set to 1
+F16,3 A,Doc mismatch,Model GP9 new: add_engine needs type and length; Brae locomotive change costs two stop moves (undocumented); staging.md says nothing about the generated-load fallback to any staging track (PLAN's C10 failure does not happen),"Type Diesel, length 56 on the first engine"
+F17,3 B,Doc mismatch,"option names for track lists are lower case (trains, routes, excludeTrains) but ops_actions shows no values; U03 plan finding is schedule-unused not load-no-receiver; place_car on a kernel member is refused so kernel-split cannot be produced",Used the documented lowercase names
+F18,2,Noise,Every ops_plan after an ops_apply warns that the files changed N seconds ago although JMRI is not involved,Ignored
+F19,3,Output size,"ops_why_not prints every gate (about 15-20 KB per call), ops_list cars prints every field of every car, ops_dry_run about 40 KB: hard for an agent to read; no summary or filter option",Name train and track; read single gates through the gates code in tests
+F20,4,Process,Batch B was to build Brae Depot and Dunmere Depot for U06 but did not; found only when the cases merged,75_fix.json adds both
+F21,5,Wrong diagnosis,ops_why_not says A8 pass (can depart from West Mode) on a copy where the MODE build fails A8,Recorded in Known limits
+F22,5,Stale output,"ops_explain_build after ops_dry_run reads the old report in buildstatus/, because a dry run saves nothing",Run a real build first; said in the guide
+F23,5,Missing option,"ops_session update_car is refused by audit errors and has no accept flag, so the R19 Try this order cannot run",Flip the passenger flag first
+F24,5,Missing output,ops_list tracks shows the pool name but not minimum or maximum length,Read the XML
+F25,5,Confusing default,"ops_why_not with no train named picks one itself (CUSTOM for WNDR 1), so first_failure differs from the expected train",Name the train
