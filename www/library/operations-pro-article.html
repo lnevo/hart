@@ -22,9 +22,6 @@
     .feature-body .cta { border-top-color: var(--accent); }
     .feature-body .cta h3 { margin: 0 0 0.35rem; }
     .feature-body .cta .btn { margin-top: 0.3rem; }
-    .feature-body .scorecard { width: 100%; border-collapse: collapse; font-family: var(--font-body); font-size: 0.95rem; margin: 0 0 1.05rem; }
-    .feature-body .scorecard th, .feature-body .scorecard td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
-    .feature-body .scorecard th { background: var(--paper-2); }
   </style>
 </head>
 <body>
@@ -44,8 +41,8 @@
           <li><a href="#can">What it can do</a></li>
           <li><a href="#example">One case, up close</a></li>
           <li><a href="#built">How it built the demo</a></li>
-          <li><a href="#wrong">What went wrong</a></li>
-          <li><a href="#checked">How the claims were checked</a></li>
+          <li><a href="#offers">What the demo gives you</a></li>
+          <li><a href="#trust">How far to trust it</a></li>
           <li><a href="#walkthrough">Using the walkthrough</a></li>
           <li><a href="#get">Get it</a></li>
           <li><a href="#references">References</a></li>
@@ -146,35 +143,29 @@
           <p>In the fourth stage, every step of every batch was applied again through the plugin's native tools on a fresh copy, by helpers that were not allowed to write scripts. The six Operations XML files from that copy were byte for byte the same as the scripted replay, before JMRI's own save was merged in. The shipped folder is that replay, one real JMRI load and save, and a real build of every train, which gives each train a build report in the folder.</p>
         </section>
 
-        <section id="wrong" aria-labelledby="h-wrong">
-          <h2 id="h-wrong"><span class="num">05</span>What went wrong</h2>
-          <p>Plenty. Two things came out of building it.</p>
-          <p><b>The cases did not all behave as expected.</b> Of 43 cases, 14 worked first time. The other 29 needed rework. For 25 of the 43, the case was reworded to match what real JMRI did, and 18 were proved as first written. None was dropped. Some examples from the record:</p>
+        <section id="offers" aria-labelledby="h-offers">
+          <h2 id="h-offers"><span class="num">05</span>What the demo gives you</h2>
+          <p>The demo is a working reference. Each case is a setup you can open, read and copy to your own railroad, not a description of one. Between them the cases cover:</p>
           <ul>
-            <li>Two depots that case U06 needs were in the plan but never built. They were found when the cases met, and added.</li>
-            <li>In the first session, default boxcars of other cases were drawn onto three Carrow spurs. Road lists were added to fence them out.</li>
-            <li>A "Try this" prediction for R15 was wrong, and was replaced with what JMRI did.</li>
-            <li>An automation that waits for a train it has itself terminated never finishes in JMRI 5.16, so a second automation, <code>Close Out</code>, does the terminating.</li>
+            <li><b>Cars with a purpose.</b> Schedules, custom loads, industries that receive empties, and one schedule shared by several spurs.</li>
+            <li><b>Staging.</b> Departure staging with generated custom loads, two staging tracks swapping full trains, and a fiddle yard of virtual spurs.</li>
+            <li><b>Routing.</b> From one train direct to chains of three, through interchanges and yards, with alternates and overflow.</li>
+            <li><b>Running a session.</b> Train days, automations, paperwork, passenger blocking, track pools, hazmat and buffer cars, and a RIP track.</li>
           </ul>
-          <p><b>The plugin had faults.</b> The build surfaced 25, and no plugin code was changed while it ran. The worst gave a wrong answer. <code>ops_why_not</code> said a car could not move when JMRI moved it, and said a car could move when JMRI left it in staging. <code>ops_audit</code> raised a warning whose verdict depended on the order of cars in a file. Other items were friction: action fields that were hard to discover, and output that ran to tens of kilobytes. After the build, all 25 were fixed or settled.</p>
-          <p>A second review of the plugin then found 26 more faults. All are merged. Three limits were recorded and not fixed, and they appear in the guide's "Known limits". <code>ops_why_not</code> does not follow a load generated for a staging-to-staging move. A locomotive with no terminal track shows as not checked, though that build fails. Overlapping staging pool dates also show as not checked.</p>
+          <p>Each case records what JMRI really did, so the demo also shows behaviour that is easy to miss:</p>
+          <ul>
+            <li>Default empties go wherever they are accepted. Boxcars of other cases were drawn onto three Carrow spurs until road lists fenced them out.</li>
+            <li>An automation that waits for a train it has itself terminated never finishes in JMRI 5.16. Here a second automation, <code>Close Out</code>, does the terminating.</li>
+            <li>Staging trains use up their departure track. Four of the demo's trains have nothing to run in later sessions, by design, and the guide shows why.</li>
+          </ul>
+          <p>The same questions work on your own railroad. Ask why a car will not move or why a build failed, and the answer names the setting behind it.</p>
         </section>
 
-        <section id="checked" aria-labelledby="h-checked">
-          <h2 id="h-checked"><span class="num">06</span>How the claims were checked</h2>
-          <p>The guide's rule is that what a case says is what real headless JMRI 5.16 did on that railroad. Each case is asserted in a test that runs JMRI, in three chains of three sessions. A reader can see the same results with the plugin's own tools.</p>
-          <table class="scorecard">
-            <thead><tr><th>Check</th><th>Result</th></tr></thead>
-            <tbody>
-              <tr><td>Cases</td><td>43: 24 use-cases (U01 to U24) and 19 routing variations (R01 to R19)</td></tr>
-              <tr><td>Trains that build in session 1</td><td>All 18. Four staging trains run out of cars in later sessions, by design</td></tr>
-              <tr><td>Behaviour check of each case</td><td>18 proved as first written, 25 reworded, 0 dropped</td></tr>
-              <tr><td>Independent review of the guide</td><td>201 claims: 181 passed, 17 failed, 3 could not be verified. The guide was corrected from the failures</td></tr>
-              <tr><td>Audit of the shipped railroad</td><td>Three findings, none an error, kept on purpose and listed in the guide</td></tr>
-              <tr><td>Test suite</td><td>The fault record states 778 tests passing on JMRI 5.16 on 2 November 2026</td></tr>
-            </tbody>
-          </table>
-          <p>The plugin was also tried with five new Claude sessions, each asked one plain question with no tool named. The skill loaded in all five, and the right tools were chosen. The diagnosing agent, which reads reports with read-only tools, was used in none of them. After fixes, a second set of five questions had it run in three, and the skill loaded in three. Five sessions is a small sample.</p>
+        <section id="trust" aria-labelledby="h-trust">
+          <h2 id="h-trust"><span class="num">06</span>How far to trust it</h2>
+          <p>What a case says is what real JMRI 5.16 did on that railroad, and each case has a test that runs JMRI. An independent review then checked 201 claims in the guide, and the guide was corrected from what it found. You can repeat any case with the plugin's own tools.</p>
+          <p>The demo improved the plugin too. Building it showed where the tools' answers differed from what JMRI did, and those faults were resolved, so the diagnosis has been compared with real builds.</p>
+          <p>Three limits remain, listed in the guide. <code>ops_why_not</code> does not follow a load generated for a staging-to-staging move. A locomotive with no terminal track shows as not checked, though that build fails. Overlapping staging pool dates also show as not checked.</p>
         </section>
 
         <section id="walkthrough" aria-labelledby="h-walk">
