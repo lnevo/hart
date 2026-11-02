@@ -2,5 +2,39 @@
 <?xml-stylesheet href="/xml/XSLT/operations-routes.xsl" type="text/xsl"?>
 <!DOCTYPE operations-config SYSTEM "/xml/DTD/operations-routes.dtd">
 <operations-config>
-  <routes />
+  <routes>
+    <route id="1" name="D749" comment="">
+      <location id="1r1" name="West Yard" locationId="1" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="1r2" name="South Yard" locationId="2" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="1r3" name="Demmler Yard" locationId="4" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="1r4" name="West Yard" locationId="1" sequenceId="4" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="Tie down with the inbound Demmler block" />
+    </route>
+    <route id="2" name="NVL" comment="">
+      <location id="2r1" name="Scully Yard" locationId="3" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r2" name="South Yard" locationId="2" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r3" name="Aristech Plastics" locationId="7" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="8" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r4" name="Ferrellgas" locationId="8" sequenceId="4" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="3" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r5" name="A. Stucki Co." locationId="9" sequenceId="5" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="4" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r6" name="Kosmos Cement" locationId="10" sequenceId="6" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r7" name="Calgon Carbon" locationId="11" sequenceId="7" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r8" name="Shenango Coke Works" locationId="12" sequenceId="8" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="3" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r9" name="South Yard" locationId="2" sequenceId="9" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r10" name="Scully Yard" locationId="3" sequenceId="10" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+    <route id="3" name="CK1" comment="">
+      <location id="3r1" name="South Yard" locationId="2" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="8" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="3r2" name="Shenango Coke Works" locationId="12" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="8" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="3r3" name="South Yard" locationId="2" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="8" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="Weigh the coke pull on the West Lead scale before classification (EQ-01)" />
+    </route>
+    <route id="4" name="STG-DEMMLER" comment="">
+      <location id="4r1" name="Demmler Yard" locationId="4" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="4r2" name="McKeesport" locationId="6" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="4r3" name="Demmler Yard" locationId="4" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+    <route id="5" name="STG-SCULLY" comment="">
+      <location id="5r1" name="Scully Yard" locationId="3" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="5r2" name="McKees Rocks" locationId="5" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="5r3" name="Scully Yard" locationId="3" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+  </routes>
 </operations-config>

@@ -5,3 +5,9 @@ F3,2A,Missing action,"set_option cannot set the railroad name: railroad.name is 
 F4,2A,Missing output,"ops_list has no type that shows buildOptions, router or settings values; only a plan diff shows them",Read the plan diff,Open
 F5,2A,Noise,"A plan that creates many findings prints every finding in full (78 load-no-train/load-no-track entries twice: in the plan and in the audit)",Ignore,Open
 F6,2A,Cosmetic,The first ops_apply on a blank folder returns an empty backup name,None,Open
+F7,2B,Ordering,"add_track with hold_custom true and no schedule is refused (Schedule options need a schedule on the track), so a spur cannot be created held before its schedule exists",Add the schedule first; set hold_custom with update_track,Open
+F8,2B,Missing output,"ops_list tracks omits locomotive types from the types field: Diesel-only engine tracks show types [] and yard tracks with Diesel show none; only the plan diff shows locoType",Read the plan diff,Open
+F9,2C,Silent drop,"add_route stop fields pickups and drops given as the strings yes/no are ignored without error; the diff shows both yes",Pass JSON true/false and read the diff,Open
+F10,2C,Ordering,"add_train refuses engine_road and a new engine_model until an engine of that road and model exists, so train power cannot be declared before the roster",Add engines first; update_train later,Open
+F11,2C,Field shape,"setup_interchange set_out_by, pulled_by and destinations refuse the {option, names} shape that add_track uses for the same lists; they take a plain list, and destinations has no way to say All",Pass a plain list; leave destinations unset,Open
+F12,2C,Missing output,"ops_list trains shows no description, departure time or comment",Read the plan diff,Open

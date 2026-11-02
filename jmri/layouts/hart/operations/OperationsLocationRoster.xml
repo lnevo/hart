@@ -276,7 +276,7 @@
         <carType name="MOW" />
         <locoType name="Diesel" />
       </types>
-      <track id="3s1" name="Scully Interchange" trackType="Interchange" dir="15" length="890" moves="0" onlyCarWithFD="false">
+      <track id="3s1" name="Scully Interchange" trackType="Interchange" dir="15" length="890" moves="0" onlyCarWithFD="false" dropOption="trains" pickupOption="trains">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -291,6 +291,14 @@
           <carType name="MOW" />
           <locoType name="Diesel" />
         </types>
+        <dropIds>
+          <dropId id="2" />
+          <dropId id="5" />
+        </dropIds>
+        <pickupIds>
+          <pickupId id="2" />
+          <pickupId id="5" />
+        </pickupIds>
         <comments>
           <track comment="Track McKees Rocks loop half, 122.5 in. Set out by and pulled by NVL and STG-SCULLY (train lists set in stage 2C)" />
           <both comment="" />
@@ -316,7 +324,7 @@
         <carType name="MOW" />
         <locoType name="Diesel" />
       </types>
-      <track id="4s1" name="Demmler Interchange" trackType="Interchange" dir="15" length="890" moves="0" onlyCarWithFD="false">
+      <track id="4s1" name="Demmler Interchange" trackType="Interchange" dir="15" length="890" moves="0" onlyCarWithFD="false" dropOption="trains" pickupOption="trains">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -331,6 +339,14 @@
           <carType name="MOW" />
           <locoType name="Diesel" />
         </types>
+        <dropIds>
+          <dropId id="1" />
+          <dropId id="4" />
+        </dropIds>
+        <pickupIds>
+          <pickupId id="1" />
+          <pickupId id="4" />
+        </pickupIds>
         <comments>
           <track comment="Track McKeesport loop half. Set out by and pulled by D749 and STG-DEMMLER (train lists set in stage 2C)" />
           <both comment="" />
