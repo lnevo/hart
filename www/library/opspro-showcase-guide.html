@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Operations Pro Walkthrough — HART</title>
-  <meta name="description" content="The 43-case walkthrough of the Juniper Falls & Northern, an invented railroad built to show what JMRI Operations Pro can do: the difficulty, where to find it, how to confirm it, and a way to break it.">
+  <meta name="description" content="The walkthrough of the Juniper Falls & Northern, an invented railroad built to show what JMRI Operations Pro can do: what you can build, where to find it, how to confirm it, and a way to break it.">
   <link rel="stylesheet" href="../css/ops.css">
   <style>
     .walk-wrap { max-width: 52rem; min-width: 0; overflow-wrap: anywhere; }
@@ -19,15 +19,20 @@
     .walk-wrap .getit p { margin: 0 0 0.6rem; }
     .walk-wrap .getit ul { margin: 0; padding-left: 1.2rem; }
     .walk-wrap .getit li { margin: 0.25rem 0; }
-    .case-index { margin: 0 0 1.6rem; font-size: 0.9rem; }
-    .case-index h2 { margin: 0 0 0.4rem; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-    .case-index h3 { margin: 0.7rem 0 0.3rem; font-size: 0.95rem; color: var(--brand-2); }
-    .case-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
-    .case-index a {
-      display: block; padding: 0.25rem 0.55rem; border: 1px solid var(--rule); background: var(--card);
-      color: var(--ink-soft); text-decoration: none; font-weight: 600;
-    }
-    .case-index a:hover { color: var(--brand); border-color: var(--brand-2); }
+    .walk-wrap .lead { margin: 0 0 1.2rem; }
+    .case-index { margin: 0 0 1.8rem; }
+    .case-index h2 { margin: 0 0 0.5rem; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .case-index .sections { margin: 0 0 1rem; font-size: 0.95rem; }
+    .case-index h3 { margin: 1.2rem 0 0.4rem; font-size: 1.05rem; color: var(--brand); }
+    .case-index details { break-inside: avoid; margin: 0 0 0.7rem; }
+    .case-index summary { padding: 0.45rem 0; font-weight: 600; color: var(--brand-2); cursor: pointer; }
+    .case-index ul { list-style: none; margin: 0; padding: 0; }
+    .case-index li { margin: 0; padding: 0.4rem 0; border-top: 1px solid var(--rule); font-size: 0.92rem; line-height: 1.4; }
+    .case-index .code { font-weight: 700; color: var(--muted); margin-right: 0.3rem; }
+    .case-index li span.aim { display: block; color: var(--ink-soft); }
+    @media (min-width: 52rem) { .case-index .groups { column-count: 2; column-gap: 2rem; } }
+    @media (max-width: 51.99rem) { .case-index summary { min-height: 44px; display: list-item; } }
+    .walk-body .to-contents { margin-left: 0.5rem; font-size: 0.72em; font-weight: 400; }
     .walk-body h2 { font-family: var(--font-display); font-size: 1.7rem; letter-spacing: 0.03em; color: var(--brand); margin: 2rem 0 0.6rem; }
     .walk-body h3 { font-size: 1.15rem; margin: 2rem 0 0.5rem; color: var(--brand-2); scroll-margin-top: calc(var(--header-h) + 1rem); }
     .walk-body h2 { scroll-margin-top: calc(var(--header-h) + 1rem); }
@@ -39,6 +44,7 @@
     .walk-body table.roster { font-size: 0.9rem; }
     .walk-body .anchor { font-size: 0.8em; color: var(--muted); text-decoration: none; opacity: 0; }
     .walk-body h2:hover .anchor, .walk-body h3:hover .anchor, .walk-body .anchor:focus { opacity: 1; }
+    @media (hover: none) { .walk-body .anchor { opacity: 1; } }
     .walk-foot { margin-top: 2rem; font-size: 0.92rem; }
   </style>
 </head>
@@ -47,22 +53,20 @@
   <main>
     <div class="page-head">
       <h1>Operations Pro Walkthrough</h1>
-      <p class="muted">43 cases on the Juniper Falls &amp; Northern, an invented railroad</p>
+      <p class="muted"><span id="case-count">43</span> things you can build with JMRI Operations Pro, each shown working on the Juniper Falls &amp; Northern, an invented railroad</p>
     </div>
     <div class="walk-wrap">
       <p class="back"><a href="operations-pro-article.html">&larr; Back to the article: the Operations Pro plugin</a></p>
 
-      <div class="getit">
-        <h2>Before you start</h2>
-        <p>The guide below is the plugin's own, shown here unchanged. Its cases point at the railroad's Operations files, which are not on this site. Get them from the plugin's repository:</p>
-        <ul>
-          <li><a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations">The railroad's <code>operations/</code> folder</a> on GitHub. Copy it into a scratch JMRI profile.</li>
-          <li><a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/GUIDE.md">The master guide</a> on GitHub, which this page follows. <a href="opspro-showcase-guide.md">Plain text copy</a>.</li>
-          <li>In the guide, names such as <code>RESULTS.md</code>, <code>tests/test_showcase.py</code> and <code>examples/showcase/operations/</code> are files in that repository, in <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase">the showcase folder</a> and the plugin's <code>tests</code> folder. They are not pages here.</li>
-        </ul>
-      </div>
+      <p class="lead">Find what you want to build on your railroad. Each case says what it gives you, where to see it, how to confirm it works, and how to break it on a scratch copy. You need <a href="#before">the railroad's files</a> to follow along.</p>
 
-      <nav class="case-index" id="case-index" aria-label="Cases"></nav>
+      <nav class="case-index" id="case-index" aria-label="Contents"></nav>
+
+      <div class="getit" id="before">
+        <h2>Before you start</h2>
+        <p>The cases use the railroad's Operations files, which are not on this site. Copy the <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase/operations"><code>operations/</code> folder</a> from GitHub into a scratch JMRI profile, and work only on that copy.</p>
+        <p>This guide is the plugin's own, shown unchanged: <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/operations-pro/examples/showcase/GUIDE.md">master on GitHub</a>, or a <a href="opspro-showcase-guide.md">plain text copy</a>. Names such as <code>RESULTS.md</code> are files in <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/operations-pro/examples/showcase">that repository</a>, not pages here.</p>
+      </div>
 
       <div class="walk-body guide-body" id="walk-body"><p>Loading the walkthrough&hellip;</p></div>
 
@@ -73,6 +77,71 @@
   <script src="../js/nav.js"></script>
   <script src="../js/md-view.js"></script>
   <script>
+    // Hand-kept: the goal groups. Titles and aims come from the guide, and a case not listed
+    // here still appears, under "Not yet grouped".
+    var GROUPS = [
+      ["Give cars a reason to move", ["U01", "U02", "U03", "U09", "U10", "U21"]],
+      ["Decide where cars go", ["U04", "U05", "U11", "U19", "U24"]],
+      ["Run staging and fiddle yards", ["U06", "U07", "U08", "U12"]],
+      ["Build the trains you want", ["U13", "U16", "U18", "U22"]],
+      ["Run the session", ["U14", "U15", "U17", "U20", "U23"]],
+      ["Move a car with one or more trains", ["R01", "R02", "R03", "R04", "R05", "R19"]],
+      ["Set what a train or track takes", ["R06", "R07", "R08", "R13", "R14", "R15"]],
+      ["Handle full tracks", ["R09", "R10"]],
+      ["Work a yard or town with a switcher", ["R11", "R12", "R16"]],
+      ["Connect to the outside world", ["R17", "R18"]]
+    ];
+
+    function buildContents(text, headings) {
+      var esc = HARTOps.esc, aims = {}, m;
+      var re = /^### ([UR]\d\d)\.[^\n]*\n\s*\n\*\*What you can build:\*\*\s*(.+)$/gm;
+      while ((m = re.exec(text))) aims[m[1]] = m[2].replace(/`/g, "");
+
+      var cases = {}, extras = [], count = 0;
+      headings.forEach(function (h) {
+        var c = /^([UR]\d\d)\.\s*(.*)$/.exec(h.text);
+        if (h.level === 3 && c) { cases[c[1]] = { id: h.id, title: c[2] }; count++; }
+        else if (h.level === 2 && !/^Part \d/.test(h.text)) extras.push(h);
+      });
+
+      function row(code) {
+        var c = cases[code];
+        return '<li><a href="#' + c.id + '"><span class="code">' + code + "</span>" + esc(c.title) + "</a>" +
+          (aims[code] ? '<span class="aim">' + esc(aims[code]) + "</span>" : "") + "</li>";
+      }
+      function group(name, codes, open) {
+        return "<details" + (open ? " open" : "") + "><summary>" + esc(name) + " (" + codes.length + ")</summary><ul>" +
+          codes.map(row).join("") + "</ul></details>";
+      }
+
+      var wide = window.matchMedia("(min-width: 52rem)").matches, seen = {};
+      function part(prefix, title) {
+        var html = GROUPS.filter(function (g) { return g[1][0].charAt(0) === prefix; }).map(function (g) {
+          var codes = g[1].filter(function (c) { return cases[c]; });
+          codes.forEach(function (c) { seen[c] = 1; });
+          return group(g[0], codes, wide);
+        });
+        var left = Object.keys(cases).filter(function (c) { return c.charAt(0) === prefix && !seen[c]; }).sort();
+        if (left.length) {
+          console.warn("Walkthrough cases not in GROUPS:", left);
+          html.push(group("Not yet grouped", left, wide));
+        }
+        return "<h3>" + title + '</h3><div class="groups">' + html.join("") + "</div>";
+      }
+
+      document.getElementById("case-count").textContent = count;
+      document.getElementById("case-index").innerHTML = "<h2>Contents</h2>" +
+        '<p class="sections">' + extras.map(function (h) {
+          return '<a href="#' + h.id + '">' + esc(h.text) + "</a>";
+        }).join(" · ") + "</p>" +
+        part("U", "Use-cases") + part("R", "Routing");
+
+      Object.keys(cases).forEach(function (code) {
+        document.getElementById(cases[code].id).insertAdjacentHTML("beforeend",
+          '<a class="to-contents" href="#case-index">Contents</a>');
+      });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
       HARTOps.mountChrome("behind-opspro-guide").catch(function (err) { console.error(err); });
 
@@ -83,17 +152,7 @@
           var res = HARTMarkdown.render(text);
           body.innerHTML = res.html;
 
-          // Case index: one chip per case, grouped by the guide's two parts.
-          var groups = [], g = null;
-          res.headings.forEach(function (h) {
-            if (h.level === 2 && /^Part \d/.test(h.text)) { g = { title: h.text, items: [] }; groups.push(g); }
-            else if (h.level === 3 && g && /^[UR]\d\d\./.test(h.text)) {
-              g.items.push('<li><a href="#' + h.id + '" title="' + HARTOps.esc(h.text.replace(/^[UR]\d\d\.\s*/, "")) + '">' + h.text.slice(0, 3) + "</a></li>");
-            }
-          });
-          document.getElementById("case-index").innerHTML = '<h2>Jump to a case</h2>' + groups.map(function (x) {
-            return "<h3>" + HARTOps.esc(x.title) + "</h3><ul>" + x.items.join("") + "</ul>";
-          }).join("");
+          buildContents(text, res.headings);
 
           if (location.hash) {
             var el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
