@@ -75,6 +75,11 @@ class InstallOpsFiles(unittest.TestCase):
         self.assertIn("SKIP", result.stdout)
         self.assertFalse((self.dest / "OperationsCarRoster.xml").exists())
 
+    def test_override_installs_while_jmri_runs(self):
+        self.fake_pgrep(0)
+        self.assertEqual(self.run_it("--guard", HART_OVERWRITE_OPS="1").returncode, 0)
+        self.assertEqual(self.roster(), "repo OperationsCarRoster.xml")
+
     def test_host_without_guard_takes_the_repo(self):
         self.run_it()
         (self.dest / "OperationsCarRoster.xml").write_text("local")

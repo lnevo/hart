@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Install the six Operations Pro files on this host (ADR-015).
 #   install_ops_files.sh <source dir> <operations dir> [--guard]
-# --guard is for the Pi, where JMRI writes session state into these files: stop
-# if they changed since the last deploy or pull. Set HART_OVERWRITE_OPS=1 to
-# discard those changes. A running JMRI would overwrite the files, so skip them.
+# sync_hart_package.sh sets HART_OVERWRITE_OPS=1, so the repo always wins: a backup
+# is kept, and a running JMRI does not stop the install. With HART_OVERWRITE_OPS=0,
+# skip the files if JMRI is running, and with --guard stop if they changed since
+# the last deploy or pull.
 set -euo pipefail
 SRC="$1"
 DEST="$2"
@@ -26,13 +27,14 @@ if [[ "$want" == "$have" ]]; then
   echo "Operations files already current -> $DEST"
   exit 0
 fi
-if pgrep -f 'java .*(apps\.PanelPro\.PanelPro|apps\.DecoderPro|cats\.apps\.Crandic)' >/dev/null 2>&1; then
+if [[ "${HART_OVERWRITE_OPS:-0}" != "1" ]] \
+    && pgrep -f 'java .*(apps\.PanelPro\.PanelPro|apps\.DecoderPro|cats\.apps\.Crandic)' >/dev/null 2>&1; then
   echo "SKIP Operations files: JMRI is running and would overwrite them. Deploy again with it closed."
   exit 0
 fi
 if [[ "$GUARD" == "--guard" && -f "$STAMP" && "$have" != "$(cat "$STAMP")" \
       && "${HART_OVERWRITE_OPS:-0}" != "1" ]]; then
-  echo "STOP: $DEST changed since the last deploy. Run make ops-pull to bring the changes into the repo, or set HART_OVERWRITE_OPS=1." >&2
+  echo "STOP: $DEST changed since the last deploy. Run make ops-pull to bring the changes into the repo." >&2
   exit 1
 fi
 backup="$DEST/backups/pre_deploy_$(date +%Y%m%d_%H%M%S)"

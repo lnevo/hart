@@ -32,7 +32,7 @@ The repo roster is the master ([ADR-015](../decisions/ADR-015-operations-files-i
 
 1. Before publishing, close JMRI on the Pi and run `make ops-pull`, then commit anything it brings in.
 2. `bin/cars publish`, then commit `jmri/layouts/hart/operations/` in the hart repo.
-3. With JMRI closed, deploy: `./cats/scripts/sync_hart_package.sh --pi` (`--all` for every host).
+3. Deploy: `./cats/scripts/sync_hart_package.sh --all`, then restart JMRI so it loads the roster.
 
 ## Out of service
 

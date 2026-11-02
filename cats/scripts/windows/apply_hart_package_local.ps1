@@ -1,6 +1,6 @@
 # Apply the HART package in a temporary drop folder into JMRI_UserFiles, the profile's user files.
 # Called by sync_hart_package.sh --win over SSH, which removes the drop afterwards.
-param([Parameter(Mandatory = $true)][string]$Hart)
+param([Parameter(Mandatory = $true)][string]$Hart, [string]$OverwriteOps = '1')
 $ErrorActionPreference = 'Stop'
 
 $src = Join-Path $hart 'tables.xml'
@@ -17,11 +17,11 @@ if (Test-Path $src) {
   Write-Host 'No tables.xml in the drop (skip tables)'
 }
 
-# Operations Pro files (ADR-015). A running JMRI would overwrite them, so skip them then.
+# Operations Pro files (ADR-015). The repo wins; OverwriteOps 0 skips them while JMRI runs.
 $opsSrc = Join-Path $hart 'operations'
 if (Test-Path $opsSrc) {
   $opsDest = Join-Path $env:USERPROFILE 'JMRI_UserFiles\operations'
-  if (Get-Process java -ErrorAction SilentlyContinue) {
+  if ($OverwriteOps -ne '1' -and (Get-Process java -ErrorAction SilentlyContinue)) {
     Write-Host 'SKIP Operations files: JMRI is running and would overwrite them. Deploy again with it closed.'
   } else {
     New-Item -ItemType Directory -Force -Path $opsDest | Out-Null
