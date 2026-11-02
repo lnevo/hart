@@ -18,6 +18,9 @@ PI_USERFILES="${HART_PI_USERFILES:-/home/pi/JMRI_UserFiles}"
 WIN_USERFILES="${HART_WIN_USERFILES:-C:/Users/lnevo/JMRI_UserFiles}"
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
 DRY_RUN=0
+# The repo is the master of the Operations Pro files (ADR-015). 0 restores the guards.
+HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-1}"
+export HART_OVERWRITE_OPS
 
 DO_PI=0
 DO_WIN=0
@@ -338,7 +341,7 @@ if [[ "$DO_PI" -eq 1 ]]; then
   rm -rf "$STAGE"
   trap - EXIT
   if [[ "$DRY_RUN" -eq 0 ]]; then
-    ssh_pi "HART=${PI_DROP} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
+    ssh_pi "HART=${PI_DROP} HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
   fi
   echo "Pi deploy done."
 fi
@@ -353,7 +356,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   trap - EXIT
   if [[ "$DRY_RUN" -eq 0 ]]; then
     rc=0
-    ssh_win "powershell -NoProfile -ExecutionPolicy Bypass -File \"${WIN_DROP}\\cats\\scripts\\windows\\apply_hart_package_local.ps1\" -Hart \"${WIN_DROP}\"" || rc=$?
+    ssh_win "powershell -NoProfile -ExecutionPolicy Bypass -File \"${WIN_DROP}\\cats\\scripts\\windows\\apply_hart_package_local.ps1\" -Hart \"${WIN_DROP}\" -OverwriteOps ${HART_OVERWRITE_OPS}" || rc=$?
     ssh_win "powershell -NoProfile -Command \"Remove-Item -LiteralPath '${WIN_DROP}' -Recurse -Force\""
     [[ "$rc" -eq 0 ]] || exit "$rc"
   fi
