@@ -9,7 +9,8 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PI_HOST="${HART_PI_SSH:-pi}"
 WIN_HOST="${HART_WIN_SSH:-lnevo@10.0.0.6}"
 WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
-MAC_PROFILE="${HART_MAC_JMRI_PROFILE:-$HOME/Library/Preferences/JMRI/My_JMRI_Railroad.jmri}"
+# ADR-014: the Mac reads user files from JMRI_UserFiles, not the profile folder.
+MAC_PROFILE="${HART_MAC_JMRI_PROFILE:-$HOME/JMRI_UserFiles}"
 WIN_PROFILE_REMOTE='C:/Users/lnevo/JMRI/My_JMRI_Railroad.jmri'
 STAGE="${HART_ROSTER_STAGE:-$ROOT/jmri/host-copies/pi-roster-ops}"
 
