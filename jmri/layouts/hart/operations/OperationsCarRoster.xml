@@ -79,7 +79,7 @@
     <car id="BO1059" roadName="BO" roadNumber="1059" type="Coach" length="50" weight="4.4" weightTons="45" moves="0" date="" selected="false" passenger="true" load="E" />
     <car id="BO11027" roadName="BO" roadNumber="11027" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="BO11137" roadName="BO" roadNumber="11137" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
-    <car id="BO132315" roadName="BO" roadNumber="132315" type="Hopper" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
+    <car id="BO132315" roadName="BO" roadNumber="132315" type="Hopper" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" outOfService="true" />
     <car id="BO132392" roadName="BO" roadNumber="132392" type="Coal" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
     <car id="BO133007" roadName="BO" roadNumber="133007" type="Coal" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
     <car id="BO13903" roadName="BO" roadNumber="13903" type="Coach" length="80" weight="6.5" weightTons="72" moves="0" date="" selected="false" passenger="true" load="E" />
@@ -104,7 +104,7 @@
     <car id="BO600401" roadName="BO" roadNumber="600401" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="BO600409" roadName="BO" roadNumber="600409" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="BO600421" roadName="BO" roadNumber="600421" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
-    <car id="BO625082" roadName="BO" roadNumber="625082" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="BO625082" roadName="BO" roadNumber="625082" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" outOfService="true" />
     <car id="BO625238" roadName="BO" roadNumber="625238" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="BO625509" roadName="BO" roadNumber="625509" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="BO625943" roadName="BO" roadNumber="625943" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
@@ -128,8 +128,8 @@
     <car id="CO2052" roadName="CO" roadNumber="2052" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="CO2063" roadName="CO" roadNumber="2063" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="true" load="E" />
     <car id="CO306607" roadName="CO" roadNumber="306607" type="Coil" length="52" weight="4.6" weightTons="92" moves="0" date="" selected="false" load="E" color="Blue" />
-    <car id="CO377700" roadName="CO" roadNumber="377700" type="MOW" length="90" weight="7.2" weightTons="144" moves="0" date="" selected="false" load="E" color="Black" />
-    <car id="COST1" roadName="CO" roadNumber="ST1" type="MOW" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CO377700" roadName="CO" roadNumber="377700" type="MOW" length="90" weight="7.2" weightTons="144" moves="0" date="" selected="false" load="E" color="Black" outOfService="true" />
+    <car id="COST1" roadName="CO" roadNumber="ST1" type="MOW" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" outOfService="true" />
     <car id="EL66410" roadName="EL" roadNumber="66410" type="Boxcar" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
     <car id="EL8063" roadName="EL" roadNumber="8063" type="Flatcar" length="52" weight="4.6" weightTons="92" moves="0" date="" selected="false" load="E" />
     <car id="GATX31090" roadName="GATX" roadNumber="31090" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" color="Black" />
@@ -138,8 +138,8 @@
     <car id="KSMX105" roadName="KSMX" roadNumber="105" type="Hopper" length="34" weight="3.3" weightTons="66" moves="0" date="" selected="false" load="E" />
     <car id="KSMX110" roadName="KSMX" roadNumber="110" type="Hopper" length="34" weight="3.3" weightTons="66" moves="0" date="" selected="false" load="E" />
     <car id="MILW61032" roadName="MILW" roadNumber="61032" type="Flatcar" length="53" weight="4.7" weightTons="94" moves="0" date="" selected="false" load="E" />
-    <car id="MOW0017" roadName="MOW" roadNumber="0017" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="true" load="E" />
-    <car id="MSTL52673" roadName="MSTL" roadNumber="52673" type="Boxcar" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" color="Orange" />
+    <car id="MOW0017" roadName="MOW" roadNumber="0017" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="true" load="E" outOfService="true" />
+    <car id="MSTL52673" roadName="MSTL" roadNumber="52673" type="Boxcar" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" color="Orange" outOfService="true" />
     <car id="NW12986" roadName="NW" roadNumber="12986" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="NW12988" roadName="NW" roadNumber="12988" type="Coal" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="NW32800" roadName="NW" roadNumber="32800" type="Flatcar" length="52" weight="4.6" weightTons="92" moves="0" date="" selected="false" load="E" />
@@ -148,14 +148,14 @@
     <car id="PRR474563" roadName="PRR" roadNumber="474563" type="Flatcar" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" color="Brown" />
     <car id="PRR498647" roadName="PRR" roadNumber="498647" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="PRR727454" roadName="PRR" roadNumber="727454" type="Hopper" length="34" weight="3.3" weightTons="66" moves="0" date="" selected="false" load="E" />
-    <car id="RDG107333" roadName="RDG" roadNumber="107333" type="Boxcar" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
+    <car id="RDG107333" roadName="RDG" roadNumber="107333" type="Boxcar" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" outOfService="true" />
     <car id="RDG99143" roadName="RDG" roadNumber="99143" type="Coil" length="55" weight="4.8" weightTons="96" moves="0" date="" selected="false" load="E" />
     <car id="REX350" roadName="REX" roadNumber="350" type="Reefer" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="true" load="E" />
     <car id="SHPX22329" roadName="SHPX" roadNumber="22329" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" color="Black" />
     <car id="URR15003" roadName="URR" roadNumber="15003" type="Coal" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
-    <car id="URR15022" roadName="URR" roadNumber="15022" type="Coal" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
+    <car id="URR15022" roadName="URR" roadNumber="15022" type="Coal" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" outOfService="true" />
     <car id="URR15044" roadName="URR" roadNumber="15044" type="Coal" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
-    <car id="URTX63627" roadName="URTX" roadNumber="63627" type="Reefer" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="URTX63627" roadName="URTX" roadNumber="63627" type="Reefer" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" outOfService="true" />
     <car id="UTLX32642" roadName="UTLX" roadNumber="32642" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" color="Black" />
     <car id="UTLX35294" roadName="UTLX" roadNumber="35294" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="UTLX39042" roadName="UTLX" roadNumber="39042" type="Tank" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" color="Black" />
@@ -163,7 +163,7 @@
     <car id="WM1879" roadName="WM" roadNumber="1879" type="Caboose" length="36" weight="3.5" weightTons="32" moves="0" date="" selected="false" caboose="true" load="E" />
     <car id="WP56057" roadName="WP" roadNumber="56057" type="Boxcar" length="50" weight="4.4" weightTons="88" moves="0" date="" selected="false" load="E" />
   <car id="CO142374" roadName="CO" roadNumber="142374" type="Hopper" length="40" color="Black" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
-    <car id="COW86" roadName="CO" roadNumber="W86" type="MOW" length="40" color="Green" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="COW86" roadName="CO" roadNumber="W86" type="MOW" length="40" color="Green" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" outOfService="true" />
     <car id="CR477935" roadName="CR" roadNumber="477935" type="Hopper" length="40" color="Brown" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="HART1776" roadName="HART" roadNumber="1776" type="Boxcar" length="40" color="Red" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
     <car id="PRR702186" roadName="PRR" roadNumber="702186" type="Hopper" length="40" color="Brown" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
