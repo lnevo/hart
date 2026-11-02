@@ -441,11 +441,59 @@
         <carType name="Tank" />
         <carType name="Boxcar" />
       </types>
+      <track id="7s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+        <types>
+          <carType name="Covered Hopper" />
+          <carType name="Tank" />
+          <carType name="Boxcar" />
+        </types>
+        <comments>
+          <track comment="STS off spot: alternate for the industry's spurs" />
+          <both comment="" />
+          <pickup comment="" />
+          <setout comment="" />
+          <printManifest comment="true" />
+          <printSwitchLists comment="true" />
+        </comments>
+      </track>
+      <track id="7s2" name="Pellet Unload" trackType="Spur" dir="15" length="180" moves="0" schedule="Pellet Unload Schedule" scheduleId="1" itemId="1c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="7s1">
+        <types>
+          <carType name="Covered Hopper" />
+        </types>
+      </track>
+      <track id="7s3" name="Chemical Unload" trackType="Spur" dir="15" length="120" moves="0" schedule="Chemical Unload Schedule" scheduleId="2" itemId="2c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="7s1">
+        <types>
+          <carType name="Tank" />
+        </types>
+      </track>
+      <track id="7s4" name="Shipping Door" trackType="Spur" dir="15" length="60" moves="0" schedule="Shipping Door Schedule" scheduleId="3" itemId="3c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="7s1">
+        <types>
+          <carType name="Boxcar" />
+        </types>
+      </track>
     </location>
     <location id="8" name="Ferrellgas" dir="15" switchList="true" comment="RED block: STS Ferrellgas (Neville Island)" switchListComment="">
       <types>
         <carType name="Tank" />
       </types>
+      <track id="8s1" name="Storage" trackType="Spur" dir="15" length="60" moves="0">
+        <types>
+          <carType name="Tank" />
+        </types>
+        <comments>
+          <track comment="STS off spot: alternate for the industry's spurs" />
+          <both comment="" />
+          <pickup comment="" />
+          <setout comment="" />
+          <printManifest comment="true" />
+          <printSwitchLists comment="true" />
+        </comments>
+      </track>
+      <track id="8s2" name="LPG Unload" trackType="Spur" dir="15" length="120" moves="0" schedule="LPG Unload Schedule" scheduleId="4" itemId="4c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="8s1">
+        <types>
+          <carType name="Tank" />
+        </types>
+      </track>
     </location>
     <location id="9" name="A. Stucki Co." dir="15" switchList="true" comment="GREEN block: STS A. Stucki Co. (Neville Island)" switchListComment="">
       <types>
@@ -454,6 +502,36 @@
         <carType name="Gondola" />
         <carType name="Coilcar" />
       </types>
+      <track id="9s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+        <types>
+          <carType name="Boxcar" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Coilcar" />
+        </types>
+        <comments>
+          <track comment="STS off spot: alternate for the industry's spurs" />
+          <both comment="" />
+          <pickup comment="" />
+          <setout comment="" />
+          <printManifest comment="true" />
+          <printSwitchLists comment="true" />
+        </comments>
+      </track>
+      <track id="9s2" name="Crane Track" trackType="Spur" dir="15" length="60" moves="0" schedule="Crane Track Schedule" scheduleId="5" itemId="5c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="9s1">
+        <types>
+          <carType name="Boxcar" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+        </types>
+      </track>
+      <track id="9s3" name="Team Track" trackType="Spur" dir="15" length="60" moves="0" schedule="Team Track Schedule" scheduleId="6" itemId="6c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="9s1">
+        <types>
+          <carType name="Boxcar" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+        </types>
+      </track>
     </location>
     <location id="10" name="Kosmos Cement" dir="15" switchList="true" comment="PINK block: STS Kosmos Cement (Neville Island)" switchListComment="">
       <types>
@@ -461,6 +539,33 @@
         <carType name="Hopper" />
         <carType name="Gondola" />
       </types>
+      <track id="10s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+        <types>
+          <carType name="Covered Hopper" />
+          <carType name="Hopper" />
+          <carType name="Gondola" />
+        </types>
+        <comments>
+          <track comment="STS off spot: alternate for the industry's spurs" />
+          <both comment="" />
+          <pickup comment="" />
+          <setout comment="" />
+          <printManifest comment="true" />
+          <printSwitchLists comment="true" />
+        </comments>
+      </track>
+      <track id="10s2" name="Cement Unload" trackType="Spur" dir="15" length="180" moves="0" schedule="Cement Unload Schedule" scheduleId="7" itemId="7c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="10s1">
+        <types>
+          <carType name="Covered Hopper" />
+        </types>
+      </track>
+      <track id="10s3" name="Aggregate Unload" trackType="Spur" dir="15" length="60" moves="0" schedule="Aggregate Unload Schedule" scheduleId="8" itemId="8c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="10s1">
+        <types>
+          <carType name="Hopper" />
+          <carType name="Gondola" />
+          <carType name="Covered Hopper" />
+        </types>
+      </track>
     </location>
     <location id="11" name="Calgon Carbon" dir="15" switchList="true" comment="PURPLE block: STS Calgon Carbon (Neville Island)" switchListComment="">
       <types>
@@ -468,12 +573,119 @@
         <carType name="Covered Hopper" />
         <carType name="Tank" />
       </types>
+      <track id="11s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+        <types>
+          <carType name="Hopper" />
+          <carType name="Covered Hopper" />
+          <carType name="Tank" />
+        </types>
+        <comments>
+          <track comment="STS off spot: alternate for the industry's spurs" />
+          <both comment="" />
+          <pickup comment="" />
+          <setout comment="" />
+          <printManifest comment="true" />
+          <printSwitchLists comment="true" />
+        </comments>
+      </track>
+      <track id="11s2" name="Coal Unload" trackType="Spur" dir="15" length="120" moves="0" schedule="Coal Unload Schedule" scheduleId="9" itemId="9c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="11s1">
+        <types>
+          <carType name="Hopper" />
+        </types>
+      </track>
+      <track id="11s3" name="Carbon Load" trackType="Spur" dir="15" length="60" moves="0" schedule="Carbon Load Schedule" scheduleId="10" itemId="10c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="11s1">
+        <types>
+          <carType name="Covered Hopper" />
+        </types>
+      </track>
+      <track id="11s4" name="Chemical Unload" trackType="Spur" dir="15" length="60" moves="0" schedule="Calgon Chemical Unload Schedule" scheduleId="11" itemId="11c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="11s1">
+        <types>
+          <carType name="Tank" />
+        </types>
+      </track>
     </location>
     <location id="12" name="Shenango Coke Works" dir="15" switchList="true" comment="BLACK block: STS Shenango Coke Works (12), Princess stubs K-1 and K-2" switchListComment="">
       <types>
         <carType name="Coke Hopper" />
       </types>
+      <track id="12s1" name="K-1" trackType="Spur" dir="15" length="175" moves="0" schedule="K-1 Schedule" scheduleId="12" itemId="12c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" dropOption="trains" pickupOption="trains">
+        <types>
+          <carType name="Coke Hopper" />
+        </types>
+        <dropIds>
+          <dropId id="3" />
+          <dropId id="2" />
+        </dropIds>
+        <pickupIds>
+          <pickupId id="3" />
+        </pickupIds>
+      </track>
+      <track id="12s2" name="K-2" trackType="Spur" dir="15" length="175" moves="0" dropOption="trains" pickupOption="trains" schedule="K-1 Schedule" scheduleId="12" itemId="12c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true">
+        <types>
+          <carType name="Coke Hopper" />
+        </types>
+        <dropIds>
+          <dropId id="3" />
+          <dropId id="2" />
+        </dropIds>
+        <pickupIds>
+          <pickupId id="3" />
+        </pickupIds>
+      </track>
     </location>
   </locations>
-  <schedules />
+  <schedules>
+    <schedule id="1" name="Pellet Unload Schedule" comment="">
+      <item id="1c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Covered Hopper" road="" load="Pellets" ship="" comment="ARIS-PELLETS-IN-*; empties return via POHC" hits="0" destinationId="5" destTrackId="5s1" />
+    </schedule>
+    <schedule id="2" name="Chemical Unload Schedule" comment="">
+      <item id="2c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Tank" road="" load="Ethyl Acrylate" ship="" comment="ARIS-CHEM-IN-DOW-EA" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="2c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Tank" road="" load="Methyl Methacrylate" ship="" comment="ARIS-CHEM-IN-EXXON" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="2c3" sequenceId="3" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Tank" road="" load="Styrene Monomer" ship="" comment="ARIS-CHEM-IN-DOW-STY" hits="0" destinationId="5" destTrackId="5s1" />
+    </schedule>
+    <schedule id="3" name="Shipping Door Schedule" comment="">
+      <item id="3c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Boxcar" road="" load="E" ship="Plastic Resins" comment="ARIS-RESIN-OUT-BEMIS; ARIS-RESIN-OUT-OI-TOLEDO" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="3c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Boxcar" road="" load="E" ship="Plastic Resins" comment="ARIS-RESIN-OUT-OI-OTTAWA" hits="0" destinationId="6" destTrackId="6s1" />
+    </schedule>
+    <schedule id="4" name="LPG Unload Schedule" comment="">
+      <item id="4c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Tank" road="" load="LPG" ship="" comment="FERR-LPG-IN-*; empties return via CSX" hits="0" destinationId="6" destTrackId="6s1" />
+    </schedule>
+    <schedule id="5" name="Crane Track Schedule" comment="">
+      <item id="5c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Boxcar" road="" load="Steel" ship="" comment="STUK-STEEL-IN-METAL-SVC; empties return via CSX" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="5c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Flatcar" road="" load="Steel" ship="" comment="STUK-STEEL-IN-ALLEGHENY" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="5c3" sequenceId="3" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Gondola" road="" load="Steel" ship="" comment="STUK-STEEL-IN-REP-STEEL" hits="0" destinationId="6" destTrackId="6s1" />
+    </schedule>
+    <schedule id="6" name="Team Track Schedule" comment="">
+      <item id="6c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Boxcar" road="" load="Steel Coils" ship="Machined Parts" comment="STUK-COILS-IN-RYERSON then STUK-PARTS-OUT-METAL-SVC" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="6c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Boxcar" road="" load="E" ship="Machined Parts" comment="STUK-PARTS-OUT-METAL-SVC" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="6c3" sequenceId="3" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Flatcar" road="" load="Steel Plate" ship="Railway Springs" comment="STUK-PLATE-IN-WASH-STL then STUK-SPRINGS-OUT-PITTS-FORGE" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="6c4" sequenceId="4" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Flatcar" road="" load="E" ship="Railway Springs" comment="STUK-SPRINGS-OUT-PITTS-FORGE" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="6c5" sequenceId="5" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Gondola" road="" load="Steel Billets" ship="Steel Coils" comment="STUK-BILLETS-IN-MCCONWAY then STUK-COILS-OUT-RYERSON" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="6c6" sequenceId="6" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Gondola" road="" load="E" ship="Steel Coils" comment="STUK-COILS-OUT-RYERSON" hits="0" destinationId="6" destTrackId="6s1" />
+    </schedule>
+    <schedule id="7" name="Cement Unload Schedule" comment="">
+      <item id="7c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Covered Hopper" road="" load="Cement" ship="" comment="KOSM-CEMENT-IN-*; empties return via CSX" hits="0" destinationId="6" destTrackId="6s1" />
+    </schedule>
+    <schedule id="8" name="Aggregate Unload Schedule" comment="">
+      <item id="8c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Hopper" road="" load="Aggregate" ship="" comment="KOSM-AGG-IN-MARTIN" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="8c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Gondola" road="" load="Aggregate" ship="" comment="KOSM-AGG-IN-MI-LIME; KOSM-AGG-IN-US-AGG" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="8c3" sequenceId="3" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Covered Hopper" road="" load="Aggregate" ship="" comment="KOSM-AGG-IN-MARTIN (STS codes it HC)" hits="0" destinationId="6" destTrackId="6s1" />
+    </schedule>
+    <schedule id="9" name="Coal Unload Schedule" comment="">
+      <item id="9c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Hopper" road="" load="Coal" ship="" comment="CALG-COAL-IN-*; empties return via POHC" hits="0" destinationId="5" destTrackId="5s1" />
+    </schedule>
+    <schedule id="10" name="Carbon Load Schedule" comment="">
+      <item id="10c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Covered Hopper" road="" load="E" ship="Carbon" comment="CALG-CARBON-OUT-UNIVAR" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="10c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Covered Hopper" road="" load="E" ship="Carbon" comment="CALG-CARBON-OUT-CORP; CALG-CARBON-OUT-HOUGHTON" hits="0" destinationId="6" destTrackId="6s1" />
+    </schedule>
+    <schedule id="11" name="Calgon Chemical Unload Schedule" comment="">
+      <item id="11c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Tank" road="" load="Caustic Soda" ship="" comment="CALG-CHEM-IN-HOUGHTON" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="11c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Tank" road="" load="Hydrochloric Acid" ship="" comment="CALG-CHEM-IN-GEN-CHEM" hits="0" destinationId="5" destTrackId="5s1" />
+      <item id="11c3" sequenceId="3" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Tank" road="" load="Phosphoric Acid" ship="" comment="CALG-CHEM-IN-DOW" hits="0" destinationId="5" destTrackId="5s1" />
+    </schedule>
+    <schedule id="12" name="K-1 Schedule" comment="">
+      <item id="12c1" sequenceId="1" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Coke Hopper" road="" load="E" ship="Coke" comment="COKE-USS-BULK; COKE-USS" hits="0" destinationId="6" destTrackId="6s1" />
+      <item id="12c2" sequenceId="2" random="" trainScheduleId="" pickupTrainScheduleId="" count="1" wait="0" type="Coke Hopper" road="" load="E" ship="Coke" comment="COKE-CLEV-BULK; COKE-CLEV" hits="0" destinationId="5" destTrackId="5s1" />
+    </schedule>
+  </schedules>
 </operations-config>

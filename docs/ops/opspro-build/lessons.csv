@@ -6,3 +6,4 @@ L4,2B,"Pass ops_dir on every plugin call; nothing sets OPS_DIR in a subagent's e
 L5,2B,"Build a spur and its schedule in one plan (add_industry), since hold_custom and the other schedule options are refused on a bare spur"
 L6,2C,"Read every plan diff before applying: a field value the plugin does not understand can be dropped silently"
 L7,2C,"Order the build so engines exist before trains name a road or model, or set them afterwards with update_train"
+L8,3A,"Give spurs unique names across industries, or create the schedule under its own name before the track; add_industry reuses a schedule whose name matches"

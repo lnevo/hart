@@ -11,3 +11,5 @@ F9,2C,Silent drop,"add_route stop fields pickups and drops given as the strings 
 F10,2C,Ordering,"add_train refuses engine_road and a new engine_model until an engine of that road and model exists, so train power cannot be declared before the roster",Add engines first; update_train later,Open
 F11,2C,Field shape,"setup_interchange set_out_by, pulled_by and destinations refuse the {option, names} shape that add_track uses for the same lists; they take a plain list, and destinations has no way to say All",Pass a plain list; leave destinations unset,Open
 F12,2C,Missing output,"ops_list trains shows no description, departure time or comment",Read the plan diff,Open
+F13,3A,Silent reuse,"add_industry names the schedule <spur> Schedule and a same-named schedule returns the existing one, so two industries with a spur called Chemical Unload would share one schedule and the second industry's lines would be dropped without warning",add_schedule under a unique name then add_track naming it,Open
+F14,3A,Missing field,"add_industry has no pick up or set out list fields, so a spur restricted to one train needs a second update_track action",update_track in the same plan,Open
