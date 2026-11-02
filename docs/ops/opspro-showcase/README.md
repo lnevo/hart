@@ -6,7 +6,7 @@ The master copy of the railroad stays in the plugin as an example: `plugins/oper
 
 | Path | What it is |
 |---|---|
-| `PLUGIN_FAULTS.md` | The plugin fault list, all resolved, with what is still open. It lives only here |
+| `PLUGIN_FAULTS.md` | The plugin fault list, all resolved, with the known limits. It lives only here |
 | `railroad/operations/` | The six Operations XML files, build reports and one backup set |
 | `railroad/GUIDE.md` | The tour of the 43 cases |
 | `railroad/RESULTS.md` | Per-case results and the review summary |
