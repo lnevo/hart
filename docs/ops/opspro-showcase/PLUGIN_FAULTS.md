@@ -1,15 +1,46 @@
 # Plugin faults from the showcase build
 
-For whoever changes the operations-pro plugin next. The showcase railroad was built as a test of the plugin, and no plugin code was changed while building it. This lists what needs fixing, worst first.
+**Resolved.** Every item below was fixed or settled in the plugin by 2026-11-02, and the full suite passed 765 tests on JMRI 5.16 at `0f402a4`. The rest of this page is the original report, kept as history. Its line numbers and test count are from before the fixes, and `faults.csv` has the resolution for each F number.
 
-## Before you start
+## Resolutions
 
-- This list lives in the hart repo. Paths in it are relative to `plugins/operations-pro` in model-railroad-skills unless they start with `plugins/`.
-- Reproduce on a copy of `examples/showcase/operations/`, never on the shipped folder.
-- Run the suite with `OPS_BANNED_TERMS=<term> python3 -m unittest discover -s plugins/operations-pro/tests`. It held 675 passing tests at this commit and takes about 11 minutes with JMRI 5.16 installed.
-- `tests/test_showcase.py` and `GUIDE.md` record some of today's wrong behaviour as the expected result. Each fix below names what to update. Search for the case code.
-- Line numbers are from this branch. "Session 1 state" means the folder after one build, terminate and save; `run_session_chain` in `tests/test_showcase.py` makes it.
-- Check a suggested fix against JMRI 5.16 source first. They are suggestions and none has been tried.
+| Item | Result | Plugin commit |
+|---|---|---|
+| 1 | Fixed: only the router refusing a custom load no longer means stuck | `abd0ad5` |
+| 2 | Corrected, then fixed: the car makes a local move rather than stranding, and `ops_why_not` says so | `956a8b7` |
+| 3 | Fixed: `first_failure` appears only when the car cannot move | `956a8b7` |
+| 4 | Fixed: notes for `service_all` and same-build room, and A8 stays open when locomotives fit no change track | `956a8b7`, `9544c8b` |
+| 5 | Fixed: one sample car per road, owner and build date | `edb2ae1` |
+| 6 | Fixed: names the closest refusal | `708eb9d` |
+| 7, 8 | Fixed | `23c3fcb` |
+| 9 | Fixed | `35601e0` |
+| 10 | Fixed | `8ec0aa0` |
+| 11 | Corrected, then fixed: tracks do have comments in JMRI, so `add_track` and `update_track` now write them | `02ec45e` |
+| 12 | Fixed | `02ec45e` |
+| 13 | Fixed: the output names the train it chose and why | `956a8b7` |
+| 14, 15 | Fixed | `4c410fd` |
+| 16 | Fixed | `c8220ef` |
+| 17 | Fixed | `23c3fcb` |
+| 18 | Fixed by documenting it in SKILL.md | `e198dcb` |
+| 19 | Fixed: warns from 25 backup sets and never deletes one | `e7e3a56` |
+| Priority 5 docs | Fixed. `ops-diagnoser` ran in 3 of 5 fresh sessions, up from 0 of 5 | `e198dcb` |
+| Test harness | Fixed. The directory log line comes from a JMRI race, so it cannot be proved gone | `40b1c9e` |
+
+A second review after these fixes found 26 more faults. All are merged, as the commits from `c6c4e72` to `0f402a4`.
+
+## Still open
+
+None of these came from this list:
+
+- Following generated loads from staging to staging is not checked in `ops_why_not`.
+- JMRI's `Integer.decode` of an automation item's action code is not checked.
+- Not settled by the second review: D3 in aggressive mode, D9 double count, B19 `_mb_matches`, `mirror_schedule` with a blank ship load, the `set_train_leg` finding, and some automation claims.
+- `staging-departure-blocked` may still fire on an empty staging track mid-session.
+- A locomotive with no terminal track and overlapping pool dates both report `not_checked`, though the first fails a real build.
+
+# Original report
+
+The showcase railroad was built as a test of the plugin, and no plugin code was changed while building it. Items run worst first. Paths are relative to `plugins/operations-pro` in model-railroad-skills.
 
 ## Priority 1: the tools give a wrong answer
 
