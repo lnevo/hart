@@ -13,6 +13,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
 | Bring a PanelPro Store into the repo | `make tables-pull` |
+| Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
 | Desktop folders | `python3 tools/ops/sync_desktop_data.py` previews; `--apply` copies. Never deletes. |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
@@ -32,7 +33,7 @@ After any task that **changed files**, do not wait to be asked:
 2. **Commit** on the current branch; if that is `main`, create `agent/<agent-id>/<topic>` first. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`, and confirm the branch first: another session may share this checkout and switch it. Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
 3. **Push** that branch (`git push -u origin HEAD`). Never push to `main`. Agents may merge their own PR once its required check passes, never with `--admin`.
 4. **PanelPro test** when `tables.xml` or panels changed: `make panelpro-test`. Report the result, including `SKIPPED` when PanelPro or CATS is open. Do not start it while the owner is operating.
-5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, signals, jython, web home, CTC icons, CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
+5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CTC icons, CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
 Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks commits on `main`, pushes to `main`, force-pushes and admin merges, and asks before a `track/cmd` publish.

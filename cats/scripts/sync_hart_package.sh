@@ -156,6 +156,11 @@ install_tables_local() {
   _copy_tables "${HOME}/JMRI_UserFiles"
 }
 
+install_ops_local() {
+  bash "$ROOT/cats/scripts/install_ops_files.sh" \
+    "$ROOT/jmri/layouts/hart/operations" "${HOME}/JMRI_UserFiles/operations"
+}
+
 install_cats_panels_local() {
   local dest="${HOME}/JMRI_UserFiles/cats/panels"
   mkdir -p "$dest"
@@ -253,6 +258,7 @@ stage_package() {
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \
     "$ROOT/cats/scripts/rewrite_button_icon_paths.py" \
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
+    "$ROOT/cats/scripts/install_ops_files.sh" \
     "$stage/cats/scripts/"
 
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
@@ -277,6 +283,8 @@ stage_package() {
   if [[ -n "$TABLES" ]]; then
     cp -f "$TABLES" "$stage/tables.xml"
   fi
+  mkdir -p "$stage/operations"
+  cp -f "$ROOT/jmri/layouts/hart/operations/"*.xml "$stage/operations/"
   chmod +x "$stage/cats/scripts/pi/"*.sh "$stage/cats/scripts/"*.sh 2>/dev/null || true
 }
 
@@ -311,6 +319,7 @@ push_tar_scp() {
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
   install_tables_local
+  install_ops_local
   install_cats_panels_local
   install_ctc_icons_local
   install_jython_scripts

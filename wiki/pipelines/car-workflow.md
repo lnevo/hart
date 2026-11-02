@@ -22,33 +22,31 @@ Run `bin/cars publish`. It:
 
 1. Rebuilds the rosters from the repository and copies them to the STS seed inputs.
 2. Adds new cars to `hart_seed`, and to the running STS database if it is up. The car joins at South Yard, Empty, with the pools of another car of the same code.
-3. Adds new cars to a copy of the Operations Pro roster in `card_pipeline/output/ops_merge/`.
+3. Writes new cars and out-of-service flags to the Operations Pro roster in `jmri/layouts/hart/operations/` (ADR-015).
 
 If STS was down, the seed still has the car but the running database does not. A restore from the seed brings it in.
 
 ## Install in Operations Pro
 
-The Pi holds live session state, so never replace its roster with the export.
+The repo roster is the master ([ADR-015](../decisions/ADR-015-operations-files-in-repo.md)), and the Pi holds live session state.
 
-1. Close JMRI on the Pi.
-2. `./tools/hosts/sync_roster_ops_from_pi.sh --mac`, then `bin/cars publish` to merge onto the current roster.
-3. `./tools/hosts/push_ops_cars_to_pi.sh`, then `bin/cars publish --mark-ops`.
-
-The repo copy of the Operations Pro files is `jmri/layouts/hart/operations/` ([ADR-015](../decisions/ADR-015-operations-files-in-repo.md)). After installing cars, run `./tools/hosts/ops_files.sh pull` and commit. 
+1. Before publishing, close JMRI on the Pi and run `make ops-pull`, then commit anything it brings in.
+2. `bin/cars publish`, then commit `jmri/layouts/hart/operations/` in the hart repo.
+3. With JMRI closed, deploy: `./cats/scripts/sync_hart_package.sh --pi` (`--all` for every host).
 
 ## Out of service
 
 Change it in the repository, not in STS or JMRI. The next publish overwrites a change made there.
 
 1. `bin/cars service out <id>...` or `bin/cars service in <id>...`.
-2. `bin/cars publish`. STS updates at once: seed and running database, with cars in use listed to check by hand. Operations Pro gets a merged copy.
-3. Install that copy with the steps above, then `./tools/hosts/ops_files.sh pull` and commit.
+2. `bin/cars publish`. STS updates at once: seed and running database, with cars in use listed to check by hand.
+3. Commit and deploy the Operations Pro roster with the steps above.
 
 ## Compare
 
 `bin/cars compare` lists differences between the repository, the Operations Pro roster and the STS seed, including out-of-service flags. It reports only.
 
-`bin/cars fix-ops` brings a copy of the Operations Pro roster up to the repository: wrong ids listed in `ROSTER_TYPO_IDS` are corrected in place, keeping location and moves, and missing cars are added. It leaves STS and the queue alone. Install the result as in the steps above.
+`bin/cars fix-ops` brings the Operations Pro roster up to the repository: wrong ids listed in `ROSTER_TYPO_IDS` are corrected in place, keeping location and moves, and missing cars are added. It leaves STS and the queue alone. Commit and deploy the result as in the steps above.
 
 ## Do not
 
