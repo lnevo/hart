@@ -1,0 +1,2845 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/operations-locations.xsl" type="text/xsl"?>
+<!DOCTYPE operations-config SYSTEM "/xml/DTD/operations-locations.dtd">
+<operations-config>
+  <!--Written by JMRI version 5.15.4plus+jenkins+20260220T0403Z+R20f7db4fc0 on Tue Sep 01 11:47:55 EDT 2026-->
+  <divisions />
+  <locations>
+    <location id="1" name="Pressed Steel Car Company" ops="1" dir="3" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Boxcar" />
+        <carType name="Coil" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+      </types>
+      <track id="1s1" name="Track 1" trackType="Spur" dir="15" length="108" moves="1">
+        <types>
+          <carType name="Boxcar" />
+          <carType name="Coil" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+        </types>
+      </track>
+      <track id="1s2" name="Track 2" trackType="Spur" dir="15" length="108" moves="1">
+        <types>
+          <carType name="Boxcar" />
+          <carType name="Coil" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+        </types>
+      </track>
+    </location>
+    <location id="2" name="Scully Yard" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="2s3" name="Yard 1" trackType="Yard" dir="15" length="650" moves="1">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="3" name="Bridgeville Lumber" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="3s1" name="Spot 1" trackType="Spur" dir="15" length="87" moves="0" pool="Lumber Spur" minLength="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="3s2" name="Spare Track" trackType="Spur" dir="15" length="268" moves="0" pool="Lumber Spur" minLength="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="4" name="Flannery Bolts" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="4s1" name="Track 1-Offspot" trackType="Spur" dir="15" length="87" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="4s2" name="Track 1" trackType="Spur" dir="15" length="50" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="5" name="JB Higbee Glass" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="5s1" name="Track 1" trackType="Spur" dir="15" length="145" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="5s2" name="Track 2-Offspot" trackType="Spur" dir="15" length="145" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="5s3" name="Track 2" trackType="Spur" dir="15" length="145" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="6" name="Cyclops Steel" ops="1" dir="2" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="6s1" name="Track 1 " trackType="Spur" dir="15" length="246" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="7" name="Rook Yard" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="7s1" name="Track 1" trackType="Interchange" dir="15" length="790" moves="0" onlyCarWithFD="false">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="7s2" name="Track 2" trackType="Interchange" dir="15" length="768" moves="0" onlyCarWithFD="false">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="7s3" name="Interchange" trackType="Interchange" dir="15" length="783" moves="0" onlyCarWithFD="false">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="8" name="McKees Rock Yard" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="8s1" name="Track 1" trackType="Spur" dir="15" length="761" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="8s2" name="Track 2" trackType="Spur" dir="15" length="674" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="9" name="Warehouse" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="9s1" name="Track 1" trackType="Spur" dir="15" length="239" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="10" name="Bridgeworks" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="10s1" name="Track 1" trackType="Spur" dir="15" length="377" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="10s2" name="Track 2" trackType="Spur" dir="15" length="217" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="11" name="Team Track" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="11s1" name="Track 1" trackType="Spur" dir="15" length="239" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="12" name="PTT" ops="1" dir="1" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="12s1" name="Track 1" trackType="Spur" dir="15" length="507" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="12s2" name="Track 2" trackType="Spur" dir="15" length="471" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="13" name="Pittsburgh Coke &amp; Chem" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="13s1" name="Coal 1" trackType="Spur" dir="15" length="304" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="13s2" name="Coal 2" trackType="Spur" dir="15" length="290" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="13s3" name="Coal Unload" trackType="Spur" dir="15" length="53" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="13s4" name="Coal Oven" trackType="Spur" dir="15" length="435" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="13s5" name="Coke 1" trackType="Spur" dir="15" length="391" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="13s6" name="Coke 2" trackType="Spur" dir="15" length="456" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+      <track id="13s7" name="Aristech" trackType="Spur" dir="15" length="232" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="14" name="Calgon Carbon" ops="1" dir="12" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+      <track id="14s1" name="Track 1" trackType="Spur" dir="15" length="253" moves="0">
+        <types>
+          <carType name="Baggage" />
+          <carType name="Boxcar" />
+          <carType name="Caboose" />
+          <carType name="Coach" />
+          <carType name="Coal" />
+          <carType name="Coil" />
+          <carType name="Combine" />
+          <carType name="Dining" />
+          <carType name="Flatcar" />
+          <carType name="Gondola" />
+          <carType name="Hopper" />
+          <carType name="MOW" />
+          <carType name="Observation" />
+          <carType name="Reefer" />
+          <carType name="Tank" />
+          <locoType name="Diesel" />
+          <locoType name="Electric" />
+          <locoType name="Engine" />
+          <locoType name="Gas Turbine" />
+          <locoType name="Steam" />
+          <locoType name="Steam-heavy" />
+          <locoType name="Steam-light" />
+          <locoType name="Steam-mixed" />
+          <locoType name="Steam-pass" />
+          <locoType name="Switcher" />
+        </types>
+      </track>
+    </location>
+    <location id="15" name="McKees Rocks" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="16" name="McKeesport" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="17" name="West Main Ext" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="18" name="Main East" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="19" name="Main West" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="20" name="East Lead" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="21" name="East Main Ext" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="22" name="Main West Brick-Plane" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="23" name="Barn" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="24" name="Brick-Plane" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="25" name="Engine House 1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="26" name="Engine House 2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="27" name="Engine House 3" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="28" name="K-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="29" name="K-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="30" name="Scale" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="31" name="South Yard 1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="32" name="South Yard 2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="33" name="South Yard 3" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="34" name="South Yard 4" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="35" name="South Yard 5" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="36" name="South Yard East" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="37" name="West Yard 1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="38" name="West Yard 2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="39" name="EH-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="40" name="EH-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="41" name="EH-3" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="42" name="S-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="43" name="S-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="44" name="S-3" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="45" name="S-4" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="46" name="S-5" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="47" name="W-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="48" name="W-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="49" name="Track Barn" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="50" name="Track Brick-Plane" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="51" name="Track EH-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="52" name="Track EH-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="53" name="Track EH-3" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="54" name="Track East Lead" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="55" name="Track East Main Ext" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="56" name="Track K-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="57" name="Track K-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="58" name="Track Main East" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="59" name="Track Main West" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="60" name="Track McKees Rocks" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="61" name="Track McKeesport" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="62" name="Track S-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="63" name="Track S-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="64" name="Track S-3" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="65" name="Track S-4" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="66" name="Track S-R" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="67" name="Track Scale" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="68" name="Track W-1" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="69" name="Track W-2" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+    <location id="70" name="Track West Main Ext" ops="1" dir="15" switchList="true" comment="" switchListComment="">
+      <types>
+        <carType name="Baggage" />
+        <carType name="Boxcar" />
+        <carType name="Caboose" />
+        <carType name="Coach" />
+        <carType name="Coal" />
+        <carType name="Coil" />
+        <carType name="Combine" />
+        <carType name="Dining" />
+        <carType name="Flatcar" />
+        <carType name="Gondola" />
+        <carType name="Hopper" />
+        <carType name="MOW" />
+        <carType name="Observation" />
+        <carType name="Reefer" />
+        <carType name="Tank" />
+        <locoType name="Diesel" />
+        <locoType name="Electric" />
+        <locoType name="Engine" />
+        <locoType name="Gas Turbine" />
+        <locoType name="Steam" />
+        <locoType name="Steam-heavy" />
+        <locoType name="Steam-light" />
+        <locoType name="Steam-mixed" />
+        <locoType name="Steam-pass" />
+        <locoType name="Switcher" />
+      </types>
+    </location>
+  </locations>
+  <schedules />
+</operations-config>
