@@ -22,7 +22,7 @@
     <printDuplex name="one-sided" />
     <manifestColors dropEngineColor="black" pickupEngineColor="black" dropColor="black" pickupColor="black" localColor="black" />
     <tab enabled="false" length="12" tab2Length="6" tab3Length="8" manifestTabLength="4" />
-    <manifest printLocComments="false" printRouteComments="false" printLoadsEmpties="false" printTimetable="false" use12hrFormat="false" printValid="true" sortByTrack="false" printPageHeader="true" printHeaders="false" printNoPageBreaks="true" truncate="false" useDepartureTime="false" useEditor="false" printCabooseLoad="false" printPassengerLoad="false" groupCarMoves="false" printLocoLast="false" hazardousMsg="(Hazardous)" />
+    <manifest printLocComments="true" printRouteComments="true" printLoadsEmpties="true" printTimetable="false" use12hrFormat="false" printValid="true" sortByTrack="false" printPageHeader="true" printHeaders="false" printNoPageBreaks="true" truncate="false" useDepartureTime="false" useEditor="false" printCabooseLoad="false" printPassengerLoad="false" groupCarMoves="false" printLocoLast="false" hazardousMsg="(Hazardous)" />
     <manifestFormat value="0" />
     <headerLines printHeaderLine1="true" printHeaderLine2="true" printHeaderLine3="true" />
     <manifestFileOptions manifestSave="false" />

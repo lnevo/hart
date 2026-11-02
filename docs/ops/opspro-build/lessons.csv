@@ -14,3 +14,5 @@ L12,3D,"To deliver a car onto a spur, give it the load the schedule line receive
 L13,3D,"Check each delivered car's type against the spur's type list before the plan; the tool reports the mismatch only at delivery"
 L14,4,"A dry run answers gate and routing questions, not session-order questions; to prove a hand-off, run an ordered automation on the copy"
 L15,4,"Ask ops_why_not one car and one train at a time and read first_failure and router; the gate list is for the diagnoser"
+L16,5,"Clear a startup automation with an empty string; name the railroad per train with set_train_manifest when the file has no railroad element"
+L17,5,"ops_dry_run cannot prove a session order; keep a replay automation for the live lane and test the hand-off on a running JMRI"

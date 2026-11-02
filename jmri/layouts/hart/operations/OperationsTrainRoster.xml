@@ -73,6 +73,7 @@
       </types>
       <rowColor name="" resetRowColor="" />
       <route name="D749" id="1" />
+      <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     </train>
     <train id="2" name="NVL" description="Neville Island Turn" departHour="08" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="1" engineRoad="POHC" engineModel="GP20" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="" showTimes="true">
       <types>
@@ -129,6 +130,7 @@
       </types>
       <rowColor name="" resetRowColor="" />
       <route name="NVL" id="2" />
+      <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     </train>
     <train id="3" name="CK1" description="Coke Transfer. Power assigned by the Yardmaster" departHour="09" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="0" engineRoad="" engineModel="" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="" showTimes="true">
       <types>
@@ -185,6 +187,7 @@
       </types>
       <rowColor name="" resetRowColor="" />
       <route name="CK1" id="3" />
+      <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     </train>
     <train id="4" name="STG-DEMMLER" description="Virtual: CSX offline swap, run by the automation" departHour="16" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="0" engineRoad="" engineModel="" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="Virtual: offline swap, run by the Session automation, no crew" showTimes="true">
       <types>
@@ -241,6 +244,7 @@
       </types>
       <rowColor name="" resetRowColor="" />
       <route name="STG-DEMMLER" id="4" />
+      <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     </train>
     <train id="5" name="STG-SCULLY" description="Virtual: POHC offline swap" departHour="17" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="0" engineRoad="" engineModel="" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="Virtual: offline swap, run by the Session automation, no crew" showTimes="true">
       <types>
@@ -297,6 +301,7 @@
       </types>
       <rowColor name="" resetRowColor="" />
       <route name="STG-SCULLY" id="5" />
+      <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     </train>
   </trains>
   <manualBuilds />
@@ -311,5 +316,32 @@
     <schedule id="7" name="Saturday" trainIds="" />
   </schedules>
   <automationOptions automationStartupId="" />
-  <automations />
+  <automations>
+    <automation id="1" name="Session" comment="Live session: the dispatcher moves and terminates the crewed trains; the STG trains run themselves at session end">
+      <item id="1c1" sequenceId="1" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="1" />
+      <item id="1c2" sequenceId="2" name="Wait for Train" actionCode="0x70f" haltFail="true" actionRan="false" actionSuccessful="false" trainId="1" routeLocationId="1r2" />
+      <item id="1c3" sequenceId="3" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="2" />
+      <item id="1c4" sequenceId="4" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="3" />
+      <item id="1c5" sequenceId="5" name="Wait for Train to Terminate" actionCode="0xc0d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="2" />
+      <item id="1c6" sequenceId="6" name="Wait for Train to Terminate" actionCode="0xc0d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="3" />
+      <item id="1c7" sequenceId="7" name="Wait for Train to Terminate" actionCode="0xc0d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="1" />
+      <item id="1c8" sequenceId="8" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="4" />
+      <item id="1c9" sequenceId="9" name="Terminate Train" actionCode="0x60d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="4" />
+      <item id="1c10" sequenceId="10" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="5" />
+      <item id="1c11" sequenceId="11" name="Terminate Train" actionCode="0x60d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="5" />
+    </automation>
+    <automation id="2" name="Session Replay" comment="Unattended replay of the session order for tests and dry runs">
+      <item id="2c1" sequenceId="1" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="1" />
+      <item id="2c2" sequenceId="2" name="Move Train" actionCode="0x50f" haltFail="true" actionRan="false" actionSuccessful="false" trainId="1" routeLocationId="1r2" />
+      <item id="2c3" sequenceId="3" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="2" />
+      <item id="2c4" sequenceId="4" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="3" />
+      <item id="2c5" sequenceId="5" name="Terminate Train" actionCode="0x60d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="2" />
+      <item id="2c6" sequenceId="6" name="Terminate Train" actionCode="0x60d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="3" />
+      <item id="2c7" sequenceId="7" name="Terminate Train" actionCode="0x60d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="1" />
+      <item id="2c8" sequenceId="8" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="4" />
+      <item id="2c9" sequenceId="9" name="Terminate Train" actionCode="0x60d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="4" />
+      <item id="2c10" sequenceId="10" name="Build Train" actionCode="0x10d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="5" />
+      <item id="2c11" sequenceId="11" name="Terminate Train" actionCode="0x60d" haltFail="true" actionRan="false" actionSuccessful="false" trainId="5" />
+    </automation>
+  </automations>
 </operations-config>
