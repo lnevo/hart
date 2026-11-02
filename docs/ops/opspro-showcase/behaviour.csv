@@ -1,0 +1,6 @@
+question,skill_triggered,tools_chosen,diagnoser_used,answer_ok
+Why doesn't BOXX 1 end up on Ferris Routed?,Yes,"ops_why_not, ops_explain_build, Read, Grep",No,"Yes: routed cars only, E7, and it goes to Ferris Yard"
+MODE failed on the second session; what went wrong?,Yes,"ops_explain_build, ops_audit, ops_list, ops_dry_run, ops_actions, Read, Grep, Bash",No,"Mostly: right that nothing refills West Mode, but stated as likely. No session 2 run: Bash copy not permitted in the test setup"
+WNDR 1 never goes to Brae Lumber; is that a problem?,Yes,"ops_why_not, ops_audit, Read, Grep, Bash",No,"Yes: not a problem, type, road and schedule keep it out"
+Is anything wrong with the setup?,Yes,"ops_audit, ops_dry_run, ops_list, ops_why_not, ops_actions, Read, Grep, Bash",No,"Yes: all 18 build in session 1, and CUSTOM, MIXED and MODE run out. Session 2 not run: Bash copy not permitted in the test setup"
+Long TURN build report; where did HZMX 9 go?,Yes,"ops_explain_build, ops_why_not, Read, Grep",No,"Yes: rides through Linden to Turn B, with the refusals listed"
