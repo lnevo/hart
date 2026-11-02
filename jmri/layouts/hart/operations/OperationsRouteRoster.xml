@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/operations-routes.xsl" type="text/xsl"?>
+<!DOCTYPE operations-config SYSTEM "/xml/DTD/operations-routes.dtd">
+<operations-config>
+  <!--Written by JMRI version 5.15.4plus+jenkins+20260220T0403Z+R20f7db4fc0 on Thu Aug 20 22:39:13 EDT 2026-->
+  <routes>
+    <route id="1" name="PSCC Turn" comment="">
+      <location id="1r1" name="Scully Yard" locationId="2" sequenceId="1" trainDirection="2" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="1r2" name="Pressed Steel Car Company" locationId="1" sequenceId="2" trainDirection="2" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="1r4" name="Scully Yard" locationId="2" sequenceId="3" trainDirection="2" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+    <route id="2" name="McKees Rocks_to_West Main Ext" comment="">
+      <location id="2r1" name="McKees Rocks" locationId="15" sequenceId="1" trainDirection="4" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="2r2" name="West Main Ext" locationId="17" sequenceId="2" trainDirection="4" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+    <route id="3" name="East Main Ext_to_McKeesport" comment="">
+      <location id="3r1" name="East Main Ext" locationId="21" sequenceId="1" trainDirection="4" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="3r2" name="Main East" locationId="18" sequenceId="2" trainDirection="4" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="3r3" name="East Lead" locationId="20" sequenceId="3" trainDirection="4" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+      <location id="3r4" name="McKeesport" locationId="16" sequenceId="4" trainDirection="4" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+    <route id="5" name="temp_name" comment="">
+      <location id="5r1" name="McKeesport" locationId="16" sequenceId="1" trainDirection="4" maxTrainLength="1000" grade="0.0" maxCarMoves="5" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departDay="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+  </routes>
+</operations-config>
