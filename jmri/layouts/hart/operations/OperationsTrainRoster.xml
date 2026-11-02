@@ -18,7 +18,7 @@
     </switchlistCreator>
   </options>
   <trains>
-    <train id="1" name="D749" description="CSX Neville Island Switcher" departHour="07" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="1" engineRoad="" engineModel="" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="" showTimes="true">
+    <train id="1" name="D749" description="CSX Neville Island Switcher" departHour="07" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="1" engineRoad="CR" engineModel="B23-7" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="" showTimes="true">
       <types>
         <carType name="Baggage" />
         <carType name="Boxcar" />
@@ -74,7 +74,7 @@
       <rowColor name="" resetRowColor="" />
       <route name="D749" id="1" />
     </train>
-    <train id="2" name="NVL" description="Neville Island Turn" departHour="08" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="1" engineRoad="" engineModel="GP20" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="" showTimes="true">
+    <train id="2" name="NVL" description="Neville Island Turn" departHour="08" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="1" engineRoad="POHC" engineModel="GP20" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="" showTimes="true">
       <types>
         <carType name="Baggage" />
         <carType name="Boxcar" />

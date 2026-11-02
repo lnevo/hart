@@ -13,3 +13,5 @@ F11,2C,Field shape,"setup_interchange set_out_by, pulled_by and destinations ref
 F12,2C,Missing output,"ops_list trains shows no description, departure time or comment",Read the plan diff,Open
 F13,3A,Silent reuse,"add_industry names the schedule <spur> Schedule and a same-named schedule returns the existing one, so two industries with a spur called Chemical Unload would share one schedule and the second industry's lines would be dropped without warning",add_schedule under a unique name then add_track naming it,Open
 F14,3A,Missing field,"add_industry has no pick up or set out list fields, so a spur restricted to one train needs a second update_track action",update_track in the same plan,Open
+F15,3C,Field shape,"add_engine with location set to the track name (Scully Interchange) replies No location; it wants location plus track, unlike the wording of its help",Pass location and track,Open
+F16,3C,Stale help,"ops_actions lists no load field for update_car, yet a plan accepts and applies it; the field list is incomplete",Probe with an unapplied plan,Open

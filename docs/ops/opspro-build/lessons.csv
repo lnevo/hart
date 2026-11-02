@@ -8,3 +8,5 @@ L6,2C,"Read every plan diff before applying: a field value the plugin does not u
 L7,2C,"Order the build so engines exist before trains name a road or model, or set them afterwards with update_train"
 L8,3A,"Give spurs unique names across industries, or create the schedule under its own name before the track; add_industry reuses a schedule whose name matches"
 L9,3B,"A schedule whose lines point at a track that has no schedule yet still applies; cross-references between the two offline spurs need no ordering"
+L10,3C,"update_car works inside an ops_plan after the add_car for the same car, so a car and its load go in one plan"
+L11,3C,"Passenger types with no track raise type-no-track errors; cars that stay unplaced need accept_new_errors or a track that takes their type"

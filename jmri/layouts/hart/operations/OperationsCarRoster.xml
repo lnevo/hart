@@ -136,6 +136,20 @@
     <road name="WM" />
     <road name="WP" />
     <road name="WRNX" />
+    <road name="CR" />
+    <road name="POHC" />
+    <road name="BO" />
+    <road name="CO" />
+    <road name="CSX" />
+    <road name="NW" />
+    <road name="EL" />
+    <road name="RMP" />
+    <road name="KSMX" />
+    <road name="URR" />
+    <road name="URTX" />
+    <road name="MOW" />
+    <road name="MSTL" />
+    <road name="HART" />
   </roads>
   <types>
     <type name="Baggage" />
@@ -206,6 +220,13 @@
     <length value="54" />
     <length value="60" />
     <length value="70" />
+    <length value="53" />
+    <length value="55" />
+    <length value="67" />
+    <length value="45" />
+    <length value="72" />
+    <length value="85" />
+    <length value="80" />
   </lengths>
   <owners>
     <owner name="" />
@@ -272,5 +293,75 @@
   </loads>
   <newKernels />
   <options />
-  <cars />
+  <cars>
+    <car id="NW32800" roadName="NW" roadNumber="32800" type="Flatcar" length="52" load="E" color="Black" weightTons="92" built="6-56" locationId="2" secLocationId="2s2" />
+    <car id="EL66410" roadName="EL" roadNumber="66410" type="Boxcar" length="50" load="Plastic Resins" color="Gray" weightTons="88" built="9-55" comment="ARIS-RESIN-OUT-OI-OTTAWA" locationId="2" secLocationId="2s3" />
+    <car id="BO600401" roadName="BO" roadNumber="600401" type="Covered Hopper" length="40" load="E" color="Gray" weightTons="76" built="8-66" comment="ARIS-PELLETS-IN-BASF" locationId="2" secLocationId="2s4" />
+    <car id="BO631140" roadName="BO" roadNumber="631140" type="Covered Hopper" length="34" load="E" color="Gray" weightTons="66" locationId="2" secLocationId="2s5" />
+    <car id="BO600421" roadName="BO" roadNumber="600421" type="Covered Hopper" length="40" load="E" color="Gray" weightTons="76" built="8-66" locationId="2" secLocationId="2s2" />
+    <car id="NYC47516" roadName="NYC" roadNumber="47516" type="Boxcar" length="50" load="E" color="Green" weightTons="88" built="10-60" comment="STUK-STEEL-IN-METAL-SVC" locationId="2" secLocationId="2s3" />
+    <car id="CR477935" roadName="CR" roadNumber="477935" type="Hopper" length="40" load="E" color="Brown" built="12-77" locationId="2" secLocationId="2s4" />
+    <car id="RMP50" roadName="RMP" roadNumber="50" type="Boxcar" length="40" load="E" color="Black" locationId="2" secLocationId="2s5" />
+    <car id="BO8417" roadName="BO" roadNumber="8417" type="Flatcar" length="53" load="E" color="Black" weightTons="94" built="12-53" locationId="2" secLocationId="2s2" />
+    <car id="BO8300" roadName="BO" roadNumber="8300" type="Coilcar" length="55" load="Tin Plate" color="Gray" weightTons="96" built="12-68" comment="IX-TINPLATE-WHEELING-HEINZ" locationId="2" secLocationId="2s3" />
+    <car id="COST1" roadName="CO" roadNumber="ST1" type="MOW" length="40" load="E" color="Blue" weightTons="76" outOfService="true" locationId="2" secLocationId="2s6" />
+    <car id="CO377700" roadName="CO" roadNumber="377700" type="MOW" length="50" load="E" color="Black" weightTons="144" outOfService="true" locationId="2" secLocationId="2s4" />
+    <car id="COW86" roadName="CO" roadNumber="W86" type="MOW" length="50" load="E" color="Green" outOfService="true" locationId="2" secLocationId="2s5" />
+    <car id="CO306607" roadName="CO" roadNumber="306607" type="Coilcar" length="52" load="Tin Plate" color="Blue" weightTons="92" comment="IX-TINPLATE-WHEELING-HEINZ" locationId="2" secLocationId="2s2" />
+    <car id="BO551470" roadName="BO" roadNumber="551470" type="Gondola" length="50" load="E" color="Black" weightTons="88" locationId="2" secLocationId="2s3" />
+    <car id="KSMX110" roadName="KSMX" roadNumber="110" type="Covered Hopper" length="34" load="E" color="Gray" weightTons="66" built="10-47" locationId="2" secLocationId="2s4" />
+    <car id="BO625082" roadName="BO" roadNumber="625082" type="Coke Hopper" length="40" load="E" color="Black" weightTons="76" outOfService="true" locationId="2" secLocationId="2s5" />
+    <car id="CO142374" roadName="CO" roadNumber="142374" type="Hopper" length="40" load="E" color="Black" built="11-80" locationId="2" secLocationId="2s2" />
+    <car id="BO132392" roadName="BO" roadNumber="132392" type="Hopper" length="50" load="E" color="Black" weightTons="88" locationId="2" secLocationId="2s3" />
+    <car id="URR15022" roadName="URR" roadNumber="15022" type="Coke Hopper" length="50" load="E" color="Black" weightTons="88" built="11-17" outOfService="true" locationId="2" secLocationId="2s4" />
+    <car id="URTX63627" roadName="URTX" roadNumber="63627" type="Reefer" length="40" load="E" color="Gray" weightTons="76" built="1-86" outOfService="true" locationId="2" secLocationId="2s5" />
+    <car id="BO467439" roadName="BO" roadNumber="467439" type="Boxcar" length="40" load="Fluorescent Lamps" color="Black" weightTons="76" built="6-47" comment="IX-LAMPS-GE-PENELEC" locationId="3" secLocationId="3s1" />
+    <car id="BO466063" roadName="BO" roadNumber="466063" type="Boxcar" length="40" load="Fluorescent Tubes" color="Gray" weightTons="76" built="8-45" comment="IX-TUBES-GE-GRAYBAR" locationId="3" secLocationId="3s1" />
+    <car id="BO467071" roadName="BO" roadNumber="467071" type="Boxcar" length="40" load="Fluorescent Lamps" color="Black" weightTons="76" built="8-47" comment="IX-LAMPS-GE-PENELEC" locationId="3" secLocationId="3s1" />
+    <car id="KSMX101" roadName="KSMX" roadNumber="101" type="Covered Hopper" length="34" load="E" color="Gray" weightTons="66" built="10-47" locationId="4" secLocationId="4s1" />
+    <car id="PRR371604" roadName="PRR" roadNumber="371604" type="Gondola" length="50" load="E" color="Gray" weightTons="88" built="11-51" locationId="3" secLocationId="3s1" />
+    <car id="MOW0017" roadName="MOW" roadNumber="0017" type="MOW" length="40" load="E" color="Black" weightTons="76" outOfService="true" comment="STS codes it TA; repository says MOW; out of service" locationId="4" secLocationId="4s1" />
+    <car id="PRR728012" roadName="PRR" roadNumber="728012" type="Hopper" length="40" load="E" color="Orange" built="3-17" locationId="3" secLocationId="3s1" />
+    <car id="PRR702186" roadName="PRR" roadNumber="702186" type="Hopper" length="40" load="E" color="Brown" built="11-06" locationId="4" secLocationId="4s1" />
+    <car id="GATX31090" roadName="GATX" roadNumber="31090" type="Tank" length="40" load="E" color="Black" weightTons="76" built="12-49" comment="STS Loaded with no order: starts E" locationId="3" secLocationId="3s1" />
+    <car id="PRR498647" roadName="PRR" roadNumber="498647" type="Tank" length="40" load="E" color="Black" weightTons="76" comment="STS Loaded with no order: starts E" locationId="3" secLocationId="3s1" />
+    <car id="BO10389" roadName="BO" roadNumber="10389" type="Coke Hopper" length="40" load="E" color="Black" weightTons="76" built="1-56" comment="COKE-USS-BULK" locationId="3" secLocationId="3s1" />
+    <car id="BO132315" roadName="BO" roadNumber="132315" type="Hopper" length="50" load="E" color="Black" weightTons="88" built="6-23" outOfService="true" locationId="4" secLocationId="4s1" />
+    <car id="RDG107333" roadName="RDG" roadNumber="107333" type="Boxcar" length="50" load="E" color="Green" weightTons="88" built="9-48" outOfService="true" locationId="4" secLocationId="4s1" />
+    <car id="MSTL52673" roadName="MSTL" roadNumber="52673" type="Boxcar" length="40" load="E" color="Orange" weightTons="76" built="7-56" outOfService="true" locationId="3" secLocationId="3s1" />
+    <car id="REX350" roadName="REX" roadNumber="350" type="Reefer" length="50" load="E" color="Green" weightTons="88" locationId="4" secLocationId="4s1" />
+    <car id="PRR474563" roadName="PRR" roadNumber="474563" type="Flatcar" length="50" load="Steel Plate" color="Brown" weightTons="88" built="12-34" comment="on D749 at STS end; tied down in West Yard; IX-PLATE-BETHLEHEM-RYERSON" locationId="1" secLocationId="1s1" />
+    <car id="BO8476" roadName="BO" roadNumber="8476" type="Flatcar" length="53" load="Steel Plate" color="Black" weightTons="94" built="12-53" comment="on D749 at STS end; tied down in West Yard; STUK-PLATE-IN-WASH-STL" locationId="1" secLocationId="1s1" />
+    <car id="BO30963" roadName="BO" roadNumber="30963" type="Coke Hopper" length="34" load="E" color="Black" weightTons="66" comment="on D749 at STS end; tied down in West Yard; ARIS-CHEM-IN-DOW-STY" locationId="1" secLocationId="1s1" />
+    <car id="BO30222" roadName="BO" roadNumber="30222" type="Coke Hopper" length="34" load="E" color="Black" weightTons="66" comment="on D749 at STS end; tied down in West Yard; ARIS-CHEM-IN-DOW-STY" locationId="1" secLocationId="1s1" />
+    <car id="HART1776" roadName="HART" roadNumber="1776" type="Boxcar" length="40" load="E" color="Red" comment="not in STS: no start position" />
+    <car id="ATSF1957" roadName="ATSF" roadNumber="1957" type="Caboose" length="34" load="E" weightTons="30" comment="no photo; not in STS: no start position" />
+    <car id="ATSF999643" roadName="ATSF" roadNumber="999643" type="Caboose" length="36" load="E" weightTons="32" comment="no photo; not in STS: no start position" />
+    <car id="BOKD5" roadName="BO" roadNumber="KD5" type="Observation" length="67" load="E" weightTons="60" comment="no photo; not in STS: no start position" />
+    <car id="BO38" roadName="BO" roadNumber="38" type="Combine" length="45" load="E" weightTons="40" comment="no photo; not in STS: no start position" />
+    <car id="BO472" roadName="BO" roadNumber="472" type="Coach" length="45" load="E" weightTons="40" comment="no photo; not in STS: no start position" />
+    <car id="BO761" roadName="BO" roadNumber="761" type="Baggage" length="72" load="E" weightTons="120" comment="no photo; not in STS: no start position" />
+    <car id="BO820" roadName="BO" roadNumber="820" type="Baggage" length="50" load="E" weightTons="88" comment="no photo; not in STS: no start position" />
+    <car id="BO1035" roadName="BO" roadNumber="1035" type="Dining" length="85" load="E" weightTons="138" comment="no photo; not in STS: no start position" />
+    <car id="BO1059" roadName="BO" roadNumber="1059" type="Coach" length="50" load="E" weightTons="45" comment="no photo; not in STS: no start position" />
+    <car id="BO1443" roadName="BO" roadNumber="1443" type="Combine" length="72" load="E" weightTons="64" comment="no photo; not in STS: no start position" />
+    <car id="BO1604" roadName="BO" roadNumber="1604" type="Boxcar" length="40" load="E" weightTons="76" comment="no photo; not in STS: no start position" />
+    <car id="BOC-3015" roadName="BO" roadNumber="C-3015" type="Caboose" length="36" load="E" weightTons="32" comment="no photo; not in STS: no start position" />
+    <car id="BO3260" roadName="BO" roadNumber="3260" type="Caboose" length="36" load="E" weightTons="32" comment="no photo; not in STS: no start position" />
+    <car id="BO3316" roadName="BO" roadNumber="3316" type="Observation" length="85" load="E" weightTons="76" comment="no photo; not in STS: no start position" />
+    <car id="BO3574" roadName="BO" roadNumber="3574" type="Coach" length="85" load="E" weightTons="76" comment="no photo; not in STS: no start position" />
+    <car id="BOC-3801" roadName="BO" roadNumber="C-3801" type="Caboose" length="40" load="E" weightTons="36" comment="no photo; not in STS: no start position" />
+    <car id="BO5482" roadName="BO" roadNumber="5482" type="Coach" length="72" load="E" weightTons="64" comment="no photo; not in STS: no start position" />
+    <car id="BO9151" roadName="BO" roadNumber="9151" type="Flatcar" length="50" load="E" weightTons="88" comment="no photo; not in STS: no start position" />
+    <car id="BO9300" roadName="BO" roadNumber="9300" type="Flatcar" length="40" load="E" weightTons="76" comment="no photo; not in STS: no start position" />
+    <car id="BO13903" roadName="BO" roadNumber="13903" type="Coach" length="80" load="E" weightTons="72" comment="no photo; not in STS: no start position" />
+    <car id="CO18729" roadName="CO" roadNumber="18729" type="Hopper" length="45" load="E" weightTons="82" comment="no photo; not in STS: no start position" />
+    <car id="GN68560" roadName="GN" roadNumber="68560" type="Flatcar" length="53" load="E" weightTons="94" comment="no photo; not in STS: no start position" />
+    <car id="MILW61032" roadName="MILW" roadNumber="61032" type="Flatcar" length="53" load="E" weightTons="94" comment="no photo; not in STS: no start position" />
+    <car id="PRR153958" roadName="PRR" roadNumber="153958" type="Hopper" length="34" load="E" weightTons="66" comment="no photo; not in STS: no start position" />
+    <car id="PRR727454" roadName="PRR" roadNumber="727454" type="Hopper" length="34" load="E" weightTons="66" comment="no photo; not in STS: no start position" />
+    <car id="UTLX35294" roadName="UTLX" roadNumber="35294" type="Tank" length="40" load="E" weightTons="76" comment="no photo; not in STS: no start position" />
+    <car id="WM1879" roadName="WM" roadNumber="1879" type="Caboose" length="36" load="E" weightTons="32" comment="no photo; not in STS: no start position" />
+    <car id="WP56057" roadName="WP" roadNumber="56057" type="Boxcar" length="50" load="E" weightTons="88" comment="no photo; not in STS: no start position" />
+  </cars>
 </operations-config>

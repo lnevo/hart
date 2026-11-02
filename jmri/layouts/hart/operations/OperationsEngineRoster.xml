@@ -30,6 +30,11 @@
     <model name="SW8" />
     <model name="TRAINMASTER" />
     <model name="U28B" />
+    <model name="B23-7" />
+    <model name="NW2" />
+    <model name="AS-16" />
+    <model name="U30B" />
+    <model name="ES44AH" />
   </models>
   <types>
     <type name="Electric" />
@@ -66,14 +71,27 @@
     <length value="59" />
     <length value="60" />
     <length value="61" />
+    <length value="62" />
     <length value="65" />
     <length value="66" />
     <length value="70" />
+    <length value="74" />
     <length value="75" />
     <length value="80" />
     <length value="85" />
     <length value="90" />
   </lengths>
   <newConsists />
-  <engines />
+  <engines>
+    <engine id="CR1993" roadName="CR" roadNumber="1993" type="Diesel" length="62" locationId="1" secLocationId="1s1" moves="0" date="" selected="false" model="B23-7" hp="2250" bUnit="false" />
+    <engine id="POHC2091" roadName="POHC" roadNumber="2091" type="Diesel" length="56" weightTons="120" locationId="3" secLocationId="3s1" moves="0" date="" selected="false" model="GP20" hp="2000" bUnit="false" />
+    <engine id="BO9602" roadName="BO" roadNumber="9602" type="Diesel" length="45" weightTons="124" locationId="2" secLocationId="2s7" moves="0" date="" selected="false" model="SW1200" hp="1200" bUnit="false" />
+    <engine id="BO572" roadName="BO" roadNumber="572" type="Diesel" length="45" locationId="2" secLocationId="2s7" moves="0" date="" selected="false" model="NW2" hp="1000" bUnit="false" />
+    <engine id="BO3840" roadName="BO" roadNumber="3840" type="Diesel" length="59" weightTons="125" locationId="2" secLocationId="2s8" moves="0" date="" selected="false" model="GP38" hp="2000" bUnit="false" />
+    <engine id="BO3545" roadName="BO" roadNumber="3545" type="Diesel" length="56" weightTons="130" locationId="2" secLocationId="2s8" moves="0" date="" selected="false" model="GP35" hp="2500" bUnit="false" />
+    <engine id="BO6944" roadName="BO" roadNumber="6944" type="Diesel" length="56" weightTons="130" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="GP30" hp="2250" bUnit="false" />
+    <engine id="BO2235" roadName="BO" roadNumber="2235" type="Diesel" length="56" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="AS-16" hp="1600" bUnit="false" />
+    <engine id="CO8216" roadName="CO" roadNumber="8216" type="Diesel" length="60" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="U30B" hp="3000" bUnit="false" />
+    <engine id="CSX1827" roadName="CSX" roadNumber="1827" type="Diesel" length="74" moves="0" date="" selected="false" model="ES44AH" hp="4400" bUnit="false" />
+  </engines>
 </operations-config>
