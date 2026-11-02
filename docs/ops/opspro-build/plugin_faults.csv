@@ -1,0 +1,7 @@
+id,stage,kind,fault,workaround,status
+F1,Check,Tool error,"ops_actions with no action (or session_only only) fails: Object of type object is not JSON serializable",Name an action,Open
+F2,2A,Hidden values,"set_option settings.scale rejects HO with must be a whole number; the tool does not list that JMRI's index is wanted (6 for HO)",Use 6,Open
+F3,2A,Missing action,"set_option cannot set the railroad name: railroad.name is refused on a blank file and no other setup action takes it",Stage 5 tries set_train_manifest per train; else the JMRI GUI,Open
+F4,2A,Missing output,"ops_list has no type that shows buildOptions, router or settings values; only a plan diff shows them",Read the plan diff,Open
+F5,2A,Noise,"A plan that creates many findings prints every finding in full (78 load-no-train/load-no-track entries twice: in the plan and in the audit)",Ignore,Open
+F6,2A,Cosmetic,The first ops_apply on a blank folder returns an empty backup name,None,Open

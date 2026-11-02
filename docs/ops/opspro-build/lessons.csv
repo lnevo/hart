@@ -1,0 +1,4 @@
+id,stage,lesson
+L1,2A,"One add_load per load name with a types list covers a load shared by several car types; 32 actions covered 39 type/load pairs"
+L2,2A,"Check numeric settings such as scale against the plan diff, not the name you typed"
+L3,2A,"A blank railroad's first plan necessarily carries load-no-train and load-no-track errors; accept exactly those names and clear them in stage 3"
