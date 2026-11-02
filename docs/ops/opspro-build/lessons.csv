@@ -16,3 +16,7 @@ L14,4,"A dry run answers gate and routing questions, not session-order questions
 L15,4,"Ask ops_why_not one car and one train at a time and read first_failure and router; the gate list is for the diagnoser"
 L16,5,"Clear a startup automation with an empty string; name the railroad per train with set_train_manifest when the file has no railroad element"
 L17,5,"ops_dry_run cannot prove a session order; keep a replay automation for the live lane and test the hand-off on a running JMRI"
+L18,Rework,"JMRI sets default-load cars straight out on an alternate track; give alternates a load filter that excludes E and L"
+L19,Rework,"The custom-load search ignores final destinations it has not got: a loaded car placed without one goes to the receiving spur with the fewest moves, so give catch-all spurs a high move count"
+L20,Rework,"To change a train's route when an automation names one of its stops, replace the automation's steps, set the route, then put the steps back, all in one plan"
+L21,Rework,"Chain the plugin's JMRI worker (build, terminate, save, keep) to test a session order on copies; five jobs took under four minutes"

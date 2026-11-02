@@ -3,12 +3,6 @@
 <!DOCTYPE operations-config SYSTEM "/xml/DTD/operations-routes.dtd">
 <operations-config>
   <routes>
-    <route id="1" name="D749" comment="">
-      <location id="1r1" name="West Yard" locationId="1" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
-      <location id="1r2" name="South Yard" locationId="2" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
-      <location id="1r3" name="Demmler Yard" locationId="4" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
-      <location id="1r4" name="West Yard" locationId="1" sequenceId="4" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="Tie down with the inbound Demmler block" />
-    </route>
     <route id="2" name="NVL" comment="">
       <location id="2r1" name="Scully Yard" locationId="3" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
       <location id="2r2" name="South Yard" locationId="2" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
@@ -35,6 +29,12 @@
       <location id="5r1" name="Scully Yard" locationId="3" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
       <location id="5r2" name="McKees Rocks" locationId="5" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
       <location id="5r3" name="Scully Yard" locationId="3" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="30" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="" />
+    </route>
+    <route id="6" name="D749" comment="CSX turn: departs Demmler on paper with the block that physically slept in West Yard, works South Yard, returns to Demmler">
+      <location id="6r1" name="Demmler Yard" locationId="4" sequenceId="1" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="no" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="The inbound block: already on the train, tied down in West Yard overnight" />
+      <location id="6r2" name="West Yard" locationId="1" sequenceId="2" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="1" randomControl="Off" pickups="no" drops="no" localMoves="no" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="Tie-down point; no work" />
+      <location id="6r3" name="South Yard" locationId="2" sequenceId="3" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="yes" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="Set out the Demmler inbound; lift the Demmler and McKeesport block (BLUE)" />
+      <location id="6r4" name="Demmler Yard" locationId="4" sequenceId="4" trainDirection="1" maxTrainLength="1000" grade="0.0" maxCarMoves="20" randomControl="Off" pickups="no" drops="yes" localMoves="yes" wait="0" departTime="" order="0" trainIconX="0" trainIconY="0" commentColor="black" comment="Set out the outbound block; pick up tomorrow's inbound on the next build" />
     </route>
   </routes>
 </operations-config>

@@ -372,7 +372,7 @@
         <carType name="MOW" />
         <locoType name="Diesel" />
       </types>
-      <track id="5s1" name="POHC Offline" trackType="Spur" dir="15" length="2000" moves="0" schedule="POHC Offline" scheduleId="13" itemId="13c9" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true">
+      <track id="5s1" name="POHC Offline" trackType="Spur" dir="15" length="2000" moves="1000" schedule="POHC Offline" scheduleId="13" itemId="13c9" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -411,7 +411,7 @@
         <carType name="MOW" />
         <locoType name="Diesel" />
       </types>
-      <track id="6s1" name="CSX Offline" trackType="Spur" dir="15" length="2000" moves="0" schedule="CSX Offline" scheduleId="14" itemId="14c13" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true">
+      <track id="6s1" name="CSX Offline" trackType="Spur" dir="15" length="2000" moves="1000" schedule="CSX Offline" scheduleId="14" itemId="14c13" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -441,12 +441,16 @@
         <carType name="Tank" />
         <carType name="Boxcar" />
       </types>
-      <track id="7s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+      <track id="7s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0" carLoadOption="Exclude">
         <types>
           <carType name="Covered Hopper" />
           <carType name="Tank" />
           <carType name="Boxcar" />
         </types>
+        <carLoads>
+          <carLoad name="E" />
+          <carLoad name="L" />
+        </carLoads>
         <comments>
           <track comment="STS off spot: alternate for the industry's spurs" />
           <both comment="" />
@@ -476,10 +480,14 @@
       <types>
         <carType name="Tank" />
       </types>
-      <track id="8s1" name="Storage" trackType="Spur" dir="15" length="60" moves="0">
+      <track id="8s1" name="Storage" trackType="Spur" dir="15" length="60" moves="0" carLoadOption="Exclude">
         <types>
           <carType name="Tank" />
         </types>
+        <carLoads>
+          <carLoad name="E" />
+          <carLoad name="L" />
+        </carLoads>
         <comments>
           <track comment="STS off spot: alternate for the industry's spurs" />
           <both comment="" />
@@ -502,13 +510,17 @@
         <carType name="Gondola" />
         <carType name="Coilcar" />
       </types>
-      <track id="9s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+      <track id="9s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0" carLoadOption="Exclude">
         <types>
           <carType name="Boxcar" />
           <carType name="Flatcar" />
           <carType name="Gondola" />
           <carType name="Coilcar" />
         </types>
+        <carLoads>
+          <carLoad name="E" />
+          <carLoad name="L" />
+        </carLoads>
         <comments>
           <track comment="STS off spot: alternate for the industry's spurs" />
           <both comment="" />
@@ -539,12 +551,16 @@
         <carType name="Hopper" />
         <carType name="Gondola" />
       </types>
-      <track id="10s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+      <track id="10s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0" carLoadOption="Exclude">
         <types>
           <carType name="Covered Hopper" />
           <carType name="Hopper" />
           <carType name="Gondola" />
         </types>
+        <carLoads>
+          <carLoad name="E" />
+          <carLoad name="L" />
+        </carLoads>
         <comments>
           <track comment="STS off spot: alternate for the industry's spurs" />
           <both comment="" />
@@ -573,12 +589,16 @@
         <carType name="Covered Hopper" />
         <carType name="Tank" />
       </types>
-      <track id="11s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0">
+      <track id="11s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0" carLoadOption="Exclude">
         <types>
           <carType name="Hopper" />
           <carType name="Covered Hopper" />
           <carType name="Tank" />
         </types>
+        <carLoads>
+          <carLoad name="E" />
+          <carLoad name="L" />
+        </carLoads>
         <comments>
           <track comment="STS off spot: alternate for the industry's spurs" />
           <both comment="" />

@@ -15,7 +15,7 @@ The railroad is the same one STS runs: D749 brings the CSX block from Demmler to
 | Scully Yard (9), Demmler Yard (10) | Locations **Scully Yard** and **Demmler Yard**, one **interchange** track each | The loop halves (Track McKees Rocks, Track McKeesport). Interchange, not staging: see section 2 (D5) |
 | McKees Rocks-PA (15), Mckeesport-PA (14): the offline party tracks | Locations **McKees Rocks** and **McKeesport**, one **spur** each (POHC Offline, CSX Offline) carrying a mirror schedule | The 46 party codes collapse to one spur per side; the schedule lines are the parties (D6). Spur, not staging: section 2 |
 | North Yard (11), East Yard (13) | Not built | Neither holds a car in the STS end state, neither has a measured track, and STS marks East Yard "reserved for future staging" (D7) |
-| Job D749 | Train **D749**, route West Yard → South Yard → Demmler Yard → West Yard | One train, one manifest, as the crew card reads it (D8). The dispatcher list's "D749 Return" is the last leg of the same train |
+| Job D749 | Train **D749**, route Demmler Yard → West Yard (no work) → South Yard → Demmler Yard | One train, one manifest. On paper it departs Demmler with the block that physically slept in West Yard, as STS's D749 job does (steps at South Yard, then Demmler). D8 was revised after the ordered test: a West Yard terminal cost every Demmler inbound two extra sessions and parked default empties in West Yard |
 | Job NVL | Train **NVL**, route Scully Yard → South Yard → Aristech Plastics → Ferrellgas → A. Stucki Co. → Kosmos Cement → Calgon Carbon → Shenango Coke Works → South Yard → Scully Yard | Island order is the East End ladder order from the station map |
 | Job CK1 | Train **CK1**, route South Yard → Shenango Coke Works → South Yard | North Yard dropped (D7). K-1 and K-2 are pulled by CK1 only (D9) |
 | STG-SCULLY, STG-DEMMLER | Trains **STG-SCULLY** (Scully Yard → McKees Rocks → Scully Yard) and **STG-DEMMLER** (Demmler Yard → McKeesport → Demmler Yard) | They stay trains, run by the automation at session end, with no engine; nobody crews them (D10) |
@@ -121,7 +121,7 @@ Lengths in scale feet. Measured tracks come from `jmri/layouts/hart/data/block_l
 | Shenango Coke Works | K-1 | Spur | 175 | Coke Hopper | 24 in Princess stub; schedule `Shenango Coke`; pulled by CK1 only; set out by CK1 and NVL |
 | Shenango Coke Works | K-2 | Spur | 175 | Coke Hopper | same schedule and lists |
 
-"All freight" means every car type above plus Caboose and MOW; passenger types are left off every track (the passenger cars are not placed, D24). Every industry spur has `hold_custom` on so a car whose spur is full waits in the yard instead of scattering (D25). Island spurs get the Off Spot alternate; the alternate has no schedule.
+"All freight" means every car type above plus Caboose and MOW; passenger types are left off every track (the passenger cars are not placed, D24). Every industry spur has `hold_custom` on so a car whose spur is full waits in the yard instead of scattering (D25). Island spurs get the Off Spot alternate; the alternate has no schedule and excludes the default loads E and L, because JMRI sets default-load cars out directly on an alternate (seen in the ordered test). The two offline spurs carry move count 1000 so that a loaded car with no final destination prefers an island spur in the custom-load search.
 
 Island order along the East End ladder (station map): Aristech Plastics, Ferrellgas with A. Stucki Co. on the same physical track, Kosmos Cement, Calgon Carbon, then Shenango at Princess.
 
@@ -135,7 +135,7 @@ How a shipment flows, for a cement car: CSX Offline line `E → Cement, Kosmos C
 
 | Train | Departs | Route (stop: moves) | Engines | Notes |
 |---|---|---|---|---|
-| D749 | 07:00 | West Yard (pick up only: 20) → South Yard (20) → Demmler Yard (20) → West Yard (set out only: 20) | 1, road CR, model B23-7 | Description "CSX Neville Island Switcher" |
+| D749 | 07:00 | Demmler Yard (pick up only: 20) → West Yard (no pick ups or set outs: 1) → South Yard (20) → Demmler Yard (set out only: 20) | 1, road CR, model B23-7 | Description "CSX Neville Island Switcher". The Demmler pick-ups are the block already on the train from the night before; the West Yard stop is the tie-down point and raises the intended `route-stop-dead` warning |
 | NVL | 08:00 | Scully Yard (20) → South Yard (20) → Aristech Plastics (8) → Ferrellgas (3) → A. Stucki Co. (4) → Kosmos Cement (5) → Calgon Carbon (5) → Shenango Coke Works (3) → South Yard (20) → Scully Yard (20) | 1, road POHC, model GP20 | "Neville Island Turn" |
 | CK1 | 09:00 | South Yard (pick up only: 8) → Shenango Coke Works (8) → South Yard (set out only: 8) | 0 | "Coke Transfer. Power assigned by the Yardmaster" |
 | STG-DEMMLER | 16:00 | Demmler Yard (pick up only: 30) → McKeesport (30) → Demmler Yard (set out only: 30) | 0 | Virtual: CSX offline swap, run by the automation |
