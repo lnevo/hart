@@ -66,6 +66,7 @@
       "pages": [
         "behind",
         "behind-signals",
+        "behind-panels",
         "behind-jmri",
         "behind-tables",
         "behind-bridge",
@@ -118,6 +119,12 @@
       }
     ],
     "behind-tables": [
+      {
+        "label": "Control & signals",
+        "href": "behind/index.html#control"
+      }
+    ],
+    "behind-panels": [
       {
         "label": "Control & signals",
         "href": "behind/index.html#control"
