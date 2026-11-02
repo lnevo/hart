@@ -23,15 +23,15 @@
     .case-index { margin: 0 0 1.8rem; }
     .case-index h2 { margin: 0 0 0.5rem; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
     .case-index .sections { margin: 0 0 1rem; font-size: 0.95rem; }
-    .case-index h3 { margin: 1.2rem 0 0.4rem; font-size: 1.05rem; color: var(--brand); }
-    .case-index details { break-inside: avoid; margin: 0 0 0.7rem; }
-    .case-index summary { padding: 0.45rem 0; font-weight: 600; color: var(--brand-2); cursor: pointer; }
-    .case-index ul { list-style: none; margin: 0; padding: 0; }
-    .case-index li { margin: 0; padding: 0.4rem 0; border-top: 1px solid var(--rule); font-size: 0.92rem; line-height: 1.4; }
+    .case-index h3 { margin: 1.1rem 0 0.4rem; font-size: 0.95rem; color: var(--ink-soft); }
+    .case-index .groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 0.5rem; align-items: start; }
+    .case-index details { background: var(--card); border: 1px solid var(--rule); }
+    .case-index summary { padding: 0.6rem 0.8rem; min-height: 44px; cursor: pointer; }
+    .case-index summary b { font-weight: 600; color: var(--brand); }
+    .case-index summary .covers { display: block; font-size: 0.86rem; color: var(--ink-soft); }
+    .case-index ul { list-style: none; margin: 0; padding: 0 0.8rem 0.5rem; }
+    .case-index li { margin: 0; padding: 0.3rem 0; border-top: 1px solid var(--rule); font-size: 0.92rem; line-height: 1.35; }
     .case-index .code { font-weight: 700; color: var(--muted); margin-right: 0.3rem; }
-    .case-index li span.aim { display: block; color: var(--ink-soft); }
-    @media (min-width: 52rem) { .case-index .groups { column-count: 2; column-gap: 2rem; } }
-    @media (max-width: 51.99rem) { .case-index summary { min-height: 44px; display: list-item; } }
     .walk-body .to-contents { margin-left: 0.5rem; font-size: 0.72em; font-weight: 400; }
     .walk-body h2 { font-family: var(--font-display); font-size: 1.7rem; letter-spacing: 0.03em; color: var(--brand); margin: 2rem 0 0.6rem; }
     .walk-body h3 { font-size: 1.15rem; margin: 2rem 0 0.5rem; color: var(--brand-2); scroll-margin-top: calc(var(--header-h) + 1rem); }
@@ -77,26 +77,23 @@
   <script src="../js/nav.js"></script>
   <script src="../js/md-view.js"></script>
   <script>
-    // Hand-kept: the goal groups. Titles and aims come from the guide, and a case not listed
+    // Hand-kept: the goal groups. Titles come from the guide, and a case not listed
     // here still appears, under "Not yet grouped".
     var GROUPS = [
-      ["Give cars a reason to move", ["U01", "U02", "U03", "U09", "U10", "U21"]],
-      ["Decide where cars go", ["U04", "U05", "U11", "U19", "U24"]],
-      ["Run staging and fiddle yards", ["U06", "U07", "U08", "U12"]],
-      ["Build the trains you want", ["U13", "U16", "U18", "U22"]],
-      ["Run the session", ["U14", "U15", "U17", "U20", "U23"]],
-      ["Move a car with one or more trains", ["R01", "R02", "R03", "R04", "R05", "R19"]],
-      ["Set what a train or track takes", ["R06", "R07", "R08", "R13", "R14", "R15"]],
-      ["Handle full tracks", ["R09", "R10"]],
-      ["Work a yard or town with a switcher", ["R11", "R12", "R16"]],
-      ["Connect to the outside world", ["R17", "R18"]]
+      ["Give cars a reason to move", "Loads, schedules, divisions", ["U01", "U02", "U03", "U09", "U10", "U21"]],
+      ["Decide where cars go", "Move counts, pools, full spurs", ["U04", "U05", "U11", "U19", "U24"]],
+      ["Run staging and fiddle yards", "Generated loads, swaps, virtual spurs", ["U06", "U07", "U08", "U12"]],
+      ["Build the trains you want", "Equipment, passenger and special cars", ["U13", "U16", "U18", "U22"]],
+      ["Run the session", "Days, automations, paperwork, backups", ["U14", "U15", "U17", "U20", "U23"]],
+      ["Move a car with one or more trains", "Interchanges, yards, chains, staging", ["R01", "R02", "R03", "R04", "R05", "R19"]],
+      ["Set what a train or track takes", "Filters, routed cars, directions", ["R06", "R07", "R08", "R13", "R14", "R15"]],
+      ["Handle full tracks", "Alternates and overflow", ["R09", "R10"]],
+      ["Work a yard or town with a switcher", "A/D tracks, local moves", ["R11", "R12", "R16"]],
+      ["Connect to the outside world", "Off-layout interchanges", ["R17", "R18"]]
     ];
 
     function buildContents(text, headings) {
-      var esc = HARTOps.esc, aims = {}, m;
-      var re = /^### ([UR]\d\d)\.[^\n]*\n\s*\n\*\*What you can build:\*\*\s*(.+)$/gm;
-      while ((m = re.exec(text))) aims[m[1]] = m[2].replace(/`/g, "");
-
+      var esc = HARTOps.esc;
       var cases = {}, extras = [], count = 0;
       headings.forEach(function (h) {
         var c = /^([UR]\d\d)\.\s*(.*)$/.exec(h.text);
@@ -105,26 +102,24 @@
       });
 
       function row(code) {
-        var c = cases[code];
-        return '<li><a href="#' + c.id + '"><span class="code">' + code + "</span>" + esc(c.title) + "</a>" +
-          (aims[code] ? '<span class="aim">' + esc(aims[code]) + "</span>" : "") + "</li>";
+        return '<li><a href="#' + cases[code].id + '"><span class="code">' + code + "</span>" + esc(cases[code].title) + "</a></li>";
       }
-      function group(name, codes, open) {
-        return "<details" + (open ? " open" : "") + "><summary>" + esc(name) + " (" + codes.length + ")</summary><ul>" +
+      function group(name, covers, codes) {
+        return '<details><summary><b>' + esc(name) + "</b> (" + codes.length + ')<span class="covers">' + esc(covers) + "</span></summary><ul>" +
           codes.map(row).join("") + "</ul></details>";
       }
 
-      var wide = window.matchMedia("(min-width: 52rem)").matches, seen = {};
+      var seen = {};
       function part(prefix, title) {
-        var html = GROUPS.filter(function (g) { return g[1][0].charAt(0) === prefix; }).map(function (g) {
-          var codes = g[1].filter(function (c) { return cases[c]; });
+        var html = GROUPS.filter(function (g) { return g[2][0].charAt(0) === prefix; }).map(function (g) {
+          var codes = g[2].filter(function (c) { return cases[c]; });
           codes.forEach(function (c) { seen[c] = 1; });
-          return group(g[0], codes, wide);
+          return group(g[0], g[1], codes);
         });
         var left = Object.keys(cases).filter(function (c) { return c.charAt(0) === prefix && !seen[c]; }).sort();
         if (left.length) {
           console.warn("Walkthrough cases not in GROUPS:", left);
-          html.push(group("Not yet grouped", left, wide));
+          html.push(group("Not yet grouped", "New cases", left));
         }
         return "<h3>" + title + '</h3><div class="groups">' + html.join("") + "</div>";
       }
