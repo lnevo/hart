@@ -75,6 +75,26 @@ Settle and record:
 4. Days. An automation can set a named day but cannot step to the next one. Decide whether HART needs more than one day, and if so make one automation per day or a master automation that runs them.
 5. No message or Yes/No step unless it is intended, since it opens a modal window on the JMRI computer and stops an unattended run.
 
+## Work split: models and sessions
+
+Run this as separate sessions, not one long one. Each stage ends by writing its result to a file in `docs/ops/`, and the next stage starts from that file alone. That keeps context small and lets a cheaper model do the bulk work.
+
+| Stage | Work | Model | Why |
+|---|---|---|---|
+| 1. Plan | Read the sources, produce `OPSPRO_MAPPING.md` and `OPSPRO_OPEN_QUESTIONS.md`, design the session automation and the terminate order. Stop for owner approval. | The strongest available (Fable 5.1, else Opus 5.5) | The whole job depends on these decisions. They need judgement across STS, the crew documents and Operations Pro's rules, and a wrong mapping costs more later than the extra tokens cost now. |
+| 2. Build data | Car types, roads, loads, locations, tracks, routes, trains, days, from the approved mapping, through `ops_plan` and `ops_apply`. | Sonnet 5.5 | The mapping is settled, so this is careful but mechanical entry. Give it only the approved mapping and the plugin skill, not the STS sources. |
+| 3. Schedules and cars | Industry schedules from `HART_Spot_Waybills.csv` and `spot_assignments.csv`, then adding cars and locomotives from the repository rosters. | Sonnet 5.5 | Bulk and repetitive. Split by industry or by batch of cars so one session does not carry everything. |
+| 4. Verify | `ops_audit`, `ops_dry_run`, `ops_build_check`; read each failed build with `ops_explain_build`. Fix what they find. | Sonnet 5.5 for running and reading; the stage 1 model when a finding means the mapping was wrong | Most findings are routine setting fixes. A finding that questions a design choice goes back to stage 1. |
+| 5. Automations and paperwork | Session automations, manifest and switch list format. | Sonnet 5.5 | Follows the stage 1 session design. |
+
+Rules that save tokens:
+
+- Hand each stage its inputs by file path and name only the files it needs. Do not paste the STS sources into later stages.
+- Use the `ops-diagnoser` agent for long build reports, so the reports stay out of the main context.
+- Have stages 2 and 3 work in small plans (one location group, one industry, one car batch), so a rejected plan costs little.
+- Run `ops_audit` after every stage, not only at the end, so errors do not carry forward.
+- If a stage keeps failing the same way, stop and go back to stage 1 rather than retrying on a cheaper model.
+
 ## Constraints
 
 - **Names.** HART's expansion is private. Do not spell it out in any file, comment or report. Keep **P&CV** and **P&OV** distinct and never normalise one to the other. Use the public equipment names from ADR-005 for anything a visitor could see.
