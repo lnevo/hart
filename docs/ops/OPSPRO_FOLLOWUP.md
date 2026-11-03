@@ -30,6 +30,8 @@ Two were not what the fault said. A same-named schedule (F13) was already refuse
 
 `["D749", ["NVL", "CK1"], "STG-DEMMLER", "D749 Return", "STG-SCULLY", "D749", ["NVL", "CK1"], "STG-DEMMLER", "D749 Return"]`
 
+`order` runs each group to terminate before the next, so it does not reproduce the overlap in `Session`, where NVL and CK1 build while D749 is out and terminate after D749 Return builds. The closer test is `Session Replay` set as the startup automation on a copy, which the dry run now traces. Two sessions on 2026-11-02 ran all 13 steps with no JMRI errors: D749 13 and 21 cars, NVL 20 and 17, CK1 3 and 1, STG-DEMMLER 18 and 25, D749 Return 8 and 13, STG-SCULLY 21 and 11. Watch CK1's single car in session 2 under R6.
+
 ## 3. The audit findings that remain
 
 Nothing here is a defect. They stay because of decisions the owner confirmed.
