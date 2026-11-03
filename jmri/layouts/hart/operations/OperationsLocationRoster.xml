@@ -83,7 +83,7 @@
         <carType name="MOW" />
         <locoType name="Diesel" />
       </types>
-      <track id="2s1" name="S-R" trackType="Yard" dir="15" length="1580" moves="0">
+      <track id="2s1" name="S-R" trackType="Yard" dir="15" length="790" moves="0">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -98,7 +98,7 @@
           <carType name="MOW" />
         </types>
         <comments>
-          <track comment="218 in, run-through" />
+          <track comment="218 in run-through, half: the yard is split in half with the East End industries on the other half" />
           <both comment="" />
           <pickup comment="" />
           <setout comment="" />
@@ -106,7 +106,7 @@
           <printSwitchLists comment="true" />
         </comments>
       </track>
-      <track id="2s2" name="S-1" trackType="Yard" dir="15" length="1540" moves="0">
+      <track id="2s2" name="S-1" trackType="Yard" dir="15" length="770" moves="0">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -121,7 +121,7 @@
           <carType name="MOW" />
         </types>
         <comments>
-          <track comment="212 in" />
+          <track comment="212 in, half" />
           <both comment="" />
           <pickup comment="" />
           <setout comment="" />
@@ -129,7 +129,7 @@
           <printSwitchLists comment="true" />
         </comments>
       </track>
-      <track id="2s3" name="S-2" trackType="Yard" dir="15" length="1290" moves="0">
+      <track id="2s3" name="S-2" trackType="Yard" dir="15" length="645" moves="0">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -144,7 +144,7 @@
           <carType name="MOW" />
         </types>
         <comments>
-          <track comment="178 in" />
+          <track comment="178 in, half" />
           <both comment="" />
           <pickup comment="" />
           <setout comment="" />
@@ -152,7 +152,7 @@
           <printSwitchLists comment="true" />
         </comments>
       </track>
-      <track id="2s4" name="S-3" trackType="Yard" dir="15" length="1030" moves="0">
+      <track id="2s4" name="S-3" trackType="Yard" dir="15" length="515" moves="0">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -167,7 +167,7 @@
           <carType name="MOW" />
         </types>
         <comments>
-          <track comment="142 in" />
+          <track comment="142 in, half" />
           <both comment="" />
           <pickup comment="" />
           <setout comment="" />
@@ -175,7 +175,7 @@
           <printSwitchLists comment="true" />
         </comments>
       </track>
-      <track id="2s5" name="S-4" trackType="Yard" dir="15" length="725" moves="0">
+      <track id="2s5" name="S-4" trackType="Yard" dir="15" length="365" moves="0">
         <types>
           <carType name="Boxcar" />
           <carType name="Covered Hopper" />
@@ -190,30 +190,7 @@
           <carType name="MOW" />
         </types>
         <comments>
-          <track comment="100 in" />
-          <both comment="" />
-          <pickup comment="" />
-          <setout comment="" />
-          <printManifest comment="true" />
-          <printSwitchLists comment="true" />
-        </comments>
-      </track>
-      <track id="2s6" name="Scale" trackType="Yard" dir="15" length="175" moves="500">
-        <types>
-          <carType name="Boxcar" />
-          <carType name="Covered Hopper" />
-          <carType name="Hopper" />
-          <carType name="Coke Hopper" />
-          <carType name="Tank" />
-          <carType name="Flatcar" />
-          <carType name="Coilcar" />
-          <carType name="Gondola" />
-          <carType name="Reefer" />
-          <carType name="Caboose" />
-          <carType name="MOW" />
-        </types>
-        <comments>
-          <track comment="24 in on the West Lead; moves 500 so it is used last (D1); holds the scale test car" />
+          <track comment="100 in, half; MOW equipment and the scale test car are stored here" />
           <both comment="" />
           <pickup comment="" />
           <setout comment="" />
@@ -344,7 +321,7 @@
           <dropId id="4" />
         </dropIds>
         <pickupIds>
-          <pickupId id="1" />
+          <pickupId id="6" />
           <pickupId id="4" />
         </pickupIds>
         <comments>
@@ -510,7 +487,7 @@
         <carType name="Gondola" />
         <carType name="Coilcar" />
       </types>
-      <track id="9s1" name="Off Spot" trackType="Spur" dir="15" length="60" moves="0" carLoadOption="Exclude">
+      <track id="9s1" name="Off Spot" trackType="Spur" dir="15" length="70" moves="0" carLoadOption="Exclude">
         <types>
           <carType name="Boxcar" />
           <carType name="Flatcar" />
@@ -530,14 +507,14 @@
           <printSwitchLists comment="true" />
         </comments>
       </track>
-      <track id="9s2" name="Crane Track" trackType="Spur" dir="15" length="60" moves="0" schedule="Crane Track Schedule" scheduleId="5" itemId="5c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="9s1">
+      <track id="9s2" name="Crane Track" trackType="Spur" dir="15" length="70" moves="0" schedule="Crane Track Schedule" scheduleId="5" itemId="5c1" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="9s1">
         <types>
           <carType name="Boxcar" />
           <carType name="Flatcar" />
           <carType name="Gondola" />
         </types>
       </track>
-      <track id="9s3" name="Team Track" trackType="Spur" dir="15" length="60" moves="0" schedule="Team Track Schedule" scheduleId="6" itemId="6c4" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="9s1">
+      <track id="9s3" name="Team Track" trackType="Spur" dir="15" length="70" moves="0" schedule="Team Track Schedule" scheduleId="6" itemId="6c4" itemCount="0" factor="100" scheduleMode="1" holdCustomLoads="true" alternative="9s1">
         <types>
           <carType name="Boxcar" />
           <carType name="Flatcar" />
@@ -651,6 +628,46 @@
         <pickupIds>
           <pickupId id="3" />
         </pickupIds>
+      </track>
+    </location>
+    <location id="13" name="Scale" dir="15" switchList="true" comment="Track scale near the end of the South Yard western lead; CK1 weighs the coke pull here (EQ-01)" switchListComment="">
+      <types>
+        <carType name="Boxcar" />
+        <carType name="Covered Hopper" />
+        <carType name="Hopper" />
+        <carType name="Coke Hopper" />
+        <carType name="Tank" />
+        <carType name="Flatcar" />
+        <carType name="Coilcar" />
+        <carType name="Gondola" />
+        <carType name="Reefer" />
+        <carType name="Caboose" />
+        <carType name="MOW" />
+        <locoType name="Diesel" />
+      </types>
+      <track id="13s1" name="Scale" trackType="Yard" dir="15" length="175" moves="0">
+        <types>
+          <carType name="Boxcar" />
+          <carType name="Covered Hopper" />
+          <carType name="Hopper" />
+          <carType name="Coke Hopper" />
+          <carType name="Tank" />
+          <carType name="Flatcar" />
+          <carType name="Coilcar" />
+          <carType name="Gondola" />
+          <carType name="Reefer" />
+          <carType name="Caboose" />
+          <carType name="MOW" />
+          <locoType name="Diesel" />
+        </types>
+        <comments>
+          <track comment="24 in; a weigh stop, not a storage track" />
+          <both comment="" />
+          <pickup comment="" />
+          <setout comment="" />
+          <printManifest comment="true" />
+          <printSwitchLists comment="true" />
+        </comments>
       </track>
     </location>
   </locations>

@@ -20,3 +20,4 @@ L18,Rework,"JMRI sets default-load cars straight out on an alternate track; give
 L19,Rework,"The custom-load search ignores final destinations it has not got: a loaded car placed without one goes to the receiving spur with the fewest moves, so give catch-all spurs a high move count"
 L20,Rework,"To change a train's route when an automation names one of its stops, replace the automation's steps, set the route, then put the steps back, all in one plan"
 L21,Rework,"Chain the plugin's JMRI worker (build, terminate, save, keep) to test a session order on copies; five jobs took under four minutes"
+L22,Review,"Walk the owner through the decisions one group at a time; three of the first ten answers changed the physical model (yard split in half, scale as a location, MOW storage) in ways no document recorded"

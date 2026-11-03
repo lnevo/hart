@@ -28,18 +28,18 @@ UTLX36299,UTLX,36299,Tank,40,,9-50,Black,,Loaded,EXXONCH-MMA,McKees Rocks,POHC O
 MOW0017,MOW,0017,MOW,40,76,,Black,yes,Unavailable,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,STS codes it TA; repository says MOW; out of service
 PRR728012,PRR,728012,Hopper,40,,3-17,Orange,,Empty,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,
 PRR702186,PRR,702186,Hopper,40,,11-06,Brown,,Empty,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
-COST1,CO,ST1,MOW,40,76,,Blue,yes,Unavailable,SOUTH-SCALE,South Yard,Scale,place,E,
-CO377700,CO,377700,MOW,50,144,,Black,yes,Unavailable,SOUTH-YARD,South Yard,S-3,place,E,
-COW86,CO,W86,MOW,50,,,Green,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,
+COST1,CO,ST1,MOW,40,76,,Blue,yes,Unavailable,SOUTH-SCALE,South Yard,S-4,place,E,"MOW equipment is stored on S-4 (owner, 2026-11-02)"
+CO377700,CO,377700,MOW,50,144,,Black,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,"MOW equipment is stored on S-4 (owner, 2026-11-02)"
+COW86,CO,W86,MOW,50,,,Green,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,"MOW equipment is stored on S-4 (owner, 2026-11-02)"
 CO306607,CO,306607,Coilcar,52,92,,Blue,,Loaded,SOUTH-YARD,South Yard,S-1,place,Tin Plate,IX-TINPLATE-WHEELING-HEINZ
 BO73133,BO,73133,Coke Hopper,45,82,9-74,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
 BO551470,BO,551470,Gondola,50,88,,Black,,Empty,SOUTH-YARD,South Yard,S-2,place,E,
 BO283069,BO,283069,Boxcar,50,88,6-62,Brown,,Unloading,METALSVC-MACH,McKeesport,CSX Offline,deliver,Machined Parts,"STS METALSVC-MACH STUK-PARTS-OUT-METAL-SVC; delivered through the CSX Offline schedule, which picks the next load"
-PRR474563,PRR,474563,Flatcar,50,88,12-34,Brown,,Loaded,on D749,Demmler Yard,Demmler Interchange,place,Steel Plate,"on D749 at STS end; on paper at Demmler Interchange (D749 departs Demmler), physically tied down in West Yard; IX-PLATE-BETHLEHEM-RYERSON"
+PRR474563,PRR,474563,Flatcar,50,88,12-34,Brown,,Loaded,on D749,West Yard,W-1,place,Steel Plate,on D749 at STS end; tied down in West Yard on D749; IX-PLATE-BETHLEHEM-RYERSON
 SHPX22329,SHPX,22329,Tank,40,76,12-49,Black,,Unloading,CALG-CHEMICAL,Calgon Carbon,Chemical Unload,deliver,Caustic Soda,CALG-CHEM-IN-HOUGHTON
 GATX31090,GATX,31090,Tank,40,76,12-49,Black,,Loaded,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,STS Loaded with no order: starts E
 EL8063,EL,8063,Flatcar,52,92,7-42,Black,,Loading,STUK-TEAM,A. Stucki Co.,Team Track,deliver,E,STUK-SPRINGS-OUT-PITTS-FORGE
-BO8476,BO,8476,Flatcar,53,94,12-53,Black,,Loaded,on D749,Demmler Yard,Demmler Interchange,place,Steel Plate,"on D749 at STS end; on paper at Demmler Interchange (D749 departs Demmler), physically tied down in West Yard; STUK-PLATE-IN-WASH-STL"
+BO8476,BO,8476,Flatcar,53,94,12-53,Black,,Loaded,on D749,West Yard,W-1,place,Steel Plate,on D749 at STS end; tied down in West Yard on D749; STUK-PLATE-IN-WASH-STL
 CO2063,CO,2063,Covered Hopper,40,76,6-78,Yellow,,Unloading,ARIS-PELLETS,Aristech Plastics,Pellet Unload,deliver,Pellets,ARIS-PELLETS-IN-NOVACOR
 KSMX110,KSMX,110,Covered Hopper,34,66,10-47,Gray,,Empty,SOUTH-YARD,South Yard,S-3,place,E,
 HART1776,HART,1776,Boxcar,40,,,Red,,,,,,none,E,not in STS: no start position
@@ -50,8 +50,8 @@ BO11137,BO,11137,Coke Hopper,40,76,1-53,Black,,Empty,ARIS-CHEMICAL,Shenango Coke
 BO11027,BO,11027,Coke Hopper,40,76,1-58,Black,,Empty,ARIS-CHEMICAL,Shenango Coke Works,K-2,deliver,E,STS had this coke hopper empty at Aristech Chemical Unload; moved to Shenango K-2
 BO10389,BO,10389,Coke Hopper,40,76,1-56,Black,,Ordered,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,COKE-USS-BULK
 BO31000,BO,31000,Coke Hopper,34,66,12-13,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
-BO30963,BO,30963,Coke Hopper,34,66,,Black,,Ordered,on D749,Demmler Yard,Demmler Interchange,place,E,"on D749 at STS end; on paper at Demmler Interchange (D749 departs Demmler), physically tied down in West Yard; ARIS-CHEM-IN-DOW-STY"
-BO30222,BO,30222,Coke Hopper,34,66,,Black,,Ordered,on D749,Demmler Yard,Demmler Interchange,place,E,"on D749 at STS end; on paper at Demmler Interchange (D749 departs Demmler), physically tied down in West Yard; ARIS-CHEM-IN-DOW-STY"
+BO30963,BO,30963,Coke Hopper,34,66,,Black,,Ordered,on D749,West Yard,W-1,place,E,on D749 at STS end; tied down in West Yard on D749; ARIS-CHEM-IN-DOW-STY
+BO30222,BO,30222,Coke Hopper,34,66,,Black,,Ordered,on D749,West Yard,W-1,place,E,on D749 at STS end; tied down in West Yard on D749; ARIS-CHEM-IN-DOW-STY
 BO133007,BO,133007,Hopper,50,88,6-23,Black,,Loaded,CONSOLEN-COAL,McKeesport,CSX Offline,deliver,E,"STS CONSOLEN-COAL; delivered through the CSX Offline schedule, which picks the next load"
 BO132315,BO,132315,Hopper,50,88,6-23,Black,yes,Unavailable,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
 NW12988,NW,12988,Coke Hopper,40,76,5-35,Black,,Unloading,USSTEELE-COKE,McKeesport,CSX Offline,deliver,Coke,"STS USSTEELE-COKE COKE-USS-BULK; delivered through the CSX Offline schedule, which picks the next load"

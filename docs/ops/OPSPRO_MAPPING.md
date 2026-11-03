@@ -15,7 +15,7 @@ The railroad is the same one STS runs: D749 brings the CSX block from Demmler to
 | Scully Yard (9), Demmler Yard (10) | Locations **Scully Yard** and **Demmler Yard**, one **interchange** track each | The loop halves (Track McKees Rocks, Track McKeesport). Interchange, not staging: see section 2 (D5) |
 | McKees Rocks-PA (15), Mckeesport-PA (14): the offline party tracks | Locations **McKees Rocks** and **McKeesport**, one **spur** each (POHC Offline, CSX Offline) carrying a mirror schedule | The 46 party codes collapse to one spur per side; the schedule lines are the parties (D6). Spur, not staging: section 2 |
 | North Yard (11), East Yard (13) | Not built | Neither holds a car in the STS end state, neither has a measured track, and STS marks East Yard "reserved for future staging" (D7) |
-| Job D749 | Train **D749**, route Demmler Yard → West Yard (no work) → South Yard → Demmler Yard | One train, one manifest. On paper it departs Demmler with the block that physically slept in West Yard, as STS's D749 job does (steps at South Yard, then Demmler). D8 was revised after the ordered test: a West Yard terminal cost every Demmler inbound two extra sessions and parked default empties in West Yard |
+| Job D749 | Trains **D749** (West Yard → South Yard → Demmler Yard) and **D749 Return** (Demmler Yard → West Yard) | Two trains, as the dispatcher train list has them (owner, 2026-11-02). The automation runs the Demmler swap between the two, so the return carries the fresh block and ties down in West Yard for the next morning |
 | Job NVL | Train **NVL**, route Scully Yard → South Yard → Aristech Plastics → Ferrellgas → A. Stucki Co. → Kosmos Cement → Calgon Carbon → Shenango Coke Works → South Yard → Scully Yard | Island order is the East End ladder order from the station map |
 | Job CK1 | Train **CK1**, route South Yard → Shenango Coke Works → South Yard | North Yard dropped (D7). K-1 and K-2 are pulled by CK1 only (D9) |
 | STG-SCULLY, STG-DEMMLER | Trains **STG-SCULLY** (Scully Yard → McKees Rocks → Scully Yard) and **STG-DEMMLER** (Demmler Yard → McKeesport → Demmler Yard) | They stay trains, run by the automation at session end, with no engine; nobody crews them (D10) |
@@ -91,16 +91,16 @@ Lengths in scale feet. Measured tracks come from `jmri/layouts/hart/data/block_l
 |---|---|---|---|---|---|
 | West Yard | W-1 | Yard | 760 | all freight, Diesel | 105 in. D749 ties down here |
 | West Yard | W-2 | Yard | 675 | all freight, Diesel | 93 in |
-| South Yard | S-R | Yard | 1580 | all freight | 218 in, run-through |
-| South Yard | S-1 | Yard | 1540 | all freight | 212 in |
-| South Yard | S-2 | Yard | 1290 | all freight | 178 in |
-| South Yard | S-3 | Yard | 1030 | all freight | 142 in |
-| South Yard | S-4 | Yard | 725 | all freight | 100 in |
-| South Yard | Scale | Yard | 175 | all freight, MOW | 24 in on the West Lead; `moves` 500 so it is used last (D1); holds the scale test car |
+| South Yard | S-R | Yard | 790 | all freight | 218 in, run-through; half, because the yard is split in half with the East End industries on the other half (owner, 2026-11-02) |
+| South Yard | S-1 | Yard | 770 | all freight | 212 in, half |
+| South Yard | S-2 | Yard | 645 | all freight | 178 in, half |
+| South Yard | S-3 | Yard | 515 | all freight | 142 in, half |
+| South Yard | S-4 | Yard | 365 | all freight | 100 in, half; the MOW equipment and the scale test car are stored here |
+| Scale | Scale | Yard | 175 | all freight | 24 in near the end of the western lead; its own location, a no-work stop on CK1 where the coke pull is weighed (D1 revised) |
 | South Yard | EH-1, EH-2, EH-3 | Yard | 175 each | Diesel only | Engine terminal (D2) |
 | Scully Yard | Scully Interchange | Interchange | 890 | all freight, Diesel | Track McKees Rocks loop half, 122.5 in. Set out by and pulled by NVL and STG-SCULLY |
 | Demmler Yard | Demmler Interchange | Interchange | 890 | all freight, Diesel | Track McKeesport loop half. Set out by and pulled by D749 and STG-DEMMLER |
-| McKees Rocks | POHC Offline | Spur | 2000 | all freight | Virtual. Schedule `POHC Offline`, match mode, hold_custom. Comment: "POHC parties beyond Scully; one line per STS shipment" |
+| McKees Rocks | POHC Offline | Spur | 2000 | all freight | Virtual: cars physically go to the offline drawer (owner, Q1). Schedule `POHC Offline`, match mode, hold_custom. Comment: "POHC parties beyond Scully; one line per STS shipment" |
 | McKeesport | CSX Offline | Spur | 2000 | all freight | Virtual. Schedule `CSX Offline`, match mode, hold_custom |
 | Aristech Plastics | Pellet Unload | Spur | 180 | Covered Hopper | spots 1-3; alternate Off Spot |
 | Aristech Plastics | Chemical Unload | Spur | 120 | Tank | spots 4-5; alternate Off Spot |
@@ -108,9 +108,9 @@ Lengths in scale feet. Measured tracks come from `jmri/layouts/hart/data/block_l
 | Aristech Plastics | Off Spot | Spur | 60 | Covered Hopper, Tank, Boxcar | spot 7, no schedule |
 | Ferrellgas | LPG Unload | Spur | 120 | Tank | spots 1-2; alternate Storage |
 | Ferrellgas | Storage | Spur | 60 | Tank | spot 3, no schedule |
-| A. Stucki Co. | Crane Track | Spur | 60 | Boxcar, Flatcar, Gondola | spot 1; alternate Off Spot |
-| A. Stucki Co. | Team Track | Spur | 60 | Boxcar, Flatcar, Gondola | spot 2; alternate Off Spot |
-| A. Stucki Co. | Off Spot | Spur | 60 | Boxcar, Flatcar, Gondola, Coilcar | spot 3, no schedule |
+| A. Stucki Co. | Crane Track | Spur | 70 | Boxcar, Flatcar, Gondola | spot 1; 70 ft because 53 and 55 ft cars use it; alternate Off Spot |
+| A. Stucki Co. | Team Track | Spur | 70 | Boxcar, Flatcar, Gondola | spot 2; alternate Off Spot |
+| A. Stucki Co. | Off Spot | Spur | 70 | Boxcar, Flatcar, Gondola, Coilcar | spot 3, no schedule |
 | Kosmos Cement | Cement Unload | Spur | 180 | Covered Hopper | spots 1-3; alternate Off Spot |
 | Kosmos Cement | Aggregate Unload | Spur | 60 | Hopper, Gondola, Covered Hopper | spot 4; alternate Off Spot |
 | Kosmos Cement | Off Spot | Spur | 60 | Covered Hopper, Hopper, Gondola | spot 5, no schedule |
@@ -135,9 +135,10 @@ How a shipment flows, for a cement car: CSX Offline line `E → Cement, Kosmos C
 
 | Train | Departs | Route (stop: moves) | Engines | Notes |
 |---|---|---|---|---|
-| D749 | 07:00 | Demmler Yard (pick up only: 20) → West Yard (no pick ups or set outs: 1) → South Yard (20) → Demmler Yard (set out only: 20) | 1, road CR, model B23-7 | Description "CSX Neville Island Switcher". The Demmler pick-ups are the block already on the train from the night before; the West Yard stop is the tie-down point and raises the intended `route-stop-dead` warning |
+| D749 | 07:00 | West Yard (pick up only: 20) → South Yard (30) → Demmler Yard (set out only: 30) | 1, road CR, model B23-7 | Description "CSX Neville Island Switcher" |
+| D749 Return | 15:00 | Demmler Yard (pick up only: 20) → West Yard (set out only: 20) | 1, road CR, model B23-7 | "CSX Neville Island Switcher, return leg"; built after STG-DEMMLER has swapped the interchange |
 | NVL | 08:00 | Scully Yard (20) → South Yard (20) → Aristech Plastics (8) → Ferrellgas (3) → A. Stucki Co. (4) → Kosmos Cement (5) → Calgon Carbon (5) → Shenango Coke Works (3) → South Yard (20) → Scully Yard (20) | 1, road POHC, model GP20 | "Neville Island Turn" |
-| CK1 | 09:00 | South Yard (pick up only: 8) → Shenango Coke Works (8) → South Yard (set out only: 8) | 0 | "Coke Transfer. Power assigned by the Yardmaster" |
+| CK1 | 09:00 | South Yard (pick up only: 8) → Shenango Coke Works (8) → Scale (no work: 1) → South Yard (set out only: 8) | 1, any road, from the EH tracks | "Coke Transfer". The Scale stop is the weigh on the western lead; it raises the intended `route-stop-dead` warning |
 | STG-DEMMLER | 16:00 | Demmler Yard (pick up only: 30) → McKeesport (30) → Demmler Yard (set out only: 30) | 0 | Virtual: CSX offline swap, run by the automation |
 | STG-SCULLY | 17:00 | Scully Yard (pick up only: 30) → McKees Rocks (30) → Scully Yard (set out only: 30) | 0 | Virtual: POHC offline swap |
 
@@ -146,8 +147,8 @@ Max train length 1000 ft at every stop. Trains take every car type and road (`ad
 **Session order** (the brief's four questions):
 
 1. Build order: D749, then NVL once D749 has reached South Yard, then CK1. The STG trains build at session end. On-time mode is off; the automation fixes the order (D21).
-2. Terminate order: NVL and CK1 terminate before D749, which ties down last at West Yard. Stage 4 confirms in a dry run that this leaves D749's cars intact and that cars freed by NVL and CK1 are seen only by trains built afterwards (the STG trains).
-3. Groups: {D749} → {NVL, CK1} → {STG-DEMMLER, STG-SCULLY}. Wait-for-terminate steps separate the groups.
+2. Terminate order: D749 terminates at Demmler first, the swap runs, then D749 Return is built; NVL, CK1 and D749 Return terminate before STG-SCULLY runs. Stage 4 confirms in a dry run that this leaves D749's cars intact and that cars freed by NVL and CK1 are seen only by trains built afterwards (the STG trains).
+3. Groups: {D749} → {NVL, CK1} → {STG-DEMMLER} → {D749 Return} → {STG-SCULLY}. Wait-for-terminate steps separate the groups.
 4. Days: one pattern, no day activation (D20).
 
 **Automation `Session`** (the live one; no step opens a window):
@@ -156,13 +157,13 @@ Max train length 1000 ft at every stop. Trains take every car type and road (`ad
 2. wait_for_train D749 at South Yard (the dispatcher moves D749 when the crew arrives)
 3. build_train NVL
 4. build_train CK1
-5. wait_for_train_to_terminate NVL
-6. wait_for_train_to_terminate CK1
-7. wait_for_train_to_terminate D749
-8. build_train STG-DEMMLER, terminate_train STG-DEMMLER
+5. wait_for_train_to_terminate D749 (at Demmler)
+6. build_train STG-DEMMLER, terminate_train STG-DEMMLER (the virtual swap)
+7. build_train D749 Return (the crew brings the fresh block back and ties down)
+8. wait_for_train_to_terminate NVL, CK1, D749 Return
 9. build_train STG-SCULLY, terminate_train STG-SCULLY
 
-**Automation `Session Replay`** (for tests and dry runs, needs no one at the layout): build D749; move D749 to South Yard; build NVL; build CK1; terminate NVL; terminate CK1; terminate D749; build and terminate STG-DEMMLER; build and terminate STG-SCULLY. No startup automation (D28).
+**Automation `Session Replay`** (for tests and dry runs, needs no one at the layout): build D749; move D749 to South Yard; build NVL; build CK1; terminate D749; build and terminate STG-DEMMLER; build D749 Return; terminate NVL, CK1, D749 Return; build and terminate STG-SCULLY. No startup automation (D28).
 
 ## 8. Cars and locomotives
 
@@ -172,13 +173,13 @@ Max train length 1000 ft at every stop. Trains take every car type and road (`ad
 - `deliver`: `add_car` on the interchange of that side (Scully Interchange for McKees Rocks and the island, Demmler Interchange for McKeesport), set the load, then `ops_deliver_car` to the start track so the schedule runs and the car gets its next load and final destination, as Set Car would. The STS load is kept where a receive line exists for it; otherwise the car is delivered empty (D29).
 - `none`: `add_car` with no location. These are the 28 cars STS does not hold (passenger cars, cabooses, no-photo freight cars) and HART 1776 (D24).
 
-Cars STS had on D749 at session end sit on Demmler Interchange with CR 1993: on paper D749 departs Demmler with them, physically the train is tied down in West Yard. Ten cars are out of service (repository flag, STS Unavailable).
+Cars STS had on D749 at session end sit on W-1 with CR 1993, the train tied down in West Yard. Ten cars are out of service (repository flag, STS Unavailable).
 
 Locomotives (road, number, model, type Diesel, length, hp, start track):
 
 | Engine | Model | Length | HP | Start |
 |---|---|---|---|---|
-| CR 1993 | B23-7 | 62 | 2250 | Demmler Interchange (D749's power; on paper the train departs Demmler, physically it sleeps in West Yard) |
+| CR 1993 | B23-7 | 62 | 2250 | West Yard W-1 (D749's power) |
 | POHC 2091 | GP20 | 56 | 2000 | Scully Interchange (NVL's power) |
 | BO 9602 | SW1200 | 45 | 1200 | South Yard EH-1 |
 | BO 572 | NW2 | 45 | 1000 | South Yard EH-1 |

@@ -63,3 +63,16 @@ Written 2026-11-02 during the unattended build ([`OPSPRO_BUILD_PROMPT.md`](OPSPR
 | D34 | POHC Offline and CSX Offline carry move count 1000 | In the ordered test two Steel Plate flatcars bound for A. Stucki went offline instead, because the custom-load search picks the receiving spur with the fewest moves and the offline spurs receive nearly every load | `set_track_moves` |
 | D35 | Off Spot and Storage alternates exclude the default loads E and L | JMRI set two default empties straight out on Off Spots in the ordered test, where they flipped to L and wandered | `update_track loads` |
 | D36 | The ordered-session test was run with the plugin's own JMRI worker from a script (five chained jobs on copies), because `ops_dry_run` builds every train from one start state and cannot show hand-offs | The owner asked for the plugin wherever possible; the worker is the plugin's, the chaining is not | Nothing to reverse; the script is in the scorecard's hand-edit list |
+
+## Owner review, 2026-11-02
+
+Walked through with the owner. Confirmed as built: D3, D13, D14, D16, D19, D20, D24, D25, D27 (no cabooses; end-of-train devices ride the coupler), D28, D30, D31, Q5, Q6, Q7, Q9, Q10. Changed:
+
+| # | Change | Owner's words |
+|---|---|---|
+| Q1 | Offline cars physically go to a drawer; the 2000 ft offline spurs stand for the drawer | "I do shift cars to an offline drawer" |
+| D8 (final) | D749 is two trains: **D749** (West Yard → South Yard → Demmler Yard) and **D749 Return** (Demmler Yard → West Yard). The automation runs STG-DEMMLER between them, so the return carries the fresh block | "D749 could be two trains outbound and inbound" |
+| D4/Q2 | South Yard's five yard tracks are half the measured length (790, 770, 645, 515, 365 ft) because the yard is split in half with the East End industries on the other half; spurs stay at 60 ft per spot, 70 ft on the A. Stucki tracks for 53 and 55 ft cars; real spur lengths come with the main level | "half the full length of the S-R, S-1-4 tracks as the yard is split in half currently" |
+| D1 (final) | Scale is its own location near the end of the western lead, a no-work stop on CK1 between Shenango and South Yard; the Scale yard track at South Yard is gone | "Scale is a location near the end of the south yard western lead" |
+| D2 (final) | The scale test car and the two MOW cars are stored on S-4; the EH tracks stay inside South Yard and CK1 requires one engine of any road, which it finds there | "the scale test car is stored on S-4 with the rest of the MOW equipment. The power for CK1 is at the engine house tracks" |
+| D7 | North Yard and East Yard stay out | confirmed |

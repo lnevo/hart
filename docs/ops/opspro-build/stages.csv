@@ -11,3 +11,4 @@ stage,work,model,state,commit,note
 5,"Automations, manifest settings",Sonnet 5.5,Done,f73dfb41,"Session and Session Replay"
 Order,"Ordered session on chained copies via the plugin worker",Fable 5.1,Done,,"Hand-off at South Yard proved; three design faults found"
 Rework,"D749 from Demmler, alternates refuse E/L, offline spurs last",Fable 5.1,Done,938a619e,"Confirmed by a third ordered run"
+Review,"Owner walkthrough of the decisions: D749 split into two trains, South Yard tracks halved, Scale its own location, MOW on S-4, CK1 takes an engine, offline drawer",Fable 5.1,Done,,"Confirmed by a fourth ordered run (nine jobs)"
