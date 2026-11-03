@@ -36,8 +36,22 @@ Two were not what the fault said. A same-named schedule (F13) was already refuse
 
 | # | Item | Who | When |
 |---|---|---|---|
-| O2 | Repeat the fresh-session check of the skill: plain questions on a copy, naming no tool, recording whether the skill triggers and which tools it picks | agent | before O3 |
+| O2 | **Done 2026-11-02:** fresh-session check of plugin 0.2.0 passed. Results are below and in [`opspro-build/fresh_session_check.csv`](opspro-build/fresh_session_check.csv) | agent | before O3 |
 | O3 | Mark the plugin production: drop "in development" from its README and any marketplace text, ship it as one PR on the plugin repo, then test a marketplace install | owner decides | when ready |
+
+### O2 result
+
+Plugin 0.2.0 (99173a9) was installed from the GitHub marketplace into an empty scratch project at local scope, then removed. Nine fresh `claude -p` sessions on Opus 5.5 each asked one plain question about their own copy of the showcase railroad. The live tools were left unapproved, so nothing could reach a running JMRI.
+
+- **The plugin engaged on all eight Operations questions.** The skill loaded in seven; the eighth went straight to `ops-diagnoser`. It stayed out of the Layout Editor control question.
+- **`ops-diagnoser` ran on both report questions.** It ran in 2 of the 4 questions about reports or failed builds, against 3 of 5 last time. The other two were what-ifs answered in the main session. The sample is too small to call this a change.
+- **Tool choice fit each question:** `ops_why_not` for a car, `ops_audit` for a railroad, `ops_plan` before `ops_apply`, `ops_dry_run` with `order` for a hand-off and `ops_backup_now` for a backup. Only two plugin tool calls failed, each on a guessed argument, and both sessions recovered.
+- **Answers:** q1 and q5 match the showcase guide, and q3 and q4 name the same two stuck cars. The rest were not checked independently.
+
+Two points for O3, neither fixed here:
+
+- **Choices made without asking:** q6 applied a change with its own choices, including an edit to Grocery Dock's existing schedule, and reported them afterwards. A `-p` session has nobody to show a plan to, so this does not show what an interactive session would do. It is worth watching there.
+- **Large results:** several sessions tried to parse saved tool output with `python3`, which needed approval here and would prompt a user on default permissions. Smaller default output would avoid it.
 
 ## 4. The audit findings that remain
 
