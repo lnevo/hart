@@ -1,6 +1,6 @@
 # HART Operations Pro: what is outstanding after the build
 
-Written 2026-11-02 after the owner's review of the build on branch `agent/claude/opspro-build` (PR #120). Three lists: what the railroad still needs, what happened to the plugin list, and why the audit findings that remain are not a to-do.
+Written 2026-11-02 after the owner's review of the build on branch `agent/claude/opspro-build` (PR #120). This is the one list for Operations Pro follow-up; the main wiki carries only a pointer here. It covers what the railroad still needs, what happened to the plugin list, the other open items, and why the audit findings that remain are not a to-do.
 
 ## 1. The railroad
 
@@ -32,7 +32,15 @@ Two were not what the fault said. A same-named schedule (F13) was already refuse
 
 `order` runs each group to terminate before the next, so it does not reproduce the overlap in `Session`, where NVL and CK1 build while D749 is out and terminate after D749 Return builds. The closer test is `Session Replay` set as the startup automation on a copy, which the dry run now traces. Two sessions on 2026-11-02 ran all 13 steps with no JMRI errors: D749 13 and 21 cars, NVL 20 and 17, CK1 3 and 1, STG-DEMMLER 18 and 25, D749 Return 8 and 13, STG-SCULLY 21 and 11. Watch CK1's single car in session 2 under R6.
 
-## 3. The audit findings that remain
+## 3. Also open
+
+| # | Item | Who | When |
+|---|---|---|---|
+| O1 | Questions Q5 to Q10 in [`OPSPRO_OPEN_QUESTIONS.md`](OPSPRO_OPEN_QUESTIONS.md), running on their defaults: coke fleet list, D749's engine change, manifest colour words, session day name, "A. Stucki Co." spelling, Route 23 and OCS-1. Check each against the owner's review section first, as Q1 and Q4 were settled there | owner | any time |
+| O2 | Repeat the fresh-session check of the skill: plain questions on a copy, naming no tool, recording whether the skill triggers and which tools it picks | agent | before O3 |
+| O3 | Mark the plugin production: drop "in development" from its README and any marketplace text, ship it as one PR on the plugin repo, then test a marketplace install | owner decides | when ready |
+
+## 4. The audit findings that remain
 
 Nothing here is a defect. They stay because of decisions the owner confirmed.
 
