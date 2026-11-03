@@ -1,6 +1,8 @@
 # Prompt: fix the Operations Pro plugin faults from the HART build
 
-Written 2026-11-02 after the HART build ([`OPSPRO_FOLLOWUP.md`](OPSPRO_FOLLOWUP.md) section 2 is the list). Paste everything below the line into a fresh Claude Code session started in the hart repo on `main`, with the plugin active from a worktree:
+**Done on 2026-11-02, kept as history.** Do not run it again: all 19 items closed in plugin 0.2.0 (model-railroad-skills PR 13). Results are in [`OPSPRO_FOLLOWUP.md`](OPSPRO_FOLLOWUP.md) section 2 and [`opspro-build/plugin_faults.csv`](opspro-build/plugin_faults.csv). `ordered_session.py` is retired; `ops_dry_run` with `order` replaced it.
+
+Written 2026-11-02 after the HART build ([`OPSPRO_FOLLOWUP.md`](OPSPRO_FOLLOWUP.md) section 2 was the list). Paste everything below the line into a fresh Claude Code session started in the hart repo on `main`, with the plugin active from a worktree:
 
 `claude --plugin-dir <worktree>/plugins/operations-pro`
 
