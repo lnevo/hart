@@ -36,7 +36,6 @@ Two were not what the fault said. A same-named schedule (F13) was already refuse
 
 | # | Item | Who | When |
 |---|---|---|---|
-| O1 | Questions Q5 to Q10 in [`OPSPRO_OPEN_QUESTIONS.md`](OPSPRO_OPEN_QUESTIONS.md), running on their defaults: coke fleet list, D749's engine change, manifest colour words, session day name, "A. Stucki Co." spelling, Route 23 and OCS-1. Check each against the owner's review section first, as Q1 and Q4 were settled there | owner | any time |
 | O2 | Repeat the fresh-session check of the skill: plain questions on a copy, naming no tool, recording whether the skill triggers and which tools it picks | agent | before O3 |
 | O3 | Mark the plugin production: drop "in development" from its README and any marketplace text, ship it as one PR on the plugin repo, then test a marketplace install | owner decides | when ready |
 
