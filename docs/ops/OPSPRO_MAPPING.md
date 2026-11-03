@@ -139,7 +139,7 @@ How a shipment flows, for a cement car: CSX Offline line `E → Cement, Kosmos C
 | D749 Return | 15:00 | Demmler Yard (pick up only: 20) → West Yard (set out only: 20) | 1, road CR, model B23-7 | "CSX Neville Island Switcher, return leg"; built after STG-DEMMLER has swapped the interchange |
 | NVL | 08:00 | Scully Yard (20) → South Yard (20) → Aristech Plastics (8) → Ferrellgas (3) → A. Stucki Co. (4) → Kosmos Cement (5) → Calgon Carbon (5) → Shenango Coke Works (3) → South Yard (20) → Scully Yard (20) | 1, road POHC, model GP20 | "Neville Island Turn" |
 | CK1 | 09:00 | South Yard (pick up only: 8) → Shenango Coke Works (8) → Scale (no work: 1) → South Yard (set out only: 8) | 1, any road, from the EH tracks | "Coke Transfer". The Scale stop is the weigh on the western lead; it raises the intended `route-stop-dead` warning |
-| STG-DEMMLER | 16:00 | Demmler Yard (pick up only: 30) → McKeesport (30) → Demmler Yard (set out only: 30) | 0 | Virtual: CSX offline swap, run by the automation |
+| STG-DEMMLER | 14:30 | Demmler Yard (pick up only: 30) → McKeesport (30) → Demmler Yard (set out only: 30) | 0 | Virtual: CSX offline swap, run by the automation |
 | STG-SCULLY | 17:00 | Scully Yard (pick up only: 30) → McKees Rocks (30) → Scully Yard (set out only: 30) | 0 | Virtual: POHC offline swap |
 
 Max train length 1000 ft at every stop. Trains take every car type and road (`add_train` default); the track type lists do the fencing. Interchange lists are set with `setup_interchange` after the trains exist. Cabooses are not required (D27).

@@ -189,7 +189,7 @@
       <route name="CK1" id="9" />
       <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     </train>
-    <train id="4" name="STG-DEMMLER" description="Virtual: CSX offline swap, run by the automation" departHour="16" departMinute="00" builtStartYear="" builtEndYear="" numberEngines="0" engineRoad="" engineModel="" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="Virtual: offline swap, run by the Session automation, no crew" showTimes="true">
+    <train id="4" name="STG-DEMMLER" description="Virtual: CSX offline swap, run by the automation" departHour="14" departMinute="30" builtStartYear="" builtEndYear="" numberEngines="0" engineRoad="" engineModel="" requires="0" cabooseRoad="" buildNormal="false" toTerminal="false" allowLocalMoves="true" allowReturn="false" allowThroughCars="true" serviceAll="false" sendCustomStaging="false" buildConsist="false" built="false" build="true" buildFailed="false" buildFailedMessage="" printed="false" modified="false" switchListStatus="" status="Train reset" TerminationDate="" RequestedCars="0" statusCode="0" oldStatusCode="0" comment="Virtual: offline swap, run by the Session automation, no crew" showTimes="true">
       <types>
         <carType name="Baggage" />
         <carType name="Boxcar" />
@@ -358,6 +358,7 @@
       </types>
       <rowColor name="" resetRowColor="" />
       <route name="D749 Return" id="8" />
+      <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     </train>
   </trains>
   <manualBuilds />
