@@ -1,0 +1,29 @@
+location,track,type,receive,ship,destination,dest_track,sts_shipment
+Aristech Plastics,Pellet Unload,Covered Hopper,Pellets,,McKees Rocks,POHC Offline,ARIS-PELLETS-IN-*; empties return via POHC
+Aristech Plastics,Chemical Unload,Tank,Ethyl Acrylate,,McKees Rocks,POHC Offline,ARIS-CHEM-IN-DOW-EA
+Aristech Plastics,Chemical Unload,Tank,Methyl Methacrylate,,McKees Rocks,POHC Offline,ARIS-CHEM-IN-EXXON
+Aristech Plastics,Chemical Unload,Tank,Styrene Monomer,,McKees Rocks,POHC Offline,ARIS-CHEM-IN-DOW-STY
+Aristech Plastics,Shipping Door,Boxcar,E,Plastic Resins,McKees Rocks,POHC Offline,ARIS-RESIN-OUT-BEMIS; ARIS-RESIN-OUT-OI-TOLEDO
+Aristech Plastics,Shipping Door,Boxcar,E,Plastic Resins,McKeesport,CSX Offline,ARIS-RESIN-OUT-OI-OTTAWA
+A. Stucki Co.,Crane Track,Boxcar,Steel,,McKeesport,CSX Offline,STUK-STEEL-IN-METAL-SVC; empties return via CSX
+A. Stucki Co.,Crane Track,Flatcar,Steel,,McKeesport,CSX Offline,STUK-STEEL-IN-ALLEGHENY
+A. Stucki Co.,Crane Track,Gondola,Steel,,McKeesport,CSX Offline,STUK-STEEL-IN-REP-STEEL
+A. Stucki Co.,Team Track,Boxcar,Steel Coils,Machined Parts,McKeesport,CSX Offline,STUK-COILS-IN-RYERSON then STUK-PARTS-OUT-METAL-SVC
+A. Stucki Co.,Team Track,Boxcar,E,Machined Parts,McKeesport,CSX Offline,STUK-PARTS-OUT-METAL-SVC
+A. Stucki Co.,Team Track,Flatcar,Steel Plate,Railway Springs,McKees Rocks,POHC Offline,STUK-PLATE-IN-WASH-STL then STUK-SPRINGS-OUT-PITTS-FORGE
+A. Stucki Co.,Team Track,Flatcar,E,Railway Springs,McKees Rocks,POHC Offline,STUK-SPRINGS-OUT-PITTS-FORGE
+A. Stucki Co.,Team Track,Gondola,Steel Billets,Steel Coils,McKeesport,CSX Offline,STUK-BILLETS-IN-MCCONWAY then STUK-COILS-OUT-RYERSON
+A. Stucki Co.,Team Track,Gondola,E,Steel Coils,McKeesport,CSX Offline,STUK-COILS-OUT-RYERSON
+Calgon Carbon,Coal Unload,Hopper,Coal,,McKees Rocks,POHC Offline,CALG-COAL-IN-*; empties return via POHC
+Calgon Carbon,Carbon Load,Covered Hopper,E,Carbon,McKees Rocks,POHC Offline,CALG-CARBON-OUT-UNIVAR
+Calgon Carbon,Carbon Load,Covered Hopper,E,Carbon,McKeesport,CSX Offline,CALG-CARBON-OUT-CORP; CALG-CARBON-OUT-HOUGHTON
+Calgon Carbon,Chemical Unload,Tank,Caustic Soda,,McKees Rocks,POHC Offline,CALG-CHEM-IN-HOUGHTON
+Calgon Carbon,Chemical Unload,Tank,Hydrochloric Acid,,McKees Rocks,POHC Offline,CALG-CHEM-IN-GEN-CHEM
+Calgon Carbon,Chemical Unload,Tank,Phosphoric Acid,,McKees Rocks,POHC Offline,CALG-CHEM-IN-DOW
+Ferrellgas,LPG Unload,Tank,LPG,,McKeesport,CSX Offline,FERR-LPG-IN-*; empties return via CSX
+Kosmos Cement,Cement Unload,Covered Hopper,Cement,,McKeesport,CSX Offline,KOSM-CEMENT-IN-*; empties return via CSX
+Kosmos Cement,Aggregate Unload,Hopper,Aggregate,,McKeesport,CSX Offline,KOSM-AGG-IN-MARTIN
+Kosmos Cement,Aggregate Unload,Gondola,Aggregate,,McKeesport,CSX Offline,KOSM-AGG-IN-MI-LIME; KOSM-AGG-IN-US-AGG
+Kosmos Cement,Aggregate Unload,Covered Hopper,Aggregate,,McKeesport,CSX Offline,KOSM-AGG-IN-MARTIN (STS codes it HC)
+Shenango Coke Works,K-1,Coke Hopper,E,Coke,McKeesport,CSX Offline,COKE-USS-BULK; COKE-USS
+Shenango Coke Works,K-1,Coke Hopper,E,Coke,McKees Rocks,POHC Offline,COKE-CLEV-BULK; COKE-CLEV

@@ -1,0 +1,26 @@
+id,stage,kind,fault,workaround,status
+F1,Check,Tool error,"ops_actions with no action (or session_only only) fails: Object of type object is not JSON serializable",Name an action,Open
+F2,2A,Hidden values,"set_option settings.scale rejects HO with must be a whole number; the tool does not list that JMRI's index is wanted (6 for HO)",Use 6,Open
+F3,2A,Missing action,"set_option cannot set the railroad name: railroad.name is refused on a blank file and no other setup action takes it",Stage 5 tries set_train_manifest per train; else the JMRI GUI,Open
+F4,2A,Missing output,"ops_list has no type that shows buildOptions, router or settings values; only a plan diff shows them",Read the plan diff,Open
+F5,2A,Noise,"A plan that creates many findings prints every finding in full (78 load-no-train/load-no-track entries twice: in the plan and in the audit)",Ignore,Open
+F6,2A,Cosmetic,The first ops_apply on a blank folder returns an empty backup name,None,Open
+F7,2B,Ordering,"add_track with hold_custom true and no schedule is refused (Schedule options need a schedule on the track), so a spur cannot be created held before its schedule exists",Add the schedule first; set hold_custom with update_track,Open
+F8,2B,Missing output,"ops_list tracks omits locomotive types from the types field: Diesel-only engine tracks show types [] and yard tracks with Diesel show none; only the plan diff shows locoType",Read the plan diff,Open
+F9,2C,Silent drop,"add_route stop fields pickups and drops given as the strings yes/no are ignored without error; the diff shows both yes",Pass JSON true/false and read the diff,Open
+F10,2C,Ordering,"add_train refuses engine_road and a new engine_model until an engine of that road and model exists, so train power cannot be declared before the roster",Add engines first; update_train later,Open
+F11,2C,Field shape,"setup_interchange set_out_by, pulled_by and destinations refuse the {option, names} shape that add_track uses for the same lists; they take a plain list, and destinations has no way to say All",Pass a plain list; leave destinations unset,Open
+F12,2C,Missing output,"ops_list trains shows no description, departure time or comment",Read the plan diff,Open
+F13,3A,Silent reuse,"add_industry names the schedule <spur> Schedule and a same-named schedule returns the existing one, so two industries with a spur called Chemical Unload would share one schedule and the second industry's lines would be dropped without warning",add_schedule under a unique name then add_track naming it,Open
+F14,3A,Missing field,"add_industry has no pick up or set out list fields, so a spur restricted to one train needs a second update_track action",update_track in the same plan,Open
+F15,3C,Field shape,"add_engine with location set to the track name (Scully Interchange) replies No location; it wants location plus track, unlike the wording of its help",Pass location and track,Open
+F16,3C,Stale help,"ops_actions lists no load field for update_car, yet a plan accepts and applies it; the field list is incomplete",Probe with an unapplied plan,Open
+F17,3D,Missing action,"No action changes a car's type; a car added with the wrong type must be deleted and re-added",delete_car then add_car,Open
+F18,3D,Missing output,"ops_list cars shows location and final destination as ids (5/5s1), not names",Map ids by hand,Open
+F19,4,Output size,"ops_dry_run with detail normal returns about 150 KB for five trains, over the tool reply limit, and is saved to a file",Parse the saved JSON; call one train at a time,Open
+F20,4,Filter,"ops_list cars with filter Demmler returns nothing: the filter does not match location names; a wrong parameter name returns the bare error 'type'",Read the roster XML,Open
+F21,4,Noise,"ops_why_not with failing_only true still prints every not_checked gate (about 40) and drops only the passed ones",Read the first_failure and router fields,Open
+F22,4,Missing option,"ops_dry_run builds the trains in one pass from one start state with no terminate between them and not in departure order (CK1 first), so hand-offs and interchange room are never exercised; it runs the startup automation, which is the only way to test an ordered session",Set a replay automation as startup for the dry run,Open
+F23,5,Help text,"set_startup_automation says 'or none' but refuses the word none; an empty string clears it",Pass an empty string,Open
+F24,5,Missing evidence,"ops_dry_run says it runs the startup automation on its copy, but its result carries no per-step or automation field and all five builds carry the same minute; an ordered Session Replay set as startup showed no hand-off (NVL saw no cars at South Yard), so either the automation did not run or the result hides it",Record; test live with ops_live_automation,Open
+F25,Order,Noise,"The worker's log_errors lists JMRI's own 'Schedule missing for car ... to spur (Off Spot)' ERROR lines, which JMRI writes whenever a car overflows to an alternate with no schedule; the move is correct",Ignore,Open

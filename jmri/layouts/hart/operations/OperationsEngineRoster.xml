@@ -2,13 +2,12 @@
 <?xml-stylesheet href="/xml/XSLT/operations-engines.xsl" type="text/xsl"?>
 <!DOCTYPE operations-config SYSTEM "/xml/DTD/operations-engines.dtd">
 <operations-config>
-  <!--Written by JMRI version 5.15.4plus+jenkins+20260220T0403Z+R20f7db4fc0 on Sat Aug 22 23:04:10 EDT 2026-->
   <models>
     <model name="E8" />
+    <model name="FT" />
     <model name="F3" />
     <model name="F7" />
     <model name="F9" />
-    <model name="FT" />
     <model name="GG1" />
     <model name="GP20" />
     <model name="GP30" />
@@ -17,31 +16,36 @@
     <model name="GP40" />
     <model name="GTEL" />
     <model name="RS1" />
+    <model name="RS2" />
+    <model name="RS3" />
     <model name="RS11" />
     <model name="RS18" />
-    <model name="RS2" />
     <model name="RS27" />
-    <model name="RS3" />
     <model name="RSD4" />
+    <model name="Shay" />
     <model name="SD26" />
     <model name="SD45" />
     <model name="SW1200" />
     <model name="SW1500" />
     <model name="SW8" />
-    <model name="Shay" />
     <model name="TRAINMASTER" />
     <model name="U28B" />
+    <model name="B23-7" />
+    <model name="NW2" />
+    <model name="AS-16" />
+    <model name="U30B" />
+    <model name="ES44AH" />
   </models>
   <types>
-    <type name="Diesel" />
     <type name="Electric" />
     <type name="Engine" />
+    <type name="Diesel" />
     <type name="Gas Turbine" />
     <type name="Steam" />
-    <type name="Steam-heavy" />
     <type name="Steam-light" />
-    <type name="Steam-mixed" />
+    <type name="Steam-heavy" />
     <type name="Steam-pass" />
+    <type name="Steam-mixed" />
     <type name="Switcher" />
   </types>
   <lengths>
@@ -67,9 +71,11 @@
     <length value="59" />
     <length value="60" />
     <length value="61" />
+    <length value="62" />
     <length value="65" />
     <length value="66" />
     <length value="70" />
+    <length value="74" />
     <length value="75" />
     <length value="80" />
     <length value="85" />
@@ -77,18 +83,15 @@
   </lengths>
   <newConsists />
   <engines>
-    <engine id="BO2235" roadName="BO" roadNumber="2235" type="Engine" length="50" moves="0" date="" selected="false" model="AS-16" hp="2000" bUnit="false" />
-    <engine id="BO3545" roadName="BO" roadNumber="3545" type="Diesel" length="56" weightTons="130" moves="0" date="" selected="false" model="GP35" hp="2500" bUnit="false" />
-    <engine id="BO3840" roadName="BO" roadNumber="3840" type="Diesel" length="59" weightTons="125" locationId="2" secLocationId="2s3" moves="0" date="" selected="false" model="GP38" hp="2000" bUnit="false" />
-    <engine id="BO4536" roadName="BO" roadNumber="4536" type="Engine" length="50" moves="0" date="" selected="false" model="F7A" hp="2000" bUnit="false" />
-    <engine id="BO5300" roadName="BO" roadNumber="5300" type="Engine" length="50" moves="0" date="" selected="false" model="P-7" hp="2000" bUnit="false" />
-    <engine id="BO5496" roadName="BO" roadNumber="5496" type="Engine" length="50" moves="0" date="" selected="false" model="F7B" hp="2000" bUnit="false" />
-    <engine id="BO572" roadName="BO" roadNumber="572" type="Engine" length="50" moves="0" date="" selected="false" model="NW2 Phase V" hp="2000" bUnit="false" />
-    <engine id="BO6944" roadName="BO" roadNumber="6944" type="Diesel" length="56" weightTons="130" moves="0" date="" selected="false" model="GP30" hp="2250" bUnit="false" />
-    <engine id="BO9602" roadName="BO" roadNumber="9602" type="Diesel" length="45" weightTons="124" moves="0" date="" selected="false" model="SW1200" hp="1200" bUnit="false" />
-    <engine id="CO8216" roadName="CO" roadNumber="8216" type="Engine" length="50" moves="0" date="" selected="false" model="U30B" hp="2000" bUnit="false" />
-    <engine id="CSX1827" roadName="CSX" roadNumber="1827" type="Engine" length="50" moves="0" date="" selected="false" model="ES44AH" hp="2000" bUnit="false" />
-    <engine id="CWRY2091" roadName="CWRY" roadNumber="2091" type="Diesel" length="56" weightTons="120" moves="0" date="" selected="false" model="GP20" hp="2000" bUnit="false" />
-    <engine id="Set by Dispatcher System2091" roadName="Set by Dispatcher System" roadNumber="2091" type="" length="85" moves="0" date="" selected="false" comment="speed factor 100" model="" hp="" bUnit="false" />
+    <engine id="CR1993" roadName="CR" roadNumber="1993" type="Diesel" length="62" locationId="1" secLocationId="1s1" moves="0" date="" selected="false" model="B23-7" hp="2250" bUnit="false" />
+    <engine id="POHC2091" roadName="POHC" roadNumber="2091" type="Diesel" length="56" weightTons="120" locationId="3" secLocationId="3s1" moves="0" date="" selected="false" model="GP20" hp="2000" bUnit="false" />
+    <engine id="BO9602" roadName="BO" roadNumber="9602" type="Diesel" length="45" weightTons="124" locationId="2" secLocationId="2s7" moves="0" date="" selected="false" model="SW1200" hp="1200" bUnit="false" />
+    <engine id="BO572" roadName="BO" roadNumber="572" type="Diesel" length="45" locationId="2" secLocationId="2s7" moves="0" date="" selected="false" model="NW2" hp="1000" bUnit="false" />
+    <engine id="BO3840" roadName="BO" roadNumber="3840" type="Diesel" length="59" weightTons="125" locationId="2" secLocationId="2s8" moves="0" date="" selected="false" model="GP38" hp="2000" bUnit="false" />
+    <engine id="BO3545" roadName="BO" roadNumber="3545" type="Diesel" length="56" weightTons="130" locationId="2" secLocationId="2s8" moves="0" date="" selected="false" model="GP35" hp="2500" bUnit="false" />
+    <engine id="BO6944" roadName="BO" roadNumber="6944" type="Diesel" length="56" weightTons="130" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="GP30" hp="2250" bUnit="false" />
+    <engine id="BO2235" roadName="BO" roadNumber="2235" type="Diesel" length="56" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="AS-16" hp="1600" bUnit="false" />
+    <engine id="CO8216" roadName="CO" roadNumber="8216" type="Diesel" length="60" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="U30B" hp="3000" bUnit="false" />
+    <engine id="CSX1827" roadName="CSX" roadNumber="1827" type="Diesel" length="74" moves="0" date="" selected="false" model="ES44AH" hp="4400" bUnit="false" />
   </engines>
 </operations-config>

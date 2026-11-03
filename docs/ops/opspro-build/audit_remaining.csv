@@ -1,0 +1,5 @@
+rule,severity,count,example,why
+type-no-track,error,5,Baggage,"The passenger types exist for the roster only; no track takes them until the owner places the cars (D24, confirmed)"
+car-unplaced,warning,29,HART 1776,"Cars STS does not position start with no location (D24, confirmed)"
+route-stop-dead,warning,1,"CK1, Scale","The weigh stop does no work on purpose (D1 final)"
+train-not-on-list,info,4,"Demmler Interchange, K-1","D749 sets out only and D749 Return pulls only at Demmler; only CK1 pulls the coke tracks (D9)"

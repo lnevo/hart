@@ -1,0 +1,85 @@
+side,location,track,type,receive,ship,destination,dest_track,random,sts_shipment
+POHC,McKees Rocks,POHC Offline,Covered Hopper,E,Pellets,Aristech Plastics,Pellet Unload,,ARIS-PELLETS-IN-NOVACOR
+POHC,McKees Rocks,POHC Offline,Covered Hopper,E,Cement,Kosmos Cement,Cement Unload,,KOSM-CEMENT-IN-KOSMOS; KOSM-CEMENT-IN-LEHIGH
+POHC,McKees Rocks,POHC Offline,Covered Hopper,E,Phosphor Compounds,McKeesport,CSX Offline,50,IX-PHOSPHOR-GEN-HEINZ
+POHC,McKees Rocks,POHC Offline,Covered Hopper,Carbon,Cement,Kosmos Cement,Cement Unload,,CALG-CARBON-OUT-UNIVAR then reload
+POHC,McKees Rocks,POHC Offline,Covered Hopper,Carbon,,Calgon Carbon,Carbon Load,,CALG-CARBON-OUT-UNIVAR then empty back
+POHC,McKees Rocks,POHC Offline,Covered Hopper,Phosphor Compounds,Pellets,Aristech Plastics,Pellet Unload,,IX-PHOSPHOR-GEN-GE arrives
+POHC,McKees Rocks,POHC Offline,Hopper,E,Coal,Calgon Carbon,Coal Unload,,CALG-COAL-IN-HILLMAN
+POHC,McKees Rocks,POHC Offline,Hopper,Coal,Coal,Calgon Carbon,Coal Unload,,IX-COAL-CONSOL-AEP arrives then reload
+POHC,McKees Rocks,POHC Offline,Coke Hopper,Coke,,Shenango Coke Works,K-1,,COKE-CLEV-BULK; COKE-CLEV
+POHC,McKees Rocks,POHC Offline,Tank,E,Methyl Methacrylate,Aristech Plastics,Chemical Unload,,ARIS-CHEM-IN-EXXON
+POHC,McKees Rocks,POHC Offline,Tank,E,Caustic Soda,Calgon Carbon,Chemical Unload,,CALG-CHEM-IN-HOUGHTON
+POHC,McKees Rocks,POHC Offline,Tank,E,Hydrochloric Acid,Calgon Carbon,Chemical Unload,,CALG-CHEM-IN-GEN-CHEM
+POHC,McKees Rocks,POHC Offline,Tank,E,LPG,Ferrellgas,LPG Unload,,FERR-LPG-IN-TANEYTOWN
+POHC,McKees Rocks,POHC Offline,Tank,E,Argon,McKeesport,CSX Offline,50,IX-ARGON-AIRPROD-GE
+POHC,McKees Rocks,POHC Offline,Tank,E,LPG,McKeesport,CSX Offline,50,IX-LPG-MAPCO-SUBURBAN
+POHC,McKees Rocks,POHC Offline,Tank,Industrial Gases,Methyl Methacrylate,Aristech Plastics,Chemical Unload,,IX-CHEM-DOW-KNOUSE arrives
+POHC,McKees Rocks,POHC Offline,Boxcar,E,Fluorescent Lamps,McKeesport,CSX Offline,50,IX-LAMPS-GE-PENELEC
+POHC,McKees Rocks,POHC Offline,Boxcar,E,Fluorescent Tubes,McKeesport,CSX Offline,50,IX-TUBES-GE-GRAYBAR
+POHC,McKees Rocks,POHC Offline,Boxcar,Plastic Resins,,Aristech Plastics,Shipping Door,,ARIS-RESIN-OUT-BEMIS; ARIS-RESIN-OUT-OI-TOLEDO; IX-RESIN-DOW-OI-OTT arrives
+POHC,McKees Rocks,POHC Offline,Flatcar,E,Steel,A. Stucki Co.,Crane Track,,STUK-STEEL-IN-ALLEGHENY
+POHC,McKees Rocks,POHC Offline,Flatcar,E,Forgings,McKeesport,CSX Offline,50,IX-FORGINGS-SFP-CAT
+POHC,McKees Rocks,POHC Offline,Flatcar,E,Stainless Bar,McKeesport,CSX Offline,50,IX-STAINLESS-USA-RYERSON
+POHC,McKees Rocks,POHC Offline,Flatcar,E,Stainless Slab,McKeesport,CSX Offline,50,IX-SLAB-WEIRTON-ARMCO
+POHC,McKees Rocks,POHC Offline,Flatcar,Railway Springs,Steel,A. Stucki Co.,Crane Track,,STUK-SPRINGS-OUT-PITTS-FORGE then reload
+POHC,McKees Rocks,POHC Offline,Flatcar,Steel Billets,Steel,A. Stucki Co.,Crane Track,,IX-BILLETS-REP-MCCONWAY; IX-BILLETS-REP-SFP arrive
+POHC,McKees Rocks,POHC Offline,Flatcar,Stainless Slab,Steel,A. Stucki Co.,Crane Track,,IX-SLAB-ALLEGHENY-USA arrives
+POHC,McKees Rocks,POHC Offline,Flatcar,Stainless Bar,Steel,A. Stucki Co.,Crane Track,,IX-STAINLESS-USA-CARPENTER arrives
+POHC,McKees Rocks,POHC Offline,Flatcar,Steel Plate,Steel,A. Stucki Co.,Crane Track,,IX-PLATE-BETHLEHEM-RYERSON arrives
+POHC,McKees Rocks,POHC Offline,Flatcar,Forgings,Steel,A. Stucki Co.,Crane Track,,IX-FORGINGS-SFP-SHARON arrives
+POHC,McKees Rocks,POHC Offline,Gondola,E,Steel,A. Stucki Co.,Crane Track,,STUK-STEEL-IN-REP-STEEL
+POHC,McKees Rocks,POHC Offline,Gondola,E,Steel Billets,A. Stucki Co.,Team Track,,STUK-BILLETS-IN-MCCONWAY
+POHC,McKees Rocks,POHC Offline,Gondola,E,Aggregate,Kosmos Cement,Aggregate Unload,,KOSM-AGG-IN-MI-LIME
+POHC,McKees Rocks,POHC Offline,Gondola,E,Scrap Steel,McKeesport,CSX Offline,50,IX-SCRAP-ALLEGHENY-MCCONWAY
+POHC,McKees Rocks,POHC Offline,Coilcar,E,Steel Coils,McKeesport,CSX Offline,,IX-COILS-REP-DEERE
+POHC,McKees Rocks,POHC Offline,Coilcar,E,Tin Plate,McKeesport,CSX Offline,,IX-TINPLATE-WHEELING-HEINZ
+POHC,McKees Rocks,POHC Offline,Coilcar,Steel Coils,Tin Plate,McKeesport,CSX Offline,,IX-COILS-WEIRTON-RYERSON arrives then reload
+POHC,McKees Rocks,POHC Offline,Reefer,E,Frozen Foods,McKeesport,CSX Offline,,IX-REEFER-HEINZ-SYSCO
+POHC,McKees Rocks,POHC Offline,Reefer,Packaged Meats,Frozen Foods,McKeesport,CSX Offline,,IX-REEFER-DUBUQUE-GIANT arrives then reload
+CSX,McKeesport,CSX Offline,Covered Hopper,E,Pellets,Aristech Plastics,Pellet Unload,,ARIS-PELLETS-IN-DOW; ARIS-PELLETS-IN-BASF
+CSX,McKeesport,CSX Offline,Covered Hopper,E,Cement,Kosmos Cement,Cement Unload,,KOSM-CEMENT-IN-MEDUSA
+CSX,McKeesport,CSX Offline,Covered Hopper,E,Aggregate,Kosmos Cement,Aggregate Unload,,KOSM-AGG-IN-MARTIN
+CSX,McKeesport,CSX Offline,Covered Hopper,E,Phosphor Compounds,McKees Rocks,POHC Offline,50,IX-PHOSPHOR-GEN-GE
+CSX,McKeesport,CSX Offline,Covered Hopper,E,Pellets,McKees Rocks,POHC Offline,50,IX-PELLETS-BASF-OI-TOL-CSX
+CSX,McKeesport,CSX Offline,Covered Hopper,Carbon,Pellets,Aristech Plastics,Pellet Unload,,CALG-CARBON-OUT-CORP; CALG-CARBON-OUT-HOUGHTON then reload
+CSX,McKeesport,CSX Offline,Covered Hopper,Carbon,,Calgon Carbon,Carbon Load,,CALG-CARBON-OUT-CORP then empty back
+CSX,McKeesport,CSX Offline,Covered Hopper,Phosphor Compounds,Cement,Kosmos Cement,Cement Unload,,IX-PHOSPHOR-GEN-HEINZ arrives
+CSX,McKeesport,CSX Offline,Covered Hopper,Pellets,Cement,Kosmos Cement,Cement Unload,,IX-PELLETS-BASF-OI-TOL arrives
+CSX,McKeesport,CSX Offline,Hopper,E,Coal,Calgon Carbon,Coal Unload,,CALG-COAL-IN-CONSOL; CALG-COAL-IN-RP
+CSX,McKeesport,CSX Offline,Hopper,E,Aggregate,Kosmos Cement,Aggregate Unload,,KOSM-AGG-IN-MARTIN as hopper
+CSX,McKeesport,CSX Offline,Hopper,E,Coal,McKees Rocks,POHC Offline,50,IX-COAL-CONSOL-AEP
+CSX,McKeesport,CSX Offline,Coke Hopper,Coke,,Shenango Coke Works,K-2,,COKE-USS-BULK; COKE-USS
+CSX,McKeesport,CSX Offline,Tank,E,Ethyl Acrylate,Aristech Plastics,Chemical Unload,,ARIS-CHEM-IN-DOW-EA
+CSX,McKeesport,CSX Offline,Tank,E,Styrene Monomer,Aristech Plastics,Chemical Unload,,ARIS-CHEM-IN-DOW-STY
+CSX,McKeesport,CSX Offline,Tank,E,Phosphoric Acid,Calgon Carbon,Chemical Unload,,CALG-CHEM-IN-DOW
+CSX,McKeesport,CSX Offline,Tank,E,LPG,Ferrellgas,LPG Unload,,FERR-LPG-IN-PIPE
+CSX,McKeesport,CSX Offline,Tank,E,Industrial Gases,McKees Rocks,POHC Offline,50,IX-CHEM-DOW-KNOUSE
+CSX,McKeesport,CSX Offline,Tank,Argon,Phosphoric Acid,Calgon Carbon,Chemical Unload,,IX-ARGON-AIRPROD-GE arrives
+CSX,McKeesport,CSX Offline,Tank,LPG,Ethyl Acrylate,Aristech Plastics,Chemical Unload,,IX-LPG-MAPCO-SUBURBAN arrives
+CSX,McKeesport,CSX Offline,Tank,Methyl Methacrylate,Styrene Monomer,Aristech Plastics,Chemical Unload,,IX-CHEM-EXXON-DUPONT arrives
+CSX,McKeesport,CSX Offline,Boxcar,E,Steel,A. Stucki Co.,Crane Track,,STUK-STEEL-IN-METAL-SVC
+CSX,McKeesport,CSX Offline,Boxcar,E,Steel Coils,A. Stucki Co.,Team Track,,STUK-COILS-IN-RYERSON
+CSX,McKeesport,CSX Offline,Boxcar,E,Plastic Resins,McKees Rocks,POHC Offline,50,IX-RESIN-DOW-OI-OTT
+CSX,McKeesport,CSX Offline,Boxcar,Machined Parts,Steel Coils,A. Stucki Co.,Team Track,,STUK-PARTS-OUT-METAL-SVC then reload
+CSX,McKeesport,CSX Offline,Boxcar,Plastic Resins,,Aristech Plastics,Shipping Door,,ARIS-RESIN-OUT-OI-OTTAWA
+CSX,McKeesport,CSX Offline,Boxcar,Fluorescent Lamps,Steel,A. Stucki Co.,Crane Track,,IX-LAMPS-GE-PENELEC arrives
+CSX,McKeesport,CSX Offline,Boxcar,Fluorescent Tubes,Steel Coils,A. Stucki Co.,Team Track,,IX-TUBES-GE-GRAYBAR arrives
+CSX,McKeesport,CSX Offline,Flatcar,E,Steel Plate,A. Stucki Co.,Team Track,,STUK-PLATE-IN-WASH-STL
+CSX,McKeesport,CSX Offline,Flatcar,E,Stainless Slab,McKees Rocks,POHC Offline,50,IX-SLAB-ALLEGHENY-USA
+CSX,McKeesport,CSX Offline,Flatcar,E,Steel Billets,McKees Rocks,POHC Offline,50,IX-BILLETS-REP-MCCONWAY; IX-BILLETS-REP-SFP
+CSX,McKeesport,CSX Offline,Flatcar,E,Forgings,McKees Rocks,POHC Offline,50,IX-FORGINGS-SFP-SHARON
+CSX,McKeesport,CSX Offline,Flatcar,E,Stainless Bar,McKees Rocks,POHC Offline,50,IX-STAINLESS-USA-CARPENTER
+CSX,McKeesport,CSX Offline,Flatcar,E,Steel Plate,McKees Rocks,POHC Offline,50,IX-PLATE-BETHLEHEM-RYERSON
+CSX,McKeesport,CSX Offline,Flatcar,Forgings,Steel Plate,A. Stucki Co.,Team Track,,IX-FORGINGS-SFP-CAT arrives
+CSX,McKeesport,CSX Offline,Flatcar,Stainless Bar,Steel Plate,A. Stucki Co.,Team Track,,IX-STAINLESS-USA-RYERSON arrives
+CSX,McKeesport,CSX Offline,Flatcar,Stainless Slab,Steel Plate,A. Stucki Co.,Team Track,,IX-SLAB-WEIRTON-ARMCO arrives
+CSX,McKeesport,CSX Offline,Flatcar,Railway Springs,Steel Plate,A. Stucki Co.,Team Track,,spare: springs arriving on the CSX side reload
+CSX,McKeesport,CSX Offline,Gondola,E,Aggregate,Kosmos Cement,Aggregate Unload,,KOSM-AGG-IN-US-AGG
+CSX,McKeesport,CSX Offline,Gondola,Steel Coils,Aggregate,Kosmos Cement,Aggregate Unload,,STUK-COILS-OUT-RYERSON then reload
+CSX,McKeesport,CSX Offline,Gondola,Scrap Steel,Steel,A. Stucki Co.,Crane Track,,IX-SCRAP-ALLEGHENY-MCCONWAY arrives
+CSX,McKeesport,CSX Offline,Coilcar,E,Steel Coils,McKees Rocks,POHC Offline,,IX-COILS-WEIRTON-RYERSON
+CSX,McKeesport,CSX Offline,Coilcar,Steel Coils,Steel Coils,McKees Rocks,POHC Offline,,IX-COILS-REP-DEERE arrives then reload
+CSX,McKeesport,CSX Offline,Coilcar,Tin Plate,Steel Coils,McKees Rocks,POHC Offline,,IX-TINPLATE-WHEELING-HEINZ arrives
+CSX,McKeesport,CSX Offline,Reefer,E,Packaged Meats,McKees Rocks,POHC Offline,,IX-REEFER-DUBUQUE-GIANT
+CSX,McKeesport,CSX Offline,Reefer,Frozen Foods,Packaged Meats,McKees Rocks,POHC Offline,,IX-REEFER-HEINZ-SYSCO arrives

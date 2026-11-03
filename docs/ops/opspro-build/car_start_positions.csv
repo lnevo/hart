@@ -1,0 +1,100 @@
+roster_id,road,number,type,length,weight_tons,built,color,out_of_service,sts_status,sts_location,start_location,start_track,method,load,note
+NW32800,NW,32800,Flatcar,52,92,6-56,Black,,Empty,SOUTH-YARD,South Yard,S-1,place,E,
+BO467439,BO,467439,Boxcar,40,76,6-47,Black,,Loaded,SCULLY-YARD,Scully Yard,Scully Interchange,place,Fluorescent Lamps,IX-LAMPS-GE-PENELEC
+BO466063,BO,466063,Boxcar,40,76,8-45,Gray,,Loaded,SCULLY-YARD,Scully Yard,Scully Interchange,place,Fluorescent Tubes,IX-TUBES-GE-GRAYBAR
+BO467071,BO,467071,Boxcar,40,76,8-47,Black,,Loaded,SCULLY-YARD,Scully Yard,Scully Interchange,place,Fluorescent Lamps,IX-LAMPS-GE-PENELEC
+KSMX101,KSMX,101,Covered Hopper,34,66,10-47,Gray,,Empty,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
+BO8451,BO,8451,Flatcar,53,94,12-53,Black,,Unloading,CARPENTR-SBAR,McKees Rocks,POHC Offline,deliver,Stainless Bar,"STS CARPENTR-SBAR IX-STAINLESS-USA-CARPENTER; delivered through the POHC Offline schedule, which picks the next load"
+EL66410,EL,66410,Boxcar,50,88,9-55,Gray,,Loaded,SOUTH-YARD,South Yard,S-2,place,Plastic Resins,ARIS-RESIN-OUT-OI-OTTAWA
+UTLX32642,UTLX,32642,Tank,40,76,6-20,Black,,Loading,HOUGHTON-CAUS,McKees Rocks,POHC Offline,deliver,E,"STS HOUGHTON-CAUS CALG-CHEM-IN-HOUGHTON; delivered through the POHC Offline schedule, which picks the next load"
+BO600409,BO,600409,Covered Hopper,40,76,8-66,Gray,,Empty,UNIVAR-ACAR,McKees Rocks,POHC Offline,deliver,E,"STS UNIVAR-ACAR; delivered through the POHC Offline schedule, which picks the next load"
+BO600401,BO,600401,Covered Hopper,40,76,8-66,Gray,,Ordered,SOUTH-YARD,South Yard,S-3,place,E,ARIS-PELLETS-IN-BASF
+KSMX105,KSMX,105,Covered Hopper,34,66,10-47,Gray,,Empty,CALG-CARBON,Calgon Carbon,Carbon Load,deliver,E,
+BO631140,BO,631140,Covered Hopper,34,66,,Gray,,Empty,SOUTH-YARD,South Yard,S-4,place,E,
+BO600421,BO,600421,Covered Hopper,40,76,8-66,Gray,,Ordered,SOUTH-YARD,South Yard,S-1,place,E,
+CBQ171856,CBQ,171856,Hopper,40,76,1-62,Black,,Unloading,UNIVAR-ACAR,McKees Rocks,POHC Offline,deliver,E,STS had an open hopper delivering carbon (CALG-CARBON-OUT-UNIVAR); delivered empty through the POHC Offline schedule
+UTLX39042,UTLX,39042,Tank,40,76,4-49,Black,,Loaded,EXXONCH-MMA,McKees Rocks,POHC Offline,deliver,E,"STS EXXONCH-MMA; delivered through the POHC Offline schedule, which picks the next load"
+CO2052,CO,2052,Covered Hopper,40,76,1-81,Yellow,,Loading,NOVACOR-PLST,McKees Rocks,POHC Offline,deliver,E,"STS NOVACOR-PLST ARIS-PELLETS-IN-NOVACOR; delivered through the POHC Offline schedule, which picks the next load"
+BO628038,BO,628038,Covered Hopper,40,76,5-78,Yellow,,Ordered,KOSM-CEMENT,Kosmos Cement,Cement Unload,deliver,Cement,STS Ordered on the cement spot: delivered as a cement car so it leaves empty
+NYC47516,NYC,47516,Boxcar,50,88,10-60,Green,,Ordered,SOUTH-YARD,South Yard,S-2,place,E,STUK-STEEL-IN-METAL-SVC
+RMLI2018,RMLI,2018,Boxcar,40,,,Blue,,Loading,ARIS-SHIPPING,Aristech Plastics,Shipping Door,deliver,E,ARIS-RESIN-OUT-BEMIS
+PRR371604,PRR,371604,Gondola,50,88,11-51,Gray,,Empty,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,
+BO283057,BO,283057,Boxcar,50,88,2-51,Brown,,Unloading,METALSVC-MACH,McKeesport,CSX Offline,deliver,Machined Parts,"STS METALSVC-MACH STUK-PARTS-OUT-METAL-SVC; delivered through the CSX Offline schedule, which picks the next load"
+CR477935,CR,477935,Hopper,40,,12-77,Brown,,Empty,SOUTH-YARD,South Yard,S-3,place,E,
+RMP50,RMP,50,Boxcar,40,,,Black,,Empty,SOUTH-YARD,South Yard,S-4,place,E,
+BO8417,BO,8417,Flatcar,53,94,12-53,Black,,Ordered,SOUTH-YARD,South Yard,S-1,place,E,
+BO8300,BO,8300,Coilcar,55,96,12-68,Gray,,Loaded,SOUTH-YARD,South Yard,S-2,place,Tin Plate,IX-TINPLATE-WHEELING-HEINZ
+UTLX36299,UTLX,36299,Tank,40,,9-50,Black,,Loaded,EXXONCH-MMA,McKees Rocks,POHC Offline,deliver,E,"STS EXXONCH-MMA; delivered through the POHC Offline schedule, which picks the next load"
+MOW0017,MOW,0017,MOW,40,76,,Black,yes,Unavailable,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,STS codes it TA; repository says MOW; out of service
+PRR728012,PRR,728012,Hopper,40,,3-17,Orange,,Empty,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,
+PRR702186,PRR,702186,Hopper,40,,11-06,Brown,,Empty,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
+COST1,CO,ST1,MOW,40,76,,Blue,yes,Unavailable,SOUTH-SCALE,South Yard,S-4,place,E,"MOW equipment is stored on S-4 (owner, 2026-11-02)"
+CO377700,CO,377700,MOW,50,144,,Black,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,"MOW equipment is stored on S-4 (owner, 2026-11-02)"
+COW86,CO,W86,MOW,50,,,Green,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,"MOW equipment is stored on S-4 (owner, 2026-11-02)"
+CO306607,CO,306607,Coilcar,52,92,,Blue,,Loaded,SOUTH-YARD,South Yard,S-1,place,Tin Plate,IX-TINPLATE-WHEELING-HEINZ
+BO73133,BO,73133,Coke Hopper,45,82,9-74,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
+BO551470,BO,551470,Gondola,50,88,,Black,,Empty,SOUTH-YARD,South Yard,S-2,place,E,
+BO283069,BO,283069,Boxcar,50,88,6-62,Brown,,Unloading,METALSVC-MACH,McKeesport,CSX Offline,deliver,Machined Parts,"STS METALSVC-MACH STUK-PARTS-OUT-METAL-SVC; delivered through the CSX Offline schedule, which picks the next load"
+PRR474563,PRR,474563,Flatcar,50,88,12-34,Brown,,Loaded,on D749,West Yard,W-1,place,Steel Plate,on D749 at STS end; tied down in West Yard on D749; IX-PLATE-BETHLEHEM-RYERSON
+SHPX22329,SHPX,22329,Tank,40,76,12-49,Black,,Unloading,CALG-CHEMICAL,Calgon Carbon,Chemical Unload,deliver,Caustic Soda,CALG-CHEM-IN-HOUGHTON
+GATX31090,GATX,31090,Tank,40,76,12-49,Black,,Loaded,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,STS Loaded with no order: starts E
+EL8063,EL,8063,Flatcar,52,92,7-42,Black,,Loading,STUK-TEAM,A. Stucki Co.,Team Track,deliver,E,STUK-SPRINGS-OUT-PITTS-FORGE
+BO8476,BO,8476,Flatcar,53,94,12-53,Black,,Loaded,on D749,West Yard,W-1,place,Steel Plate,on D749 at STS end; tied down in West Yard on D749; STUK-PLATE-IN-WASH-STL
+CO2063,CO,2063,Covered Hopper,40,76,6-78,Yellow,,Unloading,ARIS-PELLETS,Aristech Plastics,Pellet Unload,deliver,Pellets,ARIS-PELLETS-IN-NOVACOR
+KSMX110,KSMX,110,Covered Hopper,34,66,10-47,Gray,,Empty,SOUTH-YARD,South Yard,S-3,place,E,
+HART1776,HART,1776,Boxcar,40,,,Red,,,,,,none,E,not in STS: no start position
+PRR498647,PRR,498647,Tank,40,76,,Black,,Loaded,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,STS Loaded with no order: starts E
+BO8405,BO,8405,Flatcar,53,94,12-53,Black,,Loading,ALLEGHEN-STEL,McKees Rocks,POHC Offline,deliver,E,"STS ALLEGHEN-STEL STUK-STEEL-IN-ALLEGHENY; delivered through the POHC Offline schedule, which picks the next load"
+RDG99143,RDG,99143,Coilcar,55,96,3-75,Green,,Loading,WHEELING-TINP,McKees Rocks,POHC Offline,deliver,E,"STS WHEELING-TINP IX-TINPLATE-WHEELING-HEINZ; delivered through the POHC Offline schedule, which picks the next load"
+BO11137,BO,11137,Coke Hopper,40,76,1-53,Black,,Empty,ARIS-CHEMICAL,Shenango Coke Works,K-2,deliver,E,STS had this coke hopper empty at Aristech Chemical Unload; moved to Shenango K-2
+BO11027,BO,11027,Coke Hopper,40,76,1-58,Black,,Empty,ARIS-CHEMICAL,Shenango Coke Works,K-2,deliver,E,STS had this coke hopper empty at Aristech Chemical Unload; moved to Shenango K-2
+BO10389,BO,10389,Coke Hopper,40,76,1-56,Black,,Ordered,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,COKE-USS-BULK
+BO31000,BO,31000,Coke Hopper,34,66,12-13,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
+BO30963,BO,30963,Coke Hopper,34,66,,Black,,Ordered,on D749,West Yard,W-1,place,E,on D749 at STS end; tied down in West Yard on D749; ARIS-CHEM-IN-DOW-STY
+BO30222,BO,30222,Coke Hopper,34,66,,Black,,Ordered,on D749,West Yard,W-1,place,E,on D749 at STS end; tied down in West Yard on D749; ARIS-CHEM-IN-DOW-STY
+BO133007,BO,133007,Hopper,50,88,6-23,Black,,Loaded,CONSOLEN-COAL,McKeesport,CSX Offline,deliver,E,"STS CONSOLEN-COAL; delivered through the CSX Offline schedule, which picks the next load"
+BO132315,BO,132315,Hopper,50,88,6-23,Black,yes,Unavailable,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
+NW12988,NW,12988,Coke Hopper,40,76,5-35,Black,,Unloading,USSTEELE-COKE,McKeesport,CSX Offline,deliver,Coke,"STS USSTEELE-COKE COKE-USS-BULK; delivered through the CSX Offline schedule, which picks the next load"
+NW12986,NW,12986,Covered Hopper,40,76,5-35,Black,,Empty,SHEN-COKE-SHIPPING,Scully Yard,Scully Interchange,place,E,STS had this covered hopper on the coke shipping track (K-1 takes Coke Hopper only); starts empty on Scully Interchange instead (D31)
+BO625509,BO,625509,Coke Hopper,40,76,,Black,,Unloading,USSTEELE-COKE,McKeesport,CSX Offline,deliver,Coke,"STS USSTEELE-COKE COKE-USS-BULK; delivered through the CSX Offline schedule, which picks the next load"
+BO625943,BO,625943,Coke Hopper,40,76,,Black,,Unloading,USSTEELE-COKE,McKeesport,CSX Offline,deliver,Coke,"STS USSTEELE-COKE COKE-USS-BULK; delivered through the CSX Offline schedule, which picks the next load"
+BO625238,BO,625238,Coke Hopper,40,76,3-56,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
+BO625082,BO,625082,Coke Hopper,40,76,,Black,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,
+CO142374,CO,142374,Hopper,40,,11-80,Black,,Empty,SOUTH-YARD,South Yard,S-1,place,E,
+WLE621,WLE,621,Coke Hopper,40,76,,Black,,Unloading,SHEN-COKE-SHIPPING,Shenango Coke Works,K-1,deliver,E,COKE-RELOAD-SHEN; delivered empty so the K-1 schedule loads it with Coke
+URR15003,URR,15003,Coke Hopper,50,88,11-17,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
+BO132392,BO,132392,Hopper,50,88,,Black,,Empty,SOUTH-YARD,South Yard,S-2,place,E,
+URR15044,URR,15044,Coke Hopper,50,88,11-17,Black,,Unloading,CLEVWORK-COKE,McKees Rocks,POHC Offline,deliver,Coke,"STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load"
+URR15022,URR,15022,Coke Hopper,50,88,11-17,Black,yes,Unavailable,SOUTH-YARD,South Yard,S-3,place,E,
+RDG107333,RDG,107333,Boxcar,50,88,9-48,Green,yes,Unavailable,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
+MSTL52673,MSTL,52673,Boxcar,40,76,7-56,Orange,yes,Unavailable,SCULLY-YARD,Scully Yard,Scully Interchange,place,E,
+URTX63627,URTX,63627,Reefer,40,76,1-86,Gray,yes,Unavailable,SOUTH-YARD,South Yard,S-4,place,E,
+REX350,REX,350,Reefer,50,88,,Green,,Empty,DEMMLER-YARD,Demmler Yard,Demmler Interchange,place,E,
+ATSF1957,ATSF,1957,Caboose,34,30,,,,,,,,none,E,no photo; not in STS: no start position
+ATSF999643,ATSF,999643,Caboose,36,32,,,,,,,,none,E,no photo; not in STS: no start position
+BOKD5,BO,KD5,Observation,67,60,,,,,,,,none,E,no photo; not in STS: no start position
+BO38,BO,38,Combine,45,40,,,,,,,,none,E,no photo; not in STS: no start position
+BO472,BO,472,Coach,45,40,,,,,,,,none,E,no photo; not in STS: no start position
+BO761,BO,761,Baggage,72,120,,,,,,,,none,E,no photo; not in STS: no start position
+BO820,BO,820,Baggage,50,88,,,,,,,,none,E,no photo; not in STS: no start position
+BO1035,BO,1035,Dining,85,138,,,,,,,,none,E,no photo; not in STS: no start position
+BO1059,BO,1059,Coach,50,45,,,,,,,,none,E,no photo; not in STS: no start position
+BO1443,BO,1443,Combine,72,64,,,,,,,,none,E,no photo; not in STS: no start position
+BO1604,BO,1604,Boxcar,40,76,,,,,,,,none,E,no photo; not in STS: no start position
+BOC-3015,BO,C-3015,Caboose,36,32,,,,,,,,none,E,no photo; not in STS: no start position
+BO3260,BO,3260,Caboose,36,32,,,,,,,,none,E,no photo; not in STS: no start position
+BO3316,BO,3316,Observation,85,76,,,,,,,,none,E,no photo; not in STS: no start position
+BO3574,BO,3574,Coach,85,76,,,,,,,,none,E,no photo; not in STS: no start position
+BOC-3801,BO,C-3801,Caboose,40,36,,,,,,,,none,E,no photo; not in STS: no start position
+BO5482,BO,5482,Coach,72,64,,,,,,,,none,E,no photo; not in STS: no start position
+BO9151,BO,9151,Flatcar,50,88,,,,,,,,none,E,no photo; not in STS: no start position
+BO9300,BO,9300,Flatcar,40,76,,,,,,,,none,E,no photo; not in STS: no start position
+BO13903,BO,13903,Coach,80,72,,,,,,,,none,E,no photo; not in STS: no start position
+CO18729,CO,18729,Hopper,45,82,,,,,,,,none,E,no photo; not in STS: no start position
+GN68560,GN,68560,Flatcar,53,94,,,,,,,,none,E,no photo; not in STS: no start position
+MILW61032,MILW,61032,Flatcar,53,94,,,,,,,,none,E,no photo; not in STS: no start position
+PRR153958,PRR,153958,Hopper,34,66,,,,,,,,none,E,no photo; not in STS: no start position
+PRR727454,PRR,727454,Hopper,34,66,,,,,,,,none,E,no photo; not in STS: no start position
+UTLX35294,UTLX,35294,Tank,40,76,,,,,,,,none,E,no photo; not in STS: no start position
+WM1879,WM,1879,Caboose,36,32,,,,,,,,none,E,no photo; not in STS: no start position
+WP56057,WP,56057,Boxcar,50,88,,,,,,,,none,E,no photo; not in STS: no start position
