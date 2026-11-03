@@ -8,7 +8,7 @@ Before using it, confirm the plugin loads (`ops_actions` lists the actions) and 
 
 ## Task
 
-Build the HART Operations Pro database for the Neville Island operation, so that Operations Pro produces the same kind of operating session the STS build produces today. Work on a **copy** of the Operations folder first. Do not touch the live Pi or Windows data.
+Build the HART Operations Pro database for the Neville Island operation, so that Operations Pro produces the same kind of operating session the STS build produces today. The Operations data now on the Mac and the Pi is legacy and test data, so it may be replaced, and nothing in it needs preserving. Windows is not covered by this; leave it alone.
 
 The aim is the same railroad, expressed the Operations Pro way. It is not a transliteration of the STS tables. Where STS and Operations Pro model something differently, say so, choose the Operations Pro idiom, and record the choice.
 
@@ -23,7 +23,11 @@ The aim is the same railroad, expressed the Operations Pro way. It is not a tran
 
 ## Sources (read these, in this order)
 
-**What STS builds today (the model to match)**
+**The STS end state (the source for implementation)**
+
+- `external/sts-docker-data/backups/hart_session_post3_locked`: a SQL dump of the STS database at the end of session 3 (70 cars, 70 shipments, 115 locations). Where this differs from the seed files below, this dump wins. Backups `hart_session_post4` and `post5` also exist; the owner chose this one by name, so do not use them.
+
+**What STS builds (the model to match)**
 
 - `external/sts-helpers/seed/hart_seed_config.json`: stations, jobs (D749, NVL, CK1, STG-SCULLY, STG-DEMMLER), pickup criteria, session operations, car home yards, coke lanes, offline stations, traffic multipliers, shipment code overrides.
 - `external/sts-helpers/docs/HART_STS_REQUIREMENTS.md`: job step rules, one destination per pickup step, coke shipments and locations.
@@ -34,8 +38,8 @@ The aim is the same railroad, expressed the Operations Pro way. It is not a tran
 **The operation as it is run**
 
 - `docs/ops/`: Scale Operating Instructions, Dispatcher Train List, Yardmaster Sequence, the three Crew Instructions (D749, NVL, CK1), the New Operator Primer, the station maps. These say what crews are told to do, in the owner's words.
-- `ops/car-cards/data/OperationsCarRoster.xml` and `OperationsEngineRoster.xml`: the existing Operations Pro rosters. Per ADR-013 these are fed from the car repository (`bin/cars`). **Add cars; never replace the roster**, so session state survives.
-- `wiki/decisions/ADR-013-car-repository.md`, `ADR-005-public-equipment-names.md`, and `jmri/layouts/hart/data/public_name_map.csv`.
+- `jmri/layouts/hart/operations/`: the six existing Operations Pro files, master in the repo under ADR-015 (70 locations, 1 train, 99 cars). This is legacy and test data; the mapping must say what is kept and what is replaced. The copies in `ops/car-cards/data/` are stale. The car repository (`bin/cars`, ADR-013) remains the source for which cars exist.
+- `wiki/decisions/ADR-013-car-repository.md`, `ADR-015-operations-files-in-repo.md`, `ADR-005-public-equipment-names.md`, and `jmri/layouts/hart/data/public_name_map.csv`.
 
 **The physical model (what building and running it has taught us)**
 
@@ -103,12 +107,12 @@ Rules that save tokens:
 - **Do not** patch JMRI or the plugin. If the plugin cannot express something, stop and report the gap.
 - **Do not** start PanelPro or CATS, and do not leave any bridge running.
 - **Do not** store anything into `jmri/layouts/hart/output/tables.xml`.
-- Cars: add from the repository; do not overwrite existing car state. Cars with no photo are still cars for Operations Pro, but record which they are, since STS leaves them out.
+- Cars: take the list from the repository, and starting positions and loads from `hart_session_post3_locked`. Cars with no photo are still cars for Operations Pro, but record which they are, since STS leaves them out; they have no STS position, so where they start is an open question.
 
 ## Deliverables
 
 1. `docs/ops/OPSPRO_MAPPING.md`: the mapping table, completed, with each choice and its reason.
-2. The built Operations folder on a copy, with the path reported.
+2. The built Operations folder, committed to `jmri/layouts/hart/operations/` so a deploy cannot lose it, with the path reported.
 3. `docs/ops/OPSPRO_OPEN_QUESTIONS.md`: what you could not decide and what you need from the owner.
 4. A dry-run report: each train, its outcome, cars moved, cars refused and why, and the audit findings that remain.
 5. A list of every place Operations Pro cannot reproduce the STS behaviour, and the nearest substitute.
