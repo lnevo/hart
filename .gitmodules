@@ -13,3 +13,6 @@
 [submodule "external/model-railroad-skills"]
 	path = external/model-railroad-skills
 	url = git@github.com:lnevo/model-railroad-skills.git
+[submodule "external/sts-plugins"]
+	path = external/sts-plugins
+	url = git@github.com:lnevo/sts-plugins.git

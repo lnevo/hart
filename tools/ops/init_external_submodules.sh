@@ -7,8 +7,9 @@ EXT="$ROOT/external"
 cd "$ROOT"
 
 LCOS_PIN=ae2d8da7b8821d2b14c889e05063ea359bab6afe
-STS_DOCKER_PIN=899b45809c99b92614f99990a88fee1dd4e63be2
-STS_HELPERS_PIN=31b8583851482d270f45c233f67190d0d8b80c10
+STS_DOCKER_PIN=dc90d7aacb0cbc7fa6db72b1d6880202ea8ad068
+STS_HELPERS_PIN=f2c45f541ec3fb4b7cd23794d531acd37563c25d
+STS_PLUGINS_PIN=c3c570ca126e4c73d2eb665b518cbf182c14bacc
 HART_OPS_PIN=0fecf5ecf6195b03048f0829fc4b00ee223bc521
 
 mkdir -p "$EXT"
@@ -28,6 +29,7 @@ add_submodule() {
 add_submodule external/lcos-bridge git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git "$LCOS_PIN"
 add_submodule external/sts-docker git@github.com:lnevo/sts-docker.git "$STS_DOCKER_PIN"
 add_submodule external/sts-helpers git@github.com:lnevo/sts-docker-helpers.git "$STS_HELPERS_PIN"
+add_submodule external/sts-plugins git@github.com:lnevo/sts-plugins.git "$STS_PLUGINS_PIN"
 add_submodule external/hart-ops git@github.com:lnevo/hart-ops.git "$HART_OPS_PIN"
 
 echo ""
