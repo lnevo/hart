@@ -66,7 +66,7 @@ Written 2026-11-02 during the unattended build ([`OPSPRO_BUILD_PROMPT.md`](OPSPR
 
 ## Owner review, 2026-11-02
 
-Walked through with the owner. Confirmed as built: D3, D13, D14, D16, D19, D20, D24, D25, D27 (no cabooses; end-of-train devices ride the coupler), D28, D30, D31, Q5, Q6, Q7, Q9, Q10. Changed:
+Walked through with the owner. Confirmed as built: D3, D13, D14, D16, D19, D20, D24, D25, D27 (no cabooses; end-of-train devices ride the coupler), D28, D30, D31, Q5, Q6, Q7, Q8 (no day name, added the same day), Q9, Q10. Changed:
 
 | # | Change | Owner's words |
 |---|---|---|
