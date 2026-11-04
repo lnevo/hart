@@ -83,6 +83,7 @@ JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$ROOT/jmri/layouts/hart/scripts/panel_status.py"
   "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
+  "$ROOT/jmri/layouts/hart/scripts/sts_car_sync.py"
   "$ROOT/jmri/scripts/signal_coordinator.py"
 )
 
@@ -93,6 +94,7 @@ HART_JYTHON_SCRIPTS=(
   jmri/layouts/hart/scripts/hide_cats_desk_windows.py
   jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py
   jmri/layouts/hart/scripts/jmri_cmd_watcher.py
+  jmri/layouts/hart/scripts/sts_car_sync.py
 )
 
 LIVE_PANELS=(
@@ -126,6 +128,11 @@ install_jython_scripts() {
         --script panel_status.py \
         --script signal_coordinator.py \
         --script jmri_cmd_watcher.py
+      # STS sends car positions here (sts-plugins jmri_ops).
+      python3 "$patch_startup" insert \
+        --profile "$profxml" \
+        --script preference:jython/sts_car_sync.py \
+        --after jmri_cmd_watcher.py
       python3 "$patch_startup" remove \
         --profile "$profxml" \
         --script prepare_nx_sml_paths.py || true

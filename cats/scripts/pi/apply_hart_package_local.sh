@@ -102,6 +102,7 @@ JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$HART/jmri/layouts/hart/scripts/panel_status.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
+  "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"
   "$HART/jmri/scripts/signal_coordinator.py"
 )
 mkdir -p "$UF/jython"
@@ -135,6 +136,11 @@ if [[ -f "$PATCH" ]]; then
     --script panel_status.py \
     --script signal_coordinator.py \
     --script jmri_cmd_watcher.py
+  # STS sends car positions here (sts-plugins jmri_ops).
+  python3 "$PATCH" insert \
+    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --script preference:jython/sts_car_sync.py \
+    --after jmri_cmd_watcher.py
   python3 "$PATCH" remove \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
     --script prepare_nx_sml_paths.py 2>/dev/null || true
