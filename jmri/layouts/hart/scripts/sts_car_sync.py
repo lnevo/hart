@@ -10,7 +10,8 @@
 #   IMSTS_CAR_SYNC_READY    version, set once this script is listening
 #
 # Each car is {"car", "location", "track", "load", "final_location",
-# "final_track"}, all JMRI names. A blank track keeps the car's track when it is
+# "final_track"}, all JMRI names. {"id", "command": "names"} instead answers
+# with JMRI's locations, their tracks and the loads, for STS's settings screen. A blank track keeps the car's track when it is
 # already at that location, else takes the first track that accepts it. A blank
 # load is JMRI's default empty. A blank final location clears it.
 #
@@ -23,7 +24,7 @@ from __future__ import print_function
 import json
 import sys
 
-VERSION = "1"
+VERSION = "2"
 REQUEST = "IMSTS_CAR_SYNC_REQUEST"
 REPLY = "IMSTS_CAR_SYNC_REPLY"
 READY = "IMSTS_CAR_SYNC_READY"
@@ -47,10 +48,11 @@ def _where(location, track):
 class Railroad(object):
     """What the sync needs from JMRI. The Jython part fills it with the managers."""
 
-    def __init__(self, cars, locations, loads):
+    def __init__(self, cars, locations, loads, types=None):
         self.cars = cars
         self.locations = locations
         self.loads = loads
+        self.types = types
 
     def car(self, car_id):
         car = self.cars.getById(car_id)
@@ -69,6 +71,17 @@ class Railroad(object):
 
     def load_known(self, car, load):
         return self.loads.containsName(car.getTypeName(), load)
+
+    def names(self):
+        """JMRI's location, track and load names, sorted."""
+        locations = {}
+        for location in self.locations.getLocationsByNameList():
+            locations[location.getName()] = [t.getName() for t in location.getTracksByNameList(None)]
+        loads = set()
+        for kind in (self.types.getNames() if self.types is not None else []):
+            for load in self.loads.getNames(kind):
+                loads.add("%s" % load)
+        return {"locations": locations, "loads": sorted(loads), "empty": self.empty_name()}
 
 
 def choose_track(car, location, wanted):
@@ -194,6 +207,10 @@ def answer(railroad, text, on_gui=None, save=None):
     batch = {}
     try:
         batch = json.loads(text)
+        if batch.get("command") == "names":
+            out = railroad.names()
+            out.update(id=batch.get("id"), ok=True)
+            return out
         return run_batch(railroad, batch, on_gui, save)
     except Exception as exc:
         return {"id": batch.get("id") if isinstance(batch, dict) else None, "ok": False, "error": str(exc)}
@@ -206,7 +223,7 @@ def _start():
     from jmri import InstanceManager, MemoryManager
     from jmri.jmrit.operations import OperationsXml
     from jmri.jmrit.operations.locations import LocationManager
-    from jmri.jmrit.operations.rollingstock.cars import CarLoads, CarManager
+    from jmri.jmrit.operations.rollingstock.cars import CarLoads, CarManager, CarTypes
     from jmri.util import ThreadingUtil
 
     memories = InstanceManager.getDefault(MemoryManager)
@@ -217,7 +234,7 @@ def _start():
 
     def railroad():
         return Railroad(InstanceManager.getDefault(CarManager), InstanceManager.getDefault(LocationManager),
-                        InstanceManager.getDefault(CarLoads))
+                        InstanceManager.getDefault(CarLoads), InstanceManager.getDefault(CarTypes))
 
     def on_gui(function):
         ThreadingUtil.runOnGUI(function)

@@ -104,6 +104,9 @@ class Locations:
     def getLocationByName(self, name):
         return next((l for l in self.locations if l.name == name), None)
 
+    def getLocationsByNameList(self):
+        return sorted(self.locations, key=lambda l: l.name)
+
 
 class Loads:
     known = {("Boxcar", "E"), ("Boxcar", "Steel"), ("Tank", "E"), ("Tank", "LPG")}
@@ -113,6 +116,14 @@ class Loads:
 
     def containsName(self, kind, load):
         return (kind, load) in self.known
+
+    def getNames(self, kind):
+        return sorted(load for k, load in self.known if k == kind)
+
+
+class Types:
+    def getNames(self):
+        return ["Boxcar", "Tank"]
 
 
 class Train:
@@ -127,7 +138,7 @@ def railroad():
     stucki = Location("A. Stucki Co.", team)
     ferr = Location("Ferrellgas", Track("LPG Unload", ("Tank",)))
     cars = Cars(Car("BO", "8476", location=south, track=s2), Car("UTLX", "1", "Tank"))
-    return sync.Railroad(cars, Locations(south, stucki, ferr), Loads()), south, stucki, ferr
+    return sync.Railroad(cars, Locations(south, stucki, ferr), Loads(), Types()), south, stucki, ferr
 
 
 class PlanTest(unittest.TestCase):
@@ -229,6 +240,15 @@ class PlanTest(unittest.TestCase):
         self.assertEqual(sync.answer(rr, json.dumps({"id": "a1", "cars": []}))["id"], "a1")
         bad = sync.answer(rr, "{not json")
         self.assertFalse(bad["ok"])
+
+    def test_names_lists_locations_tracks_and_loads(self):
+        rr, _, _, _ = railroad()
+        out = sync.answer(rr, json.dumps({"id": "n1", "command": "names"}))
+        self.assertEqual(out["id"], "n1")
+        self.assertTrue(out["ok"])
+        self.assertEqual(out["locations"]["South Yard"], ["S-1", "S-2"])
+        self.assertEqual(out["loads"], ["E", "LPG", "Steel"])
+        self.assertEqual(out["empty"], "E")
 
     def test_script_never_touches_turnouts_signals_or_mqtt(self):
         src = SCRIPT.read_text(encoding="utf-8")

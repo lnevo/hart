@@ -14,6 +14,20 @@ is refreshed from it (ADR-016).
    is off. If it says the script is not running, deploy to the Pi and restart
    JMRI.
 
+## Settings
+
+**Send Cars to JMRI → Settings** holds everything that is particular to HART:
+the JMRI address (`http://minipc-e5h6x.local:12080` for the Pi) and which JMRI
+location, track and load each STS location, station and commodity stands for.
+**Test connection and load JMRI names** offers JMRI's own names as you type, and
+**Check names against JMRI** marks any that JMRI does not have. Save when done.
+
+HART's settings are kept in the repo as
+`jmri/layouts/hart/data/sts_jmri_ops_settings.json`. To restore them, paste that
+file into the **Settings file** box at the bottom of the page and save. After
+changing the settings on the page, copy the box back into that file and commit
+it.
+
 ## Refreshing JMRI
 
 Use either:
@@ -46,10 +60,11 @@ JMRI has saved the new car state into the Pi's Operations files. Run
 
 ## Reference
 
-- Plugin, settings and the full STS-to-JMRI table:
+- Plugin and the full STS-to-JMRI table:
   `external/sts-plugins/plugins/jmri_ops/README.md`
-- Name map: `external/sts-plugins/plugins/jmri_ops/maps/hart.json`
-- STS setting: `external/sts-docker-data/config/jmri_ops.json` holds the JMRI
-  url, `http://minipc-e5h6x.local:12080` for the Pi
+- Saved settings: `external/sts-docker-data/config/jmri_ops.json`; HART's copy
+  in `jmri/layouts/hart/data/sts_jmri_ops_settings.json`
+- Track scale settings: **Track Scale → Settings** shows and edits
+  `track_scale_config.json`
 - JMRI side: `jmri/layouts/hart/scripts/sts_car_sync.py`, tested by
   `jmri/layouts/hart/scripts/tests/test_sts_car_sync.py`

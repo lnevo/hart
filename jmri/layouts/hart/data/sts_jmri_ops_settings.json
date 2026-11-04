@@ -1,0 +1,124 @@
+{
+    "version": 1,
+    "connection": {
+        "url": "http://minipc-e5h6x.local:12080",
+        "timeout": 30,
+        "save": true
+    },
+    "map": {
+        "locations": {
+            "ARIS-CHEMICAL": {
+                "location": "Aristech Plastics",
+                "track": "Chemical Unload"
+            },
+            "ARIS-PELLETS": {
+                "location": "Aristech Plastics",
+                "track": "Pellet Unload"
+            },
+            "ARIS-SHIPPING": {
+                "location": "Aristech Plastics",
+                "track": "Shipping Door"
+            },
+            "CALG-CARBON": {
+                "location": "Calgon Carbon",
+                "track": "Carbon Load"
+            },
+            "CALG-CHEMICAL": {
+                "location": "Calgon Carbon",
+                "track": "Chemical Unload"
+            },
+            "CALG-COAL": {
+                "location": "Calgon Carbon",
+                "track": "Coal Unload"
+            },
+            "DEMMLER-YARD": {
+                "location": "Demmler Yard",
+                "track": "Demmler Interchange"
+            },
+            "FERR-LPG": {
+                "location": "Ferrellgas",
+                "track": "LPG Unload"
+            },
+            "KOSM-AGGREGATE": {
+                "location": "Kosmos Cement",
+                "track": "Aggregate Unload"
+            },
+            "KOSM-CEMENT": {
+                "location": "Kosmos Cement",
+                "track": "Cement Unload"
+            },
+            "SCULLY-YARD": {
+                "location": "Scully Yard",
+                "track": "Scully Interchange"
+            },
+            "SHEN-COKE-SHIPPING": {
+                "location": "Shenango Coke Works"
+            },
+            "SOUTH-SCALE": {
+                "location": "South Yard",
+                "track": "S-4"
+            },
+            "SOUTH-YARD": {
+                "location": "South Yard"
+            },
+            "STUK-CRANE": {
+                "location": "A. Stucki Co.",
+                "track": "Crane Track"
+            },
+            "STUK-TEAM": {
+                "location": "A. Stucki Co.",
+                "track": "Team Track"
+            },
+            "WEST-YARD": {
+                "location": "West Yard"
+            }
+        },
+        "stations": {
+            "McKees Rocks-PA": {
+                "location": "McKees Rocks",
+                "track": "POHC Offline"
+            },
+            "Mckeesport-PA": {
+                "location": "McKeesport",
+                "track": "CSX Offline"
+            }
+        },
+        "loads": {
+            "ACTIVATEDCARBON": "Carbon",
+            "AGGREGATE": "Aggregate",
+            "ARGON": "Argon",
+            "CAUSTICSODA": "Caustic Soda",
+            "CEMENT": "Cement",
+            "COAL": "Coal",
+            "COKE": "Coke",
+            "ETHYLACRYLATE": "Ethyl Acrylate",
+            "FLUORESCENTLAMPS": "Fluorescent Lamps",
+            "FLUORESCENTTUBES": "Fluorescent Tubes",
+            "FORGEDCOMPONENTS": "Forgings",
+            "FROZENFOODS": "Frozen Foods",
+            "HYDROCHLORICACID": "Hydrochloric Acid",
+            "INDUSTRIALGASES": "Industrial Gases",
+            "LPG": "LPG",
+            "MACHINEDPARTS": "Machined Parts",
+            "METHYLMETHACRYLATE": "Methyl Methacrylate",
+            "PACKAGEDMEATS": "Packaged Meats",
+            "PHOSPHORCOMPOUNDS": "Phosphor Compounds",
+            "PHOSPHORICACID": "Phosphoric Acid",
+            "PLASTICPELLETS": "Pellets",
+            "PLASTICRESINS": "Plastic Resins",
+            "RAILWAYSPRINGS": "Railway Springs",
+            "SCRAPSTEEL": "Scrap Steel",
+            "STAINLESSBAR": "Stainless Bar",
+            "STAINLESSSLAB": "Stainless Slab",
+            "STEEL": "Steel",
+            "STEELBILLETS": "Steel Billets",
+            "STEELCOILS": "Steel Coils",
+            "STEELPLATE": "Steel Plate",
+            "STYRENEMONOMER": "Styrene Monomer",
+            "TINPLATE": "Tin Plate"
+        },
+        "skip_status": [
+            "Unavailable"
+        ]
+    }
+}
