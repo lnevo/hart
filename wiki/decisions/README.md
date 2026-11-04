@@ -17,5 +17,6 @@
 | [013](ADR-013-car-repository.md) | One car repository | Accepted |
 | [014](ADR-014-jmri-user-files.md) | JMRI_UserFiles on every host | Accepted |
 | [015](ADR-015-operations-files-in-repo.md) | Operations Pro files in the repo | Accepted |
+| [016](ADR-016-sts-refreshes-jmri-operations.md) | STS refreshes JMRI Operations | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.
