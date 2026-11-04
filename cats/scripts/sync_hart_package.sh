@@ -132,7 +132,7 @@ install_jython_scripts() {
       python3 "$patch_startup" insert \
         --profile "$profxml" \
         --script preference:jython/sts_car_sync.py \
-        --after jmri_cmd_watcher.py
+        --after panel_status.py
       python3 "$patch_startup" remove \
         --profile "$profxml" \
         --script prepare_nx_sml_paths.py || true
