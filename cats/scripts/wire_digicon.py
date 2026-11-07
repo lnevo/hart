@@ -266,6 +266,11 @@ def station_plate(name: str) -> str:
     return name.removeprefix("OS Switch ").removeprefix("Track ").split()[0]
 
 
+def callout_text(name: str) -> str:
+    """Desk callout for a track: `Track S-1` -> S-1. The JMRI block keeps its `Track` prefix."""
+    return name.removeprefix("Track ")
+
+
 def _is_switch_os(name: str | None) -> bool:
     """Switch occupancy cuts: OS Switch 1 / OS Switch 23a (not Track Scale / Track S-R)."""
     return bool(_SWITCH_OS_RE.match(name or ""))
@@ -925,6 +930,10 @@ def fix_labels(tp: ET.Element) -> int:
             continue
         if nm.get("FONT_NAME") == "FONT_LABEL" and nm.get("LOC_NAME") == "LOWCENT":
             nm.set("LOC_NAME", "UPCENT")
+            n += 1
+        plain = callout_text(nm.get("NAME", ""))
+        if plain != nm.get("NAME"):
+            nm.set("NAME", plain)
             n += 1
     by_xy = {(int(s.get("X")), int(s.get("Y"))): s for s in tp.findall("SECTION")}
     for xy, text in LABEL_FIXES.items():
