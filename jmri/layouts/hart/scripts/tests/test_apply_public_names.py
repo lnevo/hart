@@ -169,7 +169,7 @@ class ApplyPublicNamesTest(unittest.TestCase):
         text = "OS McKeesport and OS S-1 and OS Barn and OS S-R"
         updated, _counts = apply_public_names.apply_renames_to_text(text, renames)
         self.assertEqual(
-            "Track McKeesport and Track S-1 and Track Barn and Track S-R",
+            "Track K-2 and Track S-1 and Track Barn and Track S-R",
             updated,
         )
 
@@ -202,8 +202,8 @@ class ApplyPublicNamesTest(unittest.TestCase):
         self.assertGreater(hits, 0)
         self.assertIn('sensor1="FB Switch 1 R"', updated)
         self.assertIn('sensor2="FB Switch 1 N"', updated)
-        self.assertIn("<sensorName>BS McKees Rocks</sensorName>", updated)
-        self.assertIn("<sensor>BS McKees Rocks</sensor>", updated)
+        self.assertIn("<sensorName>BS K-1</sensorName>", updated)
+        self.assertIn("<sensor>BS K-1</sensor>", updated)
         self.assertIn("same FB as MQTT hardware (Switch 4-1)", updated)
 
     def test_block_path_turnout_lookups_use_mqtt_system_names(self):

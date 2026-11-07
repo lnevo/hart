@@ -196,12 +196,12 @@ Occupied blocks still force **STOP**. Packed MQTT IDs are unchanged; this is wir
 | 36RB | B | Diverged | Stop | Switch 35 |
 | 38LB | T | Main | Stop | Switch 37 |
 | 38LB | B | Diverged | Stop | Switch 37 |
-| 38LA | | Diverged | Stop | Switch 37 K-2 |
+| 38LA | | Diverged | Stop | Switch 37 McKeesport |
 | 40LB | T | Main | Stop | Switch 39 |
 | 40LB | B | Diverged | Stop | Switch 39 |
-| 40LA | | Diverged | Stop | Switch 39 K-1 |
-| 2035 | | — | Approach | McKees Rocks balloon |
-| 2036 | | — | Approach | McKeesport balloon |
+| 40LA | | Diverged | Stop | Switch 39 McKees Rocks |
+| 2035 | | — | Approach | K-1 balloon |
+| 2036 | | — | Approach | K-2 balloon |
 
 Two-head **B** is the unused-head marker (red on a lined main). Do not OR Approach on a home or dwarf — that paints yellow when the turnout is against the signal.
 

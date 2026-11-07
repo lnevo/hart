@@ -14,8 +14,8 @@ import jmri
 STATIONS = (
     u"Track Main West",
     u"Track West Main Ext",
-    u"Track McKees Rocks",
-    u"Track McKeesport",
+    u"Track K-1",
+    u"Track K-2",
     u"Track East Lead",
     u"Track Main East",
     u"Track East Main Ext",
@@ -32,8 +32,8 @@ STATIONS = (
     u"Track Barn",
     u"Track W-1",
     u"Track W-2",
-    u"Track K-1",
-    u"Track K-2",
+    u"Track McKees Rocks",
+    u"Track McKeesport",
 )
 
 

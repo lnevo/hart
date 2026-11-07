@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-07 — Princess track names swapped now the helix is in: the stubs at Switches 39/37 are Track McKees Rocks / Track McKeesport (mainline), the loop legs are Track K-1 / Track K-2. Hardware, sensors and ids stayed with the physical track; see ADR-017. Tables, Dispatcher data, CATS panels, docs and website changed in one PR.
+
 Updated: 2026-11-01 — Removed the retired boot retain fill from `panel_status.py` and moved `apply_maintain_mqtt.py` and its alias to `archive/jmri-scripts/`; the hosts had skipped it since 2026-08-21. A PanelPro launch confirmed the panel afterwards.
 
 Updated: 2026-11-01 — Shortened the long bean comments at their sources (`refresh_bean_comments.py`, `apply_nx_layer.py`, `public_name_map.csv`) as the owner asked. Comment lines only in `tables.xml`.

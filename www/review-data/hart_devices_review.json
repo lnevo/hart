@@ -5,7 +5,7 @@
     "dcc": "",
     "mqtt": "100",
     "systemName": "M2S100",
-    "userName": "BS McKees Rocks",
+    "userName": "BS K-1",
     "comment": "Node: 1 Block: 1"
   },
   {
@@ -14,7 +14,7 @@
     "dcc": "",
     "mqtt": "100",
     "systemName": "IB:AUTO:0010",
-    "userName": "Track McKees Rocks",
+    "userName": "Track K-1",
     "comment": "Princess"
   },
   {
@@ -23,7 +23,7 @@
     "dcc": "",
     "mqtt": "101",
     "systemName": "M2S101",
-    "userName": "BS McKeesport",
+    "userName": "BS K-2",
     "comment": "Node: 1 Block: 2"
   },
   {
@@ -32,7 +32,7 @@
     "dcc": "",
     "mqtt": "101",
     "systemName": "IB:AUTO:0048",
-    "userName": "Track McKeesport",
+    "userName": "Track K-2",
     "comment": "Princess"
   },
   {
@@ -41,7 +41,7 @@
     "dcc": "",
     "mqtt": "102",
     "systemName": "M2S102",
-    "userName": "BS Switch 37 / BS K-2",
+    "userName": "BS Switch 37 / BS McKeesport",
     "comment": "Node: 1 Block: 3"
   },
   {
@@ -59,7 +59,7 @@
     "dcc": "",
     "mqtt": "102",
     "systemName": "IB24",
-    "userName": "Track K-2",
+    "userName": "Track McKeesport",
     "comment": "Princess"
   },
   {
@@ -68,7 +68,7 @@
     "dcc": "",
     "mqtt": "103",
     "systemName": "M2S103",
-    "userName": "BS Switch 39 / BS K-1",
+    "userName": "BS Switch 39 / BS McKees Rocks",
     "comment": "Node: 1 Block: 4"
   },
   {
@@ -86,7 +86,7 @@
     "dcc": "",
     "mqtt": "103",
     "systemName": "IB23",
-    "userName": "Track K-1",
+    "userName": "Track McKees Rocks",
     "comment": "Princess"
   },
   {

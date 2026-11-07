@@ -28,8 +28,8 @@ def fixture_tree() -> ET.ElementTree:
         root, "sensors", {"class": reconciler.INTERNAL_SENSOR_CLASS}
     )
     existing = (
-        ("Track McKees Rocks", 1),
-        ("Track McKeesport", 2),
+        ("Track K-1", 1),
+        ("Track K-2", 2),
         ("Track West Main Ext", 3),
     )
     for station, number in existing:
@@ -54,7 +54,7 @@ def fixture_tree() -> ET.ElementTree:
         )
         ET.SubElement(full, "systemName").text = f"IB:{number}"
         ET.SubElement(full, "userName").text = station
-        if station == "Track McKeesport":
+        if station == "Track K-2":
             ET.SubElement(full, "comment").text = "existing note; stop"
         ET.SubElement(full, "permissive").text = "no"
 
@@ -87,7 +87,7 @@ def fixture_tree() -> ET.ElementTree:
     # Force Main West away from its first candidate without affecting others.
     ET.SubElement(editor, "sensoricon", {"sensor": "Obstacle", "x": "100", "y": "120"})
 
-    for station in ("Track McKees Rocks", "Track McKeesport", "Track West Main Ext"):
+    for station in ("Track K-1", "Track K-2", "Track West Main Ext"):
         anchor = next(
             icon
             for icon in editor.findall("BlockContentsIcon")
@@ -141,7 +141,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             for sensor in root.find("sensors").findall("sensor")
         }
         self.assertEqual(
-            systems_by_user["MoveToTrack_McKees_Rocks_stored"], "IS:DSMT:1"
+            systems_by_user["MoveToTrack_K-1_stored"], "IS:DSMT:1"
         )
         self.assertEqual(
             systems_by_user["MoveInProgressTrack_West_Main_Ext"], "IS:DSMP:3"

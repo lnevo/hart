@@ -1,6 +1,6 @@
 # Live status
 
-Updated 2026-11-02. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
+Updated 2026-11-07. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Current state
 
@@ -22,6 +22,7 @@ Updated 2026-11-02. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 - **Website:** public at www.hartrailroad.com from `www/`.
 - **Repo gates:** `main` is protected on GitHub, CI runs `tools/check.sh` on PRs, and `.claude/hooks/main_guard.py` guards every session, including against commits on `main` and admin merges.
 - **Build:** helix complete. Main level resumes after Thanksgiving.
+- **Princess track names (2026-11-07):** With the helix in, the stubs east of Switches 39 and 37 are now Track McKees Rocks and Track McKeesport (mainline), and the loop legs are Track K-1 and Track K-2; only names moved, and the Dispatcher System data was renamed in place. See [ADR-017](decisions/ADR-017-princess-track-name-swap.md).
 
 ## Owed
 

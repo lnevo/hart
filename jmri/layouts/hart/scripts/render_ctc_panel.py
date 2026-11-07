@@ -66,8 +66,8 @@ RUNS = [
     (UP, 3, 13, SEC_C, 3, "Main West", 6),
     (MAIN, 1, 80, MAIN_C, 5, None, 0),
     (UP, 54, 79, SEC_C, 3, "West Main Ext", 60),
-    (UP2, 74, 82, SEC_C, 3, "McKees Rocks", 77),
-    (YL, 70, 82, YARD_C, 3, "McKeesport", 75),
+    (UP2, 74, 82, SEC_C, 3, "K-1", 77),
+    (YL, 70, 82, YARD_C, 3, "K-2", 75),
 ]
 
 # Control points below are keyed by DCC address; plates show the public number.
@@ -80,7 +80,7 @@ STANDALONE = [
     (66, MAIN, "112", "East End", "up", None),
     (70, MAIN, "113", "Princess", "up", None),       # crossover to passing main
     (72, MAIN, "114", "Princess", "down", "East Lead"),
-    (74, UP, "115", "Princess", "up", "McKees Rocks"),
+    (74, UP, "115", "Princess", "up", "K-1"),
 ]
 
 # East End ladder rungs sit on the yard lead (kept as the reviewer liked it):

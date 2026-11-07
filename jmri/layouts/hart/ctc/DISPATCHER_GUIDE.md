@@ -54,8 +54,8 @@ railroad: Brick → Plane → Barn → East End → Princess. Each column is one
 | 11 | East End | 21 / 22 | Switch 31 (ladder → OS East Lead; defaults Local) |
 | 12 | East End | 23 / 24 | Switch 33 (OS East Lead vs OS Main East) |
 | 13 | Princess | 25 / 26 | Switch 35 crossover (OS 35b / 113a) |
-| 14 | Princess | 27 / 28 | Switch 37 (OS McKeesport vs OS K-2) |
-| 15 | Princess | 29 / 30 | Switch 39 (OS McKees Rocks vs OS K-1) |
+| 14 | Princess | 27 / 28 | Switch 37 (OS K-2 vs OS McKeesport) |
+| 15 | Princess | 29 / 30 | Switch 39 (OS K-1 vs OS McKees Rocks) |
 
 Below the columns: **Fleeting** toggle, **Reload CTC**, and **CTC Debug**
 (leave the last two alone in normal operation).
@@ -132,7 +132,7 @@ Never fleet a route you may need to take back quickly.
 8. **Yard ladder is unsignaled.** Switches 116 and 103 have **no signal
    levers**. The westbound home into OS Barn from the yard lead is
    **Mast 8LB** on the 117 column. Switch 17 and the rest
-   of the South Yard ladder are occupancy-only. The OS K-1 / OS K-2 stubs and
+   of the South Yard ladder are occupancy-only. The OS McKees Rocks / OS McKeesport stubs and
    yard tracks are restricted-speed territory beyond the dwarf.
 9. **During an automated dispatch, hands off the throttle.** A phone
    throttle press on a dispatched locomotive flips its direction bit and

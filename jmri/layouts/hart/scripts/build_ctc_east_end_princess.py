@@ -89,9 +89,9 @@ else:
     add_os(19, 10, "BS Switch 35b", "Switch 35",
            ["Mast 36RA", "Mast 36RB"], [],
            secondary="BS Switch 35a", ttype=CROSSOVER, left_hand=True)
-    add_os(21, 11, "BS Switch 37 / BS K-2", "Switch 37",
+    add_os(21, 11, "BS Switch 37 / BS McKeesport", "Switch 37",
            [], ["Mast 38LA", "Mast 38LB"])
-    add_os(23, 12, "BS Switch 39 / BS K-1", "Switch 39",
+    add_os(23, 12, "BS Switch 39 / BS McKees Rocks", "Switch 39",
            [], ["Mast 40LA", "Mast 40LB"], left_hand=True)
 
     # Traffic locking auto-generate for every signal-equipped column

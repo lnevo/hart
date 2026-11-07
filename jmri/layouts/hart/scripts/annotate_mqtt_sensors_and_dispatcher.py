@@ -59,7 +59,7 @@ UNUSED_OCC = {
 
 # 2091 circuit. Tuple: (block, enter-from along lap, enter-from opposite).
 # FORWARD = lap direction (WME west → Brick → Plane → Track Barn → Track Main East →
-# 112 → Track East Lead → 113a → 114 → Track McKeesport → Rocks → 115 → 113b → WME).
+# 112 → Track East Lead → 113a → 114 → Track K-2 → Rocks → 115 → 113b → WME).
 LAP_SECTIONS = [
     ("Track West Main Ext", "OS Switch 35b", "OS Switch 23a"),
     ("OS Switch 23a", "Track West Main Ext", "Track Main West"),
@@ -73,10 +73,10 @@ LAP_SECTIONS = [
     ("OS Switch 33", "Track Main East", "Track East Lead"),
     ("Track East Lead", "OS Switch 33", "OS Switch 35a"),
     ("OS Switch 35a", "Track East Lead", "OS Switch 37"),
-    ("OS Switch 37", "OS Switch 35a", "Track McKeesport"),
-    ("Track McKeesport", "OS Switch 37", "Track McKees Rocks"),
-    ("Track McKees Rocks", "Track McKeesport", "OS Switch 39"),
-    ("OS Switch 39", "Track McKees Rocks", "OS Switch 35b"),
+    ("OS Switch 37", "OS Switch 35a", "Track K-2"),
+    ("Track K-2", "OS Switch 37", "Track K-1"),
+    ("Track K-1", "Track K-2", "OS Switch 39"),
+    ("OS Switch 39", "Track K-1", "OS Switch 35b"),
     ("OS Switch 35b", "OS Switch 39", "Track West Main Ext"),
 ]
 
@@ -95,8 +95,8 @@ TRANSIT_SEQ = [
     ("Track East Lead", FORWARD),
     ("OS Switch 35a", FORWARD),
     ("OS Switch 37", FORWARD),
-    ("Track McKeesport", FORWARD),
-    ("Track McKees Rocks", FORWARD),
+    ("Track K-2", FORWARD),
+    ("Track K-1", FORWARD),
     ("OS Switch 39", FORWARD),
     ("OS Switch 35b", FORWARD),
     ("Track West Main Ext", FORWARD),
@@ -274,7 +274,7 @@ def build_transits_xml() -> str:
         '    <transit systemName="IZ:HART:2091" userName="2091 Track West Main Ext lap">',
         "      <systemName>IZ:HART:2091</systemName>",
         "      <userName>2091 Track West Main Ext lap</userName>",
-        "      <comment>WME → 111 → Brick → Plane → Track Barn 117 → Track Main East → 112 → Track East Lead → 113a → 114 → Track McKeesport → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
+        "      <comment>WME → 111 → Brick → Plane → Track Barn 117 → Track Main East → 112 → Track East Lead → 113a → 114 → Track K-2 → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
     ]
     for seq, (name, direction) in enumerate(TRANSIT_SEQ, start=1):
         iy = sys_by_user[name]
@@ -293,7 +293,7 @@ def write_traininfo() -> Path:
     path = TRAININFO_DIR / "2091_WME_to_Track McKeesport.xml"
     blocks = {
         "Track West Main Ext": "IB:AUTO:0050",
-        "Track McKeesport": "IB:AUTO:0048",
+        "Track K-2": "IB:AUTO:0048",
     }
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="/xml/XSLT/dispatcher-traininfo.xsl" type="text/xsl"?>

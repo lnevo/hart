@@ -47,9 +47,9 @@ python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-
 Visual scripts patch `output/tables.xml`.
 
 Dispatcher stations are the original mainline eight (OS Main West, OS West Main Ext,
-OS McKees Rocks, OS McKeesport, OS East Lead, OS Main East, OS East Main Ext,
+OS K-1, OS K-2, OS East Lead, OS Main East, OS East Main Ext,
 OS Brick-Plane) plus OS EH-1–3, OS S-R–5, OS Scale (T1),
-OS Barn (T6), OS W-1–2, and OS K-1 / OS K-2. The generated graph covers all 22
+OS Barn (T6), OS W-1–2, and OS McKees Rocks / OS McKeesport. The generated graph covers all 22
 as origins and destinations (91 sections / 688 transits / 1508 HEAD_AND_TAIL traininfo).
 OS S-R…OS S-4 are arrival/departure tracks; trains enter and leave via 103 or OS East Lead.
 

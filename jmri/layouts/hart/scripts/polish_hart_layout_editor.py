@@ -62,8 +62,8 @@ SHARED_OCCUPANCY_KEEP = {
     "BS S-3": (1005, 470),
     "BS S-4": (1013, 513),
     "BS S-R": (947, 325),
-    "BS Switch 37 / BS K-2": (1592, 325),
-    "BS Switch 39 / BS K-1": (1592, 262),
+    "BS Switch 37 / BS McKeesport": (1592, 325),
+    "BS Switch 39 / BS McKees Rocks": (1592, 262),
 }
 OS_OCCUPANCY_ICONS = {
     "BS Switch 3": (245, 262),
