@@ -8,9 +8,7 @@ Source maps (Car Cards docs → extracted under `ops/station_maps/maps/`):
 | **Barn** | Local sheet for **Switch 7 / 9 / 11 / 13** (LE: TO117 xover, TO10, TO11, TO1). Rebuild: `python3 ops/station_maps/scripts/render_barn_station_map.py`. SM-06 docx in hart-ops. South Yard still shows Barn in context. |
 | South Yard | **Scale** → **Barn** (between 7 and 13) → **EH-1 / EH-2 / EH-3** + **Switch 13** + ladder **15 / 17 / 19 / 21**; **Switch 7** Barn xover. Rebuild: `python3 ops/station_maps/scripts/render_south_yard_station_map.py`. |
 | East End | Ladder 107–110, 111 x-over, 112, mains → Princess |
-| Shenango (+ rotated) | Princess 113–115, OS McKees Rocks/OS McKeesport, OS K-1 / OS K-2 |
-
-The Shenango map PNG still shows the pre-swap Princess labels (2026-11-07, ADR-017). It is extracted from the SM-05 car-card docx in `external/hart-ops` and must be redrawn there.
+| Shenango (+ rotated) | Princess 113–115, Track McKees Rocks / Track McKeesport (mainline to the helix), K-1 / K-2 loop. Rebuild: `python3 ops/station_maps/scripts/render_shenango_station_map.py` |
 
 Visual SoR for yard body: CATS sample [cats.jpg](https://cats4ctc.wdfiles.com/local--files/home:home/cats.jpg) **FALL RIVER A/D 1–4** — parallel horizontal tracks fed by a diagonal ladder.
 
