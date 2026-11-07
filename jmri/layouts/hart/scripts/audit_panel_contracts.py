@@ -39,8 +39,8 @@ STATION_COMMENTS = {
         "Track Main East",
         "Track Main West",
         "Track Brick-Plane",
-        "Track McKees Rocks",
-        "Track McKeesport",
+        "Track K-1",
+        "Track K-2",
         "Track West Main Ext",
         "Track EH-1",
         "Track EH-2",
@@ -54,8 +54,8 @@ STATION_COMMENTS = {
         "Track Barn",
         "Track W-1",
         "Track W-2",
-        "Track K-1",
-        "Track K-2",
+        "Track McKees Rocks",
+        "Track McKeesport",
     )
 }
 

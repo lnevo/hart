@@ -484,8 +484,8 @@ BLOCK_COMMENTS = {
     "Track West Main Ext": "Track Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
     "Track East Main Ext": "Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406; stop",
     "Track East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
-    "Track McKees Rocks": "Princess balloon, Track McKees Rocks; occupancy Block 1-1 / M2S100; stop",
-    "Track McKeesport": "Princess balloon, Track McKeesport; occupancy Block 1-2 / M2S101; stop",
+    "Track K-1": "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",
+    "Track K-2": "Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop",
     "OS Switch 1": "Brick CP, Switch 1; occupancy Block 4-2 / M2S401",
     "OS Switch 3": "Brick CP, Switch 3; occupancy Block 4-1 / M2S400",
     "OS Switch 5": "Plane CP, Switch 5; occupancy Block 4-5 / M2S404",
@@ -502,8 +502,8 @@ BLOCK_COMMENTS = {
     "OS Switch 33": "East End, Switch 33; occupancy Block 12-8 / M2S1207",
     "OS Switch 35a": "Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105",
     "OS Switch 35b": "Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104",
-    "OS Switch 37": "Princess, Switch 37 (same detector as Track K-2); occupancy Block 1-3 / M2S102",
-    "OS Switch 39": "Princess, Switch 39 (same detector as Track K-1); occupancy Block 1-4 / M2S103",
+    "OS Switch 37": "Princess, Switch 37 (same detector as Track McKeesport); occupancy Block 1-3 / M2S102",
+    "OS Switch 39": "Princess, Switch 39 (same detector as Track McKees Rocks); occupancy Block 1-4 / M2S103",
     "OS Switch 13": "Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300",
     "OS Switch 7": "Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302",
     "OS Switch 7b": "Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303",
@@ -532,8 +532,8 @@ BLOCK_COMMENTS = {
     "Track EH-1": "Top house track; occupancy Block 13-7 / M2S1306; stop",
     "Track EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
     "Track EH-3": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
-    "Track K-1": "Princess stub east of Switch 39; shares Block 1-4 with OS Switch 39; occupancy Block 1-4 / M2S103; stop",
-    "Track K-2": "Princess stub east of Switch 37; shares Block 1-3 with OS Switch 37; occupancy Block 1-3 / M2S102; stop",
+    "Track McKees Rocks": "Princess stub east of Switch 39; shares Block 1-4 with OS Switch 39; occupancy Block 1-4 / M2S103; stop",
+    "Track McKeesport": "Princess stub east of Switch 37; shares Block 1-3 with OS Switch 37; occupancy Block 1-3 / M2S102; stop",
 }
 
 BLOCK_COMMENTS = {
@@ -569,10 +569,10 @@ TURNOUT_COMMENTS = {
 }
 
 OCC_SENSOR = {
-    "Block 1-1": "Occupancy Track McKees Rocks; MQTT M2S100",
-    "Block 1-2": "Occupancy Track McKeesport; MQTT M2S101",
-    "Block 1-3": "Occupancy OS Switch 37 / Track K-2; MQTT M2S102",
-    "Block 1-4": "Occupancy OS Switch 39 / Track K-1; MQTT M2S103",
+    "Block 1-1": "Occupancy Track K-1; MQTT M2S100",
+    "Block 1-2": "Occupancy Track K-2; MQTT M2S101",
+    "Block 1-3": "Occupancy OS Switch 37 / Track McKeesport; MQTT M2S102",
+    "Block 1-4": "Occupancy OS Switch 39 / Track McKees Rocks; MQTT M2S103",
     "Block 1-5": "Occupancy OS Switch 35b; MQTT M2S104",
     "Block 1-6": "Occupancy OS Switch 35a; MQTT M2S105",
     "Block 1-7": "Occupancy Track East Lead; MQTT M2S106",

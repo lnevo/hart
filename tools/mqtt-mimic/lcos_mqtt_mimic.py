@@ -54,8 +54,8 @@ SWITCH_TIPS = {
     1: "THROWN = Switch 5 / Plane (BOTTOM); CLOSED = LEFT",
     5: "THROWN = Track Scale (RIGHT); CLOSED = Track East Main Ext (BOTTOM)",
     33: "THROWN = Track Barn (BOTTOM); CLOSED = Track 31 / Track East Lead (LEFT)",
-    37: "THROWN = Track McKeesport (BOTTOM); CLOSED = Track K-2 (RIGHT)",
-    39: "THROWN = Track McKees Rocks (TOP); CLOSED = Track K-1 (RIGHT)",
+    37: "THROWN = Track K-2 (BOTTOM); CLOSED = Track McKeesport (RIGHT)",
+    39: "THROWN = Track K-1 (TOP); CLOSED = Track McKees Rocks (RIGHT)",
 }
 
 # West → east along the modeled line. Empty map `cp` falls through to infer_plant.

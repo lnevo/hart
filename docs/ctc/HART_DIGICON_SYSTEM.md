@@ -88,7 +88,7 @@ SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/h
 
 ### Geography (Neville Island)
 
-Digicon schematic covers West Yard / Brick / Plane / OS Barn, South Yard ladder, East End, Princess, OS McKees Rocks / OS McKeesport leads — matching the Neville Island station maps and CSX/POV-era trackplan reference.
+Digicon schematic covers West Yard / Brick / Plane / OS Barn, South Yard ladder, East End, Princess, OS K-1 / OS K-2 leads — matching the Neville Island station maps and CSX/POV-era trackplan reference.
 
 ### Discipline
 

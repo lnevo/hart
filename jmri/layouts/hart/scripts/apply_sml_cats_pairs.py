@@ -12,7 +12,7 @@ imported by validate_le_signalling.py as a historical comparison oracle.
 Known defects in PAIRS (why it is only historical):
 - opposing-face pairs (Plane EME <-> Track Barn D, the OS Switch 7 plant pairs) that
   SML never models; replaced by true next-mast-down-the-line pairs
-- Mast 38LB / Track K-2 -> 111a rows are geometrically impossible
+- Mast 38LB / Track McKeesport -> 111a rows are geometrically impossible
   (LH crossover 113 cannot route bottom-east to top-west)
 - balloon A48 rows had source/dest direction swapped
 
@@ -210,7 +210,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
         [("Switch 35", "closed"), ("Switch 37", "closed")],
     ),
     # Balloon: dest each other across A48. Adjacent CPs — no intermediate
-    # occupancy. (Old shared 1-1/1-2 circuit stuffed Track McKees Rocks onto
+    # occupancy. (Old shared 1-1/1-2 circuit stuffed Track K-1 onto
     # Mast 2035→Mast 2036 so either track occupied Stopped both; sensors are independent now.)
     (
         "Mast 2036",

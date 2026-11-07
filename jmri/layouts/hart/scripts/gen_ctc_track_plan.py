@@ -3,7 +3,7 @@
 
 20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
 101 is L/N, 102 is L/N, 117 is LNR. Mast 2035 is named L but faces east (into
-the Track McKees Rocks wrap) under Mast 2036. Lever number plates: odd on SWITCH,
+the Track K-1 wrap) under Mast 2036. Lever number plates: odd on SWITCH,
 even on SIGNAL (same seats as the first 15-column machine). Every plant has an
 N/R switch lever (yard ladders default Local).
 
@@ -132,8 +132,8 @@ HIDE_TRACK_LABELS = {
 }
 LABEL_LEFT = {"Track EH-1", "Track EH-2", "Track EH-3", "Track Barn"}
 LABEL_AT = {
-    "Track K-1": (59, 5),
-    "Track K-2": (59, 8),
+    "Track McKees Rocks": (59, 5),
+    "Track McKeesport": (59, 8),
     "Track Barn": (21, 7),
     "Track EH-1": (21, 8),
     "Track EH-2": (21, 9),
@@ -234,7 +234,7 @@ SIGNALS = [
     ("Mast 40LA", 56, 5, "W", "d1", "IH142"),
     ("Mast 38LB", 56, 7, "W", "h2", None),
     ("Mast 38LA", 56, 8, "W", "d1", "IH143"),
-    # Mast 2035 is named L but faces east into the Track McKees Rocks wrap (exception).
+    # Mast 2035 is named L but faces east into the Track K-1 wrap (exception).
     ("Mast 2035", 62, 7, "E", "d1", "IH141"),
 ]
 

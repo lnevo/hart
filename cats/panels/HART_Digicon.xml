@@ -182,7 +182,7 @@
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="OS Switch 39" STATION="115" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="BS Switch 39 / BS K-1">close</IOSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="BS Switch 39 / BS McKees Rocks">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -201,9 +201,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track K-1" STATION="Track K-1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track McKees Rocks" STATION="Track McKees Rocks" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="BS Switch 39 / BS K-1">close</IOSPEC>
+            <IOSPEC DECADDR="103" JMRIPREFIX="M2S" USER_NAME="BS Switch 39 / BS McKees Rocks">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -218,7 +218,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="Track K-1" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="Track McKees Rocks" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="59" Y="5">
       <TRACKGROUP>
@@ -772,9 +772,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track McKees Rocks" STATION="Track McKees Rocks" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track K-1" STATION="Track K-1" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="100" JMRIPREFIX="M2S" USER_NAME="BS McKees Rocks">close</IOSPEC>
+            <IOSPEC DECADDR="100" JMRIPREFIX="M2S" USER_NAME="BS K-1">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="100" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1488,7 +1488,7 @@
       <SEC_EDGE EDGE="LEFT">
         <BLOCK NAME="OS Switch 37" STATION="114" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="BS Switch 37 / BS K-2">close</IOSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="BS Switch 37 / BS McKeesport">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1544,9 +1544,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track McKeesport" STATION="Track McKeesport" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track K-2" STATION="Track K-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="BS McKeesport">close</IOSPEC>
+            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="BS K-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="101" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1597,9 +1597,9 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track McKeesport" STATION="Track McKeesport" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track K-2" STATION="Track K-2" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="BS McKeesport">close</IOSPEC>
+            <IOSPEC DECADDR="101" JMRIPREFIX="M2S" USER_NAME="BS K-2">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="101" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2231,9 +2231,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track K-2" STATION="Track K-2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track McKeesport" STATION="Track McKeesport" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="BS Switch 37 / BS K-2">close</IOSPEC>
+            <IOSPEC DECADDR="102" JMRIPREFIX="M2S" USER_NAME="BS Switch 37 / BS McKeesport">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -2248,7 +2248,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="Track K-2" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="Track McKeesport" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="59" Y="8">
       <TRACKGROUP>

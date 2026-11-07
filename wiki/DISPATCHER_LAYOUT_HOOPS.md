@@ -17,7 +17,7 @@ Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:basic:on
 | Station | Mast(s) | Where it sits |
 |---------|---------|----------------|
 | W-1 / W-2 | `Mast 4LA` / `Mast 4LB` | West-end bumpers `EB70` / `EB73` |
-| K-1 / K-2 | `Mast 40RA` / `Mast 38RA` | East-end bumpers `EB71` / `EB72` |
+| McKees Rocks / McKeesport | `Mast 40RA` / `Mast 38RA` | East-end bumpers `EB71` / `EB72` |
 | EH-1…EH-3 | `Mast 12L` / `Mast 10LA` / `Mast 10LB` | Engine House buffers `EB1` / `EB2` / `EB3` |
 | S-1…S-4 west | `Mast 18L`, `20L`, `22L`, `26L` | Body/throat boundary anchors `A53`/`A46`/`A41`/`A15` |
 | S-1…S-4 east | `Mast 18R`, `20R`, `22R`, `26R` | Body/throat boundary anchors `A61`/`A36`/`A39`/`A12` |
@@ -39,7 +39,7 @@ A connect1-only `END_BUMPER` resolves a facing block in one slot only, set by wh
 | End of railroad | Bumper slot used |
 |-----------------|------------------|
 | West (W-1/W-2, EH) | `westboundsignalmast` |
-| East (K-1/K-2) | `eastboundsignalmast` |
+| East (McKees Rocks/McKeesport) | `eastboundsignalmast` |
 
 Bindings are on `STUB_MASTS` in `apply_le_cleanup.py`. In any other slot, Discover and CATS SML report **No facing block found for destination mast**. Do not move them.
 
@@ -49,7 +49,7 @@ Bindings are on `STUB_MASTS` in `apply_le_cleanup.py`. In any other slot, Discov
 
 Discover only sees a mast at a **block boundary**. Anchors `A53` / `A46` / `A41` / `A12` used to have both connections in the same South Yard body block, so a mast there was invisible. Turnout-leg binds were a temporary workaround.
 
-Each S-R and S-1…S-4 body now has short **hidden throat blocks** (`Track S-1 West` / `Track S-1 East`, …) that **share the body occupancy sensor** (same pattern as K-1 / OS Switch 39). Those anchors are true boundaries. Virtuals sit on the anchors (`YARD_BOUNDARY_MASTS`). Do not put the virtuals back on turnout legs.
+Each S-R and S-1…S-4 body now has short **hidden throat blocks** (`Track S-1 West` / `Track S-1 East`, …) that **share the body occupancy sensor** (same pattern as McKees Rocks / OS Switch 39). Those anchors are true boundaries. Virtuals sit on the anchors (`YARD_BOUNDARY_MASTS`). Do not put the virtuals back on turnout legs.
 
 CreateGraph treats a block as a station if `"stop"` appears **anywhere** in the comment (`if "stop" in comment.lower()`). Do **not** write “not a stop” on a throat — that substring matches and the throat becomes a MoveTo station. Use “not a station”.
 
@@ -57,7 +57,7 @@ CreateGraph treats a block as a station if `"stop"` appears **anywhere** in the 
 
 ## Shared occupancy
 
-K-1 is its own JMRI block but uses the same occupancy sensor as OS Switch 39 (`Block 1-4`). K-2 shares `Block 1-3` with OS Switch 37. Stage 1 will ask **same sensor?** — answer **Yes**. That is expected.
+McKees Rocks is its own JMRI block but uses the same occupancy sensor as OS Switch 39 (`Block 1-4`). McKeesport shares `Block 1-3` with OS Switch 37. Stage 1 will ask **same sensor?** — answer **Yes**. That is expected.
 
 This is the pattern the South Yard throats use. Stage 1 will ask **same sensor?** for each throat — answer **Yes**.
 

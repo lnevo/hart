@@ -12,8 +12,8 @@ Track S-1,Block 2-7,212,assigned,Yard 4 (reversed)
 Track S-2,Block 2-6,178,assigned,Yard 3
 Track S-3,Block 2-5,142,assigned,Yard 2 (reversed)
 Track S-4,Block 2-4,100,assigned,Yard 1 (reversed)
-Track McKees Rocks,Block 1-1,122.5,split,East Loop / 2
-Track McKeesport,Block 1-2,122.5,split,East Loop / 2
+Track K-1,Block 1-1,122.5,split,East Loop / 2
+Track K-2,Block 1-2,122.5,split,East Loop / 2
 Track Scale,Block 4-8,24,estimate,new with 116/117
 Track Barn,Block 13-1,24,estimate,new with 116/117
 Track EH-1,Block 13-7,24,estimate,
@@ -42,8 +42,8 @@ OS Switch 7,Block 13-3,10,estimate,cut from Track Main East
 OS Switch 7b,Block 13-4,10,estimate,cut from West Lead
 OS Switch 11,Block 13-2,10,estimate,switch
 OS Switch 9,Block 13-8,10,estimate,switch
-Track K-1,BS Switch 39 / BS K-1,24,estimate,Princess stub east of Switch 39
-Track K-2,BS Switch 37 / BS K-2,24,estimate,stub east of Switch 37
+Track McKees Rocks,BS Switch 39 / BS McKees Rocks,24,estimate,Princess stub east of Switch 39
+Track McKeesport,BS Switch 37 / BS McKeesport,24,estimate,stub east of Switch 37
 Track S-1 West,BS S-1,15.748,stub,hidden throat of Track S-1; same detector; not a station
 Track S-1 East,BS S-1,15.748,stub,hidden throat of Track S-1; same detector; not a station
 Track S-2 West,BS S-2,15.748,stub,hidden throat of Track S-2; same detector; not a station

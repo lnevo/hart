@@ -37,14 +37,14 @@ Stations, west → east around the plant, then the yard and house:
 | **OS East Lead** | East End lead off 112; destination label **E Lead** |
 | **OS Main West** | OS Main West at East End (around-the-room from Brick) |
 | **OS West Main Ext** | OS Main West between East End and Princess |
-| **OS McKees Rocks** | Princess, north branch |
-| **OS McKeesport** | Princess, south branch |
+| **OS K-1** | Princess, north branch |
+| **OS K-2** | Princess, south branch |
 | **OS Scale** | Left of the engine house, Plane–117 lead; destination label **OS Scale** |
 | **OS Barn** | Immediately to the right of OS Scale (OS Barn lead); destination label **OS Barn** |
 | **OS EH-1 / OS EH-2 / OS EH-3** | Right of the 116 ladder |
 | **OS S-R…OS S-4** | South Yard body; destination labels **OS S-R…OS S-4**, aligned with Main W / Main E |
 | **OS W-1 / OS W-2** | Brick yard body |
-| **OS K-1 / OS K-2** | Princess stubs east of 115 / 114; destination labels **OS K-1** / **OS K-2** |
+| **OS McKees Rocks / OS McKeesport** | Princess stubs east of 115 / 114; destination labels **OS McKees Rocks** / **OS McKeesport** |
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
 buttons are in place. **Stage 1 was re-run 2026-08-22** after hidden yard
