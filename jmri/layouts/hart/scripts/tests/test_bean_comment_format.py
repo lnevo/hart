@@ -110,11 +110,11 @@ class BeanCommentFormatTest(unittest.TestCase):
         self.assertEqual(
             comments["Head 6LA"], "Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7"
         )
-        self.assertEqual(comments["Head 40LB Top"], "Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertEqual(comments["Head 40LA Top"], "Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3")
         self.assertEqual(comments["Head 24RA Top"], "Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3")
         self.assertEqual(comments["Head 34L Top"], "Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3")
         self.assertEqual(
-            comments["Head 38LA"], "Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
+            comments["Head 38LB"], "Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
         )
         self.assertEqual(
             comments["Head 2035"], "Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"

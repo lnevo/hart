@@ -221,7 +221,7 @@
     "dcc": "",
     "mqtt": "132",
     "systemName": "IH132",
-    "userName": "Head 40LB Top",
+    "userName": "Head 40LA Top",
     "comment": "Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3"
   },
   {
@@ -230,7 +230,7 @@
     "dcc": "",
     "mqtt": "133",
     "systemName": "IH133",
-    "userName": "Head 40LB Bottom",
+    "userName": "Head 40LA Bottom",
     "comment": "Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6"
   },
   {
@@ -284,7 +284,7 @@
     "dcc": "",
     "mqtt": "139",
     "systemName": "IH139",
-    "userName": "Head 38LB Top",
+    "userName": "Head 38LA Top",
     "comment": "Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3"
   },
   {
@@ -293,7 +293,7 @@
     "dcc": "",
     "mqtt": "140",
     "systemName": "IH140",
-    "userName": "Head 38LB Bottom",
+    "userName": "Head 38LA Bottom",
     "comment": "Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6"
   },
   {
@@ -311,7 +311,7 @@
     "dcc": "",
     "mqtt": "142",
     "systemName": "IH142",
-    "userName": "Head 40LA",
+    "userName": "Head 40LB",
     "comment": "Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3"
   },
   {
@@ -320,7 +320,7 @@
     "dcc": "",
     "mqtt": "143",
     "systemName": "IH143",
-    "userName": "Head 38LA",
+    "userName": "Head 38LB",
     "comment": "Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
   },
   {
@@ -1904,7 +1904,7 @@
     "dcc": "",
     "mqtt": "",
     "systemName": "IF$shsm:AAR-1946:SL-1-low(IH142)",
-    "userName": "Mast 40LA",
+    "userName": "Mast 40LB",
     "comment": "Princess | Switch 39"
   },
   {
@@ -1913,7 +1913,7 @@
     "dcc": "",
     "mqtt": "",
     "systemName": "IF$shsm:AAR-1946:SL-1-low(IH143)",
-    "userName": "Mast 38LA",
+    "userName": "Mast 38LB",
     "comment": "Princess | Switch 37"
   },
   {
@@ -1985,7 +1985,7 @@
     "dcc": "",
     "mqtt": "",
     "systemName": "IF$shsm:basic:two-searchlight(IH132)(IH133)",
-    "userName": "Mast 40LB",
+    "userName": "Mast 40LA",
     "comment": "Princess | Switch 39"
   },
   {
@@ -2039,7 +2039,7 @@
     "dcc": "",
     "mqtt": "",
     "systemName": "IF$shsm:basic:two-searchlight(IH139)(IH140)",
-    "userName": "Mast 38LB",
+    "userName": "Mast 38LA",
     "comment": "Princess | Switch 37"
   },
   {

@@ -2,8 +2,8 @@
  "source": {
   "file": "LCOS_Layout_Inventory_v85.xlsx",
   "version": "v85",
-  "modified": "2026-09-08",
-  "built": "2026-10-17"
+  "modified": "2026-11-08",
+  "built": "2026-11-07"
  },
  "nodes": [
   {
@@ -44,9 +44,9 @@
    ],
    "signals": [
     "36RA",
-    "38LA",
+    "38LB",
     "36RB",
-    "38LB"
+    "38LA"
    ],
    "blockNames": [
     "East Lead",
@@ -204,10 +204,10 @@
       {
        "pin": 7,
        "port": "C1-OU2-7",
-       "device": "Head 38LA G",
+       "device": "Head 38LB G",
        "kind": "lamp",
        "color": "G",
-       "head": "38LA",
+       "head": "38LB",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
@@ -282,19 +282,19 @@
       {
        "pin": 7,
        "port": "C1-OU3-7",
-       "device": "Head 38LA R",
+       "device": "Head 38LB R",
        "kind": "lamp",
        "color": "R",
-       "head": "38LA",
+       "head": "38LB",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
        "pin": 8,
        "port": "C1-OU3-8",
-       "device": "Head 38LA Y",
+       "device": "Head 38LB Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "38LA",
+       "head": "38LB",
        "place": "Helix - Lower (Princess SW37)"
       }
      ]
@@ -307,55 +307,55 @@
       {
        "pin": 1,
        "port": "C1-OU4-1",
-       "device": "Head 38LB T R",
+       "device": "Head 38LA T R",
        "kind": "lamp",
        "color": "R",
-       "head": "38LB T",
+       "head": "38LA T",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
        "pin": 2,
        "port": "C1-OU4-2",
-       "device": "Head 38LB T Y",
+       "device": "Head 38LA T Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "38LB T",
+       "head": "38LA T",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
        "pin": 3,
        "port": "C1-OU4-3",
-       "device": "Head 38LB T G",
+       "device": "Head 38LA T G",
        "kind": "lamp",
        "color": "G",
-       "head": "38LB T",
+       "head": "38LA T",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
        "pin": 4,
        "port": "C1-OU4-4",
-       "device": "Head 38LB B R",
+       "device": "Head 38LA B R",
        "kind": "lamp",
        "color": "R",
-       "head": "38LB B",
+       "head": "38LA B",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
        "pin": 5,
        "port": "C1-OU4-5",
-       "device": "Head 38LB B Y",
+       "device": "Head 38LA B Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "38LB B",
+       "head": "38LA B",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
        "pin": 6,
        "port": "C1-OU4-6",
-       "device": "Head 38LB B G",
+       "device": "Head 38LA B G",
        "kind": "lamp",
        "color": "G",
-       "head": "38LB B",
+       "head": "38LA B",
        "place": "Helix - Lower (Princess SW37)"
       },
       {
@@ -1913,9 +1913,9 @@
     "Switch 65"
    ],
    "signals": [
-    "40LB",
-    "2035",
     "40LA",
+    "2035",
+    "40LB",
     "2036"
    ],
    "blockNames": [
@@ -2008,55 +2008,55 @@
       {
        "pin": 1,
        "port": "C11-OU2-1",
-       "device": "Head 40LB T R",
+       "device": "Head 40LA T R",
        "kind": "lamp",
        "color": "R",
-       "head": "40LB T",
+       "head": "40LA T",
        "place": "Helix (Princess east SW39)"
       },
       {
        "pin": 2,
        "port": "C11-OU2-2",
-       "device": "Head 40LB T Y",
+       "device": "Head 40LA T Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "40LB T",
+       "head": "40LA T",
        "place": "Helix (Princess east SW39)"
       },
       {
        "pin": 3,
        "port": "C11-OU2-3",
-       "device": "Head 40LB T G",
+       "device": "Head 40LA T G",
        "kind": "lamp",
        "color": "G",
-       "head": "40LB T",
+       "head": "40LA T",
        "place": "Helix (Princess east SW39)"
       },
       {
        "pin": 4,
        "port": "C11-OU2-4",
-       "device": "Head 40LB B R",
+       "device": "Head 40LA B R",
        "kind": "lamp",
        "color": "R",
-       "head": "40LB B",
+       "head": "40LA B",
        "place": "Helix (Princess east SW39)"
       },
       {
        "pin": 5,
        "port": "C11-OU2-5",
-       "device": "Head 40LB B Y",
+       "device": "Head 40LA B Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "40LB B",
+       "head": "40LA B",
        "place": "Helix (Princess east SW39)"
       },
       {
        "pin": 6,
        "port": "C11-OU2-6",
-       "device": "Head 40LB B G",
+       "device": "Head 40LA B G",
        "kind": "lamp",
        "color": "G",
-       "head": "40LB B",
+       "head": "40LA B",
        "place": "Helix (Princess east SW39)"
       },
       {
@@ -2086,28 +2086,28 @@
       {
        "pin": 1,
        "port": "C11-OU3-1",
-       "device": "Head 40LA R",
+       "device": "Head 40LB R",
        "kind": "lamp",
        "color": "R",
-       "head": "40LA",
+       "head": "40LB",
        "place": "Helix (Princess east SW39)"
       },
       {
        "pin": 2,
        "port": "C11-OU3-2",
-       "device": "Head 40LA Y",
+       "device": "Head 40LB Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "40LA",
+       "head": "40LB",
        "place": "Helix (Princess east SW39)"
       },
       {
        "pin": 3,
        "port": "C11-OU3-3",
-       "device": "Head 40LA G",
+       "device": "Head 40LB G",
        "kind": "lamp",
        "color": "G",
-       "head": "40LA",
+       "head": "40LB",
        "place": "Helix (Princess east SW39)"
       },
       {
@@ -2764,11 +2764,7 @@
    "address": "13",
    "location": "West - Lower (Barn)",
    "type": "Client",
-   "turnouts": [
-    "Switch 7",
-    "Switch 11",
-    "Switch 9"
-   ],
+   "turnouts": [],
    "signals": [
     "8RA",
     "S3-4",
@@ -2881,70 +2877,63 @@
     },
     {
      "board": "OU2",
-     "rail": "12V",
-     "place": "West - Lower (Barn)",
+     "rail": "5V",
+     "place": "West - Lower",
      "pins": [
       {
        "pin": 1,
        "port": "C13-OU2-1",
-       "device": "Switch 7 N",
-       "kind": "motor",
-       "place": "West - Lower (Barn)",
-       "note": "radio 13; M2T1308 / Node: 13 Turnout: 0; DCC 117; ports 1,2"
+       "device": "S3-4 G",
+       "kind": "other",
+       "place": "West - Lower"
       },
       {
        "pin": 2,
        "port": "C13-OU2-2",
-       "device": "Switch 7 R",
-       "kind": "motor",
-       "place": "West - Lower (Barn)",
-       "note": "radio 13; M2T1308 / Node: 13 Turnout: 0; DCC 117; ports 1,2"
+       "device": "S3-4 Y",
+       "kind": "other",
+       "place": "West - Lower"
       },
       {
        "pin": 3,
        "port": "C13-OU2-3",
-       "device": "Switch 11 N",
-       "kind": "motor",
-       "place": "West - Lower (Barn)",
-       "note": "radio 13; M2T1309 / Node: 13 Turnout: 1; DCC 118; ports 3,4"
+       "device": "S3-4 R",
+       "kind": "other",
+       "place": "West - Lower"
       },
       {
        "pin": 4,
        "port": "C13-OU2-4",
-       "device": "Switch 11 R",
-       "kind": "motor",
-       "place": "West - Lower (Barn)",
-       "note": "radio 13; M2T1309 / Node: 13 Turnout: 1; DCC 118; ports 3,4"
+       "device": "S3-5 G",
+       "kind": "other",
+       "place": "West - Lower"
       },
       {
        "pin": 5,
        "port": "C13-OU2-5",
-       "device": "Switch 9 N",
-       "kind": "motor",
-       "place": "West - Lower (Barn)",
-       "note": "radio 13; M2T1310 / Node: 13 Turnout: 2; DCC 119; ports 5,6"
+       "device": "S3-5 Y",
+       "kind": "other",
+       "place": "West - Lower"
       },
       {
        "pin": 6,
        "port": "C13-OU2-6",
-       "device": "Switch 9 R",
-       "kind": "motor",
-       "place": "West - Lower (Barn)",
-       "note": "radio 13; M2T1310 / Node: 13 Turnout: 2; DCC 119; ports 5,6"
+       "device": "S3-5 R",
+       "kind": "other",
+       "place": "West - Lower"
       },
       {
        "pin": 7,
        "port": "C13-OU2-7",
-       "kind": "spare",
-       "place": "West - Lower (Barn)",
-       "note": "spare"
+       "device": "S3-14 Y",
+       "kind": "other",
+       "place": "West - Lower"
       },
       {
        "pin": 8,
        "port": "C13-OU2-8",
        "kind": "spare",
-       "place": "West - Lower (Barn)",
-       "note": "spare"
+       "place": "West - Lower"
       }
      ]
     },
@@ -3116,7 +3105,7 @@
        "device": "Switch 7 N FB",
        "kind": "feedback",
        "place": "West - Lower",
-       "note": "M2S1367 / Switch 13-1 FB N; commissioned 2026-09-08"
+       "note": "M2S1367 / Switch 13-1 FB N; ASSUMED on new C13-IN1 — confirm physical board ID"
       },
       {
        "pin": 2,
@@ -3124,7 +3113,7 @@
        "device": "Switch 7 R FB",
        "kind": "feedback",
        "place": "West - Lower",
-       "note": "M2S1368 / Switch 13-1 FB R; commissioned 2026-09-08"
+       "note": "M2S1368 / Switch 13-1 FB R; ASSUMED on new C13-IN1 — confirm physical board ID"
       },
       {
        "pin": 3,
@@ -3132,7 +3121,7 @@
        "device": "Switch 11 N FB",
        "kind": "feedback",
        "place": "West - Lower",
-       "note": "M2S1369 / Switch 13-2 FB N; commissioned 2026-09-08"
+       "note": "M2S1369 / Switch 13-2 FB N; ASSUMED on new C13-IN1 — confirm physical board ID"
       },
       {
        "pin": 4,
@@ -3140,7 +3129,7 @@
        "device": "Switch 11 R FB",
        "kind": "feedback",
        "place": "West - Lower",
-       "note": "M2S1370 / Switch 13-2 FB R; commissioned 2026-09-08"
+       "note": "M2S1370 / Switch 13-2 FB R; ASSUMED on new C13-IN1 — confirm physical board ID"
       },
       {
        "pin": 5,
@@ -3148,7 +3137,7 @@
        "device": "Switch 9 N FB",
        "kind": "feedback",
        "place": "West - Lower",
-       "note": "M2S1371 / Switch 13-3 FB N; commissioned 2026-09-08"
+       "note": "M2S1371 / Switch 13-3 FB N; ASSUMED on new C13-IN1 — confirm physical board ID"
       },
       {
        "pin": 6,
@@ -3156,7 +3145,7 @@
        "device": "Switch 9 R FB",
        "kind": "feedback",
        "place": "West - Lower",
-       "note": "M2S1372 / Switch 13-3 FB R; commissioned 2026-09-08"
+       "note": "M2S1372 / Switch 13-3 FB R; ASSUMED on new C13-IN1 — confirm physical board ID"
       }
      ]
     },
@@ -3170,7 +3159,7 @@
        "device": "Switch 7 BTN",
        "kind": "button",
        "place": "West - Lower",
-       "note": "local button; confirm silk"
+       "note": "ASSUMED on new C13-IN2 — confirm"
       },
       {
        "pin": 2,
@@ -3178,7 +3167,7 @@
        "device": "Switch 11 BTN",
        "kind": "button",
        "place": "West - Lower",
-       "note": "local button; confirm silk"
+       "note": "ASSUMED on new C13-IN2 — confirm"
       },
       {
        "pin": 3,
@@ -3186,7 +3175,7 @@
        "device": "Switch 9 BTN",
        "kind": "button",
        "place": "West - Lower",
-       "note": "local button; confirm silk"
+       "note": "ASSUMED on new C13-IN2 — confirm"
       }
      ]
     }
@@ -5634,7 +5623,7 @@
     "Y": "C1-OU2-5",
     "G": "C1-OU2-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "36RA T",
@@ -5649,7 +5638,7 @@
     "Y": "C1-OU2-2",
     "G": "C1-OU2-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "36RB B",
@@ -5664,7 +5653,7 @@
     "Y": "C1-OU3-5",
     "G": "C1-OU3-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "36RB T",
@@ -5679,26 +5668,11 @@
     "Y": "C1-OU3-2",
     "G": "C1-OU3-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
-   "head": "38LA",
+   "head": "38LA B",
    "mast": "38LA",
-   "disc": "S",
-   "node": "C1",
-   "place": "Helix - Lower (Princess SW37)",
-   "packed": "IH143",
-   "type": "Digicon searchlight",
-   "lamps": {
-    "R": "C1-OU3-7",
-    "Y": "C1-OU3-8",
-    "G": "C1-OU2-7"
-   },
-   "appearance": "CO-3-dwarf"
-  },
-  {
-   "head": "38LB B",
-   "mast": "38LB",
    "disc": "B",
    "node": "C1",
    "place": "Helix - Lower (Princess SW37)",
@@ -5709,11 +5683,11 @@
     "Y": "C1-OU4-5",
     "G": "C1-OU4-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
-   "head": "38LB T",
-   "mast": "38LB",
+   "head": "38LA T",
+   "mast": "38LA",
    "disc": "T",
    "node": "C1",
    "place": "Helix - Lower (Princess SW37)",
@@ -5724,7 +5698,22 @@
     "Y": "C1-OU4-2",
     "G": "C1-OU4-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
+  },
+  {
+   "head": "38LB",
+   "mast": "38LB",
+   "disc": "S",
+   "node": "C1",
+   "place": "Helix - Lower (Princess SW37)",
+   "packed": "IH143",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C1-OU3-7",
+    "Y": "C1-OU3-8",
+    "G": "C1-OU2-7"
+   },
+   "appearance": "one-low"
   },
   {
    "head": "24L B",
@@ -5739,7 +5728,7 @@
     "Y": "C2-OU2-5",
     "G": "C2-OU2-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "24L T",
@@ -5754,7 +5743,7 @@
     "Y": "C2-OU2-2",
     "G": "C2-OU2-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "24RA B",
@@ -5769,7 +5758,7 @@
     "Y": "C2-OU1-5",
     "G": "C2-OU1-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "24RA T",
@@ -5784,7 +5773,7 @@
     "Y": "C2-OU1-2",
     "G": "C2-OU1-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "24RB",
@@ -5799,7 +5788,7 @@
     "Y": "C2-OU3-7",
     "G": "C2-OU3-8"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
    "head": "2L B",
@@ -5814,7 +5803,7 @@
     "Y": "C4-OU3-5",
     "G": "C4-OU3-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "2L T",
@@ -5829,7 +5818,7 @@
     "Y": "C4-OU3-2",
     "G": "C4-OU3-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "4RA",
@@ -5844,7 +5833,7 @@
     "Y": "C4-OU4-2",
     "G": "C4-OU4-3"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
    "head": "4RB",
@@ -5859,7 +5848,7 @@
     "Y": "C4-OU4-5",
     "G": "C4-OU4-6"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
    "head": "6LA",
@@ -5874,7 +5863,7 @@
     "Y": "C4-OU3-8",
     "G": "C4-OU3-7"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
    "head": "6LB B",
@@ -5889,7 +5878,7 @@
     "Y": "C4-OU2-5",
     "G": "C4-OU2-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "6LB T",
@@ -5904,7 +5893,7 @@
     "Y": "C4-OU2-2",
     "G": "C4-OU2-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "2035",
@@ -5919,7 +5908,7 @@
     "Y": "C11-OU3-8",
     "G": "C11-OU2-7"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
    "head": "2036",
@@ -5934,26 +5923,11 @@
     "Y": "C11-OU3-5",
     "G": "C11-OU3-6"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
-   "head": "40LA",
+   "head": "40LA B",
    "mast": "40LA",
-   "disc": "S",
-   "node": "C11",
-   "place": "Helix (Princess east SW39)",
-   "packed": "IH1136",
-   "type": "Digicon searchlight",
-   "lamps": {
-    "R": "C11-OU3-1",
-    "Y": "C11-OU3-2",
-    "G": "C11-OU3-3"
-   },
-   "appearance": "CO-3-dwarf"
-  },
-  {
-   "head": "40LB B",
-   "mast": "40LB",
    "disc": "B",
    "node": "C11",
    "place": "Helix (Princess east SW39)",
@@ -5964,11 +5938,11 @@
     "Y": "C11-OU2-5",
     "G": "C11-OU2-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
-   "head": "40LB T",
-   "mast": "40LB",
+   "head": "40LA T",
+   "mast": "40LA",
    "disc": "T",
    "node": "C11",
    "place": "Helix (Princess east SW39)",
@@ -5979,7 +5953,22 @@
     "Y": "C11-OU2-2",
     "G": "C11-OU2-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
+  },
+  {
+   "head": "40LB",
+   "mast": "40LB",
+   "disc": "S",
+   "node": "C11",
+   "place": "Helix (Princess east SW39)",
+   "packed": "IH1136",
+   "type": "Digicon searchlight",
+   "lamps": {
+    "R": "C11-OU3-1",
+    "Y": "C11-OU3-2",
+    "G": "C11-OU3-3"
+   },
+   "appearance": "one-low"
   },
   {
    "head": "32R",
@@ -5994,7 +5983,7 @@
     "Y": "C12-OU3-8",
     "G": "C12-OU3-7"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
    "head": "34L B",
@@ -6009,7 +5998,7 @@
     "Y": "C12-OU2-5",
     "G": "C12-OU2-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "34L T",
@@ -6024,7 +6013,7 @@
     "Y": "C12-OU2-2",
     "G": "C12-OU2-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "34R B",
@@ -6039,7 +6028,7 @@
     "Y": "C12-OU3-5",
     "G": "C12-OU3-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "34R T",
@@ -6054,7 +6043,7 @@
     "Y": "C12-OU3-2",
     "G": "C12-OU3-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "8LA B",
@@ -6069,7 +6058,7 @@
     "Y": "C13-OU3-5",
     "G": "C13-OU3-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "8LA T",
@@ -6084,7 +6073,7 @@
     "Y": "C13-OU3-2",
     "G": "C13-OU3-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "8LB",
@@ -6099,7 +6088,7 @@
     "Y": "C13-OU3-8",
     "G": "C13-OU4-7"
    },
-   "appearance": "CO-3-dwarf"
+   "appearance": "one-low"
   },
   {
    "head": "8RA B",
@@ -6114,7 +6103,7 @@
     "Y": "C13-OU1-5",
     "G": "C13-OU1-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "8RA T",
@@ -6129,7 +6118,7 @@
     "Y": "C13-OU1-2",
     "G": "C13-OU1-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "8RB B",
@@ -6144,7 +6133,7 @@
     "Y": "C13-OU4-5",
     "G": "C13-OU4-6"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "8RB T",
@@ -6159,7 +6148,7 @@
     "Y": "C13-OU4-2",
     "G": "C13-OU4-3"
    },
-   "appearance": "CO-33-hi"
+   "appearance": "two-searchlight"
   },
   {
    "head": "76L",
@@ -6522,7 +6511,7 @@
    "mast": "6LB",
    "node": "C4",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C4-OU2-1",
     "C4-OU2-2",
@@ -6536,7 +6525,7 @@
    "mast": "6LA",
    "node": "C4",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C4-OU2-7",
     "C4-OU3-8",
@@ -6547,7 +6536,7 @@
    "mast": "2L",
    "node": "C4",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C4-OU3-1",
     "C4-OU3-2",
@@ -6561,7 +6550,7 @@
    "mast": "4RA",
    "node": "C4",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C4-OU4-1",
     "C4-OU4-2",
@@ -6572,7 +6561,7 @@
    "mast": "4RB",
    "node": "C4",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C4-OU4-4",
     "C4-OU4-5",
@@ -6583,7 +6572,7 @@
    "mast": "8RA",
    "node": "C13",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C13-OU1-1",
     "C13-OU1-2",
@@ -6597,7 +6586,7 @@
    "mast": "8RB",
    "node": "C13",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C13-OU4-1",
     "C13-OU4-2",
@@ -6611,7 +6600,7 @@
    "mast": "8LA",
    "node": "C13",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C13-OU3-1",
     "C13-OU3-2",
@@ -6625,7 +6614,7 @@
    "mast": "8LB",
    "node": "C13",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C13-OU3-7",
     "C13-OU3-8",
@@ -6636,7 +6625,7 @@
    "mast": "24RA",
    "node": "C2",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C2-OU1-1",
     "C2-OU1-2",
@@ -6650,7 +6639,7 @@
    "mast": "24RB",
    "node": "C2",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C2-OU3-6",
     "C2-OU3-7",
@@ -6661,7 +6650,7 @@
    "mast": "24L",
    "node": "C2",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C2-OU2-1",
     "C2-OU2-2",
@@ -6675,7 +6664,7 @@
    "mast": "34L",
    "node": "C12",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C12-OU2-1",
     "C12-OU2-2",
@@ -6689,7 +6678,7 @@
    "mast": "32R",
    "node": "C12",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C12-OU2-7",
     "C12-OU3-8",
@@ -6700,7 +6689,7 @@
    "mast": "34R",
    "node": "C12",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C12-OU3-1",
     "C12-OU3-2",
@@ -6714,7 +6703,7 @@
    "mast": "36RA",
    "node": "C1",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C1-OU2-1",
     "C1-OU2-2",
@@ -6728,7 +6717,7 @@
    "mast": "36RB",
    "node": "C1",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C1-OU3-1",
     "C1-OU3-2",
@@ -6739,10 +6728,10 @@
    ]
   },
   {
-   "mast": "38LB",
+   "mast": "38LA",
    "node": "C1",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C1-OU4-1",
     "C1-OU4-2",
@@ -6753,10 +6742,10 @@
    ]
   },
   {
-   "mast": "38LA",
+   "mast": "38LB",
    "node": "C1",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C1-OU3-7",
     "C1-OU3-8",
@@ -6764,10 +6753,10 @@
    ]
   },
   {
-   "mast": "40LB",
+   "mast": "40LA",
    "node": "C11",
    "heads": "2",
-   "appearance": "CO-33-hi",
+   "appearance": "two-searchlight",
    "ports": [
     "C11-OU2-1",
     "C11-OU2-2",
@@ -6778,10 +6767,10 @@
    ]
   },
   {
-   "mast": "40LA",
+   "mast": "40LB",
    "node": "C11",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C11-OU3-1",
     "C11-OU3-2",
@@ -6792,7 +6781,7 @@
    "mast": "2036",
    "node": "C11",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C11-OU3-4",
     "C11-OU3-5",
@@ -6803,7 +6792,7 @@
    "mast": "2035",
    "node": "C11",
    "heads": "1",
-   "appearance": "CO-3-dwarf",
+   "appearance": "one-low",
    "ports": [
     "C11-OU3-7",
     "C11-OU3-8",
@@ -7285,8 +7274,6 @@
    "node": "C13",
    "area": "West - Lower / Yard",
    "elements": "Switch 7 / TO6+TO8",
-   "motorN": "C13-OU2-1",
-   "motorR": "C13-OU2-2",
    "button": "C13-IN2-1",
    "fbN": "C13-IN1-1",
    "fbR": "C13-IN1-2",
@@ -7301,8 +7288,6 @@
    "node": "C13",
    "area": "West - Lower / Yard",
    "elements": "Switch 11 (TO11)",
-   "motorN": "C13-OU2-3",
-   "motorR": "C13-OU2-4",
    "button": "C13-IN2-2",
    "fbN": "C13-IN1-3",
    "fbR": "C13-IN1-4",
@@ -7313,8 +7298,6 @@
    "node": "C13",
    "area": "West - Lower / Yard",
    "elements": "Switch 9 (TO10)",
-   "motorN": "C13-OU2-5",
-   "motorR": "C13-OU2-6",
    "button": "C13-IN2-3",
    "fbN": "C13-IN1-5",
    "fbR": "C13-IN1-6",
