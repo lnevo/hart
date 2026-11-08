@@ -35,7 +35,7 @@
     <model name="AS-16" />
     <model name="U30B" />
     <model name="ES44AH" />
-  </models>
+  <model name="GP38-2" /></models>
   <types>
     <type name="Electric" />
     <type name="Engine" />
@@ -93,5 +93,5 @@
     <engine id="BO2235" roadName="BO" roadNumber="2235" type="Diesel" length="56" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="AS-16" hp="1600" bUnit="false" />
     <engine id="CO8216" roadName="CO" roadNumber="8216" type="Diesel" length="60" locationId="2" secLocationId="2s9" moves="0" date="" selected="false" model="U30B" hp="3000" bUnit="false" />
     <engine id="CSX1827" roadName="CSX" roadNumber="1827" type="Diesel" length="74" moves="0" date="" selected="false" model="ES44AH" hp="4400" bUnit="false" />
-  </engines>
+  <engine id="CSX2121" roadName="CSX" roadNumber="2121" type="Diesel" length="59" moves="0" date="" selected="false" model="GP38" hp="" bUnit="false" /><engine id="CSX2738" roadName="CSX" roadNumber="2738" type="Diesel" length="59" moves="0" date="" selected="false" model="GP38-2" hp="" bUnit="false" /></engines>
 </operations-config>

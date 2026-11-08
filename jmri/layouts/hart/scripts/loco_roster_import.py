@@ -5,7 +5,9 @@
 # drops this script into the Pi's JMRI through jmri_cmd_watcher with that list embedded.
 # It also runs under CPython, where it only prints the plan (what the unit tests cover).
 #
-# Per entry: skip it if the roster already has the ID, otherwise create it with the road
+# Per entry: if the roster already has the ID, leave it alone, except that an entry with no
+# photo gets the photo and icon from the list (a hand-built entry; its decoder settings are
+# kept, only the two paths change). Otherwise create it with the road
 # name and number, maker, model, DCC address, long/short flag, photo and icon, and write
 # the roster file with JMRI's own RosterEntry.writeFile(null, null) (the call JMRI's ECoS
 # import uses). The decoder is left as the NMRA standard until the loco is on the bench.
@@ -20,11 +22,21 @@ import json
 import sys
 
 
-def plan(entries, existing_ids):
-    """One action per entry: create, or skip when the roster already has the ID."""
+def plan(entries, existing):
+    """One action per entry: create, skip, or image.
+
+    ``existing`` is a set of roster IDs or a dict of roster ID to its image path.
+    An existing entry whose image path is empty gets "image" when the list has a photo.
+    """
+    images = existing if isinstance(existing, dict) else {i: None for i in existing}
     actions = []
     for entry in entries:
-        action = "skip" if entry["id"] in existing_ids else "create"
+        if entry["id"] not in images:
+            action = "create"
+        elif images[entry["id"]] == "" and entry.get("image"):
+            action = "image"
+        else:
+            action = "skip"
         actions.append({"entry": entry, "action": action})
     return actions
 
@@ -56,14 +68,24 @@ def _jmri_run(entries, apply=False):
         print(msg)
 
     roster = Roster.getDefault()
-    existing = set(str(e.getId()) for e in roster.getAllEntries())
+    existing = dict((str(e.getId()), str(e.getImagePath() or "")) for e in roster.getAllEntries())
     actions = plan(entries, existing)
     created = 0
+    imaged = 0
     for a in actions:
         log(describe(a))
-        if a["action"] != "create" or not apply:
+        if not apply:
             continue
         e = a["entry"]
+        if a["action"] == "image":
+            old = roster.getEntryForId(str(e["id"]))
+            old.setImagePath(str(e["image"]))
+            old.setIconPath(str(e["image"]))
+            old.updateFile()
+            imaged += 1
+            continue
+        if a["action"] != "create":
+            continue
         re_ = RosterEntry()
         re_.setId(str(e["id"]))
         re_.setRoadName(str(e["road_name"]))
@@ -79,9 +101,9 @@ def _jmri_run(entries, apply=False):
         re_.writeFile(None, None)
         roster.addEntry(re_)
         created += 1
-    if created:
+    if created or imaged:
         roster.writeRoster()
-    log("done: %d created" % created)
+    log("done: %d created, %d photos set" % (created, imaged))
     if apply and created:
         log("next: roster_rename_road_ids.py is not needed (IDs are road + number already);")
         log("      run ensure_dispatcher_roster_profiles.py, then cs105_roster_sync.sh --apply")
@@ -92,7 +114,10 @@ def _cli(argv):
     path = argv[0] if argv else "jmri/layouts/hart/data/new_locos.json"
     with open(path) as fh:
         entries = json.load(fh)
-    existing = set(argv[1].split(",")) if len(argv) > 1 else set()
+    existing = {}
+    for item in (argv[1].split(",") if len(argv) > 1 else []):
+        rid, _, image = item.partition("=")
+        existing[rid] = image
     for a in plan(entries, existing):
         print(describe(a))
     return 0

@@ -54,7 +54,7 @@ Run from `external/hart-ops`.
 
 1. `bin/cars locos publish` (refuses a loco with missing fields). It adds the engine to `jmri/layouts/hart/operations/OperationsEngineRoster.xml`, keeping session state, writes the photo to `jmri/resources/roster/<number>.jpg`, and adds the loco to `jmri/layouts/hart/data/new_locos.json`.
 2. Commit and deploy: `./cats/scripts/sync_hart_package.sh --all` (installs the photo and engine roster).
-3. With JMRI up on the Pi: `tools/ops/loco_roster_import.sh` shows the plan, `--apply` creates the DecoderPro entries (ID is road plus number, so the rename script is not needed).
+3. With JMRI up on the Pi: `tools/ops/loco_roster_import.sh` shows the plan, `--apply` creates the DecoderPro entries (ID is road plus number, so the rename script is not needed). An entry that already exists is kept as built, and only gets the photo and icon if it has none. Stop PanelPro on the Pi first for `make ops-pull` and the deploy, and start it again before the import.
 4. `ensure_dispatcher_roster_profiles.py` for the speed profile, then `tools/ops/cs105_roster_sync.sh --apply`. `cs105_reboot.sh` only when nothing is moving.
 5. The Dispatcher traininfo files for the new roster ID are not generated yet; see "Not built" below.
 
@@ -62,7 +62,7 @@ The Pi-side import is untested against live JMRI. Run the plan first and watch t
 
 ## 5. Cards and public pages
 
-- `bin/cars cards` builds one print file for cars and locomotives; print, then `bin/cars cards --mark-printed`. Loco cards come from `data/locos.csv` (road, number, model, length, maker), so they can be built before stage 4 publishes the engine.
+- `bin/cars cards` builds one print file for cars and locomotives; print, then `bin/cars cards --mark-printed`. `--trains` appends six train cards (D749, NVL, CK1, Route 23, OCS-1, EXTRA; `card_pipeline/train_cards.py`) to fill the last sheet; they are not in the queue. Loco cards come from `data/locos.csv` (road, number, model, length, maker), so they can be built before stage 4 publishes the engine.
 - `bin/cars site` shows the new photographed cars and locos missing from the public gallery (`www/data/fleet-gallery.json`); `--apply` adds them, with captions from the card text. It never adds an entry containing the private name. A clean run means the gallery is up to date. A description that only repeats the car type is left out of the caption (`CSX · Hopper · 40'`).
 - Merge the gallery to `main`, update the main checkout, then run `./www/scripts/deploy_hartrailroad.sh` **from the main checkout**: the build needs the photo mirrors (`www/README.md`), which a worktree lacks, and without them the Rolling stock albums drop out. The build prints the fleet item count (83 to 93 for ten cars); check one new image on the live site.
 - Update `wiki/STATUS.md`.
@@ -92,7 +92,7 @@ State on 2026-11-08: all stages ran once on a real batch (ten CSX hoppers, cars 
 
 **Known soft spots**
 - The gate's STS backup check accepts any file under 12 hours old in `external/sts-docker-data/backups`; it passed on the first batch, so the name is still untightened.
-- Loco photos use the car crop code and may crop badly, and the lettering OCR window was tuned on hoppers.
+- Loco photos: do not use the freight-car crop (it tilts and over-exposes them). Use `card_pipeline/loco_backdrop.py PHOTO OUT.png --box x0,y0,x1,y1` in hart-ops on an upright photo (box on the 1400 px wide photo, by eye) and check the result. Put the approved image in `CarImagesFinal/`. Remove any `loco_*` file in `CarImagesCardFillPrint/` first, because the card builder prefers that folder over `CarImagesFinal/` and a stale crop there silently wins. Consist pairs face opposite ways.
 - The Pi-side DecoderPro import is unit-tested only; plan before `--apply`.
 - Locos need hand-entered details (DCC address, model, length); the photo gives road and number only.
 - The pools a new car gets come from the union of its car code's cars; commodity-specific pools (coke) are still set by hand.
