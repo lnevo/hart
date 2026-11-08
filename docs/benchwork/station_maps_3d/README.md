@@ -40,8 +40,8 @@ Main East sits 0.17 in higher than on the paper sheet as a result.
 ## SW13 test panel
 
 `toggle_test_sw13.scad` is a 2 × 2 in panel with one one-light toggle. The face has
-a horizontal main through the switch, a spur going north from the junction and
-then west, a ring round the LED, and SW13 in the upper right. It tests pocket fit, crush-rib retention and touch through a 1.0 mm skin
+a horizontal main through the switch, a spur diverging north-west at 45° and
+then running west, a ring round the LED, and SW13 in the upper right. It tests pocket fit, crush-rib retention and touch through a 1.0 mm skin
 before the next station map. Barn's first print was cancelled (its first-layer
 lettering did not stick), so none of that is proven yet.
 
@@ -49,7 +49,7 @@ lettering did not stick), so none of that is proven yet.
   into the face; over the pocket that leaves 0.4 mm of skin under the track.
 - **Two colour:** load `sw13_body.stl` and `sw13_ink.stl` as one object; the ink
   fills the recess. It is on the first layer, as Barn's lettering was, but with
-  5.5 mm Arial Black and 1.3 mm lines rather than 3.6 mm text.
+  5 mm Arial Black and 1.3 mm lines rather than 3.6 mm text.
 - Face down, no supports. Mount with double-sided tape: the back is flat and the
   toggle sits 0.4 mm below it. The ribbon leaves through a 13 mm slot in the
   bottom edge, wide because its position varies from toggle to toggle.
@@ -58,7 +58,7 @@ lettering did not stick), so none of that is proven yet.
 |------|-------|
 | Plate | 50.8 × 50.8 × 6.5 mm, 3 mm corner radius |
 | Skin over toggle | 1.0 mm, LED hole 4.96 mm |
-| Pocket | 18.0 mm square (toggle + 0.3), 5.5 mm deep, centred 4 mm left of the plate centre |
+| Pocket | 18.0 mm square (toggle + 0.3), 5.5 mm deep; LED at the plate centre |
 | Crush ribs | 6 × Ø1.0, 0.35 proud (0.2 mm interference a side), 1 mm lead-in at the back |
 
 ## Touch Toggle measurements (calipers, 2026-11-07)

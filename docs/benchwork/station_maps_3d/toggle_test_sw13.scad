@@ -8,8 +8,8 @@
 //   0 .. skin_t           skin over the toggle, LED hole only
 //   skin_t .. total_t     pocket, crush ribs, wire slot out the bottom edge
 //
-// Face: a horizontal main through the switch, with a spur going north from the
-// junction and then west. A ring round the LED marks the switch, as on Barn.
+// Face: a horizontal main through the switch, with a spur diverging north-west
+// at 45 degrees from the junction and then running west. A ring round the LED marks the switch, as on Barn.
 //
 // One colour: print part="body" alone (track and SW13 stay recessed).
 // Two colour: load body + ink as one object; the ink fills the recess.
@@ -41,12 +41,12 @@ ink_t = 0.6;
 track_w = 1.3;
 ring_w = 1.3;
 edge_inset = 3.0;        // track ends this far inside the plate edge
-pocket_x = -4;           // switch left of centre, label to the right of the spur
+pocket_x = 0;            // LED at the plate centre
 pocket_y = 0;
-spur_y = 13;             // where the spur turns west
+spur_y = 13;             // where the 45 degree spur turns west
 label = "SW13";
-letter_size = 5.5;
-label_pos = [10.5, 16];
+letter_size = 5;
+label_pos = [12.6, 16];
 
 $fn = 48;
 
@@ -81,8 +81,9 @@ module ink2d() {
   difference() {
     union() {
       line2([-EDGE, pocket_y], [EDGE, pocket_y]);       // main
-      line2(SWITCH, [pocket_x, spur_y]);                // spur north
-      line2([pocket_x, spur_y], [-EDGE, spur_y]);       // then west
+      bend = [pocket_x - (spur_y - pocket_y), spur_y];  // 45 degrees
+      line2(SWITCH, bend);                              // spur north-west
+      line2(bend, [-EDGE, spur_y]);                     // then west
       translate(SWITCH) circle(d = led_d + led_clearance + 2 * ring_w);
       label2d();
     }
