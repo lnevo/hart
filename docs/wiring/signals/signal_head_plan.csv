@@ -1,5 +1,5 @@
 mast_user_name,mqtt_node,parent_node_id,heads,appearance,physignal,mast_system_name,head_system_names,packed_ids,port_ids
-Mast 6LB,4,C4,2,two-searchlight,double,IF$shsm:basic:two-searchlight(IH432)(IH433),IH432 IH433,432 433,C4-OU2-1 C4-OU2-2 C4-OU2-3 C4-OU2-4 C4-OU2-5 C4-OU2-6
+Mast 6LB,4,C4,1,one-low,single,IF$shsm:basic:one-low(IH432),IH432,432,C4-OU2-1 C4-OU2-2 C4-OU2-3
 Mast 6LA,4,C4,1,one-low,single,IF$shsm:basic:one-low(IH434),IH434,434,C4-OU2-7 C4-OU3-8 C4-OU3-7
 Mast 2L,4,C4,2,two-searchlight,double,IF$shsm:basic:two-searchlight(IH438)(IH439),IH438 IH439,438 439,C4-OU3-1 C4-OU3-2 C4-OU3-3 C4-OU3-4 C4-OU3-5 C4-OU3-6
 Mast 4RA,4,C4,1,one-low,single,IF$shsm:basic:one-low(IH436),IH436,436,C4-OU4-1 C4-OU4-2 C4-OU4-3

@@ -26,6 +26,7 @@ Updated 2026-11-07. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 - **Repo gates:** `main` is protected on GitHub, CI runs `tools/check.sh` on PRs, and `.claude/hooks/main_guard.py` guards every session, including against commits on `main` and admin merges.
 - **Build:** helix complete. Main level resumes after Thanksgiving.
 - **Princess track names (2026-11-07):** With the helix in, the stubs east of Switches 39 and 37 are now Track McKees Rocks and Track McKeesport (mainline), and the loop legs are Track K-1 and Track K-2; only names moved, and the Dispatcher System data was renamed in place. The Layout Editor panel keeps the physical picture (K loop drawn around the mainline stubs). The CATS desks put K-1 / K-2 on the outer rows running off the east edge, the mains in the centre. Signal types follow the roles: two-head Mast 40LA / 38LA on the mains, dwarf Mast 40LB / 38LB on the K tracks (no field hardware yet). See [ADR-017](decisions/ADR-017-princess-track-name-swap.md).
+- **Mast 6LB interim dwarf (2026-11-07):** Mast 6LB (Plane, Switch 5) is a one-low dwarf on IH432 (`Head 6LB`), the one head wired in the field (C4-OU2-1..3). IH433 (`Head 6LB Bottom`) stays defined but is unwired and on no mast. The CATS desks show it as a single lamp. Return it to two-searchlight (tables, CATS PHYSIGNAL, `signal_head_plan.csv`) when the second head is wired; the wiring docs still describe that plan.
 
 ## Owed
 

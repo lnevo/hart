@@ -83,7 +83,7 @@ signalhead,IH140,Head 38LA Bottom
 signalhead,IH141,Head 2035
 signalhead,IH142,Head 40LB
 signalhead,IH143,Head 38LB
-signalhead,IH432,Head 6LB Top
+signalhead,IH432,Head 6LB
 signalhead,IH433,Head 6LB Bottom
 signalhead,IH434,Head 6LA
 signalhead,IH436,Head 4RA
@@ -112,7 +112,7 @@ signalmast,IF$shsm:basic:two-searchlight(IH1337)(IH1338),Mast 8LA
 signalmast,IF$shsm:basic:two-searchlight(IH135)(IH136),Mast 36RA
 signalmast,IF$shsm:basic:two-searchlight(IH137)(IH138),Mast 36RB
 signalmast,IF$shsm:basic:two-searchlight(IH139)(IH140),Mast 38LA
-signalmast,IF$shsm:basic:two-searchlight(IH432)(IH433),Mast 6LB
+signalmast,IF$shsm:basic:one-low(IH432),Mast 6LB
 signalmast,IF$shsm:basic:two-searchlight(IH438)(IH439),Mast 2L
 signalmast,IF$vsm:basic:one-low($1001),Mast 4LA
 signalmast,IF$vsm:basic:one-low($1002),Mast 4LB
