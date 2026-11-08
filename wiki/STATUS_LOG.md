@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-08 — Momentum test of CSX 2121 against CSX 2738 (speed-0 command at Switch 33 after a run from rest at steps 32 and 96): the stop and the start match within 0.1 s at step 96, so CV3/CV4 need no change. 2121 in reverse is about 10% slower than 2738 forward at step 32 (about 2% at step 96); the reverse profile of 2121 is still to be measured. Data in `docs/jmri/speedmatching/profile-2026-11-08/momentum_test.csv`.
+
 Updated: 2026-11-08 — Re-measured CSX 2738 after programming (steps 12, 24, 48, 126, one timed lap each): within 1.2% of CSX 2121 at 24, 48 and 126 and 5.3% fast at step 12, where it had been 41 to 52% slow. Results in `docs/jmri/speedmatching/profile-2026-11-08/post_programming_sample.csv`.
 
 Updated: 2026-11-08 — Programmed CSX 2738 on the programming track through the Pi's JMRI to match 2121: CV25 = 16, CV29 = 50, CV3 = 26, CV4 = 24 and the calculated CV67 to CV94 speed table; 32 CVs read back with no mismatches. The roster entry is not updated and the profile is not re-measured yet.
