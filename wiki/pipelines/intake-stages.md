@@ -8,13 +8,17 @@ Each stage ends with a review sheet and an entry in the batch manifest (`ops/int
 
 Run from `external/hart-ops`.
 
-- Put photos in `ops/car-cards/incoming/`; phone names (IMG_1234) are fine. Every photo starts as a car, and you decide on the sheet which are locomotives. A file name starting `loco_` or `engine_` starts as a locomotive.
-- `bin/cars review` crops, straightens and reads each new photo, then writes `ops/intake/<date>/review.csv` and a contact sheet `review.html` (open it in a browser). `--batch NAME` names the batch.
-- Flags: `crop-*` (crop fell back), `blurry`, `no-marks`, `no-number`, `road-not-in-fleet`, `duplicate-has-photo` (the repository car already has a photo), `same-id-as-<photo>` (twice in one batch), `private-name`, `maybe-loco`, `ai-says-loco`, `ai-says-car`, `ai-disagrees`, `process-failed` (one bad file does not stop the batch).
+- Put photos in `ops/car-cards/incoming/` **in the hart repo root** (not inside `external/hart-ops`); phone names (IMG_1234) are fine. Every photo starts as a car, and you decide on the sheet which are locomotives. A file name starting `loco_` or `engine_` starts as a locomotive.
+- `bin/cars review` crops, straightens and reads each new photo, then writes `ops/intake/<date>/review.csv` and a contact sheet `review.html` (open it in a browser). `--batch NAME` names the batch. A batch that already exists is refused, so to redo one (after a crop or OCR fix) use a new name and delete the old batch folder, which is yours and gitignored. The crops are rebuilt every run.
+- **How a photo is read.** The crop ends at the track (the dark table strip below the backdrop is ignored). OCR then reads the *finished crop*: stencilled lettering such as gold on silver is picked out by colour (red minus blue), because brightness has almost no contrast. That window and the weights window were tuned on the CSX hoppers; other car types may read nothing, and the AI review and your edits cover them. A misread is common on a blurry photo and on digits like `O`/`0`.
+- Flags: `number-length` (road number has a different digit count from most of the batch), `crop-*` (crop fell back), `blurry`, `no-marks`, `no-number`, `road-not-in-fleet`, `duplicate-has-photo` (the repository car already has a photo), `same-id-as-<photo>` (twice in one batch), `private-name`, `maybe-loco`, `ai-says-loco`, `ai-says-car`, `ai-disagrees`, `process-failed` (one bad file does not stop the batch).
 - **AI review (manual step).** Ask Claude to review the batch. It reads each image in the `image` column next to the OCR values, in groups of about ten per Sonnet agent, and writes a JSON file `{photo: {marks, number, type, note}}`. `bin/cars ai-notes <batch> <file>` merges it into the sheet. The AI only suggests: it never changes the OCR fields or the status, and a reading that differs from the OCR adds the `ai-disagrees` flag.
 - **Car or locomotive.** The flags `maybe-loco` (loco words in the OCR text), `ai-says-loco` and `ai-says-car` (the AI review's type disagrees with the kind) mark candidates. The OCR hint is weak: it matched none of the 10 existing loco photos, so the AI review is the real detector. Switch photos with `bin/cars kind <batch> loco IMG_1.png IMG_2.png` (or `car`); it recomputes the roster id and clears the kind flags.
+- **Edit on the page.** `review.html` is editable: every field is an input and status is a dropdown. Edits stay in your browser. Click *Download review.csv*, then `bin/cars sheet-import <batch> ~/Downloads/review.csv`; it reloads the sheet and recomputes roster ids and flags for every row, so approved rows can be edited too.
+- **Same car type batch.** `bin/cars fill <batch> --set reporting_marks=CSX --set car_type=Hopper` sets columns on every row, then fills each row's empty details from the best row (most details, then the sharpest photo) and prints any row whose reading differs. Use `--set col=` to blank a column. The OCR guesses `car_class` from noise (`LO`, `HT`); blank it unless the class is printed on the car.
+- **Marks.** Photos show what is printed (CSXT). If the railroad uses other marks (CSX), set them with `fill --set` or the page; the AI notes keep the printed reading, so every row then shows `ai-disagrees` for that one difference.
 - `bin/cars approve <batch>` refuses until every pending row has an AI note (`--no-ai` overrides), then approves every unflagged row. For a flagged row, correct its fields in `review.csv` and set `status` to `approved` or `rejected`.
-- The blur threshold (`BLUR_THRESHOLD` in `intake_stages.py`) is a first guess. Check it against the first real batch.
+- The blur threshold (`BLUR_THRESHOLD`, 600) held up on the first batch: only the one genuinely soft photo fell under it.
 - Writes the derived images and the batch folder only. The repository, STS and JMRI are untouched.
 
 ## 2. Repository records
@@ -35,10 +39,15 @@ Run from `external/hart-ops`.
 | `pi` | the Pi's Operations files equal the repo copy (run `make ops-pull` first, JMRI closed, and commit what it brings in) |
 | `backup` | something in the STS backups folder is under 12 hours old (take one in the STS web app or with the `sts_backup` tool) |
 
+- **Order matters.** `make ops-pull` replaces the repo's Operations files with the Pi's, so do it *before* `publish` (JMRI closed), commit it alone, then publish. If cars were merged into the repo copy first, the pull drops them: merge them back in (`merge_ops`) and commit again. Compare the Pi's files with the repo's in a scratch folder before overwriting.
+- A superseded batch of the same photos still blocks the `batches` check; delete it (it is yours, gitignored).
+- **STS pools.** `add_hart_cars.py` gives a new car the union of the shipment pools of every car with the same STS car code, so a code shared by several kinds of car (HM) brings in pools for other commodities. Review the pools with the owner afterwards. A pool whose shipment is gone from the live database is left out with a printed note (the seed can list shipments that were deleted).
+- **STS photos.** The tool writes `{car id}.jpg` to the seed's photo folder and to `external/sts-docker-data/Rolling Stock photos/` (what the container serves); that folder is tracked in the hart repo, so commit the new files. It prints a line when it finds no photo.
+- **Car type in Operations Pro.** The Pi's roster separates "Coke Hopper", "Hopper" and "Covered Hopper". New cars take the type you set on the sheet; set the right one in stage 1.
 - **One car at a time:** `bin/cars publish --only NW32800` skips the `batches` and `committed` checks and sends just that car. The rest of the queue is left alone.
 - `--skip-check NAME` skips one check and says so. Use it only when you know why.
 - After publish: `bin/cars compare` must be clean (baseline checked 2026-11-08: no drift; HART1776 is a known exception and the 70 vs 99 count is by design).
-- Commit `jmri/layouts/hart/operations/` and deploy as in car-workflow.md.
+- Commit `jmri/layouts/hart/operations/` and deploy as in car-workflow.md (`sync_hart_package.sh --all`, JMRI closed on the Pi). Check afterwards that the Pi's Operations Car Roster equals the repo's.
 - Cars with no photo and passenger cars stay out of STS by design.
 
 ## 4. Locomotives into JMRI
@@ -54,8 +63,8 @@ The Pi-side import is untested against live JMRI. Run the plan first and watch t
 ## 5. Cards and public pages
 
 - `bin/cars cards` builds one print file for cars and locomotives; print, then `bin/cars cards --mark-printed`. Loco cards come from `data/locos.csv` (road, number, model, length, maker), so they can be built before stage 4 publishes the engine.
-- `bin/cars site` shows the new photographed cars and locos missing from the public gallery (`www/data/fleet-gallery.json`); `--apply` adds them, with captions from the card text. It never adds an entry containing the private name. It finds nothing missing today, so a clean run means the gallery is up to date.
-- Commit the gallery, then `./www/scripts/deploy_hartrailroad.sh`. The site build needs the photo mirrors described in `www/README.md`.
+- `bin/cars site` shows the new photographed cars and locos missing from the public gallery (`www/data/fleet-gallery.json`); `--apply` adds them, with captions from the card text. It never adds an entry containing the private name. A clean run means the gallery is up to date. A description that only repeats the car type is left out of the caption (`CSX · Hopper · 40'`).
+- Merge the gallery to `main`, update the main checkout, then run `./www/scripts/deploy_hartrailroad.sh` **from the main checkout**: the build needs the photo mirrors (`www/README.md`), which a worktree lacks, and without them the Rolling stock albums drop out. The build prints the fleet item count (83 to 93 for ten cars); check one new image on the live site.
 - Update `wiki/STATUS.md`.
 
 ## 6. Programming and speed matching
@@ -64,30 +73,29 @@ Per loco, once it is on the bench: program the decoder, then [speed matching](sp
 
 ## Running a batch (start here in a new session)
 
-State on 2026-11-08: stages 1 to 5 are built and merged (hart-ops PRs 12, 13, 14; hart PRs 175 to 177). Nothing has run on a real batch. The first real batch is the test: watch every step and fix what breaks.
+State on 2026-11-08: all stages ran once on a real batch (ten CSX hoppers, cars 81 to 90 in STS, merged and deployed). The fixes it needed are in the stages above; locos have still not been through stage 4.
 
-**Before the first batch**
-- Run from `external/hart-ops` (`bin/cars ...`). It needs `.venv`, tesseract and the hart checkout on `main`; use a worktree for any hart repo change (other sessions share the checkout).
-- Photos go in `ops/car-cards/incoming/` (gitignored). Phone names are fine.
-- Baseline already checked: `bin/cars compare` shows no drift (99 Operations Pro cars, 70 in STS by design, HART1776 a known exception).
+**Before a batch**
+- Run from `external/hart-ops` (`bin/cars ...`). It needs `.venv`, tesseract and the hart checkout on `main`. Other sessions share the checkouts: for repository changes use a worktree. `bin/cars` works from a worktree placed under `external/` (for example `external/hart-ops-wt`, with `.venv` symlinked) because it derives the hart root from its own path; the files it writes outside hart-ops (Operations roster, gallery, STS inputs) still land in the main checkout, so copy them into your worktree to commit and restore the main checkout afterwards.
+- Photos go in `ops/car-cards/incoming/` in the hart root (gitignored). Phone names are fine.
+- `bin/cars compare` should show no drift first (HART1776 is a known exception).
 
 **Steps**
-1. `bin/cars review`. Open `ops/intake/<date>/review.html`. Look at flagged crops.
+1. `bin/cars review`. Open `ops/intake/<date>/review.html`. Look at the crops first (cut-off, black or border at the bottom, tilt) and fix the crop code before reading anything.
 2. **AI review** (the owner asks for it). Read `review.csv`; for each row Read the image in the `image` column and compare with the OCR columns. Use Sonnet agents, about ten photos each, read-only. Each returns `{photo: {marks, number, type, note}}`: the reporting marks and number as printed, the type (Boxcar, Hopper, Locomotive...), and a note on anything unreadable. Merge the answers into one JSON file in the scratchpad, then `bin/cars ai-notes <batch> <file>`. The AI suggests only; do not edit `review.csv` fields from it.
-3. Show the owner the flagged rows (`ai-disagrees`, `ai-says-loco`, `maybe-loco`, blurry, no-number, duplicate). Apply their corrections in `review.csv`, switch locos with `bin/cars kind <batch> loco <photos>`, set `status` to `approved` or `rejected` for flagged rows.
+3. Show the owner the flagged rows (or let them edit on the page, then `sheet-import`; `fill` for a batch of one car type) (`ai-disagrees`, `ai-says-loco`, `maybe-loco`, blurry, no-number, duplicate). Apply their corrections in `review.csv`, switch locos with `bin/cars kind <batch> loco <photos>`, set `status` to `approved` or `rejected` for flagged rows.
 4. `bin/cars approve <batch>`, then `bin/cars records <batch> --dry-run`, then without `--dry-run`. Commit the repository files and the manifest in a branch.
 5. Locos: `bin/cars locos set "<ROAD NUMBER>" dcc_address=... model=... loco_type=Diesel length_ft=...` until `locos status` shows nothing missing, then `bin/cars locos publish`.
-6. Stage 3 only when every photo is recorded or rejected: take an STS backup, close JMRI on the Pi, `make ops-pull`, commit, then `bin/cars publish`. Test one car first with `--only`. The first live STS insert and Pi push have never run, so watch them. Then `bin/cars compare`, commit `jmri/layouts/hart/operations/`, deploy with `sync_hart_package.sh --all`.
+6. Stage 3 only when every photo is recorded or rejected: take an STS backup, close JMRI on the Pi, `make ops-pull`, commit, then `bin/cars publish`. Test one car first with `--only`. The live STS insert ran clean on the first batch once the pool and photo fixes were in. Then `bin/cars compare`, commit `jmri/layouts/hart/operations/`, deploy with `sync_hart_package.sh --all`.
 7. Stage 4: `tools/ops/loco_roster_import.sh` (plan), then `--apply`; `ensure_dispatcher_roster_profiles.py`; `tools/ops/cs105_roster_sync.sh --apply`. Traininfo files for new locos by hand.
-8. Stage 5: `bin/cars cards`, print, `--mark-printed`; `bin/cars site`, `--apply`, commit, `./www/scripts/deploy_hartrailroad.sh`.
+8. Stage 5: `bin/cars cards`, print, `--mark-printed`; `bin/cars site`, `--apply`, merge, then deploy the site from the main checkout.
 
 **Known soft spots**
-- `BLUR_THRESHOLD` (600) is a guess; adjust in `intake_stages.py` after the first batch.
-- The gate's STS backup check accepts any file under 12 hours old in `external/sts-docker-data/backups`; confirm the real backup file name and tighten.
-- Loco photos use the car crop code and may crop badly.
+- The gate's STS backup check accepts any file under 12 hours old in `external/sts-docker-data/backups`; it passed on the first batch, so the name is still untightened.
+- Loco photos use the car crop code and may crop badly, and the lettering OCR window was tuned on hoppers.
 - The Pi-side DecoderPro import is unit-tested only; plan before `--apply`.
 - Locos need hand-entered details (DCC address, model, length); the photo gives road and number only.
-- A stray remote branch `agent/claude/hart-ops-pointer` exists on GitHub with no commits; delete it when convenient.
+- The pools a new car gets come from the union of its car code's cars; commodity-specific pools (coke) are still set by hand.
 
 ## Models
 
