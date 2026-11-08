@@ -2,8 +2,9 @@
 
 **PROGRAMMED on 2026-11-08** on the programming track through the Pi's JMRI (Direct Byte
 mode), then read back: 32 CVs, 0 mismatches. The roster entry (`2738.xml`) was **not** yet
-updated; read the sheets in DecoderPro to bring it in line. The profile has **not** been
-re-measured yet.
+updated; read the sheets in DecoderPro to bring it in line. A four-step
+re-measure the same day (see `post_programming_sample.csv`) put 2738 within 1.2% of 2121
+at steps 24, 48 and 126 and 5.3% fast at step 12.
 
 **Rollback values** (read from the decoder just before the write): CV25 = 0, CV29 = 34,
 CV3 = 0, CV4 = 0, and CV67 to CV94 =

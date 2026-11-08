@@ -62,6 +62,22 @@ Reading the scale as HO (1:87), 430 mm/s is about 84 scale mph.
 5. **Step 8 of 2121:** the two valid laps are in [`manual_laps.csv`](manual_laps.csv)
    (633.0 s and 624.9 s, 1.3% apart). The suite's own step-8 laps were discarded.
 
+## After programming 2738 (sample, same day)
+
+Once 2738 was programmed, a short sample (one timed lap per step, same loop, same
+direction) gave:
+
+| Step | 2738 before | 2738 after | 2121 | After vs 2121 |
+|---:|---:|---:|---:|---:|
+| 12 | 54.7 | 98.2 | 93.3 | +5.3% |
+| 24 | 108.1 | 226.2 | 225.7 | +0.2% |
+| 48 | 215.4 | 382.1 | 380.2 | +0.5% |
+| 126 | 434.0 | 424.5 | 429.8 | -1.2% |
+
+(mm/s; `post_programming_sample.csv`). The match is within the +-3% repeatability of the
+top end. The low end is the weak point: 5% fast at step 12 and not measured below that.
+Steps 8, 16, 32, 64, 80, 96 and 112 were not re-run.
+
 ## Loop length (not reliable)
 
 The block lengths come from `jmri/layouts/hart/data/block_lengths.csv`, which was taken
@@ -113,6 +129,7 @@ the loop total with a tape (or time a loco over a measured distance), correct
 | `speed_by_step.csv` | per loco and step: laps, mean lap, mean mm/s, spread, HO mph |
 | `block_events.csv` | every block transit (637): entry time, transit time, mm/s |
 | `block_summary.csv` | per loco, step, block: mean speed, ratio to loop mean, implied length |
+| `post_programming_sample.csv` | 2738 re-measure after programming, against 2121 |
 | `block_speeds.py`, `analyze_profile.py`, `propose_table.py` | produce the above |
 
 ## Data quality notes

@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-08 — Re-measured CSX 2738 after programming (steps 12, 24, 48, 126, one timed lap each): within 1.2% of CSX 2121 at 24, 48 and 126 and 5.3% fast at step 12, where it had been 41 to 52% slow. Results in `docs/jmri/speedmatching/profile-2026-11-08/post_programming_sample.csv`.
+
 Updated: 2026-11-08 — Programmed CSX 2738 on the programming track through the Pi's JMRI to match 2121: CV25 = 16, CV29 = 50, CV3 = 26, CV4 = 24 and the calculated CV67 to CV94 speed table; 32 CVs read back with no mismatches. The roster entry is not updated and the profile is not re-measured yet.
 
 Updated: 2026-11-08 — Profiled CSX 2121 and CSX 2738 on the full loop with a runner inside the Pi's JMRI (31.3 m loop, laps timed from the East Main Ext sensor): same top speed (about 420 to 430 mm/s) but 2738 runs at 47 to 70% of 2121's speed from step 12 to 64, because its speed table is off (CV25 = 0, CV29 bit 4 clear) and it has no momentum. The owner chose to match 2738 to 2121 including momentum; CV changes are drafted in `docs/jmri/speedmatching/profile-2026-11-08/CV_CHANGES_DRAFT.md` and nothing was programmed.
