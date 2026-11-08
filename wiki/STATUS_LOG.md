@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-08 — Brought the Windows roster in line with the Pi (the sync script's `--win` tar step silently delivered nothing; done by hand with relative paths, old copy in `JMRI_UserFiles\backups\roster_pre_pi_sync_20261108`). Restarted PanelPro on the Pi after the owner's car-card deploy and created an LCC consist on the CS-105: CSX 2121 lead, CSX 2738 listener in reverse with F0 linked (`jmri/layouts/hart/scripts/cs105_consist.py`).
+
 Updated: 2026-11-08 — Edited CSX 2738's roster entry by hand to the programmed CVs (CV3, CV4, CV25, CV29, CV67 to CV94 and the matching speed-table and accel/decel sheet values), so the loco did not have to go back to the programming track. The Pi's JMRI re-read the entry cleanly; the Mac copy was replaced too; Windows is pending.
 
 Updated: 2026-11-08 — Corrected the momentum-test note: 2121 in reverse is not slower than forward. A whole-lap reverse run (steps 24, 48, 64: 133.7, 82.0 and 72.1 s) matches the forward laps within 3%; the 10% seen at step 32 was a start-position artifact. No trim needed. Data in `docs/jmri/speedmatching/profile-2026-11-08/reverse_2121_laps.csv`.
