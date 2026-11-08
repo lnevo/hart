@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-08 — Profiled CSX 2121 and CSX 2738 on the full loop with a runner inside the Pi's JMRI (31.3 m loop, laps timed from the East Main Ext sensor): same top speed (about 420 to 430 mm/s) but 2738 runs at 47 to 70% of 2121's speed from step 12 to 64, because its speed table is off (CV25 = 0, CV29 bit 4 clear) and it has no momentum. The owner chose to match 2738 to 2121 including momentum; CV changes are drafted in `docs/jmri/speedmatching/profile-2026-11-08/CV_CHANGES_DRAFT.md` and nothing was programmed.
+
 Updated: 2026-11-07 — Princess track names swapped now the helix is in: the stubs at Switches 39/37 are Track McKees Rocks / Track McKeesport (mainline), the loop legs are Track K-1 / Track K-2. Hardware, sensors and ids stayed with the physical track; see ADR-017. Tables, Dispatcher data, CATS panels, docs and website changed in one PR.
 
 Updated: 2026-11-01 — Removed the retired boot retain fill from `panel_status.py` and moved `apply_maintain_mqtt.py` and its alias to `archive/jmri-scripts/`; the hosts had skipped it since 2026-08-21. A PanelPro launch confirmed the panel afterwards.
