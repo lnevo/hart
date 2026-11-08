@@ -34,7 +34,6 @@ Updated 2026-11-08. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 Deferred by the owner on 2026-10-31; none of these is urgent.
 
-- STS staging for the 2026-11-08 operating session. STS has to be running, and the owner starts it.
 - **When the CS-105 is back up (it was down on 2026-11-08):**
   1. Check it announces on the LCC bus: PanelPro running on the Pi with the LCC USB adapter connected.
   2. Run `tools/ops/cs105_roster_sync.sh` (plan only). Read its second line. If it says `CS-105 NOT FOUND`, stop: the CS-105 is not visible, and `--apply` is refused. If it lists the existing trains as updates, go on.
