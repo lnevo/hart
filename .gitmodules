@@ -16,3 +16,6 @@
 [submodule "external/sts-plugins"]
 	path = external/sts-plugins
 	url = git@github.com:lnevo/sts-plugins.git
+[submodule "external/jmri-cs105-roster-sync"]
+	path = external/jmri-cs105-roster-sync
+	url = git@github.com:lnevo/jmri-cs105-roster-sync.git

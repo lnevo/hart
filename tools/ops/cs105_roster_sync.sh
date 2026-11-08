@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Sync the JMRI roster into the TCS CS-105 through the Pi's running JMRI.
 #
-# Drops jmri/layouts/hart/scripts/cs105_roster_sync.py into the Pi's
-# jmri_cmd_watcher channel (/tmp/jmri_cmd.py) and prints the result.
+# Drops the generic script (submodule external/jmri-cs105-roster-sync, public repo
+# lnevo/jmri-cs105-roster-sync) into the Pi's jmri_cmd_watcher channel (/tmp/jmri_cmd.py) and prints the result.
 # Without --apply it only prints the plan.
 #
 #   tools/ops/cs105_roster_sync.sh                 plan
@@ -13,7 +13,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SCRIPT="$ROOT/jmri/layouts/hart/scripts/cs105_roster_sync.py"
+SCRIPT="$ROOT/external/jmri-cs105-roster-sync/cs105_roster_sync.py"
+[[ -f "$SCRIPT" ]] || { echo "missing $SCRIPT: git submodule update --init external/jmri-cs105-roster-sync" >&2; exit 1; }
 PI_HOST="${HART_PI_SSH:-pi}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 TIMEOUT="${CS105_TIMEOUT:-900}"
