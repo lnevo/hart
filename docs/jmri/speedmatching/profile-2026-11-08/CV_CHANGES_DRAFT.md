@@ -1,6 +1,15 @@
-# Draft CV changes: match CSX 2738 to CSX 2121
+# CV changes: match CSX 2738 to CSX 2121
 
-**Draft for the owner's review. Nothing here has been programmed.** The goal is that
+**PROGRAMMED on 2026-11-08** on the programming track through the Pi's JMRI (Direct Byte
+mode), then read back: 32 CVs, 0 mismatches. The roster entry (`2738.xml`) was **not** yet
+updated; read the sheets in DecoderPro to bring it in line. The profile has **not** been
+re-measured yet.
+
+**Rollback values** (read from the decoder just before the write): CV25 = 0, CV29 = 34,
+CV3 = 0, CV4 = 0, and CV67 to CV94 =
+`9, 18, 27, 36, 45, 55, 64, 73, 82, 91, 100, 109, 118, 127, 137, 146, 155, 164, 173, 182, 191, 200, 209, 219, 228, 237, 246, 255`.
+
+Originally drafted for the owner's review. The goal is that
 2738 runs at 2121's speed at every throttle step and has the same momentum.
 
 ## What to change on 2738 (Soundtraxx MC2H104P9)

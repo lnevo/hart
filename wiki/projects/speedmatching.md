@@ -1,7 +1,7 @@
 # Speed matching
 
 - **Owner:** lnevo
-- **Status:** In progress — CSX 2121 and CSX 2738 measured on the full loop 2026-11-08 ([results](../docs/jmri/speedmatching/profile-2026-11-08/README.md)); CV changes to match 2738 to 2121 are drafted for the owner's review, nothing programmed. Every other roster loco still has the same synthesized 10-step / 400 mm/s profile.
+- **Status:** In progress — CSX 2121 and CSX 2738 measured on the full loop 2026-11-08 ([results](../docs/jmri/speedmatching/profile-2026-11-08/README.md)); 2738 was programmed to match 2121 (speed table, CV25/CV29, momentum) and still needs a re-measure and a roster update. Every other roster loco still has the same synthesized 10-step / 400 mm/s profile.
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
 
 HART auto-dispatcher needs **measured** roster speed profiles for station stops. Every live DecoderPro loco currently has the same synthetic 10-step / 400 mm/s profile (`wiki/STATUS.md`). This thread is a working club procedure for a detected track circle plus JMRI POM scripts.
@@ -17,7 +17,7 @@ momentum (CV3/CV4 = 0/0). The owner chose to match 2738 to 2121, momentum includ
 [`CV_CHANGES_DRAFT.md`](../docs/jmri/speedmatching/profile-2026-11-08/CV_CHANGES_DRAFT.md).
 The owner wants no programming on the main while other engines are on the track.
 
-Open: program the draft and re-measure; step 126 drift check; opposite-direction check; Anyrail
+Open: re-measure 2738 and update its roster entry; step 126 drift check; opposite-direction check; Anyrail
 loop length; the slow Scale block at step 16; the STRR scripts below are still unused.
 
 ## Source
