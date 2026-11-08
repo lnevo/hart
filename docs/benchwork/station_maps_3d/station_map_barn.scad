@@ -133,12 +133,12 @@ module rings2d() {
 // turned to point their channel at the nearest clear edge; Switch 7 is turned
 // along the crossover.
 
-// Single one-light toggles: [centre, turn, channel direction]. Turn 0 sends
-// the channel down the sheet, 90 sends it east.
+// Single one-light toggles: [centre, turn]. The turn points the local -y wall
+// (the ribbon side) along the channel: 0 is down the sheet, -90 is west.
 SINGLES = [
-  [SW9, 0],    // down
-  [SW11, 90],  // east: SW13's pocket is straight below
-  [SW13, 0],   // down
+  [SW9, 0],
+  [SW11, -90],
+  [SW13, -90],
 ];
 
 // Switch 7 frame: x runs from the toggle towards the third light.
@@ -148,25 +148,53 @@ SW7_X_MAX = combo_len - toggle_w / 2 + pocket_clearance / 2;
 SW7_LED_X = 1.5 * pitch_in * IN;
 HOUSING_W = combo_w + pocket_clearance;
 HOUSING_SLOT_W = 9.0;
+SW7_STUB = 26;         // channel from the Switch 7 pocket before it joins the bus
 
 module local(p, ang) { at(p) rotate(ang) children(); }
 
 module single_pocket2d() {
   square(pocket_w, center = true);
-  translate([-wire_slot_w / 2, -400]) square([wire_slot_w, 400]);
 }
 
 module sw7_pocket2d() {
   translate([SW7_X_MIN, -pocket_w / 2]) square([pocket_w, pocket_w]);
   translate([SW7_X_MAX - HOUSING_W, -HOUSING_W / 2]) square([HOUSING_W, HOUSING_W]);
-  // One channel for the toggle ribbon and the third light's wire; two would
-  // leave a 3 mm sliver of plate between them.
-  translate([-wire_slot_w / 2, -400]) square([SW7_LED_X + HOUSING_SLOT_W / 2 + wire_slot_w / 2, 400]);
+  // One stub for the toggle ribbon and the third light's wire.
+  translate([-wire_slot_w / 2, -SW7_STUB])
+    square([SW7_LED_X + HOUSING_SLOT_W / 2 + wire_slot_w / 2, SW7_STUB]);
+}
+
+// ---- Wiring: every channel joins one trunk that leaves through the bottom edge ----
+//
+// SW9's channel runs straight down as the trunk. SW13 and SW11 run west into it.
+// Switch 7's stub drops to a bus under its pocket, which joins the trunk from the
+// left. All wires leave together through one notch, so one connector serves.
+function mm_pt(p, ang, q) = [p[0] + q[0] * cos(ang) - q[1] * sin(ang), p[1] + q[0] * sin(ang) + q[1] * cos(ang)];
+
+TRUNK_X = mm(SW9)[0];
+BUS_Y = -53;
+EXIT_Y = -sheet_h;
+SW7_JOIN = mm_pt(mm(SW7_TOGGLE), SW7_ANGLE, [SW7_LED_X / 2, -SW7_STUB / 2]);
+SW11_BEND_X = 33;      // clear of SW9's pocket
+
+CHANNELS = [
+  [mm(SW9), [TRUNK_X, EXIT_Y]],
+  [mm(SW13), [TRUNK_X, mm(SW13)[1]]],
+  [mm(SW11), [SW11_BEND_X, mm(SW11)[1]], [SW11_BEND_X, mm(SW13)[1]]],
+  [SW7_JOIN, [SW7_JOIN[0], BUS_Y], [TRUNK_X, BUS_Y]],
+];
+
+module channel2d(pts) {
+  for (i = [0 : len(pts) - 2]) hull() {
+    translate(pts[i]) circle(d = wire_slot_w);
+    translate(pts[i + 1]) circle(d = wire_slot_w);
+  }
 }
 
 module pockets2d() {
   for (s = SINGLES) local(s[0], s[1]) single_pocket2d();
   local(SW7_TOGGLE, SW7_ANGLE) sw7_pocket2d();
+  for (c = CHANNELS) channel2d(c);
 }
 
 // A rib at p standing rib_protrude proud of the wall whose inward normal is n.
@@ -178,7 +206,7 @@ module rib(p, n) {
   }
 }
 
-// Left, right and top walls, two ribs each; the bottom wall is the channel.
+// Left, right and top walls, two ribs each; the bottom wall is where the channel leaves.
 SINGLE_RIBS = [
   for (s = [-1, 1]) [[-pocket_w / 2, s * RIB_OFFSET], [1, 0]],
   for (s = [-1, 1]) [[pocket_w / 2, s * RIB_OFFSET], [-1, 0]],

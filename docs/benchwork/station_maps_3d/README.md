@@ -32,9 +32,9 @@ Sizes come from the caliper table below and the method proven on the SW13 test p
 | Crush ribs | Ø1.0, 0.35 proud, 1 mm lead-in | As the SW13 test |
 | LED hole | 4.96 mm (3/16 in plus 0.2) | From the drawing |
 | Skin over toggles | 1.0 mm (0.4 mm under inlaid ink) | As the SW13 test |
-| Wire channels | 13 mm wide, full pocket depth, out through the plate edge | SW9, SW13 down; SW11 east; SW7 along the crossover |
+| Wire channels | 13 mm wide, full pocket depth, one network with a single exit notch in the bottom edge (x about 14 mm right of centre, under SW9) | SW9 runs down as the trunk; SW11 and SW13 run west into it; SW7 drops to a bus under its pocket and joins from the left |
 
-Mounting is double-sided tape on the flat back. The ribbon position varies from toggle to toggle, hence the wide channels.
+Mounting is double-sided tape on the flat back. The ribbon position varies from toggle to toggle, hence the wide channels. All wires leave together at the one notch, so one connector serves.
 
 ## Switch 7
 
@@ -42,7 +42,7 @@ The two-light toggle's 3/8 in hole pitch sets the crossover dot pitch, so its
 pocket is turned to the crossover slope. The toggle takes the top and middle
 dots and the third hole is the indicator; `indicator_dot` swaps it to the top.
 The pocket is one 28.6 × 18.2 mm shape covering toggle and housing, with ribs on
-both ends and one channel out the side for both wires. The 28.6 mm length is the
+both ends and one short stub out the side for both wires, which joins the shared bus. The 28.6 mm length is the
 caliper figure for the joined assembly; the third LED sits 14.3 mm from the
 toggle centre, so check how the housing sits on a real toggle before printing.
 Main East sits 0.17 in higher than on the paper sheet as a result.
