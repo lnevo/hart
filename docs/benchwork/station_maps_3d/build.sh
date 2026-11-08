@@ -11,7 +11,7 @@ for part in white black teal gold; do
   "$OPENSCAD" -D "part=\"$part\"" -o "$OUT/barn_$part.stl" "$HERE/station_map_barn.scad"
 done
 
-for part in body letters; do
+for part in body ink; do
   "$OPENSCAD" -D "part=\"$part\"" -o "$OUT/sw13_$part.stl" "$HERE/toggle_test_sw13.scad"
 done
 
