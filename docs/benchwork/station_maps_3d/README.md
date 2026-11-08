@@ -10,7 +10,7 @@ Multi-colour fascia plates that hold Touch Toggles. Barn is first; it follows
 ## Printing (Spark i7 + 4-colour AMS, Creality Print)
 
 1. Add all four STLs in one go and choose to load them as one object with multiple parts. They share an origin, so do not move them apart.
-2. Assign white, black, teal and gold to the parts.
+2. Assign colours to the parts. The filenames stay `barn_white` (body) and `barn_black` (track and lettering), whatever the filament. The current print copies the SW13 2x2: body black, writing white. The intended final look is a white body with black writing. Teal and gold stay as they are.
 3. Print as loaded, face down on a smooth plate, with no supports. Use 0.2 mm layers or finer so the 0.6 mm inlay gets at least three layers.
 
 After a rebuild, use **Reload from disk**.
@@ -22,19 +22,29 @@ colour above that; `build.sh` fails if one is not.
 
 Everything to confirm is at the top of `station_map_barn.scad`.
 
-| Item | Current value | Status |
-|------|---------------|--------|
-| Plate outline | 202.7 × 126.5 mm (5 × 8 in less 0.5 mm) | Placeholder until the frame is measured |
-| Plate thickness | 3.0 mm | Placeholder until the frame rabbet is measured |
-| Toggle pocket | 19.45 mm square, 1.8 mm deep | Face from the drawing; depth is a guess |
-| LED/sensor hole | 4.96 mm (3/16 in plus 0.2) | From the drawing plus clearance |
-| Skin at pockets | 1.2 mm | Follows from thickness and pocket depth |
+Sizes come from the caliper table below and the method proven on the SW13 test panel.
+
+| Item | Value | Status |
+|------|-------|--------|
+| Plate outline | 202.7 × 126.5 mm, 3 mm corner radius | Placeholder until the frame is measured |
+| Plate thickness | 7.0 mm | 1.0 skin + 5.8 third-light housing + 0.2 gap; placeholder until the frame depth is known |
+| Toggle pocket | 18.0 mm square (toggle + 0.3), 6.0 mm deep | Measured; SW13 test fit |
+| Crush ribs | Ø1.0, 0.35 proud, 1 mm lead-in | As the SW13 test |
+| LED hole | 4.96 mm (3/16 in plus 0.2) | From the drawing |
+| Skin over toggles | 1.0 mm (0.4 mm under inlaid ink) | As the SW13 test |
+| Wire channels | 13 mm wide, full pocket depth, one network with a single exit notch in the bottom edge (x about 14 mm right of centre, under SW9) | SW9 runs down as the trunk; SW11 and SW13 run west into it; SW7 drops to a bus under its pocket and joins from the left |
+
+Mounting is double-sided tape on the flat back. The ribbon position varies from toggle to toggle, hence the wide channels. All wires leave together at the one notch, so one connector serves.
 
 ## Switch 7
 
 The two-light toggle's 3/8 in hole pitch sets the crossover dot pitch, so its
 pocket is turned to the crossover slope. The toggle takes the top and middle
 dots and the third hole is the indicator; `indicator_dot` swaps it to the top.
+The pocket is one 28.6 × 18.2 mm shape covering toggle and housing, with ribs on
+both ends and one short stub out the side for both wires, which joins the shared bus. The 28.6 mm length is the
+caliper figure for the joined assembly; the third LED sits 14.3 mm from the
+toggle centre, so check how the housing sits on a real toggle before printing.
 Main East sits 0.17 in higher than on the paper sheet as a result.
 
 ## SW13 test panel
@@ -75,5 +85,4 @@ size and pitch.
 | Third-light housing | 18.2 × 18.2 × 5.8 mm; wire out of the bottom, centred below its LED | LED Ø4.76, 9.53 mm on from the two-light's second LED |
 | Two-light + third light | 28.6 × 18.2 mm joined; the toggle friction-fits a ~7.3 mm cutout in the housing. Faces flush, housing 0.7 mm deeper at the back; the exposed toggle steps in to 17.7 wide | |
 
-Barn's 19.45 mm pockets came from the drawing, so they are about 1.75 mm too big
-for these bodies.
+Barn now uses these sizes (earlier 19.45 mm pockets came from the drawing).
