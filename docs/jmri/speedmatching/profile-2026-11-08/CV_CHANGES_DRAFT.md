@@ -35,7 +35,9 @@ The two are close (within about 5 to 10 units) from entry 3 upward, which is a g
 sign that the decoders respond alike. They differ at entry 1 (12 against 26) and the
 top (191 against 199).
 
-**Two options**
+**Decision (owner, 2026-11-08): use the calculated table.**
+
+**Two options considered**
 
 1. **Use the calculated table.** Built from measurements, but assumes entry k acts at
    throttle step 126k/28 and the follower's pre-change drive was proportional to the step.

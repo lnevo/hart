@@ -8,8 +8,8 @@ changed. The follow-up is [`CV_CHANGES_DRAFT.md`](CV_CHANGES_DRAFT.md).
 
 - The loop: East Main Ext, OS7b, Main East, OS33, East Lead, OS35a, OS37, K-2, K-1,
   OS39, OS35b, West Main Ext, OS23a, Main West, OS1, Brick-Plane, OS5, East Main Ext.
-  The block lengths in `tables.xml` add up to **31,292.8 mm**. That length has not
-  been checked against the Anyrail plan.
+  The block lengths in `tables.xml` add up to **31,292.8 mm**, but see
+  [Loop length](#loop-length-not-reliable) below: that figure is not reliable.
 - Speed = loop length / lap time, one lap = two consecutive arrivals in East Main Ext
   (counted only after Switch 23a lit in between, so a sensor retrigger cannot count).
 - Per step: one transition lap (discarded, the speed change disturbs it), then two timed
@@ -60,6 +60,59 @@ Reading the scale as HO (1:87), 430 mm/s is about 84 scale mph.
    slower than steps 64, 96 and 126, a drift between runs, not a real dip.
 5. **Step 8 of 2121:** the two valid laps are in [`manual_laps.csv`](manual_laps.csv)
    (633.0 s and 624.9 s, 1.3% apart). The suite's own step-8 laps were discarded.
+
+## Loop length (not reliable)
+
+The block lengths come from `jmri/layouts/hart/data/block_lengths.csv`, which was taken
+from the Anyrail plan. The `.any` files are binary archives that cannot be read here,
+and the Layout Editor panel is not drawn to physical scale (panel-to-inch ratios run from
+0.5 to 5), so the plan could not be re-measured. The owner notes that the **Switch 7
+crossover and the engine terminal at Switch 13 may not be in the Anyrail files at all**.
+Two of the lengths are also marked "cut" in that CSV (worked out by subtracting from the
+older plan, not measured): Main East ("East Bypass 195 minus OS Switch 7") and East Main
+Ext ("Yard Lead 108 minus OS Switch 13 and OS Switch 7b").
+
+The runs back that up. If the lengths were right, every block would show the same
+apparent speed at a given throttle step. Instead each block has a fixed ratio to the loop
+mean that is the same for both locos and at every step (spread 0.01 or less, in
+`block_summary.csv`). That is geometry, not decoder behaviour. Sharing the loop total
+out by each block's time (constant speed assumed) gives:
+
+| Block | Nominal mm | Implied mm | Difference |
+|---|---:|---:|---:|
+| Main East | 4,699 | 7,122 | +52% |
+| East Main Ext | 2,235 | 3,180 | +42% |
+| East Lead | 4,369 | 2,440 | -44% |
+| Brick-Plane | 1,829 | 1,303 | -29% |
+| K-2 | 3,112 | 2,595 | -17% |
+| West Main Ext | 4,064 | 3,452 | -15% |
+| Main West | 5,588 | 4,904 | -12% |
+| K-1 | 3,112 | 2,813 | -10% |
+
+The short switch (OS) blocks range from -18% to +120%. A later move at step 48 timed
+East Lead at 11.5 s (about 2.5 m) and Main East at 34 s (about 7.3 m), in line with the
+implied lengths and not the nominal ones.
+
+**What it affects.** The implied lengths add up to the nominal total by construction, so
+the real loop length is **unknown**. Every absolute figure (mm/s, scale mph) is uncertain
+by that error, and so are station-stop distances built from these block lengths. The
+comparison between the two locos, and the table that matches 2738 to 2121, are **not**
+affected, because both were timed over the same loop.
+
+**To fix.** Measure the real length of at least Main East, East Main Ext, East Lead and
+the loop total with a tape (or time a loco over a measured distance), correct
+`block_lengths.csv`, and re-run `block_speeds.py`; every figure here recomputes.
+
+## Files
+
+| File | What it holds |
+|---|---|
+| `results.csv` | every timed lap used (lap time, mm/s) |
+| `manual_laps.csv` | the two valid 2121 step-8 laps |
+| `speed_by_step.csv` | per loco and step: laps, mean lap, mean mm/s, spread, HO mph |
+| `block_events.csv` | every block transit (637): entry time, transit time, mm/s |
+| `block_summary.csv` | per loco, step, block: mean speed, ratio to loop mean, implied length |
+| `block_speeds.py`, `analyze_profile.py`, `propose_table.py` | produce the above |
 
 ## Data quality notes
 
