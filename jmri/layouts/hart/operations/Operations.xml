@@ -5,7 +5,7 @@
   <operations>
     <railRoad name="HART Railroad, Pittsburgh &amp; Chartiers Valley Division" />
     <setup comment="" />
-    <settings mainMenu="false" closeOnSave="false" autoSave="true" autoBackup="true" trainDirection="15" trainLength="1000" maxEngines="6" hpt="1.0" scale="6" carTypes="Descriptive" switchTime="3" travelTime="4" showValue="false" valueLabel="Value" showRfid="false" rfidLabel="ID Tag" lengthUnit="Feet" yearModeled="" />
+    <settings mainMenu="true" closeOnSave="true" autoSave="true" autoBackup="true" trainDirection="15" trainLength="1000" maxEngines="6" hpt="1.0" scale="6" carTypes="Descriptive" switchTime="3" travelTime="4" showValue="false" valueLabel="Value" showRfid="false" rfidLabel="ID Tag" lengthUnit="Feet" yearModeled="" />
     <pickupEngFormat prefix=" [ ] Pick up" setting="Road,Number, ,Model, , ,Location,Comment," />
     <dropEngFormat prefix=" [ ] Set out" setting="Road,Number, ,Model, , ,Destination,Comment," />
     <pickupCarFormat prefix=" [ ] Pick up" setting="Road,Number,Type,Length,Color,Load,Hazardous,Location,Comment,PickUp Msg," />
