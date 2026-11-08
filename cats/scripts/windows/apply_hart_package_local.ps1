@@ -161,7 +161,8 @@ foreach ($r in ($roots | Select-Object -Unique)) {
   if (Test-Path $trainInfoSrc) {
     $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
     New-Item -ItemType Directory -Force -Path $trainInfoDest | Out-Null
-    & robocopy $trainInfoSrc $trainInfoDest *.xml /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
+    # /PURGE: the profile mirrors the repo, so routes from old names do not linger in the Dispatcher picker.
+    & robocopy $trainInfoSrc $trainInfoDest *.xml /PURGE /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
     if ($LASTEXITCODE -ge 8) {
       throw ("robocopy traininfo failed ({0}) -> {1}" -f $LASTEXITCODE, $trainInfoDest)
     }

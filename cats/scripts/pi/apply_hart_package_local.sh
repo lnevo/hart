@@ -119,8 +119,9 @@ echo "preference:jython scripts -> $UF/jython"
 TRAININFO="$HART/jmri/layouts/hart/dispatcher/traininfo"
 if [[ -d "$TRAININFO" ]]; then
   mkdir -p "$UF/dispatcher/traininfo"
-  rsync -a "$TRAININFO/" "$UF/dispatcher/traininfo/"
-  echo "Pi dispatcher/traininfo updated"
+  # --delete: the profile mirrors the repo, so routes from old names do not linger in the Dispatcher picker.
+  rsync -a --delete "$TRAININFO/" "$UF/dispatcher/traininfo/"
+  echo "Pi dispatcher/traininfo mirrored"
 fi
 if [[ -f "$HART/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" ]]; then
   mkdir -p "$UF/dispatcher"
