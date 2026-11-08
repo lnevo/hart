@@ -36,11 +36,12 @@ ABS = ROOT / "cats/panels/HART_ABS.xml"
 # that NORMAL route (JMRI Thrown = mainline): 100, 114, 115.
 #
 # Untwisted 63×16 board (Designer 2026-08-26).
-# Y=6 Track Main West → Track West Main Ext → Track K-1 (Track McKees Rocks above).
-# Y=7 Track Scale / Track Barn / Track S-R / Track East Lead / Track K-2 (Track McKeesport below).
+# Y=5 Track K-1 (thrown leg of Switch 39) east to the panel edge; Y=8 Track K-2 likewise.
+# Y=6 Track Main West → Track West Main Ext → Track McKees Rocks (closed leg, stub).
+# Y=7 Track Scale / Track Barn / Track S-R / Track East Lead → Track McKeesport (closed leg, stub).
 # Y=8 Brick 100 / Plane 102 / E Main Ext / EH / Track S-1.
 # Y=12 Track Main East under the south-yard ladders.
-# SHARED: (1,6) LEFT ↔ (1,8) LEFT Track Main West; (63,6) RIGHT ↔ (63,7) RIGHT Track K-2.
+# SHARED: (1,6) LEFT ↔ (1,8) LEFT Track Main West; (63,5) RIGHT ↔ (63,8) RIGHT Track K-2 (the K loop, not drawn).
 PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
     (4, 8): ("OS Switch 1", "RIGHT", "TOL3"),  # Brick. Thrown = through E Main Ext; Closed BOTTOM = yard
     (5, 9): ("OS Switch 3", "BOTTOM", "TOL38"),  # Closed = Track W-1 (BOTTOM); Thrown RIGHT = Track W-2
@@ -63,23 +64,28 @@ PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
     (39, 10): ("OS Switch 25", "BOTTOM", "TOR11"),
     (52, 6): ("OS Switch 35b", "LEFT", "TO113"),  # Track West Main Ext
     (52, 7): ("OS Switch 35a", "RIGHT", "TO113"),  # Track East Lead
-    (55, 6): ("OS Switch 39", "RIGHT", "TOL29"),  # Thrown = Track K-1; Closed TOP = Track McKees Rocks
-    (55, 7): ("OS Switch 37", "RIGHT", "TOR36"),  # Thrown = Track K-2; Closed BOTTOM = Track McKeesport
+    (55, 6): ("OS Switch 39", "RIGHT", "TOL29"),  # Closed = Track McKees Rocks; Thrown TOP = Track K-1
+    (55, 7): ("OS Switch 37", "RIGHT", "TOR36"),  # Closed = Track McKeesport; Thrown BOTTOM = Track K-2
 }
 
-# CATS NORMAL = drawn through. These three are JMRI Thrown when lined
-# for that through route (Designer “differs from JMRI settings”).
+# CATS NORMAL = drawn through. Brick is JMRI Thrown when lined for its
+# through route (Designer “differs from JMRI settings”).
 # 112 is no longer inverted: LEFT is the 110/Track S-R closed leg, BOTTOM is Track Main East.
-INVERT_VS_JMRI = {"TOL3", "TOR36", "TOL29"}  # 100, 114, 115
+# 114/115 are no longer inverted since the Princess redraw: the straight
+# leg is the closed main (Track McKees Rocks / Track McKeesport).
+INVERT_VS_JMRI = {"TOL3"}  # 100
 
 # Do not add rails. Designer already drew every frog.
 EXTRA_TRACKS: dict[tuple[int, int], str] = {}
 
 # Named BLOCK only on Designer occupancy cuts (do not add/remove gaps).
 ANCHORS: list[tuple[int, int, str, str]] = [
-    # Track McKees Rocks | OS Switch 39
-    (56, 5, "RIGHT", "OS Switch 39"),  # Mast 40LA (Track McKees Rocks dwarf)
-    (57, 5, "LEFT", "Track McKees Rocks"),
+    # Track K-1 | OS Switch 39 (top row, thrown leg)
+    (56, 5, "RIGHT", "OS Switch 39"),  # Mast 40LB (Track K-1 2-head)
+    (57, 5, "LEFT", "Track K-1"),
+    (60, 5, "RIGHT", "Track K-1"),  # Mast 2035
+    (61, 5, "LEFT", "Track K-2"),  # Mast 2036
+    (63, 5, "RIGHT", "Track K-2"),  # SHARED wrap to (63,8)
     # Track Main West west rim (Y=6) SHARED-joins west-of-Brick (Y=8) for N/X.
     (1, 6, "LEFT", "Track Main West"),
     (1, 8, "LEFT", "Track Main West"),
@@ -101,11 +107,8 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (52, 7, "TOP", "OS Switch 35a"),
     (53, 6, "RIGHT", "OS Switch 35b"),
     (54, 6, "LEFT", "OS Switch 39"),
-    (56, 6, "RIGHT", "OS Switch 39"),  # Mast 40LB (Track K-1 2-head)
-    (57, 6, "LEFT", "Track K-1"),
-    (60, 6, "RIGHT", "Track K-1"),  # Mast 2035
-    (61, 6, "LEFT", "Track K-2"),  # Mast 2036
-    (63, 6, "RIGHT", "Track K-2"),  # SHARED wrap to (63,7)
+    (56, 6, "RIGHT", "OS Switch 39"),  # Mast 40LA (Track McKees Rocks dwarf)
+    (57, 6, "LEFT", "Track McKees Rocks"),
     # Track Scale / 117 / Track Barn / 116 / 103 / Track S-R
     (10, 7, "RIGHT", "OS Switch 5"),  # Mast 6LA
     (11, 7, "LEFT", "Track Scale"),
@@ -141,9 +144,8 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (51, 7, "LEFT", "OS Switch 35a"),  # Mast 36RB
     (53, 7, "RIGHT", "OS Switch 35a"),
     (54, 7, "LEFT", "OS Switch 37"),
-    (56, 7, "RIGHT", "OS Switch 37"),  # Mast 38LB (Track K-2 2-head)
-    (57, 7, "LEFT", "Track K-2"),
-    (63, 7, "RIGHT", "Track K-2"),
+    (56, 7, "RIGHT", "OS Switch 37"),  # Mast 38LA (Track McKeesport dwarf)
+    (57, 7, "LEFT", "Track McKeesport"),
     # Brick / Plane / E Main Ext / 117b
     (4, 8, "RIGHT", "OS Switch 1"),
     (5, 8, "LEFT", "Track Brick-Plane"),
@@ -201,9 +203,10 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (6, 10, "RIGHT", "OS Switch 3"),  # Mast 4RA
     (7, 10, "LEFT", "Track W-1"),
     (9, 10, "RIGHT", "Track W-1"),
-    # Track McKeesport
-    (56, 8, "RIGHT", "OS Switch 37"),  # Mast 38LA (Track McKeesport dwarf)
-    (57, 8, "LEFT", "Track McKeesport"),
+    # Track K-2 | OS Switch 37 (bottom row, thrown leg)
+    (56, 8, "RIGHT", "OS Switch 37"),  # Mast 38LB (Track K-2 2-head)
+    (57, 8, "LEFT", "Track K-2"),
+    (63, 8, "RIGHT", "Track K-2"),  # SHARED wrap to (63,5)
 ]
 # Name existing lamps only (keep Designer PANELSIGNAL).
 SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
@@ -220,17 +223,17 @@ SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
     (45, 6, "RIGHT"): "Mast 24L",
     (51, 6, "LEFT"): "Mast 36RA",
     (51, 7, "LEFT"): "Mast 36RB",
-    (56, 6, "RIGHT"): "Mast 40LB",  # Track K-1
-    (56, 5, "RIGHT"): "Mast 40LA",  # Track McKees Rocks
-    # Balloon pair sits on 61 RIGHT | 62 LEFT (Designer; was 60|61).
-    (61, 6, "RIGHT"): "Mast 2035",
-    (62, 6, "LEFT"): "Mast 2036",
+    (56, 6, "RIGHT"): "Mast 40LA",  # Track McKees Rocks (centre row)
+    (56, 5, "RIGHT"): "Mast 40LB",  # Track K-1 (top row)
+    # K-1 | K-2 pair sits on 61 RIGHT | 62 LEFT of the top row.
+    (61, 5, "RIGHT"): "Mast 2035",
+    (62, 5, "LEFT"): "Mast 2036",
     (39, 7, "LEFT"): "Mast 24RB",
     (42, 7, "BOTTOM"): "Mast 32R",
     (45, 7, "RIGHT"): "Mast 34L",
     (44, 8, "LEFT"): "Mast 34R",  # panel CP name; no JMRI mast yet
-    (56, 7, "RIGHT"): "Mast 38LB",  # Track K-2
-    (56, 8, "RIGHT"): "Mast 38LA",  # Track McKeesport
+    (56, 7, "RIGHT"): "Mast 38LA",  # Track McKeesport (centre row)
+    (56, 8, "RIGHT"): "Mast 38LB",  # Track K-2 (bottom row)
 }
 
 # Designer captions are in the right cells; do not relocate them.
@@ -247,7 +250,7 @@ SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {
 # name so occupancy merges: Track Main West west stubs; Princess Track K-2.
 SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = [
     ((1, 6, "LEFT"), (1, 8, "LEFT")),
-    ((63, 6, "RIGHT"), (63, 7, "RIGHT")),
+    ((63, 5, "RIGHT"), (63, 8, "RIGHT")),
 ]
 
 TRACK_ENDS = {

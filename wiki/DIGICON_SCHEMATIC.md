@@ -5,22 +5,22 @@ Build: `python3 cats/scripts/wire_digicon.py` writes `HART_CTC.xml` and `HART_AB
 
 The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. Track labels (`FONT_LABEL`) on Y≥5 are lifted `LOWCENT` → `UPCENT`. It does not move lamps, insert rails, or add/remove gaps.
 
-**SHARED wraps (N/X + occupancy):** `(1,6)` LEFT ↔ `(1,8)` LEFT both **Track Main West**; `(63,6)` RIGHT ↔ `(63,7)` RIGHT both **Track K-2**.
+**SHARED wraps (N/X + occupancy):** `(1,6)` LEFT ↔ `(1,8)` LEFT both **Track Main West**; `(63,5)` RIGHT ↔ `(63,8)` RIGHT both **Track K-2** (the K loop, drawn as two rows running off the east edge).
 
 ## Rows (west → east)
 
 | CATS Y | Role |
 |--------|------|
 | 1 | Title |
-| 5 | CP names; Track McKees Rocks east of Switch 39 |
-| **6** | **Track Main West** → OS Switch 23a → Track West Main Ext → OS Switch 35b → OS Switch 39 → Track K-1 |
-| **7** | Track Scale → OS Switch 7 → Track Barn → OS Switch 13 → OS Switch 15 → Track S-R → OS Switch 23b → OS Switch 31 → OS Switch 33 → Track East Lead → OS Switch 35a → OS Switch 37 → Track K-2 |
-| **8** | Switch 1 Brick / Switch 5 Plane / Track East Main Ext / OS Switch 7b / Track EH-1 / Track S-1 / Track McKeesport |
+| 5 | CP names; Track K-1 east of Switch 39 (thrown leg), east to the edge with Mast 2035 / 2036 and the SHARED wrap |
+| **6** | **Track Main West** → OS Switch 23a → Track West Main Ext → OS Switch 35b → OS Switch 39 → Track McKees Rocks (closed leg, stub to x=59) |
+| **7** | Track Scale → OS Switch 7 → Track Barn → OS Switch 13 → OS Switch 15 → Track S-R → OS Switch 23b → OS Switch 31 → OS Switch 33 → Track East Lead → OS Switch 35a → OS Switch 37 → Track McKeesport (closed leg, stub to x=59) |
+| **8** | Switch 1 Brick / Switch 5 Plane / Track East Main Ext / OS Switch 7b / Track EH-1 / Track S-1 / Track K-2 (thrown leg of Switch 37, east to the edge) |
 | 9 | Track W-2 / Track EH-2 / Track S-2 |
 | 10 | Track W-1 / Track EH-3 / Track S-3 |
 | 11–12 | Track S-4; **Track Main East** under the south-yard ladders |
 
-West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Track Main West). East rims: `(63,6)` RIGHT SHARED to `(63,7)` RIGHT (Track K-2). Track W-1/Track W-2 east bumpers at x=9.
+West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Track Main West). East rims: `(63,5)` RIGHT SHARED to `(63,8)` RIGHT (Track K-2). Track W-1/Track W-2 east bumpers at x=9.
 
 ## Plants (`wire_digicon.py`)
 
@@ -42,14 +42,14 @@ West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Track Main West). East rims: `(6
 | (42,7) H+LS | **Switch 31** | Closed LEFT = Track S-R/Switch 23. Thrown BOTTOM geographic into Switch 29 `(42,8)` |
 | (44,7) H+LS | **Switch 33** | Closed LEFT = Switch 31. Thrown BOTTOM = Track Main East. **Not inverted** |
 | (52,6) / (52,7) | **Switch 35b / Switch 35a** | Crossover Track West Main Ext / Track East Lead |
-| (55,6) H+US | **Switch 39** | Thrown RIGHT = Track K-1. Closed TOP = Track McKees Rocks. Invert |
-| (55,7) H+LB | **Switch 37** | Thrown RIGHT = Track K-2. Closed BOTTOM = Track McKeesport. Invert |
+| (55,6) H+US | **Switch 39** | Closed RIGHT = Track McKees Rocks. Thrown TOP = Track K-1. Not inverted (since 2026-11-07) |
+| (55,7) H+LB | **Switch 37** | Closed RIGHT = Track McKeesport. Thrown BOTTOM = Track K-2. Not inverted (since 2026-11-07) |
 
 Track Brick-Plane is Y=8 between Switch 1 and Switch 5 (`Block 4-6`). Track East Main Ext is Y=8 between Switch 5 and Switch 7b (`Block 4-7`).
 
 ## Signals
 
-23 Designer lamps, named in place. **Mast 6LA** is 1-head (`LAMP1` / `IH434`). **Mast 2035** `(60,6)` RIGHT is `IH141` (was 115R). **Mast 2036** `(61,6)` LEFT is `IH134` (was 114R). **Mast 34R** is `(44,8)` LEFT on OS Switch 33. Occupancy cut Track Main East \| OS Switch 33 is `(43,8)` RIGHT \| `(44,8)` LEFT. **Mast 2L** is `(3,8)` LEFT. **Mast 32R** is `(42,7)` BOTTOM on OS Switch 31 at the OS Switch 31 \| OS Switch 29 cut. **Mast 4RA** is Track W-1 `(6,10)` RIGHT; **Mast 4RB** is Track W-2 `(6,9)` RIGHT. **Mast 8RA** is `LAMP1` on this board; field/JMRI still 2-head. Princess westbounds match LE: **Mast 40LB** / **Mast 38LB** (`LAMP2`) on Track K-1 / Track K-2; **Mast 40LA** / **Mast 38LA** (`LAMP1`) on Track McKees Rocks / Track McKeesport.
+23 Designer lamps, named in place. **Mast 6LA** is 1-head (`LAMP1` / `IH434`). **Mast 2035** `(61,5)` RIGHT is `IH141` (was 115R). **Mast 2036** `(62,5)` LEFT is `IH134` (was 114R). **Mast 34R** is `(44,8)` LEFT on OS Switch 33. Occupancy cut Track Main East \| OS Switch 33 is `(43,8)` RIGHT \| `(44,8)` LEFT. **Mast 2L** is `(3,8)` LEFT. **Mast 32R** is `(42,7)` BOTTOM on OS Switch 31 at the OS Switch 31 \| OS Switch 29 cut. **Mast 4RA** is Track W-1 `(6,10)` RIGHT; **Mast 4RB** is Track W-2 `(6,9)` RIGHT. **Mast 8RA** is `LAMP1` on this board; field/JMRI still 2-head. Princess westbounds match LE: **Mast 40LB** / **Mast 38LB** (`LAMP2`) on Track K-1 / Track K-2; **Mast 40LA** / **Mast 38LA** (`LAMP1`) on Track McKees Rocks / Track McKeesport.
 
 ## Remaining gaps
 
