@@ -3302,7 +3302,7 @@
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
-      <userName>Head 6LB Top</userName>
+      <userName>Head 6LB</userName>
       <comment>Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
@@ -3524,7 +3524,7 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH432)(IH433)</systemName>
+      <systemName>IF$shsm:basic:one-low(IH432)</systemName>
       <userName>Mast 6LB</userName>
       <comment>Plane | Switch 5</comment>
       <unlit allowed="no" />

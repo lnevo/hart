@@ -112,7 +112,7 @@ LIVE_MASTS = {
 # Mast userName -> head system names (signal_wiring.csv). MQTT appearance must
 # match JMRI JSON for CATS ABS HOLD_ONLY paint.
 MAST_HEADS = {
-    "Mast 6LB": ("IH432", "IH433"),
+    "Mast 6LB": ("IH432",),  # interim one-low dwarf; IH433 not wired yet
     "Mast 6LA": ("IH434",),
     "Mast 4RA": ("IH436",),
     "Mast 4RB": ("IH437",),

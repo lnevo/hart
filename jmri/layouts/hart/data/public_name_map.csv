@@ -522,7 +522,7 @@ head,Head 4RA,Head 4RA,Brick,IH436,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",
 head,Head 4RB,Head 4RB,Brick,IH437,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",
 head,Head 6LA,Head 6LA,Plane,IH434,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",
 head,Head 6LB Bottom,Head 6LB Bottom,Plane,IH433,"Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6",
-head,Head 6LB Top,Head 6LB Top,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
+head,Head 6LB,Head 6LB,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",interim one-low dwarf until the bottom head (IH433) is wired
 head,Head 8LA Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",
 head,Head 8LA Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",
 head,Head 8LB,Head 8LB,Barn,IH1334,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",
@@ -586,8 +586,9 @@ head,102LA,Head 6LA,Plane,IH434,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Port
 head,Plane East OS 102,Head 6LA,Plane,IH434,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",historical alias; dwarf; was Top of 2-head
 head,102LB Bottom,Head 6LB Bottom,Plane,IH433,"Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6",historical alias
 head,Plane East East Main Ext Bottom,Head 6LB Bottom,Plane,IH433,"Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6",historical alias of 102LB Bottom
-head,102LB Top,Head 6LB Top,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
-head,Plane East East Main Ext Top,Head 6LB Top,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 102LB Top
+head,102LB Top,Head 6LB,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
+head,Plane East East Main Ext Top,Head 6LB,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 102LB Top
+head,Head 6LB Top,Head 6LB,Plane,IH432,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias; top head of the two-searchlight 6LB
 head,117LA Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias
 head,West Yard East OS 117b Bottom,Head 8LA Bottom,Barn,IH1338,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias of 117LA Bottom
 head,117LA Top,Head 8LA Top,Barn,IH1337,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",historical alias
