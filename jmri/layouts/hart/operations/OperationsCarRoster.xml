@@ -396,5 +396,15 @@
     <car id="WLE621" roadName="WLE" roadNumber="621" type="Coke Hopper" length="40" weightTons="76" color="Black" comment="COKE-RELOAD-SHEN" load="Coke" nextDestId="5" nextDestTrackId="5s1" locationId="12" secLocationId="12s1" />
     <car id="URR15003" roadName="URR" roadNumber="15003" type="Coke Hopper" length="50" weightTons="88" built="11-17" color="Black" comment="STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load" load="E" nextDestId="12" nextDestTrackId="12s1" locationId="5" secLocationId="5s1" />
     <car id="URR15044" roadName="URR" roadNumber="15044" type="Coke Hopper" length="50" weightTons="88" built="11-17" color="Black" comment="STS CLEVWORK-COKE COKE-CLEV-BULK; delivered through the POHC Offline schedule, which picks the next load" load="E" nextDestId="12" nextDestTrackId="12s1" locationId="5" secLocationId="5s1" />
-  </cars>
+  <car id="CSX379702" roadName="CSX" roadNumber="379702" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379808" roadName="CSX" roadNumber="379808" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379738" roadName="CSX" roadNumber="379738" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379824" roadName="CSX" roadNumber="379824" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379888" roadName="CSX" roadNumber="379888" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379869" roadName="CSX" roadNumber="379869" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379765" roadName="CSX" roadNumber="379765" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379711" roadName="CSX" roadNumber="379711" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379845" roadName="CSX" roadNumber="379845" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379733" roadName="CSX" roadNumber="379733" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    </cars>
 </operations-config>

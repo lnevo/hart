@@ -10,7 +10,7 @@
     {
       "id": "freight",
       "label": "Freight cars",
-      "count": 68
+      "count": 78
     },
     {
       "id": "mow",
@@ -848,6 +848,106 @@
       "road": "TTC",
       "number": "4678",
       "type": "Streetcar"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_01.png",
+      "title": "CSX 379808",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379808",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_02.png",
+      "title": "CSX 379738",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379738",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_03.png",
+      "title": "CSX 379824",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379824",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_04.png",
+      "title": "CSX 379702",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379702",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_05.png",
+      "title": "CSX 379888",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379888",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_06.png",
+      "title": "CSX 379869",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379869",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_07.png",
+      "title": "CSX 379765",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379765",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_08.png",
+      "title": "CSX 379711",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379711",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_09.png",
+      "title": "CSX 379845",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379845",
+      "type": "Hopper"
+    },
+    {
+      "album": "freight",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/CSXT_hopper_10.png",
+      "title": "CSX 379733",
+      "caption": "CSX · Hopper · 40'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "379733",
+      "type": "Hopper"
     }
   ]
 }
