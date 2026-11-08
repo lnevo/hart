@@ -5,7 +5,7 @@
     {
       "id": "locos",
       "label": "Locomotives",
-      "count": 10
+      "count": 12
     },
     {
       "id": "freight",
@@ -948,6 +948,26 @@
       "road": "CSX",
       "number": "379733",
       "type": "Hopper"
+    },
+    {
+      "album": "locos",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/loco_CSX_2121_left.png",
+      "title": "CSX 2121",
+      "caption": "CSX · Locomotive · EMD · GP38 · 59'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "2121",
+      "type": "Locomotive"
+    },
+    {
+      "album": "locos",
+      "src": "../ops/car-cards/car-images/CarImagesFinal/loco_CSX_2738_right.png",
+      "title": "CSX 2738",
+      "caption": "CSX · Locomotive · EMD · GP38-2 · 59'",
+      "credit": "HART car roster",
+      "road": "CSX",
+      "number": "2738",
+      "type": "Locomotive"
     }
   ]
 }
