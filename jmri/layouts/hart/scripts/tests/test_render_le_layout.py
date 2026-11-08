@@ -5,7 +5,10 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import render_le_layout  # noqa: E402
+try:
+    import render_le_layout  # noqa: E402
+except ModuleNotFoundError as exc:  # CI has no Pillow
+    raise unittest.SkipTest(f"render_le_layout needs {exc.name}")
 
 PANEL = """<?xml version="1.0" encoding="UTF-8"?>
 <layout-config>
