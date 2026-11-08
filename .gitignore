@@ -41,6 +41,7 @@ external/sts-docker-data/MIRROR_MANIFEST.txt
 # Large files kept out of git
 /media
 /ops/car-cards
+/ops/intake/*/review.*
 /docs/wiring/bench
 
 www/assets/f-root-previews/

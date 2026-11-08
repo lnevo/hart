@@ -1,6 +1,6 @@
 # ADR-018 — Staged intake for cars and locomotives
 
-- **Status:** Accepted. Extends ADR-013.
+- **Status:** Accepted. Extends ADR-013. Built 2026-11-08.
 - **Date:** 2026-11-08
 - **Deciders:** lnevo
 
