@@ -25,6 +25,7 @@ The helix is installed at the Princess (east) end. The former stubs east of Swit
 5. Unchanged: mast numbers, switch numbers, bumpers EB71/EB72, the panel arrow labels `McKees Rocks, PA` and `McKeesport, PA`, Operations Pro and STS names, and the real interchange and town names.
 6. Role wording in the docs stays as it was. The old stubs are still stubs for now (the helix goes nowhere yet; they are only longer) and the K tracks are still a loop.
 7. Panel drawing (2026-11-07, second pass): the turnout hands stay as built, so K-1 leaves Switch 39 on the top row and K-2 leaves Switch 37 on the bottom row. Both run east to the panel edge (anchors `A82` / `A83` at x=1950) and wrap around each other **virtually**: segments `F56-S-0` and `F55-S-0` meet at `A48` (x=1950, y=276) and are `hidden="yes"`, so no loop is drawn. Masts 2035 / 2036 and their NX sensors still sit on `A48` and are drawn at the east ends of the two rows. The mainline stubs stay in the centre rows and end at masts 40RA / 38RA as before.
+8. CATS desks (2026-11-07, same day): the Designer source moves the K tracks to the outer rows too. Row 5 is Track K-1 and row 8 Track K-2, each running east to column 63 with Masts 2035 / 2036 and the SHARED wrap `(63,5)` ↔ `(63,8)`; rows 6 / 7 are the Track McKees Rocks / Track McKeesport stubs ending at column 59. Callouts read `K-1`, `McKees Rocks, PA`, `McKeesport, PA`, `K-2`. Because the straight leg is now the closed main, Switches 37 / 39 drop out of `INVERT_VS_JMRI` in `wire_digicon.py`.
 
 ## Consequences
 
