@@ -141,6 +141,40 @@ class BeanCommentFormatTest(unittest.TestCase):
         self.assertNotIn("leftover", leftover.lower())
         self.assertNotIn("alias", leftover.lower())
 
+    def test_section_direction_sensor_comment(self) -> None:
+        text = (
+            '<section systemName="IY:AUTO:0482" userName="Mast 6LB:Mast 24RA" '
+            'creationtype="signalmastlogic">'
+        )
+        names = self.m.section_names(text)
+        self.assertEqual(names, {"IY:AUTO:0482": "Mast 6LB:Mast 24RA"})
+        self.assertEqual(
+            self.m.section_direction_comment("IS:IY:AUTO:0482:forward", names),
+            "SML section forward direction: Mast 6LB:Mast 24RA (IY:AUTO:0482)",
+        )
+        self.assertEqual(
+            self.m.section_direction_comment("IS:IY:AUTO:0999:reverse", names),
+            "SML section reverse direction: IY:AUTO:0999",
+        )
+
+    def test_block_name_pass_gets_no_comment(self) -> None:
+        text = (
+            "<blocks>\n"
+            '    <block systemName="IB3">\n'
+            "      <systemName>IB3</systemName>\n"
+            "      <userName>Track Scale</userName>\n"
+            "    </block>\n"
+            "</blocks>\n"
+        )
+        out, _ = self.m.refresh_comments(text)
+        self.assertNotIn("<comment>", out)
+        self.assertFalse(
+            self.m.is_block_name_pass(
+                "<systemName>IB3</systemName><userName>Track Scale</userName>"
+                "<permissive>no</permissive>"
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
