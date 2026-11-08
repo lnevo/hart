@@ -40,7 +40,7 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Next
 
-- Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add the new photos with `bin/cars intake`.
+- Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add new photos (cars and locos) through the staged intake ([`pipelines/intake-stages.md`](pipelines/intake-stages.md), ADR-018): `bin/cars review`, `approve`, `records`. Built, not yet run on a real batch.
 - HART 1776 stays out of STS until its car card is generated. The 28 cars with no photo stay out too: no photo means no card, so they go in only after a photo.
 
 ## Future goals
