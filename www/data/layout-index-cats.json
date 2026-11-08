@@ -19,7 +19,7 @@
       "systemName": "Mast 40LA",
       "publicName": "Mast 40LA",
       "cp": "Princess",
-      "hardware": "IH142",
+      "hardware": "IH132 IH133",
       "mqtt": "",
       "comment": "Princess | Switch 39",
       "block": ""
@@ -110,7 +110,7 @@
       "systemName": "Mast 40LB",
       "publicName": "Mast 40LB",
       "cp": "Princess",
-      "hardware": "IH132 IH133",
+      "hardware": "IH142",
       "mqtt": "",
       "comment": "Princess | Switch 39",
       "block": ""
@@ -344,7 +344,7 @@
       "systemName": "Mast 38LB",
       "publicName": "Mast 38LB",
       "cp": "Princess",
-      "hardware": "IH139 IH140",
+      "hardware": "IH143",
       "mqtt": "",
       "comment": "Princess | Switch 37",
       "block": ""
@@ -513,7 +513,7 @@
       "systemName": "Mast 38LA",
       "publicName": "Mast 38LA",
       "cp": "Princess",
-      "hardware": "IH143",
+      "hardware": "IH139 IH140",
       "mqtt": "",
       "comment": "Princess | Switch 37",
       "block": ""

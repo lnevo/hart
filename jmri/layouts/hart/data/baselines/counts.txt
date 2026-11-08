@@ -1,5 +1,5 @@
-tables.xml sha256=ebbf5058e95d72f8c817d2f009482102a5149a7e12a769ca3c10bab48202a750
-tables.xml path=/Users/lnevo/hart/jmri/layouts/hart/output/tables.xml
+tables.xml sha256=d9374c4d45ff9684656ddc615f997a8b58884eaaa1406036e8c63e77ff607204
+tables.xml path=/private/tmp/claude-501/-Users-lnevo-hart/a0b18da7-f945-4713-9014-9b1d1736b740/scratchpad/wt4/jmri/layouts/hart/output/tables.xml
 
 block_sensors.csv=55
 cats_bindings.csv=68

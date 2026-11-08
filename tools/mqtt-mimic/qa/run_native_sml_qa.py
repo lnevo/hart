@@ -127,14 +127,14 @@ MAST_HEADS = {
     "Mast 34L": ("IH1237", "IH1238"),
     "Mast 32R": ("IH1239",),
     "Mast 34R": ("IH1240", "IH1241"),
-    "Mast 40LB": ("IH132", "IH133"),
+    "Mast 40LA": ("IH132", "IH133"),
     "Mast 2036": ("IH134",),
     "Mast 36RA": ("IH135", "IH136"),
     "Mast 36RB": ("IH137", "IH138"),
-    "Mast 38LB": ("IH139", "IH140"),
+    "Mast 38LA": ("IH139", "IH140"),
     "Mast 2035": ("IH141",),
-    "Mast 40LA": ("IH142",),
-    "Mast 38LA": ("IH143",),
+    "Mast 40LB": ("IH142",),
+    "Mast 38LB": ("IH143",),
 }
 
 STOP_HEAD = {"Red", "Dark", "Held", None, ""}

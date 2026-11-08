@@ -400,11 +400,11 @@ mast,Mast 34L,Mast 34L,East End,IH1237 IH1238,East End | Switch 33,
 mast,Mast 34R,Mast 34R,East End,IH1240 IH1241,East End | Switch 33,
 mast,Mast 36RA,Mast 36RA,Princess,IH135 IH136,Princess | Switch 35,
 mast,Mast 36RB,Mast 36RB,Princess,IH137 IH138,Princess | Switch 35,
-mast,Mast 38LA,Mast 38LA,Princess,IH143,Princess | Switch 37,
-mast,Mast 38LB,Mast 38LB,Princess,IH139 IH140,Princess | Switch 37,
+mast,Mast 38LB,Mast 38LB,Princess,IH143,Princess | Switch 37,
+mast,Mast 38LA,Mast 38LA,Princess,IH139 IH140,Princess | Switch 37,
 mast,Mast 38RA,Mast 38RA,Princess,virtual $1004,Princess | Switch 37,
-mast,Mast 40LA,Mast 40LA,Princess,IH142,Princess | Switch 39,
-mast,Mast 40LB,Mast 40LB,Princess,IH132 IH133,Princess | Switch 39,
+mast,Mast 40LB,Mast 40LB,Princess,IH142,Princess | Switch 39,
+mast,Mast 40LA,Mast 40LA,Princess,IH132 IH133,Princess | Switch 39,
 mast,Mast 40RA,Mast 40RA,Princess,virtual $1003,Princess | Switch 39,
 mast,Mast 4LA,Mast 4LA,Brick,virtual $1001,Brick | Switch 3,
 mast,Mast 4LB,Mast 4LB,Brick,virtual $1002,Brick | Switch 3,
@@ -461,16 +461,16 @@ mast,113RA,Mast 36RA,Princess,IH135 IH136,Princess | Switch 35,historical alias;
 mast,Princess West OS 113b,Mast 36RA,Princess,IH135 IH136,Princess | Switch 35,historical alias; lever 26 Right; Main West
 mast,113RB,Mast 36RB,Princess,IH137 IH138,Princess | Switch 35,historical alias; lever 26 Right; South Yard East
 mast,Princess West OS 113a,Mast 36RB,Princess,IH137 IH138,Princess | Switch 35,historical alias; lever 26 Right; South Yard East
-mast,114LA,Mast 38LA,Princess,IH143,Princess | Switch 37,historical alias; lever 28 Left; dwarf
-mast,Princess East K-2,Mast 38LA,Princess,IH143,Princess | Switch 37,historical alias; lever 28 Left; dwarf
-mast,114LB,Mast 38LB,Princess,IH139 IH140,Princess | Switch 37,historical alias; lever 28 Left
-mast,Princess South McKeesport,Mast 38LB,Princess,IH139 IH140,Princess | Switch 37,historical alias; lever 28 Left
+mast,114LA,Mast 38LB,Princess,IH143,Princess | Switch 37,historical alias; lever 28 Left; dwarf
+mast,Princess East K-2,Mast 38LB,Princess,IH143,Princess | Switch 37,historical alias; lever 28 Left; dwarf
+mast,114LB,Mast 38LA,Princess,IH139 IH140,Princess | Switch 37,historical alias; lever 28 Left
+mast,Princess South McKeesport,Mast 38LA,Princess,IH139 IH140,Princess | Switch 37,historical alias; lever 28 Left
 mast,114RA,Mast 38RA,Princess,virtual $1004,Princess | Switch 37,historical alias; hidden K-2 bumper; Dispatcher Stage 1
 mast,K-2 buffer,Mast 38RA,Princess,virtual $1004,Princess | Switch 37,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,115LA,Mast 40LA,Princess,IH142,Princess | Switch 39,historical alias; lever 30 Left; dwarf
-mast,Princess East K-1,Mast 40LA,Princess,IH142,Princess | Switch 39,historical alias; lever 30 Left; dwarf
-mast,115LB,Mast 40LB,Princess,IH132 IH133,Princess | Switch 39,historical alias; lever 30 Left
-mast,Princess North McKees Rocks,Mast 40LB,Princess,IH132 IH133,Princess | Switch 39,historical alias; lever 30 Left
+mast,115LA,Mast 40LB,Princess,IH142,Princess | Switch 39,historical alias; lever 30 Left; dwarf
+mast,Princess East K-1,Mast 40LB,Princess,IH142,Princess | Switch 39,historical alias; lever 30 Left; dwarf
+mast,115LB,Mast 40LA,Princess,IH132 IH133,Princess | Switch 39,historical alias; lever 30 Left
+mast,Princess North McKees Rocks,Mast 40LA,Princess,IH132 IH133,Princess | Switch 39,historical alias; lever 30 Left
 mast,115RA,Mast 40RA,Princess,virtual $1003,Princess | Switch 39,historical alias; hidden K-1 bumper; Dispatcher Stage 1
 mast,K-1 buffer,Mast 40RA,Princess,virtual $1003,Princess | Switch 39,historical alias; hidden stub-end for Dispatcher Stage 1
 mast,101LA,Mast 4LA,Brick,virtual $1001,Brick | Switch 3,historical alias; hidden W-1 bumper; Dispatcher Stage 1
@@ -512,12 +512,12 @@ head,Head 36RA Bottom,Head 36RA Bottom,Princess,IH136,"Node: 1 Signal: 4 | OU: 2
 head,Head 36RA Top,Head 36RA Top,Princess,IH135,"Node: 1 Signal: 3 | OU: 2 Ports: 1,2,3",
 head,Head 36RB Bottom,Head 36RB Bottom,Princess,IH138,"Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6",
 head,Head 36RB Top,Head 36RB Top,Princess,IH137,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",
-head,Head 38LA,Head 38LA,Princess,IH143,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",
-head,Head 38LB Bottom,Head 38LB Bottom,Princess,IH140,"Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6",
-head,Head 38LB Top,Head 38LB Top,Princess,IH139,"Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3",
-head,Head 40LA,Head 40LA,Princess,IH142,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",
-head,Head 40LB Bottom,Head 40LB Bottom,Princess,IH133,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",
-head,Head 40LB Top,Head 40LB Top,Princess,IH132,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",
+head,Head 38LB,Head 38LB,Princess,IH143,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",
+head,Head 38LA Bottom,Head 38LA Bottom,Princess,IH140,"Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6",
+head,Head 38LA Top,Head 38LA Top,Princess,IH139,"Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3",
+head,Head 40LB,Head 40LB,Princess,IH142,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",
+head,Head 40LA Bottom,Head 40LA Bottom,Princess,IH133,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",
+head,Head 40LA Top,Head 40LA Top,Princess,IH132,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",
 head,Head 4RA,Head 4RA,Brick,IH436,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",
 head,Head 4RB,Head 4RB,Brick,IH437,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",
 head,Head 6LA,Head 6LA,Plane,IH434,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",
@@ -566,18 +566,18 @@ head,113RB Bottom,Head 36RB Bottom,Princess,IH138,"Node: 1 Signal: 1 | OU: 3 Por
 head,Princess West OS 113a Bottom,Head 36RB Bottom,Princess,IH138,"Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6",historical alias of 113RB Bottom
 head,113RB Top,Head 36RB Top,Princess,IH137,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",historical alias
 head,Princess West OS 113a Top,Head 36RB Top,Princess,IH137,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",historical alias of 113RB Top
-head,114LA,Head 38LA,Princess,IH143,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
-head,Princess East K-2,Head 38LA,Princess,IH143,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
-head,114LB Bottom,Head 38LB Bottom,Princess,IH140,"Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6",historical alias
-head,Princess South McKeesport Bottom,Head 38LB Bottom,Princess,IH140,"Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6",historical alias of 114LB Bottom
-head,114LB Top,Head 38LB Top,Princess,IH139,"Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3",historical alias
-head,Princess South McKeesport Top,Head 38LB Top,Princess,IH139,"Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3",historical alias of 114LB Top
-head,115LA,Head 40LA,Princess,IH142,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",historical alias; dwarf
-head,Princess East K-1,Head 40LA,Princess,IH142,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",historical alias; dwarf
-head,115LB Bottom,Head 40LB Bottom,Princess,IH133,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",historical alias
-head,Princess North McKees Rocks Bottom,Head 40LB Bottom,Princess,IH133,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",historical alias of 115LB Bottom
-head,115LB Top,Head 40LB Top,Princess,IH132,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
-head,Princess North McKees Rocks Top,Head 40LB Top,Princess,IH132,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 115LB Top
+head,114LA,Head 38LB,Princess,IH143,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
+head,Princess East K-2,Head 38LB,Princess,IH143,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
+head,114LB Bottom,Head 38LA Bottom,Princess,IH140,"Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6",historical alias
+head,Princess South McKeesport Bottom,Head 38LA Bottom,Princess,IH140,"Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6",historical alias of 114LB Bottom
+head,114LB Top,Head 38LA Top,Princess,IH139,"Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3",historical alias
+head,Princess South McKeesport Top,Head 38LA Top,Princess,IH139,"Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3",historical alias of 114LB Top
+head,115LA,Head 40LB,Princess,IH142,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",historical alias; dwarf
+head,Princess East K-1,Head 40LB,Princess,IH142,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",historical alias; dwarf
+head,115LB Bottom,Head 40LA Bottom,Princess,IH133,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",historical alias
+head,Princess North McKees Rocks Bottom,Head 40LA Bottom,Princess,IH133,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",historical alias of 115LB Bottom
+head,115LB Top,Head 40LA Top,Princess,IH132,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
+head,Princess North McKees Rocks Top,Head 40LA Top,Princess,IH132,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 115LB Top
 head,101RA,Head 4RA,Brick,IH436,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",historical alias; dwarf
 head,Brick West Yard 1,Head 4RA,Brick,IH436,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",historical alias; dwarf
 head,101RB,Head 4RB,Brick,IH437,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",historical alias; dwarf

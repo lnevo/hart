@@ -81,7 +81,7 @@ EXTRA_TRACKS: dict[tuple[int, int], str] = {}
 # Named BLOCK only on Designer occupancy cuts (do not add/remove gaps).
 ANCHORS: list[tuple[int, int, str, str]] = [
     # Track K-1 | OS Switch 39 (top row, thrown leg)
-    (56, 5, "RIGHT", "OS Switch 39"),  # Mast 40LB (Track K-1 2-head)
+    (56, 5, "RIGHT", "OS Switch 39"),  # Mast 40LB (Track K-1 dwarf)
     (57, 5, "LEFT", "Track K-1"),
     (60, 5, "RIGHT", "Track K-1"),  # Mast 2035
     (61, 5, "LEFT", "Track K-2"),  # Mast 2036
@@ -107,7 +107,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (52, 7, "TOP", "OS Switch 35a"),
     (53, 6, "RIGHT", "OS Switch 35b"),
     (54, 6, "LEFT", "OS Switch 39"),
-    (56, 6, "RIGHT", "OS Switch 39"),  # Mast 40LA (Track McKees Rocks dwarf)
+    (56, 6, "RIGHT", "OS Switch 39"),  # Mast 40LA (Track McKees Rocks 2-head)
     (57, 6, "LEFT", "Track McKees Rocks"),
     # Track Scale / 117 / Track Barn / 116 / 103 / Track S-R
     (10, 7, "RIGHT", "OS Switch 5"),  # Mast 6LA
@@ -144,7 +144,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (51, 7, "LEFT", "OS Switch 35a"),  # Mast 36RB
     (53, 7, "RIGHT", "OS Switch 35a"),
     (54, 7, "LEFT", "OS Switch 37"),
-    (56, 7, "RIGHT", "OS Switch 37"),  # Mast 38LA (Track McKeesport dwarf)
+    (56, 7, "RIGHT", "OS Switch 37"),  # Mast 38LA (Track McKeesport 2-head)
     (57, 7, "LEFT", "Track McKeesport"),
     # Brick / Plane / E Main Ext / 117b
     (4, 8, "RIGHT", "OS Switch 1"),
@@ -204,7 +204,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (7, 10, "LEFT", "Track W-1"),
     (9, 10, "RIGHT", "Track W-1"),
     # Track K-2 | OS Switch 37 (bottom row, thrown leg)
-    (56, 8, "RIGHT", "OS Switch 37"),  # Mast 38LB (Track K-2 2-head)
+    (56, 8, "RIGHT", "OS Switch 37"),  # Mast 38LB (Track K-2 dwarf)
     (57, 8, "LEFT", "Track K-2"),
     (63, 8, "RIGHT", "Track K-2"),  # SHARED wrap to (63,5)
 ]
