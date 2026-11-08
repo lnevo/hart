@@ -18,7 +18,7 @@ momentum (CV3/CV4 = 0/0). The owner chose to match 2738 to 2121, momentum includ
 The owner wants no programming on the main while other engines are on the track.
 
 Open: update 2738's roster entry; consist testing; step 126 drift check; opposite-direction check; Anyrail
-loop length; the slow Scale block at step 16; the STRR scripts below are still unused.
+loop length; a clean timing pass through Scale (the earlier 45 s was a hand block); the reverse profile of 2121 (about 10% slower than forward at step 32); the STRR scripts below are still unused.
 
 ## Source
 

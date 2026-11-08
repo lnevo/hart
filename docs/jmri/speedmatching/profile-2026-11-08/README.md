@@ -78,6 +78,37 @@ direction) gave:
 top end. The low end is the weak point: 5% fast at step 12 and not measured below that.
 Steps 8, 16, 32, 64, 80, 96 and 112 were not re-run.
 
+## Momentum test (2121 against 2738 after programming)
+
+Each loco starts from rest in East Main Ext, runs east (2738 forward, 2121 in reverse) at
+one throttle step, and gets a speed-0 command the instant Switch 33 lights. Every sensor
+event afterwards is logged ([`momentum_test.csv`](momentum_test.csv)). No block length is
+needed: both locos see the same track, so the crossing times compare directly.
+
+At step 96 the two stop alike, within 0.1 s at every sensor:
+
+| Seconds after the stop command | 2738 | 2121 |
+|---|---:|---:|
+| enters East Lead | 0.72 | 0.74 |
+| enters Switch 35a | 6.42 | 6.42 |
+| enters Switch 37 | 7.26 | 7.26 |
+| enters K-2 | 8.22 | 8.13 |
+| comes to rest | in K-2 | in K-2 |
+
+Time from release to Switch 7b is 10.6 s (2738) and 10.9 s (2121), so the starts match
+too. Both locos hold full speed for about 6 s after the speed-0 command, then brake hard
+in the next metre; that is the same in both and is not understood (it could be the
+CS-105 path or the decoders' CV4 = 24).
+
+At step 32 both enter East Lead 0.8 to 1.0 s after the command and stop inside it.
+**But 2121 in reverse is about 10% slower than 2738 forward at step 32** (7b to Switch 33:
+25.9 s against 23.6 s for the same Main East stretch), and about 2% slower at step 96
+(17.8 s against 17.4 s). 2121's profile above was measured forward (west), so its reverse
+speed is not in it. In a consist one of the two always runs in reverse, so this matters.
+
+Not yet done: the reverse profile of 2121, and the forward profile of 2738 run in
+reverse (west). The reverse trim of 2121 (CV95 = 128) has not been touched.
+
 ## Loop length (not reliable)
 
 The block lengths come from `jmri/layouts/hart/data/block_lengths.csv`, which was taken
@@ -130,6 +161,7 @@ the loop total with a tape (or time a loco over a measured distance), correct
 | `block_events.csv` | every block transit (637): entry time, transit time, mm/s |
 | `block_summary.csv` | per loco, step, block: mean speed, ratio to loop mean, implied length |
 | `post_programming_sample.csv` | 2738 re-measure after programming, against 2121 |
+| `momentum_test.csv` | sensor times of the four stop tests (2 locos, steps 32 and 96) |
 | `block_speeds.py`, `analyze_profile.py`, `propose_table.py` | produce the above |
 
 ## Data quality notes
@@ -149,7 +181,7 @@ the loop total with a tape (or time a loco over a measured distance), correct
 
 - Step 126 repeat for drift; steps below 8 (creep); the opposite direction for each loco.
 - Loop length check against the Anyrail plan.
-- Scale at step 16 for 2738 took 45 s for 610 mm, far slower than anywhere else.
-  Not investigated.
+- Scale at step 16 for 2738 took 45 s for 610 mm. The owner says it was blocked by hand
+  at the time; a clean pass is still to be timed. Scale is not on the profiled loop.
 - Momentum has not been measured. The CV3/CV4 time scale of the two decoders is not
   confirmed from the JMRI definitions.
