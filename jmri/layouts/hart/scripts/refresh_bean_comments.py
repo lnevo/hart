@@ -19,6 +19,38 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from apply_public_names import RenameEntry, apply_renames_to_text
 
 SIGNAL_WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
+SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
+TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+
+_SECTION_RE = re.compile(r'<section systemName="(IY:AUTO:\d+)" userName="([^"]*)"')
+_SECTION_NAMES: dict[str, str] | None = None
+
+
+def section_names(text: str | None = None) -> dict[str, str]:
+    """Section systemName -> userName (e.g. IY:AUTO:0482 -> Mast 6LB:Mast 24RA)."""
+    global _SECTION_NAMES
+    if text is not None:
+        return dict(_SECTION_RE.findall(text))
+    if _SECTION_NAMES is None:
+        _SECTION_NAMES = (
+            dict(_SECTION_RE.findall(TABLES.read_text(encoding="utf-8")))
+            if TABLES.is_file()
+            else {}
+        )
+    return _SECTION_NAMES
+
+
+def section_direction_comment(system_name: str, names: dict[str, str] | None = None) -> str:
+    """IS:IY:AUTO:0482:forward -> section direction sensor comment.
+
+    These are the forward/reverse sensors JMRI creates for each SML-generated
+    section (fsensorname/rsensorname), not warrant sensors.
+    """
+    body = system_name[len("IS:"):]
+    section, _, direction = body.rpartition(":")
+    name = (names if names is not None else section_names()).get(section)
+    where = f"{name} ({section})" if name else section
+    return f"SML section {direction} direction: {where}"
 PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
@@ -166,22 +198,46 @@ def jmri_head_user_name(mast_user_name: str, disc_role: str) -> str:
     return base
 
 
-def load_wiring_head_comments(path: Path | None = None) -> dict[str, str]:
+def load_fitted_single_heads(path: Path | None = None) -> dict[str, str]:
+    """Mast userName → packed ID for masts built as one head in JMRI.
+
+    signal_head_plan.csv carries the fitted build; signal_wiring.csv keeps
+    the planned heads. A planned two-head mast fitted as a dwarf (Mast 6LB,
+    IH432 only) has a JMRI head named `Head 6LB`, not `Head 6LB Top`.
+    """
+    csv_path = path or SIGNAL_HEAD_PLAN
+    if not csv_path.is_file():
+        return {}
+    out: dict[str, str] = {}
+    with csv_path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            if (row.get("heads") or "").strip() == "1":
+                out[(row.get("mast_user_name") or "").strip()] = (
+                    row.get("packed_ids") or ""
+                ).strip()
+    return out
+
+
+def load_wiring_head_comments(
+    path: Path | None = None, head_plan: Path | None = None
+) -> dict[str, str]:
     """JMRI head userName → LCOS port comment from signal_wiring.csv.
 
     Match by public head name, not packed IH. Wiring packed IDs moved with
     cabinets (40LB is IH1132 on C11); live tables still use the old IH beans.
     """
     csv_path = path or SIGNAL_WIRING
+    singles = load_fitted_single_heads(head_plan)
     grouped: OrderedDict[str, dict[str, object]] = OrderedDict()
     if not csv_path.is_file():
         return {}
     with csv_path.open(newline="", encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
-            uname = jmri_head_user_name(
-                row.get("mast_user_name") or "",
-                row.get("disc_role") or "",
-            )
+            mast = (row.get("mast_user_name") or "").strip()
+            role = row.get("disc_role") or ""
+            if singles.get(mast) == (row.get("packed") or "").strip():
+                role = "S"
+            uname = jmri_head_user_name(mast, role)
             if not uname:
                 continue
             entry = grouped.setdefault(uname, {"ports": [], "signal": ""})
@@ -484,8 +540,8 @@ BLOCK_COMMENTS = {
     "Track West Main Ext": "Track Main West stub west of 111; occupancy Block 1-8 / M2S107; stop",
     "Track East Main Ext": "Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406; stop",
     "Track East Lead": "South Yard lead east of 110/112 toward Princess; occupancy Block 1-7 / M2S106; stop",
-    "Track McKees Rocks": "Princess balloon, Track McKees Rocks; occupancy Block 1-1 / M2S100; stop",
-    "Track McKeesport": "Princess balloon, Track McKeesport; occupancy Block 1-2 / M2S101; stop",
+    "Track K-1": "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",
+    "Track K-2": "Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop",
     "OS Switch 1": "Brick CP, Switch 1; occupancy Block 4-2 / M2S401",
     "OS Switch 3": "Brick CP, Switch 3; occupancy Block 4-1 / M2S400",
     "OS Switch 5": "Plane CP, Switch 5; occupancy Block 4-5 / M2S404",
@@ -502,8 +558,8 @@ BLOCK_COMMENTS = {
     "OS Switch 33": "East End, Switch 33; occupancy Block 12-8 / M2S1207",
     "OS Switch 35a": "Princess crossover 113 south/yard leg; occupancy Block 1-6 / M2S105",
     "OS Switch 35b": "Princess crossover 113 north/main leg; occupancy Block 1-5 / M2S104",
-    "OS Switch 37": "Princess, Switch 37 (same detector as Track K-2); occupancy Block 1-3 / M2S102",
-    "OS Switch 39": "Princess, Switch 39 (same detector as Track K-1); occupancy Block 1-4 / M2S103",
+    "OS Switch 37": "Princess, Switch 37 (same detector as Track McKeesport); occupancy Block 1-3 / M2S102",
+    "OS Switch 39": "Princess, Switch 39 (same detector as Track McKees Rocks); occupancy Block 1-4 / M2S103",
     "OS Switch 13": "Hand-throw west of South Yard 103; occupancy Block 3-1 / M2S300",
     "OS Switch 7": "Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302",
     "OS Switch 7b": "Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303",
@@ -532,8 +588,8 @@ BLOCK_COMMENTS = {
     "Track EH-1": "Top house track; occupancy Block 13-7 / M2S1306; stop",
     "Track EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
     "Track EH-3": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
-    "Track K-1": "Princess stub east of Switch 39; shares Block 1-4 with OS Switch 39; occupancy Block 1-4 / M2S103; stop",
-    "Track K-2": "Princess stub east of Switch 37; shares Block 1-3 with OS Switch 37; occupancy Block 1-3 / M2S102; stop",
+    "Track McKees Rocks": "Princess stub east of Switch 39; shares Block 1-4 with OS Switch 39; occupancy Block 1-4 / M2S103; stop",
+    "Track McKeesport": "Princess stub east of Switch 37; shares Block 1-3 with OS Switch 37; occupancy Block 1-3 / M2S102; stop",
 }
 
 BLOCK_COMMENTS = {
@@ -569,10 +625,10 @@ TURNOUT_COMMENTS = {
 }
 
 OCC_SENSOR = {
-    "Block 1-1": "Occupancy Track McKees Rocks; MQTT M2S100",
-    "Block 1-2": "Occupancy Track McKeesport; MQTT M2S101",
-    "Block 1-3": "Occupancy OS Switch 37 / Track K-2; MQTT M2S102",
-    "Block 1-4": "Occupancy OS Switch 39 / Track K-1; MQTT M2S103",
+    "Block 1-1": "Occupancy Track K-1; MQTT M2S100",
+    "Block 1-2": "Occupancy Track K-2; MQTT M2S101",
+    "Block 1-3": "Occupancy OS Switch 37 / Track McKeesport; MQTT M2S102",
+    "Block 1-4": "Occupancy OS Switch 39 / Track McKees Rocks; MQTT M2S103",
     "Block 1-5": "Occupancy OS Switch 35b; MQTT M2S104",
     "Block 1-6": "Occupancy OS Switch 35a; MQTT M2S105",
     "Block 1-7": "Occupancy Track East Lead; MQTT M2S106",
@@ -847,7 +903,7 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
         if system_name == "IS:FLEETING":
             return existing or "USS CTC fleeting"
         if system_name.startswith("IS:IY:AUTO:"):
-            return f"Auto warrant direction {user_name or system_name}"
+            return section_direction_comment(system_name)
         if system_name.startswith("ISNX:"):
             mast = system_name.split(":", 1)[-1]
             return existing or (
@@ -876,6 +932,12 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
     if kind == "route":
         return f"Route {user_name}" if user_name else None
     return None
+
+
+def is_block_name_pass(body: str) -> bool:
+    """True for the names-only first-pass <block> JMRI writes before the full one."""
+    tags = set(re.findall(r"<([A-Za-z][\w]*)\b", body))
+    return tags <= {"systemName", "userName"}
 
 
 def refresh_comments(text: str) -> tuple[str, int]:
@@ -907,6 +969,10 @@ def refresh_comments(text: str) -> tuple[str, int]:
                 body = set_user_name(body, ctc_name, replace=True)
                 user_name = ctc_name
                 changed += 1
+        if kind == "block" and is_block_name_pass(body):
+            # JMRI writes every block twice; the first pass holds names only
+            # (BlockManagerXml.store). Comments belong on the full pass.
+            return open_tag + body + close_tag
         comment = comment_for(kind, system_name, user_name, existing)
         if comment and comment != existing:
             changed += 1

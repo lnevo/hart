@@ -17,5 +17,8 @@
 | [013](ADR-013-car-repository.md) | One car repository | Accepted |
 | [014](ADR-014-jmri-user-files.md) | JMRI_UserFiles on every host | Accepted |
 | [015](ADR-015-operations-files-in-repo.md) | Operations Pro files in the repo | Accepted |
+| [016](ADR-016-sts-refreshes-jmri-operations.md) | STS refreshes JMRI Operations | Accepted |
+| [017](ADR-017-princess-track-name-swap.md) | Princess track names swapped | Accepted |
+| [018](ADR-018-staged-intake-workflow.md) | Staged intake for cars and locomotives | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.

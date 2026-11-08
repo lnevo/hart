@@ -131,14 +131,14 @@ NAME_REPLACEMENTS: list[tuple[str, str]] = [
     ("East End South OS 110", proposed("110R") or "110R"),
     ("East End East OS 111a", proposed("111L") or "111L"),
     ("East End East Lead", proposed("112L") or "112L"),
-    ("Princess North McKees Rocks", proposed("115LB") or "115LB"),
-    ("Princess South McKeesport", proposed("114LB") or "114LB"),
+    ("Princess North K-1", proposed("115LB") or "115LB"),
+    ("Princess South K-2", proposed("114LB") or "114LB"),
     ("Princess West OS 113a", proposed("113RB") or "113RB"),
     ("Princess West OS 113b", proposed("113RA") or "113RA"),
-    ("Princess East McKeesport", proposed("120R") or "120R"),
-    ("Princess East McKees Rocks", proposed("120L") or "120L"),
-    ("Princess East K-1", proposed("115LA") or "115LA"),
-    ("Princess East K-2", proposed("114LA") or "114LA"),
+    ("Princess East K-2", proposed("120R") or "120R"),
+    ("Princess East K-1", proposed("120L") or "120L"),
+    ("Princess East McKees Rocks", proposed("115LA") or "115LA"),
+    ("Princess East McKeesport", proposed("114LA") or "114LA"),
     ("Plane East East Main Ext", proposed("102LB") or "102LB"),
     ("Plane East OS 102", proposed("102LA") or "102LA"),
     ("Brick East Main West", proposed("100L") or "100L"),
@@ -1434,11 +1434,11 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
     """ABS rows for 114LA / 115LA / 120R / 120L (SML PAIRS + SIGNAL_FACING)."""
     loc = "Princess / Helix DCC"
     routes = [
-        # K-1 dwarf, westbound. 115 Closed = K-1; dest 111L (113 N) or 112L (113 R).
+        # McKees Rocks dwarf, westbound. 115 Closed = McKees Rocks; dest 111L (113 N) or 112L (113 R).
         dict(
             Signal="115LA",
-            Signal_Block="K-1",
-            Route_From="K-1",
+            Signal_Block="McKees Rocks",
+            Route_From="McKees Rocks",
             Route_To="West Main Ext",
             Block1="OS 115",
             Block2="West Main Ext",
@@ -1446,12 +1446,12 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW115="N",
             ih="IH142",
-            Notes="K-1 dwarf (one-low). SW115 Closed = K-1. Dest 111L when 113 Normal.",
+            Notes="McKees Rocks dwarf (one-low). SW115 Closed = McKees Rocks. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="115LA",
-            Signal_Block="K-1",
-            Route_From="K-1",
+            Signal_Block="McKees Rocks",
+            Route_From="McKees Rocks",
             Route_To="East Lead",
             Block1="OS 115",
             Block2="East Lead",
@@ -1459,13 +1459,13 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="R",
             SW115="N",
             ih="IH142",
-            Notes="K-1 dwarf. Dest 112L when 113 Reverse (East Lead).",
+            Notes="McKees Rocks dwarf. Dest 112L when 113 Reverse (East Lead).",
         ),
-        # K-2 dwarf, westbound. 114 Closed = K-2.
+        # McKeesport dwarf, westbound. 114 Closed = McKeesport.
         dict(
             Signal="114LA",
-            Signal_Block="K-2",
-            Route_From="K-2",
+            Signal_Block="McKeesport",
+            Route_From="McKeesport",
             Route_To="West Main Ext",
             Block1="OS 114",
             Block2="West Main Ext",
@@ -1473,12 +1473,12 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="N",
             SW114="N",
             ih="IH143",
-            Notes="K-2 dwarf (one-low). SW114 Closed = K-2. Dest 111L when 113 Normal.",
+            Notes="McKeesport dwarf (one-low). SW114 Closed = McKeesport. Dest 111L when 113 Normal.",
         ),
         dict(
             Signal="114LA",
-            Signal_Block="K-2",
-            Route_From="K-2",
+            Signal_Block="McKeesport",
+            Route_From="McKeesport",
             Route_To="East Lead",
             Block1="OS 114",
             Block2="East Lead",
@@ -1486,38 +1486,38 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             SW113="R",
             SW114="N",
             ih="IH143",
-            Notes="K-2 dwarf. Dest 112L when 113 Reverse (East Lead).",
+            Notes="McKeesport dwarf. Dest 112L when 113 Reverse (East Lead).",
         ),
-        # Balloon A48: south-track 120R (IH134) protects Rocks / OS 115; dest 120L.
+        # Balloon A48: south-track 120R (IH134) protects K-1 / OS 115; dest 120L.
         dict(
             Signal="120R",
-            Signal_Block="McKees Rocks",
-            Route_From="McKeesport",
-            Route_To="McKees Rocks",
-            Block1="McKees Rocks",
+            Signal_Block="K-1",
+            Route_From="K-2",
+            Route_To="K-1",
+            Block1="K-1",
             Block2="OS 115",
             Next_Signal="120L",
             SW114="R",
             ih="IH134",
             Notes=(
-                "Balloon connector (one-low). A48 east ends join: 120R/IH134 on McKeesport "
-                "track protects Rocks / OS 115. SW114 Thrown = McKeesport."
+                "Balloon connector (one-low). A48 east ends join: 120R/IH134 on K-2 "
+                "track protects K-1 / OS 115. SW114 Thrown = K-2."
             ),
         ),
-        # North-track 120L (IH141) protects McKeesport / OS 114; dest 120R.
+        # North-track 120L (IH141) protects K-2 / OS 114; dest 120R.
         dict(
             Signal="120L",
-            Signal_Block="McKeesport",
-            Route_From="McKees Rocks",
-            Route_To="McKeesport",
-            Block1="McKeesport",
+            Signal_Block="K-2",
+            Route_From="K-1",
+            Route_To="K-2",
+            Block1="K-2",
             Block2="OS 114",
             Next_Signal="120R",
             SW115="R",
             ih="IH141",
             Notes=(
-                "Balloon connector (one-low). 120L/IH141 on Rocks track protects McKeesport / "
-                "OS 114. SML also Stop if McKees Rocks occupied. SW115 Thrown = Rocks."
+                "Balloon connector (one-low). 120L/IH141 on K-1 track protects K-2 / "
+                "OS 114. SML also Stop if K-1 occupied. SW115 Thrown = K-1."
             ),
         ),
     ]

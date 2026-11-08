@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Native-SML mimic QA: drive retained MQTT states, assert mast aspects via JMRI JSON.
 
-Covers 100, 102, 110, 111, 114/115, K-1/K-2, A48 balloon, 117/117b.
+Covers 100, 102, 110, 111, 114/115, McKees Rocks/McKeesport, K-1/K-2 A48 balloon, 117/117b.
 Never publishes track/cmd/*. Captures retained baseline and restores it.
 
 Live CATS ABS is HOLD_ONLY on the same JMRI masts (ADR-005 names).
@@ -37,10 +37,10 @@ TO = {
 
 # block name -> occupancy sensor MQTT addr
 OCC = {
-    "McKees Rocks": "100",
-    "McKeesport": "101",
-    "OS 114/K-2": "102",
-    "OS 115/K-1": "103",
+    "K-1": "100",
+    "K-2": "101",
+    "OS 114/McKeesport": "102",
+    "OS 115/McKees Rocks": "103",
     "OS 113b": "104",
     "OS 113a": "105",
     "East Lead": "106",
@@ -112,7 +112,7 @@ LIVE_MASTS = {
 # Mast userName -> head system names (signal_wiring.csv). MQTT appearance must
 # match JMRI JSON for CATS ABS HOLD_ONLY paint.
 MAST_HEADS = {
-    "Mast 6LB": ("IH432", "IH433"),
+    "Mast 6LB": ("IH432",),  # interim one-low dwarf; IH433 not wired yet
     "Mast 6LA": ("IH434",),
     "Mast 4RA": ("IH436",),
     "Mast 4RB": ("IH437",),
@@ -127,14 +127,14 @@ MAST_HEADS = {
     "Mast 34L": ("IH1237", "IH1238"),
     "Mast 32R": ("IH1239",),
     "Mast 34R": ("IH1240", "IH1241"),
-    "Mast 40LB": ("IH132", "IH133"),
+    "Mast 40LA": ("IH132", "IH133"),
     "Mast 2036": ("IH134",),
     "Mast 36RA": ("IH135", "IH136"),
     "Mast 36RB": ("IH137", "IH138"),
-    "Mast 38LB": ("IH139", "IH140"),
+    "Mast 38LA": ("IH139", "IH140"),
     "Mast 2035": ("IH141",),
-    "Mast 40LA": ("IH142",),
-    "Mast 38LA": ("IH143",),
+    "Mast 40LB": ("IH142",),
+    "Mast 38LB": ("IH143",),
 }
 
 STOP_HEAD = {"Red", "Dark", "Held", None, ""}
@@ -313,11 +313,11 @@ def main() -> None:
             },
         )
 
-        # ---- Princess 115 / K-1 / McKees Rocks leg ----
+        # ---- Princess 115 / McKees Rocks / K-1 leg ----
         set_to("115", "THROWN")
         step(
             "qa01_115_thrown",
-            "115 THROWN: main runs via McKees Rocks balloon; K-1 cut off.",
+            "115 THROWN: main runs via K-1 balloon; McKees Rocks cut off.",
             {
                 "Mast 40LA": "stop",
                 # diverging route (115 thrown) with dest Mast 24L non-Stop: bottom head green
@@ -336,34 +336,34 @@ def main() -> None:
         set_occ("West Main Ext", "INACTIVE")
         set_to("115", "CLOSED")
 
-        # ---- Princess 114 / K-2 / McKeesport leg + A48 balloon ----
+        # ---- Princess 114 / McKeesport / K-2 leg + A48 balloon ----
         set_to("114", "THROWN")
         step(
             "qa03_114_thrown",
-            "114 THROWN: main runs via McKeesport balloon; K-2 cut off.",
+            "114 THROWN: main runs via K-2 balloon; McKeesport cut off.",
             {
                 "Mast 38LB": "nonstop",
                 "Mast 36RB": "nonstop",  # dest Mast 2036 via 113C+114T
             },
         )
 
-        set_occ("McKeesport", "ACTIVE")
+        set_occ("K-2", "ACTIVE")
         step(
             "qa04_114T_mckeesport_occ",
-            "114 THROWN + McKeesport balloon occupied (A48 boundary test).",
+            "114 THROWN + K-2 balloon occupied (A48 boundary test).",
             {
                 "Mast 2036": "stop",
                 "Mast 36RB": "stop",
             },
         )
-        set_occ("McKeesport", "INACTIVE")
+        set_occ("K-2", "INACTIVE")
         set_to("114", "CLOSED")
 
-        # ---- K-2 occupancy path ----
+        # ---- McKeesport occupancy path ----
         set_occ("East Lead", "ACTIVE")
         step(
             "qa05_east_lead_occ",
-            "East Lead occupied: K-2's route to East Lead mast fouled; K-1 (via 111a) unaffected.",
+            "East Lead occupied: McKeesport's route to East Lead mast fouled; McKees Rocks (via 111a) unaffected.",
             {
                 "Mast 38LA": "stop",
                 "Mast 40LA": "nonstop",

@@ -8,8 +8,8 @@
    right and **reverses commands**.
 3. **112 / 114 / 115 tip SoR (dispatcher):**
    - **112** THROWN = OS Barn (BOTTOM); CLOSED = through OS110 (LEFT)
-   - **114** THROWN = OS McKeesport (BOTTOM, default); CLOSED = OS K-2 (RIGHT)
-   - **115** THROWN = Rocks (TOP); CLOSED = OS K-1 (RIGHT) — confirmed good
+   - **114** THROWN = OS K-2 (BOTTOM, default); CLOSED = OS McKeesport (RIGHT)
+   - **115** THROWN = K-1 (TOP); CLOSED = OS McKees Rocks (RIGHT) — confirmed good
 4. If Digicon shows the **wrong direction**, flip **that one switch only** in
    `cats/scripts/wire_digicon.py` `PLANTS` (NORMAL leg), rewire,
    reload. Do **not** publish MQTT or command JMRI turnouts to “fix” paint.
@@ -39,8 +39,8 @@ python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py --diagnose
 | 100 | LEFT | BOTTOM (100–102) | continuing = THROWN |
 | 102 | BOTTOM (OS East Main Ext) | RIGHT (OS Scale) | |
 | 112 | LEFT (OS110 ↔ OS East Lead) | BOTTOM (OS Barn) | THROWN = OS Barn |
-| 114 | RIGHT (OS K-2) | BOTTOM (OS McKeesport) | THROWN default = OS McKeesport |
-| 115 | RIGHT (OS K-1) | TOP (OS McKees Rocks) | confirmed good |
+| 114 | RIGHT (OS McKeesport) | BOTTOM (OS K-2) | THROWN default = OS K-2 |
+| 115 | RIGHT (OS McKees Rocks) | TOP (OS K-1) | confirmed good |
 
 At rest 112/114/115 are typically JMRI/MQTT `THROWN` — Digicon throw frog
 matches the field. Commands use the same map.
@@ -55,4 +55,4 @@ Layout Editor `continuing` is JMRI `Turnout` state, not 1/2 Closed/Thrown:
 
 `apply_le_sml_facing.py` keeps 114/115/111/113/117 at **2**. Do not write `1`.
 
-OS K-1/OS K-2 stubs are plain (no BLK↔BLK gaps).
+OS McKees Rocks/OS McKeesport stubs are plain (no BLK↔BLK gaps).

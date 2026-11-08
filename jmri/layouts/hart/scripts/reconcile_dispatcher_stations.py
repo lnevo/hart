@@ -32,8 +32,8 @@ SYNC_PANEL = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 STATIONS = (
     "Track Main West",
     "Track West Main Ext",
-    "Track McKees Rocks",
-    "Track McKeesport",
+    "Track K-1",
+    "Track K-2",
     "Track East Lead",
     "Track Main East",
     "Track East Main Ext",
@@ -50,8 +50,8 @@ STATIONS = (
     "Track Barn",
     "Track W-1",
     "Track W-2",
-    "Track K-1",
-    "Track K-2",
+    "Track McKees Rocks",
+    "Track McKeesport",
 )
 
 INTERNAL_SENSOR_CLASS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
@@ -73,8 +73,8 @@ STATION_ICON_POSITIONS = {
     "Track Main East": (943, 520),
     "Track West Main Ext": (1416, 210),
     "Track East Lead": (1416, 345),
-    "Track McKees Rocks": (1706, 185),
-    "Track McKeesport": (1706, 345),
+    "Track K-1": (1706, 185),
+    "Track K-2": (1706, 345),
     # Engine house: east/right of the 116 ladder.
     "Track EH-1": (668, 256),
     "Track EH-2": (668, 270),
@@ -92,8 +92,8 @@ STATION_ICON_POSITIONS = {
     "Track W-1": (103, 230),
     "Track W-2": (105, 293),
     # Princess stubs: replace Track 1 / Track 2 east of 114 / 115.
-    "Track K-1": (1730, 230),
-    "Track K-2": (1730, 293),
+    "Track McKees Rocks": (1730, 230),
+    "Track McKeesport": (1730, 293),
 }
 
 STATION_OCCUPANCY = {
@@ -103,8 +103,8 @@ STATION_OCCUPANCY = {
     "Track Main East": "Block 2-3",
     "Track West Main Ext": "Block 1-8",
     "Track East Lead": "Block 1-7",
-    "Track McKees Rocks": "Block 1-1",
-    "Track McKeesport": "Block 1-2",
+    "Track K-1": "Block 1-1",
+    "Track K-2": "Block 1-2",
     "Track EH-1": "Block 13-7",
     "Track EH-2": "Block 13-6",
     "Track EH-3": "Block 13-5",
@@ -117,8 +117,8 @@ STATION_OCCUPANCY = {
     "Track Barn": "Block 13-1",
     "Track W-1": "Block 4-4",
     "Track W-2": "Block 4-3",
-    "Track K-1": "Block 1-4",
-    "Track K-2": "Block 1-3",
+    "Track McKees Rocks": "Block 1-4",
+    "Track McKeesport": "Block 1-3",
 }
 
 # Loco marker is ~60px; size-10 bold fits about 8 characters.
@@ -129,8 +129,8 @@ STATION_DISPLAY_NAMES = {
     "Track Main East": "Main E",
     "Track West Main Ext": "W Main",
     "Track East Lead": "E Lead",
-    "Track McKees Rocks": "McK Rks",
-    "Track McKeesport": "McKport",
+    "Track K-1": "Track K-1",
+    "Track K-2": "Track K-2",
     "Track EH-1": "Track EH-1",
     "Track EH-2": "Track EH-2",
     "Track EH-3": "Track EH-3",
@@ -143,8 +143,8 @@ STATION_DISPLAY_NAMES = {
     "Track Barn": "Barn",
     "Track W-1": "Track W-1",
     "Track W-2": "Track W-2",
-    "Track K-1": "Track K-1",
-    "Track K-2": "Track K-2",
+    "Track McKees Rocks": "McK Rks",
+    "Track McKeesport": "McKport",
 }
 
 

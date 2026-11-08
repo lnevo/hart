@@ -41,6 +41,7 @@ external/sts-docker-data/MIRROR_MANIFEST.txt
 # Large files kept out of git
 /media
 /ops/car-cards
+/ops/intake/*/review.*
 /docs/wiring/bench
 
 www/assets/f-root-previews/
@@ -98,3 +99,7 @@ archive/panels/sheets/checkpoints/HART_WestYard_BEFORE_rotate180.xml
 
 # Operations Pro plugin backups made when changing the repo copy
 jmri/layouts/hart/operations/backups/
+
+# STS Docker runtime state (local only)
+external/sts-docker-data/config/
+external/sts-docker-data/sandbox/

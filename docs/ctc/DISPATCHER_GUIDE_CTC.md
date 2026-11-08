@@ -38,7 +38,7 @@ Quit on the strip uses JMRI `Apps.handleQuit()` (store prompt, clean shutdown).
 ## 1. Reading the Digicon panel
 
 The schematic runs **west → east** (left → right): Brick → Plane → OS Barn → East End →
-Princess, with South Yard on the ladder and OS McKees Rocks / OS McKeesport at the east end.
+Princess, with South Yard on the ladder and OS K-1 / OS K-2 at the east end.
 It is an **interlocking diagram**, not a scale map.
 
 | What you see | Meaning |

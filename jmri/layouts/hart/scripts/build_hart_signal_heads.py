@@ -36,6 +36,15 @@ DATA = ROOT / "docs/wiring/signals"
 SKIP_HEAD: set[str] = set()
 SKIP_MAST: set[str] = set()
 
+# Interim: masts whose field build has fewer heads than the wiring plan.
+# signal_wiring.csv and signal_mast_plan.csv keep the planned heads;
+# signal_head_plan.csv (read by cats/scripts/wire_digicon.py for PHYSIGNAL)
+# and the JMRI mast use only the fitted ones. Remove an entry once the
+# missing head is wired and configured in LCOS.
+FITTED_HEADS: dict[str, set[int]] = {
+    "Mast 6LB": {432},  # dwarf on C4-OU2-1..3; IH433 (bottom) not wired
+}
+
 # One 3-pin STOP/APPROACH/CLEAR object per physical disc. A 2-head mast owns
 # 6 consecutive pins on one board (T then B). Packed = radio*100 + UID.
 # disc: T top, B bottom, S single.
@@ -56,9 +65,9 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     ("Mast 8RA", 13, "C13", "West - Lower (Barn left)", 1333, "C13-OU1-6", "C13-OU1-5", "C13-OU1-4", "B", "with 8RA T on OU1"),
     ("Mast 8RB", 13, "C13", "West - Lower (Barn left)", 1335, "C13-OU4-3", "C13-OU4-2", "C13-OU4-1", "T", "S3-12; sequential R/Y/G"),
     ("Mast 8RB", 13, "C13", "West - Lower (Barn left)", 1336, "C13-OU4-6", "C13-OU4-5", "C13-OU4-4", "B", "with 8RB T on OU4"),
-    ("Mast 8LA", 13, "C13", "West - Lower (Barn right)", 1337, "C13-OU2-3", "C13-OU2-2", "C13-OU2-1", "T", "S3-5 R/Y/G"),
-    ("Mast 8LA", 13, "C13", "West - Lower (Barn right)", 1338, "C13-OU2-6", "C13-OU2-5", "C13-OU2-4", "B", "with 8LA T on OU2"),
-    ("Mast 8LB", 13, "C13", "West - Lower (Barn right)", 1334, "C13-OU4-7", "C13-OU2-8", "C13-OU2-7", "S", "R/Y with 8LA; G spills to 8RB OU4"),
+    ("Mast 8LA", 13, "C13", "West - Lower (Barn right)", 1337, "C13-OU3-3", "C13-OU3-2", "C13-OU3-1", "T", "S3-5 R/Y/G"),
+    ("Mast 8LA", 13, "C13", "West - Lower (Barn right)", 1338, "C13-OU3-6", "C13-OU3-5", "C13-OU3-4", "B", "with 8LA T on OU3"),
+    ("Mast 8LB", 13, "C13", "West - Lower (Barn right)", 1334, "C13-OU4-7", "C13-OU3-8", "C13-OU3-7", "S", "R/Y with 8LA on OU3; G spills to 8RB OU4"),
     # C2 radio 2 — East End west overflow (24). C2 sits on the west end of East End.
     ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 232, "C2-OU1-3", "C2-OU1-2", "C2-OU1-1", "T", "C2-OU1 5V"),
     ("Mast 24RA", 2, "C2", "North - Lower (East End west 24)", 238, "C2-OU1-6", "C2-OU1-5", "C2-OU1-4", "B", "with 24RA T on OU1"),
@@ -76,13 +85,13 @@ HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
     ("Mast 36RA", 1, "C1", "Helix - Lower (Princess SW35)", 136, "C1-OU2-6", "C1-OU2-5", "C1-OU2-4", "B", "with 36RA T on OU2"),
     ("Mast 36RB", 1, "C1", "Helix - Lower (Princess SW35)", 132, "C1-OU3-3", "C1-OU3-2", "C1-OU3-1", "T", "was C11 1132"),
     ("Mast 36RB", 1, "C1", "Helix - Lower (Princess SW35)", 133, "C1-OU3-6", "C1-OU3-5", "C1-OU3-4", "B", "with 36RB T on OU3"),
-    ("Mast 38LB", 1, "C1", "Helix - Lower (Princess SW37)", 139, "C1-OU4-3", "C1-OU4-2", "C1-OU4-1", "T", "S1-3 R/Y/G"),
-    ("Mast 38LB", 1, "C1", "Helix - Lower (Princess SW37)", 140, "C1-OU4-6", "C1-OU4-5", "C1-OU4-4", "B", "with 38LB T on OU4"),
-    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess SW37)", 143, "C1-OU2-7", "C1-OU3-8", "C1-OU3-7", "S", "leftover trio on 36 boards; 38LB keeps OU4"),
+    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess SW37)", 139, "C1-OU4-3", "C1-OU4-2", "C1-OU4-1", "T", "S1-3 R/Y/G"),
+    ("Mast 38LA", 1, "C1", "Helix - Lower (Princess SW37)", 140, "C1-OU4-6", "C1-OU4-5", "C1-OU4-4", "B", "with 38LA T on OU4"),
+    ("Mast 38LB", 1, "C1", "Helix - Lower (Princess SW37)", 143, "C1-OU2-7", "C1-OU3-8", "C1-OU3-7", "S", "leftover trio on 36 boards; 38LA keeps OU4"),
     # C11 radio 11 — Princess east (40 @ SW39) + balloon.
-    ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1132, "C11-OU2-3", "C11-OU2-2", "C11-OU2-1", "T", "was C1 132"),
-    ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1135, "C11-OU2-6", "C11-OU2-5", "C11-OU2-4", "B", "with 40LB T on OU2"),
-    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1136, "C11-OU3-3", "C11-OU3-2", "C11-OU3-1", "S", "whole dwarf on OU3; 2035/2036 can sit apart"),
+    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1132, "C11-OU2-3", "C11-OU2-2", "C11-OU2-1", "T", "was C1 132"),
+    ("Mast 40LA", 11, "C11", "Helix (Princess east SW39)", 1135, "C11-OU2-6", "C11-OU2-5", "C11-OU2-4", "B", "with 40LA T on OU2"),
+    ("Mast 40LB", 11, "C11", "Helix (Princess east SW39)", 1136, "C11-OU3-3", "C11-OU3-2", "C11-OU3-1", "S", "whole dwarf on OU3; 2035/2036 can sit apart"),
     ("Mast 2036", 11, "C11", "Helix (balloon 114)", 1133, "C11-OU3-6", "C11-OU3-5", "C11-OU3-4", "S", "balloon; sequential R/Y/G"),
     ("Mast 2035", 11, "C11", "Helix (balloon 115)", 1134, "C11-OU2-7", "C11-OU3-8", "C11-OU3-7", "S", "leftover trio (OU2-8 is BS cal)"),
 ]
@@ -170,6 +179,45 @@ def build_rows() -> list[dict]:
     return rows
 
 
+def fitted_rows(rows: list[dict]) -> list[dict]:
+    """Rows for heads actually fitted in the field (see FITTED_HEADS)."""
+    return [
+        r
+        for r in rows
+        if r["mast_user_name"] not in FITTED_HEADS
+        or r["packed"] in FITTED_HEADS[r["mast_user_name"]]
+    ]
+
+
+def plan_masts(rows: list[dict]) -> list[dict]:
+    """One signal_head_plan row per mast, from the given head rows."""
+    masts = []
+    seen = set()
+    for r in rows:
+        m = r["mast_user_name"]
+        if m in SKIP_MAST or m in seen:
+            continue
+        seen.add(m)
+        hs = [x for x in rows if x["mast_user_name"] == m]
+        discs = discs_of(m, rows)
+        n = len(discs)
+        masts.append(
+            {
+                "mast_user_name": m,
+                "mqtt_node": r["mqtt_node"],
+                "parent_node_id": r["parent_node_id"],
+                "heads": n,
+                "appearance": APPEAR[n],
+                "physignal": "double" if n == 2 else "single",
+                "mast_system_name": mast_system_name(m, rows),
+                "head_system_names": " ".join(d["system_name"] for d in discs),
+                "packed_ids": " ".join(str(d["packed"]) for d in discs),
+                "port_ids": " ".join(x["port_id"] for x in hs),
+            }
+        )
+    return masts
+
+
 def mast_system_name(mast: str, rows: list[dict]) -> str:
     discs = discs_of(mast, rows)
     n = len(discs)
@@ -199,7 +247,7 @@ def write_csvs(rows: list[dict]) -> None:
         "notes",
     ]
     with (DATA / "signal_wiring.csv").open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=wiring_fields)
+        w = csv.DictWriter(f, fieldnames=wiring_fields, lineterminator="\n")
         w.writeheader()
         for r in rows:
             w.writerow(
@@ -227,32 +275,10 @@ def write_csvs(rows: list[dict]) -> None:
         "packed_ids",
         "port_ids",
     ]
-    masts = []
-    seen = set()
-    for r in rows:
-        m = r["mast_user_name"]
-        if m in SKIP_MAST or m in seen:
-            continue
-        seen.add(m)
-        hs = [x for x in rows if x["mast_user_name"] == m]
-        discs = discs_of(m, rows)
-        n = len(discs)
-        masts.append(
-            {
-                "mast_user_name": m,
-                "mqtt_node": r["mqtt_node"],
-                "parent_node_id": r["parent_node_id"],
-                "heads": n,
-                "appearance": APPEAR[n],
-                "physignal": "double" if n == 2 else "single",
-                "mast_system_name": mast_system_name(m, rows),
-                "head_system_names": " ".join(d["system_name"] for d in discs),
-                "packed_ids": " ".join(str(d["packed"]) for d in discs),
-                "port_ids": " ".join(x["port_id"] for x in hs),
-            }
-        )
+    masts = plan_masts(fitted_rows(rows))
+    planned = plan_masts(rows)
     with (DATA / "signal_head_plan.csv").open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=plan_fields)
+        w = csv.DictWriter(f, fieldnames=plan_fields, lineterminator="\n")
         w.writeheader()
         w.writerows(masts)
 
@@ -261,7 +287,7 @@ def write_csvs(rows: list[dict]) -> None:
     if plan_src.exists():
         with plan_src.open(newline="") as f:
             old = list(csv.DictReader(f))
-        by_name = {m["mast_user_name"]: m for m in masts}
+        by_name = {m["mast_user_name"]: m for m in planned}
         out_fields = list(old[0].keys())
         for col in (
             "heads",
@@ -291,7 +317,7 @@ def write_csvs(rows: list[dict]) -> None:
                 }
             enriched.append(row)
         with plan_src.open("w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=out_fields)
+            w = csv.DictWriter(f, fieldnames=out_fields, lineterminator="\n")
             w.writeheader()
             w.writerows(enriched)
         print(f"updated {plan_src}")
@@ -386,7 +412,28 @@ def _masts_xml(rows: list[dict]) -> str:
     return "\n".join(parts)
 
 
+def check_live_heads(rows: list[dict], tables_text: str) -> list[str]:
+    """Planned IH beans missing from tables.xml.
+
+    Wiring packed IDs moved with cabinets (24RA is 232/238 in the plan,
+    IH1232/IH1233 live; docs/wiring/packed_id_crosswalk.csv maps them), so a
+    plan that does not match live beans must not replace the tables block.
+    """
+    live = set(re.findall(r"<systemName>(IH\d+)</systemName>", tables_text))
+    return sorted({r["system_name"] for r in rows} - live)
+
+
 def patch_tables(rows: list[dict]) -> None:
+    rows = fitted_rows(rows)
+    tables = ROOT / "jmri/layouts/hart/output/tables.xml"
+    missing = check_live_heads(rows, tables.read_text())
+    if missing:
+        raise SystemExit(
+            "refusing to rewrite tables.xml: planned heads are not live beans "
+            f"({len(missing)}: {', '.join(missing[:8])}). The wiring plan uses "
+            "cabinet packed IDs; see docs/wiring/packed_id_crosswalk.csv. "
+            "Use --wiring-only."
+        )
     heads = _heads_xml(rows)
     masts = _masts_xml(rows)
     block = heads + "\n" + masts

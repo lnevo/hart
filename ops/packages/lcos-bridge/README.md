@@ -32,6 +32,10 @@ Or use the wrapper (sets broker from env):
 
 **Foreground only** — operator owns the process; Ctrl+C to stop. Do not run hidden/detached.
 
+### Start at logon (two tabs)
+
+[`windows/start_bridge_tabs.cmd`](windows/start_bridge_tabs.cmd) opens one Windows Terminal window after you log in. It has a **Bridge** tab (`run_serial_mqtt.cmd verbose`) and an **MQTT sub** tab (`sub.bat`), both from `%USERPROFILE%\Documents\LCOS_ESP32_MQTT_Client`. It waits 20 s first so the network and COM port are ready. Install it by copying it into `shell:startup` (Win+R, `shell:startup`). Remove it by deleting it from that folder. It never runs before logon.
+
 ## Mac lab
 
 ```bash

@@ -19,7 +19,7 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 | Occupancy sensor | `BS …` (comment `Node: 4 Block: 1`) | `BS Switch 3`, `BS S-R` |
 | Main between CPs | `Track <west>–<east>` | `Track Brick-Plane` |
 | Yard track | `Track` + plate | `Track W-1`, `Track S-3`, `Track EH-1` |
-| Stub | `Track` + letter-number | `Track K-1` |
+| Stub | `Track` + letter-number | `Track W-1` (2026-11-07: Princess names swapped, see ADR-017) |
 | Signal mast | `Mast <n><L\|R>[A\|B]` or `Mast` + 4-digit field | `Mast 8LA`, `Mast 2L`, `Mast 2035` |
 | Signal head | `Head` + mast, or + ` Top` / ` Bottom` | `Head 2L Top`, `Head 2035` |
 | Feedback | `FB Switch <n> N\|R` | `FB Switch 1 N` |

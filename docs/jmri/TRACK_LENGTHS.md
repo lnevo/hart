@@ -30,15 +30,15 @@ sharing the detector of its track (the track's own row carries the real length).
 | Track S-2 | Block 2-6 | 178 | 4521.2 | assigned | Yard 3 |
 | Track S-3 | Block 2-5 | 142 | 3606.8 | assigned | Yard 2 (reversed) |
 | Track S-4 | Block 2-4 | 100 | 2540.0 | assigned | Yard 1 (reversed) |
-| Track McKees Rocks | Block 1-1 | 122.5 | 3111.5 | split | East Loop / 2 |
-| Track McKeesport | Block 1-2 | 122.5 | 3111.5 | split | East Loop / 2 |
+| Track K-1 | Block 1-1 | 122.5 | 3111.5 | split | East Loop / 2 |
+| Track K-2 | Block 1-2 | 122.5 | 3111.5 | split | East Loop / 2 |
 | Track Scale | Block 4-8 | 24 | 609.6 | estimate | new with 116/117 |
 | Track Barn | Block 13-1 | 24 | 609.6 | estimate | new with 116/117 |
 | Track EH-1 | Block 13-7 | 24 | 609.6 | estimate |  |
 | Track EH-2 | Block 13-6 | 24 | 609.6 | estimate |  |
 | Track EH-3 | Block 13-5 | 24 | 609.6 | estimate |  |
-| Track K-1 | BS Switch 39 / BS K-1 | 24 | 609.6 | estimate | Princess stub east of Switch 39 |
-| Track K-2 | BS Switch 37 / BS K-2 | 24 | 609.6 | estimate | stub east of Switch 37 |
+| Track McKees Rocks | BS Switch 39 / BS McKees Rocks | 24 | 609.6 | estimate | Princess stub east of Switch 39 |
+| Track McKeesport | BS Switch 37 / BS McKeesport | 24 | 609.6 | estimate | stub east of Switch 37 |
 
 ## Hidden throat stubs
 

@@ -957,11 +957,11 @@
       "id": "shenango",
       "title": "Shenango",
       "pub": "SM-05",
-      "revision": "A",
-      "effective": "23 July 2026",
+      "revision": "B",
+      "effective": "7 November 2026",
       "img": "assets/maps/station_map_shenango.png",
       "rotated": "assets/maps/station_map_shenango_rotated.png",
-      "alt": "Shenango station map: Princess crossover 113 between Main West and Main East, Shenango Coke Works on K-1 off switch 115 and K-2 off switch 114, loops to McKee's Rocks / Scully Yard and McKeesport / Demmler Yard.",
+      "alt": "Shenango station map: Princess crossover 113 between Main West and Main East; Track McKees Rocks off switch 115 and Track McKeesport off switch 114 run east toward the helix and the Scully and Demmler interchanges; Shenango Coke Works sits inside the Track K-1 / Track K-2 loop.",
       "what": "Princess junction, Shenango Coke Works on K-1 and K-2, and the loops to McKees Rocks / Scully and McKeesport / Demmler.",
       "tracks": [
         {
@@ -1020,11 +1020,11 @@
         },
         {
           "n": "114",
-          "what": "Main East: K-2 or the McKeesport / Demmler Yard loop"
+          "what": "Main East: Track McKeesport (mainline, toward the helix) or the K-2 loop"
         },
         {
           "n": "115",
-          "what": "Main West: K-1 or the McKees Rocks / Scully Yard loop"
+          "what": "Main West: Track McKees Rocks (mainline, toward the helix) or the K-1 loop"
         }
       ],
       "connects": [

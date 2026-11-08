@@ -101,10 +101,15 @@ def load_geometry(src: Path):
 
     segs = []
     for s in le.findall("tracksegment"):
+        if s.get("hidden") == "yes":
+            # Hidden track (the virtual K-1/K-2 wrap at Princess) is not drawn in PanelPro either.
+            continue
         a = resolve(s.get("connect1name"), s.get("type1"))
         b = resolve(s.get("connect2name"), s.get("type2"))
         if a and b:
             segs.append((a, b, s.get("mainline") == "yes", s.get("blockname") or ""))
+    drawn = {a for a, _b, _m, _blk in segs} | {b for _a, b, _m, _blk in segs}
+    pp = {k: v for k, v in pp.items() if v in drawn}
     signals = []
     for icon in le.findall("signalmasticon"):
         try:

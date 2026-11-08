@@ -73,6 +73,11 @@ if [[ -d "$HART/cats/resources/icons/USS/sensor" ]]; then
   echo "Pi USS sensor icons updated"
 fi
 
+if [[ -d "$HART/cats/resources/roster" ]]; then
+  fanout "$HART/cats/resources/roster" "resources/roster"
+  echo "Pi roster photos updated"
+fi
+
 if [[ -d "$HART/ctc/icons" ]]; then
   fanout "$HART/ctc/icons" "ctc/icons"
   if [[ -f "$HART/ctc/GUIObjects.xml" ]]; then
@@ -102,6 +107,7 @@ JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$HART/jmri/layouts/hart/scripts/panel_status.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
+  "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"
   "$HART/jmri/scripts/signal_coordinator.py"
 )
 mkdir -p "$UF/jython"
@@ -118,8 +124,9 @@ echo "preference:jython scripts -> $UF/jython"
 TRAININFO="$HART/jmri/layouts/hart/dispatcher/traininfo"
 if [[ -d "$TRAININFO" ]]; then
   mkdir -p "$UF/dispatcher/traininfo"
-  rsync -a "$TRAININFO/" "$UF/dispatcher/traininfo/"
-  echo "Pi dispatcher/traininfo updated"
+  # --delete: the profile mirrors the repo, so routes from old names do not linger in the Dispatcher picker.
+  rsync -a --delete "$TRAININFO/" "$UF/dispatcher/traininfo/"
+  echo "Pi dispatcher/traininfo mirrored"
 fi
 if [[ -f "$HART/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" ]]; then
   mkdir -p "$UF/dispatcher"
@@ -135,6 +142,11 @@ if [[ -f "$PATCH" ]]; then
     --script panel_status.py \
     --script signal_coordinator.py \
     --script jmri_cmd_watcher.py
+  # STS sends car positions here (sts-plugins jmri_ops).
+  python3 "$PATCH" insert \
+    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --script preference:jython/sts_car_sync.py \
+    --after jmri_cmd_watcher.py
   python3 "$PATCH" remove \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
     --script prepare_nx_sml_paths.py 2>/dev/null || true

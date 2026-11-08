@@ -2,12 +2,20 @@ column,turnout,ltr,rtl
 10,Switch 23,Mast 24RA|Mast 24RB,Mast 24L
 11,Switch 31,Mast 32R,
 12,Switch 33,Mast 34R,Mast 34L
+13,Switch 17,,
 14,Switch 35,Mast 36RA|Mast 36RB,
 15,Switch 37,Mast 2035,Mast 38LA|Mast 38LB
 16,Switch 39,Mast 2036,Mast 40LA|Mast 40LB
+17,Switch 19,,
+18,Switch 21,,
+19,Switch 25,,
 2,Switch 1,Mast 2L,
+20,Switch 27,,
+21,Switch 29,,
 3,Switch 3,,Mast 4RA|Mast 4RB
 4,Switch 5,,Mast 6LB|Mast 6LA
+5,Switch 9,,
 6,Switch 7,Mast 8RA|Mast 8RB,Mast 8LA|Mast 8LB
 7,Switch 13,,
 8,Switch 15,,
+9,Switch 11,,

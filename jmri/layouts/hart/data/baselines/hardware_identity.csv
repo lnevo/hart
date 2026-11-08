@@ -1,59 +1,59 @@
 layer,systemName,userName
-block,IB1,OS 13|BS Switch 13
-block,IB15,OS Barn|BS Barn
-block,IB18,OS 9|BS Switch 9
-block,IB19,OS 11|BS Switch 11
-block,IB20,OS EH-1|BS EH-1
-block,IB21,OS EH-2|BS EH-2
-block,IB22,OS EH-3|BS EH-3
-block,IB23,OS K-1|BS Switch 39 / BS K-1
-block,IB24,OS K-2|BS Switch 37 / BS K-2
-block,IB3,OS Scale|BS Scale
-block,IB6,OS 7b|BS Switch 7b
-block,IB8,OS 7|BS Switch 7
-block,IB:AUTO:0001,OS Main East|BS Main East
-block,IB:AUTO:0003,OS Main West|BS Main West
-block,IB:AUTO:0005,OS Brick-Plane|BS Brick-Plane
-block,IB:AUTO:0007,OS S-4|BS S-4
-block,IB:AUTO:0008,OS S-3|BS S-3
-block,IB:AUTO:0010,OS McKees Rocks|BS McKees Rocks
-block,IB:AUTO:0012,OS S-R|BS S-R
-block,IB:AUTO:0016,OS S-1|BS S-1
-block,IB:AUTO:0017,OS East Lead|BS East Lead
-block,IB:AUTO:0020,OS W-1|BS W-1
-block,IB:AUTO:0022,OS W-2|BS W-2
-block,IB:AUTO:0026,OS S-2|BS S-2
-block,IB:AUTO:0030,OS 33|BS Switch 33
-block,IB:AUTO:0031,OS 5|BS Switch 5
-block,IB:AUTO:0032,OS 37|BS Switch 37 / BS K-2
-block,IB:AUTO:0033,OS 1|BS Switch 1
-block,IB:AUTO:0034,OS 23a|BS Switch 23a
-block,IB:AUTO:0035,OS 3|BS Switch 3
-block,IB:AUTO:0036,OS 25|BS Switch 25
-block,IB:AUTO:0037,OS 27|BS Switch 27
-block,IB:AUTO:0038,OS 21|BS Switch 21
-block,IB:AUTO:0039,OS 23b|BS Switch 23b
-block,IB:AUTO:0040,OS 39|BS Switch 39 / BS K-1
-block,IB:AUTO:0041,OS 15|BS Switch 15
-block,IB:AUTO:0042,OS 31|BS Switch 31
-block,IB:AUTO:0043,OS 29|BS Switch 29
-block,IB:AUTO:0044,OS 17|BS Switch 17
-block,IB:AUTO:0045,OS 19|BS Switch 19
-block,IB:AUTO:0046,OS 35a|BS Switch 35a
-block,IB:AUTO:0047,OS 35b|BS Switch 35b
-block,IB:AUTO:0048,OS McKeesport|BS McKeesport
-block,IB:AUTO:0050,OS West Main Ext|BS West Main Ext
-block,IB:AUTO:0051,OS East Main Ext|BS East Main Ext
-block,IB:AUTO:0052,OS S-1 West|BS S-1
-block,IB:AUTO:0053,OS S-1 East|BS S-1
-block,IB:AUTO:0054,OS S-2 West|BS S-2
-block,IB:AUTO:0055,OS S-2 East|BS S-2
-block,IB:AUTO:0056,OS S-3 West|BS S-3
-block,IB:AUTO:0057,OS S-3 East|BS S-3
-block,IB:AUTO:0058,OS S-4 West|BS S-4
-block,IB:AUTO:0059,OS S-4 East|BS S-4
-block,IB:AUTO:0060,OS S-R East|BS S-R
-block,IB:AUTO:0061,OS S-R West|BS S-R
+block,IB1,OS Switch 13|BS Switch 13
+block,IB15,Track Barn|BS Barn
+block,IB18,OS Switch 9|BS Switch 9
+block,IB19,OS Switch 11|BS Switch 11
+block,IB20,Track EH-1|BS EH-1
+block,IB21,Track EH-2|BS EH-2
+block,IB22,Track EH-3|BS EH-3
+block,IB23,Track McKees Rocks|BS Switch 39 / BS McKees Rocks
+block,IB24,Track McKeesport|BS Switch 37 / BS McKeesport
+block,IB3,Track Scale|BS Scale
+block,IB6,OS Switch 7b|BS Switch 7b
+block,IB8,OS Switch 7|BS Switch 7
+block,IB:AUTO:0001,Track Main East|BS Main East
+block,IB:AUTO:0003,Track Main West|BS Main West
+block,IB:AUTO:0005,Track Brick-Plane|BS Brick-Plane
+block,IB:AUTO:0007,Track S-4|BS S-4
+block,IB:AUTO:0008,Track S-3|BS S-3
+block,IB:AUTO:0010,Track K-1|BS K-1
+block,IB:AUTO:0012,Track S-R|BS S-R
+block,IB:AUTO:0016,Track S-1|BS S-1
+block,IB:AUTO:0017,Track East Lead|BS East Lead
+block,IB:AUTO:0020,Track W-1|BS W-1
+block,IB:AUTO:0022,Track W-2|BS W-2
+block,IB:AUTO:0026,Track S-2|BS S-2
+block,IB:AUTO:0030,OS Switch 33|BS Switch 33
+block,IB:AUTO:0031,OS Switch 5|BS Switch 5
+block,IB:AUTO:0032,OS Switch 37|BS Switch 37 / BS McKeesport
+block,IB:AUTO:0033,OS Switch 1|BS Switch 1
+block,IB:AUTO:0034,OS Switch 23a|BS Switch 23a
+block,IB:AUTO:0035,OS Switch 3|BS Switch 3
+block,IB:AUTO:0036,OS Switch 25|BS Switch 25
+block,IB:AUTO:0037,OS Switch 27|BS Switch 27
+block,IB:AUTO:0038,OS Switch 21|BS Switch 21
+block,IB:AUTO:0039,OS Switch 23b|BS Switch 23b
+block,IB:AUTO:0040,OS Switch 39|BS Switch 39 / BS McKees Rocks
+block,IB:AUTO:0041,OS Switch 15|BS Switch 15
+block,IB:AUTO:0042,OS Switch 31|BS Switch 31
+block,IB:AUTO:0043,OS Switch 29|BS Switch 29
+block,IB:AUTO:0044,OS Switch 17|BS Switch 17
+block,IB:AUTO:0045,OS Switch 19|BS Switch 19
+block,IB:AUTO:0046,OS Switch 35a|BS Switch 35a
+block,IB:AUTO:0047,OS Switch 35b|BS Switch 35b
+block,IB:AUTO:0048,Track K-2|BS K-2
+block,IB:AUTO:0050,Track West Main Ext|BS West Main Ext
+block,IB:AUTO:0051,Track East Main Ext|BS East Main Ext
+block,IB:AUTO:0052,Track S-1 West|BS S-1
+block,IB:AUTO:0053,Track S-1 East|BS S-1
+block,IB:AUTO:0054,Track S-2 West|BS S-2
+block,IB:AUTO:0055,Track S-2 East|BS S-2
+block,IB:AUTO:0056,Track S-3 West|BS S-3
+block,IB:AUTO:0057,Track S-3 East|BS S-3
+block,IB:AUTO:0058,Track S-4 West|BS S-4
+block,IB:AUTO:0059,Track S-4 East|BS S-4
+block,IB:AUTO:0060,Track S-R East|BS S-R
+block,IB:AUTO:0061,Track S-R West|BS S-R
 signalhead,IH1232,Head 24RA Top
 signalhead,IH1233,Head 24RA Bottom
 signalhead,IH1234,Head 24L Top
@@ -64,8 +64,8 @@ signalhead,IH1238,Head 34L Bottom
 signalhead,IH1239,Head 32R
 signalhead,IH1240,Head 34R Top
 signalhead,IH1241,Head 34R Bottom
-signalhead,IH132,Head 40LB Top
-signalhead,IH133,Head 40LB Bottom
+signalhead,IH132,Head 40LA Top
+signalhead,IH133,Head 40LA Bottom
 signalhead,IH1332,Head 8RA Top
 signalhead,IH1333,Head 8RA Bottom
 signalhead,IH1334,Head 8LB
@@ -78,25 +78,26 @@ signalhead,IH135,Head 36RA Top
 signalhead,IH136,Head 36RA Bottom
 signalhead,IH137,Head 36RB Top
 signalhead,IH138,Head 36RB Bottom
-signalhead,IH139,Head 38LB Top
-signalhead,IH140,Head 38LB Bottom
+signalhead,IH139,Head 38LA Top
+signalhead,IH140,Head 38LA Bottom
 signalhead,IH141,Head 2035
-signalhead,IH142,Head 40LA
-signalhead,IH143,Head 38LA
-signalhead,IH432,Head 6LB Top
+signalhead,IH142,Head 40LB
+signalhead,IH143,Head 38LB
+signalhead,IH432,Head 6LB
 signalhead,IH433,Head 6LB Bottom
 signalhead,IH434,Head 6LA
 signalhead,IH436,Head 4RA
 signalhead,IH437,Head 4RB
 signalhead,IH438,Head 2L Top
 signalhead,IH439,Head 2L Bottom
+signalhead,IH9990,Turnout FB status
 signalmast,IF$shsm:basic:one-low(IH1236),Mast 24RB
 signalmast,IF$shsm:basic:one-low(IH1239),Mast 32R
 signalmast,IF$shsm:basic:one-low(IH1334),Mast 8LB
 signalmast,IF$shsm:basic:one-low(IH134),Mast 2036
 signalmast,IF$shsm:basic:one-low(IH141),Mast 2035
-signalmast,IF$shsm:basic:one-low(IH142),Mast 40LA
-signalmast,IF$shsm:basic:one-low(IH143),Mast 38LA
+signalmast,IF$shsm:basic:one-low(IH142),Mast 40LB
+signalmast,IF$shsm:basic:one-low(IH143),Mast 38LB
 signalmast,IF$shsm:basic:one-low(IH434),Mast 6LA
 signalmast,IF$shsm:basic:one-low(IH436),Mast 4RA
 signalmast,IF$shsm:basic:one-low(IH437),Mast 4RB
@@ -104,14 +105,14 @@ signalmast,IF$shsm:basic:two-searchlight(IH1232)(IH1233),Mast 24RA
 signalmast,IF$shsm:basic:two-searchlight(IH1234)(IH1235),Mast 24L
 signalmast,IF$shsm:basic:two-searchlight(IH1237)(IH1238),Mast 34L
 signalmast,IF$shsm:basic:two-searchlight(IH1240)(IH1241),Mast 34R
-signalmast,IF$shsm:basic:two-searchlight(IH132)(IH133),Mast 40LB
+signalmast,IF$shsm:basic:two-searchlight(IH132)(IH133),Mast 40LA
 signalmast,IF$shsm:basic:two-searchlight(IH1332)(IH1333),Mast 8RA
 signalmast,IF$shsm:basic:two-searchlight(IH1335)(IH1336),Mast 8RB
 signalmast,IF$shsm:basic:two-searchlight(IH1337)(IH1338),Mast 8LA
 signalmast,IF$shsm:basic:two-searchlight(IH135)(IH136),Mast 36RA
 signalmast,IF$shsm:basic:two-searchlight(IH137)(IH138),Mast 36RB
-signalmast,IF$shsm:basic:two-searchlight(IH139)(IH140),Mast 38LB
-signalmast,IF$shsm:basic:two-searchlight(IH432)(IH433),Mast 6LB
+signalmast,IF$shsm:basic:two-searchlight(IH139)(IH140),Mast 38LA
+signalmast,IF$shsm:basic:one-low(IH432),Mast 6LB
 signalmast,IF$shsm:basic:two-searchlight(IH438)(IH439),Mast 2L
 signalmast,IF$vsm:basic:one-low($1001),Mast 4LA
 signalmast,IF$vsm:basic:one-low($1002),Mast 4LB
@@ -155,23 +156,3 @@ turnout,M2T408,Switch 1
 turnout,M2T409,Switch 3
 turnout,M2T410,Switch 5
 turnout,M2T411,Switch 13
-turnout,MTT100,DCC Switch 1
-turnout,MTT101,DCC Switch 3
-turnout,MTT102,DCC Switch 5
-turnout,MTT103,DCC Switch 15
-turnout,MTT104,DCC Switch 17
-turnout,MTT105,DCC Switch 19
-turnout,MTT106,DCC Switch 21
-turnout,MTT107,DCC Switch 25
-turnout,MTT108,DCC Switch 27
-turnout,MTT109,DCC Switch 29
-turnout,MTT110,DCC Switch 31
-turnout,MTT111,DCC Switch 23
-turnout,MTT112,DCC Switch 33
-turnout,MTT113,DCC Switch 35
-turnout,MTT114,DCC Switch 37
-turnout,MTT115,DCC Switch 39
-turnout,MTT116,DCC Switch 13
-turnout,MTT117,DCC Switch 7
-turnout,MTT118,DCC Switch 11
-turnout,MTT119,DCC Switch 9

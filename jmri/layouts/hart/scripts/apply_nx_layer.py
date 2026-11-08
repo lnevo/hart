@@ -62,12 +62,12 @@ CTC_MASTS = {
     "Mast 34L": "East End lead westbound; lever 24 Left",
     "Mast 36RA": "Princess, Track Main West eastbound; lever 26 Right",
     "Mast 36RB": "Princess, Track East Lead eastbound; lever 26 Right",
-    "Mast 2036": "Princess, Track McKeesport dwarf eastbound; lever 28 Right",
-    "Mast 38LA": "Princess, Track K-2 dwarf westbound; lever 28 Left",
-    "Mast 38LB": "Princess, Track McKeesport westbound; lever 28 Left",
-    "Mast 2035": "Princess, Track McKees Rocks dwarf eastbound; lever 30 Right",
-    "Mast 40LA": "Princess, Track K-1 dwarf westbound; lever 30 Left",
-    "Mast 40LB": "Princess, Track McKees Rocks westbound; lever 30 Left",
+    "Mast 2036": "Princess, Track K-2 dwarf eastbound; lever 28 Right",
+    "Mast 38LA": "Princess, Track McKeesport dwarf westbound; lever 28 Left",
+    "Mast 38LB": "Princess, Track K-2 westbound; lever 28 Left",
+    "Mast 2035": "Princess, Track K-1 dwarf eastbound; lever 30 Right",
+    "Mast 40LA": "Princess, Track McKees Rocks dwarf westbound; lever 30 Left",
+    "Mast 40LB": "Princess, Track K-1 westbound; lever 30 Left",
 }
 
 INTERNAL_CLOSE = "  </sensors>\n  <turnouts class=\"jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml\">"
@@ -135,12 +135,12 @@ NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
     "Mast 34L": (1407, 305),   # Track East Lead into 112
     "Mast 36RA": (1465, 242),  # Track West Main Ext into 113
     "Mast 36RB": (1465, 305),  # Track East Lead into 113
-    "Mast 38LA": (1675, 305),  # Track K-2 stub toward the balloon
-    "Mast 38LB": (1695, 367),  # Track McKeesport bezier
-    "Mast 40LA": (1675, 242),  # Track K-1 stub toward the balloon
+    "Mast 38LA": (1675, 305),  # Track McKeesport stub toward the balloon
+    "Mast 38LB": (1695, 367),  # Track K-2 bezier
+    "Mast 40LA": (1675, 242),  # Track McKees Rocks stub toward the balloon
     "Mast 40LB": (1695, 162),  # Rocks bezier; same X as Mast 38LB
     "Mast 2035": (1826, 245),   # Rocks arc; same X as Mast 2036
-    "Mast 2036": (1826, 291),   # Track McKeesport arc; same X as Mast 2035
+    "Mast 2036": (1826, 291),   # Track K-2 arc; same X as Mast 2035
 }
 
 # Mast shifts so heads clear the approach lamps and share Mast 2L's height.

@@ -105,23 +105,25 @@ class BeanCommentFormatTest(unittest.TestCase):
 
     def test_wiring_head_comments_match_live_user_names(self) -> None:
         comments = self.m.load_wiring_head_comments()
-        self.assertEqual(comments["Head 6LB Top"], "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3")
+        # 6LB is an interim dwarf (signal_head_plan heads=1): IH432 is `Head 6LB`.
+        self.assertEqual(comments["Head 6LB"], "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertNotIn("Head 6LB Top", comments)
         self.assertEqual(comments["Head 6LB Bottom"], "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6")
         self.assertEqual(
             comments["Head 6LA"], "Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7"
         )
-        self.assertEqual(comments["Head 40LB Top"], "Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertEqual(comments["Head 40LA Top"], "Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3")
         self.assertEqual(comments["Head 24RA Top"], "Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3")
         self.assertEqual(comments["Head 34L Top"], "Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3")
         self.assertEqual(
-            comments["Head 38LA"], "Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
+            comments["Head 38LB"], "Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
         )
         self.assertEqual(
             comments["Head 2035"], "Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
         )
         self.assertEqual(
             self.m.comment_for(
-                "signalhead", "IH432", "Head 6LB Top", "Node: 4 | OU-2: Port: 1,2"
+                "signalhead", "IH432", "Head 6LB", "Node: 4 | OU-2: Port: 1,2"
             ),
             "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
         )
@@ -138,6 +140,40 @@ class BeanCommentFormatTest(unittest.TestCase):
         self.assertEqual(leftover, "Node: 4 Turnout: 2 | OU: 1 Ports: 5,6")
         self.assertNotIn("leftover", leftover.lower())
         self.assertNotIn("alias", leftover.lower())
+
+    def test_section_direction_sensor_comment(self) -> None:
+        text = (
+            '<section systemName="IY:AUTO:0482" userName="Mast 6LB:Mast 24RA" '
+            'creationtype="signalmastlogic">'
+        )
+        names = self.m.section_names(text)
+        self.assertEqual(names, {"IY:AUTO:0482": "Mast 6LB:Mast 24RA"})
+        self.assertEqual(
+            self.m.section_direction_comment("IS:IY:AUTO:0482:forward", names),
+            "SML section forward direction: Mast 6LB:Mast 24RA (IY:AUTO:0482)",
+        )
+        self.assertEqual(
+            self.m.section_direction_comment("IS:IY:AUTO:0999:reverse", names),
+            "SML section reverse direction: IY:AUTO:0999",
+        )
+
+    def test_block_name_pass_gets_no_comment(self) -> None:
+        text = (
+            "<blocks>\n"
+            '    <block systemName="IB3">\n'
+            "      <systemName>IB3</systemName>\n"
+            "      <userName>Track Scale</userName>\n"
+            "    </block>\n"
+            "</blocks>\n"
+        )
+        out, _ = self.m.refresh_comments(text)
+        self.assertNotIn("<comment>", out)
+        self.assertFalse(
+            self.m.is_block_name_pass(
+                "<systemName>IB3</systemName><userName>Track Scale</userName>"
+                "<permissive>no</permissive>"
+            )
+        )
 
 
 if __name__ == "__main__":

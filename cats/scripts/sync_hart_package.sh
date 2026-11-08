@@ -83,6 +83,7 @@ JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$ROOT/jmri/layouts/hart/scripts/panel_status.py"
   "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
+  "$ROOT/jmri/layouts/hart/scripts/sts_car_sync.py"
   "$ROOT/jmri/scripts/signal_coordinator.py"
 )
 
@@ -93,6 +94,7 @@ HART_JYTHON_SCRIPTS=(
   jmri/layouts/hart/scripts/hide_cats_desk_windows.py
   jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py
   jmri/layouts/hart/scripts/jmri_cmd_watcher.py
+  jmri/layouts/hart/scripts/sts_car_sync.py
 )
 
 LIVE_PANELS=(
@@ -126,6 +128,11 @@ install_jython_scripts() {
         --script panel_status.py \
         --script signal_coordinator.py \
         --script jmri_cmd_watcher.py
+      # STS sends car positions here (sts-plugins jmri_ops).
+      python3 "$patch_startup" insert \
+        --profile "$profxml" \
+        --script preference:jython/sts_car_sync.py \
+        --after panel_status.py
       python3 "$patch_startup" remove \
         --profile "$profxml" \
         --script prepare_nx_sml_paths.py || true
@@ -214,11 +221,21 @@ install_ctc_icons_local() {
     done
     echo "USS sensor icons -> $dest"
   }
+  _install_roster_images_into() {
+    # Locomotive photos the DecoderPro roster entries point at (preference:resources/roster/<id>.jpg).
+    local src="$ROOT/jmri/resources/roster"
+    [[ -d "$src" ]] || return 0
+    local dest="$1/resources/roster"
+    mkdir -p "$dest"
+    cp -f "$src/"*.jpg "$dest/" 2>/dev/null || true
+    echo "roster photos -> $dest"
+  }
   mkdir -p "${HOME}/JMRI_UserFiles"
   _install_ctc_into "${HOME}/JMRI_UserFiles"
   _install_buttons_into "${HOME}/JMRI_UserFiles"
   _install_misc_into "${HOME}/JMRI_UserFiles"
   _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
+  _install_roster_images_into "${HOME}/JMRI_UserFiles"
 }
 
 # Build the package that lands in a temporary folder on the host. The apply scripts install it from there.
@@ -231,6 +248,7 @@ stage_package() {
     "$stage/cats/resources/buttons" \
     "$stage/cats/resources/icons/USS/sensor" \
     "$stage/cats/resources/misc" \
+    "$stage/cats/resources/roster" \
     "$stage/cats/scripts" \
     "$stage/ctc/icons" \
     "$stage/jmri/layouts/hart/scripts" \
@@ -251,6 +269,9 @@ stage_package() {
   if [[ -d "$ROOT/jmri/resources/icons/USS/sensor" ]]; then
     cp -f "$ROOT/jmri/resources/icons/USS/sensor/"yellow-*.gif \
       "$stage/cats/resources/icons/USS/sensor/" 2>/dev/null || true
+  fi
+  if [[ -d "$ROOT/jmri/resources/roster" ]]; then
+    cp -f "$ROOT/jmri/resources/roster/"*.jpg "$stage/cats/resources/roster/" 2>/dev/null || true
   fi
 
   cp -f "$ROOT/jmri/resources/misc/"* "$stage/cats/resources/misc/"

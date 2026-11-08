@@ -4,6 +4,8 @@ Add a car once, then feed the cards, STS and Operations Pro from it. Decision: [
 
 Run everything from `external/hart-ops`.
 
+For a batch of new photos (cars and locomotives) use the staged flow in [intake-stages.md](intake-stages.md). `bin/cars intake` below is the older one-step path.
+
 ## Add cars
 
 1. **With a photo:** put the photos in `ops/car-cards/incoming/`, then run `bin/cars intake`. It crops the photo, reads what it can with OCR, and asks about the rest. Press Enter to keep a value. Check the cropped image it names.

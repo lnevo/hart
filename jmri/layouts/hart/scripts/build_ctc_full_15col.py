@@ -117,10 +117,10 @@ add_os(25, 13, "BS Switch 35b", "Switch 35",
 # Balloon: 114/115 BOTH. Each SIDI list needs a unique mast (JMRI
 # rejects empty lists and forbids sharing a mast across columns).
 # Eastbound homes on the loop were previously unlisted.
-c114 = add_os(27, 14, "BS Switch 37 / BS K-2", "Switch 37",
+c114 = add_os(27, 14, "BS Switch 37 / BS McKeesport", "Switch 37",
        ["Mast 2035"],
        ["Mast 38LA", "Mast 38LB"])
-c115 = add_os(29, 15, "BS Switch 39 / BS K-1", "Switch 39",
+c115 = add_os(29, 15, "BS Switch 39 / BS McKees Rocks", "Switch 39",
        ["Mast 2036"],
        ["Mast 40LA", "Mast 40LB"], left_hand=True)
 c114._mSIDI_TrafficDirection = BOTH

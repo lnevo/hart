@@ -35,7 +35,7 @@ That is the PR #4 PNG *intent*, implemented as loadable Digicon cells.
 | 111 / 111b | East End | Crossover to OS West Main Ext |
 | 107–110 | East End | Ladder |
 | 112 | East End | Main → OS East Lead |
-| 113–115 | Princess | Loops (OS McKees Rocks / OS McKeesport) |
+| 113–115 | Princess | Loops (OS K-1 / OS K-2) |
 
 Rebuild: `python3 cats/scripts/wire_digicon.py`  
 Launch: `./cats/scripts/launch_cats.sh`

@@ -115,14 +115,14 @@ C2 sits on the **west end of East End** — 24RA / 24L / 24RB only. 24RB lives o
 
 ### C1 — Princess west (radio 1, packed `1xx`)
 
-Place **OU2+OU3** at Switch 35 (36RA / 36RB), **OU4** at Switch 37 (38LB). 38LA uses the leftover trio on the 36 boards (OU3-7/8 + OU2-7) so R/Y are not on OU4.
+Place **OU2+OU3** at Switch 35 (36RA / 36RB), **OU4** at Switch 37 (38LA). 38LB uses the leftover trio on the 36 boards (OU3-7/8 + OU2-7) so R/Y are not on OU4.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 35, 37, 39 motors; OU1-7/8 reserved |
-| OU2 | 5V | 36RA T+B, 38LA G (Clear); **OU2-8 block-sensor cal** |
-| OU3 | 5V | 36RB T+B, 38LA R/Y |
-| **OU4** | 5V **new** | 38LB T+B; OU4-7/8 spare |
+| OU2 | 5V | 36RA T+B, 38LB G (Clear); **OU2-8 block-sensor cal** |
+| OU3 | 5V | 36RB T+B, 38LB R/Y |
+| **OU4** | 5V **new** | 38LA T+B; OU4-7/8 spare |
 
 | Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
 |------|------|--------|----------|--------------|-----------|
@@ -130,25 +130,25 @@ Place **OU2+OU3** at Switch 35 (36RA / 36RB), **OU4** at Switch 37 (38LB). 38LA 
 | 36RA | B | `IH136` | OU2-4 | OU2-5 | OU2-6 |
 | 36RB | T | `IH132` | OU3-1 | OU3-2 | OU3-3 |
 | 36RB | B | `IH133` | OU3-4 | OU3-5 | OU3-6 |
-| 38LB | T | `IH139` | OU4-1 | OU4-2 | OU4-3 |
-| 38LB | B | `IH140` | OU4-4 | OU4-5 | OU4-6 |
-| 38LA | | `IH143` | OU3-7 | OU3-8 | OU2-7 |
+| 38LA | T | `IH139` | OU4-1 | OU4-2 | OU4-3 |
+| 38LA | B | `IH140` | OU4-4 | OU4-5 | OU4-6 |
+| 38LB | | `IH143` | OU3-7 | OU3-8 | OU2-7 |
 
 ### C11 — Princess east + balloon (radio 11, packed `11xx`)
 
-Place **OU2** at Switch 39 (40LB), **OU3** at 40LA + balloon. 2035/2036 are separate dwarfs; 2035 takes the leftover trio.
+Place **OU2** at Switch 39 (40LA), **OU3** at 40LB + balloon. 2035/2036 are separate dwarfs; 2035 takes the leftover trio.
 
 | Board | Rail | Assignment |
 |-------|------|------------|
 | OU1 | 12V | Switch 67 / 63 / 65 motors (was SW129 / SW127 / SW138); OU1-7/8 spare |
-| OU2 | 5V | 40LB T+B, 2035 G (Clear); **OU2-8 block-sensor cal** |
-| OU3 | 5V | 40LA, 2036, 2035 R/Y |
+| OU2 | 5V | 40LA T+B, 2035 G (Clear); **OU2-8 block-sensor cal** |
+| OU3 | 5V | 40LB, 2036, 2035 R/Y |
 
 | Mast | Disc | Packed | R (Stop) | Y (Approach) | G (Clear) |
 |------|------|--------|----------|--------------|-----------|
-| 40LB | T | `IH1132` | OU2-1 | OU2-2 | OU2-3 |
-| 40LB | B | `IH1135` | OU2-4 | OU2-5 | OU2-6 |
-| 40LA | | `IH1136` | OU3-1 | OU3-2 | OU3-3 |
+| 40LA | T | `IH1132` | OU2-1 | OU2-2 | OU2-3 |
+| 40LA | B | `IH1135` | OU2-4 | OU2-5 | OU2-6 |
+| 40LB | | `IH1136` | OU3-1 | OU3-2 | OU3-3 |
 | 2036 | | `IH1133` | OU3-4 | OU3-5 | OU3-6 |
 | 2035 | | `IH1134` | OU3-7 | OU3-8 | OU2-7 |
 
@@ -194,14 +194,14 @@ Occupied blocks still force **STOP**. Packed MQTT IDs are unchanged; this is wir
 | 36RA | B | Diverged | Stop | Switch 35 |
 | 36RB | T | Main | Stop | Switch 35 |
 | 36RB | B | Diverged | Stop | Switch 35 |
-| 38LB | T | Main | Stop | Switch 37 |
-| 38LB | B | Diverged | Stop | Switch 37 |
-| 38LA | | Diverged | Stop | Switch 37 K-2 |
-| 40LB | T | Main | Stop | Switch 39 |
-| 40LB | B | Diverged | Stop | Switch 39 |
-| 40LA | | Diverged | Stop | Switch 39 K-1 |
-| 2035 | | — | Approach | McKees Rocks balloon |
-| 2036 | | — | Approach | McKeesport balloon |
+| 38LA | T | Main | Stop | Switch 37 |
+| 38LA | B | Diverged | Stop | Switch 37 |
+| 38LB | | Diverged | Stop | Switch 37 McKeesport |
+| 40LA | T | Main | Stop | Switch 39 |
+| 40LA | B | Diverged | Stop | Switch 39 |
+| 40LB | | Diverged | Stop | Switch 39 McKees Rocks |
+| 2035 | | — | Approach | K-1 balloon |
+| 2036 | | — | Approach | K-2 balloon |
 
 Two-head **B** is the unused-head marker (red on a lined main). Do not OR Approach on a home or dwarf — that paints yellow when the turnout is against the signal.
 
