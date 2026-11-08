@@ -7,9 +7,7 @@ OPENSCAD="${OPENSCAD:-/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD}"
 OUT="$HERE/stl"
 mkdir -p "$OUT"
 
-# No black part: the track and lettering stay recessed 0.6 mm in the white body,
-# because black on the first layer would not stick.
-for part in white teal gold; do
+for part in white black teal gold; do
   "$OPENSCAD" -D "part=\"$part\"" -o "$OUT/barn_$part.stl" "$HERE/station_map_barn.scad"
 done
 

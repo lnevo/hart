@@ -6,8 +6,7 @@
 //
 // Prints face down for a smooth, flush face: the colours are inlays in the first
 // layers, one STL per colour, and the back pockets print open with no supports.
-//   z 0 .. inlay_t       face: white, teal, gold side by side; black areas are left as a
-//                        recess (part="black" exists only for preview, it is not printed)
+//   z 0 .. inlay_t       face: white, black, teal, gold side by side
 //   inlay_t .. skin_t    white skin over the toggles, LED holes only
 //   skin_t .. total_t    pockets with crush ribs, wire channels to the edge
 //
@@ -291,7 +290,7 @@ module ink2d() {
   arrow([X_EAST + 0.06, Y_BARN], 1);
   arrow([X_EAST + 0.06, Y_MAIN], 1);
 
-  rings2d();
+  // No ring round each LED hole: thin closed loops on the first layer would not stick.
 
   at([4, 0.52]) text("BARN", size = 10, font = "Arial Black", halign = "center");
 
