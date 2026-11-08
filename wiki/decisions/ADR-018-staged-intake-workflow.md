@@ -16,6 +16,8 @@ ADR-013 gave cars one repository and one intake. Locomotives had none: the Decod
 4. Locomotives use a `locos` subcommand in the same hart-ops tool as cars, with the same repository, queue and review sheet.
 5. Stage 1 asks the owner only about flagged photos (unreadable number, duplicate, mismatch with the repository). Unflagged photos are approved in bulk from the contact sheet.
 6. Each batch records its approval in a committed manifest.
+7. The AI review is a manual step before approval. The AI suggests readings and flags disagreements; only the owner approves.
+8. Stage 3 runs only when every photo is recorded or rejected. `publish --only ID` tests one car alone. Publish also checks that stage 2 is committed, the Pi's Operations files match the repo, and an STS backup under 12 hours old exists.
 
 ## Consequences
 
