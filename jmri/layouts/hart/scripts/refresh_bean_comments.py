@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from apply_public_names import RenameEntry, apply_renames_to_text
 
 SIGNAL_WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
+SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
@@ -166,22 +167,46 @@ def jmri_head_user_name(mast_user_name: str, disc_role: str) -> str:
     return base
 
 
-def load_wiring_head_comments(path: Path | None = None) -> dict[str, str]:
+def load_fitted_single_heads(path: Path | None = None) -> dict[str, str]:
+    """Mast userName → packed ID for masts built as one head in JMRI.
+
+    signal_head_plan.csv carries the fitted build; signal_wiring.csv keeps
+    the planned heads. A planned two-head mast fitted as a dwarf (Mast 6LB,
+    IH432 only) has a JMRI head named `Head 6LB`, not `Head 6LB Top`.
+    """
+    csv_path = path or SIGNAL_HEAD_PLAN
+    if not csv_path.is_file():
+        return {}
+    out: dict[str, str] = {}
+    with csv_path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            if (row.get("heads") or "").strip() == "1":
+                out[(row.get("mast_user_name") or "").strip()] = (
+                    row.get("packed_ids") or ""
+                ).strip()
+    return out
+
+
+def load_wiring_head_comments(
+    path: Path | None = None, head_plan: Path | None = None
+) -> dict[str, str]:
     """JMRI head userName → LCOS port comment from signal_wiring.csv.
 
     Match by public head name, not packed IH. Wiring packed IDs moved with
     cabinets (40LB is IH1132 on C11); live tables still use the old IH beans.
     """
     csv_path = path or SIGNAL_WIRING
+    singles = load_fitted_single_heads(head_plan)
     grouped: OrderedDict[str, dict[str, object]] = OrderedDict()
     if not csv_path.is_file():
         return {}
     with csv_path.open(newline="", encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
-            uname = jmri_head_user_name(
-                row.get("mast_user_name") or "",
-                row.get("disc_role") or "",
-            )
+            mast = (row.get("mast_user_name") or "").strip()
+            role = row.get("disc_role") or ""
+            if singles.get(mast) == (row.get("packed") or "").strip():
+                role = "S"
+            uname = jmri_head_user_name(mast, role)
             if not uname:
                 continue
             entry = grouped.setdefault(uname, {"ports": [], "signal": ""})

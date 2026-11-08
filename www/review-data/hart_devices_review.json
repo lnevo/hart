@@ -977,7 +977,7 @@
     "dcc": "",
     "mqtt": "432",
     "systemName": "IH432",
-    "userName": "Head 6LB Top",
+    "userName": "Head 6LB",
     "comment": "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3"
   },
   {
@@ -2047,7 +2047,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:basic:two-searchlight(IH432)(IH433)",
+    "systemName": "IF$shsm:basic:one-low(IH432)",
     "userName": "Mast 6LB",
     "comment": "Plane | Switch 5"
   },

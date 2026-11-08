@@ -105,7 +105,9 @@ class BeanCommentFormatTest(unittest.TestCase):
 
     def test_wiring_head_comments_match_live_user_names(self) -> None:
         comments = self.m.load_wiring_head_comments()
-        self.assertEqual(comments["Head 6LB Top"], "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3")
+        # 6LB is an interim dwarf (signal_head_plan heads=1): IH432 is `Head 6LB`.
+        self.assertEqual(comments["Head 6LB"], "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertNotIn("Head 6LB Top", comments)
         self.assertEqual(comments["Head 6LB Bottom"], "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6")
         self.assertEqual(
             comments["Head 6LA"], "Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7"
@@ -121,7 +123,7 @@ class BeanCommentFormatTest(unittest.TestCase):
         )
         self.assertEqual(
             self.m.comment_for(
-                "signalhead", "IH432", "Head 6LB Top", "Node: 4 | OU-2: Port: 1,2"
+                "signalhead", "IH432", "Head 6LB", "Node: 4 | OU-2: Port: 1,2"
             ),
             "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
         )
