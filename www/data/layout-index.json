@@ -3354,11 +3354,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH1236)",
+      "id": "dev-IF$shsm:basic:one-low(IH1236)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1236)",
+      "systemName": "IF$shsm:basic:one-low(IH1236)",
       "publicName": "Mast 24RB",
       "cp": "East End",
       "hardware": "IH1236",
@@ -3367,11 +3367,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH1239)",
+      "id": "dev-IF$shsm:basic:one-low(IH1239)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1239)",
+      "systemName": "IF$shsm:basic:one-low(IH1239)",
       "publicName": "Mast 32R",
       "cp": "East End",
       "hardware": "IH1239",
@@ -3380,11 +3380,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH1334)",
+      "id": "dev-IF$shsm:basic:one-low(IH1334)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1334)",
+      "systemName": "IF$shsm:basic:one-low(IH1334)",
       "publicName": "Mast 8LB",
       "cp": "Barn",
       "hardware": "IH1334",
@@ -3393,11 +3393,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH134)",
+      "id": "dev-IF$shsm:basic:one-low(IH134)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH134)",
+      "systemName": "IF$shsm:basic:one-low(IH134)",
       "publicName": "Mast 2036",
       "cp": "Princess",
       "hardware": "IH134",
@@ -3406,11 +3406,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH141)",
+      "id": "dev-IF$shsm:basic:one-low(IH141)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH141)",
+      "systemName": "IF$shsm:basic:one-low(IH141)",
       "publicName": "Mast 2035",
       "cp": "Princess",
       "hardware": "IH141",
@@ -3419,11 +3419,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH142)",
+      "id": "dev-IF$shsm:basic:one-low(IH142)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH142)",
+      "systemName": "IF$shsm:basic:one-low(IH142)",
       "publicName": "Mast 40LB",
       "cp": "Princess",
       "hardware": "IH142",
@@ -3432,11 +3432,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH143)",
+      "id": "dev-IF$shsm:basic:one-low(IH143)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH143)",
+      "systemName": "IF$shsm:basic:one-low(IH143)",
       "publicName": "Mast 38LB",
       "cp": "Princess",
       "hardware": "IH143",
@@ -3445,11 +3445,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH434)",
+      "id": "dev-IF$shsm:basic:one-low(IH434)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH434)",
+      "systemName": "IF$shsm:basic:one-low(IH434)",
       "publicName": "Mast 6LA",
       "cp": "Plane",
       "hardware": "IH434",
@@ -3458,11 +3458,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH436)",
+      "id": "dev-IF$shsm:basic:one-low(IH436)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH436)",
+      "systemName": "IF$shsm:basic:one-low(IH436)",
       "publicName": "Mast 4RA",
       "cp": "Brick",
       "hardware": "IH436",
@@ -3471,11 +3471,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$shsm:AAR-1946:SL-1-low(IH437)",
+      "id": "dev-IF$shsm:basic:one-low(IH437)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$shsm:AAR-1946:SL-1-low(IH437)",
+      "systemName": "IF$shsm:basic:one-low(IH437)",
       "publicName": "Mast 4RB",
       "cp": "Brick",
       "hardware": "IH437",

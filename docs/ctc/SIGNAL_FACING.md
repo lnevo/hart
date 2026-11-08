@@ -107,7 +107,7 @@ Princess east exits are **2-head** (main vs OS McKees Rocks/OS McKeesport). Ball
 - Plant dests (CATS MQTT compare): OS Barn D (lower west) dests OS 33 when 117 is closed (east into OS Main East), not back across OS East Main Ext. 117b dests Plane EME when 117 is closed (westbound). OS East Lead dests 117b only when 112 is thrown (diverge to OS Main East). OS 33 dests 113a when 112 is thrown. OS 31 dests 113a only when 110 is thrown **and** 112 is closed (ladder into OS East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West OS Main West dests 113b; 111 thrown → both Stop.
 - Ports + topics: `docs/wiring/signals/signal_wiring.csv` (also updates `docs/wiring/LCOS_Layout_Inventory_v85.xlsx` DNOU8)
 - Mast index: `docs/wiring/signals/signal_head_plan.csv` / enriched `signal_mast_plan.csv`
-- Rebuild heads: `python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py`
+- Wiring CSVs from the head plan: `python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only` (the full run refuses to rewrite `tables.xml` because plan packed IDs differ from live beans; edit heads and masts in `tables.xml`)
 - Signal heads: `jmri/scripts/signal_coordinator.py` listens to SHSM / SML
   and **publishes** Virtual-head appearances JMRI → MQTT (`track/signalhead/IH###`)
   so LCOS sees SML / Digicon state. JMRI’s MQTT connection is the transport;

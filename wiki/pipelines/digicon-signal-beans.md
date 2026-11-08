@@ -1,6 +1,6 @@
 # Pipeline 3 — Digicon signal beans
 
-Build JMRI Virtual heads + SignalHeadSignalMasts from the wiring catalog. Appearances are stock **Basic** (`two-searchlight` / `one-low`). No aspects are disabled (ADR-011). Layout Editor icons are `discriminated` at scale 1.0.
+JMRI Virtual heads + SignalHeadSignalMasts live in `tables.xml`; the wiring catalog (CSVs below) is generated from the head plan and must agree with them. Appearances are stock **Basic** (`two-searchlight` / `one-low`). No aspects are disabled (ADR-011). Layout Editor icons are `discriminated` at scale 1.0.
 
 **Status:** Live.
 
@@ -19,8 +19,10 @@ Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `
 ## Run
 
 ```bash
-python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py
+python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 ```
+
+The full run (no flag) refuses to rewrite `tables.xml`: the wiring plan uses cabinet packed IDs (24RA is 232/238 in the plan, `IH1232`/`IH1233` live; see `docs/wiring/packed_id_crosswalk.csv`). Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
 
 Facing / SML chaining: [`docs/ctc/SIGNAL_FACING.md`](../../docs/ctc/SIGNAL_FACING.md). Decision: [`../decisions/ADR-011-co-1980-signals.md`](../decisions/ADR-006-co-1980-signals.md).
 

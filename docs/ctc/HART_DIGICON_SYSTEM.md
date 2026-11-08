@@ -184,11 +184,13 @@ Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publi
 
 Mast 2L is the same packed-head path (`IH438`/`IH439` on C3-OU3). JMRI no longer publishes `track/signalmast/432`.
 
-Rebuild heads + tables (publisher roster is dynamic; build script only verifies it):
+Refresh the wiring CSVs from the head plan (publisher roster is dynamic):
 
 ```bash
-python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py
+python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 ```
+
+The full run (no flag) refuses to rewrite `tables.xml`: the wiring plan uses cabinet packed IDs (24RA is 232/238 in the plan, `IH1232`/`IH1233` live; see `docs/wiring/packed_id_crosswalk.csv`). Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
 
 LE `signalmasticon`s use stock AAR-1946 schematic GIFs (no custom imagelinks required). Digicon binds by userName either way.
 
@@ -241,7 +243,7 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 | `jmri/layouts/hart/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit; then disable Digicon SML dests |
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no. Deploy runs this on the tables file being shipped (`--no-sync`). `--check` reports without writing |
 | `cats/scripts/digicon_header.py` | Publication title row |
-| `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | Virtual heads, SHSM masts, wiring CSV, publisher, LCOS inventory ports |
+| `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | Wiring CSVs and head plan (`--wiring-only`); full run checks the publisher and refuses to rewrite `tables.xml` when plan IDs are not live beans |
 | `cats/scripts/sync_hart_package.sh` | Stage the package to a temporary folder on the host; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into JMRI profiles. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `cats/scripts/windows/install_hart_tables.ps1` | Windows local install helper (tables + jars + web); prefer `sync_hart_package.sh --win` |
