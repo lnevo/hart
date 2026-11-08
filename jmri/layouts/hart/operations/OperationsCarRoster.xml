@@ -2,7 +2,7 @@
 <?xml-stylesheet href="/xml/XSLT/operations-cars.xsl" type="text/xsl"?>
 <!DOCTYPE operations-config SYSTEM "/xml/DTD/operations-cars.dtd">
 <operations-config>
-  <!--Written by JMRI version 5.16+R909e15189e on Sun Nov 08 04:18:39 EST 2026-->
+  
   <roads>
     <road name="AA" />
     <road name="ACL" />
@@ -397,5 +397,15 @@
     <car id="WLE621" roadName="WLE" roadNumber="621" type="Coke Hopper" length="40" color="Black" weightTons="76" locationId="12" secLocationId="12s1" moves="0" date="" selected="false" comment="COKE-RELOAD-SHEN" load="Coke" />
     <car id="WM1879" roadName="WM" roadNumber="1879" type="Caboose" length="36" weightTons="32" moves="0" date="" selected="false" comment="no photo; not in STS: no start position" load="E" />
     <car id="WP56057" roadName="WP" roadNumber="56057" type="Boxcar" length="50" weightTons="88" moves="0" date="" selected="false" comment="no photo; not in STS: no start position" load="E" />
-  </cars>
+  <car id="CSX379808" roadName="CSX" roadNumber="379808" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379738" roadName="CSX" roadNumber="379738" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379824" roadName="CSX" roadNumber="379824" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379702" roadName="CSX" roadNumber="379702" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379888" roadName="CSX" roadNumber="379888" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379869" roadName="CSX" roadNumber="379869" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379765" roadName="CSX" roadNumber="379765" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379711" roadName="CSX" roadNumber="379711" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379845" roadName="CSX" roadNumber="379845" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    <car id="CSX379733" roadName="CSX" roadNumber="379733" type="Hopper" length="40" weight="3.8" weightTons="76" moves="0" date="" selected="false" load="E" />
+    </cars>
 </operations-config>
