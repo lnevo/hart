@@ -23,6 +23,8 @@
 #   CS105_APPLY=True        write to the CS-105 (default False = plan only)
 #   CS105_ONLY="1827,572"   restrict to these roster IDs
 #   CS105_RENAME=True       also set Train.Name on nodes that already exist
+#   CS105_NAMES="road"      name trains "<road name> <road number>" instead of
+#                           the roster ID (default "id")
 #
 # Never commands track or publishes track/cmd. Writes go only to CS-105 train
 # node configuration memory.
@@ -132,6 +134,8 @@ def load_entry(path, index_attrs=None):
         "address": address,
         "long": is_long,
         "comment": attrs.get("comment") or "",
+        "road_name": (attrs.get("roadName") or "").strip(),
+        "road_number": (attrs.get("roadNumber") or "").strip(),
         "labels": labels,
         "file": os.path.basename(path),
     }
@@ -149,11 +153,26 @@ def load_roster(index_path, files_dir):
     return entries
 
 
-def desired_values(entry, include_name):
+NAME_SCHEMES = ("id", "road")
+
+
+def train_name(entry, scheme="id"):
+    """CS-105 Train.Name for an entry: the roster ID, or "<road> <number>"."""
+    if scheme == "road":
+        parts = [entry.get("road_name") or "", entry.get("road_number") or ""]
+        name = " ".join(p for p in parts if p)
+        if name:
+            return name
+    elif scheme != "id":
+        raise ValueError("unknown name scheme %r" % (scheme,))
+    return entry["id"]
+
+
+def desired_values(entry, include_name, names="id"):
     """CDI key -> value to write for one entry (TcsUploadAction's rules)."""
     values = {}
     if include_name:
-        values["Train.Name"] = entry["id"]
+        values["Train.Name"] = train_name(entry, names)
     values["Train.User Description"] = entry.get("comment") or ""
     for i in range(N_FUNCTIONS):
         label, lockable = entry["labels"].get(i + 1, ("", True))
@@ -165,7 +184,7 @@ def desired_values(entry, include_name):
     return values
 
 
-def plan(entries, existing_node_ids, rename=False, only=None):
+def plan(entries, existing_node_ids, rename=False, only=None, names="id"):
     """Decide create/update per entry against the node IDs the CS-105 has."""
     existing = set(str(n).upper() for n in existing_node_ids)
     actions = []
@@ -183,24 +202,26 @@ def plan(entries, existing_node_ids, rename=False, only=None):
             "action": "create" if create else "update",
             "node": node,
             "event": search_event(entry["address"], entry["long"]) if create else None,
-            "values": desired_values(entry, include_name=create or rename),
+            "values": desired_values(entry, include_name=create or rename, names=names),
         })
     return actions
 
 
-def unmanaged_train_nodes(existing_node_ids, actions):
-    """CS-105 train nodes with no roster entry (reported, never touched)."""
-    planned = set(a["node"] for a in actions if a["node"])
-    return sorted(n for n in existing_node_ids if is_train_node(n) and n not in planned)
+def unmanaged_train_nodes(existing_node_ids, entries):
+    """CS-105 train nodes with no roster entry at all (reported, never touched)."""
+    rostered = set(train_node_id(e["address"], e["long"]) for e in entries if e["address"])
+    return sorted(n for n in existing_node_ids if is_train_node(n) and n.upper() not in rostered)
 
 
 def describe(action):
     e = action["entry"]
     kind = "long" if e["long"] else "short"
     labelled = sum(1 for i in range(N_FUNCTIONS) if e["labels"].get(i + 1, ("", True))[0])
-    return "%-6s %-6s addr %4d %-5s node %s  %2d labels%s" % (
+    name = action["values"].get("Train.Name")
+    return "%-6s %-6s addr %4d %-5s node %s  %2d labels%s%s" % (
         action["action"].upper(), e["id"], e["address"], kind, action["node"] or "-",
-        labelled, "  (%s)" % action["reason"] if action.get("reason") else "")
+        labelled, "  name -> %r" % name if name is not None else "",
+        "  (%s)" % action["reason"] if action.get("reason") else "")
 
 
 def parse_only(value):
@@ -289,7 +310,7 @@ def _jmri_write_values(iface, node_dotted, values, log, timeout=60.0):
     return changed
 
 
-def _jmri_run(apply=False, only=None, rename=False):
+def _jmri_run(apply=False, only=None, rename=False, names="id"):
     import jmri
     from org.openlcb import NodeID, EventID, OlcbInterface, IdentifyProducersMessage
 
@@ -307,14 +328,14 @@ def _jmri_run(apply=False, only=None, rename=False):
     roster = jmri.jmrit.roster.Roster.getDefault()
     entries = load_roster(roster.getRosterIndexPath(), roster.getRosterFilesLocation())
     existing = [str(nm.getNodeID()) for nm in store.getNodeMemos()]
-    actions = plan(entries, existing, rename=rename, only=parse_only(only))
+    actions = plan(entries, existing, rename=rename, only=parse_only(only), names=names)
 
     log("CS-105 roster sync: %s, %d roster entries, %d train nodes on the bus" % (
         "APPLY" if apply else "PLAN ONLY", len(entries),
         sum(1 for n in existing if is_train_node(n))))
     for a in actions:
         log(describe(a))
-    for n in unmanaged_train_nodes(existing, actions):
+    for n in unmanaged_train_nodes(existing, entries):
         ident = store.getSimpleNodeIdent(NodeID(n))
         name = ident.getUserName() if ident is not None else ""
         log("KEEP   train node %s (%s) has no roster entry; untouched" % (n, name))
@@ -355,12 +376,14 @@ def _cli(argv):
     p.add_argument("roster_dir", help="folder holding roster.xml and roster/")
     p.add_argument("--only", help="comma-separated roster IDs")
     p.add_argument("--existing", help="comma-separated train node IDs the CS-105 already has")
+    p.add_argument("--rename", action="store_true", help="plan Train.Name for existing trains too")
+    p.add_argument("--names", choices=NAME_SCHEMES, default="id", help="train name scheme")
     p.add_argument("--values", action="store_true", help="also print the CDI values per entry")
     args = p.parse_args(argv)
     entries = load_roster(os.path.join(args.roster_dir, "roster.xml"),
                           os.path.join(args.roster_dir, "roster"))
     existing = parse_only(args.existing) or set()
-    actions = plan(entries, existing, only=parse_only(args.only))
+    actions = plan(entries, existing, rename=args.rename, only=parse_only(args.only), names=args.names)
     for a in actions:
         print(describe(a))
         if args.values:
@@ -373,6 +396,7 @@ if _jmri_available():
     _g = globals()
     RESULT = _jmri_run(apply=bool(_g.get("CS105_APPLY", False)),
                        only=_g.get("CS105_ONLY"),
-                       rename=bool(_g.get("CS105_RENAME", False)))
+                       rename=bool(_g.get("CS105_RENAME", False)),
+                       names=str(_g.get("CS105_NAMES") or "id"))
 elif __name__ == "__main__":
     sys.exit(_cli(sys.argv[1:]))

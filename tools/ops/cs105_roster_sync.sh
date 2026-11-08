@@ -9,6 +9,7 @@
 #   tools/ops/cs105_roster_sync.sh --apply         create missing trains, update labels
 #   tools/ops/cs105_roster_sync.sh --apply --only 1993,572
 #   tools/ops/cs105_roster_sync.sh --apply --rename   also rename existing CS-105 entries
+#   tools/ops/cs105_roster_sync.sh --apply --rename --names road   names as "<road> <number>"
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -17,13 +18,14 @@ PI_HOST="${HART_PI_SSH:-pi}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 TIMEOUT="${CS105_TIMEOUT:-900}"
 
-APPLY=False RENAME=False ONLY=""
+APPLY=False RENAME=False ONLY="" NAMES=id
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --apply) APPLY=True ;;
     --rename) RENAME=True ;;
     --only) ONLY="$2"; shift ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+    --names) NAMES="$2"; shift ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
   shift
@@ -39,7 +41,7 @@ fi
 DROP="$(mktemp)"
 trap 'rm -f "$DROP"' EXIT
 {
-  printf 'CS105_APPLY=%s\nCS105_RENAME=%s\nCS105_ONLY="%s"\n' "$APPLY" "$RENAME" "$ONLY"
+  printf 'CS105_APPLY=%s\nCS105_RENAME=%s\nCS105_ONLY="%s"\nCS105_NAMES="%s"\n' "$APPLY" "$RENAME" "$ONLY" "$NAMES"
   cat "$SCRIPT"
 } > "$DROP"
 
