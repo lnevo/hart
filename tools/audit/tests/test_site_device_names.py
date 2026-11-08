@@ -26,7 +26,7 @@ class SiteDeviceNamesTest(unittest.TestCase):
         live = {user: sys for sys, user in BEAN_RE.findall(TABLES.read_text(encoding="utf-8"))}
         devices = json.loads(DEVICES.read_text(encoding="utf-8"))
         for row in devices:
-            if row.get("kind") not in ("Signal mast", "Signal head"):
+            if row.get("kind") not in ("Signal mast", "Virtual mast", "Signal head"):
                 continue
             with self.subTest(device=row["userName"]):
                 self.assertIn(row["userName"], live, "not in tables.xml")

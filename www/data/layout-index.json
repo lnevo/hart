@@ -3653,11 +3653,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1001)",
+      "id": "dev-IF$vsm:basic:one-low($1001)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1001)",
+      "systemName": "IF$vsm:basic:one-low($1001)",
       "publicName": "Mast 4LA",
       "cp": "Brick",
       "hardware": "virtual $1001",
@@ -3666,11 +3666,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1002)",
+      "id": "dev-IF$vsm:basic:one-low($1002)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1002)",
+      "systemName": "IF$vsm:basic:one-low($1002)",
       "publicName": "Mast 4LB",
       "cp": "Brick",
       "hardware": "virtual $1002",
@@ -3679,11 +3679,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1003)",
+      "id": "dev-IF$vsm:basic:one-low($1003)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1003)",
+      "systemName": "IF$vsm:basic:one-low($1003)",
       "publicName": "Mast 40RA",
       "cp": "Princess",
       "hardware": "virtual $1003",
@@ -3692,11 +3692,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1004)",
+      "id": "dev-IF$vsm:basic:one-low($1004)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1004)",
+      "systemName": "IF$vsm:basic:one-low($1004)",
       "publicName": "Mast 38RA",
       "cp": "Princess",
       "hardware": "virtual $1004",
@@ -3705,11 +3705,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1005)",
+      "id": "dev-IF$vsm:basic:one-low($1005)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1005)",
+      "systemName": "IF$vsm:basic:one-low($1005)",
       "publicName": "Mast 12L",
       "cp": "Engine House",
       "hardware": "virtual $1005",
@@ -3718,11 +3718,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1006)",
+      "id": "dev-IF$vsm:basic:one-low($1006)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1006)",
+      "systemName": "IF$vsm:basic:one-low($1006)",
       "publicName": "Mast 10LA",
       "cp": "Engine House",
       "hardware": "virtual $1006",
@@ -3731,11 +3731,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1007)",
+      "id": "dev-IF$vsm:basic:one-low($1007)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1007)",
+      "systemName": "IF$vsm:basic:one-low($1007)",
       "publicName": "Mast 10LB",
       "cp": "Engine House",
       "hardware": "virtual $1007",
@@ -3744,11 +3744,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1008)",
+      "id": "dev-IF$vsm:basic:one-low($1008)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1008)",
+      "systemName": "IF$vsm:basic:one-low($1008)",
       "publicName": "Mast 18L",
       "cp": "South Yard",
       "hardware": "virtual $1008",
@@ -3757,11 +3757,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1009)",
+      "id": "dev-IF$vsm:basic:one-low($1009)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1009)",
+      "systemName": "IF$vsm:basic:one-low($1009)",
       "publicName": "Mast 20L",
       "cp": "South Yard",
       "hardware": "virtual $1009",
@@ -3770,11 +3770,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1010)",
+      "id": "dev-IF$vsm:basic:one-low($1010)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1010)",
+      "systemName": "IF$vsm:basic:one-low($1010)",
       "publicName": "Mast 22L",
       "cp": "South Yard",
       "hardware": "virtual $1010",
@@ -3783,11 +3783,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1011)",
+      "id": "dev-IF$vsm:basic:one-low($1011)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1011)",
+      "systemName": "IF$vsm:basic:one-low($1011)",
       "publicName": "Mast 26L",
       "cp": "South Yard",
       "hardware": "virtual $1011",
@@ -3796,11 +3796,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1012)",
+      "id": "dev-IF$vsm:basic:one-low($1012)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1012)",
+      "systemName": "IF$vsm:basic:one-low($1012)",
       "publicName": "Mast 18R",
       "cp": "South Yard",
       "hardware": "virtual $1012",
@@ -3809,11 +3809,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1013)",
+      "id": "dev-IF$vsm:basic:one-low($1013)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1013)",
+      "systemName": "IF$vsm:basic:one-low($1013)",
       "publicName": "Mast 20R",
       "cp": "South Yard",
       "hardware": "virtual $1013",
@@ -3822,11 +3822,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1014)",
+      "id": "dev-IF$vsm:basic:one-low($1014)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1014)",
+      "systemName": "IF$vsm:basic:one-low($1014)",
       "publicName": "Mast 22R",
       "cp": "South Yard",
       "hardware": "virtual $1014",
@@ -3835,11 +3835,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1015)",
+      "id": "dev-IF$vsm:basic:one-low($1015)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1015)",
+      "systemName": "IF$vsm:basic:one-low($1015)",
       "publicName": "Mast 26R",
       "cp": "South Yard",
       "hardware": "virtual $1015",
@@ -3848,11 +3848,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1016)",
+      "id": "dev-IF$vsm:basic:one-low($1016)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1016)",
+      "systemName": "IF$vsm:basic:one-low($1016)",
       "publicName": "Mast 16L",
       "cp": "South Yard",
       "hardware": "virtual $1016",
@@ -3861,11 +3861,11 @@
       "block": ""
     },
     {
-      "id": "dev-IF$vsm:AAR-1946:SL-1-low($1017)",
+      "id": "dev-IF$vsm:basic:one-low($1017)",
       "kind": "signal",
       "x": null,
       "y": null,
-      "systemName": "IF$vsm:AAR-1946:SL-1-low($1017)",
+      "systemName": "IF$vsm:basic:one-low($1017)",
       "publicName": "Mast 32L",
       "cp": "East End",
       "hardware": "virtual $1017",

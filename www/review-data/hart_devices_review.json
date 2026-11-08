@@ -2065,7 +2065,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1001)",
+    "systemName": "IF$vsm:basic:one-low($1001)",
     "userName": "Mast 4LA",
     "comment": "Brick | Switch 3"
   },
@@ -2074,7 +2074,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1002)",
+    "systemName": "IF$vsm:basic:one-low($1002)",
     "userName": "Mast 4LB",
     "comment": "Brick | Switch 3"
   },
@@ -2083,7 +2083,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1003)",
+    "systemName": "IF$vsm:basic:one-low($1003)",
     "userName": "Mast 40RA",
     "comment": "Princess | Switch 39"
   },
@@ -2092,7 +2092,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1004)",
+    "systemName": "IF$vsm:basic:one-low($1004)",
     "userName": "Mast 38RA",
     "comment": "Princess | Switch 37"
   },
@@ -2101,7 +2101,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1005)",
+    "systemName": "IF$vsm:basic:one-low($1005)",
     "userName": "Mast 12L",
     "comment": "Engine House | Switch 11"
   },
@@ -2110,7 +2110,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1006)",
+    "systemName": "IF$vsm:basic:one-low($1006)",
     "userName": "Mast 10LA",
     "comment": "Engine House | Switch 9"
   },
@@ -2119,7 +2119,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1007)",
+    "systemName": "IF$vsm:basic:one-low($1007)",
     "userName": "Mast 10LB",
     "comment": "Engine House | Switch 9"
   },
@@ -2128,7 +2128,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1008)",
+    "systemName": "IF$vsm:basic:one-low($1008)",
     "userName": "Mast 18L",
     "comment": "South Yard | Switch 17"
   },
@@ -2137,7 +2137,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1009)",
+    "systemName": "IF$vsm:basic:one-low($1009)",
     "userName": "Mast 20L",
     "comment": "South Yard | Switch 19"
   },
@@ -2146,7 +2146,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1010)",
+    "systemName": "IF$vsm:basic:one-low($1010)",
     "userName": "Mast 22L",
     "comment": "South Yard | Switch 21"
   },
@@ -2155,7 +2155,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1011)",
+    "systemName": "IF$vsm:basic:one-low($1011)",
     "userName": "Mast 26L",
     "comment": "South Yard | Switch 21"
   },
@@ -2164,7 +2164,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1012)",
+    "systemName": "IF$vsm:basic:one-low($1012)",
     "userName": "Mast 18R",
     "comment": "South Yard | Switch 17"
   },
@@ -2173,7 +2173,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1013)",
+    "systemName": "IF$vsm:basic:one-low($1013)",
     "userName": "Mast 20R",
     "comment": "South Yard | Switch 19"
   },
@@ -2182,7 +2182,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1014)",
+    "systemName": "IF$vsm:basic:one-low($1014)",
     "userName": "Mast 22R",
     "comment": "South Yard | Switch 21"
   },
@@ -2191,7 +2191,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1015)",
+    "systemName": "IF$vsm:basic:one-low($1015)",
     "userName": "Mast 26R",
     "comment": "South Yard | Switch 21"
   },
@@ -2200,7 +2200,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1016)",
+    "systemName": "IF$vsm:basic:one-low($1016)",
     "userName": "Mast 16L",
     "comment": "South Yard | Switch 15"
   },
@@ -2209,7 +2209,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$vsm:AAR-1946:SL-1-low($1017)",
+    "systemName": "IF$vsm:basic:one-low($1017)",
     "userName": "Mast 32L",
     "comment": "East End | Switch 31"
   }
