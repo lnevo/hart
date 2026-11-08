@@ -8,10 +8,11 @@ Each stage ends with a review sheet and an entry in the batch manifest (`ops/int
 
 Run from `external/hart-ops`.
 
-- Put photos in `ops/car-cards/incoming/`. A file name starting `loco_` or `engine_` is a locomotive; anything else is a car.
+- Put photos in `ops/car-cards/incoming/`; phone names (IMG_1234) are fine. Every photo starts as a car, and you decide on the sheet which are locomotives. A file name starting `loco_` or `engine_` starts as a locomotive.
 - `bin/cars review` crops, straightens and reads each new photo, then writes `ops/intake/<date>/review.csv` and a contact sheet `review.html` (open it in a browser). `--batch NAME` names the batch.
-- Flags: `crop-*` (crop fell back), `blurry`, `no-marks`, `no-number`, `road-not-in-fleet`, `duplicate-has-photo` (the repository car already has a photo), `same-id-as-<photo>` (twice in one batch), `private-name`, `ai-disagrees`, `process-failed` (one bad file does not stop the batch).
+- Flags: `crop-*` (crop fell back), `blurry`, `no-marks`, `no-number`, `road-not-in-fleet`, `duplicate-has-photo` (the repository car already has a photo), `same-id-as-<photo>` (twice in one batch), `private-name`, `maybe-loco`, `ai-says-loco`, `ai-says-car`, `ai-disagrees`, `process-failed` (one bad file does not stop the batch).
 - **AI review (manual step).** Ask Claude to review the batch. It reads each image in the `image` column next to the OCR values, in groups of about ten per Sonnet agent, and writes a JSON file `{photo: {marks, number, type, note}}`. `bin/cars ai-notes <batch> <file>` merges it into the sheet. The AI only suggests: it never changes the OCR fields or the status, and a reading that differs from the OCR adds the `ai-disagrees` flag.
+- **Car or locomotive.** The flags `maybe-loco` (loco words in the OCR text), `ai-says-loco` and `ai-says-car` (the AI review's type disagrees with the kind) mark candidates. The OCR hint is weak: it matched none of the 10 existing loco photos, so the AI review is the real detector. Switch photos with `bin/cars kind <batch> loco IMG_1.png IMG_2.png` (or `car`); it recomputes the roster id and clears the kind flags.
 - `bin/cars approve <batch>` refuses until every pending row has an AI note (`--no-ai` overrides), then approves every unflagged row. For a flagged row, correct its fields in `review.csv` and set `status` to `approved` or `rejected`.
 - The blur threshold (`BLUR_THRESHOLD` in `intake_stages.py`) is a first guess. Check it against the first real batch.
 - Writes the derived images and the batch folder only. The repository, STS and JMRI are untouched.
