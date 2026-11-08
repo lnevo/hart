@@ -26172,8 +26172,8 @@
     <signalmasticon signalmast="Mast 36RA" x="1465" y="264" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 36RB" x="1465" y="325" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 38LB" x="1645" y="311" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="310" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 2035" x="1848" y="245" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 2036" x="1804" y="291" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 2035" x="1920" y="148" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 2036" x="1900" y="386" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 40LA" x="1665" y="222" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 38LA" x="1665" y="285" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <sensoricon sensor="NX Mast 2L" x="382" y="242" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
@@ -26461,7 +26461,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="NX Mast 2035" x="1826" y="245" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="NX Mast 2035" x="1898" y="148" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/USS/sensor/green-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -26476,7 +26476,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="NX Mast 2036" x="1826" y="291" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="NX Mast 2036" x="1878" y="386" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/USS/sensor/green-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -28381,7 +28381,7 @@
     <tracksegment ident="T-I-TOR11" blockname="OS Switch 25" connect1name="TOR11" type1="TURNOUT_A" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR11" blockname="Track S-4 East" connect1name="TOR11" type1="TURNOUT_B" connect2name="A12" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOR11" blockname="Track S-3 East" connect1name="TOR11" type1="TURNOUT_C" connect2name="A39" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F55-S-0" blockname="Track K-2" connect1name="A67" type1="POS_POINT" connect2name="A48" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F55-S-0" blockname="Track K-2" connect1name="A83" type1="POS_POINT" connect2name="A48" type2="POS_POINT" dashed="no" mainline="no" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F46-W-0" blockname="Track S-R West" connect1name="TOR14" type1="TURNOUT_B" connect2name="A81" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F46-S-0" blockname="Track S-R" connect1name="A37" type1="POS_POINT" connect2name="A81" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F12-S-0" blockname="OS Switch 25" connect1name="A5" type1="POS_POINT" connect2name="A28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -28390,7 +28390,9 @@
     <tracksegment ident="T-I-TOL15" blockname="OS Switch 15" connect1name="TOL15" type1="TURNOUT_A" connect2name="A6" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL15" blockname="OS Switch 17" connect1name="TOL15" type1="TURNOUT_B" connect2name="A42" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL15" blockname="Track S-1 West" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F56-S-0" blockname="Track K-1" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F56-S-0" blockname="Track K-1" connect1name="A48" type1="POS_POINT" connect2name="A82" type2="POS_POINT" dashed="no" mainline="no" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F104-S-0" blockname="Track K-1" connect1name="A58" type1="POS_POINT" connect2name="A82" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F105-S-0" blockname="Track K-2" connect1name="A67" type1="POS_POINT" connect2name="A83" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F22-S-0" blockname="Track East Lead" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F41-S-0" blockname="Track West Main Ext" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL23" blockname="Track East Lead" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -28493,12 +28495,12 @@
     <positionablepoint ident="A69" type="ANCHOR" x="1025.0" y="550.0" connect1name="F68-S-0" connect2name="F25-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EB70" type="END_BUMPER" x="55.0" y="252.0" connect1name="F53-S-0" westboundsignalmast="Mast 4LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A63" type="ANCHOR" x="1514.0" y="252.0" connect1name="T-ER-TOL1" connect2name="F41-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A58" type="ANCHOR" x="1735.0" y="170.0" connect1name="F59-S-0" connect2name="F56-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A58" type="ANCHOR" x="1735.0" y="170.0" connect1name="F59-S-0" connect2name="F104-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A61" type="ANCHOR" x="1207.0" y="366.0" connect1name="F47-S-0" connect2name="T-ER-TOR7" eastboundsignalmast="Mast 18R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EB71" type="END_BUMPER" x="1725.0" y="252.0" connect1name="F58-S-0" eastboundsignalmast="Mast 40RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A56" type="ANCHOR" x="1461.0" y="315.0" connect1name="T-I-TOL2" connect2name="F22-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EB73" type="END_BUMPER" x="55.0" y="315.0" connect1name="F54-S-0" westboundsignalmast="Mast 4LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A67" type="ANCHOR" x="1731.0" y="381.0" connect1name="F60-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A67" type="ANCHOR" x="1731.0" y="381.0" connect1name="F60-S-0" connect2name="F105-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A68" type="ANCHOR" x="917.0" y="550.0" connect1name="F27-S-0" connect2name="F68-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A59" type="ANCHOR" x="409.0" y="252.0" connect1name="F61-S-0" connect2name="T-I-TOL3" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A65" type="ANCHOR" x="323.0" y="363.0" connect1name="F62-S-0" connect2name="T-I-TOL42" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -28522,7 +28524,9 @@
     <positionablepoint ident="A33" type="ANCHOR" x="277.0" y="252.0" connect1name="F40-S-0" connect2name="T-I-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A42" type="ANCHOR" x="772.0" y="382.0" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A43" type="ANCHOR" x="1183.0" y="398.0" connect1name="F10-S-0" connect2name="T-I-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A48" type="ANCHOR" x="1837.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" eastboundsignalmast="Mast 2036" westboundsignalmast="Mast 2035" eastboundsensor="NX Mast 2036" westboundsensor="NX Mast 2035" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A48" type="ANCHOR" x="1950.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" eastboundsignalmast="Mast 2036" westboundsignalmast="Mast 2035" eastboundsensor="NX Mast 2036" westboundsensor="NX Mast 2035" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A82" type="ANCHOR" x="1950.0" y="170.0" connect1name="F104-S-0" connect2name="F56-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A83" type="ANCHOR" x="1950.0" y="381.0" connect1name="F105-S-0" connect2name="F55-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A45" type="ANCHOR" x="445.0" y="315.0" connect1name="T3" connect2name="T1" eastboundsignalmast="Mast 8RA" westboundsignalmast="Mast 8LC" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A44" type="ANCHOR" x="1268.0" y="315.0" connect1name="T-I-TOR32" connect2name="F34-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A47" type="ANCHOR" x="1333.0" y="340.0" connect1name="F24-S-0" connect2name="T-EL-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
