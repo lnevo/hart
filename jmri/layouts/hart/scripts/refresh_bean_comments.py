@@ -20,6 +20,37 @@ from apply_public_names import RenameEntry, apply_renames_to_text
 
 SIGNAL_WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
+TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+
+_SECTION_RE = re.compile(r'<section systemName="(IY:AUTO:\d+)" userName="([^"]*)"')
+_SECTION_NAMES: dict[str, str] | None = None
+
+
+def section_names(text: str | None = None) -> dict[str, str]:
+    """Section systemName -> userName (e.g. IY:AUTO:0482 -> Mast 6LB:Mast 24RA)."""
+    global _SECTION_NAMES
+    if text is not None:
+        return dict(_SECTION_RE.findall(text))
+    if _SECTION_NAMES is None:
+        _SECTION_NAMES = (
+            dict(_SECTION_RE.findall(TABLES.read_text(encoding="utf-8")))
+            if TABLES.is_file()
+            else {}
+        )
+    return _SECTION_NAMES
+
+
+def section_direction_comment(system_name: str, names: dict[str, str] | None = None) -> str:
+    """IS:IY:AUTO:0482:forward -> section direction sensor comment.
+
+    These are the forward/reverse sensors JMRI creates for each SML-generated
+    section (fsensorname/rsensorname), not warrant sensors.
+    """
+    body = system_name[len("IS:"):]
+    section, _, direction = body.rpartition(":")
+    name = (names if names is not None else section_names()).get(section)
+    where = f"{name} ({section})" if name else section
+    return f"SML section {direction} direction: {where}"
 PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
@@ -872,7 +903,7 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
         if system_name == "IS:FLEETING":
             return existing or "USS CTC fleeting"
         if system_name.startswith("IS:IY:AUTO:"):
-            return f"Auto warrant direction {user_name or system_name}"
+            return section_direction_comment(system_name)
         if system_name.startswith("ISNX:"):
             mast = system_name.split(":", 1)[-1]
             return existing or (
@@ -901,6 +932,12 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
     if kind == "route":
         return f"Route {user_name}" if user_name else None
     return None
+
+
+def is_block_name_pass(body: str) -> bool:
+    """True for the names-only first-pass <block> JMRI writes before the full one."""
+    tags = set(re.findall(r"<([A-Za-z][\w]*)\b", body))
+    return tags <= {"systemName", "userName"}
 
 
 def refresh_comments(text: str) -> tuple[str, int]:
@@ -932,6 +969,10 @@ def refresh_comments(text: str) -> tuple[str, int]:
                 body = set_user_name(body, ctc_name, replace=True)
                 user_name = ctc_name
                 changed += 1
+        if kind == "block" and is_block_name_pass(body):
+            # JMRI writes every block twice; the first pass holds names only
+            # (BlockManagerXml.store). Comments belong on the full pass.
+            return open_tag + body + close_tag
         comment = comment_for(kind, system_name, user_name, existing)
         if comment and comment != existing:
             changed += 1
