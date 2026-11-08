@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-08 — Corrected the momentum-test note: 2121 in reverse is not slower than forward. A whole-lap reverse run (steps 24, 48, 64: 133.7, 82.0 and 72.1 s) matches the forward laps within 3%; the 10% seen at step 32 was a start-position artifact. No trim needed. Data in `docs/jmri/speedmatching/profile-2026-11-08/reverse_2121_laps.csv`.
+
 Updated: 2026-11-08 — Momentum test of CSX 2121 against CSX 2738 (speed-0 command at Switch 33 after a run from rest at steps 32 and 96): the stop and the start match within 0.1 s at step 96, so CV3/CV4 need no change. 2121 in reverse is about 10% slower than 2738 forward at step 32 (about 2% at step 96); the reverse profile of 2121 is still to be measured. Data in `docs/jmri/speedmatching/profile-2026-11-08/momentum_test.csv`.
 
 Updated: 2026-11-08 — Re-measured CSX 2738 after programming (steps 12, 24, 48, 126, one timed lap each): within 1.2% of CSX 2121 at 24, 48 and 126 and 5.3% fast at step 12, where it had been 41 to 52% slow. Results in `docs/jmri/speedmatching/profile-2026-11-08/post_programming_sample.csv`.

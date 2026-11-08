@@ -101,13 +101,15 @@ in the next metre; that is the same in both and is not understood (it could be t
 CS-105 path or the decoders' CV4 = 24).
 
 At step 32 both enter East Lead 0.8 to 1.0 s after the command and stop inside it.
-**But 2121 in reverse is about 10% slower than 2738 forward at step 32** (7b to Switch 33:
-25.9 s against 23.6 s for the same Main East stretch), and about 2% slower at step 96
-(17.8 s against 17.4 s). 2121's profile above was measured forward (west), so its reverse
-speed is not in it. In a consist one of the two always runs in reverse, so this matters.
 
-Not yet done: the reverse profile of 2121, and the forward profile of 2738 run in
-reverse (west). The reverse trim of 2121 (CV95 = 128) has not been touched.
+**Correction (same day):** a first reading of this test said 2121 in reverse was about
+10% slower than 2738 forward at step 32. That was a start-position artifact: 2121 had been
+parked farther back in East Main Ext and was still accelerating through Main East. A
+whole-lap reverse run of 2121 afterwards ([`reverse_2121_laps.csv`](reverse_2121_laps.csv))
+shows no reverse deficit: 134 s at step 24 (forward 139 s), 82.0 s at step 48 (forward
+82.3 s) and 72.1 s at step 64 (forward 74 to 75 s), i.e. equal or 2 to 3% quicker, inside
+the scatter. Reverse trim (CV95 = 128) needs no change. The reverse profile of 2738 (west)
+has not been measured.
 
 ## Loop length (not reliable)
 
@@ -161,6 +163,7 @@ the loop total with a tape (or time a loco over a measured distance), correct
 | `block_events.csv` | every block transit (637): entry time, transit time, mm/s |
 | `block_summary.csv` | per loco, step, block: mean speed, ratio to loop mean, implied length |
 | `post_programming_sample.csv` | 2738 re-measure after programming, against 2121 |
+| `reverse_2121_laps.csv` | 2121 run in reverse (east): whole-lap times at steps 24, 48, 64 |
 | `momentum_test.csv` | sensor times of the four stop tests (2 locos, steps 32 and 96) |
 | `block_speeds.py`, `analyze_profile.py`, `propose_table.py` | produce the above |
 
