@@ -6,7 +6,8 @@
 //
 // Prints face down for a smooth, flush face: the colours are inlays in the first
 // layers, one STL per colour, and the back pockets print open with no supports.
-//   z 0 .. inlay_t       face: white, black, teal, gold side by side
+//   z 0 .. inlay_t       face: white, teal, gold side by side; black areas are left as a
+//                        recess (part="black" exists only for preview, it is not printed)
 //   inlay_t .. skin_t    white skin over the toggles, LED holes only
 //   skin_t .. total_t    pockets with crush ribs, wire channels to the edge
 //

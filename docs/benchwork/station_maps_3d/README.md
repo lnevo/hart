@@ -1,16 +1,16 @@
 # 3D-printed station maps
 
-Multi-colour fascia plates that hold Touch Toggles. Barn is first; it follows
+Fascia plates that hold Touch Toggles. Barn is first; it follows
 `ops/station_maps/scripts/render_barn_station_map.py`.
 
 ```bash
-./docs/benchwork/station_maps_3d/build.sh   # writes stl/barn_*.stl and stl/sw13_*.stl
+./docs/benchwork/station_maps_3d/build.sh   # writes stl/barn_{white,teal,gold}.stl and stl/sw13_*.stl
 ```
 
 ## Printing (Spark i7 + 4-colour AMS, Creality Print)
 
-1. Add all four STLs in one go and choose to load them as one object with multiple parts. They share an origin, so do not move them apart.
-2. Assign white, black, teal and gold to the parts.
+1. Add the three STLs (`barn_white`, `barn_teal`, `barn_gold`) in one go and choose to load them as one object with multiple parts. They share an origin, so do not move them apart.
+2. Assign white, teal and gold to the parts. There is no black part: the track, labels and rings are left as a 0.6 mm recess in the white face, because black on the first layer would not stick (same as `sw13_body.stl` alone).
 3. Print as loaded, face down on a smooth plate, with no supports. Use 0.2 mm layers or finer so the 0.6 mm inlay gets at least three layers.
 
 After a rebuild, use **Reload from disk**.
