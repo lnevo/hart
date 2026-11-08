@@ -1,6 +1,6 @@
 # Live status
 
-Updated 2026-11-07. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
+Updated 2026-11-08. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Current state
 
@@ -27,6 +27,7 @@ Updated 2026-11-07. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 - **Build:** helix complete. Main level resumes after Thanksgiving.
 - **Princess track names (2026-11-07):** With the helix in, the stubs east of Switches 39 and 37 are now Track McKees Rocks and Track McKeesport (mainline), and the loop legs are Track K-1 and Track K-2; only names moved, and the Dispatcher System data was renamed in place. The Layout Editor panel keeps the physical picture (K loop drawn around the mainline stubs). The CATS desks put K-1 / K-2 on the outer rows running off the east edge, the mains in the centre. Signal types follow the roles: two-head Mast 40LA / 38LA on the mains, dwarf Mast 40LB / 38LB on the K tracks (no field hardware yet). See [ADR-017](decisions/ADR-017-princess-track-name-swap.md).
 - **Mast 6LB interim dwarf (2026-11-07):** Mast 6LB (Plane, Switch 5) is a one-low dwarf on IH432 (`Head 6LB`), the one head wired in the field (C4-OU2-1..3). IH433 (`Head 6LB Bottom`) stays defined but is unwired and on no mast. The CATS desks show it as a single lamp. Return it to two-searchlight (tables, CATS PHYSIGNAL, `signal_head_plan.csv`) when the second head is wired; the wiring docs still describe that plan.
+- **Speed matching (2026-11-08):** CSX 2121 and CSX 2738 were profiled on the full loop (results and logs in [`docs/jmri/speedmatching/profile-2026-11-08/`](../docs/jmri/speedmatching/profile-2026-11-08/README.md)). 2738 runs at 47 to 70% of 2121's speed from step 12 to 64 and its speed table is switched off. The owner wants 2738 matched to 2121, momentum included. 2738 was **programmed** that day on the programming track (CV25 = 16, CV29 = 50, CV3 = 26, CV4 = 24, and the calculated CV67 to CV94 table; read back with 0 mismatches; rollback values in `CV_CHANGES_DRAFT.md`). A four-step re-measure the same day put 2738 within 1.2% of 2121 at steps 24, 48 and 126 and 5.3% fast at step 12. The roster entry `2738.xml` is not updated yet. Next: consist testing. The owner chose the calculated speed table. The block lengths turned out unreliable (the Switch 7 crossover and the engine terminal at Switch 13 may not be in the Anyrail files; Main East and East Main Ext were computed by subtraction), so absolute speeds are uncertain; the 2738-vs-2121 match is not. 2738 was parked in Track K-2 (near the programming track) and 2121 in Brick-Plane; both are held on the Pi's JMRI throttles at speed 0, and SW5 and SW7 are closed.
 
 ## Owed
 
@@ -45,6 +46,6 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Future goals
 
-- Measured speed profiles ([`projects/speedmatching.md`](projects/speedmatching.md)).
+- Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
 - Final cleanup epic: retire `~/sts`, `~/Desktop/HART`, the duplicates in `~/Documents` and the repo's `archive/`, leaving this repo as the one home ([ADR-007](decisions/ADR-007-repository-layout.md)). Undated on purpose. The `.any` track plans stay in `~/Documents`.
