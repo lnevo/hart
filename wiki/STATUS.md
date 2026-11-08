@@ -35,6 +35,13 @@ Updated 2026-11-08. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 Deferred by the owner on 2026-10-31; none of these is urgent.
 
 - STS staging for the 2026-11-08 operating session. STS has to be running, and the owner starts it.
+- **When the CS-105 is back up (it was down on 2026-11-08):**
+  1. Check it announces on the LCC bus: PanelPro running on the Pi with the LCC USB adapter connected.
+  2. Run `tools/ops/cs105_roster_sync.sh` (plan only). Read its first line. If it says `0 train nodes on the bus`, stop: the CS-105 is not visible, and `--apply` would only fail. If it lists the existing trains as updates, go on.
+  3. Apply for the two new locos first: `tools/ops/cs105_roster_sync.sh --apply --only "CSX 2121,CSX 2738"` (the IDs are road plus number; bare numbers match nothing). Then the plan should show no creates. If a power cycle dropped the other trains (the ten created on 2026-11-07), it will show them as creates: apply those too.
+  4. Never run two sync commands at once; they share `/tmp/jmri_cmd.py` on the Pi and read each other's output.
+  5. Then the CS-105 side of speed matching for CSX 2738 (PR #187) and the consist test with 2121. Programming the real decoders (stage 6) is bench work.
+  Already done for both locos: roster entries, photos, Operations engine roster, Dispatcher speed profile, Windows and Pi deploys, gallery. Still unset: their Operations location.
 
 ## In progress
 
