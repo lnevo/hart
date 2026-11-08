@@ -7,25 +7,42 @@
 // Prints face down for a smooth, flush face: the colours are inlays in the first
 // layers, one STL per colour, and the back pockets print open with no supports.
 //   z 0 .. inlay_t       face: white, black, teal, gold side by side
-//   inlay_t .. total_t   white body, pockets open at total_t
+//   inlay_t .. skin_t    white skin over the toggles, LED holes only
+//   skin_t .. total_t    pockets with crush ribs, wire channels to the edge
+//
+// Pocket, rib, skin and wire-channel method is the one proven on
+// toggle_test_sw13.scad; sizes are the caliper measurements in README.md.
 //
 //   ./docs/benchwork/station_maps_3d/build.sh
 //   openscad -D 'part="teal"' -o teal.stl station_map_barn.scad
 
 part = "all";  // all (colour preview) | white | black | teal | gold
 
-/* [Fit: confirm against the frame and a real toggle] */
+/* [Fit: confirm against the frame] */
 sheet_w = 203.2;       // 8 in
 sheet_h = 127.0;       // 5 in
 frame_clearance = 0.5; // total, each axis
-total_t = 3.0;
+plate_r = 3.0;         // corner radius
+skin_t = 1.0;          // over the toggles, as in the SW13 test
 inlay_t = 0.6;         // three 0.2 layers
-pocket_depth = 1.8;    // from the back; leaves total_t - pocket_depth of skin
-pocket_clearance = 0.4;
 hole_clearance = 0.2;
 
-/* [Touch Toggle, inches, from touch-toggle-dimensions] */
-plate_in = 0.75;
+/* [Measured toggles, mm] */
+toggle_w = 17.7;
+toggle_t = 5.1;
+housing_t = 5.8;       // third-light housing
+combo_len = 28.6;      // two-light toggle + third light, joined
+combo_w = 18.2;
+back_gap = 0.2;        // deepest part sits this far below the back, so tape lies flat
+
+/* [Pocket fit, as the SW13 test] */
+pocket_clearance = 0.3;  // total, each axis
+rib_d = 1.0;
+rib_protrude = 0.35;     // into the pocket; 0.2 mm interference a side
+lead_in = 1.0;           // rib taper at the back so the toggle starts easily
+wire_slot_w = 13.0;      // ribbon is 3.8 wide but its position varies
+
+/* [Touch Toggle, inches, from the spec drawing] */
 pitch_in = 0.375;
 hole_in = 3 / 16;
 
@@ -41,6 +58,11 @@ siding_w = 1.1;
 
 $fn = 48;
 IN = 25.4;
+
+total_t = skin_t + housing_t + back_gap;
+pocket_depth = total_t - skin_t;
+pocket_w = toggle_w + pocket_clearance;
+RIB_OFFSET = pocket_w / 4;
 
 RUN = 0.5;
 RISE = 1.0;
@@ -103,13 +125,78 @@ module rings2d() {
   for (p = HOLES) at(p) circle(d = hole_in * IN + hole_clearance + 2 * ring_w);
 }
 
-module pocket2d(p, rot = 0) {
-  at(p) rotate(rot) square(plate_in * IN + pocket_clearance, center = true);
+// ---- Pockets, ribs and wire channels (method from toggle_test_sw13.scad) ----
+//
+// Each toggle has a local frame at its centre, x along the LED row and the
+// ribbon leaving through the local -y wall. A channel runs from that wall
+// straight out through the plate edge. The single toggles share one frame
+// turned to point their channel at the nearest clear edge; Switch 7 is turned
+// along the crossover.
+
+// Single one-light toggles: [centre, turn, channel direction]. Turn 0 sends
+// the channel down the sheet, 90 sends it east.
+SINGLES = [
+  [SW9, 0],    // down
+  [SW11, 90],  // east: SW13's pocket is straight below
+  [SW13, 0],   // down
+];
+
+// Switch 7 frame: x runs from the toggle towards the third light.
+SW7_ANGLE = indicator_dot == 2 ? atan2(-UY, UX) : atan2(UY, -UX);
+SW7_X_MIN = -(toggle_w + pocket_clearance) / 2;
+SW7_X_MAX = combo_len - toggle_w / 2 + pocket_clearance / 2;
+SW7_LED_X = 1.5 * pitch_in * IN;
+HOUSING_W = combo_w + pocket_clearance;
+HOUSING_SLOT_W = 9.0;
+
+module local(p, ang) { at(p) rotate(ang) children(); }
+
+module single_pocket2d() {
+  square(pocket_w, center = true);
+  translate([-wire_slot_w / 2, -400]) square([wire_slot_w, 400]);
+}
+
+module sw7_pocket2d() {
+  translate([SW7_X_MIN, -pocket_w / 2]) square([pocket_w, pocket_w]);
+  translate([SW7_X_MAX - HOUSING_W, -HOUSING_W / 2]) square([HOUSING_W, HOUSING_W]);
+  // One channel for the toggle ribbon and the third light's wire; two would
+  // leave a 3 mm sliver of plate between them.
+  translate([-wire_slot_w / 2, -400]) square([SW7_LED_X + HOUSING_SLOT_W / 2 + wire_slot_w / 2, 400]);
 }
 
 module pockets2d() {
-  for (p = SINGLE_TOGGLES) pocket2d(p);
-  pocket2d(SW7_TOGGLE, SLOPE_DEG);
+  for (s = SINGLES) local(s[0], s[1]) single_pocket2d();
+  local(SW7_TOGGLE, SW7_ANGLE) sw7_pocket2d();
+}
+
+// A rib at p standing rib_protrude proud of the wall whose inward normal is n.
+module rib(p, n) {
+  c = p + n * (rib_protrude - rib_d / 2);
+  translate([c[0], c[1], skin_t]) hull() {
+    cylinder(d = rib_d, h = pocket_depth - lead_in);
+    translate(-n * rib_protrude) cylinder(d = rib_d, h = pocket_depth);
+  }
+}
+
+// Left, right and top walls, two ribs each; the bottom wall is the channel.
+SINGLE_RIBS = [
+  for (s = [-1, 1]) [[-pocket_w / 2, s * RIB_OFFSET], [1, 0]],
+  for (s = [-1, 1]) [[pocket_w / 2, s * RIB_OFFSET], [-1, 0]],
+  for (s = [-1, 1]) [[s * RIB_OFFSET, pocket_w / 2], [0, -1]],
+];
+
+// Switch 7: both end walls, plus one on the top wall by the toggle and one by
+// the housing. The side walls hold the toggle and housing at their own width.
+SW7_RIBS = [
+  for (s = [-1, 1]) [[SW7_X_MIN, s * RIB_OFFSET], [1, 0]],
+  for (s = [-1, 1]) [[SW7_X_MAX, s * RIB_OFFSET], [-1, 0]],
+  [[-RIB_OFFSET, pocket_w / 2], [0, -1]],
+  [[SW7_LED_X, HOUSING_W / 2], [0, -1]],
+];
+
+module ribs3d() {
+  for (s = SINGLES) local(s[0], s[1]) for (r = SINGLE_RIBS) rib(r[0], r[1]);
+  local(SW7_TOGGLE, SW7_ANGLE) for (r = SW7_RIBS) rib(r[0], r[1]);
 }
 
 PILLS = [
@@ -196,7 +283,8 @@ module ink2d() {
 }
 
 module outline2d() {
-  square([sheet_w - frame_clearance, sheet_h - frame_clearance], center = true);
+  offset(r = plate_r)
+    square([sheet_w - frame_clearance - 2 * plate_r, sheet_h - frame_clearance - 2 * plate_r], center = true);
 }
 
 module black2d() {
@@ -226,14 +314,19 @@ module white_part() {
     gold2d();
     holes2d();
   }
-  translate([0, 0, inlay_t]) linear_extrude(total_t - pocket_depth - inlay_t) difference() {
+  translate([0, 0, inlay_t]) linear_extrude(skin_t - inlay_t) difference() {
     outline2d();
     holes2d();
   }
-  translate([0, 0, total_t - pocket_depth]) linear_extrude(pocket_depth) difference() {
+  translate([0, 0, skin_t]) linear_extrude(pocket_depth) difference() {
     outline2d();
     pockets2d();
     holes2d();
+  }
+  // Clip the ribs to the plate so none pokes out through a channel.
+  intersection() {
+    ribs3d();
+    linear_extrude(total_t) outline2d();
   }
 }
 
