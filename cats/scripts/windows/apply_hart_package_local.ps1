@@ -85,6 +85,19 @@ if (Test-Path $miscSrc) {
   }
 }
 
+$rosterSrc = Join-Path $hart 'cats\resources\roster'
+if (Test-Path $rosterSrc) {
+  $roots = New-Object System.Collections.Generic.List[string]
+  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  foreach ($r in ($roots | Select-Object -Unique)) {
+    if (-not (Test-Path $r)) { continue }
+    $dest = Join-Path $r 'resources\roster'
+    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+    Copy-Item (Join-Path $rosterSrc '*.jpg') $dest -Force
+    Write-Host ("roster photos -> {0}" -f $dest)
+  }
+}
+
 $ussSrc = Join-Path $hart 'cats\resources\icons\USS\sensor'
 if (Test-Path $ussSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
