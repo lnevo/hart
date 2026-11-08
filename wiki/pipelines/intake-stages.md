@@ -56,7 +56,7 @@ Run from `external/hart-ops`.
 2. Commit and deploy: `./cats/scripts/sync_hart_package.sh --all` (installs the photo and engine roster).
 3. With JMRI up on the Pi: `tools/ops/loco_roster_import.sh` shows the plan, `--apply` creates the DecoderPro entries (ID is road plus number, so the rename script is not needed). An entry that already exists is kept as built, and only gets the photo and icon if it has none. Stop PanelPro on the Pi first for `make ops-pull` and the deploy, and start it again before the import.
 4. `ensure_dispatcher_roster_profiles.py` for the speed profile, then `tools/ops/cs105_roster_sync.sh --apply`. `cs105_reboot.sh` only when nothing is moving.
-5. The Dispatcher traininfo files for the new roster ID are not generated yet; see "Not built" below.
+5. Dispatcher traininfo needs nothing per loco. The 1,548 files in `jmri/layouts/hart/dispatcher/traininfo` (and on the Pi) are transit templates: every one has `trainname="NWR 06"` and a blank `rosterid`, and you pick the loco from the roster in the Dispatcher dialog. What Dispatcher needs is a speed profile in the roster file, which step 4 adds (`ensure_dispatcher_roster_profiles.py` edits roster files, so it needs JMRI closed; copy the script into a path at least five folders deep on the Pi, because it finds its root with `parents[4]`).
 
 The Pi-side import is untested against live JMRI. Run the plan first and watch the first `--apply`.
 
@@ -87,7 +87,7 @@ State on 2026-11-08: all stages ran once on a real batch (ten CSX hoppers, cars 
 4. `bin/cars approve <batch>`, then `bin/cars records <batch> --dry-run`, then without `--dry-run`. Commit the repository files and the manifest in a branch.
 5. Locos: `bin/cars locos set "<ROAD NUMBER>" dcc_address=... model=... loco_type=Diesel length_ft=...` until `locos status` shows nothing missing, then `bin/cars locos publish`.
 6. Stage 3 only when every photo is recorded or rejected: take an STS backup, close JMRI on the Pi, `make ops-pull`, commit, then `bin/cars publish`. Test one car first with `--only`. The live STS insert ran clean on the first batch once the pool and photo fixes were in. Then `bin/cars compare`, commit `jmri/layouts/hart/operations/`, deploy with `sync_hart_package.sh --all`.
-7. Stage 4: `tools/ops/loco_roster_import.sh` (plan), then `--apply`; `ensure_dispatcher_roster_profiles.py`; `tools/ops/cs105_roster_sync.sh --apply`. Traininfo files for new locos by hand.
+7. Stage 4: `tools/ops/loco_roster_import.sh` (plan), then `--apply`; `ensure_dispatcher_roster_profiles.py` (JMRI closed); `tools/ops/cs105_roster_sync.sh --apply` only when its plan shows the CS-105's existing trains on the bus (a plan that says "0 train nodes" would try to create every entry again). No traininfo files are needed per loco.
 8. Stage 5: `bin/cars cards`, print, `--mark-printed`; `bin/cars site`, `--apply`, merge, then deploy the site from the main checkout.
 
 **Known soft spots**
@@ -108,7 +108,6 @@ State on 2026-11-08: all stages ran once on a real batch (ten CSX hoppers, cars 
 
 ## Not built
 
-- Dispatcher traininfo generation for a new loco (1,548 files exist, keyed by roster ID). Stage 4 step 5 stays manual.
 - Program the decoder and set the real decoder type in the roster entry (stage 6).
 - Reading a loco's details from the photo. Locos get road name and number from OCR and the AI review only.
 
