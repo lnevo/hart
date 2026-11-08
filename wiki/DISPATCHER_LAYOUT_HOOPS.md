@@ -18,7 +18,7 @@ Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:basic:on
 |---------|---------|----------------|
 | W-1 / W-2 | `Mast 4LA` / `Mast 4LB` | West-end bumpers `EB70` / `EB73` |
 | McKees Rocks / McKeesport | `Mast 40RA` / `Mast 38RA` | East-end bumpers `EB71` / `EB72` |
-| K-1 / K-2 boundary | `Mast 2035` / `Mast 2036` | Anchor `A48` (x=1950, y=276), reached only by the **hidden** wrap segments `F56-S-0` / `F55-S-0`; the loop is real track but is not drawn (ADR-017 item 7) |
+| K-1 / K-2 boundary | `Mast 2035` / `Mast 2036` | Anchor `A48` at the apex of the drawn K loop (x=1837, y=276) |
 | EH-1…EH-3 | `Mast 12L` / `Mast 10LA` / `Mast 10LB` | Engine House buffers `EB1` / `EB2` / `EB3` |
 | S-1…S-4 west | `Mast 18L`, `20L`, `22L`, `26L` | Body/throat boundary anchors `A53`/`A46`/`A41`/`A15` |
 | S-1…S-4 east | `Mast 18R`, `20R`, `22R`, `26R` | Body/throat boundary anchors `A61`/`A36`/`A39`/`A12` |
