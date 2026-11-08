@@ -62,6 +62,33 @@ The Pi-side import is untested against live JMRI. Run the plan first and watch t
 
 Per loco, once it is on the bench: program the decoder, then [speed matching](speed-matching.md).
 
+## Running a batch (start here in a new session)
+
+State on 2026-11-08: stages 1 to 5 are built and merged (hart-ops PRs 12, 13, 14; hart PRs 175 to 177). Nothing has run on a real batch. The first real batch is the test: watch every step and fix what breaks.
+
+**Before the first batch**
+- Run from `external/hart-ops` (`bin/cars ...`). It needs `.venv`, tesseract and the hart checkout on `main`; use a worktree for any hart repo change (other sessions share the checkout).
+- Photos go in `ops/car-cards/incoming/` (gitignored). Phone names are fine.
+- Baseline already checked: `bin/cars compare` shows no drift (99 Operations Pro cars, 70 in STS by design, HART1776 a known exception).
+
+**Steps**
+1. `bin/cars review`. Open `ops/intake/<date>/review.html`. Look at flagged crops.
+2. **AI review** (the owner asks for it). Read `review.csv`; for each row Read the image in the `image` column and compare with the OCR columns. Use Sonnet agents, about ten photos each, read-only. Each returns `{photo: {marks, number, type, note}}`: the reporting marks and number as printed, the type (Boxcar, Hopper, Locomotive...), and a note on anything unreadable. Merge the answers into one JSON file in the scratchpad, then `bin/cars ai-notes <batch> <file>`. The AI suggests only; do not edit `review.csv` fields from it.
+3. Show the owner the flagged rows (`ai-disagrees`, `ai-says-loco`, `maybe-loco`, blurry, no-number, duplicate). Apply their corrections in `review.csv`, switch locos with `bin/cars kind <batch> loco <photos>`, set `status` to `approved` or `rejected` for flagged rows.
+4. `bin/cars approve <batch>`, then `bin/cars records <batch> --dry-run`, then without `--dry-run`. Commit the repository files and the manifest in a branch.
+5. Locos: `bin/cars locos set "<ROAD NUMBER>" dcc_address=... model=... loco_type=Diesel length_ft=...` until `locos status` shows nothing missing, then `bin/cars locos publish`.
+6. Stage 3 only when every photo is recorded or rejected: take an STS backup, close JMRI on the Pi, `make ops-pull`, commit, then `bin/cars publish`. Test one car first with `--only`. The first live STS insert and Pi push have never run, so watch them. Then `bin/cars compare`, commit `jmri/layouts/hart/operations/`, deploy with `sync_hart_package.sh --all`.
+7. Stage 4: `tools/ops/loco_roster_import.sh` (plan), then `--apply`; `ensure_dispatcher_roster_profiles.py`; `tools/ops/cs105_roster_sync.sh --apply`. Traininfo files for new locos by hand.
+8. Stage 5: `bin/cars cards`, print, `--mark-printed`; `bin/cars site`, `--apply`, commit, `./www/scripts/deploy_hartrailroad.sh`.
+
+**Known soft spots**
+- `BLUR_THRESHOLD` (600) is a guess; adjust in `intake_stages.py` after the first batch.
+- The gate's STS backup check accepts any file under 12 hours old in `external/sts-docker-data/backups`; confirm the real backup file name and tighten.
+- Loco photos use the car crop code and may crop badly.
+- The Pi-side DecoderPro import is unit-tested only; plan before `--apply`.
+- Locos need hand-entered details (DCC address, model, length); the photo gives road and number only.
+- A stray remote branch `agent/claude/hart-ops-pointer` exists on GitHub with no commits; delete it when convenient.
+
 ## Models
 
 | Work | Model |
