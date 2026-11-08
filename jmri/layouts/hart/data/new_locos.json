@@ -1,0 +1,24 @@
+[
+  {
+    "id": "CSX 2121",
+    "road_name": "CSX",
+    "road_number": "2121",
+    "mfg": "EMD",
+    "model": "GP38",
+    "dcc_address": "2121",
+    "long_address": true,
+    "image": "preference:resources/roster/2121.jpg",
+    "comment": ""
+  },
+  {
+    "id": "CSX 2738",
+    "road_name": "CSX",
+    "road_number": "2738",
+    "mfg": "EMD",
+    "model": "GP38-2",
+    "dcc_address": "2738",
+    "long_address": true,
+    "image": "preference:resources/roster/2738.jpg",
+    "comment": ""
+  }
+]
