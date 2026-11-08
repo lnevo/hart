@@ -1858,7 +1858,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1236)",
+    "systemName": "IF$shsm:basic:one-low(IH1236)",
     "userName": "Mast 24RB",
     "comment": "East End | Switch 23"
   },
@@ -1867,7 +1867,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1239)",
+    "systemName": "IF$shsm:basic:one-low(IH1239)",
     "userName": "Mast 32R",
     "comment": "East End | Switch 31"
   },
@@ -1876,7 +1876,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH1334)",
+    "systemName": "IF$shsm:basic:one-low(IH1334)",
     "userName": "Mast 8LB",
     "comment": "Barn | Switch 7"
   },
@@ -1885,7 +1885,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH134)",
+    "systemName": "IF$shsm:basic:one-low(IH134)",
     "userName": "Mast 2036",
     "comment": "Princess"
   },
@@ -1894,7 +1894,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH141)",
+    "systemName": "IF$shsm:basic:one-low(IH141)",
     "userName": "Mast 2035",
     "comment": "Princess"
   },
@@ -1903,7 +1903,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH142)",
+    "systemName": "IF$shsm:basic:one-low(IH142)",
     "userName": "Mast 40LB",
     "comment": "Princess | Switch 39"
   },
@@ -1912,7 +1912,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH143)",
+    "systemName": "IF$shsm:basic:one-low(IH143)",
     "userName": "Mast 38LB",
     "comment": "Princess | Switch 37"
   },
@@ -1921,7 +1921,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH434)",
+    "systemName": "IF$shsm:basic:one-low(IH434)",
     "userName": "Mast 6LA",
     "comment": "Plane | Switch 5"
   },
@@ -1930,7 +1930,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH436)",
+    "systemName": "IF$shsm:basic:one-low(IH436)",
     "userName": "Mast 4RA",
     "comment": "Brick | Switch 3"
   },
@@ -1939,7 +1939,7 @@
     "unpacked": "",
     "dcc": "",
     "mqtt": "",
-    "systemName": "IF$shsm:AAR-1946:SL-1-low(IH437)",
+    "systemName": "IF$shsm:basic:one-low(IH437)",
     "userName": "Mast 4RB",
     "comment": "Brick | Switch 3"
   },
