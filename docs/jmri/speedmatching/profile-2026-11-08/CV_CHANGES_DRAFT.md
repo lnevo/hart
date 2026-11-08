@@ -1,8 +1,9 @@
 # CV changes: match CSX 2738 to CSX 2121
 
 **PROGRAMMED on 2026-11-08** on the programming track through the Pi's JMRI (Direct Byte
-mode), then read back: 32 CVs, 0 mismatches. The roster entry (`2738.xml`) was **not** yet
-updated; read the sheets in DecoderPro to bring it in line. A four-step
+mode), then read back: 32 CVs, 0 mismatches. The roster entry (`2738.xml`) was then edited by
+hand to the same values (CV3, CV4, CV25, CV29, CV67 to CV94 and the matching sheet
+variables) on the Pi and the Mac; Windows is pending. A four-step
 re-measure the same day (see `post_programming_sample.csv`) put 2738 within 1.2% of 2121
 at steps 24, 48 and 126 and 5.3% fast at step 12.
 

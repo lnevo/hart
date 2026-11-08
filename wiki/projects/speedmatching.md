@@ -1,7 +1,7 @@
 # Speed matching
 
 - **Owner:** lnevo
-- **Status:** In progress — CSX 2121 and CSX 2738 measured on the full loop 2026-11-08 ([results](../docs/jmri/speedmatching/profile-2026-11-08/README.md)); 2738 was programmed to match 2121 (speed table, CV25/CV29, momentum) and a four-step re-measure shows it within 1.2% of 2121 from step 24 up (5.3% fast at step 12); its roster entry still needs updating. Every other roster loco still has the same synthesized 10-step / 400 mm/s profile.
+- **Status:** In progress — CSX 2121 and CSX 2738 measured on the full loop 2026-11-08 ([results](../docs/jmri/speedmatching/profile-2026-11-08/README.md)); 2738 was programmed to match 2121 (speed table, CV25/CV29, momentum) and a four-step re-measure shows it within 1.2% of 2121 from step 24 up (5.3% fast at step 12); its roster entry was updated by hand on the Pi and Mac (Windows pending). Every other roster loco still has the same synthesized 10-step / 400 mm/s profile.
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
 
 HART auto-dispatcher needs **measured** roster speed profiles for station stops. Every live DecoderPro loco currently has the same synthetic 10-step / 400 mm/s profile (`wiki/STATUS.md`). This thread is a working club procedure for a detected track circle plus JMRI POM scripts.
@@ -17,7 +17,7 @@ momentum (CV3/CV4 = 0/0). The owner chose to match 2738 to 2121, momentum includ
 [`CV_CHANGES_DRAFT.md`](../docs/jmri/speedmatching/profile-2026-11-08/CV_CHANGES_DRAFT.md).
 The owner wants no programming on the main while other engines are on the track.
 
-Open: update 2738's roster entry; consist testing; step 126 drift check; opposite-direction check; Anyrail
+Open: sync the 2738 roster entry to Windows; consist testing; step 126 drift check; opposite-direction check; Anyrail
 loop length; a clean timing pass through Scale (the earlier 45 s was a hand block); the reverse profile of 2738 (2121's reverse matches its forward); the STRR scripts below are still unused.
 
 ## Source
