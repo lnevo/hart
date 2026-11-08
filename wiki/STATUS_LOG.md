@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-08 — The 2121/2738 LCC consist survived a CS-105 restart. Fixed the silent failure in `tools/hosts/sync_roster_from_pi.sh --win`: the tar step stored absolute paths, so nothing reached the Windows roster while the script reported success. The packing is now `tools/hosts/pack_roster_stage.sh` (relative names, unit-tested), and `win_install_roster.ps1` compares every file's hash after copying and fails if nothing was staged. Proved on the Windows host by restoring the old `2738.xml` and re-running the sync.
+
 Updated: 2026-11-08 — Brought the Windows roster in line with the Pi (the sync script's `--win` tar step silently delivered nothing; done by hand with relative paths, old copy in `JMRI_UserFiles\backups\roster_pre_pi_sync_20261108`). Restarted PanelPro on the Pi after the owner's car-card deploy and created an LCC consist on the CS-105: CSX 2121 lead, CSX 2738 listener in reverse with F0 linked (`jmri/layouts/hart/scripts/cs105_consist.py`).
 
 Updated: 2026-11-08 — Edited CSX 2738's roster entry by hand to the programmed CVs (CV3, CV4, CV25, CV29, CV67 to CV94 and the matching speed-table and accel/decel sheet values), so the loco did not have to go back to the programming track. The Pi's JMRI re-read the entry cleanly; the Mac copy was replaced too; Windows is pending.

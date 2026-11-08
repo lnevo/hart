@@ -68,10 +68,9 @@ if [[ "$DO_WIN" -eq 1 ]]; then
     "mkdir AppData\\Local\\Temp\\hart-roster-stage\\roster 2>nul & mkdir \"C:\\Users\\lnevo\\JMRI_UserFiles\\roster\" 2>nul & echo ok"
   scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
     "$STAGE/roster.xml" "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/roster.xml"
-  # scp -r of a dir ending in /. can send "." which OpenSSH rejects.
-  # Skip macOS AppleDouble (._*) so Windows copy does not choke.
-  find "$STAGE/roster" -maxdepth 1 -type f ! -name '._*' -print0 | \
-    tar -C "$STAGE/roster" --null -T - -cf - | \
+  # scp -r of a dir ending in /. can send "." which OpenSSH rejects, so stream a tar.
+  # pack_roster_stage.sh writes relative names and skips macOS AppleDouble (._*) files.
+  "$ROOT/tools/hosts/pack_roster_stage.sh" "$STAGE/roster" | \
     ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
       "tar -xf - -C AppData/Local/Temp/hart-roster-stage/roster"
   scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
