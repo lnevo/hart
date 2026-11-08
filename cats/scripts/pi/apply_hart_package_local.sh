@@ -73,6 +73,11 @@ if [[ -d "$HART/cats/resources/icons/USS/sensor" ]]; then
   echo "Pi USS sensor icons updated"
 fi
 
+if [[ -d "$HART/cats/resources/roster" ]]; then
+  fanout "$HART/cats/resources/roster" "resources/roster"
+  echo "Pi roster photos updated"
+fi
+
 if [[ -d "$HART/ctc/icons" ]]; then
   fanout "$HART/ctc/icons" "ctc/icons"
   if [[ -f "$HART/ctc/GUIObjects.xml" ]]; then
