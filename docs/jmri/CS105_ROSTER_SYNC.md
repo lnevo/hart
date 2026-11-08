@@ -9,6 +9,7 @@ tools/ops/cs105_roster_sync.sh                  # show the plan, write nothing
 tools/ops/cs105_roster_sync.sh --apply          # create missing trains, refresh labels
 tools/ops/cs105_roster_sync.sh --apply --only 1993,572
 tools/ops/cs105_roster_sync.sh --apply --rename # also rename trains the CS-105 already has
+tools/ops/cs105_roster_sync.sh --apply --rename --names road   # names as "Road Number", e.g. PRC 4678
 ```
 
 Run it from the Mac while the Pi's JMRI is up. It does not need PanelPro on the Mac, and it does not touch turnouts, signals or MQTT.
@@ -21,7 +22,7 @@ The plan lists one line per roster entry: CREATE (the CS-105 has no train for th
 - Each roster entry maps to a CS-105 virtual train node. Short address n is node `06.01.00.00.00.nn`; long address n is `06.01.00.00.(C0+high).low`. JMRI uses the same mapping.
 - A missing train is created with the OpenLCB Train Search Protocol: an Identify Producer message for event `09.00.99.FF` + the address digits + flags Allocate, Exact, Address-only, DCC and (for long addresses) Force-long. The CS-105 answers by creating the train node.
 - Labels are written through the train node's configuration (CDI), the same fields JMRI's DecoderPro menu "File > Export > Roster entry to TCS CS-105" writes: `Train.User Description`, and for F1 to F28 `Train.Functions(n).Display`, `Momentary` and `Description` (n = function number minus one; F0 is the headlight). A label JMRI knows as an icon (Bell, Horn, Dimmer and so on) becomes the icon code; any other text is sent as plain text.
-- `Train.Name` is set to the roster ID only for trains the sync creates. Use `--rename` to rename existing ones.
+- `Train.Name` is set only for trains the sync creates, or for all selected trains with `--rename`. The default name is the roster ID; `--names road` uses "Road Number" from the roster (an entry with no road data falls back to its ID). 4678 was renamed "PRC 4678" this way on 2026-11-07.
 - Consist Behavior bits are left as they are. JMRI derives them from decoder CVs, which this script does not read.
 
 ## Doing it by hand in JMRI

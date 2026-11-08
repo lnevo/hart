@@ -13,7 +13,7 @@ spec.loader.exec_module(sync)
 LOCO = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE locomotive-config SYSTEM "/xml/DTD/locomotive-config.dtd">
 <locomotive-config>
-  <locomotive id="{id}" fileName="{file}" dccAddress="{addr}" comment="{comment}">
+  <locomotive id="{id}" fileName="{file}" dccAddress="{addr}" comment="{comment}" roadName="{road}" roadNumber="{number}">
     <locoaddress><dcclocoaddress number="{addr}" longaddress="{long}" /></locoaddress>
     <functionlabels>{labels}</functionlabels>
   </locomotive>
@@ -62,11 +62,12 @@ class RosterFiles(unittest.TestCase):
         (root / "roster").mkdir()
         labels = label(0, "Light") + label(1, "Bell") + label(2, "Horn", "false") + label(3, "Coupler")
         (root / "roster" / "18270.xml").write_text(LOCO.format(
-            id="1827", file="18270.xml", addr=1827, comment="ES44AH", long="yes", labels=labels))
+            id="1827", file="18270.xml", addr=1827, comment="ES44AH", long="yes", labels=labels,
+            road="CSX", number="1827"))
         (root / "roster" / "060.xml").write_text(LOCO.format(
-            id="06L", file="060.xml", addr=6, comment="", long="yes", labels=""))
+            id="06L", file="060.xml", addr=6, comment="", long="yes", labels="", road="", number=""))
         (root / "roster" / "stale.xml").write_text(LOCO.format(
-            id="stale", file="stale.xml", addr=99, comment="", long="no", labels=""))
+            id="stale", file="stale.xml", addr=99, comment="", long="no", labels="", road="X", number="9"))
         (root / "roster.xml").write_text(
             '<roster-config><roster>'
             '<locomotive id="1827" fileName="18270.xml" dccAddress="1827"/>'
@@ -119,7 +120,22 @@ class RosterFiles(unittest.TestCase):
         self.assertIn("Train.Name", renamed[1]["values"])
         only = sync.plan(self.entries(), existing, only={"06L"})
         self.assertEqual([a["entry"]["id"] for a in only], ["06L"])
-        self.assertEqual(sync.unmanaged_train_nodes(existing, actions), ["06.01.00.00.00.03"])
+        self.assertEqual(sync.unmanaged_train_nodes(existing, self.entries()), ["06.01.00.00.00.03"])
+        # an --only run must not report the other roster entries as unmanaged
+        self.assertEqual(sync.unmanaged_train_nodes(existing + ["06.01.00.00.C7.23"], self.entries()),
+                         ["06.01.00.00.00.03"])
+
+    def test_name_schemes(self):
+        e1827, e06l = self.entries()
+        self.assertEqual(sync.train_name(e1827), "1827")
+        self.assertEqual(sync.train_name(e1827, "road"), "CSX 1827")
+        # no road data -> fall back to the roster ID
+        self.assertEqual(sync.train_name(e06l, "road"), "06L")
+        with self.assertRaises(ValueError):
+            sync.train_name(e1827, "bogus")
+        actions = sync.plan(self.entries(), ["06.01.00.00.C7.23"], rename=True, only={"1827"}, names="road")
+        self.assertEqual(actions[0]["values"]["Train.Name"], "CSX 1827")
+        self.assertIn("name -> 'CSX 1827'", sync.describe(actions[0]))
 
     def test_describe_and_parse_only(self):
         a = sync.plan(self.entries(), [])[0]
