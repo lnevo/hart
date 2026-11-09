@@ -8,9 +8,10 @@ Facing SoR: jmri/layouts/hart/data/le_signal_boundaries.csv
   turnout ident + A/B/C/D → child <signalAMast>…</signalAMast> (schema, not attributes)
   anchor ident + east/west → eastboundsignalmast / westboundsignalmast attributes
 
-Does not write SignalMastLogic pairs. After facing changes, run
-`python3 jmri/layouts/hart/scripts/apply_sml_cats_pairs.py` (stored occupancy/turnouts).
-Do not re-run Discover — it wipes those lists and dests stay inactive.
+Does not write SignalMastLogic pairs. SML dests are native (Layout Editor Discover,
+useLayoutEditor=yes). After facing changes, re-run Discover with
+`jmri/layouts/hart/scripts/run_sml_discover.sh`, which then sets the Digicon dests to
+Enabled=no, and check with `validate_le_signalling.py`. `apply_sml_cats_pairs.py` is retired.
 """
 
 from __future__ import annotations
