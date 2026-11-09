@@ -318,3 +318,9 @@
 #topics {
   margin-top: 2.5rem;
 }
+
+/* The section's name in the intro: a true bold (700 is loaded on this page only) in the dark brand colour. */
+.ai-hub .page-head .section-note strong {
+  font-weight: 700;
+  color: var(--brand);
+}
