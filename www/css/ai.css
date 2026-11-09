@@ -313,3 +313,8 @@
     columns: 1;
   }
 }
+
+/* Topics follows Getting started: same extra gap the Operations hub uses between its two groups. */
+#topics {
+  margin-top: 2.5rem;
+}
