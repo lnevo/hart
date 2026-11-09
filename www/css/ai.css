@@ -168,10 +168,11 @@
   white-space: nowrap;
 }
 
-/* The Diverging Route banner under the hub title: a main line, a turnout, and the topics as stops on the diverging track. */
+/* The Diverging Route banner under the hub title: a calm main line to Status Quo Station, and a diverging track
+   whose stops are loud, comic-style AI buzzwords. */
 .hub-banner {
-  margin: 0.75rem 0 1.25rem;
-  padding: 0.6rem 1rem 0.5rem;
+  margin: 1rem 0 1.25rem;
+  padding: 0.6rem 0.9rem 0.4rem;
   background: var(--card);
   border: 1px solid var(--rule);
 }
@@ -183,13 +184,9 @@
   overflow: visible;
 }
 
-.hub-banner .route-wide {
-  max-height: 220px;
-}
-
 .hub-banner .route-tall {
   display: none;
-  max-width: 22rem;
+  max-width: 24rem;
   margin: 0 auto;
 }
 
@@ -223,60 +220,86 @@
   stroke-width: 2;
 }
 
-.route-main {
+.route-bumper {
+  fill: var(--brand);
+}
+
+.route-main,
+.route-station-label {
   font-family: var(--font-body);
   font-size: 20px;
   fill: var(--muted);
 }
 
-.route-hit {
-  fill: transparent;
+.route-station-label {
+  font-weight: 700;
+  fill: var(--ink-soft);
+}
+
+.route-station rect,
+.route-station polygon {
+  fill: var(--paper-2);
+  stroke: var(--ink-soft);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.route-station .route-door {
+  fill: var(--ink-soft);
+  stroke: none;
 }
 
 .route-stop {
   fill: var(--accent);
-  stroke: var(--brand);
+  stroke: var(--ink);
   stroke-width: 3;
 }
 
-.route-num {
-  font-family: var(--font-body);
-  font-size: 16px;
+/* Comic-style labels: loud, tilted, mixed sizes, offset shadows. */
+.cm-shadow {
+  fill: var(--ink);
+}
+
+.cm-bubble,
+.cm-tag,
+.cm-burst {
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.cm-bubble {
+  fill: var(--accent);
+}
+
+.cm-tag {
+  fill: var(--card);
+}
+
+.cm-burst {
+  fill: var(--brand-2);
+}
+
+.cm-tail {
+  fill: var(--ink);
+}
+
+.cm-text {
+  font-family: "Marker Felt", "Chalkboard SE", "Bradley Hand", "Comic Neue", "Comic Sans MS", cursive;
   font-weight: 700;
   fill: var(--ink);
 }
 
-.route-label {
-  font-family: var(--font-body);
-  font-size: 21px;
-  font-weight: 600;
-  fill: var(--ink);
+.cm-text.cm-on-dark {
+  fill: #fff;
 }
 
-.hub-banner a:hover .route-label,
-.hub-banner a:focus-visible .route-label {
-  fill: var(--brand-2);
-  text-decoration: underline;
-}
-
-.hub-banner a {
-  outline: none;
-}
-
-.hub-banner a:hover .route-stop,
-.hub-banner a:focus-visible .route-stop {
-  fill: var(--accent-on-dark);
-}
-
-.hub-banner a:focus-visible .route-stop {
-  stroke: var(--ink);
+.cm-text.cm-plain {
+  fill: var(--brand);
+  stroke: var(--card);
   stroke-width: 6;
-}
-
-.hub-banner figcaption {
-  margin-top: 0.5rem;
-  font-size: 0.88rem;
-  color: var(--muted);
+  paint-order: stroke;
+  stroke-linejoin: round;
 }
 
 @media (max-width: 700px) {
