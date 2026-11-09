@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI and Locomotives — HART</title>
-  <meta name="description" content="How AI helped with the HART Railroad's locomotives: the roster on the TCS CS-105 command station and the throttles, consistent roster photos, and speed matching CSX 2121 and 2738 to run as a pair.">
+  <meta name="description" content="How AI helped with the HART Railroad's locomotives: the roster on the TCS CS-105 command station and on both WiThrottle and LCC throttles, consistent roster photos, and speed matching CSX 2121 and 2738 to run as a pair.">
   <link rel="stylesheet" href="../../css/ops.css">
   <link rel="stylesheet" href="../../css/article.css">
   <link rel="stylesheet" href="../../css/ai.css">
@@ -57,12 +57,12 @@
             <div><dt>Status</dt><dd>Public; in service</dd></div>
           </dl>
           <h3 class="ai-sub">The job</h3>
-          <p>A locomotive has to be known in the DecoderPro roster, on the throttles in people&rsquo;s hands, and in the command station itself. Mine is a TCS CS-105, which speaks LCC, and its throttles should list every locomotive by name with the function buttons labelled. Keeping that true by hand does not last.</p>
+          <p>A locomotive has to be known in the DecoderPro roster and in the command station, and there are two kinds of throttle in people&rsquo;s hands. WiThrottle throttles on phones take their list from the JMRI roster. LCC throttles take theirs from the command station, a TCS CS-105, which speaks LCC. Both should list every locomotive by name with the function buttons labelled. Keeping the command station in step with the roster by hand does not last.</p>
           <h3 class="ai-sub">What AI did</h3>
           <p>DecoderPro can copy a roster entry into the command station only if the command station already has a train for that address, and there is no way to say &ldquo;create it&rdquo;. So the copy runs from inside JMRI instead: it reads the roster, asks the command station to create any train it is missing, and writes the name and function labels into each one. It refuses to apply anything when no CS-105 answers on the LCC bus. A small tool restarts the command station over LCC, and a helper builds a consist, with CSX 2121 leading and 2738 following in reverse, headlight linked.</p>
           <h3 class="ai-sub">What came out</h3>
-          <p>Every roster locomotive on the throttle by name, with the right buttons. The script is now its own public project so other modelers can use it.</p>
-          <p>Some things only showed up by trying. The command station keeps a train through a restart only once the train has a name; four came back blank the first time. The roster IDs became road and number, such as CSX 2121, because that is what the phone throttles show. And the script that copies the roster to the Windows computer reported success for a while and delivered nothing, because the files were packed with absolute paths. Now the copy checks every file afterwards and fails loudly if any is missing.</p>
+          <p>Every roster locomotive on the CS-105 by name, with the right buttons, so the LCC throttles list the same locomotives as the WiThrottle ones. The script is now its own public project so other modelers can use it.</p>
+          <p>Some things only showed up by trying. The command station keeps a train through a restart only once the train has a name; four came back blank the first time. The roster IDs became road and number, such as CSX 2121, because that is what the WiThrottle phone throttles show, and the CS-105 train names were matched to them. And the script that copies the roster to the Windows computer reported success for a while and delivered nothing, because the files were packed with absolute paths. Now the copy checks every file afterwards and fails loudly if any is missing.</p>
           <div class="ai-verdict">
             <b>Verdict</b>
             <ul>
