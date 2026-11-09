@@ -48,7 +48,16 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Next
 
-- After the AI in Model Railroading web work (PR #208) is finalised: bring [`docs/ctc/HART_DIGICON_SYSTEM.md`](../docs/ctc/HART_DIGICON_SYSTEM.md) up to current operating reality. Parts still date from the first signal build in August 2026. The site links it from `www/behind/panel-evolution.html`; the old local-only `guides/digicon-system.html` page was lost in the 2026-10-31 consolidation cleanup and its Behind the Scenes card was removed 2026-11-09.
+- After the AI in Model Railroading web work (PR #208) is finalised: bring [`docs/ctc/HART_DIGICON_SYSTEM.md`](../docs/ctc/HART_DIGICON_SYSTEM.md) up to current operating reality. Parts still date from the first signal build in August 2026. The site links it from `www/behind/panel-evolution.html`; the old local-only `guides/digicon-system.html` page was lost in the 2026-10-31 consolidation cleanup and its Behind the Scenes card was removed 2026-11-09. A read-only audit on 2026-11-09 found:
+  - AAR-1946 wording at L51, L195, L240 and L241. It should say Basic (ADR-011). L164 calls the icon set "discriminated"; tables.xml uses `default`.
+  - Leftover "Master" wording at L23, L97 and L98.
+  - L91 still has the K-1/K-2 leads as the stubs. Princess needs ADR-017: Mast 40LA/38LA two-head on the mains, 40LB/38LB dwarf on K-1/K-2.
+  - Mast 6LB should be described as an interim one-low dwarf on IH432 until IH433 is wired.
+  - L221 says jython goes to `<profile>/jython` because of `user-files=profile:`, which ADR-014 replaced.
+  - L77 has a garbled sentence. The L3 revision line (Rev A, 2026-08-11) is out of date.
+  - Missing paths: L30 `cats/panels/sheets/archive/west_yard/`; L180 `docs/signal_dual_path.md` (only in `external/lcos-bridge/docs/`); L249 `cats/scripts/windows/install_hart_tables.ps1` (probably `apply_hart_package_local.ps1` now). The L16 link label is stale.
+  - Add the mast totals: 23 real (12 two-searchlight, 11 one-low) plus 22 virtual.
+  - Not verified yet: the runtime SML boot claims, IO:AUTO:0201-0210 and IT:HART:YL:*, and the 6LB two-head plan in `docs/wiring/README.md`.
 - Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add new photos (cars and locos) through the staged intake ([`pipelines/intake-stages.md`](pipelines/intake-stages.md), ADR-018): `bin/cars review`, `approve`, `records`. First real batch done 2026-11-08 (ten CSX hoppers, STS cars 81 to 90, live on the site and the layout hosts); lessons are folded into the runbook. The first locomotive batch (CSX 2121 and 2738) ran the same day: records, Operations engine roster, cards, roster photos and the public gallery; coke pools for the new hoppers are still to set.
 - HART 1776 stays out of STS until its car card is generated. The 28 cars with no photo stay out too: no photo means no card, so they go in only after a photo.
 
