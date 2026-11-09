@@ -1,4 +1,4 @@
-# JMRI USS CTC panel — build history
+# Panel build history (USS CTC, CATS, Layout Editor)
 
 Chronological screenshots captured while building the **Panel** USS machine
 (`jmri/layouts/hart/ctc/GUIObjects.xml`, 15 columns). Used for the stop-motion
@@ -17,6 +17,12 @@ evolution video and [`HOW_WE_BUILT_CTC.md`](../HOW_WE_BUILT_CTC.md).
 | 9 | `Screenshot 2026-08-19 at 11.33.05 PM.png` | Title banner + live lever art |
 | 10 | `Screenshot 2026-08-19 at 11.35.49 PM.png` | Connected — occupancy + aspects |
 | 11 | `Screenshot 2026-08-20 at 1.34.22 AM.png` | HART RAILROAD — NEVILLE ISLAND |
+| 12 | `Screenshot 2026-08-20 at 7.42.19 AM.png` | Running: lamps lit on the levers |
+| 13 | `Screenshot 2026-08-23 at 8.52.10 PM.png` | Redrawn by the generator; ? until JMRI reports |
+| 14 | `Screenshot 2026-08-27 at 5.22.14 PM.png` | Straight mains, OS track names, 20 columns |
+| 15 | `Screenshot 2026-09-28 at 4.37.37 PM.png` | Public names: Track S-1, Track EH-1, Track K-1 |
+
+Frames 12 to 15 show a wider machine, so `make_ctc_evolution_video.py` crops them with fixed boxes (`EXPLICIT_CROPS`) instead of the fixed-width alignment.
 
 Stop-motion outputs (`CTC_Panel_Evolution.gif`, `.mp4`, `CTC_Evolution_crops/`) are
 generated locally and gitignored; the copies the site uses live in `www/assets/behind/panel-evolution/`. Regenerate:
@@ -28,3 +34,7 @@ python3 jmri/layouts/hart/ctc/history/make_ctc_evolution_video.py
 The CATS panel film comes from dated screenshots in `media/screenshots/` (gitignored,
 8 to 9 Aug 2026); `make_cats_evolution_video.py` crops each to the panel and builds
 `CATS_Panel_Evolution.mp4`. Override the source folder with `HART_SCREENSHOTS`.
+
+The CATS film gained `cats_dispatcher_20260826_123325.png` (routes lined in green), copied from the Desktop into `media/screenshots/` on 2026-11-09.
+
+The Layout Editor panel film uses the four `le_panel_*.png` captures in this folder (20 May, 7 June, 20 August and 31 August 2026, copied from the Desktop on 2026-11-09). `make_le_evolution_video.py` builds `LE_Panel_Evolution.mp4` and `le-poster.jpg`. The site copies of all three films and their posters live in `www/assets/behind/panel-evolution/`.

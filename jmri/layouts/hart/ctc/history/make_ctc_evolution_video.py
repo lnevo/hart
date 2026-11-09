@@ -29,7 +29,7 @@ TRACK_ANCHOR_Y = 20
 FULL_PANEL_MIN_W = 980
 PAD_COLOR = (180, 155, 95)  # tan panel background
 
-# Chronological evolution (Desktop captures, Aug 19–20 2026)
+# Chronological evolution (Desktop captures, Aug 19 – Sep 28 2026)
 FRAMES: list[tuple[str, str]] = [
     ("66e68918-4180-46f9-938b-cc55f4fa56a2.png", "Pilot — Brick + Plane (3 columns)"),
     ("Screenshot 2026-08-19 at 5.44.55\u202fPM.png", "Wireframe track + lever machine"),
@@ -42,6 +42,10 @@ FRAMES: list[tuple[str, str]] = [
     ("Screenshot 2026-08-19 at 11.33.05\u202fPM.png", "Title banner + live lever art"),
     ("Screenshot 2026-08-19 at 11.35.49\u202fPM.png", "Connected — occupancy + aspects"),
     ("Screenshot 2026-08-20 at 1.34.22\u202fAM.png", "HART RAILROAD — NEVILLE ISLAND"),
+    ("Screenshot 2026-08-20 at 7.42.19\u202fAM.png", "Running: lamps lit on the levers"),
+    ("Screenshot 2026-08-23 at 8.52.10\u202fPM.png", "Redrawn by the generator; ? until JMRI reports"),
+    ("Screenshot 2026-08-27 at 5.22.14\u202fPM.png", "Straight mains, OS track names, 20 columns"),
+    ("Screenshot 2026-09-28 at 4.37.37\u202fPM.png", "Public names: Track S-1, Track EH-1, Track K-1"),
 ]
 
 
@@ -187,13 +191,31 @@ def panel_crop(img: Image.Image) -> Image.Image:
     return panel_trim(img)
 
 
+# Later captures (Aug 20 to Sep 28) show a wider machine than the first eleven, so
+# the fixed-width alignment would cut off its right side. These use an explicit
+# crop to the gold panel, measured from each screenshot, and are fitted whole.
+EXPLICIT_CROPS: dict[str, tuple[int, int, int, int]] = {
+    "Screenshot 2026-08-20 at 7.42.19\u202fAM.png": (1, 3, 1130, 721),
+    "Screenshot 2026-08-23 at 8.52.10\u202fPM.png": (2, 36, 1131, 754),
+    "Screenshot 2026-08-27 at 5.22.14\u202fPM.png": (0, 0, 1324, 718),
+    "Screenshot 2026-09-28 at 4.37.37\u202fPM.png": (15, 6, 1339, 721),
+}
+
+
 def compose_frame(img: Image.Image, caption: str, font) -> Image.Image:
+    return compose_frame_cropped(img, None, caption, font)
+
+
+def compose_frame_cropped(img: Image.Image, box, caption: str, font) -> Image.Image:
     canvas = Image.new("RGB", CANVAS, BG)
     draw = ImageDraw.Draw(canvas)
 
     inner_w, inner_h = CANVAS[0], CANVAS[1] - CAPTION_H - 16
     src = img.convert("RGB")
-    cropped = aligned_full_panel_crop(src) if is_full_panel(src) else panel_crop(src)
+    if box is not None:
+        cropped = src.crop(box)
+    else:
+        cropped = aligned_full_panel_crop(src) if is_full_panel(src) else panel_crop(src)
     cw, ch = cropped.size
     scale = min(inner_w / cw, inner_h / ch)
     nw, nh = max(1, int(cw * scale)), max(1, int(ch * scale))
@@ -218,7 +240,7 @@ def build_frames(work: Path, font) -> list[Path]:
         src = DESKTOP / name
         if not src.exists():
             raise FileNotFoundError(src)
-        frame = compose_frame(Image.open(src), caption, font)
+        frame = compose_frame_cropped(Image.open(src), EXPLICIT_CROPS.get(name), caption, font)
         out = work / f"frame_{i:03d}.png"
         frame.save(out, optimize=True)
         paths.append(out)
