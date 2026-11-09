@@ -3624,7 +3624,7 @@ html.zoomer-open body {
   color: var(--muted);
 }
 
-/* —— Homepage: smaller doors into Behind the Scenes and The Build —— */
+/* —— Homepage: smaller doors into Behind the Scenes and The Diverging Route —— */
 .mini-doors {
   display: grid;
   gap: 1rem;
@@ -3683,7 +3683,7 @@ html.zoomer-open body {
   border-top-color: var(--brand-2);
 }
 
-.section-door.is-build {
+.section-door.is-ai {
   border-top-color: var(--ok);
 }
 

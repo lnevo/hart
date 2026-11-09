@@ -79,6 +79,17 @@
         "behind-build",
         "behind-opspro",
         "behind-opspro-guide",
+        "build",
+        "helix",
+        "helix-status"
+      ]
+    },
+    {
+      "id": "ai",
+      "href": "ai/index.html",
+      "label": "The Diverging Route",
+      "short": "AI",
+      "pages": [
         "behind-ai",
         "behind-ai-research",
         "behind-ai-construction",
@@ -87,17 +98,6 @@
         "behind-ai-operations",
         "behind-ai-locomotives",
         "behind-ai-workshop"
-      ]
-    },
-    {
-      "id": "build",
-      "href": "build/index.html",
-      "label": "The Build",
-      "short": "Build",
-      "pages": [
-        "build",
-        "helix",
-        "helix-status"
       ]
     },
     {
@@ -172,43 +172,43 @@
     ],
     "behind-ai-research": [
       {
-        "label": "AI in Model Railroading",
+        "label": "The Diverging Route",
         "href": "ai/index.html"
       }
     ],
     "behind-ai-construction": [
       {
-        "label": "AI in Model Railroading",
+        "label": "The Diverging Route",
         "href": "ai/index.html"
       }
     ],
     "behind-ai-electronics": [
       {
-        "label": "AI in Model Railroading",
+        "label": "The Diverging Route",
         "href": "ai/index.html"
       }
     ],
     "behind-ai-control": [
       {
-        "label": "AI in Model Railroading",
+        "label": "The Diverging Route",
         "href": "ai/index.html"
       }
     ],
     "behind-ai-operations": [
       {
-        "label": "AI in Model Railroading",
+        "label": "The Diverging Route",
         "href": "ai/index.html"
       }
     ],
     "behind-ai-locomotives": [
       {
-        "label": "AI in Model Railroading",
+        "label": "The Diverging Route",
         "href": "ai/index.html"
       }
     ],
     "behind-ai-workshop": [
       {
-        "label": "AI in Model Railroading",
+        "label": "The Diverging Route",
         "href": "ai/index.html"
       }
     ]
