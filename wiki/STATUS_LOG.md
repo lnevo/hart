@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-09 — Final cleanup complete (ADR-007 amendment). `~/Desktop/HART` retired: 1,038 duplicate files moved to the Trash, then the folder itself. `tools/ops/sync_desktop_data.py` removed; the car-cards, waybills and industry-routing pipeline notes now point at the hart-ops submodule, `docs/wiring/` is the only wiring copy, and `car_images_final()` no longer falls back to the Desktop.
+
 Updated: 2026-11-09 — Final cleanup, first pass (ADR-007 amended). The repo `archive/` stays. `~/sts` was moved to the Trash, its photos already being in the repo. The 87 car photo files in `~/Desktop/HART/Car Cards/Images` were moved to the Trash after all 84 distinct photos were matched in the Photos library (June 17–18, 2026 shoot). Seven `~/Documents` files identical to `media/hart-research` were moved to the Trash. Still open: the rest of `~/Desktop/HART`.
 
 Updated: 2026-11-09 — Removed the "Next" section: adding new cars and locomotives through the staged intake (and HART 1776 and the 28 unphotographed cars waiting for cards) is ongoing as the collection grows, not a backlog item. The owner starts intake when ready; the runbook stays in `pipelines/intake-stages.md`.

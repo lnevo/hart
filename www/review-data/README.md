@@ -1,6 +1,6 @@
 # Desktop HART snapshots (consolidation)
 
-Read-only scans of `~/Desktop/HART` — **not** git SoR.
+Read-only scans of `~/Desktop/HART`, taken before that folder was retired on 2026-11-09 (ADR-007) — **not** git SoR. The scans are a historical record; the F-root review page cannot be rebuilt from the Desktop any more.
 
 | File | Generator |
 |------|-----------|
