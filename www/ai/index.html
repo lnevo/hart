@@ -6,6 +6,7 @@
   <title>The Diverging Route — AI in Model Railroading — HART</title>
   <meta name="description" content="The Diverging Route: the unconventional approaches AI opened up on the HART Railroad, catalogued topic by topic: prototype research, construction, electronics, control and signals, operations, locomotives, and how the work is organised. Each job says what was asked, what came out and how well it went.">
   <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@700&display=swap">
   <link rel="stylesheet" href="../css/article.css">
   <link rel="stylesheet" href="../css/ai.css">
 </head>
@@ -14,29 +15,174 @@
   <main class="ai-hub">
     <div class="page-head">
       <h1>The Diverging Route — AI in Model Railroading</h1>
+      <figure class="hub-banner">
+        <svg class="route-wide" viewBox="0 8 1000 218" role="img" aria-labelledby="route-desc" focusable="false">
+        <title id="route-desc">Track diagram. A straight main line runs along the bottom. Above it a passing siding leaves the main line and rejoins it, with AI buzzwords along the way: LLMs, Prompts, Agents, Skills, MCP, Vibe coding, Automation. Either way, you end up at the same place.</title>
+        <path class="route-ties " d="M10 205 H990"/><path class="route-rail " d="M10 205 H990"/>
+        <path class="route-ties route-ties-hot" d="M70 205 C 150 205, 150 100, 230 100 H770 C 850 100, 850 205, 930 205"/><path class="route-rail route-rail-hot" d="M70 205 C 150 205, 150 100, 230 100 H770 C 850 100, 850 205, 930 205"/>
+        <circle class="route-points" cx="70" cy="205" r="7"/><circle class="route-points" cx="930" cy="205" r="7"/>
+        <circle class="route-stop" cx="275" cy="100" r="11"/>
+        <polygon class="cm-tail" points="268,67 282,67 275,91"/>
+        <g transform="rotate(-3 275 45)">
+<rect class="cm-shadow" x="234.0" y="25.0" width="82" height="40" rx="20.0" transform="translate(2 3)"/>
+<rect class="cm-bubble" x="234.0" y="25.0" width="82" height="40" rx="20.0"/>
+<text class="cm-text" x="275" y="53" font-size="24" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">LLMs</text>
+</g>
+        <circle class="route-stop" cx="350" cy="100" r="11"/>
+        <polygon class="cm-tail" points="343,134 357,134 350,109"/>
+        <g transform="rotate(2.5 350 156)">
+<rect class="cm-shadow" x="293.0" y="137.0" width="114" height="38" rx="4" transform="translate(2 3)"/>
+<rect class="cm-tag" x="293.0" y="137.0" width="114" height="38" rx="4"/>
+<text class="cm-text" x="350" y="163" font-size="22" text-anchor="middle" textLength="86" lengthAdjust="spacingAndGlyphs">Prompts</text>
+</g>
+        <circle class="route-stop" cx="425" cy="100" r="11"/>
+        <polygon class="cm-tail" points="418,69 432,69 425,91"/>
+        <g transform="rotate(-2 425 47)">
+<polygon class="cm-shadow" points="492,47 483,52 487,58 474,62 473,68 458,69 451,75 437,73 425,77 413,73 399,75 392,69 377,68 376,62 363,58 367,52 358,47 367,42 363,36 376,32 377,26 392,25 399,19 413,21 425,17 437,21 451,19 458,25 473,26 474,32 487,36 483,42" transform="translate(2 3)"/>
+<polygon class="cm-burst" points="492,47 483,52 487,58 474,62 473,68 458,69 451,75 437,73 425,77 413,73 399,75 392,69 377,68 376,62 363,58 367,52 358,47 367,42 363,36 376,32 377,26 392,25 399,19 413,21 425,17 437,21 451,19 458,25 473,26 474,32 487,36 483,42"/>
+<text class="cm-text cm-on-dark" x="425" y="56" font-size="26" text-anchor="middle" textLength="87" lengthAdjust="spacingAndGlyphs">Agents</text>
+</g>
+        <circle class="route-stop" cx="500" cy="100" r="11"/>
+        <polygon class="cm-tail" points="493,135 507,135 500,109"/>
+        <g transform="rotate(4 500 157)">
+<text class="cm-text cm-plain" x="500" y="165" font-size="24" text-anchor="middle" textLength="81" lengthAdjust="spacingAndGlyphs">Skills</text>
+</g>
+        <circle class="route-stop" cx="575" cy="100" r="11"/>
+        <polygon class="cm-tail" points="568,68 582,68 575,91"/>
+        <g transform="rotate(-4 575 46)">
+<rect class="cm-shadow" x="542.5" y="27.0" width="65" height="38" rx="4" transform="translate(2 3)"/>
+<rect class="cm-tag" x="542.5" y="27.0" width="65" height="38" rx="4"/>
+<text class="cm-text" x="575" y="53" font-size="22" text-anchor="middle" textLength="37" lengthAdjust="spacingAndGlyphs">MCP</text>
+</g>
+        <circle class="route-stop" cx="650" cy="100" r="11"/>
+        <polygon class="cm-tail" points="643,133 657,133 650,109"/>
+        <g transform="rotate(2 650 155)">
+<rect class="cm-shadow" x="565.0" y="135.5" width="170" height="39" rx="19.5" transform="translate(2 3)"/>
+<rect class="cm-bubble" x="565.0" y="135.5" width="170" height="39" rx="19.5"/>
+<text class="cm-text" x="650" y="163" font-size="23" text-anchor="middle" textLength="142" lengthAdjust="spacingAndGlyphs">Vibe coding</text>
+</g>
+        <circle class="route-stop" cx="725" cy="100" r="11"/>
+        <polygon class="cm-tail" points="718,70 732,70 725,91"/>
+        <g transform="rotate(-2.5 725 48)">
+<rect class="cm-shadow" x="652.0" y="29.5" width="146" height="37" rx="4" transform="translate(2 3)"/>
+<rect class="cm-tag" x="652.0" y="29.5" width="146" height="37" rx="4"/>
+<text class="cm-text" x="725" y="55" font-size="21" text-anchor="middle" textLength="118" lengthAdjust="spacingAndGlyphs">Automation</text>
+</g>
+        </svg>
+        <svg class="route-tall" viewBox="0 0 390 590" role="img" aria-labelledby="route-desc2" focusable="false">
+        <title id="route-desc2">Track diagram. A straight main line runs down the left. Beside it a passing siding leaves the main line and rejoins it, with AI buzzwords along the way: LLMs, Prompts, Agents, Skills, MCP, Vibe coding, Automation. Either way, you end up at the same place.</title>
+        <path class="route-ties " d="M50 585 V5"/><path class="route-rail " d="M50 585 V5"/>
+        <path class="route-ties route-ties-hot" d="M50 545 C 50 495, 150 515, 150 465 V125 C 150 75, 50 95, 50 45"/><path class="route-rail route-rail-hot" d="M50 545 C 50 495, 150 515, 150 465 V125 C 150 75, 50 95, 50 45"/>
+        <circle class="route-points" cx="50" cy="545" r="7"/><circle class="route-points" cx="50" cy="45" r="7"/>
+        <circle class="route-stop" cx="150" cy="139" r="11"/>
+        <polygon class="cm-tail" points="170,133 170,145 161,139"/>
+        <g transform="rotate(-1.5 213 139)">
+<rect class="cm-shadow" x="172.0" y="119.0" width="82" height="40" rx="20.0" transform="translate(2 3)"/>
+<rect class="cm-bubble" x="172.0" y="119.0" width="82" height="40" rx="20.0"/>
+<text class="cm-text" x="213" y="147" font-size="24" text-anchor="middle" textLength="54" lengthAdjust="spacingAndGlyphs">LLMs</text>
+</g>
+        <circle class="route-stop" cx="150" cy="191" r="11"/>
+        <polygon class="cm-tail" points="170,185 170,197 161,191"/>
+        <g transform="rotate(1.25 229 191)">
+<rect class="cm-shadow" x="172.0" y="172.0" width="114" height="38" rx="4" transform="translate(2 3)"/>
+<rect class="cm-tag" x="172.0" y="172.0" width="114" height="38" rx="4"/>
+<text class="cm-text" x="229" y="198" font-size="22" text-anchor="middle" textLength="86" lengthAdjust="spacingAndGlyphs">Prompts</text>
+</g>
+        <circle class="route-stop" cx="150" cy="243" r="11"/>
+        <polygon class="cm-tail" points="170,237 170,249 161,243"/>
+        <g transform="rotate(-1.0 226 243)">
+<polygon class="cm-shadow" points="290,243 282,248 286,254 273,257 272,264 258,264 251,270 237,268 226,272 215,268 201,270 194,264 180,264 179,257 166,254 170,248 162,243 170,238 166,232 179,229 180,222 194,222 201,216 215,218 226,214 237,218 251,216 258,222 272,222 273,229 286,232 282,238" transform="translate(2 3)"/>
+<polygon class="cm-burst" points="290,243 282,248 286,254 273,257 272,264 258,264 251,270 237,268 226,272 215,268 201,270 194,264 180,264 179,257 166,254 170,248 162,243 170,238 166,232 179,229 180,222 194,222 201,216 215,218 226,214 237,218 251,216 258,222 272,222 273,229 286,232 282,238"/>
+<text class="cm-text cm-on-dark" x="226" y="251" font-size="24" text-anchor="middle" textLength="81" lengthAdjust="spacingAndGlyphs">Agents</text>
+</g>
+        <circle class="route-stop" cx="150" cy="295" r="11"/>
+        <polygon class="cm-tail" points="170,289 170,301 161,295"/>
+        <g transform="rotate(2.0 226 295)">
+<text class="cm-text cm-plain" x="226" y="303" font-size="24" text-anchor="middle" textLength="81" lengthAdjust="spacingAndGlyphs">Skills</text>
+</g>
+        <circle class="route-stop" cx="150" cy="347" r="11"/>
+        <polygon class="cm-tail" points="170,341 170,353 161,347"/>
+        <g transform="rotate(-2.0 204 347)">
+<rect class="cm-shadow" x="171.5" y="328.0" width="65" height="38" rx="4" transform="translate(2 3)"/>
+<rect class="cm-tag" x="171.5" y="328.0" width="65" height="38" rx="4"/>
+<text class="cm-text" x="204" y="354" font-size="22" text-anchor="middle" textLength="37" lengthAdjust="spacingAndGlyphs">MCP</text>
+</g>
+        <circle class="route-stop" cx="150" cy="399" r="11"/>
+        <polygon class="cm-tail" points="170,393 170,405 161,399"/>
+        <g transform="rotate(1.0 257 399)">
+<rect class="cm-shadow" x="172.0" y="379.5" width="170" height="39" rx="19.5" transform="translate(2 3)"/>
+<rect class="cm-bubble" x="172.0" y="379.5" width="170" height="39" rx="19.5"/>
+<text class="cm-text" x="257" y="407" font-size="23" text-anchor="middle" textLength="142" lengthAdjust="spacingAndGlyphs">Vibe coding</text>
+</g>
+        <circle class="route-stop" cx="150" cy="451" r="11"/>
+        <polygon class="cm-tail" points="170,445 170,457 161,451"/>
+        <g transform="rotate(-1.25 274 451)">
+<rect class="cm-shadow" x="172.0" y="432.5" width="146" height="37" rx="4" transform="translate(2 3)"/>
+<rect class="cm-tag" x="172.0" y="432.5" width="146" height="37" rx="4"/>
+<text class="cm-text" x="245" y="458" font-size="21" text-anchor="middle" textLength="118" lengthAdjust="spacingAndGlyphs">Automation</text>
+</g>
+        </svg>
+      </figure>
       <p class="section-note">
         Model railroading is many hobbies in one. A single layout asks you to be a historian and a
         carpenter, an electrician and a signal engineer, a programmer and a photographer, and in the end
         a railroader running trains with friends. On a real railroad, the diverging route is the other way
-        through a switch, where a train leaves the straight main line and heads somewhere new. This
-        section is about taking that route: bringing AI into each of those crafts, often in ways the hobby
+        through a switch, where a train leaves the straight main line and heads somewhere new.
+        <strong>The Diverging Route</strong> is about taking that route: bringing AI into each of those crafts, often in ways the hobby
         hasn&rsquo;t tried before, and seeing how much it changes what one modeler can research, build,
         wire and run.
       </p>
       <p class="section-note">
-        It is catalogued by topic: the research, the benchwork, the electronics, the signals, the
-        paperwork and the locomotives. Each job says what I asked for, which tool did it, what came
-        out, and an honest verdict on how well it went.
+        Every railroad has more than one way to get a train from A to B, and the train arrives all the
+        same. The hobby is just like that. You can wire every turnout by hand and learn every trick of the
+        craft, and that road is as rewarding as ever. <strong>The Diverging Route</strong> is simply another way through the
+        same switch, one that heads somewhere new and still arrives at the same place.
       </p>
       <p class="section-note">
-        For the story in the order it happened, read
-        <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>,
-        written in October 2026. This section is the reference, and it keeps growing as I find new routes to try.
+        What makes <strong>The Diverging Route</strong> exciting is how much it opens up. AI can lend us skills we haven&rsquo;t
+        had time to learn: reading a wiring diagram, writing a script, drawing a part for the 3D printer,
+        digging a fact out of an old record, turning a pile of paperwork into something tidy. Jobs that
+        could stop a project for months can take an afternoon, which leaves more time for what we love:
+        building, running trains and sharing the layout with friends. The craft, the history and the fun
+        are all still there. The route is different and the destination is the same.
       </p>
     </div>
 
+    <section class="hub-group" id="start" aria-labelledby="start-title">
+      <h2 id="start-title">Getting started</h2>
+      <p class="section-note">New to AI? You don&rsquo;t need to understand how it works to use it well. These habits made the biggest difference, roughly in the order to try them.</p>
+      <ul class="ai-rules">
+        <li><b>Start with something you already know</b>Ask about a locomotive, a prototype railroad or a technique you know well. You will quickly see where it is sharp and where it bluffs, and that tells you how far to trust it on things you don&rsquo;t know.</li>
+        <li><b>Give it the whole picture</b>Say what you are modelling, the era, the scale and what you already have, then say what you want back: a list, a table, a plan, a paragraph. Good context beats clever wording.</li>
+        <li><b>Make it show its sources</b>Ask where a fact came from, then look. It can sound completely sure and still be wrong about a date, a road number or a part number. Check anything that matters against the real thing: a photograph, a manual, a tape measure, a test run.</li>
+        <li><b>Work in small steps</b>Ask for one thing, look at it, then ask for the next. Let it suggest and you decide. Small steps are easy to check and easy to undo.</li>
+        <li><b>Hand it the tedious parts</b>Lists, paperwork, renaming files, tidying data, first drafts and small scripts are where it saves the most time. Keep the fun parts, like building and running trains, for yourself.</li>
+        <li><b>Write down what you decide</b>It does not remember earlier chats. Keep a short note of your choices and the reasons, and paste it in when you start again.</li>
+        <li><b>Keep a master copy</b>Save your own files before it changes anything, and keep working versions apart from finished ones. If something goes wrong, you can go back.</li>
+        <li><b>Keep the credit</b>If it helps you find history, photographs or quotes, keep the source with them. A picture or a fact with no source is hard to trust later.</li>
+      </ul>
+      <h3 class="hub-sub">Good first things to try</h3>
+      <ul class="ai-try">
+        <li>Ask it to explain something you have never quite understood, such as how a passing siding works, and then to quiz you on it.</li>
+        <li>Paste in a long article or forum thread and ask for the five points that matter.</li>
+        <li>Describe a switch list or waybill you would like and ask for a layout you can print.</li>
+        <li>Paste an error message from your layout software and ask what it means and what to try.</li>
+        <li>Give it a photograph and ask for a caption, then correct the details it gets wrong.</li>
+        <li>Ask it to compare two ways of building something, with the good and bad of each.</li>
+      </ul>
+      <h3 class="hub-sub">Going further</h3>
+      <p class="ai-adv">Once chat feels comfortable, tools such as Claude Code, Cursor and Codex can work directly on a folder of your own files: your layout&rsquo;s JMRI profile, your scripts, your documents. They read what is there, make changes you can review, and run checks. The key is a short instructions file at the top of the folder, usually called AGENTS.md or CLAUDE.md, that says what the project is, how it is organised, what must never be touched and how to check the work. Write it once and every session starts with the same understanding instead of from scratch. Keep a backup or put the folder under version control such as Git, so every change can be undone, and have the agent propose changes for you to approve. For how to write that file, see the <a href="https://agents.md" rel="noopener">AGENTS.md guide</a>, which Codex and Cursor read, and Anthropic&rsquo;s <a href="https://code.claude.com/docs/en/best-practices" rel="noopener">best practices for Claude Code</a>.</p>
+    </section>
+
     <section class="hub-group" id="topics" aria-labelledby="topics-title">
       <h2 id="topics-title">Topics</h2>
+      <p class="section-note">Each topic shows these habits on a real layout. Prototype research keeps a source with every picture, and The workshop keeps decisions and facts written down in one place. Start with whichever matches the job in front of you.</p>
+      <p class="section-note">
+        Each job says what was asked, what came out, and an honest verdict on how well it went. For the story
+        in the order it happened, read
+        <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>, written in
+        October 2026. The topics are the reference, and they keep growing as I find new routes to try.
+      </p>
       <div class="card-grid">
         <a class="card" href="research.html">
           <p class="card-kind">Topic 1</p>
@@ -80,37 +226,6 @@
           <p>How the work itself is organised: one repository, one source for each fact, agents and skills, this website, and tools shared with other modelers.</p>
           <p class="ai-count">5 jobs · Cursor, then Claude</p>
         </a>
-      </div>
-    </section>
-
-    <section class="hub-group" id="rules" aria-labelledby="rules-title">
-      <h2 id="rules-title">How I use it</h2>
-      <p class="section-note">A few habits run through every topic. They came from mistakes as much as from plans.</p>
-      <ul class="ai-rules">
-        <li><b>It suggests, I approve</b>Readings of car numbers, research finds and changes to the railroad's files come to me as proposals. Nothing reaches the layout until I have looked.</li>
-        <li><b>The files are the master</b>Every computer gets the railroad from one repository. A change made somewhere else is brought back in, checked and only then sent out again.</li>
-        <li><b>Written down, or it didn't happen</b>An AI remembers nothing between sessions. Decisions are kept as short records it can read, saying what was chosen and why.</li>
-        <li><b>Checked against the real thing</b>Rules about JMRI, CATS and STS are checked against their source code. Heights, pockets and speeds are checked with calipers, test prints and laps of the loop.</li>
-        <li><b>No source, no caption</b>A historic photo or fact goes on the site only with its credit or source.</li>
-        <li><b>Stock where possible</b>When JMRI or CATS does something awkward, the fix goes into the railroad's own data, not into a patched copy of the program.</li>
-      </ul>
-    </section>
-
-    <section class="hub-group" id="tools" aria-labelledby="tools-title">
-      <h2 id="tools-title">Which tools, and when</h2>
-      <p class="section-note">The dates are approximate. I still use all of them for something.</p>
-      <div class="table-wrap">
-        <table class="ai-tools">
-          <thead>
-            <tr><th>Tool</th><th>From</th><th>Used for</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>ChatGPT</td><td>Early 2025</td><td>Research, the backstory and stories, the logo, most of the early documents, and the helix design.</td></tr>
-            <tr><td>Cursor</td><td>August 2025</td><td>An AI code editor. The first code, the bridge, the wiring inventory, the panel pipeline, the traffic simulator, the desks, and gathering everything into one repository.</td></tr>
-            <tr><td>Grok</td><td>August 2026</td><td>Part of turning route logic into JMRI's own Signal Mast Logic.</td></tr>
-            <tr><td>Claude</td><td>September 2026</td><td>Taking over from Cursor: the helix fixtures, the consolidation, the benchwork drawings, Operations Pro, the roster and speed matching, and this website.</td></tr>
-          </tbody>
-        </table>
       </div>
     </section>
   </main>
