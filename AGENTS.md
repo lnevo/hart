@@ -15,7 +15,6 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Bring a PanelPro Store into the repo | `make tables-pull` |
 | Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
-| Desktop folders | `python3 tools/ops/sync_desktop_data.py` previews; `--apply` copies. Never deletes. |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
 | Deploy operator portal (www.hartrailroad.com) | `./www/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`www/README.md`](www/README.md) |
 | CATS source (Bitbucket) | `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` |

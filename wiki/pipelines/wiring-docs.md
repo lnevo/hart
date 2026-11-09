@@ -2,7 +2,7 @@
 
 Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 
-**Status:** Live. Git copy: [`docs/wiring/`](../../docs/wiring/). Bench copy: `~/Desktop/HART/Wiring Documentation/` (not git).
+**Status:** Live in [`docs/wiring/`](../../docs/wiring/), the only copy (the Desktop bench copy was retired 2026-11-09).
 
 ## Inputs
 

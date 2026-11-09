@@ -1,8 +1,6 @@
 # HART LCOS wiring documentation
 
-Git copy of the Desktop `HART/Wiring Documentation` package, refreshed against current public names and Digicon searchlight heads.
-
-Desktop originals stay at `~/Desktop/HART/Wiring Documentation/`. That tree is **not** git — it has a Python venv and an `ARCHIVE/` of every inventory bump. Root `.gitignore` still ignores a repo-root `Wiring Documentation/` folder so that checkout is not committed by accident.
+The LCOS wiring documentation, refreshed against current public names and Digicon searchlight heads. This folder is the only copy: the old `~/Desktop/HART/Wiring Documentation` bench copy was retired on 2026-11-09 (ADR-007). Root `.gitignore` still ignores a repo-root `Wiring Documentation/` folder so an old checkout is not committed by accident.
 
 ## Current files
 
@@ -261,17 +259,15 @@ Leftover East End RGB `S2-6` / `S2-7` on C2 is gone. C2-OU3 stays for **24RB** (
 | C24 | 24 | Peninsula upper / CP6 | OU1 12V Switch 87–91 + 82L G/R; OU2/OU3 5V CP6 heads + relay |
 | C32 | 32 | North upper / CP5 | OU1 12V Switch 73; OU2 5V 70RB / 74RB |
 
-Copy the three current workbooks **and** `Wiring_Schematic.pptx` back to `~/Desktop/HART/Wiring Documentation/` after a refresh (and after XML apply) so the bench copy matches git.
-
 ## Refresh
 
 ```bash
 python3 docs/wiring/scripts/refresh_wiring_docs.py
-# needs python-pptx (Desktop wiring venv is fine):
+# needs python-pptx:
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 ```
 
-Copy `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`, and `Wiring_Schematic.pptx` to `~/Desktop/HART/Wiring Documentation/`. Copy `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` there too when punching Signal Manager. Do not refresh Desktop until JMRI XML is applied so the bench pack matches live beans.
+Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
 
 ## What v85 changed vs Desktop v84
 

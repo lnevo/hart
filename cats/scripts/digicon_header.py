@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stamp the CATS desks with a HART publication-style title block.
 
-Follows Desktop/HART/Car Cards/docs/HART_Railroad_Publication_Standards_v1.0.docx:
+Follows docs/ops/HART_Railroad_Publication_Standards_v1.0.docx:
   HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations
   Publication block: ID · Effective date · Revision letter
 

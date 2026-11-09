@@ -44,4 +44,3 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 - Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
-- Final cleanup epic: retire `~/Desktop/HART`, leaving this repo as the one home ([ADR-007](decisions/ADR-007-repository-layout.md), amended 2026-11-09). `~/sts` and the repo copies in `~/Documents` are done, the car photo originals live in the Photos library, and the repo's `archive/` stays. Still to decide: `Car Cards/archive` (about 900 MB of old STS seed and session material) and retiring `sync_desktop_data.py` with the Desktop folders. The `.any` track plans stay in `~/Documents`.

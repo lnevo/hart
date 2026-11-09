@@ -2,7 +2,7 @@
 
 Print filled car cards from roster XML + cropped car photos.
 
-**Status:** Live on Desktop (not the hart git tree). `~/Desktop/HART/Car Cards/`
+**Status:** Live in the hart-ops submodule (`external/hart-ops/`). New cars go through `bin/cars` ([`car-workflow.md`](car-workflow.md)).
 
 ## Inputs
 
@@ -16,10 +16,10 @@ Print filled car cards from roster XML + cropped car photos.
 
 ## Run
 
-From `~/Desktop/HART/Car Cards/`:
+From `external/hart-ops/` (set up its `.venv` as in its README):
 
 ```bash
 .venv/bin/python card_pipeline/generate_all_cards.py
 ```
 
-Related: `generate_single_card.py`, `generate_card_template.py`, `build_merged_car_roster.py`, image OCR/crop scripts in `card_pipeline/`. Agent notes: `Car Cards/AGENTS.md`.
+Related: `generate_single_card.py`, `generate_card_template.py`, `build_merged_car_roster.py`, image OCR/crop scripts in `card_pipeline/`. Agent notes: `external/hart-ops/AGENTS.md`.

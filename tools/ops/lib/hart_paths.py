@@ -75,21 +75,12 @@ def mirror_hart_src() -> Path:
     return hart_repo_root()
 
 
-def mirror_desktop_hart() -> Path:
-    env = os.environ.get("DESKTOP_HART", "").strip()
-    if env:
-        return Path(env).expanduser().resolve()
-    return Path.home() / "Desktop/HART"
-
-
 def car_images_final() -> Path:
     env = os.environ.get("HART_CAR_IMAGES_FINAL", "").strip()
     if env:
         return Path(env).expanduser().resolve()
-    local = hart_repo_root() / "ops/car-cards/car-images/CarImagesFinal"
-    if local.is_dir():
-        return local
-    return mirror_desktop_hart() / "Car Cards/CarImagesFinal"
+    # The repo copy is the only one; ~/Desktop/HART was retired 2026-11-09 (ADR-007).
+    return hart_repo_root() / "ops/car-cards/car-images/CarImagesFinal"
 
 
 def car_cards_root() -> Path:
@@ -159,5 +150,4 @@ def all_runtime_paths() -> dict[str, Path]:
 def all_mirror_sources() -> dict[str, Path]:
     return {
         "HART_MIRROR_SRC": mirror_hart_src(),
-        "DESKTOP_HART": mirror_desktop_hart(),
     }
