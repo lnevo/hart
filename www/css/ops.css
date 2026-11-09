@@ -446,14 +446,11 @@ main:not(.full-bleed) .btn-ghost:hover {
   color: var(--brand);
 }
 
+/* Page and section descriptions use the page width, as the chart pages first did. A 54ch cap here
+   kept squeezing every description into a narrow column; set the width here, not per page. */
 .section-note {
   color: var(--muted);
   margin: 0 0 1.25rem;
-  max-width: 54ch;
-}
-
-.home-band > .section-note {
-  max-width: 62ch;
 }
 
 .card-grid {
