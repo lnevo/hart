@@ -23,6 +23,7 @@
         <h2>On this page</h2>
         <ol>
           <li><a href="#repo">One repository</a></li>
+          <li><a href="#sources">One source for each fact</a></li>
           <li><a href="#rules">Decisions and written rules</a></li>
           <li><a href="#helpers">Helpers and checks</a></li>
           <li><a href="#site">This website</a></li>
@@ -58,8 +59,47 @@
           <p class="ai-see"><b>See it:</b> <a href="https://github.com/lnevo/hart">github.com/lnevo/hart</a></p>
         </section>
 
+        <section id="sources" aria-labelledby="h-sources">
+          <h2 id="h-sources"><span class="num">02</span>One source for each fact</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>August to November 2026</dd></div>
+            <div><dt>Status</dt><dd>In place</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Gathering the files into one place was only half of it. The same facts were still written down in many places: a signal's wiring in a spreadsheet, a slide deck and the JMRI tables; a car in the card files, the traffic simulator and Operations Pro; a locomotive in DecoderPro and the command station. Each copy had been typed separately, so they slowly disagreed.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>For each kind of fact we picked one place that owns it, its system of record, and made everything else a copy built from it. Then AI rebuilt the copies from the owner instead of patching them by hand, and wrote the scripts that keep them that way.</p>
+          <div class="table-wrap">
+            <table class="ai-tools">
+              <thead>
+                <tr><th>Fact</th><th>Owned by</th><th>Copied into</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Names</td><td>One name map with one grammar, such as Switch 1 and Mast 2L</td><td>The JMRI tables, both dispatcher desks, the wiring documents and this website</td></tr>
+                <tr><td>Signal wiring</td><td>One table of every lamp's node and port</td><td>The wiring workbook, the slide per node, the comments in the JMRI tables, the wiring viewer and the device roster</td></tr>
+                <tr><td>JMRI setup</td><td>One tables file in the repository</td><td>The Mac, the layout Pi and the Windows computer, and the tables browser here</td></tr>
+                <tr><td>The fleet</td><td>One car repository</td><td>Car cards, the traffic simulator, Operations Pro and the Photos page</td></tr>
+                <tr><td>Where cars are</td><td>The traffic simulator</td><td>JMRI Operations Pro, after each session</td></tr>
+                <tr><td>Locomotives</td><td>The JMRI roster on the layout Pi</td><td>The other computers and the command station's throttles</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The wiring documents, the slide decks, the JMRI tables and the website now show the same names and the same wiring, and a car or locomotive is the same thing in every system. A change is made once, where it is owned, and flows out. When a generated file is wrong, the fix goes into the script that made it, never into the output.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> the rebuilding. Hundreds of names and pins carried across many files without a typo is exactly the job AI is good at.</li>
+              <li><span class="k">Needed me:</span> choosing each owner. Once that was decided, the rest was mechanical.</li>
+              <li><span class="k">Lesson:</span> this, more than any single tool, is why the project stays in step as it grows.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../wiring.html">Wiring viewer</a> · <a href="../../roster/index.html">Device roster</a> · <a href="../tables-file.html">The tables file</a> · <a href="operations.html#sync">Keeping STS and JMRI in step</a></p>
+        </section>
+
         <section id="rules" aria-labelledby="h-rules">
-          <h2 id="h-rules"><span class="num">02</span>Decisions and written rules</h2>
+          <h2 id="h-rules"><span class="num">03</span>Decisions and written rules</h2>
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Claude</dd></div>
             <div><dt>When</dt><dd>August 2026 on</dd></div>
@@ -82,7 +122,7 @@
         </section>
 
         <section id="helpers" aria-labelledby="h-helpers">
-          <h2 id="h-helpers"><span class="num">03</span>Helpers and checks</h2>
+          <h2 id="h-helpers"><span class="num">04</span>Helpers and checks</h2>
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Claude</dd></div>
             <div><dt>When</dt><dd>October 2026 on</dd></div>
@@ -104,7 +144,7 @@
         </section>
 
         <section id="site" aria-labelledby="h-site">
-          <h2 id="h-site"><span class="num">04</span>This website</h2>
+          <h2 id="h-site"><span class="num">05</span>This website</h2>
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Cursor, then Claude</dd></div>
             <div><dt>When</dt><dd>2026 on</dd></div>
@@ -127,7 +167,7 @@
         </section>
 
         <section id="shared" aria-labelledby="h-shared">
-          <h2 id="h-shared"><span class="num">05</span>Tools shared with others</h2>
+          <h2 id="h-shared"><span class="num">06</span>Tools shared with others</h2>
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Claude</dd></div>
             <div><dt>When</dt><dd>October 2026 on</dd></div>
@@ -143,6 +183,7 @@
             <li>The STS plugin, in <a href="https://github.com/lnevo/sts-docker">sts-docker</a>: operate and inspect a traffic simulator through its REST interface.</li>
             <li><a href="https://github.com/lnevo/jmri-cs105-roster-sync">jmri-cs105-roster-sync</a>: the JMRI roster on a TCS CS-105.</li>
             <li><a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a>: the LCOS bridge.</li>
+            <li><a href="../../library/stl-studio-article.html">STL Studio</a>: a free web editor for the logic inside an RR-CirKits Tower LCC+Q. You snap blocks together and it writes the exact text the node expects. HART does not use Tower nodes; it was built for the wider LCC community.</li>
           </ul>
           <div class="ai-verdict">
             <b>Verdict</b>
