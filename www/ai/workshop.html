@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI and the Workshop — HART</title>
+  <meta name="description" content="How the HART Railroad's AI work is organised: one repository, decision records and written rules, helpers with one job each, the website, and tools shared with other modelers.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <link rel="stylesheet" href="../css/ai.css">
+</head>
+<body data-page="behind-ai-workshop">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>The Workshop</h1>
+        <p class="standfirst">Not a railroad job but the bench all the others sit on: where the work lives, how each fact is kept once, the agents and skills, and what gets shared.</p>
+        <p class="byline">How it is organised · updated November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#repo">One repository</a></li>
+          <li><a href="#sources">One source for each fact</a></li>
+          <li><a href="#agents">Agents and skills</a></li>
+          <li><a href="#site">This website</a></li>
+          <li><a href="#shared">Tools shared with others</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">Early on I asked AI for documents. Now I give it a place to work, one owner for every fact, and helpers that know how the railroad&rsquo;s software really behaves. That change is the quiet one behind every other topic in this section.</p>
+        </section>
+
+        <section id="repo" aria-labelledby="h-repo">
+          <h2 id="h-repo"><span class="num">01</span>One repository</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, then Claude</dd></div>
+            <div><dt>When</dt><dd>August to October 2026</dd></div>
+            <div><dt>Status</dt><dd>Done</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>By August 2026 the project was busy and scattered: research in one place, the fiction in its drafts, control software, the traffic simulator, car records, the bridge and the website each on their own. A car renamed in one place might never reach the cards, the website or the simulator.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Everything was gathered into one repository, a folder where every change is recorded so anyone can see what changed and go back. Cursor started it; Claude took over the consolidation, tidied the folders and moved the generic knowledge out into public projects. One naming rule now means a switch, signal or track is called the same thing everywhere.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A public repository that every computer on the railroad is installed from.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> the sorting and moving, which is tedious and error-prone by hand.</li>
+              <li><span class="k">Lesson:</span> it is the single most useful thing I did for AI. Every later job was easier because there was one place to look.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="https://github.com/lnevo/hart">github.com/lnevo/hart</a></p>
+        </section>
+
+        <section id="sources" aria-labelledby="h-sources">
+          <h2 id="h-sources"><span class="num">02</span>One source for each fact</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>August to November 2026</dd></div>
+            <div><dt>Status</dt><dd>In place</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Gathering the files into one place was only half of it. The same facts were still written down in many places: a signal's wiring in a spreadsheet, a slide deck and the JMRI tables; a car in the card files, the traffic simulator and Operations Pro; a locomotive in DecoderPro and the command station. Each copy had been typed separately, so they slowly disagreed.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>For each kind of fact we picked one place that owns it, its system of record, and made everything else a copy built from it. Then AI rebuilt the copies from the owner instead of patching them by hand, and wrote the scripts that keep them that way.</p>
+          <div class="table-wrap">
+            <table class="ai-tools">
+              <thead>
+                <tr><th>Fact</th><th>Owned by</th><th>Copied into</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Names</td><td>One name map with one grammar, such as Switch 1 and Mast 2L</td><td>The JMRI tables, both dispatcher desks, the wiring documents and this website</td></tr>
+                <tr><td>Signal wiring</td><td>One table of every lamp's node and port</td><td>The wiring workbook, the slide per node, the comments in the JMRI tables, the wiring viewer and the device roster</td></tr>
+                <tr><td>JMRI setup</td><td>One tables file in the repository</td><td>The Mac, the layout Pi and the Windows computer, and the tables browser here</td></tr>
+                <tr><td>The fleet</td><td>One car repository</td><td>Car cards, the traffic simulator, Operations Pro and the Photos page</td></tr>
+                <tr><td>Where cars are</td><td>The traffic simulator</td><td>JMRI Operations Pro, after each session</td></tr>
+                <tr><td>Locomotives</td><td>The JMRI roster on the layout Pi</td><td>The other computers and the CS-105 command station. WiThrottle phone throttles read the JMRI roster; LCC throttles read the CS-105</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The wiring documents, the slide decks, the JMRI tables and the website now show the same names and the same wiring, and a car or locomotive is the same thing in every system. A change is made once, where it is owned, and flows out. When a generated file is wrong, the fix goes into the script that made it, never into the output.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> the rebuilding. Hundreds of names and pins carried across many files without a typo is exactly the job AI is good at.</li>
+              <li><span class="k">Needed me:</span> choosing each owner. Once that was decided, the rest was mechanical.</li>
+              <li><span class="k">Lesson:</span> this, more than any single tool, is why the project stays in step as it grows.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../behind/wiring.html">Wiring viewer</a> · <a href="../roster/index.html">Device roster</a> · <a href="../behind/tables-file.html">The tables file</a> · <a href="operations.html#sync">Keeping STS and JMRI in step</a></p>
+        </section>
+
+        <section id="agents" aria-labelledby="h-agents">
+          <h2 id="h-agents"><span class="num">03</span>Agents and skills</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>October 2026 on</dd></div>
+            <div><dt>Status</dt><dd>Five agents, six skills</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>A general AI knows a little about JMRI, CATS and STS, and guesses the rest. The answers that matter on this railroad, such as why a mast stays red or where a value on the panel comes from, need the real behaviour of those programs and a look at what the layout is reporting.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Two things were set up. <b>Skills</b> are written guides the AI loads when a topic comes up, so it works from checked notes instead of memory: editing JMRI panel files safely, Signal Mast Logic, the Dispatcher System, JMRI and MQTT, running CATS on JMRI, and STS in Docker. Every rule was checked against the program&rsquo;s own source. Two read-only tools let it see what JMRI and the layout&rsquo;s MQTT messages are reporting right now.</p>
+          <p><b>Agents</b> are helpers with one job each. One traces why a signal, panel, Dispatcher run or MQTT value behaves as it does. One researches the railroad&rsquo;s history and returns proposals with sources. Others build and review this website, or look for stale pages and dead code. The tracer and the researcher can only read, so they can be handed a big search without risk to the railroad.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>Questions about the signals and the panels get answered from the source and the live layout, not from a guess. The skills were general enough to share and became the public <a href="#shared">model-railroad-skills</a> plugin; the Operations Pro and STS plugins followed the same pattern.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> skills checked against the source, so the AI stops describing how JMRI ought to work and says how it does.</li>
+              <li><span class="k">Watch for:</span> an agent handed my guess tends to come back agreeing with it. Give it the evidence, not the conclusion.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills on GitHub</a></p>
+        </section>
+
+        <section id="site" aria-labelledby="h-site">
+          <h2 id="h-site"><span class="num">04</span>This website</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, then Claude</dd></div>
+            <div><dt>When</dt><dd>2026 on</dd></div>
+            <div><dt>Status</dt><dd>Public</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The site serves crews on session night, visitors who want the history, and modelers who want to see how it works. It began on a local server for operators only.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It built the pages, moved the site to its own domain and keeps it drawn from the same data the railroad uses, so a change is made once. A reviewer agent reads pages as a first-time reader, a historian or a designer would. The build refuses to publish if anything private, such as a local address, has leaked into a page.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The site you are reading, including this section.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> pages that stay in step with the railroad, and reviews from more than one point of view.</li>
+              <li><span class="k">Needed me:</span> the voice, and saying when a page tries to say too much. That is how this section started.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../index.html">Home</a></p>
+        </section>
+
+        <section id="shared" aria-labelledby="h-shared">
+          <h2 id="h-shared"><span class="num">05</span>Tools shared with others</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>October 2026 on</dd></div>
+            <div><dt>Status</dt><dd>Public</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Along the way the AI learned how JMRI, CATS and STS really behave. That knowledge is worth more shared than kept.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It packaged what is generic into public projects, none holding anything specific to this railroad. The guides in the skills plugin were checked against each program's own source.</p>
+          <ul>
+            <li><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a>: the six skills and two read-only tools <a href="#agents">described above</a>, as a Claude Code plugin.</li>
+            <li><a href="../library/operations-pro-article.html">The Operations Pro plugin</a>: sets up, checks and explains an Operations Pro railroad.</li>
+            <li>The STS plugin, in <a href="https://github.com/lnevo/sts-docker">sts-docker</a>: operate and inspect a traffic simulator through its REST interface.</li>
+            <li><a href="https://github.com/lnevo/jmri-cs105-roster-sync">jmri-cs105-roster-sync</a>: the JMRI roster on a TCS CS-105.</li>
+            <li><a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a>: the LCOS bridge.</li>
+            <li><a href="../library/stl-studio-article.html">STL Studio</a>: a free web editor for the logic inside an RR-CirKits Tower LCC+Q. You snap blocks together and it writes the exact text the node expects. HART does not use Tower nodes; it was built for the wider LCC community.</li>
+          </ul>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> writing rules down for a stranger made them better for me too.</li>
+              <li><span class="k">Rule:</span> nothing specific to this railroad goes into a shared tool. The railroad's own values live in its settings.</li>
+            </ul>
+          </div>
+        </section>
+
+        <nav class="ai-pager" aria-label="Topics">
+          <a href="locomotives.html">&larr; Locomotives</a>
+          <a href="index.html">All topics &rarr;</a>
+        </nav>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/ai-topic.js"></script>
+</body>
+</html>

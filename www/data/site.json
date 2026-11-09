@@ -78,7 +78,15 @@
         "behind-stl",
         "behind-build",
         "behind-opspro",
-        "behind-opspro-guide"
+        "behind-opspro-guide",
+        "behind-ai",
+        "behind-ai-research",
+        "behind-ai-construction",
+        "behind-ai-electronics",
+        "behind-ai-control",
+        "behind-ai-operations",
+        "behind-ai-locomotives",
+        "behind-ai-workshop"
       ]
     },
     {
@@ -134,32 +142,74 @@
     ],
     "behind-sts": [
       {
-        "label": "Car forwarding",
-        "href": "behind/index.html#car-forwarding"
+        "label": "Operations",
+        "href": "behind/index.html#operations"
       }
     ],
     "behind-stl": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "AI in Model Railroading",
+        "href": "behind/index.html#ai"
       }
     ],
     "behind-build": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "AI in Model Railroading",
+        "href": "behind/index.html#ai"
       }
     ],
     "behind-opspro": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "Operations",
+        "href": "behind/index.html#operations"
       }
     ],
     "behind-opspro-guide": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "Operations",
+        "href": "behind/index.html#operations"
+      }
+    ],
+    "behind-ai-research": [
+      {
+        "label": "AI in Model Railroading",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-construction": [
+      {
+        "label": "AI in Model Railroading",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-electronics": [
+      {
+        "label": "AI in Model Railroading",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-control": [
+      {
+        "label": "AI in Model Railroading",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-operations": [
+      {
+        "label": "AI in Model Railroading",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-locomotives": [
+      {
+        "label": "AI in Model Railroading",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-workshop": [
+      {
+        "label": "AI in Model Railroading",
+        "href": "ai/index.html"
       }
     ]
   }

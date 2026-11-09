@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bringing the Railroad Together — HART</title>
-  <meta name="description" content="The journey from an idea in January 2025 to a working railroad, how AI helped along the way, and how the software, research and website are organised now, down to two locomotives matched closely enough to run as a pair.">
+  <meta name="description" content="The journey from an idea in January 2025 to a working railroad, how AI helped along the way, and how the software, research and website are organised now.">
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/article.css">
   <style>
@@ -27,20 +27,7 @@
     .trail-svg .t-b { font-weight: 700; }
     .trail-svg .t-s { fill: var(--muted); font-size: 14px; }
     .trail-svg .t-p { font-size: 14px; font-weight: 700; }
-    /* Speed-match chart: same tokens. The two series differ by line style and marker as well as colour. */
-    .speed-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
-    .speed-svg .grid { stroke: var(--rule); stroke-width: 1; }
-    .speed-svg .axis { stroke: var(--muted); stroke-width: 1.5; }
-    .speed-svg .band { fill: var(--rule); opacity: .45; }
-    .speed-svg .ref { stroke: var(--ink-soft); stroke-width: 1.5; }
-    .speed-svg .before { fill: none; stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 7 5; }
-    .speed-svg .after { fill: none; stroke: var(--brand); stroke-width: 3; }
-    .speed-svg .pt-b { fill: var(--card); stroke: var(--muted); stroke-width: 2; }
-    .speed-svg .pt-a { fill: var(--brand); stroke: var(--card); stroke-width: 1.5; }
-    .speed-svg text { fill: var(--ink); font-size: 13px; }
-    .speed-svg .t-s { fill: var(--muted); font-size: 12px; }
-    .speed-svg .t-b { font-weight: 700; }
-    .speed-svg .t-brand { fill: var(--brand); font-weight: 700; }
+    .feature-head .snapshot-note { margin: 0.9rem 0 0; font-size: 0.95rem; color: var(--ink-soft); }
   </style>
 </head>
 <body>
@@ -50,7 +37,8 @@
       <header class="feature-head">
         <h1>Bringing the Railroad Together</h1>
         <p class="standfirst">How AI grew up alongside the railroad, from the first research to the way the software, research and website are organised today.</p>
-        <p class="byline">How it was built · November 2026</p>
+        <p class="byline">How it was built · October 2026</p>
+        <p class="snapshot-note">A snapshot of the journey as it stood in October 2026. Each topic is followed up, job by job, in <a href="../ai/index.html">AI in Model Railroading</a>.</p>
       </header>
 
       <nav class="feature-toc" aria-label="On this page">
@@ -67,12 +55,6 @@
           <li><a href="#scattered">Too many places</a></li>
           <li><a href="#gathering">One place</a></li>
           <li><a href="#helix">The helix</a></li>
-          <li><a href="#opspro">Operations Pro becomes real</a></li>
-          <li><a href="#stssync">STS and JMRI join up</a></li>
-          <li><a href="#intake">Letting new stock in</a></li>
-          <li><a href="#roster">The roster and the command station</a></li>
-          <li><a href="#speed">Speed matching</a></li>
-          <li><a href="#maps">Station maps in plastic</a></li>
           <li><a href="#arrived">Where it arrived</a></li>
           <li><a href="#reuse">Tools you can reuse</a></li>
           <li><a href="#next">More ways to use it</a></li>
@@ -83,12 +65,12 @@
       <div class="feature-body">
         <section id="intro" aria-label="Introduction">
           <p class="lede">In January 2025 this railroad was only an idea, and AI came into it very shortly after. At first that meant ChatGPT, helping me research a place and write it down. Nothing about it looked like a way of building a railroad. It grew one job at a time, as the layout kept asking for something new.</p>
-          <p>Less than two years later, that help has drafted the documents and the stories, written the software that reaches the layout's electronics, planned a helix and produced the printed parts that built it, helped pull the whole project into order, and then matched two locomotives so closely that they are ready to run as a pair. This page follows that journey as it happened: what I was trying to build, which tool I used, and what each step left behind.</p>
+          <p>Less than two years later, that help has drafted the documents and the stories, written the software that reaches the layout's electronics, planned a helix and produced the printed parts that built it, and helped pull the whole project into order. This page follows that journey as it happened: what I was trying to build, which tool I used, and what each step left behind.</p>
           <figure>
-            <svg class="trail-svg" viewBox="0 0 480 586" role="img" aria-labelledby="trail-t trail-d">
+            <svg class="trail-svg" viewBox="0 0 480 524" role="img" aria-labelledby="trail-t trail-d">
               <title id="trail-t">The journey, with the tool in use at each stage</title>
-              <desc id="trail-d">A vertical timeline of nine stages. January 2025, the idea, research and stories, with ChatGPT. August 2025, first code, with Cursor. Late 2025, the LCOS bridge and wiring, with Cursor. Early 2026, track plan to panels, with Cursor. Summer 2026, car cards and operations, with Cursor. August 2026, desks and one repository, with Cursor. September 2026, the helix, with ChatGPT and then Claude. October 2026, consolidation, with Claude. November 2026, operations, the roster and speed matching, with Claude.</desc>
-              <line class="rail" x1="24" y1="36" x2="24" y2="532"/>
+              <desc id="trail-d">A vertical timeline of eight stages. January 2025, the idea, research and stories, with ChatGPT. August 2025, first code, with Cursor. Late 2025, the LCOS bridge and wiring, with Cursor. Early 2026, track plan to panels, with Cursor. Summer 2026, car cards and operations, with Cursor. August 2026, desks and one repository, with Cursor. September 2026, the helix, with ChatGPT and then Claude. October 2026, consolidation, with Claude.</desc>
+              <line class="rail" x1="24" y1="36" x2="24" y2="470"/>
         <circle class="dot" cx="24" cy="36" r="9"/>
         <text class="t-b" x="48" y="33">January 2025</text>
         <text class="t-s" x="48" y="52">The idea, research, stories</text>
@@ -124,18 +106,13 @@
         <text class="t-s" x="48" y="424">The helix</text>
         <rect class="pill" x="318" y="393" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="413" text-anchor="middle">ChatGPT, then Claude</text>
-        <circle class="dot" cx="24" cy="470" r="9"/>
+        <circle class="dot now" cx="24" cy="470" r="9"/>
         <text class="t-b" x="48" y="467">October 2026</text>
         <text class="t-s" x="48" y="486">Consolidation</text>
         <rect class="pill" x="318" y="455" width="152" height="30" rx="15"/>
         <text class="t-p" x="394" y="475" text-anchor="middle">Claude</text>
-        <circle class="dot now" cx="24" cy="532" r="9"/>
-        <text class="t-b" x="48" y="529">November 2026</text>
-        <text class="t-s" x="48" y="548">Operations, roster, speed matching</text>
-        <rect class="pill" x="318" y="517" width="152" height="30" rx="15"/>
-        <text class="t-p" x="394" y="537" text-anchor="middle">Claude</text>
             </svg>
-            <figcaption><strong>The journey.</strong> Nine stages from the first idea to today, with the tool in use at each. The dates are approximate.</figcaption>
+            <figcaption><strong>The journey.</strong> Eight stages from the first idea to today, with the tool in use at each. The dates are approximate.</figcaption>
           </figure>
         </section>
 
@@ -164,7 +141,7 @@
         <section id="wiring" aria-labelledby="h-wiring">
           <h2 id="h-wiring"><span class="num">04</span>The wiring</h2>
           <p>A railroad that is going to be wired has to know what it is wiring. In November and December 2025 I had a hand-drawn ASCII sketch of the layout, made of plain typed characters. With Cursor it became a spreadsheet of switches, signals and locations, and then a versioned wiring inventory workbook.</p>
-          <p>That workbook later fed the wiring documents, and today it lives on as the <a href="../behind/wiring.html">wiring viewer</a>, the <a href="../behind/layout-docs.html">layout drawings</a> and the <a href="../roster/index.html">device roster</a>. Around the same time I tried some early experiments with JMRI Operations Pro. They did not become the car system then, but Operations Pro comes back <a href="#opspro">later in this story</a>.</p>
+          <p>That workbook later fed the wiring documents, and today it lives on as the <a href="../behind/wiring.html">wiring viewer</a>, the <a href="../behind/layout-docs.html">layout drawings</a> and the <a href="../roster/index.html">device roster</a>. Around the same time I tried some early experiments with JMRI Operations Pro, which did not become the car system.</p>
         </section>
 
         <section id="panels" aria-labelledby="h-panels">
@@ -178,7 +155,7 @@
           <h2 id="h-cards"><span class="num">06</span>The car cards</h2>
           <p>By then the planning was giving way to paperwork. A railroad that runs needs car cards and waybills, and the first session had run on Post-it flags. The cards became one of the biggest workflows on the whole project, and one of the best uses of AI on it.</p>
           <p>I had a roster and photographs of the fleet. With AI, each photo was cropped, its reporting marks were read by OCR and matched against the roster, and the stencils gave up details such as built dates and weights. Each photographed car got a printed card with its own picture, and waybills were worked out for the industries and moves on the layout.</p>
-          <p>What started as a one-time job has become a repeatable workflow. Adding a car now starts with a photo: a small tool crops it, reads what it can and asks about the rest, then queues a new card to print. The new car then goes into the traffic simulator, which keeps JMRI Operations Pro up to date (<a href="#stssync">see below</a>), so the whole fleet lives in one list. A car with no photo can wait in that list until it gets one. The way new stock is let in, one approved step at a time, is told in <a href="#intake">its own section</a>. <a href="../operators/cards/index.html">Car Cards &amp; Waybills</a> shows the cards themselves and how crews use them.</p>
+          <p>What started as a one-time job has become a repeatable workflow. Adding a car now starts with a photo: a small tool crops it, reads what it can and asks about the rest, then queues a new card to print. From there the same record feeds the traffic simulator and JMRI Operations Pro, so the whole fleet lives in one list. A car with no photo can wait in that list until it gets one. <a href="../operators/cards/index.html">Car Cards &amp; Waybills</a> shows the cards themselves and how crews use them.</p>
         </section>
 
         <section id="operations" aria-labelledby="h-operations">
@@ -243,85 +220,11 @@
           <h2 id="h-helix"><span class="num">11</span>The helix</h2>
           <p>While the files were coming together, the biggest physical job on the railroad was under way: the helix that climbs from staging to the main level. The planning for it was some of the most valuable AI work on the whole project. Radius, grade, clearance, how the roadbed would be cut and joined, and the order it would all go up were worked through in conversation with ChatGPT before any wood was cut. All of that became a construction plan and a written design record.</p>
           <p>Then the work moved to Claude, to build the files and carry the effort on, and it left the screen. The plan became scripts, the scripts became STL files, and the STL files became printed parts: router templates, height spacers, shims and other fixtures, 47 files in all. These were not models of anything. They were tools, and they went on the bench and into the build. The frame went up, the roadbed followed, and in about a month the helix was finished and tracked.</p>
-          <p>That was a real milestone. Until then the AI's work had been documents and software. Now it was something I could pick up and use to build the railroad. The <a href="../helix/index.html">helix page</a> has the plan and every fixture, and <a href="../build/index.html#helix">The Build</a> has the photos. The printer had more jobs to come, and <a href="#maps">one of them</a> is still in progress.</p>
-        </section>
-
-        <section id="opspro" aria-labelledby="h-opspro">
-          <h2 id="h-opspro"><span class="num">12</span>Operations Pro becomes real</h2>
-          <p>In early November the old Operations Pro experiments finally turned into something. Two things came out of it. The first is a public plugin for other modelers that sets up, checks, changes and explains a JMRI Operations Pro railroad. To prove it worked, it built an invented railroad from scratch, the Juniper Falls &amp; Northern, along with a walkthrough of 43 cases. That story has <a href="operations-pro-article.html">its own article</a>.</p>
-          <p>The second is my own railroad. With the plugin, the locations, trains, cars and the automation that runs a whole operating session were rebuilt from where the traffic simulator left off. One rule came with it, the same rule as everywhere else in this project: the files in the repository are the master. A session on the Pi is brought back into the repository, looked at, and only then sent out again, so every computer gets the same railroad and the history shows what changed. The automation has been proved on copies and in trial runs; its first full live session is still ahead.</p>
-        </section>
-
-        <section id="stssync" aria-labelledby="h-stssync">
-          <h2 id="h-stssync"><span class="num">13</span>STS and JMRI join up</h2>
-          <p>That left two systems holding the same cars: STS, which runs the sessions, and JMRI, which has the locomotives, the manifests and the dispatcher desks. The rule I set is that STS is the master of where each car is, what it carries and where it is going, and JMRI is a copy that STS refreshes. After a session, one button sends the car positions, loads and final destinations across. It only goes one way, and a car already on a built JMRI train is left alone.</p>
-          <p>STS itself grew in the same days. It gained a REST interface with access tokens, so other programs can ask it questions, and a Claude Code plugin built on that interface, so an agent can check a session or find a car without anyone clicking through screens. Sign-in and security were tightened at the same time, because a system that other programs can reach has to be locked properly. Neither the plugin nor the sync carries anything specific to this railroad; the railroad&rsquo;s own values are kept as settings. The STS side is at <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>.</p>
-        </section>
-
-        <section id="intake" aria-labelledby="h-intake">
-          <h2 id="h-intake"><span class="num">14</span>Letting new stock in</h2>
-          <p>The car cards had made adding a car easy, perhaps too easy. A bad crop or a misread number could reach the simulator and JMRI before anyone had looked at it. Locomotives had no process at all: the roster, Operations Pro, the command station and the dispatcher files were each updated by hand.</p>
-          <p>So new stock now comes in through stages, and nothing moves to the next stage until I have approved the one before. The first stage takes the photos in, straightens and crops them and reads the numbers. The AI looks over each one and suggests a reading, but only suggests. Everything ends up on a review sheet, a page of thumbnails where I can fix a number, say which photos are locomotives and approve the rest in bulk. Only then do the records go into the repository, then the cars into the simulator and Operations Pro, with a backup and a trial run first, and the locomotives into JMRI. Each batch leaves a record of what was approved. Cards and the public gallery come last, and decoder programming and speed matching, locomotive by locomotive, are a later stage of their own.</p>
-          <p>The first real batch was ten CSX hoppers and two locomotives, CSX 2121 and 2738. It taught me plenty about crops, about stencilled lettering that is hard for a computer to read, and about a review sheet that needed to be editable on the page, and the lessons went straight back into the written steps. The result is on the <a href="../photos/index.html#rolling-stock">Rolling stock photos</a>.</p>
-        </section>
-
-        <section id="roster" aria-labelledby="h-roster">
-          <h2 id="h-roster"><span class="num">15</span>The roster and the command station</h2>
-          <p>This is a job many modelers struggle with, and I did too. A locomotive has to be known in several places that do not talk to each other: the DecoderPro roster, the throttles in people&rsquo;s hands and the command station itself. Mine is a TCS CS-105, which speaks LCC, and its throttles should list every locomotive by name with the function buttons labelled. Keeping that true by hand does not last.</p>
-          <p>DecoderPro can copy one roster entry into the command station, but only if the command station already has a train for that address. Otherwise it refuses, and there is no way to say &ldquo;create it&rdquo;. So the copying runs from inside JMRI instead. It reads the roster, asks the command station to create any train it is missing, and writes the name and function labels into each one. Run it, and every locomotive in the roster appears on the throttle by name, with the right buttons. The two newest are next in line, once the command station is back up.</p>
-          <p>A few things only showed up by trying it. The command station keeps a train through a restart only once the train has a name; four locomotives came back blank the first time I restarted it. So now every train is named. The names changed too: the roster IDs became the road and number, such as NWR 06, because that is what the phone throttles show. A small tool restarts the command station over LCC, which I need after deleting trains, and a helper builds a consist, with CSX 2121 leading and 2738 following in reverse, headlight linked. That consist survived a restart of the command station.</p>
-                    <p>Last, the roster has pictures. The newest are shot the same way: level, a loose crop and a soft grey backdrop, with the two halves of a consist facing opposite ways. Thirteen locomotives have a photo so far.</p>
-          <p>One failure is worth admitting. The script that copies the roster to the Windows computer reported success for a while and delivered nothing, because the files were stored with absolute paths. The fix was the useful part: the copy now compares every file afterwards and fails loudly if any are missing.</p>
-          <p>The point of all this is that someone picking up a throttle sees every locomotive by name, with a bell button that rings the bell, without my typing any of it.</p>
-        </section>
-
-        <section id="speed" aria-labelledby="h-speed">
-          <h2 id="h-speed"><span class="num">16</span>Speed matching</h2>
-          <p>Of everything in this stretch, this is the part I am proudest of. Two locomotives that run at different speeds cannot work together, and anyone who has coupled up a pair and watched one drag the other knows it. I wanted CSX 2121 and 2738 to run as a pair.</p>
-          <p>The measuring was done by a program running inside JMRI. It sets a locomotive to a throttle step, lets it run laps of the whole loop and times each lap from the block sensors, step after step, with no hands on the throttle. Both locomotives topped out at about the same speed, but 2738 ran at only 47 to 74 per cent of 2121&rsquo;s speed through the lower steps. The reason was plain once I looked at its settings: its speed table was switched off, and it had no momentum.</p>
-          <p>I chose to match 2738 to 2121, momentum included. It was programmed on the programming track with a calculated speed table, and every value read back correctly. Measured again at steps 24, 48 and 126, it ran within 1.2 per cent of 2121, and about 5 per cent fast at step 12, the weak spot. At step 96 the two stopped within a tenth of a second of each other, and started within three tenths. 2121 in reverse matched its own forward laps within 3 per cent, so it needed nothing more.</p>
-          <figure>
-            <svg class="speed-svg" viewBox="0 0 480 300" role="img" aria-labelledby="speed-t speed-d">
-              <title id="speed-t">CSX 2738 against CSX 2121, by throttle step</title>
-              <desc id="speed-d">A chart of the speed of CSX 2738 as a percentage of CSX 2121 at each throttle step. Before programming, shown dashed, 2738 starts at 74 per cent at step 8, falls to 47 per cent at step 32, then climbs to 100 per cent at step 96 and about 101 per cent at the top. After programming, shown solid, it measures 105 per cent at step 12 and between 99 and 101 per cent at steps 24, 48 and 126. A shaded band marks 97 to 103 per cent, the repeatability of the measurements.</desc>
-              <rect class="band" x="56" y="51" width="404" height="18"/>
-              <line class="grid" x1="56" y1="120" x2="460" y2="120"/>
-              <line class="grid" x1="56" y1="180" x2="460" y2="180"/>
-              <line class="ref" x1="56" y1="60" x2="460" y2="60"/>
-              <line class="axis" x1="56" y1="240" x2="460" y2="240"/>
-              <line class="axis" x1="56" y1="30" x2="56" y2="240"/>
-              <text class="t-s" x="50" y="64" text-anchor="end">100%</text>
-              <text class="t-s" x="50" y="124" text-anchor="end">80%</text>
-              <text class="t-s" x="50" y="184" text-anchor="end">60%</text>
-              <text class="t-s" x="50" y="244" text-anchor="end">40%</text>
-              <text class="t-s" x="56" y="258" text-anchor="middle">0</text>
-              <text class="t-s" x="158.6" y="258" text-anchor="middle">32</text>
-              <text class="t-s" x="261.2" y="258" text-anchor="middle">64</text>
-              <text class="t-s" x="363.8" y="258" text-anchor="middle">96</text>
-              <text class="t-s" x="460" y="258" text-anchor="middle">126</text>
-              <text class="t-s" x="258" y="276" text-anchor="middle">Throttle step</text>
-              <text class="t-s" x="64" y="88">2121 = 100%</text>
-              <polyline class="before" points="81.7,138 94.5,183 107.3,204 133.0,216 158.6,219 209.9,189 261.2,156 312.5,93 363.8,60 415.1,45 460.0,57"/>
-              <g class="pt-b"><circle cx="81.7" cy="138" r="4"/><circle cx="94.5" cy="183" r="4"/><circle cx="107.3" cy="204" r="4"/><circle cx="133.0" cy="216" r="4"/><circle cx="158.6" cy="219" r="4"/><circle cx="209.9" cy="189" r="4"/><circle cx="261.2" cy="156" r="4"/><circle cx="312.5" cy="93" r="4"/><circle cx="363.8" cy="60" r="4"/><circle cx="415.1" cy="45" r="4"/><circle cx="460.0" cy="57" r="4"/></g>
-              <polyline class="after" points="94.5,44 133.0,59 209.9,58 460.0,64"/>
-              <g class="pt-a"><rect x="90.5" y="40" width="8" height="8"/><rect x="129" y="55" width="8" height="8"/><rect x="205.9" y="54" width="8" height="8"/><rect x="456" y="60" width="8" height="8"/></g>
-              <text class="t-b" x="172" y="231">Before: 2738 runs slow</text>
-              <text class="t-brand" x="236" y="42">After: matched</text>
-            </svg>
-            <figcaption><strong>2738 as a share of 2121&rsquo;s speed.</strong> Dashed with open circles is before programming, solid with squares is after. The after line was measured at four steps only. The shaded band is the 3 per cent the measurements repeat to.</figcaption>
-          </figure>
-          <p>I should be honest about what this does not show. The speeds are all relative. The lengths of the track blocks I used to turn lap times into millimetres a second came from the track plan, and the timings show several of them are wrong, so the true length of the loop is unknown. That makes every absolute figure, such as scale miles an hour, untrustworthy for now, and so would any station stop worked out from those lengths. The comparison between the two locomotives is not affected, because both were timed over the same track. They were timed running in opposite directions around the loop, though, so a direction effect is mixed in, and the first run of the two coupled together is still to come. Measuring the real blocks is still to do, along with a fuller re-measure at the steps not yet repeated and the same check with 2738 running the other way.</p>
-        </section>
-
-        <section id="maps" aria-labelledby="h-maps">
-          <h2 id="h-maps"><span class="num">17</span>Station maps in plastic</h2>
-          <p>The printer had a second kind of job waiting. The paper station maps that show a crew where each switch is could become fascia plates that hold the toggle switches themselves, with the track and lettering in a second colour, so the map and the switch are one object.</p>
-          <p>I did not start with the big map. A small test panel, 2 inches square with one toggle for Switch 13, came first. It answered three plain questions: how big the pocket must be, whether little crush ribs hold the toggle without glue, and whether a finger can still work it through a skin 1 mm thick. Measuring the real toggles with calipers helped, because they are smaller than their own drawing says.</p>
-          <p>With those answers the Barn station map was rebuilt: pockets of measured size, the thin skin, the ribs, and channels at the back that gather the wires from all four toggles to a single exit. It is still in progress. Barn has not printed successfully yet, because the lettering on the first layer would not stick to the plate, and I am working on that. When it does, the other station maps can follow the same method.</p>
+          <p>That was a real milestone. Until then the AI's work had been documents and software. Now it was something I could pick up and use to build the railroad. The <a href="../helix/index.html">helix page</a> has the plan and every fixture, and <a href="../build/index.html#helix">The Build</a> has the photos.</p>
         </section>
 
         <section id="arrived" aria-labelledby="h-arrived">
-          <h2 id="h-arrived"><span class="num">18</span>Where it arrived</h2>
+          <h2 id="h-arrived"><span class="num">12</span>Where it arrived</h2>
           <p>On the software side, the layout data, the panels and the signals now sit together as plain files, with one naming rule so switches, signals and tracks are called the same thing everywhere. Several signal systems were tried through September before I settled on the stock behaviour of JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the link to the electronics. Traffic and car records are kept the same way, so a car has one name from the card to the simulation. Some work stands on its own as pinned public projects inside this one: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>.</p>
           <p>The research is kept together, with a note of where each source came from. Every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source. A research helper looks things up and returns proposals with their sources. No source, no caption.</p>
           <p>The website has sections for different readers, and its pages are drawn from one source, so a change is made once, in one place. A page-building helper makes the pages. A reviewer helper reads the site as a first-time reader, a historian or a designer would, and this article was shaped that way.</p>
@@ -331,15 +234,14 @@
         </section>
 
         <section id="reuse" aria-labelledby="h-reuse">
-          <h2 id="h-reuse"><span class="num">19</span>Tools you can reuse</h2>
+          <h2 id="h-reuse"><span class="num">13</span>Tools you can reuse</h2>
           <p>Some of what came out of this is not about this railroad at all. Along the way the AI learned how JMRI, CATS and STS really behave, and that knowledge is worth sharing, so I packaged it for anyone to use on their own layout.</p>
           <p><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a> is a public plugin for Claude Code. A <b>skill</b> is a written guide the AI loads when a topic comes up, so it works from the right notes instead of guessing. There are six: editing JMRI panel files safely, signal mast logic, the Dispatcher System, JMRI and MQTT, running CATS on JMRI, and running STS in Docker. An <b>MCP</b> is a plug-in tool the AI can call, and there are two, both read-only, so the AI can look at what JMRI and the layout are reporting. Every rule was checked against the software's own source, and nothing in the plugin is specific to this railroad.</p>
-          <p>Two more plugins came from the November work. <a href="operations-pro-article.html">The Operations Pro plugin</a> sets up, checks, changes and explains an Operations Pro railroad. Unlike the skills above it changes your files, so it is a separate install, and it shows you a plan before it writes anything. The STS plugin, in the <a href="https://github.com/lnevo/sts-docker">sts-docker</a> project<sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, lets an agent operate and inspect a traffic simulator through its REST interface. Neither holds anything specific to this railroad.</p>
         </section>
 
         <section id="next" aria-labelledby="h-next">
-          <h2 id="h-next"><span class="num">20</span>More ways to use it</h2>
-          <p>Looking back along that timeline, what stands out is not any one tool. I still use all three: Claude is taking over from Cursor, and ChatGPT still has its own usefulness. What has really changed is how much I ask of them. It began with research and documents. Then came software that reaches the layout, car cards and traffic for operating sessions, a helix built with parts I could hold, and a project organised well enough for all of it to work together. The newest steps are the ones I find most satisfying: systems that keep each other in step, a roster that reaches the throttle in my hand, and two locomotives that now run at the same speed and stop the same way, ready to be tried as a pair.</p>
+          <h2 id="h-next"><span class="num">14</span>More ways to use it</h2>
+          <p>Looking back along that timeline, what stands out is not any one tool. I still use all three: Claude is taking over from Cursor, and ChatGPT still has its own usefulness. What has really changed is how much I ask of them. It began with research and documents. Then came software that reaches the layout, car cards and traffic for operating sessions, a helix built with parts I could hold, and finally a project organised well enough for all of it to work together.</p>
           <p>None of those steps was planned from the start. Each one came from asking what else this could help with, and each answer made the next question easier to see. That is why the value keeps growing: every new use leaves something behind for the next one to build on.</p>
           <p>The main level comes next, with more track, more wiring and more signals to work out. I don't yet know every way AI will help with it, and that is the part I look forward to finding out.</p>
         </section>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI, Control and Signals — HART</title>
+  <meta name="description" content="How AI helped turn the HART Railroad's track plan into JMRI panels, build the CATS and USS dispatcher desks, settle the signals on stock JMRI, and keep everything in one tables file.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <link rel="stylesheet" href="../css/ai.css">
+</head>
+<body data-page="behind-ai-control">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>Control &amp; Signals</h1>
+        <p class="standfirst">Getting the track into JMRI, putting a dispatcher in front of it, and making the signals in the aisle agree with both.</p>
+        <p class="byline">Control and signals · updated November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#panels">Track plan to panels</a></li>
+          <li><a href="#desks">The dispatcher desks</a></li>
+          <li><a href="#signals">Settling the signals</a></li>
+          <li><a href="#tables">One tables file</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">This topic has the most trial and error in it. AI made it cheap to try an approach, which is good, and it also made it easy to build something clever that I later had to take out. The direction that won in the end was the plainest one: use JMRI and CATS as they come, and put the effort into the railroad's own data.</p>
+        </section>
+
+        <section id="panels" aria-labelledby="h-panels">
+          <h2 id="h-panels"><span class="num">01</span>Track plan to panels</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor</dd></div>
+            <div><dt>When</dt><dd>January to June 2026</dd></div>
+            <div><dt>Status</dt><dd>Done; first production panel May 2026</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The track plan was drawn in AnyRail. JMRI needs its own Layout Editor panel, a drawing that knows where every track, turnout and block is. Drawing that by hand would mean doing the plan twice.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It wrote a pipeline that turns AnyRail exports into Layout Editor panels. Each generation did the job better than the one before.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The panel JMRI runs on. Today the panel is kept as a physical picture of the layout and is changed in place.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> getting from a drawing to a working panel without retracing it.</li>
+              <li><span class="k">Lesson:</span> a generator is great for the first version. After that, the panel itself became the thing to keep right.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../layout/index.html">Layout Explorer</a></p>
+        </section>
+
+        <section id="desks" aria-labelledby="h-desks">
+          <h2 id="h-desks"><span class="num">02</span>The dispatcher desks</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, then Claude</dd></div>
+            <div><dt>When</dt><dd>August 2026 on</dd></div>
+            <div><dt>Status</dt><dd>In service</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>A dispatcher needs a CTC board: levers or buttons to line routes and clear signals, and lights that show where the trains are.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>The CATS desk was drawn in its Designer as the main dispatcher's desk, and a stock JMRI USS CTC machine was built beside it as an alternate. Both were redrawn step by step from the first pilot to the finished board. The JMRI Dispatcher System was set up to run trains automatically.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>Two desks, never run at the same time, with guides for the person in the chair.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> wiring hundreds of panel items to the right JMRI names without typos.</li>
+              <li><span class="k">Needed me:</span> how a desk should feel to use. That only came from sitting at it.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../behind/panel-evolution.html">How the dispatcher panels grew</a> · <a href="../guides/index.html">Dispatcher guides</a></p>
+        </section>
+
+        <section id="signals" aria-labelledby="h-signals">
+          <h2 id="h-signals"><span class="num">03</span>Settling the signals</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, Grok, Claude</dd></div>
+            <div><dt>When</dt><dd>August to October 2026</dd></div>
+            <div><dt>Status</dt><dd>Settled on stock JMRI</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The signals in the aisle have to show what the dispatcher has lined and what the track ahead allows, and keep doing something sensible when nobody is dispatching.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Several signal systems were tried through September. Grok helped with part of turning the route logic into JMRI's own Signal Mast Logic, which ended up owning the aspects. Claude then took the custom pieces back out until what was left was stock JMRI behaviour with a few small additions, each with a reason.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>Signals that run on stock JMRI, and a short list of what was added to it and why.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> trying several designs quickly, then simplifying.</li>
+              <li><span class="k">Lesson:</span> AI will happily build around a problem. Asking it to fix the data instead of patching the program gave a railroad that survives JMRI upgrades.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../behind/signals.html">How the signals work</a> · <a href="../behind/jmri-additions.html">What we added to JMRI</a></p>
+        </section>
+
+        <section id="tables" aria-labelledby="h-tables">
+          <h2 id="h-tables"><span class="num">04</span>One tables file</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>October 2026 on</dd></div>
+            <div><dt>Status</dt><dd>In service</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>JMRI keeps every block, switch, signal and route in tables. With three computers running JMRI, there have to be not three slightly different copies but one.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It brought everything into one tables file kept in the repository, installed the same way on every computer. Scripts check it before every change, and a change saved in JMRI is pulled back into the repository before anything else touches it. A browser for its tables was built for this website from the same file.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>45 signal masts, 103 sections and 746 transits (the routes the automatic dispatcher can run), all in one place, and the same on every computer.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> careful, repeatable edits to a large XML file, with a check before each one.</li>
+              <li><span class="k">Rule that came with it:</span> never edit the file while JMRI has it open, because JMRI will write over the change.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../behind/tables-file.html">The tables file</a></p>
+        </section>
+
+        <nav class="ai-pager" aria-label="Topics">
+          <a href="electronics.html">← Electronics</a>
+          <a href="operations.html">Operations →</a>
+        </nav>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/ai-topic.js"></script>
+</body>
+</html>

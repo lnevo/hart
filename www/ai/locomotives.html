@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI and Locomotives — HART</title>
+  <meta name="description" content="How AI helped with the HART Railroad's locomotives: the roster on the TCS CS-105 command station and on both WiThrottle and LCC throttles, consistent roster photos, and speed matching CSX 2121 and 2738 to run as a pair.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <link rel="stylesheet" href="../css/ai.css">
+  <style>
+    /* Speed-match chart: same tokens. The two series differ by line style and marker as well as colour. */
+    .speed-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
+    .speed-svg .grid { stroke: var(--rule); stroke-width: 1; }
+    .speed-svg .axis { stroke: var(--muted); stroke-width: 1.5; }
+    .speed-svg .band { fill: var(--rule); opacity: .45; }
+    .speed-svg .ref { stroke: var(--ink-soft); stroke-width: 1.5; }
+    .speed-svg .before { fill: none; stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 7 5; }
+    .speed-svg .after { fill: none; stroke: var(--brand); stroke-width: 3; }
+    .speed-svg .pt-b { fill: var(--card); stroke: var(--muted); stroke-width: 2; }
+    .speed-svg .pt-a { fill: var(--brand); stroke: var(--card); stroke-width: 1.5; }
+    .speed-svg text { fill: var(--ink); font-size: 13px; }
+    .speed-svg .t-s { fill: var(--muted); font-size: 12px; }
+    .speed-svg .t-b { font-weight: 700; }
+    .speed-svg .t-brand { fill: var(--brand); font-weight: 700; }
+  </style>
+</head>
+<body data-page="behind-ai-locomotives">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>Locomotives</h1>
+        <p class="standfirst">A locomotive has to be known in several places that do not talk to each other, and two locomotives have to agree on speed before they can work together.</p>
+        <p class="byline">Locomotives · updated November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#roster">The roster on the throttle</a></li>
+          <li><a href="#photos">Roster photos</a></li>
+          <li><a href="#speed">Speed matching</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">This is the newest topic, and the one I find most satisfying, because the result is in my hand: a throttle that lists every locomotive by name, and two locomotives that start and stop together.</p>
+        </section>
+
+        <section id="roster" aria-labelledby="h-roster">
+          <h2 id="h-roster"><span class="num">01</span>The roster on the throttle</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>Public; in service</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>A locomotive has to be known in the DecoderPro roster and in the command station, and there are two kinds of throttle in people&rsquo;s hands. WiThrottle throttles on phones take their list from the JMRI roster. LCC throttles take theirs from the command station, a TCS CS-105, which speaks LCC. Both should list every locomotive by name with the function buttons labelled. Keeping the command station in step with the roster by hand does not last.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>DecoderPro can copy a roster entry into the command station only if the command station already has a train for that address, and there is no way to say &ldquo;create it&rdquo;. So the copy runs from inside JMRI instead: it reads the roster, asks the command station to create any train it is missing, and writes the name and function labels into each one. It refuses to apply anything when no CS-105 answers on the LCC bus. A small tool restarts the command station over LCC, and a helper builds a consist, with CSX 2121 leading and 2738 following in reverse, headlight linked.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>Every roster locomotive on the CS-105 by name, with the right buttons, so the LCC throttles list the same locomotives as the WiThrottle ones. The script is now its own public project so other modelers can use it.</p>
+          <p>Some things only showed up by trying. The command station keeps a train through a restart only once the train has a name; four came back blank the first time. The roster IDs became road and number, such as CSX 2121, because that is what the WiThrottle phone throttles show, and the CS-105 train names were matched to them. And the script that copies the roster to the Windows computer reported success for a while and delivered nothing, because the files were packed with absolute paths. Now the copy checks every file afterwards and fails loudly if any is missing.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> finding a way round a gap in the stock tools without changing them.</li>
+              <li><span class="k">Lesson:</span> a script that says it worked is not proof. Check the far end.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="https://github.com/lnevo/jmri-cs105-roster-sync">jmri-cs105-roster-sync on GitHub</a></p>
+        </section>
+
+        <section id="photos" aria-labelledby="h-photos">
+          <h2 id="h-photos"><span class="num">02</span>Roster photos</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>Thirteen locomotives so far</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The roster, the cards and the website all want a picture of each locomotive, and they should look like a set.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>A small tool cleans each photo the same way: level, a loose crop with room round the locomotive and track, colour and exposure left alone, a smooth grey backdrop and a soft shadow under the track. The two halves of a consist face opposite ways.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>Thirteen locomotives with a photo in the roster, installed on every computer; the newest are on the site too.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> a consistent look once the style was fixed.</li>
+              <li><span class="k">Needed me:</span> the style. The car-photo tool, tried first, cropped too tight, tilted a level photo and blew out the exposure, and a pure white backdrop was rejected. I approve the sheet before anything is recorded.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../photos/index.html#rolling-stock">Rolling stock photos</a></p>
+        </section>
+
+        <section id="speed" aria-labelledby="h-speed">
+          <h2 id="h-speed"><span class="num">03</span>Speed matching</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>2738 matched to 2121; first coupled run to come</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Two locomotives that run at different speeds cannot work together; one drags the other. I wanted CSX 2121 and 2738 to run as a pair.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>A program running inside JMRI set each locomotive to a throttle step, let it run laps of the whole loop and timed each lap from the block sensors, step after step, with no hands on the throttle. Both topped out at about the same speed, but 2738 ran at only 47 to 74 per cent of 2121&rsquo;s speed through the lower steps. Its settings explained why: the speed table was switched off and it had no momentum.</p>
+          <p>I chose to match 2738 to 2121, momentum included. It was programmed on the programming track with a calculated speed table, and every value read back correctly. Measured again at steps 24, 48 and 126 it ran within 1.2 per cent of 2121, and about 5 per cent fast at step 12. At step 96 the two stopped within a tenth of a second of each other and started within three tenths.</p>
+          <figure>
+            <svg class="speed-svg" viewBox="0 0 480 300" role="img" aria-labelledby="speed-t speed-d">
+              <title id="speed-t">CSX 2738 against CSX 2121, by throttle step</title>
+              <desc id="speed-d">A chart of the speed of CSX 2738 as a percentage of CSX 2121 at each throttle step. Before programming, shown dashed, 2738 starts at 74 per cent at step 8, falls to 47 per cent at step 32, then climbs to 100 per cent at step 96 and about 101 per cent at the top. After programming, shown solid, it measures 105 per cent at step 12 and between 99 and 101 per cent at steps 24, 48 and 126. A shaded band marks 97 to 103 per cent, the repeatability of the measurements.</desc>
+              <rect class="band" x="56" y="51" width="404" height="18"/>
+              <line class="grid" x1="56" y1="120" x2="460" y2="120"/>
+              <line class="grid" x1="56" y1="180" x2="460" y2="180"/>
+              <line class="ref" x1="56" y1="60" x2="460" y2="60"/>
+              <line class="axis" x1="56" y1="240" x2="460" y2="240"/>
+              <line class="axis" x1="56" y1="30" x2="56" y2="240"/>
+              <text class="t-s" x="50" y="64" text-anchor="end">100%</text>
+              <text class="t-s" x="50" y="124" text-anchor="end">80%</text>
+              <text class="t-s" x="50" y="184" text-anchor="end">60%</text>
+              <text class="t-s" x="50" y="244" text-anchor="end">40%</text>
+              <text class="t-s" x="56" y="258" text-anchor="middle">0</text>
+              <text class="t-s" x="158.6" y="258" text-anchor="middle">32</text>
+              <text class="t-s" x="261.2" y="258" text-anchor="middle">64</text>
+              <text class="t-s" x="363.8" y="258" text-anchor="middle">96</text>
+              <text class="t-s" x="460" y="258" text-anchor="middle">126</text>
+              <text class="t-s" x="258" y="276" text-anchor="middle">Throttle step</text>
+              <text class="t-s" x="64" y="88">2121 = 100%</text>
+              <polyline class="before" points="81.7,138 94.5,183 107.3,204 133.0,216 158.6,219 209.9,189 261.2,156 312.5,93 363.8,60 415.1,45 460.0,57"/>
+              <g class="pt-b"><circle cx="81.7" cy="138" r="4"/><circle cx="94.5" cy="183" r="4"/><circle cx="107.3" cy="204" r="4"/><circle cx="133.0" cy="216" r="4"/><circle cx="158.6" cy="219" r="4"/><circle cx="209.9" cy="189" r="4"/><circle cx="261.2" cy="156" r="4"/><circle cx="312.5" cy="93" r="4"/><circle cx="363.8" cy="60" r="4"/><circle cx="415.1" cy="45" r="4"/><circle cx="460.0" cy="57" r="4"/></g>
+              <polyline class="after" points="94.5,44 133.0,59 209.9,58 460.0,64"/>
+              <g class="pt-a"><rect x="90.5" y="40" width="8" height="8"/><rect x="129" y="55" width="8" height="8"/><rect x="205.9" y="54" width="8" height="8"/><rect x="456" y="60" width="8" height="8"/></g>
+              <text class="t-b" x="172" y="231">Before: 2738 runs slow</text>
+              <text class="t-brand" x="236" y="42">After: matched</text>
+            </svg>
+            <figcaption><strong>2738 as a share of 2121&rsquo;s speed.</strong> Dashed with open circles is before programming, solid with squares is after. The after line was measured at four steps only. The shaded band is the 3 per cent the measurements repeat to.</figcaption>
+          </figure>
+
+          <h3 class="ai-sub">What came out</h3>
+          <p>A matched pair, ready to be tried coupled, and a method to repeat for the other fifteen locomotives.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> hours of unattended, repeatable measuring, and a speed table worked out from the numbers rather than by feel.</li>
+              <li><span class="k">Be honest about:</span> the speeds are relative. The block lengths used to turn lap times into real speeds came from the track plan, and the timings show several are wrong, so scale miles an hour cannot be trusted yet. The comparison between the two is not affected, but they were timed running in opposite directions, so a direction effect is mixed in. Measuring the real blocks comes next.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf">Speed matching and the measure table</a> (the Short Track Rail Road club's procedure, PDF, 37 pp, which HART is adapting for HO)</p>
+        </section>
+
+        <nav class="ai-pager" aria-label="Topics">
+          <a href="operations.html">&larr; Operations</a>
+          <a href="workshop.html">The workshop &rarr;</a>
+        </nav>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/ai-topic.js"></script>
+</body>
+</html>

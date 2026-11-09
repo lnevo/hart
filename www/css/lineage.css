@@ -5,7 +5,7 @@
   --trunk: #1f5f8b;
   --n: 4;
 }
-.lineage-page .page-head .section-note { max-width: 62ch; margin-bottom: 0.6rem; }
+.lineage-page .page-head .section-note { margin-bottom: 0.6rem; }
 .lineage-page .page-head .small { margin: 0; }
 
 .year-pick {
@@ -473,7 +473,3 @@ table.lineage-table .sep { border-left: 2px solid var(--rule); }
   color: var(--brand);
 }
 
-/* The chart pages open with a few paragraphs of history: let them use the page width. */
-.lineage-page .page-head .section-note {
-  max-width: none;
-}

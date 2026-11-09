@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Diverging Route — AI in Model Railroading — HART</title>
+  <meta name="description" content="The Diverging Route: the unconventional approaches AI opened up on the HART Railroad, catalogued topic by topic: prototype research, construction, electronics, control and signals, operations, locomotives, and how the work is organised. Each job says what was asked, what came out and how well it went.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <link rel="stylesheet" href="../css/ai.css">
+</head>
+<body data-page="behind-ai">
+  <header class="site-header" data-ops-header></header>
+  <main class="ai-hub">
+    <div class="page-head">
+      <h1>The Diverging Route — AI in Model Railroading</h1>
+      <p class="section-note">
+        Model railroading is many hobbies in one. A single layout asks you to be a historian and a
+        carpenter, an electrician and a signal engineer, a programmer and a photographer, and in the end
+        a railroader running trains with friends. On a real railroad, the diverging route is the other way
+        through a switch, where a train leaves the straight main line and heads somewhere new. This
+        section is about taking that route: bringing AI into each of those crafts, often in ways the hobby
+        hasn&rsquo;t tried before, and seeing how much it changes what one modeler can research, build,
+        wire and run.
+      </p>
+      <p class="section-note">
+        It is catalogued by topic: the research, the benchwork, the electronics, the signals, the
+        paperwork and the locomotives. Each job says what I asked for, which tool did it, what came
+        out, and an honest verdict on how well it went.
+      </p>
+      <p class="section-note">
+        For the story in the order it happened, read
+        <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>,
+        written in October 2026. This section is the reference, and it keeps growing as I find new routes to try.
+      </p>
+    </div>
+
+    <section class="hub-group" id="topics" aria-labelledby="topics-title">
+      <h2 id="topics-title">Topics</h2>
+      <div class="card-grid">
+        <a class="card" href="research.html">
+          <p class="card-kind">Topic 1</p>
+          <h3>Prototype research</h3>
+          <p>Choosing the place and the era, the histories of the plants and railroads, and an archive where every picture carries its source.</p>
+          <p class="ai-count">4 jobs · ChatGPT, then Claude</p>
+        </a>
+        <a class="card" href="construction.html">
+          <p class="card-kind">Topic 2</p>
+          <h3>Construction</h3>
+          <p>The helix plan and its 47 printed fixtures, framing drawings and cut plans for the main level, and station maps in plastic.</p>
+          <p class="ai-count">4 jobs · ChatGPT, then Claude</p>
+        </a>
+        <a class="card" href="electronics.html">
+          <p class="card-kind">Topic 3</p>
+          <h3>Electronics</h3>
+          <p>The first ESP32 client, the bridge between LCOS and JMRI, and a wiring inventory that grew from a typed sketch.</p>
+          <p class="ai-count">3 jobs · Cursor, then Claude</p>
+        </a>
+        <a class="card" href="control.html">
+          <p class="card-kind">Topic 4</p>
+          <h3>Control &amp; signals</h3>
+          <p>Turning the track plan into JMRI panels, the two dispatcher desks, the signals, and the one file that holds them all.</p>
+          <p class="ai-count">4 jobs · Cursor, Grok, Claude</p>
+        </a>
+        <a class="card" href="operations.html">
+          <p class="card-kind">Topic 5</p>
+          <h3>Operations</h3>
+          <p>Car cards from photos, the traffic simulator, Operations Pro, keeping the two in step, and a careful way to let new stock in.</p>
+          <p class="ai-count">6 jobs · Cursor, then Claude</p>
+        </a>
+        <a class="card" href="locomotives.html">
+          <p class="card-kind">Topic 6</p>
+          <h3>Locomotives</h3>
+          <p>The roster on the command station and on both kinds of throttle, roster photos, and speed matching two locomotives to run as a pair.</p>
+          <p class="ai-count">3 jobs · Claude</p>
+        </a>
+        <a class="card" href="workshop.html">
+          <p class="card-kind">Topic 7</p>
+          <h3>The workshop</h3>
+          <p>How the work itself is organised: one repository, one source for each fact, agents and skills, this website, and tools shared with other modelers.</p>
+          <p class="ai-count">5 jobs · Cursor, then Claude</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="hub-group" id="rules" aria-labelledby="rules-title">
+      <h2 id="rules-title">How I use it</h2>
+      <p class="section-note">A few habits run through every topic. They came from mistakes as much as from plans.</p>
+      <ul class="ai-rules">
+        <li><b>It suggests, I approve</b>Readings of car numbers, research finds and changes to the railroad's files come to me as proposals. Nothing reaches the layout until I have looked.</li>
+        <li><b>The files are the master</b>Every computer gets the railroad from one repository. A change made somewhere else is brought back in, checked and only then sent out again.</li>
+        <li><b>Written down, or it didn't happen</b>An AI remembers nothing between sessions. Decisions are kept as short records it can read, saying what was chosen and why.</li>
+        <li><b>Checked against the real thing</b>Rules about JMRI, CATS and STS are checked against their source code. Heights, pockets and speeds are checked with calipers, test prints and laps of the loop.</li>
+        <li><b>No source, no caption</b>A historic photo or fact goes on the site only with its credit or source.</li>
+        <li><b>Stock where possible</b>When JMRI or CATS does something awkward, the fix goes into the railroad's own data, not into a patched copy of the program.</li>
+      </ul>
+    </section>
+
+    <section class="hub-group" id="tools" aria-labelledby="tools-title">
+      <h2 id="tools-title">Which tools, and when</h2>
+      <p class="section-note">The dates are approximate. I still use all of them for something.</p>
+      <div class="table-wrap">
+        <table class="ai-tools">
+          <thead>
+            <tr><th>Tool</th><th>From</th><th>Used for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ChatGPT</td><td>Early 2025</td><td>Research, the backstory and stories, the logo, most of the early documents, and the helix design.</td></tr>
+            <tr><td>Cursor</td><td>August 2025</td><td>An AI code editor. The first code, the bridge, the wiring inventory, the panel pipeline, the traffic simulator, the desks, and gathering everything into one repository.</td></tr>
+            <tr><td>Grok</td><td>August 2026</td><td>Part of turning route logic into JMRI's own Signal Mast Logic.</td></tr>
+            <tr><td>Claude</td><td>September 2026</td><td>Taking over from Cursor: the helix fixtures, the consolidation, the benchwork drawings, Operations Pro, the roster and speed matching, and this website.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script src="../js/ai-topic.js"></script>
+</body>
+</html>
