@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-09 — Final cleanup, first pass (ADR-007 amended). The repo `archive/` stays. `~/sts` was moved to the Trash, its photos already being in the repo. The 87 car photo files in `~/Desktop/HART/Car Cards/Images` were moved to the Trash after all 84 distinct photos were matched in the Photos library (June 17–18, 2026 shoot). Seven `~/Documents` files identical to `media/hart-research` were moved to the Trash. Still open: the rest of `~/Desktop/HART`.
+
 Updated: 2026-11-09 — Removed the "Next" section: adding new cars and locomotives through the staged intake (and HART 1776 and the 28 unphotographed cars waiting for cards) is ongoing as the collection grows, not a backlog item. The owner starts intake when ready; the runbook stays in `pipelines/intake-stages.md`.
 
 Updated: 2026-11-09 — Backlog cleared with the owner. The CS-105 follow-ups for CSX 2121 and 2738 (roster sync, the CS-105 side of speed matching, the consist test) are closed: the owner considers them done. Their Operations location is not needed. Coke pools for the ten new CSX hoppers are dropped from the list; the owner will take them up when ready. Still owed: the generic command-station detection test for jmri-cs105-roster-sync PR #1.

@@ -40,4 +40,12 @@ Consolidation decisions:
 | D8, D10, D10b | Closed |
 | P4a | Closed 2026-10-31: the loose `~/Desktop/HART` files are sorted into `media/hart-research`. The owner confirmed the two wiring `.pptx` and three root `.docx` left there are older copies to ignore: `docs/` holds the current versions, including `docs/wiring/Layout Documentation.pptx` and the recovered `docs/wiring/terminal_blocks.md` |
 
+## Amendment 2026-11-09 (final cleanup, first pass)
+
+- The repo's `archive/` **stays**. It holds retired material that nothing runs, and the owner keeps it in the tree. This replaces "retire the repo's `archive/`" in decision 1.
+- `~/sts` is retired. It had been frozen since 2026-09-05; its photos were already in the repo, and the owner judged its old session files and database not worth keeping. It was moved to the Trash.
+- The original car photos behind the card pipeline (`~/Desktop/HART/Car Cards/Images`, the June 2026 shoot) are kept in the owner's Photos library, not on disk. All 84 distinct photos were matched there by file name and shoot date, then the disk copies were moved to the Trash.
+- Files in `~/Documents` that were byte-identical copies of repo content (seven research images and `ThisIsShenango.pdf`, all in `media/hart-research`) were moved to the Trash. Kept: the `.any` track plans, the Arduino IDE sketchbook (`~/Documents/Arduino`, `LCOS_Client_Bare`), and two images that belong to other sets (a saved web page and `Layout/For James`).
+- Still open: the rest of `~/Desktop/HART`, including `Car Cards/archive` and the `sync_desktop_data.py` pairs.
+
 Records under `consolidation/` that say otherwise, including `AGENTS.md`, `OBJECTIVE.md` and `DECISIONS_RECORDED.md`, are superseded by this ADR.
