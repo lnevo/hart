@@ -40,11 +40,6 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 - 3D station maps: multi-colour fascia plates that hold Touch Toggles ([`docs/benchwork/station_maps_3d/`](../docs/benchwork/station_maps_3d/README.md)). Barn is the first and only map modelled so far. Its plate outline and thickness are placeholders until the frame is measured, and the toggle pocket depth is a guess.
 
-## Next
-
-- Car workflow is ready ([`pipelines/car-workflow.md`](pipelines/car-workflow.md), ADR-013). Add new photos (cars and locos) through the staged intake ([`pipelines/intake-stages.md`](pipelines/intake-stages.md), ADR-018): `bin/cars review`, `approve`, `records`. First real batch done 2026-11-08 (ten CSX hoppers, STS cars 81 to 90, live on the site and the layout hosts); lessons are folded into the runbook. The first locomotive batch (CSX 2121 and 2738) ran the same day: records, Operations engine roster, cards, roster photos and the public gallery.
-- HART 1776 stays out of STS until its car card is generated. The 28 cars with no photo stay out too: no photo means no card, so they go in only after a photo.
-
 ## Future goals
 
 - Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
