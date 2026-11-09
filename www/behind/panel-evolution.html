@@ -16,14 +16,15 @@
   <main>
     <div class="page-head">
       <h1>How the dispatcher panels grew</h1>
-      <p class="section-note">Two CTC panels, both built during August 2026, shown a step at a time.</p>
+      <p class="section-note">The two CTC panels, built from August 2026, and the Layout Editor panel underneath them, each shown a step at a time.</p>
     </div>
 
     <article class="explainer prose">
       <p>
         HART has two dispatcher panels over the same railroad (see <a href="signals.html">How the signals work</a>).
         Neither was drawn in one go. Each grew from a few track pieces and station names into the full plant, and
-        the screenshots taken along the way make a short film. Both loop, with no sound.
+        the screenshots taken along the way make a short film. Underneath both is JMRI's Layout Editor panel, the
+        drawing of the track that JMRI itself works from, and it has a film of its own at the end. All three loop, with no sound.
       </p>
 
       <h2>The JMRI lever machine</h2>
@@ -32,15 +33,16 @@
         track board. It was built by scripts rather than by hand: Python code running inside JMRI creates the fifteen
         control points and their locking, and a separate generator draws the track diagram. The pilot was only two
         locations, Brick and Plane, three columns wide. The rest followed over a single long session, from the evening of 19 August into the early hours of 20 August, and the finished
-        panel carries the railroad's name across the top.
+        panel carries the railroad's name across the top. It kept changing after that: it was redrawn by the generator,
+        straightened out with the OS track names, and by late September it was twenty columns wide and used the public track names.
       </p>
       <figure>
         <video controls autoplay muted loop playsinline preload="metadata" poster="../assets/behind/panel-evolution/uss-poster.jpg"
-               aria-label="Eleven screenshots of the JMRI lever machine panel in order, from a three-column pilot to the finished panel">
+               aria-label="Fifteen screenshots of the JMRI lever machine panel in order, from a three-column pilot to the twenty-column board">
           <source src="../assets/behind/panel-evolution/uss-panel-evolution.mp4" type="video/mp4">
           <img src="../assets/behind/panel-evolution/uss-poster.jpg" alt="The finished JMRI lever machine panel, titled for Neville Island">
         </video>
-        <figcaption>The lever machine panel, from the first pilot to the finished board, 19 to 20 August 2026.</figcaption>
+        <figcaption>The lever machine panel, from the first pilot to the twenty-column board, 19 August to 28 September 2026.</figcaption>
       </figure>
       <ol class="stages">
         <li>Pilot: Brick and Plane, three columns</li>
@@ -54,6 +56,10 @@
         <li>Title banner and the lever art</li>
         <li>Connected: occupancy and signal aspects live</li>
         <li>The finished panel, titled for Neville Island</li>
+        <li>Running: lamps lit on the levers</li>
+        <li>Redrawn by the generator, every lamp unknown until JMRI reports</li>
+        <li>Straight mains and the OS track names, twenty columns</li>
+        <li>Public names: Track S-1, Track EH-1, Track K-1</li>
       </ol>
 
       <h2>The CATS Digicon panel</h2>
@@ -66,7 +72,7 @@
       </p>
       <figure>
         <video controls autoplay muted loop playsinline preload="metadata" poster="../assets/behind/panel-evolution/cats-poster.jpg"
-               aria-label="Eleven screenshots of the CATS dispatcher panel in order, from bare track and station names to the titled Rev A diagram">
+               aria-label="Twelve screenshots of the CATS dispatcher panel in order, from bare track and station names to the titled Rev A diagram">
           <source src="../assets/behind/panel-evolution/cats-panel-evolution.mp4" type="video/mp4">
           <img src="../assets/behind/panel-evolution/cats-poster.jpg" alt="The CATS dispatcher panel: white track on black with station names and route labels">
         </video>
@@ -83,7 +89,31 @@
         <li>Redrawn on straight mains, with engine house tracks EH-1 to EH-3</li>
         <li>Title block: Neville Island Operations, CTC Digicon</li>
         <li>Retitled ABS Digicon; Brick-Plane, Scale and Barn labelled</li>
+        <li>Routes lined in green on the CTC Digicon</li>
         <li>Rev A, effective 26 August</li>
+      </ol>
+
+      <h2>The Layout Editor panel</h2>
+      <p>
+        This one came first. The Layout Editor panel is JMRI's own drawing of the track: every block, turnout and
+        signal mast the software knows about sits on it, and the dispatcher panels are built on top of it. It began
+        in May 2026 as one long, flat schematic with the switches numbered 100 to 115, and was redrawn in June with
+        named tracks and the loop at the east end. By the end of August it carried the signals, the occupancy and the
+        labels used today. It is kept as a picture of the real layout rather than a tidy diagram.
+      </p>
+      <figure>
+        <video controls autoplay muted loop playsinline preload="metadata" poster="../assets/behind/panel-evolution/le-poster.jpg"
+               aria-label="Four screenshots of the JMRI Layout Editor panel in order, from the first flat schematic in May to the signalled panel at the end of August">
+          <source src="../assets/behind/panel-evolution/le-panel-evolution.mp4" type="video/mp4">
+          <img src="../assets/behind/panel-evolution/le-poster.jpg" alt="The Layout Editor panel at the end of August 2026: track, switch numbers, signals and block labels on a light blue background">
+        </video>
+        <figcaption>The Layout Editor panel, 20 May to 31 August 2026. <a href="../assets/behind/panel-evolution/le-poster.jpg">Open the last frame full size</a>.</figcaption>
+      </figure>
+      <ol class="stages">
+        <li>20 May: the first panel, one long schematic with switch numbers 100 to 115</li>
+        <li>7 June: redrawn with named tracks, the loop, and Brick, Plane, East End and Princess</li>
+        <li>20 August: signals and occupancy; Barn and Switches 116 to 119</li>
+        <li>31 August: SW numbers, block labels and status lamps</li>
       </ol>
 
       <p>

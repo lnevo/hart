@@ -39,6 +39,7 @@ FRAMES: list[tuple[str, tuple[int, int, int, int], str]] = [
     ("cats_dispatcher_20260823_204325.png", None, "Redrawn on straight mains; engine house tracks EH-1 to EH-3"),
     ("cats_dispatcher_20260825_015115.png", None, "Title block: Neville Island Operations, CTC Digicon"),
     ("cats_dispatcher_20260825_075630.png", None, "Retitled ABS Digicon; Brick-Plane, Scale and Barn labelled"),
+    ("cats_dispatcher_20260826_123325.png", None, "Routes lined in green on the CTC Digicon"),
     ("cats_dispatcher_20260826_184626.png", None, "Rev A, effective 26 August"),
 ]
 
