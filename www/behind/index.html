@@ -6,6 +6,12 @@
   <title>Behind the Scenes — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/video.css">
+  <style>
+    /* The Diverging Route: the catalogue link is the section's lead, so it reads as a title and gets a button. */
+    .ai-lead-link { font-weight: 700; color: var(--brand); text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+    .ai-lead-link:hover { color: var(--brand-2); }
+    .ai-lead-cta { margin: 0.2rem 0 1.1rem; }
+  </style>
 </head>
 <body>
   <header class="site-header" data-ops-header></header>
@@ -19,18 +25,16 @@
     </div>
 
     <section class="hub-group" id="ai" aria-labelledby="ai-title">
-      <h2 id="ai-title">AI in Model Railroading</h2>
+      <h2 id="ai-title">The Diverging Route — AI in Model Railroad</h2>
       <p class="section-note">
-        AI has worked on nearly every part of this railroad. The catalogue takes it topic by topic:
-        what I asked for, which tool did it, what came out, and how well it went. The research and the
-        construction are covered there too; the sections below follow the other topics.
+        AI has worked on nearly every part of this railroad: the research, the benchwork, the
+        electronics, the signals, the paperwork and the locomotives.
+        <a class="ai-lead-link" href="ai/index.html">AI in Model Railroading</a> catalogues those
+        jobs topic by topic: what I asked for, which tool did it, what came out, and how well it went.
+        The sections below follow its electronics, signals, operations and locomotives topics.
       </p>
+      <p class="ai-lead-cta"><a class="btn" href="ai/index.html">Open the catalogue →</a></p>
       <div class="card-grid">
-        <a class="card" href="ai/index.html">
-          <p class="card-kind">Catalogue · All topics</p>
-          <h3>AI in Model Railroading</h3>
-          <p>Prototype research, construction, electronics, control and signals, operations, locomotives, and the workshop.</p>
-        </a>
         <a class="card" href="../library/how-it-was-built-article.html">
           <p class="card-kind">Article · October 2026</p>
           <h3>Bringing the railroad together</h3>
