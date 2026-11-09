@@ -168,23 +168,26 @@
   white-space: nowrap;
 }
 
-/* The Diverging Route graphic on the hub: a main line, a turnout, and the topics as stops on the diverging track. */
-.route-figure {
-  margin: 0 0 1.5rem;
-  padding: 0.9rem 1rem 0.7rem;
+/* The Diverging Route banner under the hub title: a main line, a turnout, and the topics as stops on the diverging track. */
+.hub-banner {
+  margin: 0.75rem 0 1.25rem;
+  padding: 0.6rem 1rem 0.5rem;
   background: var(--card);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--accent);
 }
 
-.route-figure svg {
+.hub-banner svg {
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
 }
 
-.route-figure .route-tall {
+.hub-banner .route-wide {
+  max-height: 220px;
+}
+
+.hub-banner .route-tall {
   display: none;
   max-width: 22rem;
   margin: 0 auto;
@@ -220,19 +223,14 @@
   stroke-width: 2;
 }
 
-.route-title {
-  font-family: var(--font-display);
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  fill: var(--brand);
-}
-
-.route-sub,
 .route-main {
   font-family: var(--font-body);
   font-size: 20px;
   fill: var(--muted);
+}
+
+.route-hit {
+  fill: transparent;
 }
 
 .route-stop {
@@ -255,29 +253,38 @@
   fill: var(--ink);
 }
 
-.route-figure a:hover .route-label,
-.route-figure a:focus-visible .route-label {
+.hub-banner a:hover .route-label,
+.hub-banner a:focus-visible .route-label {
   fill: var(--brand-2);
   text-decoration: underline;
 }
 
-.route-figure a:hover .route-stop,
-.route-figure a:focus-visible .route-stop {
+.hub-banner a {
+  outline: none;
+}
+
+.hub-banner a:hover .route-stop,
+.hub-banner a:focus-visible .route-stop {
   fill: var(--accent-on-dark);
 }
 
-.route-figure figcaption {
+.hub-banner a:focus-visible .route-stop {
+  stroke: var(--ink);
+  stroke-width: 6;
+}
+
+.hub-banner figcaption {
   margin-top: 0.5rem;
   font-size: 0.88rem;
   color: var(--muted);
 }
 
 @media (max-width: 700px) {
-  .route-figure .route-wide {
+  .hub-banner .route-wide {
     display: none;
   }
 
-  .route-figure .route-tall {
+  .hub-banner .route-tall {
     display: block;
   }
 }
