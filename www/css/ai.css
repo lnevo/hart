@@ -282,3 +282,45 @@
     display: block;
   }
 }
+
+/* Getting started: a sub-heading and a plain bulleted list under the habits list. */
+.hub-group .hub-sub {
+  margin: 2rem 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: var(--brand-2);
+}
+
+.ai-try {
+  columns: 2;
+  column-gap: 2.5rem;
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+}
+
+.ai-try li {
+  margin: 0 0 0.5rem;
+  break-inside: avoid;
+}
+
+.ai-adv {
+  margin: 0 0 1rem;
+}
+
+@media (max-width: 700px) {
+  .ai-try {
+    columns: 1;
+  }
+}
+
+/* Topics follows Getting started: same extra gap the Operations hub uses between its two groups. */
+#topics {
+  margin-top: 2.5rem;
+}
+
+/* The section's name in the intro: a true bold (700 is loaded on this page only) in the dark brand colour. */
+.ai-hub .page-head .section-note strong {
+  font-weight: 700;
+  color: var(--brand);
+}
