@@ -167,3 +167,118 @@
   color: var(--brand);
   white-space: nowrap;
 }
+
+/* The Diverging Route banner under the hub title: a straight main line on top, and a passing siding
+   whose stops are loud, comic-style AI buzzwords. */
+.hub-banner {
+  margin: 1rem 0 1.25rem;
+  padding: 0.6rem 0.9rem 0.4rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+}
+
+.hub-banner svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hub-banner .route-tall {
+  display: none;
+  max-width: 24rem;
+  margin: 0 auto;
+}
+
+.route-ties {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 18;
+  stroke-dasharray: 3 9;
+  opacity: 0.35;
+}
+
+.route-rail {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 3;
+}
+
+.route-ties-hot {
+  stroke: var(--brand-2);
+  opacity: 0.45;
+}
+
+.route-rail-hot {
+  stroke: var(--brand);
+  stroke-width: 4;
+}
+
+.route-points {
+  fill: var(--accent);
+  stroke: var(--brand);
+  stroke-width: 2;
+}
+
+.route-stop {
+  fill: var(--accent);
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+/* Comic-style labels: loud, tilted, mixed sizes, offset shadows. */
+.cm-shadow {
+  fill: var(--ink);
+}
+
+.cm-bubble,
+.cm-tag,
+.cm-burst {
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.cm-bubble {
+  fill: var(--accent);
+}
+
+.cm-tag {
+  fill: var(--card);
+}
+
+.cm-burst {
+  fill: var(--brand-2);
+}
+
+.cm-tail {
+  fill: var(--ink);
+}
+
+.cm-text {
+  font-family: "Marker Felt", "Chalkboard SE", "Bradley Hand", "Comic Neue", "Comic Sans MS", cursive;
+  font-weight: 700;
+  fill: var(--ink);
+}
+
+.cm-text.cm-on-dark {
+  fill: #fff;
+}
+
+.cm-text.cm-plain {
+  fill: var(--brand);
+  stroke: var(--card);
+  stroke-width: 6;
+  paint-order: stroke;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 700px) {
+  .hub-banner .route-wide {
+    display: none;
+  }
+
+  .hub-banner .route-tall {
+    display: block;
+  }
+}
