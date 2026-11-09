@@ -15,7 +15,7 @@
     <article class="feature">
       <header class="feature-head">
         <h1>The Workshop</h1>
-        <p class="standfirst">Not a railroad job but the bench all the others sit on: where the work lives, the rules every tool reads, and what gets shared.</p>
+        <p class="standfirst">Not a railroad job but the bench all the others sit on: where the work lives, how each fact is kept once, the agents and skills, and what gets shared.</p>
         <p class="byline">How it is organised · updated November 2026</p>
       </header>
 
@@ -24,8 +24,7 @@
         <ol>
           <li><a href="#repo">One repository</a></li>
           <li><a href="#sources">One source for each fact</a></li>
-          <li><a href="#rules">Decisions and written rules</a></li>
-          <li><a href="#helpers">Helpers and checks</a></li>
+          <li><a href="#agents">Agents and skills</a></li>
           <li><a href="#site">This website</a></li>
           <li><a href="#shared">Tools shared with others</a></li>
         </ol>
@@ -33,7 +32,7 @@
 
       <div class="feature-body">
         <section id="intro" aria-label="Introduction">
-          <p class="lede">Early on I asked AI for documents. Now I give it a place to work and a set of written rules, and I ask the same of every tool that comes after. That change is the quiet one behind every other topic in this section.</p>
+          <p class="lede">Early on I asked AI for documents. Now I give it a place to work, one owner for every fact, and helpers that know how the railroad&rsquo;s software really behaves. That change is the quiet one behind every other topic in this section.</p>
         </section>
 
         <section id="repo" aria-labelledby="h-repo">
@@ -98,53 +97,32 @@
           <p class="ai-see"><b>See it:</b> <a href="../wiring.html">Wiring viewer</a> · <a href="../../roster/index.html">Device roster</a> · <a href="../tables-file.html">The tables file</a> · <a href="operations.html#sync">Keeping STS and JMRI in step</a></p>
         </section>
 
-        <section id="rules" aria-labelledby="h-rules">
-          <h2 id="h-rules"><span class="num">03</span>Decisions and written rules</h2>
-          <dl class="ai-facts">
-            <div><dt>Tool</dt><dd>Claude</dd></div>
-            <div><dt>When</dt><dd>August 2026 on</dd></div>
-            <div><dt>Status</dt><dd>18 decision records</dd></div>
-          </dl>
-          <h3 class="ai-sub">The job</h3>
-          <p>An AI forgets everything between sessions. Without help, each new session rediscovers old answers, or worse, undoes them.</p>
-          <h3 class="ai-sub">What AI did</h3>
-          <p>Important choices are written down as short decision records, each saying what was decided, why, and what it replaced: which file is the master for the signals, that STS owns where the cars are, how new stock is let in. A living status page says what is true today. One set of written rules tells every tool how to work here, from which commands to run to what never to touch.</p>
-          <blockquote class="pull"><p>Chat is a scratchpad; decisions live in the wiki.</p></blockquote>
-          <h3 class="ai-sub">What came out</h3>
-          <p>A tool that starts fresh can read its way into the project in minutes and pick up where the last one stopped.</p>
-          <div class="ai-verdict">
-            <b>Verdict</b>
-            <ul>
-              <li><span class="k">Worked well:</span> fewer repeated mistakes, and decisions that do not drift.</li>
-              <li><span class="k">Needed me:</span> keeping them true. A stale record is worse than none, because it is believed.</li>
-            </ul>
-          </div>
-        </section>
-
-        <section id="helpers" aria-labelledby="h-helpers">
-          <h2 id="h-helpers"><span class="num">04</span>Helpers and checks</h2>
+        <section id="agents" aria-labelledby="h-agents">
+          <h2 id="h-agents"><span class="num">03</span>Agents and skills</h2>
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Claude</dd></div>
             <div><dt>When</dt><dd>October 2026 on</dd></div>
-            <div><dt>Status</dt><dd>Five helpers</dd></div>
+            <div><dt>Status</dt><dd>Five agents, six skills</dd></div>
           </dl>
           <h3 class="ai-sub">The job</h3>
-          <p>Some jobs are big enough to hand to a second AI with a narrow brief, and some mistakes are common enough to catch automatically.</p>
+          <p>A general AI knows a little about JMRI, CATS and STS, and guesses the rest. The answers that matter on this railroad, such as why a mast stays red or where a value on the panel comes from, need the real behaviour of those programs and a look at what the layout is reporting.</p>
           <h3 class="ai-sub">What AI did</h3>
-          <p>A few helpers each have one job: one traces why a signal or panel behaves as it does, one audits the repository for dead code and stale pages, one reviews the website through a named lens, one researches history and returns proposals with sources, and one builds website pages. The tracers and reviewers can only read. Small automatic checks run before every change to the railroad's files, and a guard stops commits straight to the main line of the repository.</p>
+          <p>Two things were set up. <b>Skills</b> are written guides the AI loads when a topic comes up, so it works from checked notes instead of memory: editing JMRI panel files safely, Signal Mast Logic, the Dispatcher System, JMRI and MQTT, running CATS on JMRI, and STS in Docker. Every rule was checked against the program&rsquo;s own source. Two read-only tools let it see what JMRI and the layout&rsquo;s MQTT messages are reporting right now.</p>
+          <p><b>Agents</b> are helpers with one job each. One traces why a signal, panel, Dispatcher run or MQTT value behaves as it does. One researches the railroad&rsquo;s history and returns proposals with sources. Others build and review this website, or look for stale pages and dead code. The tracer and the researcher can only read, so they can be handed a big search without risk to the railroad.</p>
           <h3 class="ai-sub">What came out</h3>
-          <p>Focused second opinions, and mistakes caught before they spread. One of the checks describes itself as &ldquo;a guardrail against mistakes, not a security boundary&rdquo;, and I take that literally.</p>
+          <p>Questions about the signals and the panels get answered from the source and the live layout, not from a guess. The skills were general enough to share and became the public <a href="#shared">model-railroad-skills</a> plugin; the Operations Pro and STS plugins followed the same pattern.</p>
           <div class="ai-verdict">
             <b>Verdict</b>
             <ul>
-              <li><span class="k">Worked well:</span> read-only helpers. A helper that cannot change anything is easy to trust with a big search.</li>
-              <li><span class="k">Watch for:</span> a helper handed my guess tends to come back agreeing with it. Give it the evidence, not the conclusion.</li>
+              <li><span class="k">Worked well:</span> skills checked against the source, so the AI stops describing how JMRI ought to work and says how it does.</li>
+              <li><span class="k">Watch for:</span> an agent handed my guess tends to come back agreeing with it. Give it the evidence, not the conclusion.</li>
             </ul>
           </div>
+          <p class="ai-see"><b>See it:</b> <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills on GitHub</a></p>
         </section>
 
         <section id="site" aria-labelledby="h-site">
-          <h2 id="h-site"><span class="num">05</span>This website</h2>
+          <h2 id="h-site"><span class="num">04</span>This website</h2>
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Cursor, then Claude</dd></div>
             <div><dt>When</dt><dd>2026 on</dd></div>
@@ -153,7 +131,7 @@
           <h3 class="ai-sub">The job</h3>
           <p>The site serves crews on session night, visitors who want the history, and modelers who want to see how it works. It began on a local server for operators only.</p>
           <h3 class="ai-sub">What AI did</h3>
-          <p>It built the pages, moved the site to its own domain and keeps it drawn from the same data the railroad uses, so a change is made once. A reviewer helper reads pages as a first-time reader, a historian or a designer would. The build refuses to publish if anything private, such as a local address, has leaked into a page.</p>
+          <p>It built the pages, moved the site to its own domain and keeps it drawn from the same data the railroad uses, so a change is made once. A reviewer agent reads pages as a first-time reader, a historian or a designer would. The build refuses to publish if anything private, such as a local address, has leaked into a page.</p>
           <h3 class="ai-sub">What came out</h3>
           <p>The site you are reading, including this section.</p>
           <div class="ai-verdict">
@@ -167,7 +145,7 @@
         </section>
 
         <section id="shared" aria-labelledby="h-shared">
-          <h2 id="h-shared"><span class="num">06</span>Tools shared with others</h2>
+          <h2 id="h-shared"><span class="num">05</span>Tools shared with others</h2>
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Claude</dd></div>
             <div><dt>When</dt><dd>October 2026 on</dd></div>
@@ -178,7 +156,7 @@
           <h3 class="ai-sub">What AI did</h3>
           <p>It packaged what is generic into public projects, none holding anything specific to this railroad. The guides in the skills plugin were checked against each program's own source.</p>
           <ul>
-            <li><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a>: a Claude Code plugin with six written guides the AI loads when a topic comes up (JMRI panel files, signal mast logic, the Dispatcher System, JMRI and MQTT, CATS on JMRI, STS in Docker) and two read-only tools to look at JMRI and the layout.</li>
+            <li><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a>: the six skills and two read-only tools <a href="#agents">described above</a>, as a Claude Code plugin.</li>
             <li><a href="../../library/operations-pro-article.html">The Operations Pro plugin</a>: sets up, checks and explains an Operations Pro railroad.</li>
             <li>The STS plugin, in <a href="https://github.com/lnevo/sts-docker">sts-docker</a>: operate and inspect a traffic simulator through its REST interface.</li>
             <li><a href="https://github.com/lnevo/jmri-cs105-roster-sync">jmri-cs105-roster-sync</a>: the JMRI roster on a TCS CS-105.</li>
