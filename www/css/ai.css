@@ -273,6 +273,31 @@
   stroke-linejoin: round;
 }
 
+/* The status quo stops on the main line: deliberately plain, so the AI stops are the loud ones. */
+.sq-stop {
+  fill: var(--paper-2);
+  stroke: var(--ink-soft);
+  stroke-width: 3;
+}
+
+.sq-lead {
+  stroke: var(--ink-soft);
+  stroke-width: 2;
+}
+
+.sq-tag {
+  fill: var(--paper);
+  stroke: var(--ink-soft);
+  stroke-width: 2;
+}
+
+.sq-text {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 18px;
+  fill: var(--ink-soft);
+}
+
 @media (max-width: 700px) {
   .hub-banner .route-wide {
     display: none;
