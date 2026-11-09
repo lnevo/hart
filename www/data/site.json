@@ -86,15 +86,7 @@
         "behind-ai-control",
         "behind-ai-operations",
         "behind-ai-locomotives",
-        "behind-ai-workshop"
-      ]
-    },
-    {
-      "id": "build",
-      "href": "build/index.html",
-      "label": "The Build",
-      "short": "Build",
-      "pages": [
+        "behind-ai-workshop",
         "build",
         "helix",
         "helix-status"
