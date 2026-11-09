@@ -1,5 +1,7 @@
 # Status log
 
+Updated: 2026-11-09 — Backlog cleared with the owner. The CS-105 follow-ups for CSX 2121 and 2738 (roster sync, the CS-105 side of speed matching, the consist test) are closed: the owner considers them done. Their Operations location is not needed. Coke pools for the ten new CSX hoppers are dropped from the list; the owner will take them up when ready. Still owed: the generic command-station detection test for jmri-cs105-roster-sync PR #1.
+
 Updated: 2026-11-08 — STS staging for the 2026-11-08 operating session is done and the session ran; the owner reports it went well. Removed it from the Owed list in STATUS.
 
 Updated: 2026-11-08 — The 2121/2738 LCC consist survived a CS-105 restart. Fixed the silent failure in `tools/hosts/sync_roster_from_pi.sh --win`: the tar step stored absolute paths, so nothing reached the Windows roster while the script reported success. The packing is now `tools/hosts/pack_roster_stage.sh` (relative names, unit-tested), and `win_install_roster.ps1` compares every file's hash after copying and fails if nothing was staged. Proved on the Windows host by restoring the old `2738.xml` and re-running the sync.
