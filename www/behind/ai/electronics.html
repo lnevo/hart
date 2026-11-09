@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI and Electronics — HART</title>
+  <meta name="description" content="How AI wrote the HART Railroad's electronics software: the first ESP32 client, the bridge between LCOS and JMRI, and the wiring inventory behind the wiring viewer and device roster.">
+  <link rel="stylesheet" href="../../css/ops.css">
+  <link rel="stylesheet" href="../../css/article.css">
+  <link rel="stylesheet" href="../../css/ai.css">
+</head>
+<body data-page="behind-ai-electronics">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>Electronics</h1>
+        <p class="standfirst">Every line of our own code that the railroad runs was written by AI. Most of the early code went into getting the layout's radios and the computer to talk.</p>
+        <p class="byline">Electronics · updated November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#traincode">The first client</a></li>
+          <li><a href="#bridge">The LCOS bridge</a></li>
+          <li><a href="#wiring">The wiring inventory</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">This is where AI stopped writing documents and started writing things that run. The change was that the AI was working in the same files I was, in an AI code editor, so the result was something I could load onto a board and test, not only something to read.</p>
+        </section>
+
+        <section id="traincode" aria-labelledby="h-traincode">
+          <h2 id="h-traincode"><span class="num">01</span>The first client</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor</dd></div>
+            <div><dt>When</dt><dd>August 2025</dd></div>
+            <div><dt>Status</dt><dd>Done; the base of later work</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>I wanted to see whether a cheap ESP32 board could talk to JMRI over MQTT, a lightweight message service, and drive switches, sensors and lights.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>In about ten days it wrote <a href="https://github.com/lnevo/traincode">traincode</a>: over-the-air firmware updates, any pin configurable as a sensor, turnout or light, devices that find each other by name, first-time Wi-Fi setup through the board's own access point, a built-in web page with a control panel, backup and restore of its settings, and automatic reconnection with its state synced again at boot.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A working client, and the foundation of the later bridge. The railroad later switched to an Arduino Nano for LCOS compatibility, but the ideas carried over.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> the speed. That list is weeks of evenings for one hobbyist.</li>
+              <li><span class="k">Lesson:</span> a quick prototype is worth it even if the hardware changes later.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="https://github.com/lnevo/traincode">traincode on GitHub</a></p>
+        </section>
+
+        <section id="bridge" aria-labelledby="h-bridge">
+          <h2 id="h-bridge"><span class="num">02</span>The LCOS bridge</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, later Claude</dd></div>
+            <div><dt>When</dt><dd>October 2025 into 2026</dd></div>
+            <div><dt>Status</dt><dd>In service</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The switches, detectors and signal lamps are wired to LCOS radio nodes near the track. JMRI has no radio of its own, so something had to pass messages between the two, in both directions, without either side getting confused.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It planned and built the bridge in stages. It began as an ESP32 idea built on traincode and became an Arduino Nano on a serial link with a small program on the PC. It started read-only, only listening. Then it became two-way, so JMRI could send commands back. Signals came next. After that it had to cope with JMRI running on more than one computer, and finally with signals that could run on the layout's own logic or be set from JMRI.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>One of the most involved pieces of the whole project, and an open-source bridge that works on any LCOS layout with a JMRI MQTT connection.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> growing the bridge one capability at a time, each tested on the layout before the next.</li>
+              <li><span class="k">Needed me:</span> the hardware on the bench, and deciding who is in charge of a signal at any moment. Getting that hand-over safe took the longest.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../bridge.html">LCOS and the Arduino bridge</a> · <a href="../jmri-additions.html">What we added to JMRI</a> · <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client on GitHub</a></p>
+        </section>
+
+        <section id="wiring" aria-labelledby="h-wiring">
+          <h2 id="h-wiring"><span class="num">03</span>The wiring inventory</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, later Claude</dd></div>
+            <div><dt>When</dt><dd>November 2025 on</dd></div>
+            <div><dt>Status</dt><dd>Kept current</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>A railroad that is going to be wired has to know what it is wiring: every switch, signal and detector, which node it hangs on, and which pin.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>I had a hand-drawn sketch of the layout made of plain typed characters. With Cursor it became a spreadsheet of switches, signals and locations, and then a versioned wiring workbook. That workbook later fed the wiring documents and the website.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The wiring viewer, which shows each node pin by pin, the layout drawings, and the searchable device roster.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> turning a rough sketch into structured data that many pages can draw from.</li>
+              <li><span class="k">Lesson:</span> the inventory is only as good as the last time someone checked it against the wires.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../wiring.html">Wiring viewer</a> · <a href="../layout-docs.html">Layout documentation</a> · <a href="../../roster/index.html">Device roster</a></p>
+        </section>
+
+        <nav class="ai-pager" aria-label="Topics">
+          <a href="construction.html">← Construction</a>
+          <a href="control.html">Control &amp; signals →</a>
+        </nav>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/ai-topic.js"></script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI and Construction — HART</title>
+  <meta name="description" content="How AI helped build the HART Railroad's benchwork: the helix plan, 47 printed fixtures, framing drawings and cut plans for the main level, and 3D-printed station maps.">
+  <link rel="stylesheet" href="../../css/ops.css">
+  <link rel="stylesheet" href="../../css/article.css">
+  <link rel="stylesheet" href="../../css/ai.css">
+</head>
+<body data-page="behind-ai-construction">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>Construction</h1>
+        <p class="standfirst">Where AI left the screen: plans worked out in conversation, then scripts that drew the parts, then printed tools on the bench.</p>
+        <p class="byline">Construction · updated November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#helix-plan">Planning the helix</a></li>
+          <li><a href="#fixtures">Printed fixtures for the helix</a></li>
+          <li><a href="#framing">Framing drawings and cut plans</a></li>
+          <li><a href="#maps">Station maps in plastic</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">Benchwork is where a wrong number costs real wood. The pattern that worked here was the same each time: work the design out in words, turn it into a script so every drawing comes from the same numbers, and then measure the real thing and let the measurement win.</p>
+        </section>
+
+        <section id="helix-plan" aria-labelledby="h-helix-plan">
+          <h2 id="h-helix-plan"><span class="num">01</span>Planning the helix</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>ChatGPT</dd></div>
+            <div><dt>When</dt><dd>September 2026</dd></div>
+            <div><dt>Status</dt><dd>Done</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>A helix climbs from staging to the main level. It has to keep a gentle grade, leave room for trains to pass underneath each turn, fit the room, and be buildable from sheets of plywood by one person.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Radius, grade, clearance, how the roadbed would be cut and joined, and the order it would all go up were worked through in conversation before any wood was cut. The alternatives that were turned down were written down with the reasons.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A 13-page construction plan with frames, braces, bracket heights, roadbed cut sheets and the build sequence, and a design record with the formulas behind it.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> some of the most valuable AI work on the whole project. The plan held through the build; the corrections that came later were about real materials, not the design.</li>
+              <li><span class="k">Needed me:</span> the decisions. The record keeps the options that were turned down, and choosing among them was mine.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../helix/index.html">The helix page</a> (plan and design record)</p>
+        </section>
+
+        <section id="fixtures" aria-labelledby="h-fixtures">
+          <h2 id="h-fixtures"><span class="num">02</span>Printed fixtures for the helix</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>September to October 2026</dd></div>
+            <div><dt>Status</dt><dd>Done; helix built and tracked</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Cutting dozens of identical half-lap joints and setting every bracket at the right height by hand invites drift. Jigs would make each cut the same.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Claude turned the plan into scripts, and the scripts into 3D-printable files: router templates for the half-laps and bracket pockets, height spacers, shims and other fixtures, 47 files in all. Each was checked in software as a single watertight body before printing.</p>
+          <p>Then the real wood had its say. The plywood measured 0.72 inch, not the nominal 3/4, so every height was recalculated from that. The first height template was settled by test-fit at 1-1/32 inch, under the calculated figure. One batch of spacers printed 1.65 mm short of the gap they had to fill, so a measured correction went in. All of that lives in one build-status document, which says plainly that where it disagrees with the original plan, it wins.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A finished, tracked helix in about a month, and the first time AI's work was something I could pick up and build with.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> going from a plan to physical tools quickly, and changing every part at once when a number changed.</li>
+              <li><span class="k">Needed me:</span> calipers and test prints. Software checks prove a part is printable, not that it fits.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../helix/index.html">The fixture index</a> · <a href="../../build/index.html#helix">Helix build photos</a></p>
+        </section>
+
+        <section id="framing" aria-labelledby="h-framing">
+          <h2 id="h-framing"><span class="num">03</span>Framing drawings and cut plans</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>October 2026</dd></div>
+            <div><dt>Status</dt><dd>Drawn; main level resumes after Thanksgiving</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The main level sits 15 inches above staging. It needed framing that stays shallow enough to reach the staging tracks underneath, plywood cut from as few sheets as possible, and a shopping list.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>The level was described once, as geometry in a script, and the drawings are generated from it: a 7-page framing set, plywood cut sheets for four 3/4 inch and five 1/2 inch sheets with trammel radii, 11 pages of marking sheets that give every point to mark from the factory edges, and a lumber cut list that uses the sticks already on hand first. A bill of materials was priced from the local supplier's listings. The staging level has a framing drawing made the same way.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A complete paper kit for the main level. When a joist or a closet box moved, the drawings, cut plan and cut list all moved together.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> one source for every drawing, so they cannot disagree, and marking sheets I could not have made by hand in any sensible time.</li>
+              <li><span class="k">Still to prove:</span> the cut plan meets the saw after Thanksgiving.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../build/index.html#main-level">The main level</a> · <a href="../../build/files/main-level-plywood-cut-plan.html">Plywood cut plan</a> · <a href="../../build/index.html#staging">Staging</a></p>
+        </section>
+
+        <section id="maps" aria-labelledby="h-maps">
+          <h2 id="h-maps"><span class="num">04</span>Station maps in plastic</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>In progress</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The paper station maps show a crew where each switch is. As fascia plates that hold the toggle switches themselves, with the track and lettering in a second colour, the map and the switch become one object.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It did not start with the big map. A test panel 2 inches square with one toggle came first, to answer three plain questions: how big the pocket must be, whether small crush ribs hold the toggle without glue, and whether a finger can still work it through a 1 mm skin. The real toggles were measured with calipers, and they turned out smaller than their own drawing. With those answers the Barn map was modelled: measured pockets, the thin skin, the ribs, and channels at the back that gather four toggles' wires to one exit. It follows the same drawing as the paper map.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A proven test panel and a modelled Barn map. Barn has not printed successfully yet: the lettering on the first layer will not stick to the plate.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> a small test before the big part, so the questions were answered for the price of a coaster.</li>
+              <li><span class="k">Needed me:</span> the printer. Adhesion is a matter of the plate and the slicer, and that is where it stands.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../crew/maps/index.html">The paper station maps</a></p>
+        </section>
+
+        <nav class="ai-pager" aria-label="Topics">
+          <a href="research.html">← Prototype research</a>
+          <a href="electronics.html">Electronics →</a>
+        </nav>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/ai-topic.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+/* AI in Model Railroading: the hub and its topic pages.
+   Builds on article.css (.feature layout). Each sub-project is a section with a fact strip
+   (.ai-facts), plain paragraphs, and a short verdict box (.ai-verdict). */
+
+/* Fact strip: tool, when, status, as small labelled cells. */
+.feature-body .ai-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1.1rem;
+  font-family: var(--font-body);
+}
+
+.feature-body .ai-facts > div {
+  padding: 0.45rem 0.7rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--brand-2);
+}
+
+.feature-body .ai-facts dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.feature-body .ai-facts dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+/* Small run-in headings inside an entry. */
+.feature-body h3.ai-sub {
+  margin: 1.2rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: var(--brand-2);
+}
+
+/* Verdict: what AI was good at and where a person had to step in. */
+.feature-body .ai-verdict {
+  margin: 1.3rem 0 0;
+  padding: 0.8rem 1rem 0.9rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent);
+  font-family: var(--font-body);
+  font-size: 0.97rem;
+  line-height: 1.5;
+}
+
+.feature-body .ai-verdict > b {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+}
+
+.feature-body .ai-verdict ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.feature-body .ai-verdict li {
+  margin: 0.2rem 0;
+}
+
+.feature-body .ai-verdict .k {
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* "See it" link row at the end of an entry. */
+.feature-body .ai-see {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+.feature-body .ai-see b {
+  color: var(--brand);
+}
+
+/* Topic pager at the foot of each topic page. */
+.ai-pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 2.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.ai-pager a {
+  text-decoration: none;
+}
+
+/* Hub: the topic cards carry a count line under the text. */
+.ai-hub .card .ai-count {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* Hub: how-we-work principles as a short grid. */
+.ai-rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.ai-rules li {
+  padding: 0.7rem 0.85rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  line-height: 1.45;
+}
+
+.ai-rules b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+  color: var(--brand);
+}
+
+/* Hub: tools over time, a plain table that scrolls on phones. */
+.ai-tools {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.ai-tools th,
+.ai-tools td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.ai-tools th {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ai-tools td:first-child {
+  font-weight: 700;
+  color: var(--brand);
+  white-space: nowrap;
+}

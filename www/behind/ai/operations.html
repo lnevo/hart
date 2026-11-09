@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI and Operations — HART</title>
+  <meta name="description" content="How AI helped the HART Railroad operate: car cards from photos, the STS traffic simulator, the Operations Pro plugin and rebuild, keeping STS and JMRI in step, and a staged intake for new rolling stock.">
+  <link rel="stylesheet" href="../../css/ops.css">
+  <link rel="stylesheet" href="../../css/article.css">
+  <link rel="stylesheet" href="../../css/ai.css">
+</head>
+<body data-page="behind-ai-operations">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>Operations</h1>
+        <p class="standfirst">Cards, waybills and traffic: the paperwork and software that decide which cars move in a session, and how a new car joins them.</p>
+        <p class="byline">Operations · updated November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#cards">Car cards from photos</a></li>
+          <li><a href="#sts">The traffic simulator</a></li>
+          <li><a href="#opspro-plugin">The Operations Pro plugin</a></li>
+          <li><a href="#opspro-hart">Operations Pro for this railroad</a></li>
+          <li><a href="#sync">Keeping STS and JMRI in step</a></li>
+          <li><a href="#intake">Letting new stock in</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">The first operating session ran on Post-it flags. Since then AI has helped with nearly every layer of operations, and this is the topic where one rule mattered most: decide which system is the master of each fact, and let the others copy it.</p>
+        </section>
+
+        <section id="cards" aria-labelledby="h-cards">
+          <h2 id="h-cards"><span class="num">01</span>Car cards from photos</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, later Claude</dd></div>
+            <div><dt>When</dt><dd>Summer 2026 on</dd></div>
+            <div><dt>Status</dt><dd>A repeatable workflow</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>A railroad that runs needs car cards and waybills. I had a roster and photographs of the fleet, but no cards.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Each photo was cropped and its reporting marks read by OCR and matched against the roster. The small stencils gave up details such as built dates and weights. Each photographed car got a printed card with its own picture, and waybills were worked out for the industries and moves on the layout.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>One of the biggest workflows on the project and one of the best uses of AI on it. What began as a one-time job now starts from a photo: a small tool crops it, reads what it can, asks about the rest and queues a card to print.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> reading marks and stencils across a whole fleet, and cards that look like the car in your hand.</li>
+              <li><span class="k">Watch for:</span> stencilled lettering is hard for a computer to read. A number it is unsure of should come to a person.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../operators/cards/index.html">Car Cards &amp; Waybills</a></p>
+        </section>
+
+        <section id="sts" aria-labelledby="h-sts">
+          <h2 id="h-sts"><span class="num">02</span>The traffic simulator</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, later Claude</dd></div>
+            <div><dt>When</dt><dd>Summer 2026 on</dd></div>
+            <div><dt>Status</dt><dd>Runs every session</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Cars should move because shippers want them, not at random. STS, the Shipper-driven Traffic Simulator, works that way, but it needed this railroad's data, a few extra tools, and its traffic tuned so a session felt right.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>The card and waybill data became the seed for STS. AI helped extend it with a clearer operating desk, a virtual track scale for the coke hoppers and a saved session recipe, and then ran hundreds of simulated sessions, scoring each and adjusting the traffic between runs. In November STS gained a REST interface with access tokens, a Claude Code plugin built on it so an agent can check a session or find a car, and tighter sign-in and security.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>Repeatable session traffic, an article in <cite>The Cannon Ball</cite>, and an operating session in November that ran well.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> simulating more sessions than a person could fairly compare at the keyboard, and spotting where the traffic quietly got worse.</li>
+              <li><span class="k">Needed me:</span> what "feels right" means. The score is only a stand-in for the crews' experience.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../library/sts-operations-article.html">Setting up car movement</a> · <a href="https://github.com/lnevo/sts-docker">sts-docker on GitHub</a></p>
+        </section>
+
+        <section id="opspro-plugin" aria-labelledby="h-opspro-plugin">
+          <h2 id="h-opspro-plugin"><span class="num">03</span>The Operations Pro plugin</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>Public; in development</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>JMRI Operations Pro can run a whole railroad's freight, but it is hard to read when it fails. A car sits on a track and nothing says why.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It built a public plugin for Claude Code that sets up, checks, changes and explains an Operations Pro railroad. Its rules were checked against the JMRI 5.16 source. To prove it, the plugin built an invented railroad from a blank folder, the Juniper Falls &amp; Northern, and the result was written up as a walkthrough of 43 cases.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A plugin anyone can install, and a walkthrough you can follow in your own copy of JMRI.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> explaining why a car will not move, from the build report, in plain words.</li>
+              <li><span class="k">Rule:</span> it changes files, so it shows a plan and waits for approval before writing anything.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../library/operations-pro-article.html">The Operations Pro plugin</a> · <a href="../../library/opspro-showcase-guide.html">The walkthrough</a></p>
+        </section>
+
+        <section id="opspro-hart" aria-labelledby="h-opspro-hart">
+          <h2 id="h-opspro-hart"><span class="num">04</span>Operations Pro for this railroad</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>On every computer</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Early experiments with Operations Pro in late 2025 had gone nowhere. With the plugin in hand, it was time to set it up properly.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>The locations, trains, cars and the automation that runs a whole session were rebuilt from blank, starting from where the traffic simulator left off: 13 locations, 6 trains, 99 cars, 10 locomotives and two automations. I reviewed the decisions before it went live.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The same Operations Pro railroad on all three computers. The files in the repository are the master: a session on the layout computer is brought back, looked at, and only then sent out again.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> a rebuild that spans many screens done in one step, with a written list of every decision.</li>
+              <li><span class="k">Lesson:</span> a setting turned off in the rebuild was quietly pushed to every computer at each deploy, until it was noticed. The repository wins, so it has to be right.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="sync" aria-labelledby="h-sync">
+          <h2 id="h-sync"><span class="num">05</span>Keeping STS and JMRI in step</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>In service</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Two systems now held the same cars: STS, which runs the sessions, and JMRI, which has the locomotives, manifests and dispatcher desks.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>I set the rule: STS is the master of where each car is, what it carries and where it is going, and JMRI is a copy. AI built a one-way sync. After a session one button sends the car positions, loads and final destinations across, and a car already on a built JMRI train is left alone. Nothing in the sync is specific to this railroad; the railroad's own values are kept as settings.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>One answer to "where is that car?", whichever screen you look at.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> a small, one-way job with a clear owner.</li>
+              <li><span class="k">Needed me:</span> deciding which system is the master. AI can build either direction; picking one is the design.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="intake" aria-labelledby="h-intake">
+          <h2 id="h-intake"><span class="num">06</span>Letting new stock in</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>November 2026</dd></div>
+            <div><dt>Status</dt><dd>First batch done</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Adding a car had become easy, perhaps too easy. A bad crop or a misread number could reach the simulator and JMRI before anyone looked. Locomotives had no process at all.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>New stock now comes in by stages, and nothing moves on until I approve the one before.</p>
+          <ul class="chips">
+            <li>Photos in, cropped, numbers read</li>
+            <li>Review sheet</li>
+            <li>Records</li>
+            <li>Simulator and Operations Pro</li>
+            <li>JMRI roster</li>
+            <li>Cards and gallery</li>
+            <li class="opt">Decoder and speed matching</li>
+          </ul>
+          <p>The AI looks over each photo and suggests a reading, but only suggests. Everything lands on a review sheet of thumbnails where I fix a number, mark the locomotives and approve the rest. The simulator step takes a backup and a trial run first, and each batch leaves a record of what was approved.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The first batch was ten CSX hoppers and two locomotives, CSX 2121 and 2738. It taught plenty about crops, stencilled lettering and a review sheet that needed to be editable on the page, and the lessons went straight back into the written steps.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> AI doing the slow part, reading and checking, with a person approving in bulk.</li>
+              <li><span class="k">Lesson:</span> the gates matter more than the automation. The first batch was the test of the process, not only of the cars.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../photos/index.html#rolling-stock">Rolling stock photos</a></p>
+        </section>
+
+        <nav class="ai-pager" aria-label="Topics">
+          <a href="control.html">← Control &amp; signals</a>
+          <a href="locomotives.html">Locomotives →</a>
+        </nav>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/ai-topic.js"></script>
+</body>
+</html>

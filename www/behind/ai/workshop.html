@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI and the Workshop — HART</title>
+  <meta name="description" content="How the HART Railroad's AI work is organised: one repository, decision records and written rules, helpers with one job each, the website, and tools shared with other modelers.">
+  <link rel="stylesheet" href="../../css/ops.css">
+  <link rel="stylesheet" href="../../css/article.css">
+  <link rel="stylesheet" href="../../css/ai.css">
+</head>
+<body data-page="behind-ai-workshop">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>The Workshop</h1>
+        <p class="standfirst">Not a railroad job but the bench all the others sit on: where the work lives, the rules every tool reads, and what gets shared.</p>
+        <p class="byline">How it is organised · updated November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#repo">One repository</a></li>
+          <li><a href="#rules">Decisions and written rules</a></li>
+          <li><a href="#helpers">Helpers and checks</a></li>
+          <li><a href="#site">This website</a></li>
+          <li><a href="#shared">Tools shared with others</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">Early on I asked AI for documents. Now I give it a place to work and a set of written rules, and I ask the same of every tool that comes after. That change is the quiet one behind every other topic in this section.</p>
+        </section>
+
+        <section id="repo" aria-labelledby="h-repo">
+          <h2 id="h-repo"><span class="num">01</span>One repository</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, then Claude</dd></div>
+            <div><dt>When</dt><dd>August to October 2026</dd></div>
+            <div><dt>Status</dt><dd>Done</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>By August 2026 the project was busy and scattered: research in one place, the fiction in its drafts, control software, the traffic simulator, car records, the bridge and the website each on their own. A car renamed in one place might never reach the cards, the website or the simulator.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Everything was gathered into one repository, a folder where every change is recorded so anyone can see what changed and go back. Cursor started it; Claude took over the consolidation, tidied the folders and moved the generic knowledge out into public projects. One naming rule now means a switch, signal or track is called the same thing everywhere.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A public repository that every computer on the railroad is installed from.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> the sorting and moving, which is tedious and error-prone by hand.</li>
+              <li><span class="k">Lesson:</span> it is the single most useful thing I did for AI. Every later job was easier because there was one place to look.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="https://github.com/lnevo/hart">github.com/lnevo/hart</a></p>
+        </section>
+
+        <section id="rules" aria-labelledby="h-rules">
+          <h2 id="h-rules"><span class="num">02</span>Decisions and written rules</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>August 2026 on</dd></div>
+            <div><dt>Status</dt><dd>18 decision records</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>An AI forgets everything between sessions. Without help, each new session rediscovers old answers, or worse, undoes them.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>Important choices are written down as short decision records, each saying what was decided, why, and what it replaced: which file is the master for the signals, that STS owns where the cars are, how new stock is let in. A living status page says what is true today. One set of written rules tells every tool how to work here, from which commands to run to what never to touch.</p>
+          <blockquote class="pull"><p>Chat is a scratchpad; decisions live in the wiki.</p></blockquote>
+          <h3 class="ai-sub">What came out</h3>
+          <p>A tool that starts fresh can read its way into the project in minutes and pick up where the last one stopped.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> fewer repeated mistakes, and decisions that do not drift.</li>
+              <li><span class="k">Needed me:</span> keeping them true. A stale record is worse than none, because it is believed.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="helpers" aria-labelledby="h-helpers">
+          <h2 id="h-helpers"><span class="num">03</span>Helpers and checks</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>October 2026 on</dd></div>
+            <div><dt>Status</dt><dd>Five helpers</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Some jobs are big enough to hand to a second AI with a narrow brief, and some mistakes are common enough to catch automatically.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>A few helpers each have one job: one traces why a signal or panel behaves as it does, one audits the repository for dead code and stale pages, one reviews the website through a named lens, one researches history and returns proposals with sources, and one builds website pages. The tracers and reviewers can only read. Small automatic checks run before every change to the railroad's files, and a guard stops commits straight to the main line of the repository.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>Focused second opinions, and mistakes caught before they spread. One of the checks describes itself as &ldquo;a guardrail against mistakes, not a security boundary&rdquo;, and I take that literally.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> read-only helpers. A helper that cannot change anything is easy to trust with a big search.</li>
+              <li><span class="k">Watch for:</span> a helper handed my guess tends to come back agreeing with it. Give it the evidence, not the conclusion.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="site" aria-labelledby="h-site">
+          <h2 id="h-site"><span class="num">04</span>This website</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Cursor, then Claude</dd></div>
+            <div><dt>When</dt><dd>2026 on</dd></div>
+            <div><dt>Status</dt><dd>Public</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>The site serves crews on session night, visitors who want the history, and modelers who want to see how it works. It began on a local server for operators only.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It built the pages, moved the site to its own domain and keeps it drawn from the same data the railroad uses, so a change is made once. A reviewer helper reads pages as a first-time reader, a historian or a designer would. The build refuses to publish if anything private, such as a local address, has leaked into a page.</p>
+          <h3 class="ai-sub">What came out</h3>
+          <p>The site you are reading, including this section.</p>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> pages that stay in step with the railroad, and reviews from more than one point of view.</li>
+              <li><span class="k">Needed me:</span> the voice, and saying when a page tries to say too much. That is how this section started.</li>
+            </ul>
+          </div>
+          <p class="ai-see"><b>See it:</b> <a href="../../index.html">Home</a></p>
+        </section>
+
+        <section id="shared" aria-labelledby="h-shared">
+          <h2 id="h-shared"><span class="num">05</span>Tools shared with others</h2>
+          <dl class="ai-facts">
+            <div><dt>Tool</dt><dd>Claude</dd></div>
+            <div><dt>When</dt><dd>October 2026 on</dd></div>
+            <div><dt>Status</dt><dd>Public</dd></div>
+          </dl>
+          <h3 class="ai-sub">The job</h3>
+          <p>Along the way the AI learned how JMRI, CATS and STS really behave. That knowledge is worth more shared than kept.</p>
+          <h3 class="ai-sub">What AI did</h3>
+          <p>It packaged what is generic into public projects, none holding anything specific to this railroad. The guides in the skills plugin were checked against each program's own source.</p>
+          <ul>
+            <li><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a>: a Claude Code plugin with six written guides the AI loads when a topic comes up (JMRI panel files, signal mast logic, the Dispatcher System, JMRI and MQTT, CATS on JMRI, STS in Docker) and two read-only tools to look at JMRI and the layout.</li>
+            <li><a href="../../library/operations-pro-article.html">The Operations Pro plugin</a>: sets up, checks and explains an Operations Pro railroad.</li>
+            <li>The STS plugin, in <a href="https://github.com/lnevo/sts-docker">sts-docker</a>: operate and inspect a traffic simulator through its REST interface.</li>
+            <li><a href="https://github.com/lnevo/jmri-cs105-roster-sync">jmri-cs105-roster-sync</a>: the JMRI roster on a TCS CS-105.</li>
+            <li><a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a>: the LCOS bridge.</li>
+          </ul>
+          <div class="ai-verdict">
+            <b>Verdict</b>
+            <ul>
+              <li><span class="k">Worked well:</span> writing rules down for a stranger made them better for me too.</li>
+              <li><span class="k">Rule:</span> nothing specific to this railroad goes into a shared tool. The railroad's own values live in its settings.</li>
+            </ul>
+          </div>
+        </section>
+
+        <nav class="ai-pager" aria-label="Topics">
+          <a href="locomotives.html">&larr; Locomotives</a>
+          <a href="index.html">All topics &rarr;</a>
+        </nav>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../../js/nav.js"></script>
+  <script src="../../js/ai-topic.js"></script>
+</body>
+</html>
