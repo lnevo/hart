@@ -142,32 +142,32 @@
     ],
     "behind-sts": [
       {
-        "label": "Car forwarding",
-        "href": "behind/index.html#car-forwarding"
+        "label": "Operations",
+        "href": "behind/index.html#operations"
       }
     ],
     "behind-stl": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "The workshop",
+        "href": "behind/index.html#workshop"
       }
     ],
     "behind-build": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "AI in Model Railroading",
+        "href": "behind/index.html#ai"
       }
     ],
     "behind-opspro": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "Operations",
+        "href": "behind/index.html#operations"
       }
     ],
     "behind-opspro-guide": [
       {
-        "label": "From the workbench",
-        "href": "behind/index.html#workbench"
+        "label": "Operations",
+        "href": "behind/index.html#operations"
       }
     ],
     "behind-ai-research": [
