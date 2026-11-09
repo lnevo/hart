@@ -36,6 +36,11 @@
     function section(s) {
       var html = '<section class="panel"><h2>' + esc(s.heading) + '</h2><div class="prose">';
       html += (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
+      if (s.image) {
+        html += '<figure class="about-figure"><img src="' + esc(HARTOps.base() + s.image.src) + '" alt="' +
+          esc(s.image.alt || "") + '" loading="lazy">' +
+          (s.image.caption ? "<figcaption>" + esc(s.image.caption) + "</figcaption>" : "") + "</figure>";
+      }
       if (s.bullets && s.bullets.length) {
         html += "<ul>" + s.bullets.map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("") + "</ul>";
       }

@@ -543,6 +543,25 @@ main:not(.full-bleed) .btn-ghost:hover {
   max-width: 68ch;
 }
 
+.about-figure {
+  margin: 0.25rem 0 1.1rem;
+  max-width: 34rem;
+}
+
+.about-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+}
+
+.about-figure figcaption {
+  margin-top: 0.45rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
 .prose.story {
   font-family: var(--font-story);
   font-size: 1.08rem;

@@ -44,7 +44,8 @@
     {
       "heading": "Our railroad",
       "paragraphs": [
-        "HART imagines what came after the P&OV. Its Pittsburgh & Chartiers Valley Division takes over the island work, switching Shenango, Kosmos, Calgon and Aristech along with a few of the island's newer customers, and interchanging cars with the nearby railroads."
+        "HART imagines what came after the P&OV. Its Pittsburgh & Chartiers Valley Division takes over the island work, switching Shenango, Kosmos, Calgon and Aristech along with a few of the island's newer customers, and interchanging cars with the nearby railroads.",
+        "The prototype inspires us, and we borrow from it wherever it helps. But this is our railroad, and in the end we do what works for us. When something looks wrong to a visitor, we point to Rule 1."
       ],
       "links": [
         {
@@ -55,7 +56,12 @@
           "label": "Articles",
           "href": "articles/index.html"
         }
-      ]
+      ],
+      "image": {
+        "src": "assets/about/house-rules-sticker.jpg",
+        "alt": "A sticker with a red striped band reading Rule 1: This is my railroad. Rule 2: While illuminating discussion of prototype history, equipment and operating practices is always welcome, in the event of visitor-perceived anachronisms, detail discrepancies or operating errors, consult Rule 1!",
+        "caption": "The house rules."
+      }
     },
     {
       "heading": "On this site",
