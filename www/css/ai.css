@@ -168,7 +168,7 @@
   white-space: nowrap;
 }
 
-/* The Diverging Route banner under the hub title: a calm main line to Status Quo Station, and a diverging track
+/* The Diverging Route banner under the hub title: a straight main line on top, and a passing siding
    whose stops are loud, comic-style AI buzzwords. */
 .hub-banner {
   margin: 1rem 0 1.25rem;
@@ -218,35 +218,6 @@
   fill: var(--accent);
   stroke: var(--brand);
   stroke-width: 2;
-}
-
-.route-bumper {
-  fill: var(--brand);
-}
-
-.route-main,
-.route-station-label {
-  font-family: var(--font-body);
-  font-size: 20px;
-  fill: var(--muted);
-}
-
-.route-station-label {
-  font-weight: 700;
-  fill: var(--ink-soft);
-}
-
-.route-station rect,
-.route-station polygon {
-  fill: var(--paper-2);
-  stroke: var(--ink-soft);
-  stroke-width: 3;
-  stroke-linejoin: round;
-}
-
-.route-station .route-door {
-  fill: var(--ink-soft);
-  stroke: none;
 }
 
 .route-stop {
