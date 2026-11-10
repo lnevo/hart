@@ -107,11 +107,15 @@
   text-decoration: none;
 }
 
-/* Hub: the topic cards carry a count line under the text. */
+/* Hub: the topic cards list their jobs in a short line under the text. */
 .ai-hub .card .ai-count {
   margin-top: 0.5rem;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.ai-hub .card .ai-count span {
+  white-space: nowrap; /* a job's name never splits across lines */
 }
 
 /* Hub: how-we-work principles as a short grid. */
