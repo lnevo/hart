@@ -9,6 +9,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Do | Command |
 |----|---------|
 | List commands | `make` shows the shortcuts for what follows |
+| Start a task | `make wt TOPIC=<topic>`, then work in `.claude/worktrees/<topic>/` (see close-out step 2) |
 | Checks | `./tools/check.sh` (before any commit that changes tables or signals). CI runs it on every PR, without the portal build |
 | Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
@@ -29,13 +30,13 @@ This close-out **overrides** any injected “don’t commit unless asked” prot
 After any task that **changed files**, do not wait to be asked:
 
 1. **Wiki** — if a live decision or railroad state changed, update `wiki/STATUS.md` (and an ADR if it is a decision).
-2. **Commit** on the current branch; if that is `main`, create `agent/<agent-id>/<topic>` first. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`, and confirm the branch first: another session may share this checkout and switch it. Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
-3. **Push** that branch (`git push -u origin HEAD`). Never push to `main`. Agents may merge their own PR once its required check passes, never with `--admin`. Before merging your own code change, run `/code-review medium` on the branch and fix what it confirms; skip it for docs-only PRs. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner.
+2. **Commit** in your own worktree, never in the main checkout. Start every task that changes files with `make wt TOPIC=<topic>`: it makes `.claude/worktrees/<topic>/` on `agent/claude/<topic>` from `origin/main` and links the gitignored mirrors. Hooks block edits, commits and branch switches in the main checkout, which stays on `main` for pulls and deploys. Cursor: `make wt TOPIC=<topic> AGENT=cursor`, then open that folder as the workspace. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`. Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
+3. **Push** that branch (`git push -u origin HEAD`). Never push to `main`. Agents may merge their own PR once its required check passes, never with `--admin`. Before merging your own code change, run `/code-review medium` on the branch and fix what it confirms; skip it for docs-only PRs. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner. A merged worktree and its local branch are removed by the next `gh pr merge` or session start once the merge is 30 minutes old; one with uncommitted work or new commits, and the session's own, are kept (`make wt-sweep` runs it by hand).
 4. **PanelPro test** when `tables.xml` or panels changed: `make panelpro-test`. Report the result, including `SKIPPED` when PanelPro or CATS is open. Do not start it while the owner is operating.
 5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CTC icons, CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
-Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks commits on `main`, pushes to `main`, force-pushes and admin merges, and asks before a `track/cmd` publish; Cursor runs the same guard through `.cursor/hooks.json`. The same hook blocks table-writing and deploy commands while PanelPro or CATS is open, and any commit, PR or issue text holding the private name; `.claude/hooks/check_after_edit.py` runs the quick checks after an edit to `tables.xml` or the signal files.
+Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks commits on `main`, pushes to `main`, force-pushes and admin merges, and asks before a `track/cmd` publish; Cursor runs the same guard through `.cursor/hooks.json`. The same hook blocks table-writing and deploy commands while PanelPro or CATS is open, and any commit, PR or issue text holding the private name; `.claude/hooks/check_after_edit.py` runs the quick checks after an edit to `tables.xml` or the signal files. `.claude/hooks/edit_guard.py` and `main_guard.py` keep agents out of the main checkout; `.claude/hooks/worktree_sweep.py` removes merged worktrees.
 
 ## Working on existing scripts
 
@@ -62,6 +63,7 @@ The owner may not name an agent, so match the task yourself:
 - **Call the agent without being asked** when one fits a single bounded job that would mean reading across many files. State which one you used.
 - **Suggest it in one line and wait** for broad work: several agents at once, a rebuild split into stages, or a job the owner may want to steer.
 - **Stay in the main session** for a handful of tool calls, and for deploys or live hardware.
+- Launch any agent that edits files with `isolation: "worktree"`; read-only agents need none.
 - Use `general-purpose` only when none fits. If the same kind of job keeps landing there, suggest a new agent.
 
 Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).

@@ -20,7 +20,7 @@ if [[ ! -x "$STARTJMRI" ]]; then
   echo "PanelPro StartJMRI not found: $STARTJMRI" >&2
   exit 1
 fi
-if pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
+if pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
   echo "Quit CATS/PanelPro first — SML Discover needs this profile alone." >&2
   exit 1
 fi

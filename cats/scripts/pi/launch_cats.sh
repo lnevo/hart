@@ -37,7 +37,7 @@ PANEL="$(cd "$(dirname "$PANEL")" && pwd)/$(basename "$PANEL")"
 
 jmri_already_running() {
   # Match the JVM only — not this script, ssh, or grep command lines.
-  pgrep -u "$(id -u)" -f 'java .*(apps\.PanelPro\.PanelPro|cats\.apps\.Crandic)' >/dev/null 2>&1
+  pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1
 }
 
 if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && jmri_already_running; then
@@ -46,7 +46,7 @@ if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && jmri_already_running; then
 Quit PanelPro first (use it only to edit/store JMRI tables), then click CATS again.
 
 Do not run both at once — they share profile TCS_MQTT and the MQTT client id."
-  pgrep -lf 'java .*(apps\.PanelPro\.PanelPro|cats\.apps\.Crandic)' | head -5 >&2 || true
+  pgrep -lf 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' | head -5 >&2 || true
   exit 1
 fi
 

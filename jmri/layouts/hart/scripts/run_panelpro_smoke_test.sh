@@ -16,7 +16,7 @@ if [[ ! -f "$PROFILE_XML" || ! -x "$STARTJMRI" ]]; then
   echo "PanelPro profile or launcher missing" >&2
   exit 1
 fi
-if pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
+if pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
   echo "SKIPPED: quit CATS and PanelPro, then run the smoke test again" >&2
   exit 0
 fi

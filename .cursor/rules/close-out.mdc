@@ -5,7 +5,7 @@ alwaysApply: true
 
 Follow [`AGENTS.md`](../../AGENTS.md), and read [`wiki/home.md`](../../wiki/home.md) first as it says. Under `cats/`, [`cats/AGENTS.md`](../../cats/AGENTS.md) adds the rules for that folder.
 
-- **Close-out:** its definition of done overrides the generic Cursor git protocol. When files changed, commit on an `agent/<agent-id>/<topic>` branch, push, and deploy without being asked, unless the user says not to. `/done` runs it.
+- **Close-out:** its definition of done overrides the generic Cursor git protocol. When files changed, commit on an `agent/<agent-id>/<topic>` branch, push, and deploy without being asked, unless the user says not to. Never edit in the main checkout: run `make wt TOPIC=<topic> AGENT=cursor` first and open `.claude/worktrees/<topic>/` as the workspace. The guard blocks commits in the main checkout, so edits made there get stranded. `/done` runs it.
 - **Guard:** [`.cursor/hooks.json`](../hooks.json) runs [`.cursor/hooks/main_guard.py`](../hooks/main_guard.py) before every shell command. It applies the same rules as the Claude Code guard (`.claude/hooks/main_guard.py`): no commit or push on `main`, no force-push, no admin merge, and it asks before a `track/cmd` publish. Do not work around a deny.
 - **MQTT:** never publish to MQTT from an agent, a script launch or a test, even as sample text piped to a tool. Field turnouts are the owner's.
 - **Subagents:** the five Claude agents in `.claude/agents/` (`panel-tracer`, `repo-auditor`, `site-reviewer`, `archive-researcher`, `site-builder`) each hold their scope and read-only rules in the file. A Cursor agent doing the same job follows that file's rules.

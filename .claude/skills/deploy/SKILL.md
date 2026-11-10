@@ -41,7 +41,7 @@ Windows bridge caveat:
 
 Before you run it:
 
-- The build needs the gitignored originals in `media/` and `ops/car-cards/`. Only the main checkout has them. From a worktree, symlink both from the main checkout first. Without them photos are stripped, and the run stops at the `--require-mirrors` check. `--force` does not skip that check.
+- The build needs the gitignored originals in `media/` and `ops/car-cards/`. Only the main checkout has them. `make wt` links both into a new worktree; for an older worktree, symlink them from the main checkout first. Without them photos are stripped, and the run stops at the `--require-mirrors` check. `--force` does not skip that check.
 - `ops/hart-ops/operator_logos/` must exist, or the deploy refuses to run.
 - A real rsync is needed on the Mac (`brew install rsync`), or set `HART_WEB_HOST=www.easte.net` for a normal login.
 

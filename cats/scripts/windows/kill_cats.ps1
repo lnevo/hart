@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Continue'
-$rx = 'cats\.apps\.Crandic|apps\.PanelPro|jmri\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro|[\\/]cats\.jar|LaunchJMRI|designer\.gui'
+$rx = 'cats\.apps\.Crandic|apps\.PanelPro|jmri\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro|[\\/]cats\.jar|LaunchJMRI|designer\.gui'
 $hits = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
   Where-Object {
     $_.Name -match '^(java|javaw|javaws)\.exe$' -and

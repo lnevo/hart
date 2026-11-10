@@ -208,6 +208,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         guard = load(MAIN_GUARD, "hart_main_guard_names_test")
         guard.jmri_running = lambda: running
         guard.contains_private_name = lambda text: self.MARK in text
+        guard.main_checkout = lambda target: False  # CI's clone is a main checkout; tested in test_worktrees
         return guard
 
     def code(self, command: str, running: bool = True) -> int:

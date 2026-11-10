@@ -52,13 +52,13 @@ PANEL="$(cd "$(dirname "$PANEL")" && pwd)/$(basename "$PANEL")"
 
 jmri_already_running() {
   # Local JMRI/CATS JVM only (not this script / ssh / grep).
-  pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1
+  pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1
 }
 if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && jmri_already_running; then
   echo "Refusing to launch CATS: JMRI/PanelPro/CATS is already running locally." >&2
   echo "Quit PanelPro first (use it only to edit/store JMRI tables), then relaunch CATS." >&2
   echo "Do not run both at once. Emergency override: CATS_FORCE_LAUNCH=1" >&2
-  pgrep -lf 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.DecoderPro|apps\.DispatcherPro)' 2>/dev/null | head -5 >&2 || true
+  pgrep -lf 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' 2>/dev/null | head -5 >&2 || true
   exit 1
 fi
 
