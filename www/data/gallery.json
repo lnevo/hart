@@ -25,7 +25,7 @@
     {
       "id": "progress",
       "label": "The build, month by month",
-      "count": 39
+      "count": 40
     }
   ],
   "items": [
@@ -372,6 +372,14 @@
       "title": "Curved view block",
       "caption": "Photo backdrop wraps the curved view block.",
       "date": "2025-11-10",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_7813.jpg",
+      "title": "Power board",
+      "caption": "The circuit breakers, the CS-105 command station and the B-106 booster wired on one board and powered up.",
+      "date": "2025-11-29",
       "credit": "HART layout photos"
     },
     {
