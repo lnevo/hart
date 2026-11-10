@@ -51,12 +51,12 @@ class HeadTags(unittest.TestCase):
 
 
 class Review(unittest.TestCase):
-    def test_lists_section_pages_without_a_card_and_skips_stubs_paperwork_and_other_sections(self):
+    def test_lists_section_pages_without_a_card_and_skips_stubs_and_other_sections(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = _portal(tmp)
             pages = [p.relative_to(root) for p in sorted(root.rglob("*.html"))]
             missing, faults = share_cards.review(pages, {}, root)
-        self.assertEqual(missing, ["guides/a.html", "roster/index.html"])
+        self.assertEqual(missing, ["crew/ck1/index.html", "guides/a.html", "guides/index.html", "roster/index.html"])
         self.assertEqual(faults, [])
 
     def test_faults_a_missing_image_and_a_picture_used_twice(self):

@@ -19,7 +19,7 @@ You build the HART public website. Read `www/README.md` first; its build rules a
 - Only git-tracked files publish. List any new file for the main session to `git add`.
 - Keep local links `data-local-only`. Keep `cache: "no-cache"` on new JSON fetches.
 - Before reporting, run `python3 www/scripts/check_portal_build.py` and fix what it finds.
-- A new or renamed page in Operations, Behind the Scenes or The Diverging Route (not crew sheets or station maps) needs its own share thumbnail (`www/README.md`, Share thumbnails). If the brief gave none, do not leave the site card in place silently: propose a picture of the page's own subject in your report, or make the card when a fitting picture is already in the repo. The check above lists pages still on the site card.
+- A new or renamed page in Operations, Behind the Scenes or The Diverging Route needs its own share thumbnail (`www/README.md`, Share thumbnails). If the brief gave none, do not leave the site card in place silently: propose a picture of the page's own subject in your report, or make the card when a fitting picture is already in the repo. The check above lists pages still on the site card.
 - Another agent may be working at the same time. Stay inside the paths your brief names.
 
 Report in under 200 words: what changed, files touched, check result, and anything left or uncertain.
