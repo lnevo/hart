@@ -1,10 +1,10 @@
 # Speed matching
 
 - **Owner:** lnevo
-- **Status:** In progress — CSX 2121 and CSX 2738 measured on the full loop 2026-11-08 ([results](../docs/jmri/speedmatching/profile-2026-11-08/README.md)); 2738 was programmed to match 2121 (speed table, CV25/CV29, momentum) and a four-step re-measure shows it within 1.2% of 2121 from step 24 up (5.3% fast at step 12); its roster entry was updated by hand on the Pi and Mac, then synced to Windows from the Pi on 2026-11-08. Every other roster loco still has the same synthesized 10-step / 400 mm/s profile.
+- **Status:** Parked — CSX 2121 and CSX 2738 measured on the full loop 2026-11-08 ([results](../../docs/jmri/speedmatching/profile-2026-11-08/README.md)); 2738 was programmed to match 2121 (speed table, CV25/CV29, momentum) and a four-step re-measure shows it within 1.2% of 2121 from step 24 up (5.3% fast at step 12); its roster entry was updated by hand on the Pi and Mac, then synced to Windows from the Pi on 2026-11-08. Every other roster loco still has the same synthesized 10-step / 400 mm/s profile.
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
 
-HART auto-dispatcher needs **measured** roster speed profiles for station stops. Every live DecoderPro loco currently has the same synthetic 10-step / 400 mm/s profile (`wiki/STATUS.md`). This thread is a working club procedure for a detected track circle plus JMRI POM scripts.
+HART auto-dispatcher needs **measured** roster speed profiles for station stops. Apart from 2121 and 2738, every live DecoderPro loco still has the same synthetic 10-step / 400 mm/s profile. This thread is a working club procedure for a detected track circle plus JMRI POM scripts.
 
 ## First measurements (2026-11-08)
 
@@ -14,7 +14,7 @@ the throttle steps around the full loop and times laps from the East Main Ext bl
 the same top speed (about 420 to 430 mm/s) but 2738 is 47 to 70% of 2121's speed from step 12
 to 64, because 2738's speed table was switched off (CV25 = 0, CV29 bit 4 clear) and it has no
 momentum (CV3/CV4 = 0/0). The owner chose to match 2738 to 2121, momentum included. Draft:
-[`CV_CHANGES_DRAFT.md`](../docs/jmri/speedmatching/profile-2026-11-08/CV_CHANGES_DRAFT.md).
+[`CV_CHANGES_DRAFT.md`](../../docs/jmri/speedmatching/profile-2026-11-08/CV_CHANGES_DRAFT.md).
 The owner wants no programming on the main while other engines are on the track.
 
 Open: consist testing; step 126 drift check; opposite-direction check; Anyrail

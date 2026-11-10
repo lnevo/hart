@@ -31,8 +31,8 @@ Python **Jython** scripts run **inside PanelPro** (Script Console or our
 classes the **Tools → CTC** editor uses — we did **not** click through the GUI
 for fifteen plants.
 
-- Pilot (Brick + Plane): `jmri/layouts/hart/scripts/build_ctc_brick_plane.py`
-- Full plant (15 columns, Barn inserted): `build_ctc_full_15col.py`
+- Full plant (15 columns, Barn inserted): `jmri/layouts/hart/scripts/build_ctc_full_15col.py`. This is the one to run for a rebuild.
+- Earlier steps it replaced, kept for history in `archive/jmri-scripts/`: the Brick + Plane pilot (`build_ctc_brick_plane.py`) and the East End + Princess extension (`build_ctc_east_end_princess.py`).
 
 Each script defines O.S. sections (sensors, turnouts, signal masts, crossover vs.
 switch), then runs **`Topology`** auto-generation so traffic-locking rules come from

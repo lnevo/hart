@@ -1,7 +1,7 @@
 # HART meta-repo — sibling repos and submodules
 
 **Status:** P3b **done** — submodules under `external/`  
-**Init:** [`tools/ops/init_external_submodules.sh`](../tools/ops/init_external_submodules.sh)
+**Init:** `make submodules` (`git submodule update --init --recursive`)
 
 ## Hub
 
@@ -13,23 +13,28 @@
 | **`sts-docker-helpers`** | Seed, warm-start, switch lists → `external/sts-helpers` |
 | **`hart-ops`** | Archived 2026-11-09: now the `ops/hart-ops/` folder of this repo ([ADR-019](decisions/ADR-019-hart-ops-in-hart.md)) |
 | **`model-railroad-skills`** | Public, generic agent skills and tools, packaged for Claude Code and the open Agent Plugins format → `external/model-railroad-skills` |
+| **`sts-plugins`** | STS addons (track_scale, coke_orders, hart_layout), bind-mounted into the sts-docker web container → `external/sts-plugins` |
+| **`jmri-cs105-roster-sync`** | Public script that syncs the JMRI roster to the TCS CS-105 → `external/jmri-cs105-roster-sync` |
 
 ## Submodule layout
 
 ```
 hart/external/
-  lcos-bridge/            → LCOS_ESP32_MQTT_Client
-  sts-docker/             → sts-docker
-  sts-helpers/            → sts-docker-helpers
-  model-railroad-skills/  → model-railroad-skills
+  lcos-bridge/             → LCOS_ESP32_MQTT_Client
+  sts-docker/              → sts-docker
+  sts-helpers/             → sts-docker-helpers
+  sts-plugins/             → sts-plugins
+  model-railroad-skills/   → model-railroad-skills
+  jmri-cs105-roster-sync/  → jmri-cs105-roster-sync
 ```
 
 ## Init (operator)
 
 ```bash
-bash tools/ops/init_external_submodules.sh
-git submodule update --init --recursive
+make submodules    # git submodule update --init --recursive
 ```
+
+Git records each submodule's URL in `.gitmodules` and its commit in the hart tree, so this one command checks out every submodule at the right commit. Run it after a pull that moves a submodule.
 
 ## Pins
 
@@ -37,7 +42,7 @@ Git records the pins. Run `git submodule status` to see them.
 
 ## Car inventory SoR
 
-Lives in **hart-ops** `data/` — not in JMRI Operations Pro GUI. See [ADR-013](decisions/ADR-013-car-repository.md).
+Lives in `ops/hart-ops/data/` — not in JMRI Operations Pro GUI. See [ADR-013](decisions/ADR-013-car-repository.md).
 
 ## Clone recipe
 

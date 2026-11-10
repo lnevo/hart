@@ -30,7 +30,7 @@ python3 jmri/scripts/apply_blocks_to_panel.py \
   use-panel-layout no-nx
 ```
 
-hart bootstrap (one-time, already done): `python3 jmri/scripts/bootstrap_hart_from_linear6.py`
+hart bootstrap (one-time, already done; the script is kept for history at `archive/jmri-scripts/bootstrap_hart_from_linear6.py`). New levels start from `prepare_tables_from_anyrail.py` above.
 
 ## Do not
 

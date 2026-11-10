@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
-"""Fail if a tracked file would publish the private name or a person's name in document metadata.
+"""Fail if a tracked file would publish the private name, a personal email address or a person's name in document metadata.
 
-The repo is public. Two checks:
+The repo is public. Three checks:
 
-* the private name, in any tracked text file or inside Word, PowerPoint and Excel files,
-  found by fingerprint (``ops/hart-ops/card_pipeline/private_name.py``) so it is never
-  written down here;
+* the private name, in any tracked text file or inside Word, PowerPoint, Excel and PDF
+  files, found by fingerprint (``ops/hart-ops/card_pipeline/private_name.py``) so it is
+  never written down here;
+* personal email addresses (an address at a consumer mail provider such as iCloud or
+  Gmail) in the same files. Service addresses (``git@github.com``, mailing lists) pass;
 * the author fields (creator, last modified by) of Office files: blank or the name of the
   library that wrote the file. ``--fix`` blanks any other name in place.
+
+PDF text and metadata need ``pypdf`` (in ``ops/hart-ops/.venv`` and CI). Without it the
+PDF check is skipped with a note, except in CI, where that fails.
 """
 from __future__ import annotations
 
 import argparse
+import logging
+import os
 import re
 import shutil
 import subprocess
@@ -29,6 +36,28 @@ OFFICE = (".docx", ".pptx", ".xlsx", ".dotx", ".potx", ".xltx")
 AUTHOR_TAGS = ("dc:creator", "cp:lastModifiedBy")
 TOOL_AUTHORS = {"", "python-docx", "python-pptx", "openpyxl"}
 MAX_TEXT = 30_000_000
+MAIL_PROVIDERS = ("icloud.com", "me.com", "mac.com", "gmail.com", "googlemail.com", "yahoo.com",
+                  "outlook.com", "hotmail.com", "live.com", "msn.com", "aol.com", "proton.me",
+                  "protonmail.com", "comcast.net", "verizon.net")
+PERSONAL_EMAIL = re.compile(
+    r"\b[A-Za-z0-9._%+-]+@(?:" + "|".join(re.escape(d) for d in MAIL_PROVIDERS) + r")\b", re.I)
+
+
+def personal_email(text: str) -> bool:
+    return bool(PERSONAL_EMAIL.search(text))
+
+
+def pdf_text(path: Path) -> str | None:
+    """Page text plus document metadata, or None when pypdf is not installed."""
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        return None
+    logging.getLogger("pypdf").setLevel(logging.ERROR)  # repairable xref noise
+    reader = PdfReader(path)
+    parts = [str(v) for v in (reader.metadata or {}).values()]
+    parts += [page.extract_text() or "" for page in reader.pages]
+    return " ".join(parts)
 
 
 def git_files() -> list[str]:
@@ -74,6 +103,7 @@ def rewrite_core(path: Path) -> None:
 
 def problems(files: list[str], fix: bool = False) -> list[str]:
     out = []
+    pdf_skipped = 0
     for rel in files:
         path = ROOT / rel
         if not path.is_file() or path.is_symlink():
@@ -93,14 +123,38 @@ def problems(files: list[str], fix: bool = False) -> list[str]:
                 out.append(f"author name in {rel} ({', '.join(people)}); run with --fix")
             if contains_private_name(text):
                 out.append(f"private name in {rel}")
+            if personal_email(text):
+                out.append(f"personal email address in {rel}")
+            continue
+        if path.suffix.lower() == ".pdf":
+            try:
+                text = pdf_text(path)
+            except Exception as exc:  # a damaged PDF should not hide the others
+                out.append(f"cannot read {rel}: {exc}")
+                continue
+            if text is None:
+                pdf_skipped += 1
+                continue
+            if contains_private_name(text):
+                out.append(f"private name in {rel}")
+            if personal_email(text):
+                out.append(f"personal email address in {rel}")
             continue
         if path.stat().st_size > MAX_TEXT:
             continue
         data = path.read_bytes()
         if b"\0" in data[:8000]:
             continue  # binary
-        if contains_private_name(data.decode("utf-8", "ignore")):
+        text = data.decode("utf-8", "ignore")
+        if contains_private_name(text):
             out.append(f"private name in {rel}")
+        if personal_email(text):
+            out.append(f"personal email address in {rel}")
+    if pdf_skipped:
+        if os.environ.get("CI"):
+            out.append(f"pypdf not installed: {pdf_skipped} PDFs unchecked")
+        else:
+            print(f"note: {pdf_skipped} PDFs skipped, pypdf not installed (ops/hart-ops/.venv has it)")
     return out
 
 
@@ -113,7 +167,7 @@ def main() -> int:
     for line in found:
         print(f"FAIL {line}")
     if not found:
-        print("OK: no private name, no personal author names")
+        print("OK: no private name, no personal email address, no personal author names")
     return 1 if found else 0
 
 

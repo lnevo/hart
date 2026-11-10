@@ -39,9 +39,6 @@ SKIP_FILES = {
     Path("README.md"),
     Path("guides/digicon-system.html"),
     Path("data/signal-splits.json"),  # signal splits are under review; the wiring viewer hides that tab
-    Path("data/f-root-review.json"),  # F-root review desk (review/ is local-only)
-    Path("data/f-root-curation.json"),
-    Path("js/f-root-review.js"),
     Path("data/invites.json"),  # invitation drafts; author reference only
     Path("data/panels.json"),
     Path("library/updated-history.txt"),
