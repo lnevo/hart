@@ -10,7 +10,6 @@ card_pipeline/output/*
 !card_pipeline/output/README.md
 !card_pipeline/output/HART_Equipment_Card_Template.docx
 !card_pipeline/output/HART_Spot_Waybills.docx
-!card_pipeline/output/card_review.html
 *.log
 
 # Large local photo trees (not in git)

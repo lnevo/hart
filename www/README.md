@@ -15,7 +15,7 @@ Deploys from your **local working tree** (any branch, work in progress included)
 **Build rules** (`scripts/prepare_github_pages.py [DEST] [--site-url URL]`; the name predates the move off Pages):
 
 - Only **git-tracked** files are published, with their working-tree content. A new page or image stays off the site until it is `git add`ed (committing is not needed).
-- To keep a tracked file off the site, add it to `SKIP_FILES` (one file), `SKIP_DIRS` (a folder), or `SKIP_GLOBS` (a pattern) at the top of the script. `scripts/`, `review/`, `tools/`, `reference/`, `README.md`, `docs/*.md`, the F-root review data, and invitation drafts are already skipped.
+- To keep a tracked file off the site, add it to `SKIP_FILES` (one file), `SKIP_DIRS` (a folder), or `SKIP_GLOBS` (a pattern) at the top of the script. `scripts/`, `review/`, `tools/`, `reference/`, `README.md`, `docs/*.md`, and invitation drafts are already skipped.
 - Elements marked `data-local-only` are **removed** from the built HTML (and also hidden by `js/nav.js` when `site.public`), so use it for localhost and workspace links. `site.json` `tools` (localhost service URLs) is dropped, and any data field still pointing into `../external/` is removed.
 - **Leak check:** the build fails, listing file and line, if the output still contains `localhost`, `127.0.0.1`, `/Users/`, or `external` (or `../external/` in data). Fix the source text or skip the file.
 - Gallery and rolling-stock items get a ~640 px grid thumbnail (`assets/gallery/thumbs/`, `assets/fleet/thumbs/`, field `thumb`) and the full image's `width`/`height` when Pillow is installed.
@@ -23,7 +23,7 @@ Deploys from your **local working tree** (any branch, work in progress included)
 
 **Deploy safety** (`deploy_hartrailroad.sh`):
 
-- Refuses to run when `ops/hart-ops` is missing or not initialised (logos would drop out, and `rsync --delete` would remove them live). Warns, without stopping, when the submodule is not at the recorded commit (`+` in `git submodule status`) or the portal has uncommitted changes.
+- Refuses to run when `ops/hart-ops/operator_logos` is missing (logos would drop out, and `rsync --delete` would remove them live). Warns, without stopping, when the portal has uncommitted changes.
 - Runs `scripts/check_portal_build.py --dist` on the build: every internal `href`/`src` in the HTML and every link/asset field in `data/*.json` must resolve to a built file. Run it alone (`python3 www/scripts/check_portal_build.py`) to build into a temp folder and check.
 - Prints a manifest (file count, archive items, industry logos, gallery and fleet items) and compares it with the last deploy's, kept in the gitignored `.deploy-manifest.json` at the main checkout's root (found through the shared git dir, so a worktree deploy uses the same record). A count down more than 10%, or no manifest at all, stops the deploy unless `--force` is passed. The manifest is saved only after a successful rsync.
 - Stops before building when a public photo's original is missing (`--require-mirrors`). The layout, rolling-stock and archive originals live in the gitignored `media/` and `ops/car-cards/`, which only the main checkout has. To deploy from a worktree, symlink both from the main checkout first; `--force` does not skip this check.
@@ -51,23 +51,15 @@ Server notes (ssh `lnevo@www.easte.net` for admin work):
 JSON pages (Briefing, About, Photos, Layout, spot sheets) need **HTTP**, not `file://`.
 
 ```bash
-# from repo — includes review log API (POST /api/f-root-review/log); edits must come from a local page (JSON body, local Origin)
+# from repo — includes the archive and gallery edit APIs; edits must come from a local page (JSON body, local Origin)
 # Login LaunchAgent (survives Cursor quit; starts at login):
 ./www/scripts/install_portal_launchagent.sh
 # Foreground only (dies when the terminal/Cursor session ends):
 ./www/scripts/serve_portal.sh [PORT]
 # → http://127.0.0.1:8760/www/
-# F-root review → http://127.0.0.1:8760/www/review/f-root/
 ```
 
-Plain `python3 -m http.server` works for read-only pages but **cannot save** review decisions.
-
-**F-root review curation** (previews + optional GPT summaries):
-
-```bash
-python3 www/scripts/curate_f_root_review.py --previews
-python3 www/scripts/curate_f_root_review.py --gpt   # OPENAI_API_KEY in .env.local
-```
+Plain `python3 -m http.server` works for read-only pages but **cannot save** archive or gallery edits.
 
 ## Sections
 
@@ -105,11 +97,3 @@ Session invitation emails are **author reference** only (used to write the prime
 
 `python3 www/scripts/build_layout_index.py` writes `data/layout-index.json` from live repo data, and `python3 www/scripts/build_cats_layout_index.py` writes `data/layout-index-cats.json` and `assets/layout/HART_cats_digicon.png` from `cats/panels/HART_CTC.xml`. Rerun them after the layout or the desks change, then deploy.
 
-## Rebuild content (legacy)
-
-`scripts/legacy/build_ops_content.py` and `scripts/legacy/refresh_galleries_and_library.py` predate the hand-edited `briefing.json`, `gallery.json`, `industries.json`, and `publications.json`; a forced run overwrites those files with older content. Both are dry runs by default (they list what they would write); `--force` writes. Check the diff before committing.
-
-```bash
-python3 www/scripts/legacy/build_ops_content.py [--f-root DIR]           # or HART_F_ROOT; default media/archive/f-root
-python3 www/scripts/legacy/refresh_galleries_and_library.py [--desktop-data DIR]   # or HART_DESKTOP_DATA
-```

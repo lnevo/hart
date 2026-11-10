@@ -6,14 +6,14 @@ Keep these scripts in the repo. **Do not deploy** layout hosts from here.
 
 | Script | Output | Input SoR |
 |--------|--------|-----------|
-| `hart-ops/card_pipeline/generate_waybill_cards.py` | `card_pipeline/output/HART_Spot_Waybills.docx` | `data/HART_Spot_Waybills.csv`, `data/spot_assignments.csv` |
-| `hart-ops/card_pipeline/generate_cc_waybill_labels.py` | `docs/print/waybills/` or `--output` | STS shipments JSON |
+| `ops/hart-ops/card_pipeline/generate_waybill_cards.py` | `card_pipeline/output/HART_Spot_Waybills.docx` | `data/HART_Spot_Waybills.csv`, `data/spot_assignments.csv` |
+| `ops/hart-ops/card_pipeline/generate_cc_waybill_labels.py` | `docs/print/waybills/` or `--output` | STS shipments JSON |
 
 Regenerate spot deck:
 
 ```bash
-bash ops/packages/car-cards/run_generate_print.sh
-# or:
+make waybills
+# or only the spot deck:
 cd ops/hart-ops
 .venv/bin/python card_pipeline/generate_waybill_cards.py
 ```
@@ -30,15 +30,10 @@ cd ops/hart-ops
 ### Refresh STS shipments + print labels (local lab)
 
 ```bash
-# STS must be running (STS compose)
-## STS session (local lab)
-
-```bash
+# STS must be running
 bash tools/ops/sts_compose.sh up -d
-```
 
-cd ../hart-ops
-export HART_CAR_CARDS_ROOT="../desktop-data/car-cards"
+cd ops/hart-ops
 .venv/bin/python card_pipeline/generate_cc_waybill_labels.py --refresh \
   --json docs/print/waybills/cc_shipments.json \
   --output docs/print/waybills/HART_CC_Waybill_Labels_current.docx
@@ -64,7 +59,7 @@ docker exec -u www-data sts-docker-web-1 \
 
 ## Archived session label decks (git)
 
-`hart-ops/docs/print/waybills/`:
+`ops/hart-ops/docs/print/waybills/`:
 
 - `HART_CC_Waybill_Labels_Sessions_1-4.docx`
 - `HART_CC_Waybill_Labels_Duplicates_S3-S4.docx`
@@ -74,5 +69,5 @@ docker exec -u www-data sts-docker-web-1 \
 ## Related
 
 - [`README.md`](README.md) — car cards workspace
-- [`../../../wiki/pipelines/waybills.md`](../../../wiki/pipelines/waybills.md) (if present)
+- [`../../../wiki/pipelines/waybills.md`](../../../wiki/pipelines/waybills.md)
 - [`../sts/README.md`](../sts/README.md)

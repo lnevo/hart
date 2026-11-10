@@ -1,6 +1,6 @@
 # Car cards pipeline
 
-Raw photos → crop → OCR → metadata → printed cards. **Legacy raw `Images/` (~1 GB) are not mirrored**; the pipeline stays ready for new drops.
+Raw photos → crop → OCR → car records → printed cards. The day-to-day tool is `ops/hart-ops/bin/cars` (ADR-013); the runbook is [`wiki/pipelines/intake-stages.md`](../../../wiki/pipelines/intake-stages.md). **Legacy raw `Images/` (~1 GB) are not mirrored.**
 
 ## Workspace layout
 
@@ -20,25 +20,16 @@ ops/hart-ops/card_pipeline/   scripts (SoR)
 ## Pipeline steps
 
 ```bash
-bash ops/packages/car-cards/run_process.sh
-
-# Or manually:
-cd ops/hart-ops
-export HART_CAR_CARDS_ROOT="../desktop-data/car-cards"
-export HART_CAR_IMAGES_FINAL="../desktop-data/car-images/CarImagesFinal"
-.venv/bin/python card_pipeline/process_car_images.py
-.venv/bin/python card_pipeline/finalize_car_images.py
-.venv/bin/python card_pipeline/build_car_roster_sor.py
+ops/hart-ops/bin/cars status          # what is queued
+ops/hart-ops/bin/cars intake          # crop, OCR and match new photos in incoming/
+ops/hart-ops/bin/cars cards           # print cards for queued cars and locos
 ```
+
+`bin/cars --help` lists every step (review, approve, fill, publish, compare and the rest).
 
 ## Environment
 
-```bash
-export HART_CAR_IMAGES_FINAL="$(pwd)/../desktop-data/car-images/CarImagesFinal"
-export HART_CAR_CARDS_ROOT="$(pwd)/../desktop-data/car-cards"
-```
-
-Set automatically by [`../../scripts/setup_car_cards_workspace.sh`](../../../tools/ops/setup_car_cards_workspace.sh).
+`tools/env/load_env.sh` sets `HART_CAR_CARDS_ROOT` (`ops/car-cards`) and `HART_CAR_IMAGES_FINAL` (`ops/car-cards/car-images/CarImagesFinal`); override them in `tools/env/hart.env`. [`tools/ops/setup_car_cards_workspace.sh`](../../../tools/ops/setup_car_cards_workspace.sh) creates the folders and links above.
 
 ## STS seed
 
@@ -49,17 +40,15 @@ Car photos for STS use `CarImagesFinal/` via `HART_CAR_IMAGES_FINAL` in hart-ops
 | Location | Contents |
 |----------|----------|
 | `ops/hart-ops/card_pipeline/assets/` | **Poker Size Sticker Sheet Template.docx** (git) |
-| `ops/hart-ops/card_pipeline/output/` | Equipment template, spot waybills, card review (git) |
+| `ops/hart-ops/card_pipeline/output/` | Equipment template, spot waybills (git) |
 | `ops/hart-ops/docs/print/waybills/` | Session CC/WB label decks (git) |
 | `ops/car-cards/print/` | Full `HART_All_Car_Cards.docx` mirror (~345 MB, not git) |
 
-Regenerate:
+Regenerate the blank equipment-card template and the spot waybill deck:
 
 ```bash
-cd ops/hart-ops
-.venv/bin/python card_pipeline/generate_card_template.py
-.venv/bin/python card_pipeline/generate_waybill_cards.py
-.venv/bin/python card_pipeline/generate_all_cards.py   # full fleet → output/ + mirror
+make waybills                          # runs run_generate_print.sh
+GENERATE_ALL_CARDS=1 make waybills     # also the full fleet deck (large)
 ```
 
 **Waybill / session scripts:** see [`WAYBILL_SCRIPTS.md`](WAYBILL_SCRIPTS.md) — spot waybills, STS `--refresh`, session rebuild, not-yet-printed workflow.

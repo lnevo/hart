@@ -4,7 +4,6 @@
 |------|------|--------|
 | `HART_Equipment_Card_Template.docx` | Mail-merge master on poker sticker sheet | yes |
 | `HART_Spot_Waybills.docx` | Generated spot waybill deck | yes |
-| `card_review.html` | Visual review grid | yes |
 | `HART_All_Car_Cards.docx` | Full fleet print run (~345 MB) | **mirror only** |
 
 Regenerate:

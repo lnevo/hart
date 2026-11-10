@@ -57,5 +57,5 @@ See ADRs 001–005.
 ## Related
 
 - ADRs: [`../decisions/`](../decisions/)
-- Bootstrap: `jmri/scripts/bootstrap_hart_from_linear6.py`
+- Bootstrap (one-time, archived): `archive/jmri-scripts/bootstrap_hart_from_linear6.py`
 - Panel: `jmri/layouts/hart/`

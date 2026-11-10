@@ -35,7 +35,7 @@ python3 jmri/scripts/export_hart_devices_for_cats.py
 | [`data/occupancy_bindings.csv`](data/occupancy_bindings.csv) | Block → occupancy sensor userName |
 | [`data/turnout_bindings.csv`](data/turnout_bindings.csv) | Layout OS → Switch / M2T* |
 | [`data/plants_from_hart.csv`](data/plants_from_hart.csv) | CP → switch list |
-| [`data/signal_mast_plan.csv`](../docs/wiring/signals/signal_mast_plan.csv) | Planned mast slots |
+| [`docs/wiring/signals/signal_mast_plan.csv`](../docs/wiring/signals/signal_mast_plan.csv) | Planned mast slots |
 
 ## Decisions (Accepted)
 
@@ -89,6 +89,6 @@ JMRI tables are owned by **PanelPro**: edit and Store there only. CATS refers to
 
 ## Guides
 
-- **Dispatcher (CTC ops):** [`docs/DISPATCHER_GUIDE_CTC.md`](../docs/ctc/DISPATCHER_GUIDE_CTC.md) — how to be a dispatcher on the Digicon panel (routes, stacking, fleeting, call-on). Complements, does not replace, the JMRI USS lever guide at `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`.
+- **Dispatcher (CTC ops):** [`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../docs/ctc/DISPATCHER_GUIDE_CTC.md) — how to be a dispatcher on the Digicon panel (routes, stacking, fleeting, call-on). Complements, does not replace, the JMRI USS lever guide at `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`.
 - Manuals (after fetch): `tools/cats/release3.2/{DesignerManual,catsManual,ReadMe}.pdf`
 - Site: [User Guides](http://cats4ctc.wikidot.com/main:userguides)

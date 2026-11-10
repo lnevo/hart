@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Regenerate print templates and waybill decks from the hart repo.
+# Regenerate the blank equipment-card template and the spot waybill deck.
+# Run from anywhere: make waybills (GENERATE_ALL_CARDS=1 adds the full fleet deck).
 set -euo pipefail
 
 PKG="$(cd "$(dirname "$0")" && pwd)"
-CON="$(cd "$PKG/../.." && pwd)"
-HOPS="$CON/ops/hart-ops"
-CAR="${HART_CAR_CARDS_ROOT:-$CON/ops/car-cards}"
+REPO="$(cd "$PKG/../../.." && pwd)"
+HOPS="$REPO/ops/hart-ops"
+CAR="${HART_CAR_CARDS_ROOT:-$REPO/ops/car-cards}"
 
 export HART_CAR_CARDS_ROOT="$CAR"
-export HART_CAR_IMAGES_FINAL="${HART_CAR_IMAGES_FINAL:-$CON/ops/car-cards/car-images/CarImagesFinal}"
+export HART_CAR_IMAGES_FINAL="${HART_CAR_IMAGES_FINAL:-$REPO/ops/car-cards/car-images/CarImagesFinal}"
 
-bash "$CON/scripts/setup_car_cards_workspace.sh" >/dev/null
+bash "$REPO/tools/ops/setup_car_cards_workspace.sh" >/dev/null
 
 cd "$HOPS"
 if [[ ! -d .venv ]]; then

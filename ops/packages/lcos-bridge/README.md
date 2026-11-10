@@ -24,11 +24,7 @@ python -m venv .venv
 .venv\Scripts\python -u serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local --verbose
 ```
 
-Or use the wrapper (sets broker from env):
-
-```powershell
-..\..\packages\lcos-bridge\run_bridge.ps1
-```
+Or use the bridge's own launcher from that folder: `run_serial_mqtt.cmd verbose` (Windows) or `run_serial_mqtt.sh` (Mac/Linux).
 
 **Foreground only** — operator owns the process; Ctrl+C to stop. Do not run hidden/detached.
 
@@ -49,7 +45,7 @@ python -u serial_to_mqtt.py --com /dev/tty.usbserial-* --broker "$HART_MQTT_BROK
 
 Open `external/lcos-bridge/` in Arduino IDE (`lcos-bridge.ino` matches folder name).
 
-Windows helper: `scripts/windows/flash_nano.py`
+Windows helper: `external/lcos-bridge/scripts/windows/flash_nano.py`
 
 ## Smoke test
 

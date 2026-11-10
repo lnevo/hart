@@ -8,12 +8,12 @@ Git submodules live here so nothing spreads to home-directory clones.
 | `sts-docker/` | sts-docker |
 | `sts-helpers/` | sts-docker-helpers |
 | `sts-plugins/` | sts-plugins (STS addons: track_scale, coke_orders, hart_layout; bind-mounted into the sts-docker web container) |
-| `hart-ops/` | hart-ops |
+| `model-railroad-skills/` | model-railroad-skills (public agent skills) |
+| `jmri-cs105-roster-sync/` | jmri-cs105-roster-sync (JMRI roster → CS-105) |
 | `sts-docker-data/` | STS runtime mirror (not git); see [`sts-docker-data/README.md`](sts-docker-data/README.md) |
 
 ```bash
 # From hart repo root
-bash tools/ops/init_external_submodules.sh
-git submodule update --init --recursive
+make submodules    # git submodule update --init --recursive
 ```
 

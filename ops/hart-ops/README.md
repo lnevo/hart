@@ -51,7 +51,7 @@ Golden car: **NW32800**
 | `card_pipeline/output/HART_Spot_Waybills.docx` | Spot waybill deck |
 | `docs/print/waybills/` | Session CC/WB label sheets |
 
-Full fleet print (`HART_All_Car_Cards.docx`, ~345 MB) is kept in hart at ops/car-cards/print — see hart `consolidation/packages/car-cards/`.
+Full fleet print (`HART_All_Car_Cards.docx`, ~345 MB) is kept at `ops/car-cards/print/` (not in git); see [`ops/packages/car-cards/`](../packages/car-cards/README.md).
 
 ```bash
 python card_pipeline/generate_card_template.py

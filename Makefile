@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help check portal-check desks panelpro-test docs-index publications tables-pull ops-pull shot deploy-layout deploy-all deploy-site
+.PHONY: help check portal-check desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull shot deploy-layout deploy-all deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -30,6 +30,12 @@ ops-pull:  ## Bring Pi Operations Pro session state into the repo
 
 publications:  ## Regenerate docs/ops from hart-ops
 	./tools/ops/rebuild_publications.sh
+
+waybills:  ## Regenerate the blank car-card template and the spot waybill deck
+	./ops/packages/car-cards/run_generate_print.sh
+
+submodules:  ## Check out every external/ submodule at the commit hart records
+	git submodule update --init --recursive
 
 shot:  ## Screenshot a page: make shot PAGE=www/index.html
 	python3 tools/ops/screenshot.py $(PAGE)

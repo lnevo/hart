@@ -1,10 +1,10 @@
-[submodule "consolidation/external/lcos-bridge"]
+[submodule "external/lcos-bridge"]
 	path = external/lcos-bridge
 	url = git@github.com:lnevo/LCOS_ESP32_MQTT_Client.git
-[submodule "consolidation/external/sts-docker"]
+[submodule "external/sts-docker"]
 	path = external/sts-docker
 	url = git@github.com:lnevo/sts-docker.git
-[submodule "consolidation/external/sts-helpers"]
+[submodule "external/sts-helpers"]
 	path = external/sts-helpers
 	url = git@github.com:lnevo/sts-docker-helpers.git
 [submodule "external/model-railroad-skills"]

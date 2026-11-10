@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the website tree + F-root review log API + archive bucket API."""
+"""Serve the website tree + archive and gallery edit APIs, local only."""
 
 from __future__ import annotations
 
@@ -12,8 +12,6 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]
-LOG_PATH = ROOT / "www/review-data/f_root_review_log.jsonl"
-API_LOG = "/api/f-root-review/log"
 ARCHIVE_PATH = ROOT / "www/data/archive.json"
 ARCHIVE_LOG = ROOT / "www/review-data/archive_review_log.jsonl"
 API_ARCHIVE = "/api/archive/item"
@@ -84,9 +82,6 @@ class PortalHandler(SimpleHTTPRequestHandler):
         if not self._servable_path():
             return
         route = self.path.split("?", 1)[0]
-        if route == API_LOG:
-            self._send_json(200, {"entries": _read_log()})
-            return
         if route in (API_ARCHIVE_PING, API_GALLERY_PING):
             self._send_json(200, {"ok": True})
             return
@@ -129,28 +124,7 @@ class PortalHandler(SimpleHTTPRequestHandler):
                 code, payload = _move_archive_item_to_layout(body)
                 self._send_json(code, payload)
             return
-        if route != API_LOG:
-            self.send_error(404)
-            return
-        body = self._read_body()
-        if body is None:
-            return
-        if not body.get("path"):
-            self.send_error(400, "path required")
-            return
-
-        entry = {
-            "ts": datetime.now(timezone.utc).isoformat(),
-            "path": body["path"],
-            "action": body.get("action", "review"),
-            "category": body.get("category", ""),
-            "caption": body.get("caption", ""),
-            "title": body.get("title", ""),
-        }
-        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with LOG_PATH.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
-        self._send_json(201, entry)
+        self.send_error(404)
 
     def _send_json(self, code: int, payload: object) -> None:
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -162,24 +136,11 @@ class PortalHandler(SimpleHTTPRequestHandler):
 
     def log_message(self, format: str, *args) -> None:
         req = args[0] if args else ""
-        if API_LOG in str(req) or "/api/archive/" in str(req):
+        if "/api/archive/" in str(req):
             return
         super().log_message(format, *args)
 
 
-def _read_log() -> list[dict]:
-    if not LOG_PATH.is_file():
-        return []
-    entries: list[dict] = []
-    for line in LOG_PATH.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            entries.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
-    return entries
 
 
 def _update_archive_item(body: dict) -> tuple[int, dict]:
@@ -351,9 +312,7 @@ def main() -> int:
     port = parser.parse_args().port
     server = HTTPServer(("127.0.0.1", port), PortalHandler)
     print(f"HART portal → http://127.0.0.1:{port}/www/", flush=True)
-    print(f"F-root review → http://127.0.0.1:{port}/www/review/f-root/", flush=True)
     print(f"Archive → http://127.0.0.1:{port}/www/photos/index.html#historical (edits save to data/archive.json)", flush=True)
-    print(f"Review log API → {API_LOG}", flush=True)
     print("(Ctrl+C to stop)", flush=True)
     try:
         server.serve_forever()

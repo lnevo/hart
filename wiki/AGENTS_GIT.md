@@ -39,7 +39,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 |------|-------|-------|
 | Rules for every tool | `AGENTS.md` | Commands, close-out, do-nots |
 | Scoped rules | `cats/AGENTS.md` | Only what applies under that folder |
-| Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md` | Pointers only; Cursor also reads `AGENTS.md` |
+| Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md`, `.cursor/hooks.json`, `.cursor/hooks/main_guard.py` | Pointers, plus a hook that runs the Claude guard's rules on every shell command; Cursor also reads `AGENTS.md`. When a rule or guard changes, carry it here too |
 | Claude Code | `.claude/commands/done.md`, `.claude/settings.json`, `.claude/hooks/main_guard.py` | Pointer and guard hook; Claude Code reads `AGENTS.md` |
 | Subagents | `.claude/agents/` | Five project agents; see below |
 | Facts and decisions | `wiki/`, ADRs | Never in chat or tool memory |
@@ -80,7 +80,7 @@ Cloud agents clone **GitHub**, not your Mac disk. Uncommitted local work is invi
 1. Confirm GitHub + **hart** are linked: [cursor.com/dashboard/cloud-agents](https://cursor.com/dashboard/cloud-agents) (Environments → select `lnevo/hart`).  
 2. Integrations: [cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations).  
 3. Prefer Agents Window → env dropdown **Cloud**, or `/in-cloud` for a cloud subagent.  
-4. Repo env defaults: [`.cursor/environment.json`](../.cursor/environment.json).  
+4. Repo env defaults: [`.cursor/environment.json`](../.cursor/environment.json) installs what CI installs and runs `./tools/check.sh` once.  
 5. Before handoff: commit + `git push -u origin HEAD` on an `agent/...` branch (never push to `main` from agents).
 
 GUI CATS / JMRI on the Mac stays **local**. Cloud work = XML/scripts/docs + static verify; human launches CATS on the layout host.

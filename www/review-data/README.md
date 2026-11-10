@@ -1,20 +1,10 @@
-# Desktop HART snapshots (consolidation)
+# Review data (local only)
 
-Read-only scans of `~/Desktop/HART`, taken before that folder was retired on 2026-11-09 (ADR-007) — **not** git SoR. The scans are a historical record; the F-root review page cannot be rebuilt from the Desktop any more.
+Kept in git, never published (ADR-009; `prepare_github_pages.py` skips this folder).
 
-| File | Generator |
-|------|-----------|
-| `hart_root_inventory.csv` | Retired one-off inventory |
-| `class_f_ingest_manifest.csv` | Retired one-off classifier |
-| Audit narrative | `audits/desktop-inventory.md` |
+| File | Role |
+|------|------|
+| `hart_devices_review.json` | Device review snapshot, kept by hand; feeds `scripts/build_layout_index.py` and `tools/audit/tests/test_site_device_names.py` |
+| `archive_review_log.jsonl` | Append-only log of archive and gallery edits made through `scripts/serve_portal.py` |
 
-## F-root browse (categorized)
-
-
-| Disposition | Count | Categories |
-|-------------|------:|------------|
-| browse | 33 | screenshots, eBay/listings, social, iPhone, reference photos, other |
-| archive | 68 | narrative, reference, prototype media |
-| skip | 23 | installers, layout photo series, wiring drafts, temp files |
-
-Operational subtrees (class **C**) → **hart-ops** / sibling repos under `external/`.
+The F-root review of `~/Desktop/HART` and its scans moved to `archive/www-f-root-review/` on 2026-11-10.
