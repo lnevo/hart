@@ -3,7 +3,7 @@
 
 The five area sheets (West Yard, South Yard, East End, Shenango; the Barn is
 the crossover inside the yard) join end to end: Main West and Main East run
-unbroken, the S-1 to S-5 yard tracks run from the South Yard ladder straight
+unbroken, the S-R and S-1 to S-4 yard tracks run from the South Yard ladder straight
 into the East End ladder. No "to ..." notes, no compass.
 
 Usage (from this folder):
@@ -43,9 +43,9 @@ DOT_R = 15
 K = 0.24  # ladder slope, dx per dy (same as the sheets)
 
 Y0 = 160  # Main West
-R1 = 210  # Main West to S-1 / West Lead
+R1 = 210  # Main West to S-R / West Lead
 G = 100  # row pitch in the yard
-S = [Y0 + R1 + i * G for i in range(5)]  # S-1 .. S-5
+S = [Y0 + R1 + i * G for i in range(5)]  # S-R, S-1 .. S-4
 ME_LOW = S[4] + 70  # Main East under the yard
 P_GAP = 120  # Main West to Main East at Princess
 
@@ -126,7 +126,7 @@ def main() -> None:
     me_hi = S[1]
     me_corner = (xb + (me_hi - S[0]), me_hi)
     line(plane, (x110, S[0]))
-    line((x110, S[0]), (x112, S[0]))  # S-1 links 110 to 112
+    line((x110, S[0]), (x112, S[0]))  # S-R links 110 to 112
     line(plane, me_corner)
     line(me_corner, (turn_x, me_hi))
     lab((xb + 150, S[0] - 18), "West Lead", track_font)
@@ -203,12 +203,12 @@ def main() -> None:
     dot(mid111)
     badge((mid111[0] - 60, mid111[1]), "111")
 
-    lab((x103 + 100, S[0] - 18), "Track S-1", track_font, "lm")
+    lab((x103 + 100, S[0] - 18), "Track S-R", track_font, "lm")
     rows = [
-        ("Track S-2", [("FFFF00", "Aristech Plastics")], "Pellets  ·  Chemicals  ·  Shipping"),
-        ("Track S-3", [("FF0000", "Ferrellgas"), ("008000", "A. Stucki Co.")], "LPG  ·  Crane  ·  Team"),
-        ("Track S-4", [("FFC0CB", "Kosmos Cement")], "Cement  ·  Aggregate"),
-        ("Track S-5", [("800080", "Calgon Carbon")], "Coal  ·  Carbon  ·  Chemical"),
+        ("Track S-1", [("FFFF00", "Aristech Plastics")], "Pellets  ·  Chemicals  ·  Shipping"),
+        ("Track S-2", [("FF0000", "Ferrellgas"), ("008000", "A. Stucki Co.")], "LPG  ·  Crane  ·  Team"),
+        ("Track S-3", [("FFC0CB", "Kosmos Cement")], "Cement  ·  Aggregate"),
+        ("Track S-4", [("800080", "Calgon Carbon")], "Coal  ·  Carbon  ·  Chemical"),
     ]
     chip = 28
     for i, (name, parts, spots) in enumerate(rows, start=1):
@@ -217,21 +217,22 @@ def main() -> None:
         line((xs, y), (xe, y))
         lab((xs + 56, y + 22), name, track_font, "lm")
         sep = " · "
-        widths = [chip + 8 + d.textlength(n, font=ind_font) for _, n in parts]
+        gap = 8
+        widths = [d.textlength(n, font=ind_font) + gap + chip for _, n in parts]
         sep_w = d.textlength(sep, font=ind_font) + 14
         total = sum(widths) + sep_w * (len(parts) - 1)
-        cx = (xs + xe) / 2 + 20
-        x = cx - total / 2
+        right = xe - 70  # right-justified, clear of the switch pill
+        x = right - total
         ly = y - 20
         for j, (hexfill, nm) in enumerate(parts):
-            _color_chip(d, (x + chip / 2, ly), hexfill, size=chip)
-            x += chip + 8
             lab((x, ly), nm, ind_font, "lm")
-            x += d.textlength(nm, font=ind_font)
+            x += d.textlength(nm, font=ind_font) + gap
+            _color_chip(d, (x + chip / 2, ly), hexfill, size=chip)
+            x += chip
             if j < len(parts) - 1:
                 lab((x, ly), sep, ind_font, "lm")
                 x += sep_w
-        lab((cx, y + 16), spots, spot_font)
+        lab((right, y + 16), spots, spot_font, "rm")
 
     me_turn_x = x112 - (ME_LOW - S[0]) * K
     line(me_foot, (me_turn_x, ME_LOW))
