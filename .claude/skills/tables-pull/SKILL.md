@@ -27,7 +27,7 @@ description: Use when a PanelPro Store has changed ~/JMRI_UserFiles/tables.xml a
 
 ## Why deploy stops
 
-`sync_hart_package.sh` stops with "tables.xml changed since the last deploy" when the profile copy differs from the last deployed hash. Run this pull first. `HART_OVERWRITE_PROFILE_TABLES=1` skips the guard and throws the Store away, so use it only when the owner says to.
+`sync_hart_package.sh` stops with "tables.xml changed since the last deploy" when the Mac's `~/JMRI_UserFiles/tables.xml` differs from the last deployed hash. The guard covers the Mac install only; the Pi and Windows copies are replaced without a check. Run this pull first. `HART_OVERWRITE_PROFILE_TABLES=1` skips the guard and throws the Store away, so use it only when the owner says to.
 
 ## Sources
 
