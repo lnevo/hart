@@ -430,7 +430,7 @@ def main() -> int:
     _vendor_archive_images(dest / "data" / "archive.json", dest)
     _strip_external_data(dest)
 
-    # nginx serves this for any missing path, so its links are site-root-relative.
+    # Served for any missing path (see .htaccess below), so its links are site-root-relative.
     (dest / "404.html").write_text(
         """<!DOCTYPE html>
 <html lang="en">
@@ -454,6 +454,8 @@ def main() -> int:
 """,
         encoding="utf-8",
     )
+    # Vesta proxies missing paths to Apache, which shows its own 404 unless told to use ours.
+    (dest / ".htaccess").write_text("ErrorDocument 404 /404.html\n", encoding="utf-8")
     _strip_local_only_pages(dest)
     _add_head_tags(dest)
     leaks = _check_leaks(dest)
