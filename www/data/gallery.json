@@ -25,7 +25,7 @@
     {
       "id": "progress",
       "label": "The build, month by month",
-      "count": 40
+      "count": 45
     }
   ],
   "items": [
@@ -256,6 +256,14 @@
     },
     {
       "album": "progress",
+      "src": "../media/photos-layout/IMG_4031.jpg",
+      "title": "Closet framing",
+      "caption": "A storage closet framed and boarded in the room, the drywall still being taped.",
+      "date": "2025-02-08",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
       "src": "../media/photos-layout/IMG_4038.jpg",
       "title": "The empty room",
       "caption": "Bare walls and patched drywall.",
@@ -264,10 +272,42 @@
     },
     {
       "album": "progress",
+      "src": "../media/photos-layout/IMG_4052.jpg",
+      "title": "Closet doors",
+      "caption": "The closet finished with bifold doors, its walls painted blue.",
+      "date": "2025-02-16",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
       "src": "../media/photos-layout/IMG_4124.jpg",
       "title": "Paint and floor",
       "caption": "Blue walls and a dark floor. Still empty.",
       "date": "2025-02-26",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_5280.jpg",
+      "title": "Plywood arrives",
+      "caption": "A stack of plywood sheets for the benchwork tops.",
+      "date": "2025-07-11",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_5281.jpg",
+      "title": "Backdrop hardboard",
+      "caption": "Hardboard sheets for the backdrop, waiting against a wall.",
+      "date": "2025-07-11",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_5282.jpg",
+      "title": "Framing lumber",
+      "caption": "Lumber for the benchwork framing, stacked along the blue wall.",
+      "date": "2025-07-11",
       "credit": "HART layout photos"
     },
     {
