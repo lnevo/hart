@@ -9,7 +9,8 @@ skipped; "/x" resolves from the site root.
 --manifest writes a summary of the build (file count, archive items, industry
 logos, gallery items); with --previous it also stops when a count dropped by
 more than 10% since that manifest (deploy_hartrailroad.sh passes --force through
-as --allow-drop).
+as --allow-drop). A --previous path that does not exist also stops, since there
+is nothing to compare with (a worktree, or a first deploy); --allow-drop accepts it.
 
 Usage: check_portal_build.py [--dist DIR] [--manifest OUT] [--previous OLD] [--allow-drop]
 """
@@ -152,7 +153,12 @@ def main() -> int:
     print("Build: " + ", ".join(f"{k} {v}" for k, v in summary.items()))
     if args.manifest:
         Path(args.manifest).write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-    if args.previous and Path(args.previous).is_file():
+    if args.previous and not Path(args.previous).is_file():
+        print(f"No previous deploy manifest at {args.previous}, so count drops cannot be checked.", file=sys.stderr)
+        if not args.allow_drop:
+            print("Pass --force to deploy anyway (first deploy only).", file=sys.stderr)
+            status = status or 3
+    elif args.previous:
         old = json.loads(Path(args.previous).read_text(encoding="utf-8"))
         print("Last deploy: " + ", ".join(f"{k} {v}" for k, v in old.items()))
         if lost := drops(summary, old):

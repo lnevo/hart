@@ -20,8 +20,9 @@ if [[ "$DEST" == hart-deploy:* ]] && "$RSYNC" --version 2>&1 | grep -qi openrsyn
   echo "(or HART_WEB_HOST=www.easte.net $0 to deploy with a normal login)" >&2
   exit 1
 fi
-# Last deploy's counts; gitignored, outside the docroot.
-MANIFEST="$ROOT/../.deploy-manifest.json"
+# Last deploy's counts; gitignored, outside the docroot. Kept at the main checkout's root
+# (via the shared git dir) so a deploy from any worktree compares with the same record.
+MANIFEST="$(cd "$(git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir)/.." && pwd)/.deploy-manifest.json"
 FORCE=""
 for arg in "$@"; do
   case "$arg" in
@@ -42,7 +43,7 @@ fi
 
 DIST="$(mktemp -d)/hart-dist"
 trap 'rm -rf "$(dirname "$DIST")"' EXIT
-python3 "$ROOT/scripts/prepare_github_pages.py" "$DIST"
+python3 "$ROOT/scripts/prepare_github_pages.py" "$DIST" --require-mirrors
 python3 "$ROOT/scripts/check_portal_build.py" --dist "$DIST" \
   --manifest "$(dirname "$DIST")/manifest.json" --previous "$MANIFEST" $FORCE
 chmod -R u+rwX,go+rX,go-w "$DIST"

@@ -5,10 +5,13 @@ Only git-tracked files are published (never gitignored previews, drafts, or
 stray local files), minus the engineering-desk material below. Gallery,
 rolling-stock, and historical-archive photos that live in gitignored
 ../external/ mirrors are vendored in, resized, when present; without the
-mirrors (or Pillow) they drop out. The build fails if the output still names
-local hosts or paths. (The file name predates the move off GitHub Pages.)
+mirrors (or Pillow) they drop out, unless --require-mirrors is passed: then a
+missing mirror or Pillow stops the build (deploy_hartrailroad.sh passes it, so a
+deploy from a worktree without media/ cannot strip the photos). The build fails
+if the output still names local hosts or paths. (The file name predates the move
+off GitHub Pages.)
 
-Usage: prepare_github_pages.py [DEST] [--site-url URL]
+Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors]
 """
 
 from __future__ import annotations
@@ -174,6 +177,33 @@ def _keep_src(src: str, dest_root: Path) -> bool:
     if src.startswith("http://") or src.startswith("https://"):
         return True
     return (dest_root / src).is_file()
+
+
+PHOTO_DATA = ("data/gallery.json", "data/fleet-gallery.json", "data/archive.json")
+
+
+def _missing_mirrors(portal: Path = PORTAL) -> list[str]:
+    """Public photo items whose ../ mirror original is not on this machine, plus Pillow if absent.
+
+    The mirrors (media/, ops/car-cards/) are gitignored and live only in the main
+    checkout, so a git worktree builds without them and every such photo drops out.
+    """
+    missing = []
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        missing.append("Pillow (python3 -m pip install Pillow)")
+    for rel in PHOTO_DATA:
+        path = portal / rel
+        if not path.is_file():
+            continue
+        for item in json.loads(path.read_text(encoding="utf-8")).get("items") or []:
+            src = str(item.get("src") or "")
+            if item.get("public") is False or item.get("bucket", "curated") != "curated":
+                continue
+            if src.startswith("../") and not (portal / src).resolve().is_file():
+                missing.append(f"{rel}: {src}")
+    return missing
 
 
 def _filter_gallery(path: Path, dest_root: Path) -> None:
@@ -425,7 +455,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("dest", nargs="?", default=str(PORTAL.parent / ".pages-dist"), help="output folder (replaced)")
     parser.add_argument("--site-url", default=SITE_URL, help="public root URL for share tags (default %(default)s)")
+    parser.add_argument(
+        "--require-mirrors",
+        action="store_true",
+        help="stop when a public photo's gitignored original (media/, ops/car-cards/) or Pillow is missing",
+    )
     args = parser.parse_args()
+    if args.require_mirrors and (missing := _missing_mirrors()):
+        print(
+            f"Refusing to build: {len(missing)} public photo original(s) are missing, so they would vanish from the site.\n"
+            "media/ and ops/car-cards/ are gitignored and exist only in the main checkout; in a worktree, symlink them\n"
+            "from there (ln -s <main>/media media; ln -s <main>/ops/car-cards ops/car-cards) or deploy from the main checkout.",
+            file=sys.stderr,
+        )
+        print("\n".join("  " + m for m in missing[:10]) + (f"\n  … and {len(missing) - 10} more" if len(missing) > 10 else ""), file=sys.stderr)
+        return 4
     SITE_URL = args.site_url.rstrip("/") + "/"
     dest = Path(args.dest).resolve()
     if _unsafe_dest(dest):

@@ -25,7 +25,8 @@ Deploys from your **local working tree** (any branch, work in progress included)
 
 - Refuses to run when `ops/hart-ops` is missing or not initialised (logos would drop out, and `rsync --delete` would remove them live). Warns, without stopping, when the submodule is not at the recorded commit (`+` in `git submodule status`) or the portal has uncommitted changes.
 - Runs `scripts/check_portal_build.py --dist` on the build: every internal `href`/`src` in the HTML and every link/asset field in `data/*.json` must resolve to a built file. Run it alone (`python3 www/scripts/check_portal_build.py`) to build into a temp folder and check.
-- Prints a manifest (file count, archive items, industry logos, gallery and fleet items) and compares it with the last deploy's, kept in the gitignored `.deploy-manifest.json` at the repo root. A count down more than 10% stops the deploy unless `--force` is passed. The manifest is saved only after a successful rsync.
+- Prints a manifest (file count, archive items, industry logos, gallery and fleet items) and compares it with the last deploy's, kept in the gitignored `.deploy-manifest.json` at the main checkout's root (found through the shared git dir, so a worktree deploy uses the same record). A count down more than 10%, or no manifest at all, stops the deploy unless `--force` is passed. The manifest is saved only after a successful rsync.
+- Stops before building when a public photo's original is missing (`--require-mirrors`). The layout, rolling-stock and archive originals live in the gitignored `media/` and `ops/car-cards/`, which only the main checkout has. To deploy from a worktree, symlink both from the main checkout first; `--force` does not skip this check.
 
 Server notes (ssh `lnevo@www.easte.net` for admin work):
 
