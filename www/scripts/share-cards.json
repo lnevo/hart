@@ -162,8 +162,8 @@
     },
     "roster/index.html": {
       "image": "assets/share/roster-index.jpg",
-      "alt": "An orange diesel switcher locomotive on the layout beside coal hoppers.",
-      "from": "media/photos-layout/IMG_8307.jpg"
+      "alt": "The Brick control point on the panel beside its device roster rows: two switches, two signal masts and two occupancy detectors with their hardware addresses.",
+      "from": "live image of the HART Railroad panel from JMRI's web server (2026-11-09, Brick) with six Brick rows from www/data/layout-index.json"
     }
   }
 }
