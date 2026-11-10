@@ -19,7 +19,7 @@ Deploys from your **local working tree** (any branch, work in progress included)
 - Elements marked `data-local-only` are **removed** from the built HTML (and also hidden by `js/nav.js` when `site.public`), so use it for localhost and workspace links. `site.json` `tools` (localhost service URLs) is dropped, and any data field still pointing into `../external/` is removed.
 - **Leak check:** the build fails, listing file and line, if the output still contains `localhost`, `127.0.0.1`, `/Users/`, or `external` (or `../external/` in data). Fix the source text or skip the file.
 - Gallery and rolling-stock items get a ~640 px grid thumbnail (`assets/gallery/thumbs/`, `assets/fleet/thumbs/`, field `thumb`) and the full image's `width`/`height` when Pillow is installed.
-- The 404 page uses site-root links (`/css/ops.css`, `/`), since the site is served at the domain root. `SITE_URL` (share tags) can be overridden with `--site-url` or `HART_SITE_URL`.
+- The 404 page is `404.html`, a train order annulling the missing page, with a rotating "cause of delay" line (the list is in the page's script). Its styles are in the page, and it uses site-root links (`/css/ops.css`, `/`) because it is served for any missing path, so locally it only draws properly from a built tree (below). The host does not serve it yet: nginx needs `error_page 404 /404.html;`. `SITE_URL` (share tags) can be overridden with `--site-url` or `HART_SITE_URL`.
 
 **Deploy safety** (`deploy_hartrailroad.sh`):
 

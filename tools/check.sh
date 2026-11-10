@@ -24,6 +24,7 @@ run unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 run unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 run unit-guards python3 -m unittest discover -q -s tools/audit/tests
 run unit-hosts python3 -m unittest discover -q -s tools/hosts/tests
+run unit-portal python3 -m unittest discover -q -s www/scripts/tests
 run desks python3 cats/scripts/validate_cats_panel.py
 # The portal build reads the private hart-ops submodule, which CI does not have.
 if [[ -z "${CI:-}" ]]; then
