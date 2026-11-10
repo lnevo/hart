@@ -19,7 +19,7 @@ WATCHED = re.compile(
     r"|docs/wiring/signals/signal_[a-z_]+\.csv"
     r"|jmri/scripts/signal_coordinator\.py)$"
 )
-CHECKS = [  # (name, argv) as in tools/check.sh
+CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is still there
     ("phase02", ["python3", "jmri/scripts/check_hart_phase02.py"]),
     ("tables-browser", ["python3", "www/scripts/build_tables_browser.py", "--check"]),
     ("track-lengths", ["python3", "jmri/layouts/hart/scripts/export_track_lengths.py", "--check"]),
@@ -30,6 +30,7 @@ CHECKS = [  # (name, argv) as in tools/check.sh
     ("unit-jmri", ["python3", "-m", "unittest", "discover", "-q", "-s", "jmri/layouts/hart/scripts/tests"]),
 ]
 BUDGET = 20.0
+MIN_LEFT = 5.0
 
 
 def toplevel(directory):
@@ -53,7 +54,7 @@ def main():
     started, failed = time.monotonic(), []
     for name, argv in CHECKS:
         left = BUDGET - (time.monotonic() - started)
-        if left <= 0:
+        if left < MIN_LEFT:  # too little time to finish; a timeout here would look like a failure
             print(f"check budget of {BUDGET:.0f}s used; skipped {name} and later. Run ./tools/check.sh.", file=sys.stderr)
             break
         t0 = time.monotonic()
