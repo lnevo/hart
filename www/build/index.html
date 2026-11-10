@@ -136,17 +136,6 @@
       <div class="build-timeline" id="progress-grid"><p class="muted">Loading…</p></div>
       <div class="archive-toast" id="progress-toast" role="status" aria-live="polite"></div>
     </section>
-
-    <section class="hub-group" id="photos" aria-labelledby="photos-title">
-      <h2 id="photos-title">Track plans and wiring</h2>
-      <p class="section-note">
-        How the plan changed, and the diagrams used to wire it. For the finished room on a session night,
-        see <a href="../photos/index.html#layout/session-night">Photos</a>.
-      </p>
-      <p class="muted" id="gallery-lede" hidden></p>
-      <div class="album-bar" id="album-bar"></div>
-      <div class="gallery-masonry" id="gallery-grid"></div>
-    </section>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
@@ -192,15 +181,8 @@
           toast: "#progress-toast",
           curate: "/api/gallery",
         });
-        await HARTGallery.mount({ dataUrl: "data/gallery.json", albums: ["plans", "build"], heading: false });
-        // Deep links: #plans and #wiring open that album; any hash scrolls again once the galleries have filled in.
-        var hash = location.hash.slice(1);
-        var album = { plans: "plans", wiring: "build" }[hash];
-        if (album) {
-          var btn = document.querySelector('#album-bar [data-album="' + album + '"]');
-          if (btn) btn.click();
-        }
-        var target = document.getElementById(album ? "photos" : hash);
+        // Any hash scrolls again once the chronology has filled in.
+        var target = document.getElementById(location.hash.slice(1));
         if (target) target.scrollIntoView();
       } catch (err) {
         console.error(err);
