@@ -7,6 +7,10 @@ Behind the Scenes and The Diverging Route are expected to have one, about the pa
 subject rather than its section. Paperwork pages and hubs without a subject picture share the
 Operations card ("shared": true), by the owner's choice.
 
+The build also shows these pictures on hub cards: in a card grid marked data-card-thumbs,
+each card linking to a page with its own picture gets a small copy on top, unless that picture
+would appear twice in the grid.
+
   share_cards.py make SOURCE assets/share/NAME.jpg [--focus X,Y] [--zoom Z]   crop a picture to a card
   share_cards.py check                                                        list gaps and faults
 """
@@ -15,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import posixpath
 import re
 import subprocess
 import sys
@@ -74,6 +79,65 @@ def expected_pages(pages: list[Path], portal: Path = PORTAL) -> list[Path]:
         if not _is_stub(text) and section_of(rel, text, site) in SECTIONS:
             out.append(rel)
     return out
+
+
+THUMB_DIR = "assets/share/thumbs"
+THUMB_PX = 560  # long side; the card shows it at about 260 px wide, so this covers 2x screens
+_GRID = re.compile(r"<div\b[^>]*\bdata-card-thumbs\b[^>]*>")
+_DIV = re.compile(r"<(/?)div\b[^>]*>")
+_CARD = re.compile(r'<a class="card"( href="([^"#?]+)")>')
+
+
+def card_target(page: Path | str, href: str) -> str | None:
+    """The site-relative page a card links to ("ai/research.html"), or None for links off the site."""
+    if href.startswith(("http:", "https:", "mailto:", "/")):
+        return None
+    target = posixpath.normpath(posixpath.join(posixpath.dirname(Path(page).as_posix()), href))
+    if target.startswith("../"):
+        return None
+    if href.endswith("/") or target == ".":
+        target = posixpath.join("" if target == "." else target, "index.html")
+    return target
+
+
+def add_card_thumbs(text: str, page: Path | str, cards: dict[str, dict] | None = None) -> tuple[str, dict[str, str]]:
+    """Put the linked page's share picture at the top of each card in a grid marked data-card-thumbs.
+
+    Returns (new text, {thumb path: share image path}) so the build can write the small copies.
+    Cards whose page has no picture of its own stay text-only, and so do cards whose picture would
+    appear twice in the grid (pages marked "shared" in share-cards.json).
+    """
+    cards = load() if cards is None else cards
+    thumbs: dict[str, str] = {}
+    out, pos = [], 0
+    for grid in _GRID.finditer(text):
+        if grid.start() < pos:
+            continue
+        depth, end = 1, len(text)  # find the grid's closing </div>
+        for d in _DIV.finditer(text, grid.end()):
+            depth += -1 if d.group(1) else 1
+            if depth == 0:
+                end = d.start()
+                break
+
+        body = text[grid.end() : end]
+        images = {m.start(): (cards.get(card_target(page, m.group(2)) or "") or {}).get("image") for m in _CARD.finditer(body)}
+        repeated = {i for i in images.values() if i and list(images.values()).count(i) > 1}
+
+        def add(m: re.Match) -> str:
+            image = images.get(m.start())
+            if not image or image in repeated:
+                return m.group(0)
+            thumb = f"{THUMB_DIR}/{Path(image).stem}.jpg"
+            thumbs[thumb] = image
+            up = "../" * (len(Path(page).parts) - 1)
+            return f'<a class="card has-thumb"{m.group(1)}><img class="card-thumb" src="{up}{thumb}" alt="" loading="lazy">'
+
+        out.append(text[pos : grid.end()])
+        out.append(_CARD.sub(add, body))
+        pos = end
+    out.append(text[pos:])
+    return "".join(out), thumbs
 
 
 def _image_size(path: Path) -> tuple[int, int] | None:

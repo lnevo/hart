@@ -387,6 +387,26 @@ def _add_head_tags(dest_root: Path) -> None:
         )
 
 
+def _card_thumbs(dest_root: Path) -> None:
+    """Hub cards in a grid marked data-card-thumbs show the linked page's share picture.
+
+    The pictures are small copies of the share cards (assets/share/thumbs/). A page is left as it
+    is when a copy cannot be made (no Pillow), so no card points at a missing picture.
+    """
+    cards = share_cards.load()
+    for page in dest_root.rglob("*.html"):
+        text = page.read_text(encoding="utf-8")
+        if "data-card-thumbs" not in text:
+            continue
+        new, thumbs = share_cards.add_card_thumbs(text, page.relative_to(dest_root), cards)
+        made = all(
+            (dest_root / thumb).is_file() or _web_jpeg(dest_root / image, dest_root / thumb, share_cards.THUMB_PX)
+            for thumb, image in thumbs.items()
+        )
+        if thumbs and made:
+            page.write_text(new, encoding="utf-8")
+
+
 def _unsafe_dest(dest: Path) -> bool:
     """True when rmtree(dest) would delete the repo, the portal, or a folder holding either."""
     repo = Path(
@@ -438,6 +458,7 @@ def main() -> int:
     # (nginx; .htaccess is ignored).
     _strip_local_only_pages(dest)
     _add_head_tags(dest)
+    _card_thumbs(dest)
     leaks = _check_leaks(dest)
     if leaks:
         print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)

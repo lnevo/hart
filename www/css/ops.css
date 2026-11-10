@@ -531,6 +531,33 @@ main:not(.full-bleed) .btn-ghost:hover {
   color: inherit;
 }
 
+/* Hub cards with a picture (added by the build in grids marked data-card-thumbs): a 2:1 band on top,
+   colour turned down to sit with the card, full colour when pointed at. */
+.card.has-thumb {
+  padding-top: 0;
+  overflow: hidden;
+}
+
+.card .card-thumb {
+  display: block;
+  width: calc(100% + 2.3rem);
+  max-width: none;
+  max-height: 170px;
+  aspect-ratio: 2 / 1;
+  margin: 0 -1.15rem 0.85rem;
+  object-fit: cover;
+  border-bottom: 1px solid var(--rule);
+  filter: saturate(0.5) contrast(0.9) brightness(1.06);
+  opacity: 0.85;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.card:hover .card-thumb,
+.card:focus-visible .card-thumb {
+  filter: none;
+  opacity: 1;
+}
+
 .card h3 {
   font-family: var(--font-display);
   font-size: 1.35rem;
