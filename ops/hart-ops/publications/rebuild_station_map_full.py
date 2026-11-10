@@ -38,16 +38,19 @@ from rebuild_local_station_maps import (  # noqa: E402
 
 OUT = PUB / "assets" / "station_map_full.png"
 
+SWNUM = {100: 1, 101: 3, 102: 5, 103: 15, 104: 17, 105: 19, 106: 21, 107: 25, 108: 27,
+         109: 29, 110: 31, 111: 23, 112: 33, 113: 35, 114: 37, 115: 39}  # ADR-005
 LW = 4
 DOT_R = 15
 K = 0.24  # ladder slope, dx per dy (same as the sheets)
 
 Y0 = 160  # Main West
-R1 = 210  # Main West to S-R / West Lead
+P_GAP = 120  # Main West to the S-R / Main East row, from the jog to Princess
+R1 = 210  # Main West to the West Lead at Plane
+W0 = Y0 + R1  # West Lead row, west of the jog before 103
 G = 120  # row pitch in the yard
-S = [Y0 + R1 + i * G for i in range(5)]  # S-R, S-1 .. S-4
+S = [Y0 + P_GAP + i * G for i in range(5)]  # S-R, S-1 .. S-4 (yard, east of the jog)
 ME_LOW = S[4] + 85  # Main East under the yard
-P_GAP = 120  # Main West to Main East at Princess
 
 track_font = _font(ARIAL_BOLD, 24)
 cp_font = _font(ARIAL_BOLD, 38)
@@ -69,9 +72,7 @@ def main() -> None:
     turn_x = x103 - 120  # Main East leaves its high row
     x110 = x103 + 900
     x112 = x110 + 150
-    ts = x112 + 220  # taper start (Main East rises to sit beside Main West)
-    te = ts + (S[0] - (Y0 + P_GAP))
-    t113x = te + 100
+    t113x = x112 + 200
     xp = t113x + P_GAP  # Princess
     t115x = xp + 150
     x_end = xp + 564
@@ -98,7 +99,7 @@ def main() -> None:
 
     # ── West Yard ────────────────────────────────────────────────────────
     plane = (xb, Y0 + 2 * s_leg + vert)
-    assert plane[1] == S[0], (plane, S[0])
+    assert plane[1] == W0, (plane, W0)
     p1 = (xb - s_leg, Y0 + s_leg)
     p2 = (p1[0], p1[1] + vert)
     t101 = (x101, Y0)
@@ -112,9 +113,9 @@ def main() -> None:
     lab((stub_mid, Y0 - 18), "W-1", track_font)
     lab((stub_mid, w2c[1] + 20), "W-2", track_font, "mt")
     dot(t101)
-    badge((x101 - 56, Y0 - 44), "101")
+    badge((x101 - 56, Y0 - 44), "{}".format(SWNUM[101]))
     dot((xb, Y0))
-    badge((xb + 56, Y0 - 44), "100")
+    badge((xb + 56, Y0 - 44), "{}".format(SWNUM[100]))
     lab((xb + 28, Y0 + 56), "Brick", cp_font)
 
     # Brick lead to Plane
@@ -123,22 +124,28 @@ def main() -> None:
     line(p2, plane)
     dot(plane)
     lab((plane[0] - 60, plane[1]), "Plane", cp_font, "rm")
-    badge((plane[0] + 56, plane[1] - 44), "102")
+    badge((plane[0] + 56, plane[1] - 44), "{}".format(SWNUM[102]))
 
     # West Lead (S-R) runs east from Plane; Main East drops one row and runs east
-    me_hi = S[1]
-    me_corner = (xb + (me_hi - S[0]), me_hi)
-    line(plane, (x110, S[0]))  # West Lead / S-R to 110
+    me_hi = W0 + G
+    me_corner = (xb + (me_hi - W0), me_hi)
+    # West Lead jogs up 45 degrees between 13 and 103, so the yard sits close
+    # under Main West and nothing downstream is stretched
+    xj0 = takeoff_x + 40
+    xj1 = xj0 + (W0 - S[0])
+    line(plane, (xj0, W0))
+    line((xj0, W0), (xj1, S[0]))
+    line((xj1, S[0]), (x110, S[0]))  # S-R to 110
     line((x110, S[0]), (x112, S[0]))  # S-R links 110 to 112
     line(plane, me_corner)
     line(me_corner, (turn_x, me_hi))
-    lab((xb + 150, S[0] - 18), "West Lead", track_font)
+    lab((xb + 150, W0 - 18), "West Lead", track_font)
     lab((xb + 205, me_hi - 18), "Main East", track_font)
 
     # ── Barn (SM-06): switch 7 crossover, 13 / 11 / 9, EH-1 to EH-3 ─────
     x7 = xb + 260
-    sw7_top = (x7, S[0])
-    sw7_bot = (x7 + (me_hi - S[0]) * 0.5, me_hi)
+    sw7_top = (x7, W0)
+    sw7_bot = (x7 + (me_hi - W0) * 0.5, me_hi)
     sw7_mid = ((sw7_top[0] + sw7_bot[0]) / 2, (sw7_top[1] + sw7_bot[1]) / 2)
     line(sw7_top, sw7_bot)
     for p in (sw7_top, sw7_mid, sw7_bot):
@@ -146,13 +153,13 @@ def main() -> None:
     badge((sw7_mid[0] - 50, sw7_mid[1]), "7")
     lab((sw7_mid[0] + 10, me_hi + 52), "Barn", cp_font)
 
-    eh = {3: S[0] - 70, 2: S[0] - 112, 1: S[0] - 154}
+    eh = {3: W0 - 70, 2: W0 - 112, 1: W0 - 154}
     x_eh = xb + 140
 
     def up_left(p, y):
         return (p[0] + 0.5 * (y - p[1]), y)
 
-    sw13 = (takeoff_x, S[0])
+    sw13 = (takeoff_x, W0)
     sw11 = up_left(sw13, eh[3])
     eh1_join = up_left(sw13, eh[1])
     sw9 = (takeoff_x - 300, eh[3])
@@ -164,7 +171,7 @@ def main() -> None:
     line(eh2_join, sw9)
     for p in (sw13, sw11, sw9):
         dot(p)
-    badge((sw13[0] - 56, S[0] - 34), "13")
+    badge((sw13[0] - 56, W0 - 34), "13")
     badge((sw11[0] + 56, sw11[1] - 30), "11")
     badge((sw9[0] + 56, sw9[1] - 30), "9")
     for n in (1, 2, 3):
@@ -180,7 +187,7 @@ def main() -> None:
     line(top, bot)
     for num, y in ((103, S[0]), (104, S[1]), (105, S[2]), (106, S[3])):
         dot((lad_w(y), y))
-        badge((lad_w(y) + 36, y - 28), str(num))
+        badge((lad_w(y) + 36, y - 28), str(SWNUM[num]))
 
     # Main East: high row → down the west side of the ladder → under the yard
     me_foot = (turn_x + (ME_LOW - me_hi) * K, ME_LOW)
@@ -196,7 +203,7 @@ def main() -> None:
     line(etop, ebot)
     for num, y in ((110, S[0]), (109, S[1]), (108, S[2]), (107, S[3])):
         dot((lad_e(y), y))
-        badge((lad_e(y) - 36, y - 28), str(num))
+        badge((lad_e(y) - 36, y - 28), str(SWNUM[num]))
 
     # 111: Main West ↔ S-R
     x111 = x110 - 260
@@ -207,7 +214,7 @@ def main() -> None:
     dot(sw111_bot)
     mid111 = (x111 + (S[0] - Y0) * K * 0.5, (Y0 + S[0]) / 2)
     dot(mid111)
-    badge((mid111[0] - 60, mid111[1]), "111")
+    badge((mid111[0] - 60, mid111[1]), "{}".format(SWNUM[111]))
 
     # S-R label, then yard tracks with industries
     lab((x103 + 100, S[0] - 18), "Track S-R", track_font, "lm")
@@ -247,14 +254,12 @@ def main() -> None:
     line(me_foot, (me_turn_x, ME_LOW))
     line((me_turn_x, ME_LOW), (x112, S[0]))
     dot((x112, S[0]))
-    badge((x112 - 36, S[0] - 28), "112")
+    badge((x112 - 36, S[0] - 28), "{}".format(SWNUM[112]))
     lab(((me_foot[0] + me_turn_x) / 2, ME_LOW - 18), "Main East", track_font)
 
     # ── Princess / Shenango ──────────────────────────────────────────────
     y2 = Y0 + P_GAP
-    line((x112, S[0]), (ts, S[0]))
-    line((ts, S[0]), (te, y2))
-    line((te, y2), (x_end, y2))
+    line((x112, y2), (x_end, y2))
     lab((x112 + 120, S[0] - 18), "Main East", track_font)
 
     # Main West label stations along the top
@@ -270,7 +275,7 @@ def main() -> None:
     dot(mid113)
     dot(t113)
     lab((mid113[0], Y0 - 48), "Princess", cp_font)
-    badge((mid113[0] + 46, mid113[1] + 4), "113")
+    badge((mid113[0] + 46, mid113[1] + 4), "{}".format(SWNUM[113]))
 
     y_top = Y0 - 100
     y_bot = y2 + 100
@@ -287,8 +292,8 @@ def main() -> None:
     line(top_r, bot_r)
     dot((t115x, Y0))
     dot((t115x, y2))
-    badge((t115x - 48, Y0 - 28), "115")
-    badge((t115x - 48, y2 + 28), "114")
+    badge((t115x - 48, Y0 - 28), "{}".format(SWNUM[115]))
+    badge((t115x - 48, y2 + 28), "{}".format(SWNUM[114]))
 
     k_x = (t115x + x_end) / 2
     lab((k_x, Y0 - 18), "Track K-1", track_font)
