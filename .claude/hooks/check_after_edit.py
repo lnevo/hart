@@ -32,12 +32,23 @@ CHECKS = [  # (name, argv) as in tools/check.sh
 BUDGET = 20.0
 
 
+def toplevel(directory):
+    try:
+        done = subprocess.run(["git", "-C", directory, "rev-parse", "--show-toplevel"],
+                              capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return done.stdout.strip() if done.returncode == 0 else ""
+
+
 def main():
     data = json.load(sys.stdin)
     path = data.get("tool_input", {}).get("file_path", "")
     if not WATCHED.search(path.replace(os.sep, "/")):
         return 0
-    root = os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd()
+    # Check the checkout that holds the edited file: agents often edit in a worktree,
+    # and CLAUDE_PROJECT_DIR would test the main checkout instead.
+    root = toplevel(os.path.dirname(os.path.abspath(path))) or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     env = dict(os.environ, JMRI_LAYOUT="hart")
     started, failed = time.monotonic(), []
     for name, argv in CHECKS:
