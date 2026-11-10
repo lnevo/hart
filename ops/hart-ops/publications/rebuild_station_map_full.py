@@ -61,6 +61,12 @@ spot_font = _font(GEORGIA, 17)
 note_font = _font(GEORGIA, 19)
 
 
+def barn_crossover(sw9_x: float, row_top: float, row_bot: float):
+    """Switch 7's crossover from the West Lead down to Main East: 45 degrees like switch 23,
+    placed so its Main East end (the dot over the Barn label) sits under switch 9."""
+    return (sw9_x - (row_bot - row_top), row_top), (sw9_x, row_bot)
+
+
 def main() -> None:
     # ── x anchors ────────────────────────────────────────────────────────
     x_stub = 40
@@ -143,15 +149,14 @@ def main() -> None:
     lab((xb + 205, me_hi - 18), "Main East", track_font)
 
     # ── Barn (SM-06): switch 7 crossover, 13 / 11 / 9, EH-1 to EH-3 ─────
-    x7 = xb + 260
-    sw7_top = (x7, W0)
-    sw7_bot = (x7 + (me_hi - W0) * 0.5, me_hi)
+    sw9_x = takeoff_x - 300
+    sw7_top, sw7_bot = barn_crossover(sw9_x, W0, me_hi)
     sw7_mid = ((sw7_top[0] + sw7_bot[0]) / 2, (sw7_top[1] + sw7_bot[1]) / 2)
     line(sw7_top, sw7_bot)
     for p in (sw7_top, sw7_mid, sw7_bot):
         dot(p)
     badge((sw7_mid[0] - 50, sw7_mid[1]), "7")
-    lab((sw7_mid[0] + 10, me_hi + 52), "Barn", cp_font)
+    lab((sw7_bot[0], me_hi + 52), "Barn", cp_font)
 
     eh = {3: W0 - 70, 2: W0 - 112, 1: W0 - 154}
     x_eh = xb + 140
@@ -162,7 +167,7 @@ def main() -> None:
     sw13 = (takeoff_x, W0)
     sw11 = up_left(sw13, eh[3])
     eh1_join = up_left(sw13, eh[1])
-    sw9 = (takeoff_x - 300, eh[3])
+    sw9 = (sw9_x, eh[3])
     eh2_join = up_left(sw9, eh[2])
     line((x_eh, eh[1]), eh1_join)
     line((x_eh, eh[2]), eh2_join)
