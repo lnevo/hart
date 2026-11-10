@@ -23,6 +23,7 @@ def _portal(tmp: str) -> Path:
         "library/h.html": '<title>H — HART</title><script>HartNav.mountChrome("articles")</script>',
         "crew/ck1/index.html": '<title>CK1 — HART</title><script>HartNav.mountChrome("crew")</script>',
         "roster/index.html": "<title>Roster — HART</title>",
+        "guides/index.html": '<title>Guides — HART</title><script>HartNav.mountChrome("guide")</script>',
     }
     for name, text in pages.items():
         (root / name).parent.mkdir(parents=True, exist_ok=True)
