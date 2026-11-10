@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Page not found — HART Railroad</title>
+  <!-- Served for any missing path, at any depth: every link here starts at the site root. -->
+  <link rel="stylesheet" href="/css/ops.css">
+  <style>
+    .lost {
+      display: grid;
+      gap: 2rem 3rem;
+      align-items: start;
+      padding-top: 1rem;
+    }
+
+    @media (min-width: 900px) {
+      .lost {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        padding-top: 2.5rem;
+      }
+    }
+
+    .lost-kicker {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-text);
+      margin: 0 0 0.6rem;
+    }
+
+    .lost h1 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(2.8rem, 7vw, 4.6rem);
+      letter-spacing: 0.02em;
+      line-height: 0.95;
+      color: var(--brand);
+      margin: 0 0 1rem;
+    }
+
+    .lost-lede {
+      font-size: 1.15rem;
+      max-width: 36ch;
+      margin: 0 0 1.5rem;
+      color: var(--ink-soft);
+    }
+
+    .lost-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    /* The train order: a Form 19 flimsy, typed by the operator and handed up on the fly. */
+    .flimsy {
+      position: relative;
+      max-width: 34rem;
+      padding: 1.4rem 1.5rem 1.2rem;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%),
+        #e3ecc9;
+      border: 1px solid #a9b68a;
+      box-shadow: var(--shadow), 0 1px 0 rgba(18, 26, 34, 0.12);
+      color: #1d2a1c;
+      transform: rotate(-0.7deg);
+    }
+
+    .flimsy-form {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .flimsy-road {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 0.5rem 0 0;
+    }
+
+    .flimsy-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.15rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 0 0 0.9rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 3px double #5d6b4c;
+    }
+
+    .flimsy-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem 0.6rem;
+      align-items: baseline;
+      margin: 0 0 0.45rem;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Whatever the operator typed into a blank. */
+    .typed {
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #16202a;
+    }
+
+    .flimsy-line .typed {
+      flex: 1 1 8rem;
+      border-bottom: 1px solid #5d6b4c;
+      padding: 0 0.3rem;
+    }
+
+    .flimsy-body {
+      margin: 1.1rem 0;
+      padding: 0;
+      list-style: none;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .flimsy-body li + li {
+      margin-top: 0.5rem;
+    }
+
+    .flimsy-remarks {
+      margin: 1rem 0 0;
+      padding-top: 0.8rem;
+      border-top: 1px solid #5d6b4c;
+    }
+
+    .flimsy-remarks .typed {
+      display: block;
+      min-height: 3.2em;
+      margin-top: 0.25rem;
+      text-transform: none;
+      font-weight: 400;
+    }
+
+    .flimsy-again {
+      margin-top: 0.6rem;
+      padding: 0.3rem 0.7rem;
+      background: transparent;
+      border: 1px solid #5d6b4c;
+      color: inherit;
+      font: 600 0.85rem var(--font-body);
+      cursor: pointer;
+    }
+
+    .flimsy-again:hover {
+      background: rgba(93, 107, 76, 0.16);
+    }
+
+    .flimsy-stamp {
+      position: absolute;
+      right: 1.1rem;
+      top: 5.4rem;
+      padding: 0.1rem 0.6rem;
+      border: 3px solid var(--signal);
+      color: var(--signal);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      transform: rotate(-9deg);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    @media (max-width: 480px) {
+      .flimsy {
+        padding: 1.1rem 1rem 1rem;
+        transform: none;
+      }
+
+      .flimsy-stamp {
+        font-size: 1.15rem;
+        top: 5.9rem;
+        right: 0.7rem;
+      }
+    }
+
+    @media print {
+      .flimsy {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="lost">
+      <div>
+        <p class="lost-kicker">404 · Page not found</p>
+        <h1>End of track.</h1>
+        <p class="lost-lede">
+          There's no page at this address. It may have moved, or the link that brought you
+          here is wrong. The dispatcher has been told, and sent the order alongside.
+        </p>
+        <div class="lost-actions">
+          <a class="btn" href="/">Back to the yard office</a>
+          <a class="btn btn-ghost" href="/history/index.html">The Prototype</a>
+          <a class="btn btn-ghost" href="/operators/index.html">Operations</a>
+        </div>
+      </div>
+
+      <section class="flimsy" aria-label="Train order number 404">
+        <p class="flimsy-form"><span>Form 19</span><span>Operator's copy</span></p>
+        <p class="flimsy-road">HART Railroad</p>
+        <p class="flimsy-title">Train Order No. 404</p>
+        <p class="flimsy-line">To <span class="typed">C. &amp; E. Extra 404 West</span></p>
+        <p class="flimsy-line">At <span class="typed">Neville Island</span></p>
+        <ul class="flimsy-body typed">
+          <li><span data-lost-path>The page you asked for</span> is annulled.</li>
+          <li>Extra 404 has no rights beyond this point.</li>
+          <li>Return to Neville Island yard and report to the yardmaster.</li>
+        </ul>
+        <p class="flimsy-line">Made <span class="typed">Complete</span> Time <span class="typed">4:04 PM</span></p>
+        <div class="flimsy-remarks">
+          <p class="flimsy-line" id="lost-remarks-label" style="margin: 0">Remarks: cause of delay</p>
+          <span class="typed" data-lost-excuse aria-live="polite" aria-labelledby="lost-remarks-label">Last seen entering the helix. Nothing has come out the other end.</span>
+          <button class="flimsy-again" type="button" data-lost-again hidden>Ask the crew again</button>
+        </div>
+        <span class="flimsy-stamp" aria-hidden="true">Annulled</span>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="/js/nav.js"></script>
+  <script>
+    HARTOps.mountChrome("404").catch(function () {});
+    (function () {
+      // The address that was asked for, typed into the order (textContent, so it stays text).
+      var path = decodeURI(window.location.pathname || "");
+      var slot = document.querySelector("[data-lost-path]");
+      if (slot && path && path !== "/" && !/\/404\.html$/.test(path)) {
+        slot.textContent = path.length > 60 ? path.slice(0, 57) + "…" : path;
+      }
+
+      var excuses = [
+        "Last seen entering the helix. Nothing has come out the other end.",
+        "Lifted off the layout by the 0-5-0 switcher. No paperwork was filed.",
+        "The car card is in the box. The car is not.",
+        "Derailed on the one piece of track nobody can reach.",
+        "Set out bad order on the RIP track. Parts have been on order since last year.",
+        "Held at the scale house. The buzzer went off.",
+        "Somebody ran through a switch. Nobody is admitting it.",
+        "Shorted on a frog. The whole district went dark.",
+        "In a box under the benchwork marked MISC.",
+        "Crew went dead on the hours of service law, one page short of the terminal.",
+        "Interchanged to a foreign road. They say they never got it.",
+        "Waiting for the glue to dry."
+      ];
+      var out = document.querySelector("[data-lost-excuse]");
+      var again = document.querySelector("[data-lost-again]");
+      if (!out || !again) return;
+      var at = Math.floor(Math.random() * excuses.length);
+      out.textContent = excuses[at];
+      again.hidden = false;
+      again.addEventListener("click", function () {
+        at = (at + 1) % excuses.length;
+        out.textContent = excuses[at];
+      });
+    })();
+  </script>
+</body>
+</html>

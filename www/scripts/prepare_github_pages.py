@@ -430,30 +430,8 @@ def main() -> int:
     _vendor_archive_images(dest / "data" / "archive.json", dest)
     _strip_external_data(dest)
 
-    # The web server must point error_page 404 here (nginx; .htaccess is ignored). Links are site-root-relative.
-    (dest / "404.html").write_text(
-        """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HART Operator Portal</title>
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="/css/ops.css">
-</head>
-<body>
-  <header class="site-header" data-ops-header></header>
-  <main>
-    <p>That page is not on the public portal. <a href="/">Back to HART</a>.</p>
-  </main>
-  <footer class="site-footer" data-ops-footer></footer>
-  <script src="/js/nav.js"></script>
-  <script>HARTOps.mountChrome("404").catch(function () {});</script>
-</body>
-</html>
-""",
-        encoding="utf-8",
-    )
+    # 404.html is a tracked page (site-root links); the web server must point error_page 404 at it
+    # (nginx; .htaccess is ignored).
     _strip_local_only_pages(dest)
     _add_head_tags(dest)
     leaks = _check_leaks(dest)
