@@ -1,4 +1,4 @@
-"""The local portal server: the retired F-root review route is gone, the archive edit route still answers."""
+"""The local portal server: edit pings answer, the archive edit route validates, the retired F-root route is gone."""
 import http.client
 import json
 import sys
@@ -44,6 +44,14 @@ class PortalRoutes(unittest.TestCase):
     def test_archive_route_still_validates(self) -> None:
         # Unknown item id: routed to the archive handler, which refuses it without writing.
         self.assertIn(self.request("POST", "/api/archive/item", {"id": "no-such-item"}), (400, 404))
+
+    def test_edit_pings_answer(self) -> None:
+        # archive.js and gallery.js show their edit tools only when these return 200.
+        self.assertEqual(self.request("GET", "/api/archive/ping"), 200)
+        self.assertEqual(self.request("GET", "/api/gallery/ping"), 200)
+
+    def test_other_api_paths_are_not_served(self) -> None:
+        self.assertEqual(self.request("GET", "/api/archive/item"), 404)
 
     def test_website_is_served(self) -> None:
         self.assertEqual(self.request("GET", "/www/index.html"), 200)

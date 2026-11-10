@@ -79,11 +79,13 @@ class PortalHandler(SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if not self._local_host():
             return
-        if not self._servable_path():
-            return
+        # The edit pages ask "can I save here?" with a ping. Answer it before the
+        # file check, which only serves www/, media/ and the like and would 404 it.
         route = self.path.split("?", 1)[0]
         if route in (API_ARCHIVE_PING, API_GALLERY_PING):
             self._send_json(200, {"ok": True})
+            return
+        if not self._servable_path():
             return
         super().do_GET()
 
