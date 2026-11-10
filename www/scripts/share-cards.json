@@ -90,6 +90,26 @@
       "alt": "Overview of the layout room with the helix, benchwork and painted backdrop, the hub's own banner.",
       "from": "media/photos-layout/IMG_8954.jpg"
     },
+    "crew/ck1/index.html": {
+      "image": "assets/share/crew-ck1.jpg",
+      "alt": "A South Yard train sheet on a clipboard with a pencil, on the layout edge.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (South Yard clipboard)"
+    },
+    "crew/d749/index.html": {
+      "image": "assets/share/crew-d749.jpg",
+      "alt": "Loose train sheets for a CSX train laid on the layout edge beside the clipboards.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (loose sheets)"
+    },
+    "crew/dispatcher/index.html": {
+      "image": "assets/share/crew-dispatcher.jpg",
+      "alt": "Train sheets on three clipboards and a loose stack, lined up along the layout edge below the track.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)"
+    },
+    "crew/nvl/index.html": {
+      "image": "assets/share/crew-nvl.jpg",
+      "alt": "The NVL Neville Island Local train sheet on a clipboard with a pencil, on the layout edge.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (NVL clipboard)"
+    },
     "docs/index.html": {
       "image": "assets/share/docs-index.jpg",
       "alt": "The printed Scale Operating Instructions booklet lying on the scale track.",
