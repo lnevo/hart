@@ -326,7 +326,6 @@
         "chartiers-valley"
       ],
       "credit": "Railway Age, 16 November 1940; scan from martynbane.co.uk",
-      "source_url": "https://www.martynbane.co.uk/images/us-ads/flannery-16-nov-1940.jpg",
       "credit_confidence": "verified",
       "rights": "",
       "reason": "",
@@ -787,8 +786,8 @@
         "by-products",
         "chemicals"
       ],
-      "credit": "Historic American Engineering Record, HAER AL-14 (Thomas By-Product Coke Works, Alabama); copy via Steel Mill Modelers Supply",
-      "source_url": "https://steelmillmodelerssupply.com/product/by-product-plant-ammonia-absorber/",
+      "credit": "Historic American Engineering Record, HAER AL-14 (Thomas By-Product Coke Works, Alabama); copy via Steel Mill Modelers Supply (now Tully Models)",
+      "source_url": "https://tullymodels.com/product/by-product-plant-ammonia-absorber/",
       "credit_confidence": "likely",
       "rights": "HAER drawings are US government work: public domain.",
       "reason": "Alabama plant, not Neville Island; generic process reference.",
@@ -808,7 +807,7 @@
         "ohio-river"
       ],
       "credit": "U.S. Geological Survey (via the Historical Topographic Map Explorer)",
-      "source_url": "https://livingatlas.arcgis.com/topoexplorer/",
+      "source_url": "https://livingatlas.arcgis.com/topomapexplorer/",
       "credit_confidence": "likely",
       "rights": "USGS maps are public domain.",
       "reason": "Screenshot; replace with a clean dated quad from the USGS topoView download.",
