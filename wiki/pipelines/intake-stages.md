@@ -77,7 +77,7 @@ Per loco, once it is on the bench: program the decoder, then [speed matching](sp
 State on 2026-11-08: all stages ran once on a real batch (ten CSX hoppers, cars 81 to 90 in STS, merged and deployed). The fixes it needed are in the stages above; locos have still not been through stage 4.
 
 **Before a batch**
-- Run from `ops/hart-ops` (`bin/cars ...`). It needs `.venv`, tesseract and the hart checkout on `main`. Other sessions share the checkouts: for repository changes use a worktree. `bin/cars` works from a worktree placed under `external/` (for example `ops/hart-ops-wt`, with `.venv` symlinked) because it derives the hart root from its own path; the files it writes outside hart-ops (Operations roster, gallery, STS inputs) still land in the main checkout, so copy them into your worktree to commit and restore the main checkout afterwards.
+- Run from `ops/hart-ops` (`bin/cars ...`). It needs `.venv`, tesseract and the hart checkout on `main`. Other sessions share the checkout: for repository changes use a hart worktree. `bin/cars` finds the hart root from its own path, so in a worktree everything it writes (repository, Operations roster, gallery, STS inputs) lands in that worktree, ready to commit. The worktree lacks the gitignored inputs, so link them in first: `ops/hart-ops/.venv`, `ops/car-cards` and `ops/intake` from the main checkout.
 - Photos go in `ops/car-cards/incoming/` in the hart root (gitignored). Phone names are fine.
 - `bin/cars compare` should show no drift first (HART1776 is a known exception).
 
