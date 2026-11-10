@@ -3,7 +3,8 @@
     "ai/construction.html": {
       "image": "assets/share/ai-construction.jpg",
       "alt": "Sheet 1 of the main level framing plan: joists and girders around the helix peninsula, with the legend and notes.",
-      "from": "docs/benchwork/main_level/main_level_joist_construction.pdf page 1 (top of the sheet)"
+      "from": "docs/benchwork/main_level/main_level_joist_construction.pdf page 1 (top of the sheet)",
+      "shared": true
     },
     "ai/control.html": {
       "image": "assets/share/ai-control.jpg",
@@ -63,7 +64,8 @@
     "behind/panel-evolution.html": {
       "image": "assets/share/behind-panel-evolution.jpg",
       "alt": "Three diagonal slices side by side: the light-blue Layout Editor panel, the black CATS dispatcher panel and the olive USS lever machine.",
-      "from": "www/assets/behind/panel-evolution/le-poster.jpg, cats-poster.jpg and uss-poster.jpg, sliced diagonally"
+      "from": "www/assets/behind/panel-evolution/le-poster.jpg, cats-poster.jpg and uss-poster.jpg, sliced diagonally",
+      "shared": true
     },
     "behind/signals.html": {
       "image": "assets/share/behind-signals.jpg",
@@ -84,6 +86,12 @@
       "image": "assets/share/briefing.jpg",
       "alt": "Diesel locomotives lined up outside the engine house, ready to be assigned to trains.",
       "from": "media/photos-layout/IMG_9288.jpg"
+    },
+    "build/files/main-level-plywood-cut-plan.html": {
+      "image": "assets/share/ai-construction.jpg",
+      "alt": "Sheet 1 of the main level framing plan: joists and girders around the helix peninsula, with the legend and notes.",
+      "from": "docs/benchwork/main_level/main_level_joist_construction.pdf page 1 (top of the sheet)",
+      "shared": true
     },
     "build/index.html": {
       "image": "assets/share/build-index.jpg",
@@ -120,15 +128,70 @@
       "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
       "shared": true
     },
+    "crew/maps/barn/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map: West Yard and Brick through Plane, Barn and the South Yard industry tracks to Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/east-end/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map: West Yard and Brick through Plane, Barn and the South Yard industry tracks to Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map: West Yard and Brick through Plane, Barn and the South Yard industry tracks to Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/shenango/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map: West Yard and Brick through Plane, Barn and the South Yard industry tracks to Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/south-yard/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map: West Yard and Brick through Plane, Barn and the South Yard industry tracks to Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/west-yard/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map: West Yard and Brick through Plane, Barn and the South Yard industry tracks to Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
     "crew/nvl/index.html": {
       "image": "assets/share/crew-nvl.jpg",
       "alt": "The NVL Neville Island Local train sheet on a clipboard with a pencil, on the layout edge.",
       "from": "www/assets/behind/sts/crew-sheets.jpg (NVL clipboard)"
     },
+    "crew/scale/index.html": {
+      "image": "assets/share/docs-index.jpg",
+      "alt": "The printed Scale Operating Instructions booklet lying on the scale track.",
+      "from": "www/assets/behind/sts/scale-instructions.jpg",
+      "shared": true
+    },
+    "crew/yardmaster/index.html": {
+      "image": "assets/share/crew-dispatcher.jpg",
+      "alt": "Train sheets on three clipboards and a loose stack, lined up along the layout edge below the track.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
+      "shared": true
+    },
+    "docs/html/HART_Railroad_Publication_Standards_v1.0.html": {
+      "image": "assets/share/docs-index.jpg",
+      "alt": "The printed Scale Operating Instructions booklet lying on the scale track.",
+      "from": "www/assets/behind/sts/scale-instructions.jpg",
+      "shared": true
+    },
     "docs/index.html": {
       "image": "assets/share/docs-index.jpg",
       "alt": "The printed Scale Operating Instructions booklet lying on the scale track.",
-      "from": "www/assets/behind/sts/scale-instructions.jpg"
+      "from": "www/assets/behind/sts/scale-instructions.jpg",
+      "shared": true
     },
     "guides/auto-dispatcher.html": {
       "image": "assets/share/guides-auto-dispatcher.jpg",
@@ -139,6 +202,12 @@
       "image": "assets/share/guides-cats-ctc.jpg",
       "alt": "The CATS Digicon panel: Brick, Plane and Barn with signal lamps and track names.",
       "from": "media/screenshots/cats_dispatcher_20260826_184626.png (crop)"
+    },
+    "guides/index.html": {
+      "image": "assets/share/behind-panel-evolution.jpg",
+      "alt": "Three diagonal slices side by side: the light-blue Layout Editor panel, the black CATS dispatcher panel and the olive USS lever machine.",
+      "from": "www/assets/behind/panel-evolution/le-poster.jpg, cats-poster.jpg and uss-poster.jpg, sliced diagonally",
+      "shared": true
     },
     "guides/uss-ctc.html": {
       "image": "assets/share/guides-uss-ctc.jpg",

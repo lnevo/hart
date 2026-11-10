@@ -8,8 +8,9 @@ snapshots and composites; each function below is the whole recipe for one of the
   make_share_cards.py [NAME ...] [--out DIR]  rebuild some or all (default: all, into assets/share/)
 
 Needs Pillow and Google Chrome (headless). Pages are served from this checkout, so the
-site's own styles and fonts are used. Three cards read a picture captured from a live
-system, kept in share-card-sources/:
+site's own styles and fonts are used. Some cards read a picture captured or copied from
+elsewhere, kept in share-card-sources/:
+  station-map-full.png     a copy of ops/hart-ops/publications/assets/station_map_full.png
   panel-frame.png          the HART Railroad panel from JMRI's web server
                            (GET http://<jmri host>:12080/frame/HART%20Railroad.png)
   track-scale-weighed.png  the owner's screenshot of the STS Track Scale after a weigh
@@ -448,6 +449,19 @@ def crew_dispatcher():
     return _clipboard((60, 150, 1540, 927))
 
 
+def station_maps():
+    """crew-maps: the full station map, whole, on white (used by the station maps index and every map page).
+    The source is a copy of ops/hart-ops/publications/assets/station_map_full.png; copy it again to refresh."""
+    from PIL import Image
+
+    im = Image.open(SOURCES / "station-map-full.png").convert("RGB")
+    w = W - 40
+    h = round(im.height * w / im.width)
+    out = Image.new("RGB", (W, H), "white")
+    out.paste(im.resize((w, h), Image.LANCZOS), (20, (H - h) // 2))
+    return out
+
+
 CARDS = {
     "library-operations-pro-article": opspro_article,
     "library-opspro-showcase-guide": opspro_walkthrough,
@@ -464,6 +478,7 @@ CARDS = {
     "plants-index": plants,
     "railroads-index": railroads,
     "library-coraopolis-record-opinion": coraopolis_record,
+    "crew-maps": station_maps,
     "crew-nvl": crew_nvl,
     "crew-dispatcher": crew_dispatcher,
 }

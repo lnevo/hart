@@ -21,6 +21,7 @@ def _portal(tmp: str) -> Path:
         "guides/a.html": '<title>A — HART</title><script>HartNav.mountChrome("guide")</script>',
         "guides/moved.html": '<title>Moved — HART</title><script>HartNav.mountChrome("guide")</script>',
         "library/h.html": '<title>H — HART</title><script>HartNav.mountChrome("articles")</script>',
+        "crew/index.html": '<title>Session paperwork — HART</title><script>HartNav.mountChrome("crew")</script>',
         "crew/ck1/index.html": '<title>CK1 — HART</title><script>HartNav.mountChrome("crew")</script>',
         "roster/index.html": "<title>Roster — HART</title>",
         "guides/index.html": '<title>Guides — HART</title><script>HartNav.mountChrome("guide")</script>',
@@ -56,7 +57,7 @@ class Review(unittest.TestCase):
             root = _portal(tmp)
             pages = [p.relative_to(root) for p in sorted(root.rglob("*.html"))]
             missing, faults = share_cards.review(pages, {}, root)
-        self.assertEqual(missing, ["crew/ck1/index.html", "guides/a.html", "roster/index.html"])  # guides/index.html is exempt
+        self.assertEqual(missing, ["crew/ck1/index.html", "guides/a.html", "guides/index.html", "roster/index.html"])  # crew/index.html is exempt
         self.assertEqual(faults, [])
 
     def test_faults_a_missing_image_and_a_picture_used_twice(self):
